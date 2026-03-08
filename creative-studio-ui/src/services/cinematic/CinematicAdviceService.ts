@@ -152,6 +152,17 @@ export class CinematicAdviceService {
             });
         }
 
+        // 12. Soundscape Complexity (Hollywood Foley)
+        if (segment.prompt.toLowerCase().includes('water') || segment.prompt.toLowerCase().includes('rain') || segment.prompt.toLowerCase().includes('ocean')) {
+            if (!segment.sfxPrompt?.toLowerCase().includes('ambience') && !segment.sfxPrompt?.toLowerCase().includes('subtle')) {
+                advice.push({
+                    id: 'soundscape_layering',
+                    level: 'info',
+                    text: "Conseil Niveau Pro : Vos visuels impliquent de l'eau. Ajoutez 'Subtle water lapping' ou 'Low frequency underwater hum' pour plus de profondeur.",
+                });
+            }
+        }
+
         return advice;
     }
 
@@ -195,8 +206,19 @@ export class CinematicAdviceService {
         if (hasDark && hasHappy) {
             advice.push({
                 id: 'mood_clash',
-                level: 'info',
-                text: "Contraste émotionnel fort détecté. Prévoyez une transition visuelle claire.",
+                level: 'warning',
+                text: "Contraste émotionnel brutal détecté. Suggéré : Une 'Dissolve' lente pour adoucir la transition ou un 'Hard Cut' pour le choc.",
+                actionLabel: 'Ajouter Transition'
+            });
+        }
+
+        // Logical Flow: check camera movement continuity
+        const rapidChanges = segments.some((s, i) => i > 0 && s.cameraMovement !== 'fixed' && segments[i-1].cameraMovement !== 'fixed' && s.cameraMovement !== segments[i-1].cameraMovement);
+        if (rapidChanges && totalDuration < 8) {
+             advice.push({
+                id: 'motion_chaos',
+                level: 'warning',
+                text: "Chaos de mouvement : Trop de changements de direction caméra en peu de temps. Risque de mal de mer numérique.",
             });
         }
 
@@ -236,6 +258,38 @@ export class CinematicAdviceService {
                 id: 'proj_vibe_weak',
                 level: 'info',
                 text: "Vibration thématique faible. Définissez une ambiance (ex: 'Techno-noir', 'Ethereal Pastels').",
+            });
+        }
+
+        return advice;
+    }
+
+    /**
+     * Analyzes the synergy between visual prompts and audio settings.
+     */
+    public static getAudioVisualAdvice(
+        segments: ShotSegment[],
+        tracks: any[] // Keeping any for now to avoid circular or missing imports from types, but properly handled
+    ): CinematicAdvice[] {
+        const advice: CinematicAdvice[] = [];
+        
+        const hasRain = segments.some(s => s.prompt.toLowerCase().includes('rain'));
+        const hasRainSFX = segments.some(s => s.sfxPrompt?.toLowerCase().includes('rain'));
+        
+        if (hasRain && !hasRainSFX) {
+            advice.push({
+                id: 'rain_audio_missing',
+                level: 'warning',
+                text: "Espace sonore incomplet : Pluie détectée dans les visuels mais absente des SFX. Suggéré : 'Heavy rain ambience'.",
+            });
+        }
+
+        const audioTrackCount = tracks.filter(t => t.type === 'audio').length;
+        if (segments.length > 10 && audioTrackCount < 2) {
+            advice.push({
+                id: 'audio_layering',
+                level: 'info',
+                text: "Conseil de mixage : Votre séquence est longue. Envisagez une 2ème piste audio pour séparer l'ambiance des ponctuations SFX.",
             });
         }
 

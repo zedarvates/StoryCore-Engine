@@ -3,6 +3,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
+import logging
+import json
+
+logger = logging.getLogger(__name__)
 
 class StoryGenre(Enum):
     ADVENTURE = "adventure"
@@ -30,13 +34,34 @@ class ProductionMode(Enum):
     SOCIAL_MEDIA = "social_media"
     CINEMATIC = "cinematic"
     AUDIODRAMA = "audiodrama"
+    RECAP = "recap"
+    INFLUENCER = "influencer"
+    MAKER = "maker"
+    SCIENTIFIC_REVIEW = "scientific_review"
+    HISTORICAL_REVIEW = "historical_review"
+    TOP_TIER_LIST = "top_tier_list"
+    FAITH_SPIRITUALITY = "faith_spirituality"
+    GAME_REVIEW = "game_review"
+    TECH_REVIEW = "tech_review"
+    FINANCE_REVIEW = "finance_review"
+    MASTERCLASS = "masterclass"
+    REAL_ESTATE = "real_estate"
+    PRODUCT_HYPE = "product_hype"
+    LEGAL_RECON = "legal_recon"
+    ASMR = "asmr"
+    MEDITATION = "meditation"
+    EXPERIMENTAL = "experimental"
+    TRUE_CRIME = "true_crime"
+    SPORTS_HIGHLIGHT = "sports_highlight"
+    GARDENING = "gardening"
+    RENOVATION = "renovation"
 
 @dataclass
 class StoryProp:
     id: str
     name: str
     description: str
-    is_immutale: bool = False
+    is_immutable: bool = False
     owner_id: Optional[str] = None
     interaction_type: str = ""
 
@@ -99,6 +124,8 @@ class Story:
     locations: List[Dict[str, Any]] = field(default_factory=list)
     props: List[StoryProp] = field(default_factory=list)
     sfx: List[StorySFX] = field(default_factory=list)
+    critique: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
 
@@ -150,7 +177,171 @@ class StoryGenerationService:
         CONTRAINTES:
         - Direction visuelle: Focus sur l'éclairage et les objectifs (Lenses).
         - Mouvements: Dolly, Pan, Tilt spécifiés pour chaque scène.
-        """
+        """,
+        ProductionMode.RECAP: """
+        ## METHODOLOGIE BOUT EN BOUT - RECAP
+        Create a condensation of events.
+        CONTRAINTES:
+        - Structure: Rappel du contexte, Points clés, Conclusion.
+        - Rythme: Rapide, narration dense.
+        """,
+        ProductionMode.INFLUENCER: """
+        ## METHODOLOGIE BOUT EN BOUT - INFLUENCEUR
+        Create a high-impact personal brand or lifestyle video.
+        CONTRAINTES:
+        - Hook (0-5s): A visceral question or visual surprise to stop the scroll.
+        - Personnage: L'influenceur doit avoir une "vibe" unique et un décor signature.
+        - Ton: Ultra-authentique, direct, usage de jargon de niche (ex: "POV", "GRWM").
+        - Visuel: Incrustations mobiles, emojis 3D dynamiques, sous-titres "Pop" synchronisés.
+        - Rythme: Jump-cuts agressifs pour maintenir l'attention.
+        - Call to Action: Intégré organiquement au milieu et à la fin.
+        - SFX: "Whoosh" transitions, notifications sonores, musique tendance (Lofi ou Phonk).
+        """,
+        ProductionMode.MAKER: """
+        ## METHODOLOGIE BOUT EN BOUT - MAKER/DIY
+        Create a project showcase or tutorial.
+        CONTRAINTES:
+        - Étapes: Matériel, Processus, Résultat final.
+        - SFX: Sons d'outils, bruits de construction.
+        """,
+        ProductionMode.SCIENTIFIC_REVIEW: """
+        ## METHODOLOGIE BOUT EN BOUT - REVUE SCIENTIFIQUE
+        Create a rigorous and educational scientific analysis.
+        CONTRAINTES:
+        - Structure: Hypothèse (Introduction), Méthodologie (Processus), Data Viz (Analyse), Conclusion.
+        - Objets: Séquenceurs ADN, microscopes électroniques, schémas moléculaires, équations de Maxwell.
+        - Visuel: Look "Labo High-tech" ou "Paper-style" élégant. Infographies minimalistes.
+        - Vocabulaire: Scientifique précis (ex: "entropie", "catalyse", "stochastique") avec vulgarisation intelligente.
+        - Ton: Calme, analytique, inspirant la confiance.
+        - SFX: Bruitages de mécanismes de précision, ambiances de salles blanches (room tone léger).
+        """,
+        ProductionMode.HISTORICAL_REVIEW: """
+        ## METHODOLOGIE BOUT EN BOUT - REVUE HISTORIQUE
+        Create a journey through the past.
+        CONTRAINTES:
+        - Objets: Cartes, documents d'archives, artefacts.
+        - Lieux: Reconstitution de sites historiques.
+        """,
+        ProductionMode.TOP_TIER_LIST: """
+        ## METHODOLOGIE BOUT EN BOUT - TOP / TIER LIST
+        Create a ranked list.
+        CONTRAINTES:
+        - Structure: Mention honorable, Top 5 à 1.
+        - Dynamique: Comparaison, argumentation.
+        """,
+        ProductionMode.FAITH_SPIRITUALITY: """
+        ## METHODOLOGIE BOUT EN BOUT - FOI ET SPIRITUALITÉ
+        Create a reflective or spiritual content.
+        CONTRAINTES:
+        - Atmosphere: Calme, méditative, lumineuse.
+        - Son: Musique ambiante, silence significatif.
+        """,
+        ProductionMode.GAME_REVIEW: """
+        ## METHODOLOGIE BOUT EN BOUT - JEU VIDÉO
+        Create a review or analysis of a game.
+        CONTRAINTES:
+        - Éléments: Gameplay, Graphismes, Histoire, Verdict.
+        - SFX: Sons de jeu, bruitages 8-bit ou modernes.
+        """,
+        ProductionMode.TECH_REVIEW: """
+        ## METHODOLOGIE BOUT EN BOUT - TECH REVIEW
+        Create a product review.
+        CONTRAINTES:
+        - Objets: Gadgets, hardware, software UI, boîtes de déballage (Unboxing).
+        - Focus: Specs détaillées (Benchmarks), ergonomie, prix/qualité.
+        - B-Roll: Plans macro sur les ports, les textures, les écrans en fonctionnement.
+        - Verdict: Tableau récapitulatif "Points Positifs / Points Négatifs".
+        """,
+        ProductionMode.FINANCE_REVIEW: """
+        ## METHODOLOGIE BOUT EN BOUT - FINANCE
+        Create market analysis or financial tips.
+        CONTRAINTES:
+        - Objets: Graphiques boursiers, monnaie, contrats.
+        - Ton: Sérieux, analytique.
+        """,
+        ProductionMode.MASTERCLASS: """
+        ## METHODOLOGIE BOUT EN BOUT - MASTERCLASS
+        Create a premium educational course.
+        CONTRAINTES:
+        - Structure: Chapitrage clair, Introduction, Leçons, Résumé.
+        - Visuel: Overlay de texte informatif, alternance face-cam / illustration.
+        """,
+        ProductionMode.REAL_ESTATE: """
+        ## METHODOLOGIE BOUT EN BOUT - IMMOBILIER
+        Create a fluid property walkthrough.
+        CONTRAINTES:
+        - Caméra: Mouvements fluides (Stabilisés), plans larges (Wide).
+        - Focus: Luminosité, matériaux, agencement des pièces.
+        """,
+        ProductionMode.PRODUCT_HYPE: """
+        ## METHODOLOGIE BOUT EN BOUT - PRODUCT HYPE
+        Create a cinematic product reveal.
+        CONTRAINTES:
+        - Caméra: Plans macro (Extreme Close-up), rotations 360°.
+        - Éclairage: Dramatique, reflets, clair-obscur.
+        """,
+        ProductionMode.LEGAL_RECON: """
+        ## METHODOLOGIE BOUT EN BOUT - RECONSTITUTION JURIDIQUE
+        Create a neutral factual reconstruction.
+        CONTRAINTES:
+        - Ton: Neutre, descriptif.
+        - Visuel: Horodatage constant, vue d'ensemble, pas de dramatisation.
+        """,
+        ProductionMode.ASMR: """
+        ## METHODOLOGIE BOUT EN BOUT - ASMR
+        Create a sensory audio-visual experience.
+        CONTRAINTES:
+        - Audio: Haute fidélité, sons de proximité (Triggers).
+        - Visuel: Gros plans extrêmes, mouvements lents et répétitifs.
+        """,
+        ProductionMode.MEDITATION: """
+        ## METHODOLOGIE BOUT EN BOUT - MEDITATION
+        Create a peaceful guided experience.
+        CONTRAINTES:
+        - Atmosphere: Calme, éthérée, respiration visuelle (zooms ultra-lents).
+        - SFX: Nature (eau, vent), silence significatif.
+        """,
+        ProductionMode.EXPERIMENTAL: """
+        ## METHODOLOGIE BOUT EN BOUT - EXPERIMENTAL
+        Create an abstract visual journey.
+        CONTRAINTES:
+        - Structure: Non-linéaire, montage par association d'idées.
+        - Visuel: Glitch, distorsion, expérimentations de couleurs.
+        """,
+        ProductionMode.TRUE_CRIME: """
+        ## METHODOLOGIE BOUT EN BOUT - TRUE CRIME
+        Create a stylized investigative narrative.
+        CONTRAINTES:
+        - Atmosphere: Pesante, mystérieuse (Noir).
+        - Objets: Indices, dossiers, photos d'archives.
+        """,
+        ProductionMode.SPORTS_HIGHLIGHT: """
+        ## METHODOLOGIE BOUT EN BOUT - SPORTS HIGHLIGHT
+        Create an energetic action compilation.
+        CONTRAINTES:
+        - Rythme: Ultra-rapide, synchronisation sur les impacts.
+        - Effets: Ralentis (Slow-mo), tracking de mouvement.
+        """,
+        ProductionMode.GARDENING: """
+        ## METHODOLOGIE BOUT EN BOUT - JARDINAGE / BOTANIQUE
+        Create a professional and aesthetic botanical guide.
+        CONTRAINTES:
+        - Lieux: Serres baignées de lumière, potagers en permaculture, jardins de curé.
+        - Objets: Sécateurs en laiton, arrosoirs design, semences anciennes, terreau fertile.
+        - Zoom: Focus Macro sur les textures des feuilles, les bourgeons, les insectes utiles.
+        - SFX: Froissement de feuilles, terre grattée, arrosage cristallin, chant d'oiseaux printaniers.
+        - Ton: Apaisant, pédagogique, proche de la nature.
+        """,
+        ProductionMode.RENOVATION: """
+        ## METHODOLOGIE BOUT EN BOUT - RENOVATION / DIY
+        Create a stunning residential or artistic transformation.
+        CONTRAINTES:
+        - Structure: État initial (Le défi), Travaux (L'effort / Montage accéléré), Résultat (L'effet "Wow").
+        - Comparaison: Obligation de décrire l'état "Avant" pour chaque nouveau décor créé après travaux.
+        - Objets: Plans d'architecte, échantillons de bois, ponceuses, pinceaux, débris de démolition.
+        - SFX: Impact de masse, stridence de scie circulaire, rouile de pinceau, musique épique de révélation.
+        - Ton: Inspirant, technique, dynamique.
+        """,
     }
     
     STRUCTURES = {
@@ -195,21 +386,61 @@ class StoryGenerationService:
     def __init__(self, llm_service=None):
         self.llm = llm_service
         self.stories: Dict[str, Story] = {}
+        
+        # Initialize Knowledge Graph
+        try:
+            from src.assistant.knowledge_graph import StoryGraph
+            from backend.config import settings
+            from pathlib import Path
+            self.graph = StoryGraph(persistence_path=Path(settings.KNOWLEDGE_GRAPH_PATH))
+            logger.info(f"Connected to Knowledge Graph at {settings.KNOWLEDGE_GRAPH_PATH}")
+        except Exception as e:
+            logger.warning(f"Could not initialize Knowledge Graph: {e}")
+            self.graph = None
     
-    def generate_story(
+    async def _call_llm(self, prompt: str, temperature: float = 0.7) -> str:
+        """Appel au LLM avec fallback sur mock si nécessaire"""
+        import os
+        api_key = os.environ.get("OPENAI_API_KEY")
+        
+        # Tentative d'appel réel via llm_api
+        if api_key and not os.environ.get("USE_MOCK_LLM", "false").lower() == "true":
+            try:
+                from backend.llm_api import call_llm_real, LLMRequest
+                request = LLMRequest(prompt=prompt, temperature=temperature)
+                response = await call_llm_real(request, user_id="system_internal")
+                if response and response.text:
+                    return response.text
+            except (ImportError, Exception) as e:
+                logger.debug(f"LLM call search or execution failed: {e}. Falling back to internal mock.")
+        
+        # Fallback sur le mock interne
+        return self._generate_mock_llm_response(prompt)
+
+    async def generate_story(
         self,
         prompt: str,
         genre: StoryGenre,
         structure: StoryStructure,
         mode: ProductionMode = ProductionMode.FICTION,
         length: str = "medium",  # short, medium, long
-        characters: List[Dict[str, Any]] = None
+        characters: List[Dict[str, Any]] = None,
+        with_critique: bool = False
     ) -> Story:
-        """Générer une story complète à partir d'un prompt"""
+        """Générer une story complète à partir d'un prompt via IA"""
+        
+        # 1. Utilisation du template Méthodologie "Bout en Bout"
+        template = self.PROMPT_TEMPLATES.get(mode, self.PROMPT_TEMPLATES.get(genre, ""))
+        rich_prompt = f"{template}\n\nUSER PROMPT: {prompt}\n\nGenerate a detailed narrative based on the above rules. Target length: {length}."
+        
+        # Call LLM to refine the synopsis if possible
+        ai_synopsis = await self._call_llm(rich_prompt)
+        final_synopsis = ai_synopsis if ai_synopsis else prompt
+
         story = Story(
             id=str(uuid.uuid4()),
-            title=self._extract_title(prompt),
-            synopsis=prompt,
+            title=self._extract_title(final_synopsis),
+            synopsis=final_synopsis,
             genre=genre,
             mode=mode,
             arcs=[],
@@ -218,142 +449,444 @@ class StoryGenerationService:
         )
         
         # Générer la bible de production (méthodologie bout en bout)
-        self._populate_production_bible(story)
+        # On pourrait passer ces méthodes en async aussi si elles appellent le LLM
+        await self._populate_production_bible(story)
         
         # Générer les arcs narratifs
-        story.arcs = self._generate_arcs(story, structure)
+        story.arcs = await self._generate_arcs(story, structure)
         
         # Générer les scènes
-        story.scenes = self._generate_scenes(story, length)
+        story.scenes = await self._generate_scenes(story, length)
         
         # Enrichir avec les beats
         self._populate_beats(story, structure)
         
+        if with_critique:
+            await self._critique_story(story)
+        
         self.stories[story.id] = story
+        
+        # 2. Synchroniser avec le Knowledge Graph (GraphRAG Persistence)
+        if self.graph:
+            await self._sync_story_to_graph(story)
+            
         return story
 
-    def _populate_production_bible(self, story: Story):
+    async def _sync_story_to_graph(self, story: Story):
+        """Ingérer les nouveaux éléments de l'histoire dans le graphe de connaissances"""
+        logger.info(f"Syncing story '{story.title}' to Knowledge Graph")
+        
+        # Add story node
+        self.graph.add_node(
+            name=story.title,
+            entity_type="event",
+            attributes={
+                "synopsis": story.synopsis,
+                "genre": story.genre.name,
+                "mode": story.mode.name
+            }
+        )
+        
+        # Add character nodes
+        for char in story.characters:
+            char_name = char.get("name", "Unknown")
+            self.graph.add_node(
+                name=char_name,
+                entity_type="character",
+                attributes={
+                    "role": char.get("role"),
+                    "description": char.get("description"),
+                    "origin_story_id": story.id
+                }
+            )
+            self.graph.add_edge(
+                source_name=char_name,
+                relation="character_of",
+                target_name=story.title,
+                target_type="event"
+            )
+
+        # Add location nodes
+        for loc in story.locations:
+            loc_name = loc.get("name", "Unknown")
+            self.graph.add_node(
+                name=loc_name,
+                entity_type="location",
+                attributes={
+                    "type": loc.get("type"),
+                    "description": loc.get("description"),
+                    "origin_story_id": story.id
+                }
+            )
+            self.graph.add_edge(
+                source_name=loc_name,
+                relation="located_in",
+                target_name=story.title,
+                target_type="event"
+            )
+
+        # Persistence
+        self.graph.save()
+        logger.info("Knowledge Graph updated and saved.")
+
+    async def _critique_story(self, story: Story):
+        """
+        Analyse de cohérence par une seconde instance d'IA (Rôle Critique).
+        Vérifie la consistance spatiale, temporelle et logique.
+        """
+        logger.info(f"Démarrage de la critique multi-agent pour : {story.title}")
+        
+        # Aggréger le contenu pour l'analyse
+        content = f"TITRE: {story.title}\nSYNOPSIS: {story.synopsis}\n"
+        content += "BIBLE DE PRODUCTION:\n"
+        content += f"- Persos: {[{c['name']: c['role']} for c in story.characters]}\n"
+        content += f"- Lieux: {[l['name'] for l in story.locations]}\n"
+        content += f"- Props: {[p.name for p in story.props]}\n"
+        content += "\nSCÉNARIO (SCÈNES):\n"
+        for i, s in enumerate(story.scenes):
+            content += f"S{i+1}: {s.title} @{s.location} - {s.description[:100]}...\n"
+            
+        critique_prompt = f"""
+        En tant qu'Expert en Script Doctoring, analyse ce projet :
+        
+        {content}
+        
+        Identifie 3 points d'amélioration concernant la COHÉRENCE (ex: un personnage oublié, un objet non utilisé, une rupture de ton).
+        Sois concis. Réponds en français.
+        """
+        
+        critique_res = await self._call_llm(critique_prompt, temperature=0.5) # Plus basse pour plus de rigueur
+        if critique_res:
+            story.critique = critique_res
+            logger.info("Critique générée avec succès.")
+            
+            # Optionnel : On pourrait relancer une passe de correction ici.
+            # Pour l'instant on stocke juste la critique pour le feedback utilisateur.
+        else:
+            story.critique = "L'IA critique n'a pas pu être contactée."
+
+    async def _populate_production_bible(self, story: Story):
         """
         Implémente la règle 'Bout en Bout' : 
         Force la création du triangle relationnel, de la trinité spatiale, 
-        des objets immuables et des SFX.
+        des objets immuables et des SFX. Utilise l'IA pour le casting.
         """
         import random
         
-        # 1. Personnages (Triangle de relation)
-        min_chars = 3 if story.mode == ProductionMode.FICTION else 2
-        if not story.characters:
-            for i in range(min_chars):
-                char_id = str(uuid.uuid4())
-                story.characters.append({
-                    "id": char_id,
-                    "nom": f"Personnage {i+1}",
-                    "role": "Protagoniste" if i == 0 else "Antagoniste" if i == 1 else "Allié",
-                    "description": "Généré via méthodologie bout en bout"
-                })
-
-        # 2. Lieux (Trinité spatiale)
-        min_locs = 3 if story.mode == ProductionMode.FICTION else 2
-        for i in range(min_locs):
-            loc_id = str(uuid.uuid4())
-            story.locations.append({
-                "id": loc_id,
-                "nom": f"Lieu {i+1} ({['Départ', 'Transition', 'Résolution'][i] if i < 3 else 'Autre'})",
-                "description": "Ancrage spatial consistant"
-            })
-
-        # 3. Objets (Props)
-        # Portés (1 par perso)
-        for char in story.characters:
-            prop = StoryProp(
-                id=str(uuid.uuid4()),
-                name=f"Accessoire de {char['nom']}",
-                description="Objet porté consistant",
-                owner_id=char['id']
-            )
-            story.props.append(prop)
-        
-        # Immuables (Min 2)
-        for i in range(2):
-            prop = StoryProp(
-                id=str(uuid.uuid4()),
-                name=f"Objet Immuable {i+1} (ex: Porte, Cloche)",
-                description="Élément de décor interactif",
-                is_immutale=True
-            )
-            story.props.append(prop)
-
-        # 4. SFX (Bruitages)
-        # SFX d'interaction (1 par prop)
-        for prop in story.props:
-            sfx = StorySFX(
-                id=str(uuid.uuid4()),
-                name=f"Son de {prop.name}",
-                category="action",
-                description=f"SFX lié à {prop.name}",
-                associated_entity_id=prop.id
-            )
-            story.sfx.append(sfx)
-        
-        # SFX Ambiance (1 par lieu)
-        for loc in story.locations:
-            sfx = StorySFX(
-                id=str(uuid.uuid4()),
-                name=f"Ambiance de {loc['nom']}",
-                category="ambiance",
-                description=f"Son d'ambiance pour {loc['nom']}",
-                associated_entity_id=loc['id']
-            )
-            story.sfx.append(sfx)
-    
-    def _generate_arcs(self, story: Story, structure: StoryStructure) -> List[StoryArc]:
-        """Générer les arcs narratifs basés sur la structure"""
-        config = self.STRUCTURES.get(structure, self.STRUCTURES[StoryStructure.THREE_ACT])
-        arc_count = 3
-        
-        arc_names = {
-            StoryStructure.THREE_ACT: ["Act 1 - Setup", "Act 2 - Confrontation", "Act 3 - Resolution"],
-            StoryStructure.HERO_JOURNEY: ["Departure", "Initiation", "Return"],
-            StoryStructure.SAVE_THE_CAT: ["Break into Two", "Fun and Games", "Finale"],
-            StoryStructure.FIVE_POINT: ["Rising", "Climax", "Falling"],
-            StoryStructure.SEQUENCE: ["Opening", "Development", "Closing"]
+        # 1. Configuration par mode
+        mode_config = {
+            ProductionMode.FICTION: {"min_chars": 3, "min_locs": 3, "is_narrative": True},
+            ProductionMode.DOCUMENTARY: {"min_chars": 2, "min_locs": 2, "is_narrative": False},
+            ProductionMode.INTERVIEW: {"min_chars": 2, "min_locs": 1, "is_narrative": False},
+            ProductionMode.MUSIC_VIDEO: {"min_chars": 1, "min_locs": 3, "is_narrative": False},
+            ProductionMode.SOCIAL_MEDIA: {"min_chars": 1, "min_locs": 2, "is_narrative": True},
+            ProductionMode.GARDENING: {"min_chars": 1, "min_locs": 2, "is_narrative": False, 
+                                     "loc_names": ["Serre", "Potager", "Jardin d'ornement"],
+                                     "prop_names": ["Sécateur", "Arrosoir", "Bêche", "Graines"]},
+            ProductionMode.RENOVATION: {"min_chars": 2, "min_locs": 2, "is_narrative": False,
+                                      "loc_names": ["Site (État Initial)", "Site (Après Travaux)"],
+                                      "prop_names": ["Mètre ruban", "Niveau à bulle", "Perceuse", "Peinture"]},
+            ProductionMode.MASTERCLASS: {"min_chars": 1, "min_locs": 2, "is_narrative": False,
+                                       "loc_names": ["Studio", "Lieu de démonstration"],
+                                       "prop_names": ["Micro", "Tableau blanc", "Cahier de notes"]},
+            ProductionMode.TECH_REVIEW: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                       "loc_names": ["Setup Tech", "Laboratoire de test"],
+                                       "prop_names": ["Caméra Macro", "Station de charge", "Packaging"]},
+            ProductionMode.REAL_ESTATE: {"min_chars": 1, "min_locs": 4, "is_narrative": False,
+                                       "loc_names": ["Hall d'entrée", "Salon", "Cuisine", "Jardin/Balcon"]},
+            ProductionMode.ASMR: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                 "loc_names": ["Chambre sourde", "Studio ASMR"],
+                                 "prop_names": ["Micro 3Dio", "Brosse", "Vaporisateur"]},
+            ProductionMode.RECAP: {"min_chars": 1, "min_locs": 2, "is_narrative": True,
+                                  "loc_names": ["Flashback", "Contexte actuel"],
+                                  "prop_names": ["Timeline", "Mémoire holographique"]},
+            ProductionMode.INFLUENCER: {"min_chars": 1, "min_locs": 2, "is_narrative": False,
+                                       "loc_names": ["Studio Vlog", "Extérieur Lifestyle"],
+                                       "prop_names": ["Ring Light", "iPhone/Smartphone", "Produit Sponsorisé"]},
+            ProductionMode.MAKER: {"min_chars": 1, "min_locs": 2, "is_narrative": False,
+                                  "loc_names": ["Atelier", "Établi de soudure"],
+                                  "prop_names": ["Poste à souder", "Imprimante 3D", "Fer à souder"]},
+            ProductionMode.SCIENTIFIC_REVIEW: {"min_chars": 2, "min_locs": 2, "is_narrative": False,
+                                              "loc_names": ["Laboratoire", "Observatoire"],
+                                              "prop_names": ["Microscope", "Graphique de données", "Échantillon"]},
+            ProductionMode.HISTORICAL_REVIEW: {"min_chars": 1, "min_locs": 3, "is_narrative": False,
+                                              "loc_names": ["Archives", "Site de fouilles", "Musée"],
+                                              "prop_names": ["Parchemin ancien", "Artefact", "Carte historique"]},
+            ProductionMode.TOP_TIER_LIST: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                          "loc_names": ["Écran de classement"],
+                                          "prop_names": ["Tier Maker Board", "Logo S-Tier"]},
+            ProductionMode.FAITH_SPIRITUALITY: {"min_chars": 2, "min_locs": 1, "is_narrative": False,
+                                               "loc_names": ["Lieu de culte/méditation"],
+                                               "prop_names": ["Bougie", "Livre sacré", "Encens"]},
+            ProductionMode.GAME_REVIEW: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                        "loc_names": ["Station de jeu"],
+                                        "prop_names": ["Manette", "Casque Gamer", "Carte graphique"]},
+            ProductionMode.FINANCE_REVIEW: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                           "loc_names": ["Bureau de trading"],
+                                           "prop_names": ["Écran Bloomberg", "Graphique bougies", "Calculatrice"]},
+            ProductionMode.PRODUCT_HYPE: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                         "loc_names": ["Black Box Studio"],
+                                         "prop_names": ["Le Produit", "Drapeau lumière", "Tournette"]},
+            ProductionMode.LEGAL_RECON: {"min_chars": 3, "min_locs": 1, "is_narrative": False,
+                                        "loc_names": ["Salle d'audience", "Lieu du délit"],
+                                        "prop_names": ["Preuve n°1", "Marteau du juge", "Dossier d'enquête"]},
+            ProductionMode.MEDITATION: {"min_chars": 1, "min_locs": 1, "is_narrative": False,
+                                       "loc_names": ["Zen Garden", "Espace vide"],
+                                       "prop_names": ["Bol chantant", "Tapis de yoga"]},
+            ProductionMode.EXPERIMENTAL: {"min_chars": 2, "min_locs": 3, "is_narrative": True,
+                                         "loc_names": ["Nébulosité", "L'Inconscient"],
+                                         "prop_names": ["Fragment de réalité", "Miroir déformant"]},
+            ProductionMode.TRUE_CRIME: {"min_chars": 2, "min_locs": 2, "is_narrative": True,
+                                       "loc_names": ["Scène de crime", "Bureau enquêteur"],
+                                       "prop_names": ["Ruban de police", "Lampe UV", "Enregistreur vocal"]},
+            ProductionMode.SPORTS_HIGHLIGHT: {"min_chars": 2, "min_locs": 1, "is_narrative": False,
+                                             "loc_names": ["Stadium", "Court de sport"],
+                                             "prop_names": ["Ballon/Balle", "Chronomètre", "Trophée"]},
         }
         
+        config = mode_config.get(story.mode, mode_config[ProductionMode.FICTION])
+        
+        # 1. Personnages (Triangle de relation si fiction)
+        min_chars = config.get("min_chars", 3)
+        if not story.characters:
+            # Generate characters via LLM based on story synopsis
+            char_prompt = f"Based on this story: '{story.synopsis}', generate {min_chars} characters. Return ONLY a JSON list of objects with 'nom', 'role', and 'description'. No other text."
+            char_json = await self._call_llm(char_prompt)
+            
+            try:
+                import json
+                # Find the first '[' and last ']' to extract JSON
+                start = char_json.find('[')
+                end = char_json.rfind(']') + 1
+                if start != -1 and end != -1:
+                    chars_data = json.loads(char_json[start:end])
+                    for char in chars_data:
+                        story.characters.append({
+                            "id": str(uuid.uuid4()),
+                            "name": char.get("name", char.get("nom", "Inconnu")),
+                            "role": char.get("role", "Rôle"),
+                            "description": char.get("description", "Généré via IA")
+                        })
+                else:
+                    raise ValueError("No JSON list found")
+            except Exception:
+                logger.warning("LLM character generation failed, using placeholders")
+                for i in range(min_chars):
+                    char_id = str(uuid.uuid4())
+                    roles = ["Protagoniste", "Antagoniste", "Allié"] if config.get("is_narrative") else ["Présentateur", "Invité", "Expert"]
+                    story.characters.append({
+                        "id": char_id,
+                        "name": f"Personnage {i+1}",
+                        "role": roles[i] if i < len(roles) else "Secondaire",
+                        "description": "Généré via méthodologie bout en bout"
+                    })
+
+        # 2. Lieux (Trinité spatiale ou contextuels)
+        min_locs = config.get("min_locs", 3)
+        loc_names = config.get("loc_names", ["Départ", "Transition", "Résolution", "Autre"])
+        
+        loc_prompt = f"Based on this story: '{story.synopsis}', generate {min_locs} locations. Return ONLY a JSON list of objects with 'nom' and 'description'. No other text."
+        loc_json = await self._call_llm(loc_prompt)
+        
+        try:
+            import json
+            start = loc_json.find('[')
+            end = loc_json.rfind(']') + 1
+            if start != -1 and end != -1:
+                locs_data = json.loads(loc_json[start:end])
+                for loc in locs_data:
+                    story.locations.append({
+                        "id": str(uuid.uuid4()),
+                        "name": loc.get("name", loc.get("nom", "Inconnu")),
+                        "description": loc.get("description", "Ancrage spatial consistant")
+                    })
+            else:
+                raise ValueError("No JSON list found")
+        except Exception:
+            logger.warning("LLM location generation failed, using placeholders")
+            for i in range(min_locs):
+                loc_id = str(uuid.uuid4())
+                name = loc_names[i] if i < len(loc_names) else f"Lieu {i+1}"
+                story.locations.append({
+                    "id": loc_id,
+                    "name": name,
+                    "description": "Ancrage spatial consistant"
+                })
+
+        # 3. Objets (Props) (IA-Driven)
+        prop_prompt = f"Based on this story: '{story.synopsis}', identify main interactive objects (Props). Return ONLY a JSON list of objects with 'name', 'description', and 'is_immutable' (boolean). Generate at least 5 props."
+        prop_json = await self._call_llm(prop_prompt)
+
+        try:
+            import json
+            start = prop_json.find('[')
+            end = prop_json.rfind(']') + 1
+            if start != -1 and end != -1:
+                props_data = json.loads(prop_json[start:end])
+                for p_data in props_data:
+                    prop = StoryProp(
+                        id=str(uuid.uuid4()),
+                        name=p_data.get("name", "Objet inconnu"),
+                        description=p_data.get("description", "Objet interactif"),
+                        is_immutable=p_data.get("is_immutable", False)
+                    )
+                    story.props.append(prop)
+            else:
+                raise ValueError("No JSON list found")
+        except Exception:
+            # Fallback to predefined props
+            predefined_props = config.get("prop_names", ["Objet 1", "Objet 2"])
+            for name in predefined_props:
+                prop = StoryProp(id=str(uuid.uuid4()), name=name, description="Objet consistant", is_immutable=True)
+                story.props.append(prop)
+
+        # 4. SFX (Bruitages) (IA-Driven)
+        sfx_prompt = f"Based on these props {[{p.name for p in story.props}]} and locations {[{l['name'] for l in story.locations}]}, generate a list of 5 specific SFX. Return ONLY a JSON list of objects with 'name', 'category' (action/ambiance), and 'description'."
+        sfx_json = await self._call_llm(sfx_prompt)
+
+        try:
+            import json
+            start = sfx_json.find('[')
+            end = sfx_json.rfind(']') + 1
+            if start != -1 and end != -1:
+                sfx_data = json.loads(sfx_json[start:end])
+                for s_data in sfx_data:
+                    sfx = StorySFX(
+                        id=str(uuid.uuid4()),
+                        name=s_data.get("name", "Bruitage"),
+                        category=s_data.get("category", "action"),
+                        description=s_data.get("description", "Signatures sonores consistantes")
+                    )
+                    story.sfx.append(sfx)
+            else:
+                raise ValueError("No JSON list found")
+        except Exception:
+            # Simple fallback
+            for loc in story.locations:
+                sfx = StorySFX(id=str(uuid.uuid4()), name=f"Ambiance {loc['name']}", category="ambiance", description="Son d'ambiance")
+                story.sfx.append(sfx)
+    
+    async def _generate_arcs(self, story: Story, structure: StoryStructure) -> List[StoryArc]:
+        """Générer les arcs narratifs basés sur la structure via IA"""
+        # Mapping des noms d'actes par structure
+        act_names_map = {
+            StoryStructure.THREE_ACT: ["Act 1 - Setup", "Act 2 - Confrontation", "Act 3 - Resolution"],
+            StoryStructure.HERO_JOURNEY: ["Departure", "Initiation", "Return"],
+            StoryStructure.SAVE_THE_CAT: ["Setup", "Development", "Finale"],
+            StoryStructure.FIVE_POINT: ["Rising Action", "Climax", "Resolution"],
+            StoryStructure.SEQUENCE: ["Opening", "Development", "Closing"]
+        }
+        names = act_names_map.get(structure, ["Part 1", "Part 2", "Part 3"])
+        
+        arc_prompt = f"""
+        For this story: '{story.synopsis}', generate {len(names)} narrative themes and conflicts for each act.
+        Structure: {structure.name}
+        
+        Return ONLY a JSON list of objects with 'theme' and 'conflict'.
+        """
+        
+        arc_json = await self._call_llm(arc_prompt)
+        
         arcs = []
-        for i in range(arc_count):
-            arc = StoryArc(
-                id=str(uuid.uuid4()),
-                name=arc_names.get(structure, f"Arc {i+1}")[i],
-                genre=story.genre,
-                structure=structure,
-                beats=[],
-                theme=self._generate_theme(story.genre),
-                conflict=self._generate_conflict(story.genre),
-                resolution=""
-            )
-            arcs.append(arc)
+        try:
+            import json
+            start = arc_json.find('[')
+            end = arc_json.rfind(']') + 1
+            if start != -1 and end != -1:
+                arcs_data = json.loads(arc_json[start:end])
+                for i, name in enumerate(names):
+                    a_data = arcs_data[i] if i < len(arcs_data) else {"theme": "Thème", "conflict": "Conflit"}
+                    arc = StoryArc(
+                        id=str(uuid.uuid4()),
+                        name=name,
+                        genre=story.genre,
+                        structure=structure,
+                        beats=[],
+                        theme=a_data.get("theme", "Thème de l'acte"),
+                        conflict=a_data.get("conflict", "Conflit principal"),
+                        resolution=""
+                    )
+                    arcs.append(arc)
+            else:
+                raise ValueError("No JSON list found")
+        except Exception:
+            # Fallback
+            for i, name in enumerate(names):
+                arc = StoryArc(
+                    id=str(uuid.uuid4()),
+                    name=name,
+                    genre=story.genre,
+                    structure=structure,
+                    beats=[],
+                    theme=self._generate_theme(story.genre),
+                    conflict=f"Main conflict of {name}",
+                    resolution=""
+                )
+                arcs.append(arc)
         
         return arcs
     
-    def _generate_scenes(self, story: Story, length: str) -> List[StoryScene]:
-        """Générer les scènes de la story"""
-        scene_count = {"short": 5, "medium": 15, "long": 30}.get(length, 15)
+    async def _generate_scenes(self, story: Story, length: str) -> List[StoryScene]:
+        """Générer les scènes de la story via IA"""
+        scene_count = {"short": 5, "medium": 12, "long": 24}.get(length, 12)
         
         scenes = []
-        for i in range(scene_count):
-            scene = StoryScene(
-                id=str(uuid.uuid4()),
-                title=self._generate_scene_title(i + 1),
-                description=self._generate_scene_description(i, scene_count),
-                location=self._generate_location(story.genre),
-                time_of_day=self._generate_time_of_day(),
-                characters=[],
-                dialogue=[],
-                beat_ids=[],
-                visual_direction=self._generate_visual_direction(story.genre),
-                audio_mood=self._generate_audio_mood(story.genre)
-            )
-            scenes.append(scene)
+        
+        # Prepare context for LLM
+        locations_str = ", ".join([l['name'] for l in story.locations])
+        characters_str = ", ".join([c['name'] for c in story.characters])
+        
+        scene_prompt = f"""
+        Generate a sequence of {scene_count} scenes for this story: '{story.synopsis}'.
+        Characters: {characters_str}
+        Locations: {locations_str}
+        
+        Return ONLY a JSON list of objects with: 'title', 'description', 'location', 'visual_direction', 'audio_mood'.
+        'location' must be one of the provided locations.
+        """
+        
+        scene_json = await self._call_llm(scene_prompt)
+        
+        try:
+            import json
+            start = scene_json.find('[')
+            end = scene_json.rfind(']') + 1
+            if start != -1 and end != -1:
+                scenes_data = json.loads(scene_json[start:end])
+                for i, s_data in enumerate(scenes_data):
+                    scene = StoryScene(
+                        id=str(uuid.uuid4()),
+                        title=s_data.get("title", f"Scène {i+1}"),
+                        description=s_data.get("description", ""),
+                        location=s_data.get("location", "Inconnu"),
+                        time_of_day=self._generate_time_of_day(),
+                        visual_direction=s_data.get("visual_direction", ""),
+                        audio_mood=s_data.get("audio_mood", "")
+                    )
+                    scenes.append(scene)
+            else:
+                raise ValueError("No JSON list found")
+        except Exception:
+            logger.warning("LLM scene generation failed, using placeholders")
+            for i in range(scene_count):
+                location_name = "Various locations"
+                if not story.locations:
+                    location_name = "Studio"
+                else:
+                    import random
+                    loc_obj = random.choice(story.locations)
+                    location_name = loc_obj.get("name", "Unknown Location")
+                
+                scene = StoryScene(
+                    id=str(uuid.uuid4()),
+                    title=self._generate_scene_title(i + 1),
+                    description=self._generate_scene_description(i, scene_count),
+                    location=location_name,
+                    time_of_day=self._generate_time_of_day(),
+                    visual_direction=self._generate_visual_direction(story.genre),
+                    audio_mood=self._generate_audio_mood(story.genre)
+                )
+                scenes.append(scene)
         
         return scenes
     
@@ -578,7 +1111,7 @@ class StoryGenerationService:
                     "id": p.id,
                     "name": p.name,
                     "description": p.description,
-                    "is_immutale": p.is_immutale,
+                    "is_immutable": p.is_immutable,
                     "owner_id": p.owner_id
                 }
                 for p in story.props
@@ -639,26 +1172,80 @@ class StoryGenerationService:
             "recommendations": recommendations
         }
     
-    def refine_story(self, story_id: str, feedback: Dict[str, Any]) -> Story:
-        """Affiner une story basée sur le feedback"""
+    def _generate_mock_llm_response(self, prompt: str) -> str:
+        """Générateur de réponses mock intelligentes pour la démo"""
+        p_lower = prompt.lower()
+        
+        # 1. Detection de demande de JSON (Personnages/Lieux)
+        if "json" in p_lower:
+            if "character" in p_lower or "personnage" in p_lower:
+                return json.dumps([
+                    {"name": "Elias Thorne", "role": "Protagoniste", "description": "Un ingénieur solitaire hanté par son passé."},
+                    {"name": "Sarah Vance", "role": "Alliée", "description": "Une experte en informatique très pragmatique."},
+                    {"name": "Unknown Entity", "role": "Antagoniste", "description": "Une présence mystérieuse dans le système."}
+                ])
+            if "location" in p_lower or "lieu" in p_lower:
+                return json.dumps([
+                    {"name": "Le Phare", "description": "Une structure ancienne mais modernisée."},
+                    {"name": "L'Île", "description": "Un rocher escarpé battu par les vents."},
+                    {"name": "Le Laboratoire", "description": "Un espace rempli de serveurs et d'écrans."}
+                ])
+
+        # 2. Detection de demande de Critique
+        if "critique" in p_lower or "cohérence" in p_lower:
+            return """### Analyse de Cohérence Multi-Agent
+1. **Structure Narrative** : Le passage de l'état initial à la transition est fluide. Le concept de rénovation est bien exploité comme métaphore de la reconstruction personnelle.
+2. **Rythme** : Attention à la scène 3, le rythme s'accélère brusquement. Prévoir plus de respirations visuelles.
+3. **Utilisation des Objets** : L'objet 'Plan de rénovation' est introduit tardivement, il devrait être présent dès la scène 1.
+**Verdict** : Projet solide. Recommandation : Accentuer le contraste visuel 'Avant/Après'."""
+
+        # 3. Réponse générique
+        return f"Ceci est une réponse générée (Simulation). Contenu basé sur : {prompt[:50]}..."
+
+    async def refine_story(self, story_id: str, feedback: str) -> Story:
+        """Affiner une story via LLM basé sur un feedback textuel (Script Doctoring)"""
         story = self.stories.get(story_id)
         if not story:
             raise ValueError("Story not found")
         
-        # Appliquer les modifications basées sur le feedback
-        if "title" in feedback:
-            story.title = feedback["title"]
+        logger.info(f"Refining story {story_id} with feedback: {feedback}")
         
-        if "genre" in feedback:
-            story.genre = StoryGenre(feedback["genre"]) if isinstance(feedback["genre"], str) else feedback["genre"]
+        # Build context for refinement
+        context = f"STORY: {story.title}\nSYNOPSIS: {story.synopsis}\n"
+        context += "CRITIQUE ACTUELLE:\n" + (story.critique or "Aucune") + "\n"
         
-        if "scenes" in feedback:
-            # Raffiner les scènes
-            for i, scene_data in enumerate(feedback["scenes"]):
-                if i < len(story.scenes):
-                    for key, value in scene_data.items():
-                        if hasattr(story.scenes[i], key):
-                            setattr(story.scenes[i], key, value)
+        refine_prompt = f"""
+        En tant que Script Doctor Expert, tu dois affiner le projet suivant basé sur le FEEDBACK de l'utilisateur.
         
+        {context}
+        
+        FEEDBACK UTILISATEUR: "{feedback}"
+        
+        CONSIGNES:
+        1. Modifie le SYNOPSIS ou les ÉLÉMENTS si nécessaire.
+        2. Si le feedback demande des changements majeurs, explique ce que tu as fait.
+        3. Retourne TOUJOURS le nouveau contenu sous forme de JSON structuré:
+        {{
+            "new_synopsis": "le synopsis mis à jour",
+            "changes_summary": "explication des modifications",
+            "updated_critique": "une nouvelle critique tenant compte des changements"
+        }}
+        """
+        
+        result_json = await self._call_llm(refine_prompt)
+        try:
+            start = result_json.find('{')
+            end = result_json.rfind('}') + 1
+            data = json.loads(result_json[start:end])
+            
+            story.synopsis = data.get("new_synopsis", story.synopsis)
+            story.critique = data.get("updated_critique", story.critique)
+            # On pourrait aussi affiner les scènes ici dynamiquement
+            
+            logger.info(f"Refinement complete for {story_id}")
+        except Exception as e:
+            logger.error(f"Failed to parse refinement JSON: {e}")
+            # Fallback: use raw response as synopsis or just log error
+            
         story.updated_at = datetime.now()
         return story

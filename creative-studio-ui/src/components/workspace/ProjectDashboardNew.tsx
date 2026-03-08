@@ -1,4 +1,4 @@
-/* cspell:ignore ella spanish él */
+/* cspell:ignore ella spanish él nyquist */
 /**
  * New Project Dashboard Component
  * 
@@ -12,7 +12,7 @@
  * - Click on sequence to open editor
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import type { Shot } from '@/types';
 import { isRecord } from '@/utils/typeGuards';
@@ -44,6 +44,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import type { Character } from '@/types/character';
 import type { GeneratedAsset } from '@/types/generation';
 import type { StoryObject } from '@/types/object';
+import type { LucideIcon } from 'lucide-react';
 import {
   Film,
   Map,
@@ -56,12 +57,12 @@ import {
   Database,
   RefreshCw,
   BookOpen,
-  Settings,
   Clapperboard,
   Wand2,
   FileText,
   Sparkles,
   Plus,
+  GripVertical,
 } from 'lucide-react';
 import { SequenceEditModal } from './SequenceEditModal';
 import { DashboardAddonsSection } from './DashboardAddonsSection';
@@ -70,6 +71,11 @@ import { ProductionGuide } from './ProductionGuide';
 import { NeuralProductionAssistant } from './NeuralProductionAssistant';
 import { WizardLauncher } from '../wizard/WizardLauncher';
 import { Badge } from '@/components/ui/badge';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { cn } from '@/lib/utils';
+import { ShotData } from '@/types/electron';
+import { Story } from '@/types/story';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
@@ -145,6 +151,13 @@ interface ProjectDashboardNewProps {
   onOpenEditor: (sequenceId?: string) => void;
 }
 
+interface ActivityItem {
+  id: string;
+  action: string;
+  time: string;
+  icon: LucideIcon;
+}
+
 interface SequenceData {
   id: string;
   name: string;
@@ -170,6 +183,7 @@ interface SequencePlanFromStore {
 interface ShotWithSequenceId {
   id: string;
   sequence_id?: string;
+  sequenceId?: string;
   duration?: number;
   description?: string;
   metadata?: Record<string, unknown>;
@@ -201,8 +215,6 @@ export function ProjectDashboardNew({
   const showWorldWizard = useAppStore((state) => state.showWorldWizard);
   const showCharacterWizard = useAppStore((state) => state.showCharacterWizard);
   const showStorytellerWizard = useAppStore((state) => state.showStorytellerWizard);
-  const setShowCharactersModal = useAppStore((state) => state.setShowCharactersModal);
-  const setShowImageGalleryModal = useAppStore((state) => state.setShowImageGalleryModal);
   const showLocationsModal = useAppStore((state) => state.showLocationsModal);
   const setShowLocationsModal = useAppStore((state) => state.setShowLocationsModal);
   const showObjectsModal = useAppStore((state) => state.showObjectsModal);
@@ -215,7 +227,6 @@ export function ProjectDashboardNew({
   const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
   const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
   const setShowStorytellerWizard = useAppStore((state) => state.setShowStorytellerWizard);
-  const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
   const setShowAudioProductionWizard = useAppStore((state) => state.setShowAudioProductionWizard);
   const setShowVideoEditorWizard = useAppStore((state) => state.setShowVideoEditorWizard);
   const setShowComicToSequenceWizard = useAppStore((state) => state.setShowComicToSequenceWizard);
@@ -232,7 +243,7 @@ export function ProjectDashboardNew({
   const getStoryById = useStore((state) => state.getStoryById);
 
   // Character management from Zustand store
-  const characters = useStore((state) => state.characters);
+  
 
   // Sequence Plans from Zustand store
   const sequencePlans = useStore((state) => state.sequencePlans || []);
@@ -317,33 +328,45 @@ export function ProjectDashboardNew({
 
   const [recentAssets, setRecentAssets] = useState<RecentAsset[]>([]);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
+  
+  const [orderedSequences, setOrderedSequences] = useState<SequenceData[]>([]);
+  const reorderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get enabled wizards for dynamic display
   const enabledWizards = useMemo(() => getEnabledWizards(), []);
 
-  // Generate sequences from project shots
+  // Generate sequences from project shots and formal plans
   const sequences = useMemo<SequenceData[]>(() => {
-    if (!shots || shots.length === 0) {
-      return [];
-    }
-
     // Group shots by sequence_id (use plain object instead of Map for better compatibility)
     const sequenceMap: Record<string, ShotWithSequenceId[]> = {};
-    shots.forEach(shot => {
-      const seqId = (shot as ShotWithSequenceId).sequence_id || 'default';
-      if (!sequenceMap[seqId]) {
-        sequenceMap[seqId] = [];
-      }
-      sequenceMap[seqId].push(shot as ShotWithSequenceId);
-    });
+    if (shots && shots.length > 0) {
+      shots.forEach(shot => {
+        const seqId = (shot as ShotWithSequenceId).sequence_id || 'default';
+        if (!sequenceMap[seqId]) {
+          sequenceMap[seqId] = [];
+        }
+        sequenceMap[seqId].push(shot as ShotWithSequenceId);
+      });
+    }
 
 
     // Convert to sequence data array
     const sequenceArray: (SequenceData & { isFormal?: boolean })[] = [];
 
-    // 1. Add formal plans from the store (highest priority)
-    const plansArray = Array.isArray(sequencePlans) ? sequencePlans : Object.values(sequencePlans || {});
-    plansArray.forEach((plan: SequencePlanFromStore | unknown, index: number) => {
+    // 1. Add formal plans from the store or project (highest priority)
+    // Synchronize both sources to ensure updates from wizard are visible
+    const projectPlans = project?.sequencePlans || [];
+    const storePlans = (Array.isArray(sequencePlans) ? sequencePlans : Object.values(sequencePlans || {})) as SequencePlanFromStore[];
+    
+    // Merge both sources (by ID) to be safe
+    const masterPlans = [...projectPlans];
+    storePlans.forEach((sp: SequencePlanFromStore) => {
+      if (!masterPlans.some(mp => mp.id === sp.id)) {
+        masterPlans.push(sp as unknown as any); // Type assertion for compatibility
+      }
+    });
+
+    masterPlans.forEach((plan, index) => {
       const typedPlan = plan as SequencePlanFromStore;
       sequenceArray.push({
         id: typedPlan.id,
@@ -360,12 +383,13 @@ export function ProjectDashboardNew({
     let order = sequenceArray.length + 1;
     for (const sequenceId in sequenceMap) {
       if (sequenceArray.some(s => s.id === sequenceId)) continue;
+      if (sequenceId === 'default' && Object.keys(sequenceMap).length > 1) continue;
 
       const seqShots = sequenceMap[sequenceId];
       const totalDuration = seqShots.reduce((sum, shot) => sum + (shot.duration || 0), 0);
-      const sequenceName = `Sequence ${order}`;
+      const sequenceName = sequenceId === 'default' ? 'Ad-hoc Sequence' : `Sequence ${order}`;
       const firstShot = seqShots[0];
-      const resume = firstShot?.description || `Sequence ${order} with ${seqShots.length} shot(s)`;
+      const resume = firstShot?.description || `Sequence with ${seqShots.length} shot(s)`;
 
       sequenceArray.push({
         id: sequenceId,
@@ -381,7 +405,16 @@ export function ProjectDashboardNew({
 
     // Sort by order
     return [...sequenceArray].sort((a, b) => a.order - b.order);
-  }, [shots, sequencePlans]);
+  }, [shots, sequencePlans, project?.sequencePlans]);
+
+  // Sync local sequences with store sequences
+  useEffect(() => {
+    if (sequences.length > 0 && (orderedSequences.length === 0 || sequences.length !== orderedSequences.length)) {
+      setOrderedSequences(sequences);
+    } else if (sequences.length === 0 && orderedSequences.length > 0) {
+      setOrderedSequences([]);
+    }
+  }, [sequences, orderedSequences.length]);
 
   // Subscribe to sequence plan updates
   useEffect(() => {
@@ -432,19 +465,113 @@ export function ProjectDashboardNew({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [openSequencePlanWizard, openShotWizard]);
 
+  // Handle wizard launches
+  const handleLaunchWizard = useCallback((wizardId: string) => {
+    logger.info('[ProjectDashboard] Launching wizard:', { wizardId });
+
+    // Get the closeActiveWizard function from store
+    const closeActiveWizard = useAppStore.getState().closeActiveWizard;
+
+    // Close ALL wizards first (mutual exclusion)
+    closeActiveWizard();
+
+    switch (wizardId) {
+      case 'project-init':
+        setShowProjectSetupWizard(true);
+        break;
+      case 'world-building':
+        setShowWorldWizard(true);
+        break;
+      case 'character-creation':
+        setShowCharacterWizard(true);
+        break;
+      case 'storyteller-wizard':
+        setShowStorytellerWizard(true);
+        break;
+      case 'scene-generator':
+        openWizard('scene-generator');
+        break;
+      case 'storyboard-creator':
+        openWizard('storyboard-creator');
+        break;
+      case 'dialogue-writer':
+        openWizard('dialogue-writer');
+        break;
+      case 'dialogue-wizard':
+        openWizard('dialogue-writer');
+        break;
+      case 'style-transfer':
+        openWizard('style-transfer');
+        break;
+      case 'marketing-wizard':
+        setShowMarketingWizard(true, {
+          projectId: project?.id || '',
+          projectName: project?.project_name || 'My Project',
+          storySummary: project?.metadata?.description as string | undefined,
+          characters: project?.characters?.map(c => c.name),
+        });
+        break;
+      case 'shot-planning':
+        openSequencePlanWizard();
+        break;
+      case 'audio-production-wizard':
+        setShowAudioProductionWizard(true);
+        break;
+      case 'video-editor-wizard':
+        setShowVideoEditorWizard(true);
+        break;
+      case 'comic-to-sequence-wizard':
+        setShowComicToSequenceWizard(true);
+        break;
+      default:
+        // Attempt to launch via generic wizard system if not specifically handled
+        // or show warning if it's truly unrecognized
+        if (wizardId === 'video-editor-wizard' || wizardId === 'comic-to-sequence-wizard') {
+          // These should have been handled above, but just in case
+          logger.warn('[ProjectDashboard] Wizard not yet implemented:', { wizardId });
+          showWarning(`The ${wizardId} wizard is not yet implemented. Coming soon!`);
+        } else {
+          try {
+            // Safe cast as we check for unrecognized wizards
+            openWizard(wizardId as WizardType);
+          } catch (err) {
+            logger.warn('[ProjectDashboard] Wizard launch failed:', { wizardId, err });
+          }
+        }
+        break;
+    }
+  }, [
+    project,
+    setShowProjectSetupWizard,
+    setShowWorldWizard,
+    setShowCharacterWizard,
+    setShowStorytellerWizard,
+    openWizard,
+    setShowMarketingWizard,
+    openSequencePlanWizard,
+    setShowAudioProductionWizard,
+    setShowVideoEditorWizard,
+    setShowComicToSequenceWizard,
+    showWarning
+  ]);
+
+  const handleAddonLaunchWizard = useCallback((wizardType: string) => {
+    handleLaunchWizard(wizardType);
+  }, [handleLaunchWizard]);
+
   // Listen for wizard launch events from chat
   useEffect(() => {
-    const handleLaunchWizard = (event: CustomEvent) => {
+    const onLaunchWizardEvent = (event: CustomEvent) => {
       const { wizardType } = event.detail;
       handleLaunchWizard(wizardType);
     };
 
-    window.addEventListener('launch-wizard', handleLaunchWizard as EventListener);
+    window.addEventListener('launch-wizard', onLaunchWizardEvent as EventListener);
 
     return () => {
-      window.removeEventListener('launch-wizard', handleLaunchWizard as EventListener);
+      window.removeEventListener('launch-wizard', onLaunchWizardEvent as EventListener);
     };
-  }, []);
+  }, [handleLaunchWizard]);
 
   // Automatic data migration on project load
   useEffect(() => {
@@ -521,7 +648,7 @@ export function ProjectDashboardNew({
     }
 
     // 2. Asset Generations
-    recentAssets.forEach((asset, idx) => {
+    recentAssets.forEach((asset, idx: number) => {
       activities.push({
         id: `asset-${idx}`,
         action: `Generated ${asset.type.replace('generated_', '')}: ${asset.path.split('/').pop()}`,
@@ -541,84 +668,7 @@ export function ProjectDashboardNew({
     }
 
     return activities;
-  }, [project, recentAssets, sequences.length]);
-
-  // Handle wizard launches
-  const handleLaunchWizard = (wizardId: string) => {
-    logger.info('[ProjectDashboard] Launching wizard:', { wizardId });
-
-    // Get the closeActiveWizard function from store
-    const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-
-    // Close ALL wizards first (mutual exclusion)
-    closeActiveWizard();
-
-    switch (wizardId) {
-      case 'project-init':
-        setShowProjectSetupWizard(true);
-        break;
-      case 'world-building':
-        setShowWorldWizard(true);
-        break;
-      case 'character-creation':
-        setShowCharacterWizard(true);
-        break;
-      case 'storyteller-wizard':
-        setShowStorytellerWizard(true);
-        break;
-      case 'scene-generator':
-        openWizard('scene-generator');
-        break;
-      case 'storyboard-creator':
-        openWizard('storyboard-creator');
-        break;
-      case 'dialogue-writer':
-        openWizard('dialogue-writer');
-        break;
-      case 'dialogue-wizard':
-        openWizard('dialogue-writer');
-        break;
-      case 'style-transfer':
-        openWizard('style-transfer');
-        break;
-      case 'marketing-wizard':
-        setShowMarketingWizard(true, {
-          projectId: project?.id || '',
-          projectName: project?.project_name || 'My Project',
-          storySummary: project?.metadata?.description as string | undefined,
-          characters: project?.characters?.map(c => c.name),
-        });
-        break;
-      case 'shot-planning':
-        openSequencePlanWizard();
-        break;
-      case 'audio-production-wizard':
-        setShowAudioProductionWizard(true);
-        break;
-      case 'video-editor-wizard':
-        setShowVideoEditorWizard(true);
-        break;
-      case 'comic-to-sequence-wizard':
-        setShowComicToSequenceWizard(true);
-        break;
-      default:
-        // Attempt to launch via generic wizard system if not specifically handled
-        // or show warning if it's truly unrecognized
-        if (wizardId === 'video-editor-wizard' || wizardId === 'comic-to-sequence-wizard') {
-          // These should have been handled above, but just in case
-          logger.warn('[ProjectDashboard] Wizard not yet implemented:', { wizardId });
-          showWarning(`The ${wizardId} wizard is not yet implemented. Coming soon!`);
-        } else {
-          try {
-            // Safe cast as we check for unrecognized wizards
-            openWizard(wizardId as WizardType);
-          } catch (err) {
-            logger.warn('[ProjectDashboard] Wizard launch failed:', { wizardId, err });
-          }
-        }
-        break;
-    }
-  };
+  }, [project, recentAssets, sequences]);
 
   // Handle force update sequences from JSON files
   const handleForceUpdateSequences = async () => {
@@ -781,7 +831,7 @@ export function ProjectDashboardNew({
       }
 
       // Get original sequence data to check if order changed
-      const originalSequence = sequences.find(seq => seq.id === updatedSequence.id);
+      const originalSequence = sequences.find((seq: SequenceData) => seq.id === updatedSequence.id);
       const orderChanged = originalSequence && originalSequence.order !== updatedSequence.order;
 
       // If order changed, reorganize all sequences
@@ -820,18 +870,24 @@ export function ProjectDashboardNew({
 
       // Update shots associated with this sequence
       if (shots && shots.length > 0) {
-        const sequenceShots = shots.filter((shot: unknown) => (shot as ShotWithSequenceId).sequence_id === updatedSequence.id);
-        for (const shot of sequenceShots) {
-          const typedShot = shot as ShotWithSequenceId;
+        // Find shots belonging to this sequence (supporting both v1 sequence_id and UI sequenceId)
+        const sequenceShots = shots.filter((shot: Shot) => 
+          shot.sequence_id === updatedSequence.id || shot.sequenceId === updatedSequence.id
+        );
+
+        // Update each shot with sequence info in parallel
+        const shotUpdatePromises = sequenceShots.map(shot => {
           if (window.electronAPI?.sequence?.updateShot) {
-            await window.electronAPI.sequence.updateShot(projectPath, updatedSequence.id, typedShot.id, {
+            return window.electronAPI.sequence.updateShot(projectPath, updatedSequence.id, shot.id, {
               sequence_order: updatedSequence.order,
               sequence_duration: updatedSequence.duration,
               sequence_shots_count: updatedSequence.shots,
               sequence_resume: updatedSequence.resume,
             });
           }
-        }
+          return Promise.resolve();
+        });
+        await Promise.all(shotUpdatePromises);
       }
 
       // Force refresh by updating project metadata (triggers re-render of sequences)
@@ -845,7 +901,6 @@ export function ProjectDashboardNew({
       setEditingSequence(null);
 
     } catch (error) {
-      logger.error('Failed to save sequence:', error);
       logger.error('Failed to save sequence:', error);
       const errorMessage = error instanceof Error
         ? error.message
@@ -958,7 +1013,7 @@ export function ProjectDashboardNew({
     }
 
     // Find the sequence first to get its name
-    const sequence = sequences.find(seq => seq.id === sequenceId);
+    const sequence = sequences.find((seq: SequenceData) => seq.id === sequenceId);
     if (!sequence) {
       showError('Sequence not found', 'The sequence you are trying to delete could not be found.');
       return;
@@ -994,7 +1049,7 @@ export function ProjectDashboardNew({
       const sequencesDir = `${projectPath}/sequences`;
 
       // Find the sequence
-      const sequence = sequences.find(seq => seq.id === sequenceId);
+      const sequence = sequences.find((seq: SequenceData) => seq.id === sequenceId);
       if (!sequence) {
         showError('Sequence not found', 'The sequence you are trying to delete could not be found.');
         return;
@@ -1053,10 +1108,10 @@ export function ProjectDashboardNew({
       const needsReordering = sequence.order < sequences.length;
       if (needsReordering) {
         // Get remaining sequences, sort by order
-        const remainingSequences = sequences.filter(seq => seq.id !== sequenceId).sort((a, b) => a.order - b.order);
+        const remainingSequences = sequences.filter((seq: SequenceData) => seq.id !== sequenceId).sort((a: SequenceData, b: SequenceData) => a.order - b.order);
 
         // Reassign order
-        remainingSequences.forEach((seq, index) => {
+        remainingSequences.forEach((seq: SequenceData, index: number) => {
           seq.order = index + 1;
         });
 
@@ -1074,8 +1129,8 @@ export function ProjectDashboardNew({
             const typedShot = shot as ShotWithSequenceId;
             if (window.electronAPI?.sequence?.updateShot) {
               await window.electronAPI.sequence.updateShot(projectPath, seq.id, typedShot.id, {
-                sequence_order: seq.order,
-              });
+                parameters: { sequence_order: seq.order }
+              } as unknown as Partial<ShotData>);
             }
           }
         }
@@ -1125,6 +1180,9 @@ export function ProjectDashboardNew({
     setIsSyncing(true);
     logger.info('[ProjectDashboard] Starting sequence synchronization...');
 
+    // Use a small delay to allow UI to show syncing state
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       // Get the main story (first one or selected)
       const mainStory = stories[0];
@@ -1142,87 +1200,77 @@ export function ProjectDashboardNew({
       let updatedShotsCount = 0;
       let updatedSequencesCount = 0;
 
+      // Create a local copy of all shots to update them in batch
+      // Use the shots from useAppStore which is what the dashboard listens to
+      const updatedShots = [...shots];
+      const sequencesToSave: SequenceData[] = [];
+
       // Process each sequence and its associated shots
       for (const sequence of sequences) {
-        // Find shots associated with this sequence
-        const sequenceShots = shots.filter((shot) => 
-          'sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id
-        );
-
-        if (sequenceShots.length === 0) {
-          continue;
-        }
-
         // Calculate content segment for this sequence based on its order
         const contentSegment = distributeStoryContent(storyContent, sequence.order, sequences.length);
 
-        // Generate image prompt from story content
-        const imagePrompt = generateImagePrompt(
-          contentSegment,
-          storyGenre,
-          storyTone,
-          characterNames
-        );
-
-        // Generate TTS/dialogue prompt from story content
+        // Generate prompts for this segment
+        const imagePrompt = generateImagePrompt(contentSegment, storyGenre, storyTone, characterNames);
         const ttsPrompt = extractDialogueContent(contentSegment);
 
-        // Update each shot in the sequence
-        for (const shot of sequenceShots) {
-          const updatedShot = {
-            ...shot,
-            description: contentSegment || (shot as Shot).description,
-            metadata: {
-              ...(shot.metadata || {}),
-              imagePrompt: imagePrompt,
-              ttsPrompt: ttsPrompt,
-              syncedFromStory: true,
-              lastSyncedAt: new Date().toISOString(),
-              storyId: mainStory.id,
-              sequenceOrder: sequence.order,
-            },
-          };
-
-          // Update shot in store
-          useStore.getState().updateShot((shot as ShotWithSequenceId).id, updatedShot);
-          updatedShotsCount++;
+        // Update shots in the local array
+        for (let i = 0; i < updatedShots.length; i++) {
+          const shot = updatedShots[i];
+          if ('sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id) {
+            updatedShots[i] = {
+              ...shot,
+              description: contentSegment || (shot as Shot).description,
+              metadata: {
+                ...(shot.metadata || {}),
+                imagePrompt,
+                ttsPrompt,
+                syncedFromStory: true,
+                lastSyncedAt: new Date().toISOString(),
+                storyId: mainStory.id,
+                sequenceOrder: sequence.order,
+              },
+            };
+            updatedShotsCount++;
+          }
         }
 
-        // Update sequence resume from story summary
-        const sequenceResume = generateSequenceResume(
-          storySummary,
-          sequence.order,
-          sequences.length
-        );
-
-        await handleSaveSequenceEdit({
-          id: sequence.id,
-          order: sequence.order,
-          duration: sequence.duration,
-          shots: sequence.shots,
-          resume: sequenceResume,
-        });
-
         updatedSequencesCount++;
+        
+        // Prepare sequence for saving
+        const sequenceResume = generateSequenceResume(storySummary, sequence.order, sequences.length);
+        if (project?.metadata?.path) {
+          sequencesToSave.push({
+            ...sequence,
+            resume: sequenceResume,
+          });
+        }
       }
 
-      // Save all shots to files
+      // Save all updated sequences in parallel
+      if (sequencesToSave.length > 0 && project?.metadata?.path) {
+        const projectPathStr = (project?.metadata?.path as string) || '';
+        const sequencesDir = `${projectPathStr}/sequences`;
+        await Promise.all(sequencesToSave.map(seq => saveSequenceToFile(seq, sequencesDir)));
+      }
+
+      // Sync BOTH stores with the updated shots to ensure UI consistency
+      setShots(updatedShots);
+      useStore.getState().reorderShots(updatedShots);
+
+      // Save all shots to files in parallel with limited concurrency if needed
       if (project?.metadata?.path) {
         const shotsDir = `${project.metadata.path}/shots`;
         if (window.electronAPI?.fs?.mkdir) {
           try {
             await window.electronAPI.fs.mkdir(shotsDir, { recursive: true });
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-          } catch (error) {
-            // Directory might already exist
-          }
+          } catch (_error) { /* Ignore directory exist error */ }
         }
 
-        // Get all updated shots from store
-        const allUpdatedShots = useStore.getState().shots;
-        for (const shot of allUpdatedShots) {
-          await saveShotToFile(shot as Shot & { sequence_id: string }, shotsDir);
-        }
+        // Use Promise.all for faster I/O
+        await Promise.all(updatedShots.map(shot => 
+          saveShotToFile(shot as Shot & { sequence_id: string }, shotsDir)
+        ));
       }
 
       // Force UI update
@@ -1233,10 +1281,7 @@ export function ProjectDashboardNew({
         shotsUpdated: updatedShotsCount,
       });
 
-      showSuccess(
-        `Synchronization complete!`,
-        `${updatedSequencesCount} sequence(s) and ${updatedShotsCount} shot(s) updated with story content, image prompts, and dialogue prompts.`
-      );
+      showSuccess(`Synchronization complete: ${updatedSequencesCount} sequences and ${updatedShotsCount} shots processed.`);
 
     } catch (error) {
       logger.error('Failed to synchronize sequences:', error);
@@ -1250,7 +1295,7 @@ export function ProjectDashboardNew({
     } finally {
       setIsSyncing(false);
     }
-  }, [sequences, stories, shots, project, handleSaveSequenceEdit, showWarning, showError, showSuccess, setIsSyncing, setForceUpdate, saveShotToFile]);
+  }, [sequences, stories, shots, project, saveSequenceToFile, showWarning, showError, showSuccess, setIsSyncing, setForceUpdate, saveShotToFile, setShots]);
 
 
   // Handle editing sequence
@@ -1322,7 +1367,7 @@ export function ProjectDashboardNew({
         version: story.version + 1,
       };
       // Update in store
-      useStore.getState().updateStory(storyId, updatedStory as unknown);
+      useStore.getState().updateStory(storyId, updatedStory as unknown as Partial<Story>);
       console.log('[ProjectDashboard] Story parts updated:', updatedStory);
     }
   };
@@ -1462,125 +1507,125 @@ export function ProjectDashboardNew({
     return () => window.removeEventListener('storycore:sync-production-guide', handleSyncRequest);
   }, [sequences, stories, handleSyncSequences]); // Re-bind when data changes
 
+  // Handle reorder from UI
+  const handleReorder = (newOrder: SequenceData[]) => {
+    // 1. Immediate visual update with new order numbers
+    const updated = newOrder.map((seq, index) => ({
+      ...seq,
+      order: index + 1
+    }));
+    setOrderedSequences(updated);
+
+    // 2. Debounced persistence to avoid too many file writes
+    if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
+    reorderTimeoutRef.current = setTimeout(() => {
+      performReorderPersistence(updated);
+    }, 2000);
+  };
+
+  const performReorderPersistence = async (newOrder: SequenceData[]) => {
+    try {
+      if (!project?.metadata?.path) return;
+      const projectPath = (project?.metadata?.path as string) || '';
+      const sequencesDir = `${projectPath}/sequences`;
+
+      logger.info(`[ProjectDashboard] Persisting new sequence order for ${newOrder.length} items`);
+
+      // Save each sequence with its new order
+      for (const seq of newOrder) {
+        await saveSequenceToFile(seq, sequencesDir);
+        
+        // Update shots associations (important for the timeline/editor)
+        const sequenceShots = shots.filter((shot: Shot) => {
+          const s = shot as ShotWithSequenceId;
+          return s.sequence_id === seq.id || s.sequenceId === seq.id;
+        });
+
+        if (window.electronAPI?.sequence?.updateShot && sequenceShots.length > 0) {
+           await Promise.all(sequenceShots.map(shot => 
+             window.electronAPI.sequence.updateShot!(projectPath, seq.id, shot.id, {
+               sequence_order: seq.order
+             } as unknown as Partial<ShotData>)
+           ));
+        }
+      }
+
+      // Trigger global refresh notification
+      if (window.electronAPI?.project?.updateMetadata) {
+        await window.electronAPI.project.updateMetadata(projectPath, {
+          lastSequenceUpdate: new Date().toISOString(),
+          reordered_at: new Date().toISOString()
+        });
+      }
+      
+      showSuccess(`Ordre des séquences mis à jour (${newOrder.length})`);
+    } catch (error) {
+      logger.error('Failed to persist reorder:', error);
+      showError('Erreur lors de la synchronisation de l\'ordre des séquences');
+    }
+  };
+
   return (
-    <div className="project-dashboard-new">
-      {/* Top Section: Quick Access (Compact) */}
-      <div className="dashboard-header">
-        <div className="quick-access-compact">
-          <button
-            className="quick-btn quick-btn-primary"
-            onClick={() => {
-              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-              closeActiveWizard();
-              setShowProjectSetupWizard(true);
-            }}
-            title="Project Setup"
-            aria-label="Project Setup - Configure project settings"
-          >
-            <span>Project Setup</span>
-            <Settings className="w-4 h-4" aria-hidden="true" />
-          </button>
-          <button
-            className="quick-btn"
-            title="Scenes"
-            aria-label="Scenes - View all scenes"
-            onClick={() => {
-              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-              closeActiveWizard();
-              openSequencePlanWizard();
-            }}
-          >
-            <span>Scenes ({shots?.length || 0})</span>
-            <Film className="w-4 h-4" aria-hidden="true" />
-          </button>
-          <button
-            className="quick-btn"
-            title="Characters"
-            aria-label="Characters - View all characters"
-            onClick={() => {
-              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-              closeActiveWizard();
-              setShowCharactersModal(true);
-            }}
-          >
-            <span>Characters ({characters?.length || 0})</span>
-            <Users className="w-4 h-4" aria-hidden="true" />
-          </button>
-          <button
-            className="quick-btn"
-            title="Assets"
-            aria-label="Assets - View all assets"
-            onClick={() => {
-              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-              closeActiveWizard();
-              // Open image gallery modal as a proxy for assets management
-              setShowImageGalleryModal(true);
-            }}
-          >
-            <span>Assets ({project?.assets?.length || 0})</span>
-            <FileText className="w-4 h-4" aria-hidden="true" />
-          </button>
-          <button
-            className="quick-btn"
-            title="Settings"
-            aria-label="Settings - Open settings"
-            onClick={() => {
-              const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-              closeActiveWizard();
-              setShowGeneralSettings(true);
-            }}
-          >
-            <span>Settings</span>
-            <Wand2 className="w-4 h-4" aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* Generation Toolbar */}
-        <div className="generation-toolbar-container">
-          <GenerationButtonToolbar
-            context="dashboard"
-            onGenerationComplete={handleGenerationComplete}
-          />
-        </div>
-
-        {/* Pipeline Status (Compact) */}
-        <div className="pipeline-status-compact">
-          <div className="status-item">
-            <Film className="w-4 h-4" />
-            <span>Sequences: {sequences.length}</span>
-          </div>
-          <div className="status-item">
-            <FileText className="w-4 h-4" />
-            <span>Shots: {shots?.length || 0}</span>
-          </div>
-          <div className="status-item status-ready">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Ready</span>
-          </div>
-
-          {/* Board Name Display */}
-          <div className="status-item board-name">
-            <span>Board: {(project?.metadata?.name as string) || 'My First Story'}</span>
-          </div>
-
-          {/* Service Status Indicators */}
-          <div className="status-divider"></div>
-          <div
-            className="status-item status-service"
-            title={`Ollama: ${ollamaStatus === 'connected' ? 'Connecté' : ollamaStatus === 'connecting' ? 'Vérification...' : 'Déconnecté'}`}
-          >
-            <div className={`status-indicator status-ollama ${ollamaStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
-            <span>Ollama</span>
-          </div>
-          <div
-            className="status-item status-service"
-            title={`ComfyUI: ${comfyuiStatus === 'connected' ? 'Connecté' : comfyuiStatus === 'connecting' ? 'Vérification...' : 'Déconnecté (optionnel)'}`}
-          >
-            <div className={`status-indicator status-comfyui ${comfyuiStatus === 'connected' ? 'connected' : 'disconnected'}`}></div>
-            <span>ComfyUI</span>
-          </div>
-        </div>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="project-dashboard-new relative overflow-hidden h-full flex flex-col"
+    >
+      {/* Background Ambient Glow */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
       </div>
+
+      <header className="dashboard-header relative z-10">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
+                <Clapperboard className="w-6 h-6 text-white" />
+             </div>
+             <div>
+                <h1 className="text-xl font-black tracking-tighter text-white/90 m-0">STORYCORE</h1>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary leading-none m-0">Creative Studio 2026</p>
+             </div>
+          </div>
+          
+          <div className="h-8 w-px bg-white/10" />
+
+          <div className="quick-access-compact">
+            <button className="quick-btn glass-panel border-white/5 hover:border-primary/50 group" onClick={handleNewPlan}>
+              <Plus className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors" />
+              <span>New Plan</span>
+            </button>
+            <button className="quick-btn quick-btn-primary shadow-xl shadow-primary/20" onClick={handleSyncSequences}>
+              <Sparkles className="w-4 h-4" />
+              <span>Intelligence Sync</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="pipeline-status-compact glass-panel border-white/5 px-4 py-2 rounded-2xl">
+             <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className={cn("status-indicator", ollamaStatus === 'connected' ? 'connected' : 'disconnected')} />
+                  <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">Intelligence</span>
+                </div>
+                <div className="w-px h-3 bg-white/10" />
+                <div className="flex items-center gap-2">
+                  <div className={cn("status-indicator", comfyuiStatus === 'connected' ? 'connected' : 'disconnected')} />
+                  <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">Visuals</span>
+                </div>
+             </div>
+          </div>
+          
+          <div className="generation-toolbar-container">
+            <GenerationButtonToolbar
+              context="dashboard"
+              onGenerationComplete={handleGenerationComplete}
+            />
+          </div>
+        </div>
+      </header>
 
       {/* Main Content Area */}
       <div className="dashboard-main">
@@ -1641,15 +1686,7 @@ export function ProjectDashboardNew({
             defaultExpanded={false}
           >
             <DashboardAddonsSection
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-              onLaunchWizard={(wizardType, initialData) => {
-                // Close all other wizards first
-                const closeActiveWizard = useAppStore.getState().closeActiveWizard;
-                closeActiveWizard();
-
-                // Launch the wizard based on type
-                handleLaunchWizard(wizardType);
-              }}
+              onLaunchWizard={handleAddonLaunchWizard}
               hideHeader={true}
               style={{ padding: 0, border: 'none', background: 'transparent', margin: 0 }}
             />
@@ -1770,59 +1807,118 @@ export function ProjectDashboardNew({
               </div>
             }
           >
-            <div className="plan-sequences-section" style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}>
-              <div className="sequences-grid">
+            <div className="plan-sequences-section p-0">
                 {sequences.length === 0 ? (
-                  <div className="no-sequences-message">
-                    <p>No sequences yet. Click + to add your first sequence.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <GlassCard intensity="low" className="col-span-full py-20 text-center border-dashed border-white/10">
+                      <Film className="w-12 h-12 text-white/10 mx-auto mb-4" />
+                      <p className="text-white/40 font-bold uppercase tracking-widest text-xs">Waiting for sequences...</p>
+                    </GlassCard>
                   </div>
                 ) : (
-                  sequences.map((seq) => {
-                    const seqWithFlag = seq as SequenceData & { isFormal?: boolean };
-                    return (
-                      <div
-                        key={seq.id}
-                        className={`sequence-card ${seqWithFlag.isFormal ? 'formal-plan' : ''}`}
-                        onClick={() => handleSequenceClick(seq.id)}
-                      >
-                      <div className="sequence-header">
-                        <div className="flex flex-col gap-1">
-                          <h4>{seq.name}</h4>
-                          {seqWithFlag.isFormal && (
-                            <Badge className="w-fit bg-primary/20 text-primary border-primary/30 text-[8px] uppercase font-black tracking-widest leading-none py-0.5 px-1.5">
-                              Formal Plan
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="sequence-actions">
-                          <button
-                            className="btn-sequence-action edit"
-                            onClick={(e) => handleEditSequence(seq, e)}
-                            title="Éditer la séquence"
+                  <Reorder.Group 
+                    axis="y" 
+                    values={orderedSequences} 
+                    onReorder={handleReorder}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {orderedSequences.map((seq: SequenceData, index: number) => {
+                        const seqWithFlag = seq as SequenceData & { isFormal?: boolean };
+                        return (
+                          <Reorder.Item
+                            key={seq.id}
+                            value={seq}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            whileDrag={{ 
+                              scale: 1.02, 
+                              boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)",
+                              zIndex: 50
+                            }}
+                            transition={{ 
+                              type: "spring", 
+                              stiffness: 300, 
+                              damping: 30,
+                              delay: index * 0.05 
+                            }}
+                            className="w-full h-full"
                           >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button
-                            className="btn-sequence-action delete"
-                            onClick={(e) => handleRemoveSequence(seq.id, e)}
-                            title="Supprimer la séquence"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="sequence-info">
-                        <span>Order: #{seq.order}</span>
-                        <span>Duration: {seq.duration}s</span>
-                        <span>Shots: {seq.shots}</span>
-                      </div>
-                      <div className="sequence-resume">
-                        <strong>Resume:</strong> {seq.resume}
-                      </div>
-                    </div>
-                  )})
+                            <GlassCard
+                              intensity="low"
+                              className={cn(
+                                "group cursor-pointer border-white/5 hover:border-primary/50 h-full",
+                                seqWithFlag.isFormal ? 'ring-1 ring-primary/20 bg-primary/5' : ''
+                              )}
+                              onClick={() => handleSequenceClick(seq.id)}
+                            >
+                              <div className="flex justify-between items-start mb-4">
+                                <div className="flex flex-col gap-1.5">
+                                  <div className="flex items-center gap-2">
+                                    {/* Drag Handle */}
+                                    <div className="p-1.5 rounded-md bg-white/5 text-white/20 cursor-grab active:cursor-grabbing hover:text-primary hover:bg-white/10 transition-all border border-white/5 active:scale-95">
+                                      <GripVertical className="w-4 h-4" />
+                                    </div>
+                                    <span className="flex items-center justify-center w-6 h-6 rounded-md bg-white/5 text-[10px] font-black text-white/40 border border-white/5">
+                                      {String(seq.order).padStart(2, '0')}
+                                    </span>
+                                    <h4 className="font-bold text-white text-sm tracking-tight group-hover:text-primary transition-colors">{seq.name}</h4>
+                                  </div>
+                                  {seqWithFlag.isFormal && (
+                                    <Badge className="w-fit bg-primary/20 text-primary border-primary/30 text-[8px] uppercase font-black tracking-widest leading-none py-0.5 px-1.5 rounded-sm">
+                                      Formal Plan
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <button
+                                    className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+                                    onClick={(e) => handleEditSequence(seq, e)}
+                                    title="Edit"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:text-rose-300 hover:bg-rose-500/20 transition-colors"
+                                    onClick={(e) => handleRemoveSequence(seq.id, e)}
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+  
+                              <div className="grid grid-cols-2 gap-2 mb-4">
+                                 <div className="bg-black/20 rounded-lg p-2 border border-white/5">
+                                   <div className="text-[8px] uppercase font-bold text-white/20 tracking-widest mb-0.5">Duration</div>
+                                   <div className="text-xs font-mono text-white/80">{seq.duration}s</div>
+                                 </div>
+                                 <div className="bg-black/20 rounded-lg p-2 border border-white/5">
+                                   <div className="text-[8px] uppercase font-bold text-white/20 tracking-widest mb-0.5">Layers</div>
+                                   <div className="text-xs font-mono text-white/80">{seq.shots} shots</div>
+                                 </div>
+                              </div>
+                              
+                              <div className="text-[11px] text-white/40 line-clamp-2 italic leading-relaxed">
+                                {seq.resume || "No description provided."}
+                              </div>
+                              
+                              {/* Progress bar simulation */}
+                              <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                 <motion.div 
+                                   initial={{ width: 0 }}
+                                   animate={{ width: '40%' }}
+                                   className="h-full bg-primary/40"
+                                 />
+                              </div>
+                            </GlassCard>
+                          </Reorder.Item>
+                        )})
+                      }
+                    </AnimatePresence>
+                  </Reorder.Group>
                 )}
-              </div>
             </div>
           </CollapsibleSection>
 
@@ -1920,7 +2016,7 @@ export function ProjectDashboardNew({
                   <p className="text-xs text-gray-400">No assets yet. Start generating!</p>
                 </div>
               ) : (
-                recentAssets.map((asset, idx) => (
+                recentAssets.map((asset, idx: number) => (
                   <div key={idx} className="recent-asset-card group">
                     <div className="aspect-video bg-gray-900 rounded-md overflow-hidden relative border border-gray-800 group-hover:border-primary transition-colors">
                       <img
@@ -1951,7 +2047,7 @@ export function ProjectDashboardNew({
           <div className="recent-activity-section">
             <h3>Recent Activity</h3>
             <div className="activity-list">
-              {recentActivity.map((activity) => (
+              {recentActivity.map((activity: ActivityItem) => (
                 <div key={activity.id} className="activity-item">
                   <activity.icon className="activity-icon" />
                   <div className="activity-content">
@@ -2033,7 +2129,7 @@ export function ProjectDashboardNew({
           onCancel={() => setShowObjectWizard(false)}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
 

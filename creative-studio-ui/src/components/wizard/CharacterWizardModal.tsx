@@ -20,6 +20,7 @@ export interface CharacterWizardModalProps {
   onComplete?: (character: Character) => void;
   worldContext?: World;
   initialData?: Partial<Character>;
+  initialImage?: File;
 }
 
 export function CharacterWizardModal({
@@ -28,6 +29,7 @@ export function CharacterWizardModal({
   onComplete,
   worldContext,
   initialData,
+  initialImage,
 }: CharacterWizardModalProps) {
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
@@ -90,6 +92,7 @@ export function CharacterWizardModal({
             onCancel={handleCancel}
             worldContext={worldContext}
             initialData={initialData}
+            initialImage={initialImage}
           />
         </div>
       </div>

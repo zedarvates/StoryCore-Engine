@@ -1152,6 +1152,8 @@ class TranscriptionService:
     
     def __init__(self):
         self.backends = ["whisper", "vosk", "google"]
+        self._whisper_model = None
+        self._vosk_model = None
     
     def transcribe(
         self,
@@ -1172,6 +1174,7 @@ class TranscriptionService:
         Returns:
             TranscriptionResult with text and word timestamps
         """
+        backend = backend.lower()
         if backend == "whisper":
             return self._transcribe_whisper(audio_path, language, callback)
         elif backend == "vosk":
@@ -1189,11 +1192,13 @@ class TranscriptionService:
         try:
             import whisper
             
-            # Load model
-            model = whisper.load_model("base")
+            # Lazy load model (Requirement: Performance Optimization)
+            if self._whisper_model is None:
+                logger.info("Loading Whisper model...")
+                self._whisper_model = whisper.load_model("base")
             
             # Transcribe with word timestamps
-            result = model.transcribe(
+            result = self._whisper_model.transcribe(
                 audio_path,
                 language=None if language == "auto" else language,
                 word_timestamps=True
@@ -1250,9 +1255,14 @@ class TranscriptionService:
                 '-ar', '16000', '-ac', '1', '-f', 'wav', tmp_path
             ], capture_output=True)
             
-            # Load model
-            model = Model("model")
-            rec = KaldiRecognizer(model, 16000)
+            # Lazy load model
+            if self._vosk_model is None:
+                model_path = os.getenv("VOSK_MODEL_PATH", "model")
+                if not os.path.exists(model_path):
+                    logger.warning(f"Vosk model not found at {model_path}. Transcription will fail.")
+                self._vosk_model = Model(model_path)
+            
+            rec = KaldiRecognizer(self._vosk_model, 16000)
             
             # Process audio
             import wave

@@ -1333,7 +1333,7 @@ export const useStore = create<Store>()(
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
-                ? { ...shot, audioTracks: [...shot.audioTracks, track] }
+                ? { ...shot, audioTracks: [...(shot.audioTracks || []), track] }
                 : shot
             ),
           })),
@@ -1344,7 +1344,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  audioTracks: shot.audioTracks.map((track) =>
+                  audioTracks: (shot.audioTracks || []).map((track) =>
                     track.id === trackId ? { ...track, ...updates } : track
                   ),
                 }
@@ -1358,7 +1358,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  audioTracks: shot.audioTracks.filter((track) => track.id !== trackId),
+                  audioTracks: (shot.audioTracks || []).filter((track) => track.id !== trackId),
                 }
                 : shot
             ),
@@ -1371,7 +1371,7 @@ export const useStore = create<Store>()(
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
-                ? { ...shot, effects: [...shot.effects, effect] }
+                ? { ...shot, effects: [...(shot.effects || []), effect] }
                 : shot
             ),
           })),
@@ -1382,7 +1382,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  effects: shot.effects.map((effect) =>
+                  effects: (shot.effects || []).map((effect) =>
                     effect.id === effectId ? { ...effect, ...updates } : effect
                   ),
                 }
@@ -1396,7 +1396,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  effects: shot.effects.filter((effect) => effect.id !== effectId),
+                  effects: (shot.effects || []).filter((effect) => effect.id !== effectId),
                 }
                 : shot
             ),
@@ -1416,7 +1416,7 @@ export const useStore = create<Store>()(
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
-                ? { ...shot, textLayers: [...shot.textLayers, layer] }
+                ? { ...shot, textLayers: [...(shot.textLayers || []), layer] }
                 : shot
             ),
           })),
@@ -1427,7 +1427,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  textLayers: shot.textLayers.map((layer) =>
+                  textLayers: (shot.textLayers || []).map((layer) =>
                     layer.id === layerId ? { ...layer, ...updates } : layer
                   ),
                 }
@@ -1441,7 +1441,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  textLayers: shot.textLayers.filter((layer) => layer.id !== layerId),
+                  textLayers: (shot.textLayers || []).filter((layer) => layer.id !== layerId),
                 }
                 : shot
             ),
@@ -1454,7 +1454,7 @@ export const useStore = create<Store>()(
           set((state) => ({
             shots: state.shots.map((shot) =>
               shot.id === shotId
-                ? { ...shot, animations: [...shot.animations, animation] }
+                ? { ...shot, animations: [...(shot.animations || []), animation] }
                 : shot
             ),
           })),
@@ -1465,7 +1465,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  animations: shot.animations.map((animation) =>
+                  animations: (shot.animations || []).map((animation) =>
                     animation.id === animationId ? { ...animation, ...updates } : animation
                   ),
                 }
@@ -1479,7 +1479,7 @@ export const useStore = create<Store>()(
               shot.id === shotId
                 ? {
                   ...shot,
-                  animations: shot.animations.filter(
+                  animations: (shot.animations || []).filter(
                     (animation) => animation.id !== animationId
                   ),
                 }

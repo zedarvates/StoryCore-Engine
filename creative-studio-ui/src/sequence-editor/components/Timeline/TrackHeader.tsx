@@ -8,6 +8,8 @@
  */
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
+import { Reorder } from 'framer-motion';
+import { GripVertical } from 'lucide-react';
 import type { Track, LayerType } from '@/sequence-editor/types';
 
 interface TrackHeaderProps {
@@ -90,37 +92,6 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
     };
   }, [isResizing, resizeStartY, resizeStartHeight, onResize, config.minHeight]);
 
-  // Handle drag start for reordering
-  const handleDragStart = useCallback((e: React.DragEvent) => {
-    e.dataTransfer.setData('trackIndex', index.toString());
-    e.dataTransfer.effectAllowed = 'move';
-    if (headerRef.current) {
-      headerRef.current.classList.add('dragging');
-    }
-  }, [index]);
-
-  // Handle drag end
-  const handleDragEnd = useCallback(() => {
-    if (headerRef.current) {
-      headerRef.current.classList.remove('dragging');
-    }
-  }, []);
-
-  // Handle drag over for reordering
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  // Handle drop for reordering
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const fromIndex = parseInt(e.dataTransfer.getData('trackIndex'), 10);
-    if (!isNaN(fromIndex) && fromIndex !== index) {
-      onReorder(fromIndex, index);
-    }
-  }, [index, onReorder]);
-
   // Get audio-specific state
   const isAudioTrack = track.type === 'audio';
   // For demo, we'll track mute/solo state locally (would normally come from track state)
@@ -138,7 +109,9 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
   }, [isSolo, onSoloToggle]);
 
   return (
-    <div
+    <Reorder.Item
+      as="div"
+      value={track}
       ref={headerRef}
       className={`
         track-header 
@@ -158,17 +131,18 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
             : 'var(--bg-secondary, #2a2a2a)',
         opacity: track.hidden ? 0.5 : 1,
       }}
-      draggable={!track.locked && !isResizing}
+      draggable={false} // Disable standard DnD
+      whileDrag={{ 
+        scale: 1.02,
+        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.4)",
+        zIndex: 50
+      }}
       onMouseEnter={() => onHover(track.id)}
       onMouseLeave={() => onHover(null)}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
     >
       {/* Drag handle (visible on hover) */}
       <div className="track-drag-handle" title="Drag to reorder">
-        ⋮⋮
+        <GripVertical className="w-4 h-4 opacity-40 group-hover:opacity-100" />
       </div>
 
       {/* Track icon */}
@@ -252,7 +226,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
       >
         <div className="resize-grip" />
       </div>
-    </div>
+    </Reorder.Item>
   );
 };
 

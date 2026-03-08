@@ -166,6 +166,26 @@ class Settings(BaseSettings):
     )
     
     # =======================
+    # StoryCore WordPress / Marketplace
+    # =======================
+    STORYCORE_WORDPRESS_URL: str = Field(
+        default="http://localhost/storycore",
+        description="URL of the StoryCore WordPress site"
+    )
+
+    # =======================
+    # GemReward Service
+    # =======================
+    GEM_SERVICE_URL: str = Field(
+        default="http://localhost:8001",
+        description="URL of the standalone GemReward service"
+    )
+    GEM_SERVICE_APP_ID: str = Field(
+        default="storycore-engine-main",
+        description="App ID for this engine in the Gem service"
+    )
+
+    # =======================
     # Feature Flags
     # =======================
     USE_MOCK_LLM: bool = Field(
@@ -215,6 +235,10 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE: int = Field(
         default=100 * 1024 * 1024,  # 100MB
         description="Maximum upload size in bytes"
+    )
+    KNOWLEDGE_GRAPH_PATH: str = Field(
+        default="storage/knowledge_graph.json",
+        description="Path to persist the StoryCore Knowledge Graph"
     )
     
     # =======================

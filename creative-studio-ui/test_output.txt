@@ -1,0 +1,2539 @@
+
+[1m[44m DEV [49m[22m [34mv4.0.18 [39m[90mC:/storycore-engine/creative-studio-ui[39m
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Virtual Scrolling > should render virtual timeline canvas container
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Virtual Scrolling > should render track list with virtual items
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Virtual Scrolling > should filter out hidden tracks
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Canvas Rendering > should render canvas for each track
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Canvas Rendering > should set canvas dimensions based on timeline width and track height
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Rendering > should render shots on appropriate tracks
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Rendering > should handle shots with multiple layers
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Rendering > should display layer count badge when track has layers
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should call onShotSelect when shot is clicked
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should support multi-select with Ctrl/Cmd key
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should highlight selected shots
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Layer Selection > should call onLayerSelect when layer is clicked
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Playhead Rendering > should render playhead at current position
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Playhead Rendering > should show playing indicator when isPlaying is true
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Zoom Level Handling > should adjust rendering based on zoom level
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Performance > should handle large number of shots efficiently
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+stderr | src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Performance > should use virtual scrolling for performance
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+[vitest] The vi.fn() mock did not use 'function' or 'class' in its implementation, see https://vitest.dev/api/vi#vi-spyon for examples.
+
+ [31mÔØ»[39m src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx [2m([22m[2m23 tests[22m[2m | [22m[31m17 failed[39m[2m)[22m[32m 97[2mms[22m[39m
+       [32mÔ£ô[39m should have configuration for all 6 track types[32m 1[2mms[22m[39m
+       [32mÔ£ô[39m should have unique colors for each track type[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should have unique icons for each track type[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should have appropriate heights for each track type[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should render virtual timeline canvas container[39m[32m 34[2mms[22m[39m
+[31m       [31m├ù[31m should render track list with virtual items[39m[32m 5[2mms[22m[39m
+[31m       [31m├ù[31m should filter out hidden tracks[39m[32m 4[2mms[22m[39m
+[31m       [31m├ù[31m should render canvas for each track[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should set canvas dimensions based on timeline width and track height[39m[32m 4[2mms[22m[39m
+[31m       [31m├ù[31m should render shots on appropriate tracks[39m[32m 4[2mms[22m[39m
+[31m       [31m├ù[31m should handle shots with multiple layers[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should display layer count badge when track has layers[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should call onShotSelect when shot is clicked[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should support multi-select with Ctrl/Cmd key[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should highlight selected shots[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should call onLayerSelect when layer is clicked[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should render playhead at current position[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should show playing indicator when isPlaying is true[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should adjust rendering based on zoom level[39m[32m 9[2mms[22m[39m
+       [32mÔ£ô[39m getTrackShots should filter shots by track type[32m 1[2mms[22m[39m
+       [32mÔ£ô[39m getTrackShots should handle shots with multiple layers of same type[32m 0[2mms[22m[39m
+[31m       [31m├ù[31m should handle large number of shots efficiently[39m[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should use virtual scrolling for performance[39m[32m 3[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 17 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Virtual Scrolling > should render virtual timeline canvas container
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:187:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 187,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:187:29
+    185|       const shots: Shot[] = [];
+    186|       
+    187|       const { container } = render(
+       |                             ^
+    188|         <VirtualTimelineCanvas
+    189|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Virtual Scrolling > should render track list with virtual items
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:206:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 206,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:206:29
+    204|       const shots: Shot[] = [];
+    205|       
+    206|       const { container } = render(
+       |                             ^
+    207|         <VirtualTimelineCanvas
+    208|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Virtual Scrolling > should filter out hidden tracks
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:227:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 227,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:227:29
+    225|       const shots: Shot[] = [];
+    226|       
+    227|       const { container } = render(
+       |                             ^
+    228|         <VirtualTimelineCanvas
+    229|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Canvas Rendering > should render canvas for each track
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:251:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 251,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:251:29
+    249|       const shots: Shot[] = [];
+    250|       
+    251|       const { container } = render(
+       |                             ^
+    252|         <VirtualTimelineCanvas
+    253|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[4/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Canvas Rendering > should set canvas dimensions based on timeline width and track height
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:273:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 273,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:273:29
+    271|       const timelineWidth = 2000;
+    272|       
+    273|       const { container } = render(
+       |                             ^
+    274|         <VirtualTimelineCanvas
+    275|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[5/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Rendering > should render shots on appropriate tracks
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:298:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 298,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:298:29
+    296|       ];
+    297|       
+    298|       const { container } = render(
+       |                             ^
+    299|         <VirtualTimelineCanvas
+    300|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[6/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Rendering > should handle shots with multiple layers
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:338:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 338,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:338:29
+    336|       const shots = [shot];
+    337|       
+    338|       const { container } = render(
+       |                             ^
+    339|         <VirtualTimelineCanvas
+    340|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[7/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Rendering > should display layer count badge when track has layers
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:361:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 361,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:361:29
+    359|       ];
+    360|       
+    361|       const { container } = render(
+       |                             ^
+    362|         <VirtualTimelineCanvas
+    363|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[8/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should call onShotSelect when shot is clicked
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:384:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 384,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:384:29
+    382|       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
+    383|       
+    384|       const { container } = render(
+       |                             ^
+    385|         <VirtualTimelineCanvas
+    386|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[9/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should support multi-select with Ctrl/Cmd key
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:410:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 410,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:410:29
+    408|       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
+    409|       
+    410|       const { container } = render(
+       |                             ^
+    411|         <VirtualTimelineCanvas
+    412|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[10/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should highlight selected shots
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:439:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 439,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:439:29
+    437|       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
+    438|       
+    439|       const { container } = render(
+       |                             ^
+    440|         <VirtualTimelineCanvas
+    441|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[11/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Layer Selection > should call onLayerSelect when layer is clicked
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:461:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 461,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:461:29
+    459|       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
+    460|       
+    461|       const { container } = render(
+       |                             ^
+    462|         <VirtualTimelineCanvas
+    463|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[12/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Playhead Rendering > should render playhead at current position
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:490:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 490,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:490:29
+    488|       const shots: Shot[] = [];
+    489|       
+    490|       const { container } = render(
+       |                             ^
+    491|         <VirtualTimelineCanvas
+    492|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[13/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Playhead Rendering > should show playing indicator when isPlaying is true
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:510:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 510,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:510:29
+    508|       const shots: Shot[] = [];
+    509|       
+    510|       const { container } = render(
+       |                             ^
+    511|         <VirtualTimelineCanvas
+    512|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[14/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Zoom Level Handling > should adjust rendering based on zoom level
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:533:39\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 533,
+      column: 39
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:533:39
+    531|       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
+    532|       
+    533|       const { rerender, container } = render(
+       |                                       ^
+    534|         <VirtualTimelineCanvas
+    535|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[15/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Performance > should handle large number of shots efficiently
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:623:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 623,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:623:29
+    621|       }
+    622|       
+    623|       const { container } = render(
+       |                             ^
+    624|         <VirtualTimelineCanvas
+    625|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[16/17]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Performance > should use virtual scrolling for performance
+{
+  stack: 'AggregateError: \n' +
+    '    at aggregateErrors (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:551:11)\n' +
+    '    at process.env.NODE_ENV.exports.act (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react\\cjs\\react.development.js:897:24)\n' +
+    '    at C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\act-compat.js:46:25\n' +
+    '    at renderRoot (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:189:26)\n' +
+    '    at render (C:\\storycore-engine\\creative-studio-ui\\node_modules\\@testing-library\\react\\dist\\pure.js:291:10)\n' +
+    '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:647:29\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26\n' +
+    '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20\n' +
+    '    at new Promise (<anonymous>)',
+  errors: [
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at Object.observeElementRect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:34:20)\n' +
+        '    at Virtualizer._willUpdate (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:321:24)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/react-virtual/dist/esm/index.js:31:21\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13213:11)\n' +
+        '    at commitLayoutEffectOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13951:13)\n' +
+        '    at recursivelyTraverseLayoutEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15159:11)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/VirtualTimelineCanvas.tsx:420:28\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:25989:20)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListMount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13249:29)\n' +
+        '    at commitHookPassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13336:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15484:13)\n' +
+        '    at recursivelyTraversePassiveMountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15439:11)\n' +
+        '    at commitPassiveMountOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:15519:11)\n' +
+        '    at flushPassiveEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:18432:9)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'TypeError: () => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor\n' +
+        '    at new Mock (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/spy/dist/index.js:262:27)\n' +
+        '    at get (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:206:22)\n' +
+        '    at Object.disconnect (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:218:17)\n' +
+        '    at Virtualizer.cleanup (file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:293:21)\n' +
+        '    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@tanstack/virtual-core/dist/esm/index.js:299:14\n' +
+        '    at Object.react_stack_bottom_frame (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:26001:13)\n' +
+        '    at runWithFiberInDEV (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:874:13)\n' +
+        '    at commitHookEffectListUnmount (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13316:17)\n' +
+        '    at commitHookLayoutUnmountEffects (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:13224:11)\n' +
+        '    at commitDeletionEffectsOnFiber (C:\\storycore-engine\\creative-studio-ui\\node_modules\\react-dom\\cjs\\react-dom-client.development.js:14373:13)',
+      message: '() => ({\n' +
+        '  observe: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  unobserve: __vite_ssr_import_1__.vi.fn(),\n' +
+        '  disconnect: __...<omitted>...}) is not a constructor',
+      constructor: 'Function<TypeError>',
+      name: 'TypeError',
+      toString: 'Function<toString>'
+    }
+  ],
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  message: '',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: 'aggregateErrors',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 551,
+      column: 11
+    },
+    {
+      method: 'process.env.NODE_ENV.exports.act',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/react/cjs/react.development.js',
+      line: 897,
+      column: 24
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/act-compat.js',
+      line: 46,
+      column: 25
+    },
+    {
+      method: 'renderRoot',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 189,
+      column: 26
+    },
+    {
+      method: 'render',
+      file: 'C:/storycore-engine/creative-studio-ui/node_modules/@testing-library/react/dist/pure.js',
+      line: 291,
+      column: 10
+    },
+    {
+      method: '',
+      file: 'C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx',
+      line: 647,
+      column: 29
+    }
+  ]
+}
+ ÔØ» aggregateErrors node_modules/react/cjs/react.development.js:551:11
+ ÔØ» process.env.NODE_ENV.exports.act node_modules/react/cjs/react.development.js:897:24
+ ÔØ» node_modules/@testing-library/react/dist/act-compat.js:46:25
+ ÔØ» renderRoot node_modules/@testing-library/react/dist/pure.js:189:26
+ ÔØ» render node_modules/@testing-library/react/dist/pure.js:291:10
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:647:29
+    645|       }
+    646|       
+    647|       const { container } = render(
+       |                             ^
+    648|         <VirtualTimelineCanvas
+    649|           tracks={tracks}
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[17/17]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m17 failed[39m[22m[2m | [22m[1m[32m6 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 18:25:25
+[2m   Duration [22m 2.08s[2m (transform 431ms, setup 501ms, import 122ms, tests 97ms, environment 643ms)[22m
+
+[1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
+       [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[31mCancelling test run. Press CTRL+c again to exit forcefully.
+[39m

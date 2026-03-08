@@ -26,7 +26,7 @@ export const AnimationPanel: React.FC<AnimationPanelProps> = ({ shotId }) => {
   }
 
   // Find animation for selected property
-  const currentAnimation = shot.animations.find(
+  const currentAnimation = (shot.animations || []).find(
     (anim) => anim.property === selectedProperty
   );
 
@@ -34,7 +34,7 @@ export const AnimationPanel: React.FC<AnimationPanelProps> = ({ shotId }) => {
     if (currentAnimation) return; // Already exists
 
     const newAnimation: Animation = {
-      id: `anim-${Date.now()}`,
+      id: crypto.randomUUID(),
       property: selectedProperty,
       keyframes: [],
     };
@@ -51,7 +51,7 @@ export const AnimationPanel: React.FC<AnimationPanelProps> = ({ shotId }) => {
     if (!currentAnimation) return;
 
     const newKeyframe: Keyframe = {
-      id: `keyframe-${Date.now()}`,
+      id: crypto.randomUUID(),
       time: 0,
       value: selectedProperty === 'position' ? { x: 0, y: 0 } : 1,
       easing: 'linear',
@@ -224,7 +224,7 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
   onDelete,
 }) => {
   const isPositionProperty = property === 'position';
-  const value = keyframe.value as any;
+  const value = keyframe.value as { x: number; y: number } | number;
 
   return (
     <div className="p-3 border rounded bg-gray-50 space-y-2">
@@ -261,9 +261,9 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
             <input
               type="number"
               step={1}
-              value={value.x}
+              value={(value as {x: number; y: number}).x}
               onChange={(e) =>
-                onUpdate({ value: { ...value, x: parseFloat(e.target.value) } })
+                onUpdate({ value: { ...(value as {x: number; y: number}), x: parseFloat(e.target.value) } })
               }
               className="w-full px-2 py-1 text-sm border rounded"
               aria-labelledby={`x-label-${keyframe.id}`}
@@ -274,9 +274,9 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
             <input
               type="number"
               step={1}
-              value={value.y}
+              value={(value as {x: number; y: number}).y}
               onChange={(e) =>
-                onUpdate({ value: { ...value, y: parseFloat(e.target.value) } })
+                onUpdate({ value: { ...(value as {x: number; y: number}), y: parseFloat(e.target.value) } })
               }
               className="w-full px-2 py-1 text-sm border rounded"
               aria-labelledby={`y-label-${keyframe.id}`}
@@ -295,7 +295,7 @@ const KeyframeEditor: React.FC<KeyframeEditorProps> = ({
             step={property === 'opacity' ? 0.1 : 1}
             min={property === 'opacity' ? 0 : undefined}
             max={property === 'opacity' ? 1 : undefined}
-            value={value}
+            value={value as number}
             onChange={(e) => onUpdate({ value: parseFloat(e.target.value) })}
             className="w-full px-2 py-1 text-sm border rounded"
             aria-labelledby={`value-label-${keyframe.id}`}

@@ -264,6 +264,7 @@ export interface AIWizardServiceEvents {
 class AIWizardService extends EventEmitter {
   private sessions: Map<string, WizardSession> = new Map();
   private isInitialized: boolean = false;
+  private initializationPromise: Promise<boolean> | null = null;
   private aiConfig: AIConfig;
 
   constructor(aiConfig: AIConfig) {
@@ -275,16 +276,25 @@ class AIWizardService extends EventEmitter {
    * Initialize the wizard service
    */
   async initialize(): Promise<boolean> {
-    try {
-      // Load sessions from storage
-      await this.loadSessions();
-      this.isInitialized = true;
-      console.log('AI Wizard Service initialized');
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize AI Wizard Service:', error);
-      return false;
-    }
+    if (this.isInitialized) return true;
+    if (this.initializationPromise) return this.initializationPromise;
+
+    this.initializationPromise = (async () => {
+      try {
+        // Load sessions from storage
+        await this.loadSessions();
+        this.isInitialized = true;
+        console.log('AI Wizard Service initialized');
+        return true;
+      } catch (error) {
+        console.error('Failed to initialize AI Wizard Service:', error);
+        return false;
+      } finally {
+        this.initializationPromise = null;
+      }
+    })();
+
+    return this.initializationPromise;
   }
 
   /**
@@ -468,6 +478,8 @@ class AIWizardService extends EventEmitter {
       const task = tasks[i];
       const result = await this.executeWizardTask(session, task);
       
+      const _recommendations = this.generateAnalysisRecommendations(result.data as AnalysisData);
+
       session.state.results.push(result);
       await this.saveSessions();
 
@@ -517,9 +529,6 @@ class AIWizardService extends EventEmitter {
         resultData = await this.executeGeneralWizardTask(task);
     }
 
-    // Generate recommendations based on result
-    const recommendations = this.generateAnalysisRecommendations(resultData as AnalysisData);
-
     return {
       step: session.state.currentStep,
       type: 'generation',
@@ -528,7 +537,7 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeCharacterWizardTask(task: WizardTask): Promise<CharacterWizardResultData> {
+  private async executeCharacterWizardTask(_task: WizardTask): Promise<CharacterWizardResultData> {
     // Simulate character generation
     return {
       characterId: `char_${Date.now()}`,
@@ -538,7 +547,7 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeScriptWizardTask(task: WizardTask): Promise<ScriptWizardResultData> {
+  private async executeScriptWizardTask(_task: WizardTask): Promise<ScriptWizardResultData> {
     // Simulate script analysis
     return {
       scriptId: `script_${Date.now()}`,
@@ -548,7 +557,7 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeShotWizardTask(task: WizardTask): Promise<ShotWizardResultData> {
+  private async executeShotWizardTask(_task: WizardTask): Promise<ShotWizardResultData> {
     // Simulate shot composition
     return {
       shotId: `shot_${Date.now()}`,
@@ -558,7 +567,7 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeColorWizardTask(task: WizardTask): Promise<ColorWizardResultData> {
+  private async executeColorWizardTask(_task: WizardTask): Promise<ColorWizardResultData> {
     // Simulate color grading
     return {
       palette: ['#FF5733', '#33FF57', '#3357FF'],
@@ -567,7 +576,7 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeAudioWizardTask(task: WizardTask): Promise<AudioWizardResultData> {
+  private async executeAudioWizardTask(_task: WizardTask): Promise<AudioWizardResultData> {
     // Simulate audio enhancement
     return {
       trackId: `audio_${Date.now()}`,
@@ -576,10 +585,10 @@ class AIWizardService extends EventEmitter {
     };
   }
 
-  private async executeGeneralWizardTask(task: WizardTask): Promise<GeneralWizardResultData> {
+  private async executeGeneralWizardTask(_task: WizardTask): Promise<GeneralWizardResultData> {
     // Simulate general task
     return {
-      taskId: task.id,
+      taskId: _task.id,
       output: {},
       metadata: {}
     };
@@ -588,7 +597,7 @@ class AIWizardService extends EventEmitter {
   /**
    * Get wizard tasks based on type and configuration
    */
-  getWizardTasks(type: WizardType, config: WizardConfig): WizardTask[] {
+  getWizardTasks(type: WizardType, _config: WizardConfig): WizardTask[] {
     const tasks: WizardTask[] = [];
 
     switch (type) {

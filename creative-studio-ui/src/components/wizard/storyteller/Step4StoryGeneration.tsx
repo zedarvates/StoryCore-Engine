@@ -3,9 +3,9 @@ import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, CheckCircle, AlertCircle, RefreshCw, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Loader2, CheckCircle, AlertCircle, RefreshCw, ChevronRight } from 'lucide-react';
 import { useStore } from '@/store';
-import type { GenerationProgress, StoryGenerationParams, WorldContext, StoryPart, Story } from '@/types/story';
+import type { GenerationProgress, StoryGenerationParams, WorldContext, StoryPart, Story, ProductionMode } from '@/types/story';
 import type { MethodologyState, StoryPhase } from '@/types/storyMethodology';
 import { generateStory } from '@/services/storyGenerationService';
 import { Star, ScrollText, Layers, FileEdit } from 'lucide-react';
@@ -25,6 +25,9 @@ interface StoryWizardFormData {
   generatedSummary?: string;
   parts?: unknown[];
   methodologyState?: MethodologyState;
+  useAdvancedBackend?: boolean;
+  productionMode?: ProductionMode;
+  withCritique?: boolean;
 }
 
 // ============================================================================
@@ -65,7 +68,6 @@ function PhaseProgress({ phases, currentPhase, progress }: PhaseProgressProps) {
         {phases.map((phase, index) => {
           const isComplete = index < currentIndex;
           const isCurrent = index === currentIndex;
-          const isPending = index > currentIndex;
 
           return (
             <React.Fragment key={phase.phase}>
@@ -294,6 +296,7 @@ export function Step4StoryGeneration() {
     if (!hasSkipped && !generatedStory) {
       handleGenerate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSkipped]);
 
   const handleSkip = () => {
@@ -341,7 +344,7 @@ export function Step4StoryGeneration() {
       } : undefined;
 
       // Get selected characters and locations
-      const selectedCharacterIds = formData.selectedCharacters?.map((c: any) => c.id) || [];
+      const selectedCharacterIds = formData.selectedCharacters?.map((c) => c.id) || [];
       const selectedCharacters = characters.filter(c => selectedCharacterIds.includes(c.character_id));
       const selectedLocations = formData.selectedLocations || [];
 
@@ -361,6 +364,9 @@ export function Step4StoryGeneration() {
           culturalElements: {},
           atmosphere: '',
         },
+        useAdvancedBackend: formData.useAdvancedBackend,
+        productionMode: formData.productionMode,
+        withCritique: formData.withCritique,
       };
 
       // Stage 1: Creating elements (if needed)

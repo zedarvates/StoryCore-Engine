@@ -1,0 +1,62 @@
+{
+  "project_name": "little_red_riding_hood_2048",
+  "prompt": "Little Red Riding Hood in 2048. A teenage girl in a neon-lit megacity delivers a survival package through gang-controlled streets to reach her sick grandmother's apartment on the 97th floor. The city is cyberpunk, rainy, and oppressive. The Wolf is a Wolf-Corp corporate enforcer. The Woodsman is a drone mechanic.",
+  "mock_mode": true,
+  "success": true,
+  "duration_sec": 1.05,
+  "video_path": "C:\\storycore-engine\\output\\e2e_demos\\little_red_riding_hood_2048\\final\\little_red_riding_hood_2048_demo.mp4",
+  "warnings": [],
+  "errors": [],
+  "steps": [
+    {
+      "step": "Pre-flight check",
+      "status": "ok",
+      "message": "Skipped in mock mode (--mock)",
+      "detail": "",
+      "duration_sec": 9.5367431640625e-07
+    },
+    {
+      "step": "Prompt → Scene breakdown",
+      "status": "ok",
+      "message": "Mock breakdown: 4 scenes generated",
+      "detail": "",
+      "duration_sec": 3.337860107421875e-06
+    },
+    {
+      "step": "Project structure",
+      "status": "ok",
+      "message": "Created at C:\\storycore-engine\\output\\e2e_demos\\little_red_riding_hood_2048",
+      "detail": "",
+      "duration_sec": 0.0011577606201171875
+    },
+    {
+      "step": "Image generation",
+      "status": "ok",
+      "message": "Created 4 placeholder image(s) [mock mode]",
+      "detail": "",
+      "duration_sec": 0.126204252243042
+    },
+    {
+      "step": "Audio / TTS synthesis",
+      "status": "ok",
+      "message": "Created 6 silent placeholder WAV(s) [mock mode]",
+      "detail": "",
+      "duration_sec": 0.018726348876953125
+    },
+    {
+      "step": "Video assembly (FFmpeg)",
+      "status": "ok",
+      "message": "Video: little_red_riding_hood_2048_demo.mp4 (0.1 MB)",
+      "detail": "",
+      "duration_sec": 0.9009144306182861
+    },
+    {
+      "step": "Update demo folder",
+      "status": "ok",
+      "message": "Synced results to C:\\storycore-engine\\complete_pipeline_test",
+      "detail": "",
+      "duration_sec": 0.0026483535766601562
+    }
+  ],
+  "timestamp": "2026-03-01T14:45:16.273389+00:00"
+}

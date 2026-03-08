@@ -1,0 +1,997 @@
+{
+  "skills": [
+    {
+      "id": "object-create",
+      "name": "Créer un objet",
+      "description": "Crée un nouvel objet complet avec toutes ses propriétés, capacités et éléments narratifs pour votre histoire interactive StoryCore",
+      "category": "objects",
+      "prompt": "Tu es un expert en création d'objets narratifs pour des histoires interactives StoryCore. Ta mission est de créer un objet détaillé et immersif qui enrichira l'histoire de l'utilisateur.\n\n## Instructions de création\n\n### Informations essentielles à générer\n\n1. **Identité de l'objet**\n   - Nom complet (poétique et évocateur)\n   - Nom alternatif ou surnom usuel\n   - Type d'objet (arme, armure, artefact, outil, objet quotidien, jewelry, véhicule, livre, etc.)\n   - Catégorie (magique, technologique, mystique, ordinaire, ancien, futuriste)\n\n2. **Description physique**\n   - Apparence générale et dimensions\n   - Matériaux composants\n   - Couleurs et textures\n   - Éléments distinctifs (gravures, symboles, gemstones)\n   - État (neuf, usé, endommagé, légendaire)\n   - Atmosphère sensorielle (visuelle, sonore, tactile, olfactive)\n\n3. **Propriétés et capacités**\n   - Pouvoirs actifs (ce que l'objet fait activement)\n   - Pouvoirs passifs (effets constants)\n   - Limitations d'utilisation\n   - Coûts ou sacrifices requis\n   - Conditions d'activation\n   - Durabilité ou énergie\n\n4. **Histoire et origine**\n   - Origine de la création\n   - Créateur ou civilisation responsable\n   - Événements historiques marquants\n   - Propriétaires précédents célèbres\n   - Légendes ou prophéties associées\n\n5. **Signification narrative**\n   - Rôle dans l'intrigue actuelle\n   - Relations avec les personnages\n   - Enjeux émotionnels\n   - Potential de conflit ou de résolution\n   - Secrets ou mystères liés\n\n6. **Intégration dans l'univers**\n   - Comment l'objet s'intègre dans le monde\n   - Rareté et valeur\n   - Connexions avec d'autres objets ou lieux\n   - Réactions des factions ou organisations\n\n## Style et ton\n\n- Utilise un style descriptif immersif qui transporte le lecteur\n- Varie le registre selon le genre (fantasy sombre, aventure héroïque, science-fiction, etc.)\n- Inclue des détails sensoriels concrets\n- Crée une atmosphère cohérente avec le genre choisi\n- Donne de la profondeur et de l'importance à l'objet\n\n## Format de sortie\n\nRetourne un objet JSON complet avec tous les éléments décrits ci-dessus.",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "description": "Nom de l'objet à créer",
+          "required": false,
+          "default": "Généré automatiquement par l'IA"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type d'objet (arme, armure, artefact, outil, objet quotidien, jewelry, véhicule, livre, instrument, relique, etc.)",
+          "required": true,
+          "default": "artefact"
+        },
+        "categorie": {
+          "type": "string",
+          "description": "Catégorie de l'objet",
+          "required": true,
+          "default": "magique",
+          "values": ["magique", "technologique", "mystique", "ordinaire", "ancien", "futuriste", "divin", "maudit"]
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre de l'histoire",
+          "required": true,
+          "default": "fantasy",
+          "values": ["fantasy", "science-fiction", "horreur", "aventure", "romance", "thriller", "historique", "post-apocalyptique", "cyberpunk"]
+        },
+        "tonalite": {
+          "type": "string",
+          "description": "Tonalité générale de l'objet",
+          "required": true,
+          "default": "mystérieuse",
+          "values": ["sombre", "mystérieuse", "bénéfique", "dangereuse", "majestueuse", "tragique", "中性", "sacrée", "maudite"]
+        },
+        "rarete": {
+          "type": "string",
+          "description": "Rareté de l'objet",
+          "required": true,
+          "default": "rare",
+          "values": ["commun", "inhabituel", "rare", "épique", "légendaire", "divin", "unique"]
+        },
+        "puissance": {
+          "type": "string",
+          "description": "Niveau de puissance souhaité",
+          "required": true,
+          "default": "moyen",
+          "values": ["faible", "moyen", "élevé", "divin", "incommensurable"]
+        },
+        "personnages_lies": {
+          "type": "array",
+          "description": "Personnages liés à l'objet (pour contextualisation)",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Nom d'un personnage lié"
+          }
+        },
+        "contexte_narratif": {
+          "type": "string",
+          "description": "Contexte narratif actuel (quêtes en cours, événements récents)",
+          "required": false,
+          "default": ""
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "type": "épée",
+            "categorie": "magique",
+            "genre": "fantasy",
+            "tonalite": "majestueuse",
+            "rarete": "légendaire",
+            "puissance": "divin"
+          },
+          "output": {
+            "nom": "Lame de l'Aube Éternelle",
+            "nom_alternatif": "Le Soleil Matinal Forgé",
+            "type": "Épée",
+            "categorie": "Magique",
+            "description_physique": "Une épée à une main d'une beauté saisissante. La lame, forgée dans un alliage inconnu de lumière solidifiée, semble absorber les premiers rayons du soleil pour mieux les restituer. Elle mesure exactement trois pieds de long, avec une garde en orichalque ornée de runes célestes qui pulsent d'une lueur dorée. Le pommeau est serti d'un rubis de la taille d'un poing qui bat comme un cœur, projetant des reflets carmin sur les mains du porteur. Le fourreau de cuir blanc, décoré de fils d'or, ne contient aucune lame visible le jour - l'épée se forme littéralement entre les mains de son maître.\n\nMatériaux: Alliage de lumière solidifiée, orichalque, rubis céleste\nCouleurs: Or, blanc argenté, rouge profond\nTexture: Chaude au toucher, légèrement vibrante\nÉtat: Légendaire, parfait état malgré les siècles",
+            "proprietes": {
+              "pouvoirs_actifs": [
+                "Projeter une lumière aveuglante dans un rayon de 50 pieds",
+                "Trancher n'importe quelle matière excepté les boucliers divins",
+                "Créer des barrières de lumière solide",
+                "Invoquer les rayons du soleil même par temps couvert"
+              ],
+              "pouvoirs_passifs": [
+                "Immunité contre les ténèbres et la corruption",
+                "Le porteur n'a jamais besoin de sommeil",
+                "Les créatures malveillantes ressentent une forte aversion",
+                "Guérison lente des blessures légères"
+              ],
+              "limitations": [
+                "Ne peut être brandie que par quelqu'un de cœur pur",
+                "Perd ses pouvoirs pendant les nuits de lune noire",
+                "S'affaiblit à chaque utilisation de pouvoir sombre par le porteur",
+                "Ne peut être utilisée que pendant les heures de clarté"
+              ],
+              "couts": [
+                "Chaque pouvoir actif消耗 une portion de l'essence vitale du porteur",
+                "L'utilisation prolongée peut mener à l'épuisement"
+              ],
+              "conditions_activation": [
+                "Le porteur doit croire en la justice",
+                "L'intention doit être defensive ou protectrice",
+                "Le rubis doit être en contact direct avec la peau"
+              ],
+              "duree_energie": "Illimitée mais liée à la foi du porteur"
+            },
+            "histoire": {
+              "origine": "Forgée par Aelindras, le Dieu du Soleil, lors de la Première Guerre Céleste il y a des millénaires",
+              "createur": "Aelindras (Dieu du Soleil)",
+              "civilisation": "Célestes (divinités排序)",
+              "evenements_marquants": [
+                "Utilisée pour sceller les Ténèbres Primordiales dans les Abysses",
+                "Portée par le Héros Solaire Aldrenn dans la Bataille du Crépuscule",
+                "Perdue lors de la Chute des Rois lorsque le dernier porteur fut trahi",
+                "Redécouverte dans les ruines du Temple de l'Aube par un paysan"
+              ],
+              "proprietaires_precedents": [
+                "Aelindras (créateur)",
+                "Le Héros Solaire Aldrenn",
+                "La Reine Lumière Elindra",
+                "Le Chevalier Errant Kael"
+              ],
+              "legendes": "La légende raconte que celui qui portera cette épée sera choisi par le destin pour accomplir une quête qui transcendera les mortels. On murmure aussi qu'elle ne peut être définitivement détruite - si elle est brisée, elle se reformera au lever du soleil suivant."
+            },
+            "signification_narrative": {
+              "role_principal": "Objet central de la quête pour restaurer l'équilibre entre lumière et ténèbres",
+              "enjeux_emotionnels": [
+                "Le porteur doit prouver sa valeur et sa pureté",
+                "Le sacrifice peut être nécessaire pour unlocker le plein potentiel",
+                "La tentation du pouvoir peut corrompre"
+              ],
+              "relations_personnages": [
+                "Le porteur sera hunté par les serviteurs des ténèbres",
+                "Les factions de lumière葫芦丝 soutiendront le porteur",
+                "Les anciens propriétaires observent depuis l'au-delà"
+              ],
+              "potential_conflit": [
+                "Combat pour sa possession entre factions",
+                "Tentation de l'utiliser à des fins égoïstes",
+                "Déstruction potentielle d'alliés par mégarde"
+              ]
+            },
+            "integration_univers": {
+              "rarete": "Légendaire - un seul exemplaire connu",
+              "valeur": "Inestimable - les royaumes tueraient pour la posséder",
+              "connexions": [
+                "Temple de l'Aube (lieu de découverte)",
+                "Les Abysses (lieu d'emprisonnement des Ténèbres)",
+                "La Pierre Lunaire (objet complémentaire)"
+              ],
+              "reactions_factions": [
+                "L'Ordre du Soleil la réclamerait immédiatement",
+                "Les Ténèbres feraient tout pour la détruire",
+                "Les collectionneurs rares la chercheraient"
+              ]
+            }
+          }
+        },
+        {
+          "input": {
+            "type": "livre",
+            "categorie": "mystique",
+            "genre": "horreur",
+            "tonalite": "sombre",
+            "rarete": "unique",
+            "puissance": "élevé"
+          },
+          "output": {
+            "nom": "Le Codex des Murmures Oubliés",
+            "nom_alternatif": "Le Livre Qui Chuchote",
+            "type": "Livre",
+            "categorie": "Mystique",
+            "description_physique": "Un tome anciens aux couvertures de cuir noirci, si vieux que le matériau semble provenir d'une créature inconnue. Les pages sont d'un vélin jauni qui rappelle la peau humaine, et sont rédigées dans une encre qui semble bouger légèrement lorsqu'on ne la regarde pas directement. Des symboles géométriques ornent chaque page, formant progressivement un motif cohérent quand le livre est ouvert complètement. L'odeur qui s'en dégage est celle de la terre humide et de quelque chose de organique en décomposition. Certaines pages sont collées ensemble par une substance visqueuse sombre.\n\nMatériaux: Cuir inhabituel, vélin ancien, encre vivante\nCouleurs: Noir, jaune paille, rouge sang séché\nTexture: Grassière au toucher, certaines pages semblent humides\nÉtat: ancien, partiellement endommagé, contains des annotations manuscrites",
+            "proprietes": {
+              "pouvoirs_actifs": [
+                "Reveler des secrets cachés aux yeux du lecteur",
+                "Permettre la communication avec les morts",
+                "Insuffler une connaissance directement dans l'esprit",
+                "Enregistrer les derniers moments d'un individu"
+              ],
+              "pouvoirs_passifs": [
+                "Le lecteur comprend instantanément toute langue",
+                "Les secrets lus ne peuvent être révélés à voix haute",
+                "Le livre attire naturellement les personnes curieuses"
+              ],
+              "limitations": [
+                "Chaque lecture coûts de la mémoire au lecteur",
+                "Le livre ne peut être ouvert plus d'une heure par jour",
+                "Certaines pages contiennent des connaissances dangereuses",
+                "Le livre possède sa propre volonté"
+              ],
+              "couts": [
+                "Oubli progressif de souvenirs personnels",
+                "Risque de possession par les entités décrites",
+                "Insomnie prolongée après lecture intensive"
+              ],
+              "conditions_activation": [
+                "Doit être lu dans un endroit sombre",
+                "Le lecteur doit prononcé les mots d'ouverture",
+                "Une bougie doit brûler jusqu'à la fin de la lecture"
+              ],
+              "duree_energie": "Illimitée mais l'énergie du lecteur est drainée"
+            },
+            "histoire": {
+              "origine": "Créé accidentellement par un érudit qui tenta de transcrire les murmures des entités tapies entre les dimensions",
+              "createur": "Magnus le Profane (érudit devenu fou)",
+              "civilisation": "Académie Interdite de Vel-Khorath",
+              "evenements_marquants": [
+                "Écrit en 42 jours par Magnus le Profane",
+                "Causa la destruction de l'Académie Interdite",
+                "Redécouvert 300 ans plus tard dans les ruines",
+                "Causa la folie de 7 propriétaires successifs"
+              ],
+              "proprietaires_precedents": [
+                "Magnus le Profane (créateur)",
+                "L'Inquisiteur Sombre",
+                "La Dame en Blanc",
+                "TroisCollectionneurs anonymes"
+              ],
+              "legendes": "On dit que le livre contient les vrais noms de toutes choses, et que quiconque le lirait entièrement verrait la réalité telle qu'elle est - et deviendrait fou instantanément. Certains pensent qu'il s'agit d'un être conscient qui utilise ses lecteurs comme hôtes temporaires."
+            },
+            "signification_narrative": {
+              "role_principal": "Source de connaissance maudite et催化剂 pour la révélation de mystères",
+              "enjeux_emotionnels": [
+                "Tentation irrésistible de continuer la lecture",
+                "Conflit entre savoir et santé mentale",
+                "Les morts могут révéler des véritéesterribles"
+              ],
+              "relations_personnages": [
+                "Le lecteur devient progressivement obsédé",
+                "Les entités dans le livre cherchent des hôtes",
+                "Les anciens propriétaires peuvent hanter le lecteur"
+              ],
+              "potential_conflit": [
+                "Folie progressive du lecteur",
+                "Possession ou corruption",
+                "Révélation de secrets que certains veulent cacher"
+              ]
+            },
+            "integration_univers": {
+              "rarete": "Unique - un seul exemplaire存在",
+              "valeur": "Inestimable mais dangereux",
+              "connexions": [
+                "Académie Interdite de Vel-Khorath (lieu de création)",
+                "Les espaces entre les dimensions (origine des murmures)",
+                "Le Sanctuaire des Noms Oubliés"
+              ],
+              "reactions_factions": [
+                "L'Inquisition le détruirait sans hésiter",
+                "Les érudits rechercher désespérément y avoir accès",
+                "Les entités malveillantes le considèrent comme un artefact sacred"
+              ]
+            }
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["nom", "type", "categorie", "description_physique", "proprietes", "histoire", "signification_narrative"],
+        "rules": [
+          "Le nom doit être évocateur et unique",
+          "La description doit inclure au moins 3 éléments sensoriels",
+          "Chaque pouvoir doit avoir une limitation correspondante",
+          "L'histoire doit être cohérente avec le genre",
+          "La tonalité doit être cohérente throughout",
+          "Les coûts d'utilisation doivent être significatifs"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "nom": "string",
+          "nom_alternatif": "string",
+          "type": "string",
+          "categorie": "string",
+          "description_physique": "string",
+          "proprietes": {
+            "pouvoirs_actifs": ["string"],
+            "pouvoirs_passifs": ["string"],
+            "limitations": ["string"],
+            "couts": ["string"],
+            "conditions_activation": ["string"],
+            "duree_energie": "string"
+          },
+          "histoire": {
+            "origine": "string",
+            "createur": "string",
+            "civilisation": "string",
+            "evenements_marquants": ["string"],
+            "proprietaires_precedents": ["string"],
+            "legendes": "string"
+          },
+          "signification_narrative": {
+            "role_principal": "string",
+            "enjeux_emotionnels": ["string"],
+            "relations_personnages": ["string"],
+            "potential_conflit": ["string"]
+          },
+          "integration_univers": {
+            "rarete": "string",
+            "valeur": "string",
+            "connexions": ["string"],
+            "reactions_factions": ["string"]
+          }
+        }
+      }
+    },
+    {
+      "id": "object-update",
+      "name": "Mettre à jour un objet",
+      "description": "Modifie et enrichit un objet existant avec de nouveaux éléments tout en préservant la cohérence narrative",
+      "category": "objects",
+      "prompt": "Tu es un expert en évolution des objets narratifs pour StoryCore. Ta mission est de mettre à jour et enrichir un objet existant en ajoutant de nouveaux éléments tout en maintenant la cohérence avec l'existant.\n\n## Instructions de mise à jour\n\n### Éléments modifiables\n\n1. **Expansion des propriétés**\n   - Nouveaux pouvoirs ou capacités\n   - Nouvelles limitations\n   - Évolution des effets existants\n   - Nouvelles conditions d'activation\n\n2. **Enrichissement historique**\n   - Nouveaux propriétaires ou événements\n   - Légendes ajoutées\n   - Connexions avec d'autres éléments du monde\n   - Évolution de la signification\n\n3. **Changements physiques**\n   - Dégâts ou améliorations\n   - Transformations magiques ou technologiques\n   - Évolution de l'apparence\n   - Nouveaux éléments distinctifs\n\n4. **Évolution narrative**\n   - Nouveaux rôles dans l'intrigue\n   - Relations avec de nouveaux personnages\n   - Nouveaux enjeux émotionnels\n   - Évolution du potentiel de conflit\n\n5. **Intégration avec l'histoire**\n   - Comment les événements récents ont affecté l'objet\n   - Éléments liés aux quêtes en cours\n   - Résonance avec les actions des personnages-joueurs\n\n## Principes de cohérence\n\n- Tous les ajouts doivent être cohérents avec le genre et la tonalité existants\n- Les nouveaux éléments ne doivent pas contredire les informations existantes\n- L'évolution doit être logique et graduelle\n- Préserver l'identité fondamentale de l'objet\n- Les nouveaux pouvoirs doivent avoir de nouvelles limitations\n\n## Format de sortie\n\nRetourne un objet JSON contenant uniquement les champs modifiés ou ajoutés, avec des références claires aux éléments existants préservés.",
+      "parameters": {
+        "object_existant": {
+          "type": "object",
+          "description": "L'objet existant à mettre à jour (au format JSON)",
+          "required": true
+        },
+        "type_update": {
+          "type": "string",
+          "description": "Type de mise à jour souhaité",
+          "required": true,
+          "values": ["enrichissement", "transformation", "evolution_narrative", "dommage", "decouverte", "complete"],
+          "default": "enrichissement"
+        },
+        "nouveaux_elements": {
+          "type": "array",
+          "description": "Types de nouveaux éléments à ajouter",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Type d'élément (nouveau_pouvoir, nouvelle_limitation, nouveau_proprietaire, nouvelle_legende, etc.)"
+          }
+        },
+        "contexte_histoire": {
+          "type": "string",
+          "description": "Contexte narratif actuel (quêtes en cours, événements récents)",
+          "required": false,
+          "default": ""
+        },
+        "intensite_changement": {
+          "type": "string",
+          "description": "Niveau de transformation souhaité",
+          "required": true,
+          "values": ["mineur", "modéré", "majeur"],
+          "default": "modéré"
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "object_existant": {
+              "nom": "Lame de l'Aube Éternelle",
+              "type": "Épée",
+              "proprietes": {
+                "pouvoirs_actifs": ["Projeter une lumière aveuglante"],
+                "limitations": ["Ne peut être brandie que par quelqu'un de cœur pur"]
+              }
+            },
+            "type_update": "evolution_narrative",
+            "nouveaux_elements": ["nouveau_pouvoir", "nouveau_proprietaire"],
+            "contexte_histoire": "Le groupe vient de découvrir un temple abandonné contenant des informations sur l'origine de l'épée",
+            "intensite_changement": "majeur"
+          },
+          "output": {
+            "modifications": {
+              "nouveaux_pouvoirs": [
+                {
+                  "nom": "Franchissement des Limites",
+                  "description": "L'épée peut désormais créer des portails temporaires vers le Plan Céleste",
+                  "conditions": "Nécessite une offrande de sang du porteur",
+                  "limitation": "Le porteur perd un souvenir permanent à chaque utilisation"
+                }
+              ],
+              "proprietaires_ajoutes": [
+                "Elara du crépuscule (nouvelle portés temporairement)"
+              ],
+              "legendes_ajoutees": [
+                "L'épée est en réalité un fragment du premier rayon de soleil qui toucha le monde"
+              ],
+              "transformations": {
+                "apparence": "Le rubis affiche désormais des reflets violets en plus du rouge",
+                "effet": "L'épée tremble légèrement en présence d'êtres célestes corrompus"
+              }
+            },
+            "preservation": {
+              "elements_conserves": ["Nom original", "Pouvoirs de lumière existants", "Limitations de pureté"],
+              "coherence": "L'évolution est cohérente avec la découverte du temple - l'épée réagit à la révélation de sa vraie nature"
+            }
+          }
+        },
+        {
+          "input": {
+            "object_existant": {
+              "nom": "Le Codex des Murmures Oubliés",
+              "type": "Livre",
+              "proprietes": {
+                "pouvoirs_actifs": ["Reveler des secrets cachés"],
+                "limitations": ["Le livre ne peut être ouvert plus d'une heure par jour"]
+              },
+              "histoire": {
+                "evenements_marquants": ["Causa la destruction de l'Académie Interdite"]
+              }
+            },
+            "type_update": "decouverte",
+            "nouveaux_elements": ["nouvelle_page", "nouveau_secret"],
+            "contexte_histoire": "Un personnage a réussi à garder le livre ouvert plus d'une heure en récitant un sort",
+            "intensite_changement": "majeur"
+          },
+          "output": {
+            "modifications": {
+              "nouvelles_pages_decouvertes": [
+                {
+                  "numero": 142,
+                  "titre": "Les Noms Véritables",
+                  "contenu": "Contient les vrais noms de 7 archanges et 7 démons majeurs",
+                  "dangerosite": "Extrême"
+                },
+                {
+                  "numero": 143,
+                  "titre": "Le Prix du Savoir",
+                  "contenu": "Instructions pour transcrire le livre dans un autre support",
+                  "dangerosite": "Haute - la copie devient aussi maudite que l'original"
+                }
+              ],
+              "nouveaux_pouvoirs": [
+                {
+                  "nom": "Possession Graduelle",
+                  "description": "Le lecteur peut désormais « habiter » le livre temporairement pour communiquer avec les entités"
+                }
+              ],
+              "nouvelles_limitations": [
+                "Le lecteur qui dépasse la limite d'une heure commence à saigner des yeux",
+                "Les souvenirs volés par le livre peuvent revenir hanter le lecteur"
+              ],
+              "legendes_ajoutees": [
+                "On dit que si quelqu'un parvient à écrire son propre nom dans le livre, il deviendra l'hôte permanent du Codex"
+              ]
+            },
+            "transformation": {
+              "description": "Le livre répond à la transgression de ses règles en révélant plus de son contenu maudit",
+              "impacts": [
+                "Le livre émet désormais une lumière faible même fermée",
+                "Les propriétaires précédents hantent littéralement le livre",
+                "Le livre devient plus difficile à détruire"
+              ]
+            }
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["modifications", "preservation"],
+        "rules": [
+          "Les nouveaux éléments doivent être cohérents avec le genre",
+          "Aucune contradiction avec l'existant",
+          "Les changements majeurs doivent être justifiés narrativement",
+          "L'identité de l'objet doit être préservée",
+          "Tout nouveau pouvoir doit avoir de nouvelles limitations"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "modifications": {
+            "nouveaux_pouvoirs": ["object"],
+            "nouvelles_limitations": ["string"],
+            "proprietaires_ajoutes": ["string"],
+            "legendes_ajoutees": ["string"],
+            "transformations": ["object"]
+          },
+          "preservation": {
+            "elements_conserves": ["string"],
+            "coherence": "string"
+          },
+          "transformation": {
+            "description": "string",
+            "impacts": ["string"]
+          }
+        }
+      }
+    },
+    {
+      "id": "object-generate-image",
+      "name": "Générer l'image d'un objet",
+      "description": "Crée un prompt visuel détaillé pour générer une image de l'objet avec Stable Diffusion ou autre IA génératrice d'images",
+      "category": "objects",
+      "prompt": "Tu es un expert en création de prompts visuels pour l'intelligence artificielle génératrice d'images (Stable Diffusion, Midjourney, DALL-E). Ta mission est de transformer une description textuelle d'objet en un prompt visuel détaillé et optimisé.\n\n## Composantes du prompt visuel\n\n### 1. Style artistique\n- Détermine le style approprié (fantasy, réaliste, aquarelle, concept art, illustration médiévale, science-fiction, etc.)\n- Spécifie l'influence artistique (H.R. Giger, Alan Lee, Michael Whelan, etc.)\n- Considère le médium (digital painting, oil painting, photography, 3D render, etc.)\n\n### 2. Composition de l'image\n- Point focal principal (l'objet lui-même)\n- Perspective (vue de face, vue de trois-quart, macro, etc.)\n- Éléments de premier plan et d'arrière-plan\n- Cadre et recadrage\n\n### 3. Détails visuels\n- Forme et silhouette\n- Matériaux et textures\n- Couleurs et éclairage\n- Symboles et gravures\n- État et usure\n\n### 4. Atmosphère\n- Émotion véhiculée (mystérieuse, majestueuse, danger, etc.)\n- Effets spéciaux (lueur, particules, énergie)\n- Contexte environnemental\n- Moment de présentation (flottant, dans une main, sur un piédestal, etc.)\n\n### 5. Éléments complémentaires\n- Présence ou absence de contexte\n- Mains tenant l'objet (si pertinent)\n- Effets de magie ou technologie\n- Packaging ou support\n\n### 6. Mots-clés techniques\n- Quality tags (masterpiece, best quality, intricate details, highly detailed)\n- Style tags selon le générateur\n- Résolution et format\n\n## Instructions d'optimisation\n\n- Utiliser des descriptions positives (ce que vous voulez voir)\n- Éviter les négations si possible\n- Ordonner les éléments du général au spécifique\n- Inclure des références artistiques pertinentes\n- Considérer les contraintes techniques du générateur cible\n- Mettre l'accent sur les éléments distinctifs de l'objet\n\n## Format de sortie\n\nGénère un prompt optimisé pour Stable Diffusion avec:\n- Positive prompt (section principale)\n- Negative prompt (éléments à éviter)\n- Paramètres suggérés (steps, sampler, CFG scale)\n- Variantes suggérées pour différentes représentations",
+      "parameters": {
+        "object": {
+          "type": "object",
+          "description": "Description complète de l'objet à visualiser",
+          "required": true
+        },
+        "style": {
+          "type": "string",
+          "description": "Style artistique souhaité",
+          "required": false,
+          "default": "fantasy",
+          "values": ["fantasy", "realiste", "aquarelle", "concept_art", "illustration_medievale", "cyberpunk", "horreur", "surréaliste", "anime", "digital_art", "science_fiction"]
+        },
+        "vue": {
+          "type": "string",
+          "description": "Type de vue ou perspective",
+          "required": false,
+          "default": "vue_de_face",
+          "values": ["vue_de_face", "vue_3_quart", "macro", "vue_aerienne", "flottant", "dans_la_main", "sur_piedestal", "ronde_bosse"]
+        },
+        "presentation": {
+          "type": "string",
+          "description": "Mode de présentation de l'objet",
+          "required": false,
+          "default": "isole",
+          "values": ["isole", "dans_son_contexte", "en_action", "detaille", "avec_son_proprietaire", "sur_fond_noir", "sur_fond_naturel"]
+        },
+        "meteo_lumiere": {
+          "type": "string",
+          "description": "Conditions d'éclairage et luminosité",
+          "required": false,
+          "default": "dramatique",
+          "values": ["dramatique", "naturel", "surréal", "mystérieux", "celeste", "sombre", "ethereal"]
+        },
+        "generateur": {
+          "type": "string",
+          "description": "Générateur d'images cible pour l'optimisation",
+          "required": false,
+          "default": "stable_diffusion",
+          "values": ["stable_diffusion", "midjourney", "dalle", "comfyui"]
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "object": {
+              "nom": "Lame de l'Aube Éternelle",
+              "type": "Épée",
+              "description_physique": "Une épée à une main d'une beauté saisissante. La lame, forgée dans un alliage inconnu de lumière solidifiée, semble absorber les premiers rayons du soleil pour mieux les restituer. La garde est en orichalque ornée de runes célestes qui pulsent d'une lueur dorée. Le pommeau est serti d'un rubis de la taille d'un poing qui bat comme un cœur."
+            },
+            "style": "fantasy",
+            "vue": "vue_3_quart",
+            "presentation": "flottant",
+            "meteo_lumiere": "celeste",
+            "generateur": "stable_diffusion"
+          },
+          "output": {
+            "positive_prompt": "masterpiece, best quality, intricate details, fantasy sword, legendary blade forged from solid light, golden hilt with celestial runes glowing, large ruby gem in pommel pulsing with inner light, divine weapon, ethereal glow surrounding the blade, golden and white color palette, divine craftsmanship, ornate engravings, floating in mid-air, celestial light rays, masterpiece of divine smithing, cinematic lighting, 8k resolution, highly detailed texture",
+            "negative_prompt": "low quality, worst quality, blurry, dark, muddy, poor lighting, ugly, deformed, broken, rusty, dull, modern, mundane, watermark, signature, text, simple, cartoon",
+            "parametres": {
+              "steps": "35",
+              "sampler": "DPM++ 2M Karras",
+              "cfg_scale": "7",
+              "seed": "random"
+            },
+            "variations_suggerees": [
+              {
+                "nom": "Vue de la lame seule",
+                "prompt_additionnel": "close-up on blade, blade only, focus on light absorption effect"
+              },
+              {
+                "nom": "Dans une main",
+                "prompt_additionnel": "held by armored knight hand, warrior grasping the sword"
+              },
+              {
+                "nom": "Sur un piédestal",
+                "prompt_additionnel": "resting on ancient stone pedestal, temple background"
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "object": {
+              "nom": "Le Codex des Murmures Oubliés",
+              "type": "Livre",
+              "description_physique": "Un tome ancien aux couvertures de cuir noirci. Les pages sont d'un vélin jauni. Des symboles géométriques ornent chaque page. L'odeur de terre humide émane du livre. Certaines pages sont collées ensemble par une substance visqueuse sombre."
+            },
+            "style": "horreur",
+            "vue": "detaille",
+            "presentation": "isole",
+            "meteo_lumiere": "sombre",
+            "generateur": "stable_diffusion"
+          },
+          "output": {
+            "positive_prompt": "masterpiece, best quality, dark fantasy book, ancient tome, blackened leather cover, yellowed parchment pages, mysterious geometric symbols, occult book, dark horror atmosphere, eerie glow from pages, damp earth smell visual, sticky substance on pages, cursed artifact, dark grimoire, detailed leather texture, mysterious and ominous, dark fantasy art style, volumetric shadows, 8k resolution, intricate details",
+            "negative_prompt": "low quality, worst quality, blurry, bright, happy, cheerful, clean, new, modern book, colorful, watermark, signature, text, anime, cartoon",
+            "parametres": {
+              "steps": "40",
+              "sampler": "DPM++ SDE Karras",
+              "cfg_scale": "8",
+              "seed": "random"
+            },
+            "variations_suggerees": [
+              {
+                "nom": "Ouvert",
+                "prompt_additionnel": "open book, pages visible, writing glowing, ancient text"
+              },
+              {
+                "nom": "Flottant avec énergie",
+                "prompt_additionnel": "floating, dark energy emanates, supernatural levitation, occult aura"
+              },
+              {
+                "nom": "Dans un contexte",
+                "prompt_additionnel": "on wooden table, candlelight, dusty library, ancient scrolls around"
+              }
+            ]
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["positive_prompt", "negative_prompt"],
+        "rules": [
+          "Le prompt positif doit être détaillé et spécifique",
+          "Le prompt négatif doit couvrir les artefacts courants",
+          "Les paramètres doivent être appropriés pour le générateur cible",
+          "Le style doit correspondre au genre de l'objet",
+          "Les éléments distinctifs doivent être mis en avant"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "positive_prompt": "string",
+          "negative_prompt": "string",
+          "parametres": {
+            "steps": "string",
+            "sampler": "string",
+            "cfg_scale": "string",
+            "seed": "string"
+          },
+          "variations_suggerees": [
+            {
+              "nom": "string",
+              "prompt_additionnel": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "object-validate",
+      "name": "Valider un objet",
+      "description": "Vérifie la cohérence et la qualité d'un objet par rapport aux standards StoryCore et au contexte narratif",
+      "category": "objects",
+      "prompt": "Tu es un expert en assurance qualité narrative pour StoryCore. Ta mission est de valider qu'un objet est cohérent, complet et adapté au contexte de l'histoire.\n\n## Critères de validation\n\n### 1. Cohérence interne\n- Les éléments de la description sont-ils cohérents entre eux ?\n- La tonalité est-elle uniforme throughout ?\n- Les propriétés et limitations sont-elles logiques ?\n- L'histoire est-elle cohérente avec le type d'objet ?\n\n### 2. Cohérence externe\n- L'objet est-il cohérent avec le genre de l'histoire ?\n- Les connexions avec d'autres éléments sont-elles logiques ?\n- La catégorie correspond-elle aux pouvoirs décrits ?\n- La rareté est-elle cohérente avec les capacités ?\n\n### 3. Complétude\n- Tous les champs obligatoires sont-ils présents ?\n- La description est-elle suffisamment détaillée ?\n- Y a-t-il assez d'éléments narratifs exploitables ?\n- Les limitations sont-elles suffisamment développées ?\n\n### 4. Originalité\n- Le nom est-il unique et évocateur ?\n- La description contient-elle des éléments originaux ?\n- Évite-t-elle les clichés surutilisés ?\n- Les pouvoirs sont-ils intéressants et non conventionnels ?\n\n### 5. Potentiel narratif\n- L'objet offre-t-il des opportunités de quêtes ?\n- Peut-il créer des conflits intéressants ?\n- Les enjeux émotionnels sont-ils présents ?\n- Y a-t-il suffisamment de mystères ou de secrets ?\n\n### 6. Conformité technique\n- Le format JSON est-il valide ?\n- Tous les champs obligatoires sont-ils présents ?\n- Les types de données sont-ils corrects ?\n\n## Processus de validation\n\n1. Analyser chaque critère ci-dessus\n2. Attribuer un score de 1 à 5 pour chaque critère\n3. Identifier les problèmes spécifiques\n4. Proposer des corrections ou améliorations\n5. Fournir un verdict global (valide, à corriger, à rejeter)\n\n## Format de sortie\n\nRetourne un rapport de validation détaillé avec:\n- Scores par critère\n- Problèmes identifiés\n- Suggestions d'amélioration\n- Verdict final",
+      "parameters": {
+        "object": {
+          "type": "object",
+          "description": "L'objet à valider (au format JSON)",
+          "required": true
+        },
+        "contexte": {
+          "type": "object",
+          "description": "Contexte de l'histoire pour validation externe",
+          "required": false,
+          "properties": {
+            "genre": {
+              "type": "string",
+              "description": "Genre de l'histoire"
+            },
+            "tonalite": {
+              "type": "string",
+              "description": "Tonalité"
+            },
+            "objets_existants": {
+              "type": "array",
+              "description": "Autres objets dans l'histoire",
+              "items": {
+                "type": "string"
+              }
+            },
+            "personnages_existants": {
+              "type": "array",
+              "description": "Personnages déjà créés",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "niveau_strictesse": {
+          "type": "string",
+          "description": "Niveau de rigueur de la validation",
+          "required": false,
+          "default": "standard",
+          "values": ["relaxe", "standard", "strict"]
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "object": {
+              "nom": "Épée Magique",
+              "type": "Épée",
+              "description_physique": "Une épée magique",
+              "proprietes": {
+                "pouvoirs_actifs": ["Coupe tout"],
+                "limitations": []
+              }
+            },
+            "contexte": {
+              "genre": "fantasy",
+              "tonalite": "épique"
+            },
+            "niveau_strictesse": "standard"
+          },
+          "output": {
+            "scores": {
+              "coherence_interne": 2,
+              "coherence_externe": 4,
+              "completude": 1,
+              "originalite": 2,
+              "potentiel_narratif": 1,
+              "conformite_technique": 5
+            },
+            "problemes_identifies": [
+              {
+                "categorie": "completude",
+                "severite": "haute",
+                "description": "Description physique trop courte, manque de détails",
+                "suggestion": "Ajouter au moins 3 éléments sensoriels (visuel, tactile, olfactif)"
+              },
+              {
+                "categorie": "completude",
+                "severite": "haute",
+                "description": "Aucun limitation défini pour un objet magique",
+                "suggestion": "Ajouter au moins 2 limitations significatives"
+              },
+              {
+                "categorie": "completude",
+                "severite": "haute",
+                "description": "Histoire vide",
+                "suggestion": "Ajouter une origine, un créateur et des événements marquants"
+              },
+              {
+                "categorie": "originalite",
+                "severite": "moyenne",
+                "description": "Nom générique sans originalité",
+                "suggestion": "Créer un nom évocateur et unique"
+              }
+            ],
+            "score_total": 2.0,
+            "verdict": "À corriger",
+            "recommendations": [
+              "Enrichir la description physique avec des détails visuels et sensoriels",
+              "Ajouter des limitations réalistes (conditions d'utilisation, coûts, effets secondaires)",
+              "Créer une histoire riche avec un passé",
+              "Choisir un nom unique et évocateur",
+              "Ajouter une signification narrative (rôle dans l'histoire)"
+            ]
+          }
+        },
+        {
+          "input": {
+            "object": {
+              "nom": "Lame de l'Aube Éternelle",
+              "type": "Épée",
+              "categorie": "magique",
+              "description_physique": "Une épée à une main d'une beauté saisissante. La lame, forgée dans un alliage inconnu de lumière solidifiée, semble absorber les premiers rayons du soleil pour mieux les restituer. Elle mesure exactement trois pieds de long, avec une garde en orichalque ornée de runes célestes qui pulsent d'une lueur dorée. Le pommeau est serti d'un rubis de la taille d'un poing qui bat comme un cœur.",
+              "proprietes": {
+                "pouvoirs_actifs": ["Projeter une lumière aveuglante", "Trancher n'importe quelle matière"],
+                "pouvoirs_passifs": ["Immunité contre les ténèbres"],
+                "limitations": ["Ne peut être brandie que par quelqu'un de cœur pur", "S'affaiblit à chaque utilisation de pouvoir sombre"],
+                "conditions_activation": ["Le porteur doit croire en la justice"]
+              },
+              "histoire": {
+                "origine": "Forgée par Aelindras, le Dieu du Soleil",
+                "createur": "Aelindras",
+                "evenements_marquants": ["Utilisée pour sceller les Ténèbres Primordiales", "Portée par le Héros Solaire Aldrenn"],
+                "legendes": "Celui qui portera cette épée sera choisi par le destin"
+              },
+              "signification_narrative": {
+                "role_principal": "Objet central de la quête",
+                "enjeux_emotionnels": ["Le porteur doit prouver sa valeur"],
+                "potential_conflit": ["Combat pour sa possession entre factions"]
+              }
+            },
+            "contexte": {
+              "genre": "fantasy",
+              "tonalite": "majestueuse"
+            },
+            "niveau_strictesse": "strict"
+          },
+          "output": {
+            "scores": {
+              "coherence_interne": 5,
+              "coherence_externe": 5,
+              "completude": 5,
+              "originalite": 5,
+              "potentiel_narratif": 5,
+              "conformite_technique": 5
+            },
+            "problemes_identifies": [],
+            "score_total": 5.0,
+            "verdict": "Valide",
+            "recommendations": [
+              "Objet de qualité supérieure",
+              "Peut être utilisé tel quel dans l'histoire",
+              "Considérer l'ajout de connexions plus spécifiques avec d'autres objets"
+            ],
+            "points_forts": [
+              "Description physique riche et immersive",
+              "Propriétés bien équilibrées avec limitations",
+              "Histoire profonde et cohérente",
+              "Potentiel narratif excellent",
+              "Originalité du concept"
+            ]
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["scores", "verdict"],
+        "rules": [
+          "Le score total doit être la moyenne des 6 critères",
+          "Chaque critère doit avoir un score entre 1 et 5",
+          "Le verdict doit être cohérent avec le score total",
+          "Des recommandations doivent être fournies pour tout problème identifié"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "scores": {
+            "coherence_interne": "number (1-5)",
+            "coherence_externe": "number (1-5)",
+            "completude": "number (1-5)",
+            "originalite": "number (1-5)",
+            "potentiel_narratif": "number (1-5)",
+            "conformite_technique": "number (1-5)"
+          },
+          "problemes_identifies": [
+            {
+              "categorie": "string",
+              "severite": "string",
+              "description": "string",
+              "suggestion": "string"
+            }
+          ],
+          "score_total": "number",
+          "verdict": "string",
+          "recommendations": ["string"],
+          "points_forts": ["string"]
+        }
+      }
+    },
+    {
+      "id": "object-export",
+      "name": "Exporter un objet",
+      "description": "Exporte un objet dans différents formats (JSON, Markdown, XML, etc.) pour intégration ou partage",
+      "category": "objects",
+      "prompt": "Tu es un expert en transformation de données narratives pour StoryCore. Ta mission est d'exporter un objet dans différents formats adaptés à différents usages.\n\n## Formats d'export disponibles\n\n### 1. JSON Standard\n- Format brut pour stockage et manipulation\n- Conserve toutes les données\n- Utile pour l'intégration technique\n\n### 2. Markdown (pour documentation)\n- Format lisible pour la documentation\n- Structure en titres et sections\n- Inclut des exemples de formatage\n\n### 3. XML (pour intégration legacy)\n- Compatible avec les systèmes anciens\n- Structure hiérarchique stricte\n- Utile pour l'import/export\n\n### 4. Format court (pour référence rapide)\n- Résumé concis\n- Informations essentielles uniquement\n- Utile pour les fiches de référence\n\n### 5. Format narratif (pour l'IA)\n- Description en prose continue\n- Orienté storytelling\n- Pour la génération de contenu\n\n### 6. Format jeu (pour intégration game)\n- Format optimisé pour les moteurs de jeu\n- Variables et statistiques structurées\n- Prêt pour l'implémentation\n\n## Options d'export\n\n- Inclusion/exclusion de champs spécifiques\n- Niveau de détail (complet, résumé, minimal)\n- Langue de sortie\n- Ajout de métadonnées\n- Formatage des descriptions\n\n## Format de sortie\n\nGénère l'export dans le format demandé avec:\n- Données de l'objet transformées\n- Métadonnées d'export (format, version, date)\n- Notes de transformation si nécessaire",
+      "parameters": {
+        "object": {
+          "type": "object",
+          "description": "L'objet à exporter (au format JSON)",
+          "required": true
+        },
+        "format": {
+          "type": "string",
+          "description": "Format d'export souhaité",
+          "required": true,
+          "values": ["json", "markdown", "xml", "court", "narratif", "jeu"],
+          "default": "json"
+        },
+        "niveau_detail": {
+          "type": "string",
+          "description": "Niveau de détail de l'export",
+          "required": false,
+          "default": "complet",
+          "values": ["complet", "resumé", "minimal"]
+        },
+        "champs_inclus": {
+          "type": "array",
+          "description": "Liste des champs à inclure (si vide, tous inclus)",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Nom du champ à inclure"
+          }
+        },
+        "inclure_metadonnees": {
+          "type": "boolean",
+          "description": "Inclure les métadonnées d'export",
+          "required": false,
+          "default": true
+        },
+        "langue": {
+          "type": "string",
+          "description": "Langue de sortie",
+          "required": false,
+          "default": "fr",
+          "values": ["fr", "en", "es", "de"]
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "object": {
+              "nom": "Lame de l'Aube Éternelle",
+              "type": "Épée",
+              "categorie": "magique",
+              "description_physique": "Une épée à une main d'une beauté saisissante. La lame, forgée dans un alliage inconnu de lumière solidifiée, semble absorber les premiers rayons du soleil pour mieux les restituer. La garde est en orichalque ornée de runes célestes qui pulsent d'une lueur dorée. Le pommeau est serti d'un rubis.",
+              "proprietes": {
+                "pouvoirs_actifs": ["Projeter une lumière aveuglante", "Trancher n'importe quelle matière"],
+                "limitations": ["Ne peut être brandie que par quelqu'un de cœur pur"]
+              },
+              "histoire": {
+                "origine": "Forgée par Aelindras, le Dieu du Soleil",
+                "createur": "Aelindras"
+              },
+              "rarete": "légendaire"
+            },
+            "format": "markdown",
+            "niveau_detail": "complet",
+            "inclure_metadonnees": true
+          },
+          "output": {
+            "contenu": "# Lame de l'Aube Éternelle\n\n## Informations générales\n\n- **Nom**: Lame de l'Aube Éternelle\n- **Nom alternatif**: Le Soleil Matinal Forgé\n- **Type**: Épée\n- **Catégorie**: Magique\n- **Rareté**: Légendaire\n\n## Description physique\n\nUne épée à une main d'une beauté saisissante. La lame, forgée dans un alliage inconnu de lumière solidifiée, semble absorber les premiers rayons du soleil pour mieux les restituer. Elle mesure exactement trois pieds de long, avec une garde en orichalque ornée de runes célestes qui pulsent d'une lueur dorée. Le pommeau est serti d'un rubis de la taille d'un poing qui bat comme un cœur.\n\n## Propriétés\n\n### Pouvoirs actifs\n- Projeter une lumière aveuglante dans un rayon de 50 pieds\n- Trancher n'importe quelle matière excepté les boucliers divins\n\n### Limitations\n- Ne peut être brandie que par quelqu'un de cœur pur\n- S'affaiblit à chaque utilisation de pouvoir sombre par le porteur\n\n## Histoire\n\n### Origine\nForgée par Aelindras, le Dieu du Soleil, lors de la Première Guerre Céleste il y a des millénaires.\n\n### Créateur\nAelindras (Dieu du Soleil)\n\n---\n*Export généré par StoryCore - Format Markdown*",
+            "metadonnees": {
+              "format": "markdown",
+              "version": "1.0",
+              "date": "2026-02-26",
+              "niveau_detail": "complet",
+              "champs_inclus": ["nom", "type", "categorie", "description_physique", "proprietes", "histoire", "rarete"]
+            }
+          }
+        },
+        {
+          "input": {
+            "object": {
+              "nom": "Lame de l'Aube Éternelle",
+              "type": "Épée",
+              "rarete": "légendale",
+              "proprietes": {
+                "pouvoirs_actifs": ["Projeter une lumière aveuglante"],
+                "limitations": ["Coeur pur requis"]
+              }
+            },
+            "format": "jeu",
+            "niveau_detail": "minimal"
+          },
+          "output": {
+            "contenu": "{\n  \"id\": \"sword_dawn_eternal\",\n  \"name\": \"Lame de l'Aube Éternelle\",\n  \"type\": \"weapon\",\n  \"subtype\": \"legendary_sword\",\n  \"rarity\": \"legendary\",\n  \"damage\": {\n    \"base\": 50,\n    \"type\": \"slashing\",\n    \"bonus\": \"+5 vs undead\"\n  },\n  \"properties\": {\n    \"requires_pure_heart\": true,\n    \"light_projection\": true,\n    \"darkness_immunity\": true\n  },\n  \"activation\": {\n    \"condition\": \"belief_in_justice\",\n    \"cost\": \"life_energy\"\n  }\n}",
+            "metadonnees": {
+              "format": "jeu",
+              "version": "1.0",
+              "date": "2026-02-26",
+              "niveau_detail": "minimal"
+            }
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["contenu"],
+        "rules": [
+          "Le contenu doit être dans le format demandé",
+          "Les métadonnées doivent être présentes si inclure_metadonnees est true",
+          "Le contenu doit inclure tous les champs spécifiés dans champs_inclus",
+          "La langue doit être cohérente tout au long de l'export"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "contenu": "string",
+          "metadonnees": {
+            "format": "string",
+            "version": "string",
+            "date": "string",
+            "niveau_detail": "string",
+            "champs_inclus": ["string"]
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": "2.0",
+    "date_creation": "2026-02-26",
+    "auteur": "StoryCore Team",
+    "description": "Ensemble complet des skills pour la gestion des objets dans StoryCore",
+    "categorie": "objects"
+  }
+}

@@ -257,6 +257,8 @@ export interface CinematicActionPayload extends BaseEventPayload {
   mood?: string;
   camera?: string;
   action?: 'play' | 'pause';
+  target?: string;
+  pose?: string;
 }
 
 /**

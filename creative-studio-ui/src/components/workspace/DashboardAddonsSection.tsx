@@ -12,7 +12,7 @@
  * - Quick access to wizard launch for each addon
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, memo } from 'react';
 import { addonManager, AddonInfo, AddonAction } from '@/services/AddonManager';
 import { useAppStore } from '@/stores/useAppStore';
 import {
@@ -51,6 +51,8 @@ const ADDON_WIZARD_MAP: Record<string, WizardType> = {
   'dialogue-writer': 'dialogue-writer',
   'storyboard-creator': 'storyboard-creator',
   'project-setup': 'project-setup',
+  'credits-screen': 'credits-screen',
+  'video-publisher': 'video-publisher',
 };
 
 /**
@@ -102,8 +104,8 @@ function getStatusColorScheme(status: AddonInfo['status']) {
         bg: 'bg-gray-500/10',
         border: 'border-gray-500/30',
         text: 'text-gray-400',
-        badge: 'bg-gray-500-300',
-        hover: 'hover:border-gray-/20 text-gray400/50 hover:bg-gray-500/20'
+        badge: 'bg-gray-500/20 text-gray-300',
+        hover: 'hover:border-gray-400/20 text-gray-400/50 hover:bg-gray-500/20'
       };
     case 'error':
       return {
@@ -163,39 +165,34 @@ export function DashboardAddonsSection({
   const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
   const openAddonSettings = useAppStore((state) => state.openAddonSettings);
 
-  /**
-   * Refresh addon list and actions
-   */
+  const isRefreshingRef = useRef(false);
   const refreshAddons = useCallback(async (showLoadingState = true) => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    
     if (showLoadingState) {
       setLoading(true);
     } else {
       setIsAutoRefreshing(true);
     }
-    
-    try {
-      // Re-initialize to discover any new addons
-      await addonManager.initialize();
-      
-      // Get ALL addons (both enabled and disabled)
-      const allAddons = addonManager.getAddons();
-      setAddons(allAddons);
 
-      // Load custom actions for each addon
+    try {
+      await addonManager.initialize();
+      const allAddons = addonManager.getAddons();
+      
       const actions: Record<string, AddonAction[]> = {};
       for (const addon of allAddons) {
-        try {
-          actions[addon.id] = addonManager.getAddonActions(addon.id);
-        } catch {
-          actions[addon.id] = [];
-        }
+        actions[addon.id] = addonManager.getAddonActions(addon.id);
       }
+      
+      setAddons(allAddons);
       setAddonActions(actions);
     } catch (error) {
-      console.error('[DashboardAddonsSection] Failed to refresh addons:', error);
+      console.error('[DashboardAddons] Refresh failed:', error);
     } finally {
       setLoading(false);
       setIsAutoRefreshing(false);
+      isRefreshingRef.current = false;
     }
   }, []);
 
@@ -577,5 +574,5 @@ export function DashboardAddonsSection({
   );
 }
 
-export default DashboardAddonsSection;
+export default memo(DashboardAddonsSection);
 

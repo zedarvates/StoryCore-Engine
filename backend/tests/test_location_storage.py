@@ -36,7 +36,7 @@ def test_directory_creation_when_missing(temp_projects_dir):
         "skybox_data": None,
     }
     # Ensure the project directory does not exist yet
-    project_path = Path("./projects") / project_id / "lieux"
+    project_path = Path("./projects") / project_id / "locations"
     if project_path.exists():
         shutil.rmtree(project_path.parent.parent)
     # Save location directly (this should trigger directory creation)

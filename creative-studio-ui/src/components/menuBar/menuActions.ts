@@ -781,6 +781,12 @@ export const projectActions = {
     const store = useAppStore.getState();
     store.setShowImageGalleryModal(true);
   },
+
+  moodboard(_ctx: ActionContext): void {
+    console.log('[MenuAction] Moodboard');
+    const store = useAppStore.getState();
+    store.setShowMoodboardModal(true);
+  },
 };
 
 /**
@@ -794,13 +800,23 @@ export const toolsActions = {
     store.setShowChat(true);
   },
 
-  comfyuiServer(ctx: ActionContext): void {
+  comfyuiServer(_ctx: ActionContext): void {
     console.log('[MenuAction] ComfyUI Server');
     const store = useAppStore.getState();
     store.setShowComfyUISettings(true);
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  aiEnhancementSuite(_ctx: ActionContext): void {
+    console.log('[MenuAction] AI Enhancement Suite');
+    window.dispatchEvent(new CustomEvent('storycore:navigate-to-experimental-ai'));
+    _ctx.services.notification.show({
+      type: 'info',
+      message: 'Opening AI Enhancement Suite...',
+      duration: 2000,
+    });
+  },
+
+   
   tttLRM(_ctx: ActionContext): void {
     console.log('[MenuAction] tttLRM Reconstruction');
     const store = useAppStore.getState();
@@ -860,6 +876,18 @@ export const toolsActions = {
     console.log('[MenuAction] Discovery Lab');
     const store = useAppStore.getState();
     store.setShowDiscoveryLab(true);
+  },
+  
+  videoPublisher(_ctx: ActionContext): void {
+    console.log('[MenuAction] Video Publisher');
+    const store = useAppStore.getState();
+    store.setShowVideoPublisher(true);
+  },
+
+  computeMarketplace(_ctx: ActionContext): void {
+    console.log('[MenuAction] Compute Marketplace');
+    const store = useAppStore.getState();
+    store.setShowComputeDashboard(true);
   },
 };
 
@@ -1000,7 +1028,7 @@ export const helpActions = {
     store.setShowDocumentationModal(true);
   },
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
   keyboardShortcuts(_ctx: ActionContext): void {
     console.log('[MenuAction] Keyboard Shortcuts');
     const store = useAppStore.getState();

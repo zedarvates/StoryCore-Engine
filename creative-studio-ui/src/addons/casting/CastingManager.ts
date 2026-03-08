@@ -251,7 +251,7 @@ export class CastingManager {
   /**
    * Save state to project.json
    */
-  async saveState(// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async saveState( 
     _projectPath: string
   ): Promise<void> {
   }
@@ -259,7 +259,7 @@ export class CastingManager {
   /**
    * Load state from project.json
    */
-  async loadState(// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async loadState( 
     _projectPath: string
   ): Promise<void> {
   }

@@ -156,3 +156,42 @@ test_projects/
 tsc_errors_new.txt
 *.json.bak
 *.tsxx
+
+# Temporary local files
+tmp/
+tmp_*.py
+test_face.jpg
+undefined_errors.txt
+
+# Aggressive cleanup of local work files
+*.zip
+*.glb
+*.fbx
+*.obj
+*.mtl
+*.stl
+*.blend
+*.blend1
+
+# Test reports and logs
+pytest_*.txt
+report.txt
+log_*.txt
+*_results.txt
+*_failures.txt
+tsc_errors*.txt
+eslint-report*.json
+eslint_output*.txt
+lint_output*.txt
+
+# Temporary data and outputs
+*_output.json
+*_output_v2.json
+*_result.json
+*_check.txt
+*_analysis.txt
+missing_code_scan.json
+
+# Bloated directories
+demo_export_project/
+assets/

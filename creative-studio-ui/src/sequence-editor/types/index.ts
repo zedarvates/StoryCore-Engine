@@ -142,15 +142,20 @@ export interface TextLayerData {
   position?: { x: number; y: number };
 }
 
-export interface Keyframe {
+export interface TimelineKeyframe {
+  id: string; // Unique identifier
   time: number; // Frame number
-  value: unknown;
-  easing?: string;
+  value: number; // Numeric value for interpolation
+  easing?: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bezier';
+  controlPoints?: {
+    cp1: { x: number; y: number }; // Relative to keyframe [0,1]
+    cp2: { x: number; y: number };
+  };
 }
 
 export interface KeyframeLayerData {
   property: string; // Property being animated
-  keyframes: Keyframe[];
+  keyframes: TimelineKeyframe[];
   interpolation: 'linear' | 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out';
 }
 
@@ -211,6 +216,7 @@ export interface Layer {
   opacity: number; // 0-1
   blendMode: string;
   data: LayerData;
+  animations?: Record<string, TimelineKeyframe[]>; // Property name -> keyframes
 }
 
 export interface GenerationParameters {
@@ -387,6 +393,11 @@ export interface TimelineState {
   selectedRegions: string[]; // Selected region IDs
   sequences?: unknown[];
   currentSequenceId?: string;
+  activeKeyframeEditor?: {
+    shotId: string;
+    layerId: string;
+    property: string;
+  };
 }
 
 // ============================================================================
@@ -400,7 +411,62 @@ export type AssetType =
   | 'visual-style'
   | 'template'
   | 'camera-preset'
-  | 'lighting-rig';
+  | 'lighting-rig'
+  | 'custom-preset';
+
+// ============================================================================
+// Preset Types
+// ============================================================================
+
+export type PresetType = 'effects' | 'export' | 'audio';
+
+export interface CustomPreset {
+  id: string;
+  name: string;
+  type: PresetType;
+  data: unknown;
+  createdAt: number;
+  tags?: string[];
+}
+
+export interface PresetsState {
+  presets: CustomPreset[];
+  isLoading: boolean;
+  error: string | null;
+}
+
+// ============================================================================
+// Service Asset Types (Bridge between backend and frontend)
+// ============================================================================
+
+export type ServiceAssetType = 'image' | 'audio' | 'video' | 'template';
+
+export interface ServiceAssetMetadata {
+  description?: string;
+  author?: string;
+  license?: string;
+  source?: string;
+  category?: string;
+  tags?: string[];
+  duration?: number;
+  [key: string]: unknown;
+}
+
+export interface ServiceAsset {
+  id: string;
+  name: string;
+  type: ServiceAssetType;
+  url?: string;
+  thumbnail?: string;
+  thumbnailUrl?: string;
+  previewUrl?: string;
+  metadata?: ServiceAssetMetadata;
+  category?: string;
+  subcategory?: string;
+  tags?: string[];
+  source?: 'builtin' | 'user' | 'ai-generated';
+  createdAt?: number;
+}
 
 export interface CharacterMetadata {
   age: string;
@@ -499,6 +565,7 @@ export interface PanelsState {
   activePanel: 'assetLibrary' | 'preview' | 'shotConfig' | 'timeline' | null;
   shotConfigTarget: string | null; // Currently selected shot for configuration
   showLayerManager: boolean; // Toggle between shot config and layer manager
+  compactMode: boolean; // Toggle for compact director dashboard
 }
 
 // ============================================================================

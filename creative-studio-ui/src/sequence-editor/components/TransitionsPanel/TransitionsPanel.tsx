@@ -85,7 +85,7 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   
   // Get current transition for selected clip (from backend)
-  const currentTransition = useCallback((clipId: string, pos: string) => {
+  const currentTransition = useCallback((_clipId: string, _pos: string) => {
     // In production, get from Redux store
     return null;
   }, []);
@@ -204,7 +204,10 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({
             onClick={() => setSelectedTransition(transition.type)}
             title={transition.description}
           >
-            <span className="transition-icon">{transition.icon}</span>
+            <div className={`transition-preview-small preview-${transition.type}`}>
+              <div className="clip-a" />
+              <div className="clip-b" />
+            </div>
             <span className="transition-name">{transition.name}</span>
           </button>
         ))}
@@ -233,10 +236,15 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({
         </div>
       )}
       
-      {/* Preview Description */}
+      {/* Large Visual Preview */}
       {selectedTransitionInfo && (
-        <div className="transition-preview">
-          <p>{selectedTransitionInfo.description}</p>
+        <div className="transition-visual-preview-container">
+          <div className={`transition-visual-preview preview-large preview-${selectedTransition}`}>
+             <div className="clip-a">SHOT A</div>
+             <div className="clip-b">SHOT B</div>
+             <div className="preview-label">PREVIEW</div>
+          </div>
+          <p className="transition-description-text">{selectedTransitionInfo.description}</p>
         </div>
       )}
       

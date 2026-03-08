@@ -24,6 +24,7 @@ export class AudioContextService {
   private timeDomainDataArray: Float32Array | null = null;
   private frequencyDataArray: Uint8Array | null = null;
   private animationFrameId: number | null = null;
+  private initializationPromise: Promise<void> | null = null;
 
   private stateChangeCallback: ((state: AudioAnalyzerState) => void) | null = null;
   private waveformCallback: ((data: WaveformData) => void) | null = null;
@@ -54,28 +55,37 @@ export class AudioContextService {
    * Initialize the audio context
    */
   async initialize(): Promise<void> {
-    try {
-      this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-      
-      this.analyzerNode = this.audioContext.createAnalyser();
-      this.analyzerNode.fftSize = this.config.fftSize;
-      this.analyzerNode.smoothingTimeConstant = this.config.smoothingTimeConstant;
-      this.analyzerNode.minDecibels = this.config.minDecibels;
-      this.analyzerNode.maxDecibels = this.config.maxDecibels;
+    if (this.state.isActive) return;
+    if (this.initializationPromise) return this.initializationPromise;
 
-      this.gainNode = this.audioContext.createGain();
-      this.gainNode.gain.value = this.config.sampleRate;
+    this.initializationPromise = (async () => {
+      try {
+        this.audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+        
+        this.analyzerNode = this.audioContext.createAnalyser();
+        this.analyzerNode.fftSize = this.config.fftSize;
+        this.analyzerNode.smoothingTimeConstant = this.config.smoothingTimeConstant;
+        this.analyzerNode.minDecibels = this.config.minDecibels;
+        this.analyzerNode.maxDecibels = this.config.maxDecibels;
 
-      const bufferLength = this.analyzerNode.frequencyBinCount;
-      this.timeDomainDataArray = new Float32Array(bufferLength);
-      this.frequencyDataArray = new Uint8Array(bufferLength);
+        this.gainNode = this.audioContext.createGain();
+        this.gainNode.gain.value = this.config.sampleRate;
 
-      this.state.isActive = true;
-      this.updateState();
-    } catch (error) {
-      this.state.error = `Failed to initialize audio context: ${error}`;
-      throw error;
-    }
+        const bufferLength = this.analyzerNode.frequencyBinCount;
+        this.timeDomainDataArray = new Float32Array(bufferLength);
+        this.frequencyDataArray = new Uint8Array(bufferLength);
+
+        this.state.isActive = true;
+        this.updateState();
+      } catch (error) {
+        this.state.error = `Failed to initialize audio context: ${error}`;
+        throw error;
+      } finally {
+        this.initializationPromise = null;
+      }
+    })();
+
+    return this.initializationPromise;
   }
 
   /**
@@ -236,7 +246,7 @@ export class AudioContextService {
       };
     }
 
-    this.analyzerNode.getFloatTimeDomainData(this.timeDomainDataArray);
+    this.analyzerNode.getFloatTimeDomainData(this.timeDomainDataArray as unknown as Float32Array<ArrayBuffer>);
 
     const peaks: number[] = [];
     let sum = 0;
@@ -261,7 +271,7 @@ export class AudioContextService {
     const rms = Math.sqrt(sum / this.timeDomainDataArray.length);
 
     return {
-      timeDomainData: this.timeDomainDataArray,
+      timeDomainData: this.timeDomainDataArray as Float32Array,
       peaks,
       rms,
       zeroCrossings,
@@ -287,9 +297,10 @@ export class AudioContextService {
       };
     }
 
-    this.analyzerNode.getByteFrequencyData(this.frequencyDataArray);
+    this.analyzerNode.getByteFrequencyData(this.frequencyDataArray as unknown as Uint8Array<ArrayBuffer>);
 
     const frequencies: number[] = [];
+    /* cspell:ignore nyquist */
     const nyquist = this.audioContext!.sampleRate / 2;
     const binWidth = nyquist / this.frequencyDataArray.length;
 
@@ -342,7 +353,7 @@ export class AudioContextService {
     }
 
     return {
-      frequencyData: this.frequencyDataArray,
+      frequencyData: this.frequencyDataArray as Uint8Array,
       frequencies,
       bassEnergy,
       midEnergy,

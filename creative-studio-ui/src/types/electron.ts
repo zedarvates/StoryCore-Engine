@@ -24,6 +24,10 @@ export interface ShotData {
   type: string;
   duration: number;
   parameters: Record<string, unknown>;
+  sequence_order?: number;
+  sequence_duration?: number;
+  sequence_shots_count?: number;
+  sequence_resume?: string;
 }
 
 export interface Project {
@@ -179,7 +183,7 @@ export interface StoryCoreElectronAPI {
 
   // Sequence management
   sequence: {
-    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Partial<ShotData>) => Promise<void>;
+    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<void>;
     getShots: (projectPath: string, sequenceId: string) => Promise<ShotData[]>;
     getAll: (projectPath: string) => Promise<unknown[]>;
   };

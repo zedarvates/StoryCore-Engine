@@ -1,0 +1,224 @@
+{
+  "skills": [
+    {
+      "id": "project-create",
+      "name": "Créer un projet",
+      "description": "Initialise un nouveau projet StoryCore complet avec tous les paramètres, personnages, lieux et configurations nécessaires",
+      "category": "projects",
+      "prompt": "Tu es un assistant expert en gestion de projets créatifs pour StoryCore. Crée un projet complet et structuré avec les éléments suivants:\n\n1. **Informations de base**: Nom du projet, genre, thème principal, type de projet, tonalités\n2. **Concept narratif**: Synopsis détaillé, premise, conflict central, sous-conflits\n3. **Personnages principaux**: Liste des personnages clés avec leur rôle, arc et motivations\n4. **Lieux et mondes**: Description des environnements clés, leur significance narrative\n5. **Structure narrative**: Acts, chapitres, points de plot majeurs, twists\n6. **Objectifs et jalons**: Phases de développement, milestones, livrables\n7. **Configuration technique**: Moteur, outils, intégrations, ressources\n8. **Équipe et rôles**: Responsabilités, compétences requises\n9. **Budget et timeline**: Estimation des ressources temporelles et financières\n10. **Risques et contingences**: Identification des obstacles potentiels\n\nCrée une structure organisée et prête à être développée.",
+      "parameters": {
+        "name": {"type": "string", "description": "Nom du projet", "required": true},
+        "genre": {"type": "string", "description": "Genre principal (fantasy, science-fiction, romance, horreur, thriller, etc.)", "required": true},
+        "type": {"type": "string", "description": "Type de projet (jeu vidéo, roman interactif, film, série, BD, webtoon, etc.)", "required": true},
+        "tonalite": {"type": "string", "description": "Tonalité générale (sombre, épique, humoristique, romantique, dramatique, etc.)", "required": true},
+        "echelle": {"type": "string", "description": "Échelle du projet (petit: <3 mois, moyen: 3-6 mois, grand: 6-12 mois, AAA: 12+ mois)", "required": false, "default": "moyen"},
+        "public_cible": {"type": "string", "description": "Public cible (enfants 6-12, adolescents 13-17, adultes 18-34, tous publics)", "required": false, "default": "adultes 18-34"},
+        "style_visuel": {"type": "string", "description": "Style visuel souhaité (réaliste, cartoon, anime, low-poly, etc.)", "required": false},
+        "description": {"type": "string", "description": "Description ou concept initial du projet", "required": false}
+      },
+      "examples": [
+        {
+          "input": {"name": "Chronicles of Aetheria", "genre": "fantasy", "type": "jeu vidéo", "tonalite": "épique", "echelle": "grand", "public_cible": "adultes 18-34", "description": "Un RPG narratif où le joueur incarne un mage qui doit restaurer l'équilibre entre les éléments dans un monde menacé par une sombre prophétie"},
+          "output": {"id": "proj_aetheria_001", "nom": "Chronicles of Aetheria", "genre": "fantasy épique", "type": "RPG narratif interactif", "tonalite": "Épique avec moments sombres", "echelle": "Grand (12 mois)", "public_cible": "Adultes 18-34", "concept": {"synopsis": "Dans le monde d'Aetheria, les quatre élément sont en déséquilibre...", "premise": "Un jeune mage découvre qu'il est l'Élu de la Prophétie des Cieux Divisés", "conflict_central": "Sauvegarder Aetheria de la destruction imminente", "sous_conflits": ["Rivalité entre maisons nobles", "Rébellion des élémentaux", "Corruption du Conseil"]}, "personnages_principaux": [{"id": "char_001", "nom": "Elara Nighthollow", "role": "protagoniste", "arc": "Découvrir ses pouvoirs -> Accepter son destin", "description": "Jeune mage du clan Nighthollow, introvertie mais déterminée"}, {"id": "char_002", "nom": "Kael Sunforge", "role": "allié", "arc": "Cynisme -> Espoir", "description": "Guerrier solaire cherchant la rédemption"}, {"id": "char_003", "nom": "Vex Shadowmend", "role": "antagoniste", "arc": "Pouvoir -> Destruction", "description": "Ancien mentor devenu corrompu"}], "lieux": [{"id": "loc_001", "nom": "Académie d'Eldertide", "type": "lieu_principal", "description": "Académie où Elara découvre ses pouvoirs"}, {"id": "loc_002", "nom": "Forêt de Whisperwood", "type": "lieu_exploration", "description": "Forêt mystique pleine de secrets"}], "structure_narrative": {"actes": [{"numero": 1, "titre": "L'Éveil", "description": "Elara découvre ses pouvoirs"}, {"numero": 2, "titre": "La Quête", "description": "Voyage à travers Aetheria"}, {"numero": 3, "titre": "L'Affrontement", "description": "Bataille finale contre Vex"}], "points_clés": ["Révélation de la prophétie", "Mort d'un personnage cher", "Révélation du passé de Vex"]}, "jalons": [{"phase": 1, "nom": "Fondations", "duree": "2 mois", "livrables": ["Personnages principaux", "Lieux clés", "Système de magie"]}, {"phase": 2, "nom": "Développement", "duree": "6 mois", "livrables": ["Scénario complet", "Systèmes de jeu", "Assets graphiques"]}, {"phase": 3, "nom": "Polissage", "duree": "4 mois", "livrables": ["Tests", "Optimisation", "Contenu additionnel"]}], "configuration_technique": {"moteur": "Unity/Narrative Designer", "integrations": ["Stable Diffusion", "ElevenLabs"], "ressources": ["Équipe narratifs: 3", "Développeurs: 4", "Artistes: 3", "Compositeurs: 1"]}, "equipe": [{"role": "Producteur", "responsabilites": "Coordination globale"}, {"role": "Lead Writer", "responsabilites": "Direction narrative"}, {"role": "Game Designer", "responsabilites": "Systèmes de jeu"}], "risques_identifies": [{"risque": "Scope creep", "mitigation": "Gestion stricte des features"}, {"risque": "Retards IA", "mitigation": "Fallback sur assets traditionnels"}]}
+        },
+        {
+          "input": {"name": "Les Ombres de Montmartre", "genre": "polar", "type": "roman interactif", "tonalite": "noir", "public_cible": "adultes 18-34", "description": "Un polar interactif se déroulant dans le Paris des années 30"},
+          "output": {"id": "proj_montmartre_001", "nom": "Les Ombres de Montmartre", "genre": "Polar noir", "type": "Roman interactif", "tonalite": "Noir et atmosphérique", "public_cible": "Adultes 18-34", "concept": {"synopsis": "En 1934, un détective privé doit résoudre une série de murders liés au milieu artistique de Montmartre...", "premise": "Chaque choix du lecteur influence l'enquête et la fin"}, "personnages_principaux": [{"nom": "Marcel Duval", "role": "protagoniste", "description": "Détective désabusé aux méthodes peuorthodoxes"}], "jalons": [{"phase": 1, "nom": "Rédaction", "duree": "3 mois"}]}
+        }
+      ],
+      "validation": {
+        "required_fields": ["name", "genre", "type", "tonalite"],
+        "optional_fields": ["echelle", "public_cible", "style_visuel", "description"],
+        "constraints": {
+          "name_min_length": 2,
+          "name_max_length": 100,
+          "genre_enum": ["fantasy", "science-fiction", "romance", "horreur", "thriller", "polar", "drame", "aventure", "comédie", "documentaire", "autobiographie"],
+          "type_enum": ["jeu vidéo", "roman interactif", "film", "série", "BD", "webtoon", "podcast", "visual novel"],
+          "echelle_enum": ["petit", "moyen", "grand", "AAA"]
+        }
+      },
+      "output": {
+        "format": "JSON",
+        "schema": "ProjectSchema",
+        "includes": ["id", "nom", "genre", "type", "tonalite", "concept", "personnages_principaux", "lieux", "structure_narrative", "jalons", "configuration_technique", "equipe"]
+      }
+    },
+    {
+      "id": "project-update",
+      "name": "Mettre à jour un projet",
+      "description": "Met à jour un projet existant tout en préservant sa cohérence narrative et technique",
+      "category": "projects",
+      "prompt": "Tu es un expert en gestion de projet pour StoryCore. Met à jour le projet spécifié en préservant son essence et sa cohérence. Analyse les modifications demandées et applique-les de manière cohérente avec l'existant.\n\nTypes de mise à jour possibles:\n1. **Expansion**: Ajouter du contenu (nouveaux personnages, lieux, intrigues)\n2. **Raffinement**: Améliorer et enrichir l'existant\n3. **Correction**: Corriger des incohérences ou erreurs\n4. **Pivot**: Modifier l'orientation du projet\n5. **Ajusteur technique**: Modifier la configuration technique\n\nPour chaque mise à jour, assure-toi de:\n- Maintenir la cohérence narrative\n- Mettre à jour les dépendances\n- Documenter les changements\n- Évaluer l'impact sur le reste du projet",
+      "parameters": {
+        "project_id": {"type": "string", "description": "ID du projet à mettre à jour", "required": true},
+        "update_type": {"type": "string", "description": "Type de mise à jour", "required": true, "enum": ["expansion", "raffinement", "correction", "pivot", "ajustement_technique"]},
+        "update_scope": {"type": "string", "description": "Portée de la mise à jour", "required": true, "enum": ["mineur", "majeur", "complet"]},
+        "description": {"type": "string", "description": "Description détaillée des modifications", "required": true},
+        "reason": {"type": "string", "description": "Raison de la mise à jour", "required": false},
+        "preserve_coherence": {"type": "boolean", "description": "Préserver la cohérence avec l'existant", "required": false, "default": true}
+      },
+      "examples": [
+        {
+          "input": {"project_id": "proj_aetheria_001", "update_type": "expansion", "update_scope": "majeur", "description": "Ajouter un nouveau personnage antagoniste: un ancien allié devenu enemy, avec une histoire tragique et un lien profond avec Elara", "reason": "Renforcer l'impact émotionnel du récit"},
+          "output": {"project_id": "proj_aetheria_001", "modifications_appliquees": [{"type": "personnage_ajoute", "id": "char_004", "nom": "Seraphina Dawnbringer", "role": "antagoniste_secondaire", "description": "Ancienne meilleure ami d'Elara, devenue général de l'armée advers", "histoire": "A perdu sa famille dans le chaos causé par la prophétie, blâma Elara", "arc": "Haine -> Compréhension -> Sacrifice", "lien_avec_protagoniste": "Meilleure amie d'enfance, trahison déchirante"}], "impacts_identifies": ["Nouvelle intrigue secondaire", "Revision du conflit central", "Impact sur la fin possible"], "coherence_check": {"statut": "valide", "notes": "Le personnage s'intègre naturellement à l'arc existant d'Elara"}
+        },
+        {
+          "input": {"project_id": "proj_montmartre_001", "update_type": "correction", "update_scope": "mineur", "description": "Corriger une incohérence temporelle dans la chronologie des événements", "reason": "Un lecteur a remarqué que le corps a été trouvé avant le meurtre"},
+          "output": {"project_id": "proj_montmartre_001", "modifications_appliquees": [{"type": "correction", "element": "Chapitre 3", "description": "Réordonnancement des événements", "avant": "Découverte du corps à 14h, meurtre à 15h", "apres": "Meuble à 14h, découverte du corps à 15h30"}], "coherence_check": {"statut": "valide"}}
+        },
+        {
+          "input": {"project_id": "proj_aetheria_001", "update_type": "pivot", "update_scope": "majeur", "description": "Modifier la tonalité du projet pour inclure plus d'éléments humoristiques et alléger l'atmosphère", "reason": "Feedback des playtests: le jeu est trop sombre"},
+          "output": {"project_id": "proj_aetheria_001", "modifications_appliquees": [{"type": "pivot_tonalite", "avant": "Épique avec moments sombres", "apres": "Épique avec humour et moments légers", "elements_ajoutes": ["Comportements comiques de Kael", "Événements chanceux absurdes", "Dialogues pétillants"], "elements_retires": ["Scènes de mort graphic", "Dialogues trop mélancoliques"]}], "coherence_check": {"statut": "valide_avec_reservations", "notes": "Le contraste avec certains moments sérieux devra être géré avec soin"}}
+        }
+      ],
+      "validation": {
+        "required_fields": ["project_id", "update_type", "update_scope", "description"],
+        "optional_fields": ["reason", "preserve_coherence"],
+        "constraints": {
+          "project_id_format": "^proj_[a-z_]+_\\d{3}$",
+          "update_scope_impact": {"mineur": "changements <5%", "majeur": "changements 5-30%", "complet": "changements >30%"}
+        }
+      },
+      "output": {
+        "format": "JSON",
+        "schema": "ProjectUpdateSchema",
+        "includes": ["project_id", "modifications_appliquees", "impacts_identifies", "coherence_check", "timestamp"]
+      }
+    },
+    {
+      "id": "project-validate",
+      "name": "Valider un projet",
+      "description": "Valide la cohérence, la complétude et la qualité d'un projet StoryCore",
+      "category": "projects",
+      "prompt": "Tu es un expert en assurance qualité pour les projets StoryCore. Analyse le projet de manière complète pour vérifier:\n\n1. **Cohérence narrative**: Les personnages, lieux, intrigues sont-ils cohérents entre eux?\n2. **Complétude**: Tous les éléments essentiels sont-ils présents?\n3. **Qualité technique**: La configuration est-elle adaptée?\n4. **Faisabilité**: Le projet est-il réalisable avec les ressources prévues?\n5. **Respect des contraintes**: Genre, tonalité, public cible respectés?\n\nFournis un rapport détaillé avec:\n- Score global de validation\n- Liste des points forts\n- Liste des problèmes identifiés avec sévérité\n- Recommandations d'amélioration\n- Verdict final (APPROUVÉ / APPROUVÉ AVEC RESERVES / À REVOIR / REJETÉ)",
+      "parameters": {
+        "project_id": {"type": "string", "description": "ID du projet à valider", "required": true},
+        "validation_type": {"type": "string", "description": "Type de validation", "required": true, "enum": ["complete", "coherence", "technique", "faisabilite", "rapide"]},
+        "rigor_level": {"type": "string", "description": "Niveau de rigueur", "required": false, "default": "standard", "enum": ["bas", "standard", "eleve", "critique"]},
+        "focus_areas": {"type": "array", "description": "Zones spécifiques à vérifier en priorité", "required": false, "items": {"type": "string", "enum": ["personnages", "lieux", "intrigue", "technique", "equipe", "budget"]}},
+        "skip_checks": {"type": "array", "description": "Vérifications à skips", "required": false, "items": {"type": "string", "enum": ["coherence", "completude", "technique", "faisabilite"]}}
+      },
+      "examples": [
+        {
+          "input": {"project_id": "proj_aetheria_001", "validation_type": "complete", "rigor_level": "standard"},
+          "output": {"project_id": "proj_aetheria_001", "validation_complete": {"statut": "APPROUVÉ", "score_global": 92, "date": "2026-02-26", "checks": {"coherence": {"statut": "valide", "score": 95, "details": ["Arc narratif cohérent", "Personnages bien développés", "Intrigues secondaires soutiennent l'intrigue principale"]}, "completude": {"statut": "valide", "score": 90, "details": ["Tous les actes définis", "Personnages principaux complets", "Lieux clés décrits"], "manquants": ["Scènes de transition", "Dialogues secondaires"]}, "technique": {"statut": "valide", "score": 88, "details": ["Configuration adaptée", "Équipe compétente"], "warnings": ["Intégration IA peut nécessiter plus de tests"]}, "faisabilite": {"statut": "valide", "score": 94, "details": ["Timeline réaliste", "Budget adapté"]}}, "points_forts": ["Concept original et accrocheur", "Antagoniste complexe", "Structure narrative claire", "Équipe expérimentée"], "problemes": [{"severite": "mineure", "type": "completude", "description": "Scènes de transition manquantes", "recommendation": "Ajouter 2-3 scènes de liaison"}, {"severite": "mineure", "type": "technique", "description": "Dépendance forte à l'IA", "recommendation": "Prévoir assets de secours"}], "recommendations": ["Considérer une bêta fermée plus tôt", "Prévoir du contenu bonus pour le day-one"], "prochaines_etapes": ["Finaliser les scènes de transition", "Lance les premiers tests techniques"]}
+        },
+        {
+          "input": {"project_id": "proj_aetheria_001", "validation_type": "coherence", "rigor_level": "eleve", "focus_areas": ["personnages", "intrigue"]},
+          "output": {"project_id": "proj_aetheria_001", "validation_coherence": {"statut": "APPROUVÉ", "score": 94, "analyses": {"personnages": {"score": 96, "details": [{"personnage": "Elara", "coherence": "excellente", "notes": "Arc cohérent du début à la fin"}, {"personnage": "Kael", "coherence": "bonne", "notes": "Transformation crédible", "suggestion": "Renforcer le lien avec Elara"}], "problemes": []}, "intrigue": {"score": 92, "details": [{"element": "Prophétie", "coherence": "excellente", "notes": "Bien intégrée au récit"}, {"element": "Sous-intrigues", "coherence": "bonne", "notes": " Certaines pourraient être développées"}]}}, "verdict": "La cohérence du projet est solide. Quelques suggestions d'amélioration mais rien de bloquant."}
+        },
+        {
+          "input": {"project_id": "proj_montmartre_001", "validation_type": "rapide", "rigor_level": "bas"},
+          "output": {"project_id": "proj_montmartre_001", "validation_rapide": {"statut": "APPROUVÉ", "score_global": 78, "checks_effectues": {"structure": "OK", "personnages": "OK", "coherence_generale": "Attention - quelques incohérences temporales"}, "recommandations": ["Corriger les incohérences temporelles avant publication"], "prochaines_etapes": ["Révision des chapitres 2-4"]}
+        }
+      ],
+      "validation": {
+        "required_fields": ["project_id", "validation_type"],
+        "optional_fields": ["rigor_level", "focus_areas", "skip_checks"],
+        "constraints": {
+          "project_id_format": "^proj_[a-z_]+_\\d{3}$"
+        }
+      },
+      "output": {
+        "format": "JSON",
+        "schema": "ProjectValidationSchema",
+        "includes": ["project_id", "validation_type", "statut", "score_global", "checks", "points_forts", "problemes", "recommendations", "verdict", "timestamp"]
+      }
+    },
+    {
+      "id": "project-export",
+      "name": "Exporter un projet",
+      "description": "Exporte un projet StoryCore dans différents formats pour diverses utilisations",
+      "category": "projects",
+      "prompt": "Tu es un expert en export de projets créatifs. Exporte le projet spécifié dans le format souhaité tout en préservant toutes les informations essentielles.\n\nFormats d'export disponibles:\n1. **JSON-Standard**: Format structuré pour l'archivage et l'échange\n2. **Markdown**: Format lisible pour la documentation\n3. **YAML**: Format pour configurations techniques\n4. **Game-Ready**: Format optimisé pour l'intégration en jeu\n5. **PDF-Document**: Format prêt pour la lecture\n6. **Pitch-Deck**: Format présentation pour investisseurs/éditeurs\n\nL'export inclut:\n- Métadonnées du projet\n- Contenu narratif complet\n- Configuration technique\n- Assets et ressources\n- Historique des modifications",
+      "parameters": {
+        "project_id": {"type": "string", "description": "ID du projet à exporter", "required": true},
+        "export_format": {"type": "string", "description": "Format d'export", "required": true, "enum": ["json-standard", "markdown", "yaml", "game-ready", "pdf-document", "pitch-deck"]},
+        "export_usage": {"type": "string", "description": "Usage prévu de l'export", "required": true, "enum": ["archivage", "developpement", "presentation", "publication", "collaboration", "migration"]},
+        "language": {"type": "string", "description": "Langue de l'export", "required": false, "default": "fr", "enum": ["fr", "en", "es", "de", "it"]},
+        "include_options": {"type": "object", "description": "Options d'inclusion", "required": false, "properties": {"include_history": {"type": "boolean", "description": "Inclure l'historique des modifications", "default": false}, "include_assets": {"type": "boolean", "description": "Inclure les références aux assets", "default": true}, "include_comments": {"type": "boolean", "description": "Inclure les commentaires et notes", "default": false}, "include_sensitive": {"type": "boolean", "description": "Inclure les données sensibles", "default": false}}},
+        "compression": {"type": "boolean", "description": "Compresser l'export (ZIP)", "required": false, "default": false}
+      },
+      "examples": [
+        {
+          "input": {"project_id": "proj_aetheria_001", "export_format": "json-standard", "export_usage": "archivage", "include_options": {"include_history": true, "include_assets": true}},
+          "output": {"export_metadata": {"version": "1.0", "project_id": "proj_aetheria_001", "format": "json-standard", "export_date": "2026-02-26T10:30:00Z", "language": "fr"}, "project": {"id": "proj_aetheria_001", "nom": "Chronicles of Aetheria", "genre": "fantasy épique", "type": "RPG narratif interactif", "tonalite": "Épique", "echelle": "Grand", "concept": {"synopsis": "...", "premise": "..."}, "personnages": [...], "lieux": [...], "structure_narrative": {...}, "jalons": [...], "configuration_technique": {...}}, "historique": [{"date": "2026-01-15", "type": "creation", "auteur": "user_001"}, {"date": "2026-02-01", "type": "update", "description": "Ajout personnage Seraphina", "auteur": "user_001"}], "file_size": "2.4 MB", "download_url": "/exports/proj_aetheria_001_20260226.json"}
+        },
+        {
+          "input": {"project_id": "proj_aetheria_001", "export_format": "game-ready", "export_usage": "developpement", "language": "en"},
+          "output": {"format_version": "2.0", "game_data": {"project_id": "proj_aetheria_001", "title": "Chronicles of Aetheria", "characters": [{"id": "char_001", "name": "Elara Nighthollow", "class": "Mage", "stats": {"health": 100, "mana": 200, "attack": 30, "defense": 20}, "abilities": ["Fireball", "Teleport"], "dialogue_tree": "elara_dialogues.json"}, {"id": "char_002", "name": "Kael Sunforge", "class": "Warrior", "stats": {"health": 200, "mana": 50, "attack": 80, "defense": 60}, "abilities": ["Slash", "Shield"]}], "locations": [{"id": "loc_001", "name": "Eldertide Academy", "type": "dungeon", "connections": ["loc_002"], "events": [...]}], "quests": [{"id": "quest_001", "title": "The Awakening", "objectives": [...], "rewards": {...}}], "game_config": {"engine": "Unity", "narrative_system": "INK", "save_system": "Cloud"}}, "integration_notes": "Compatible avec StoryCore Engine v2.5+"}
+        },
+        {
+          "input": {"project_id": "proj_aetheria_001", "export_format": "pitch-deck", "export_usage": "presentation", "language": "en"},
+          "output": {"pitch_deck": {"title": "Chronicles of Aetheria", "tagline": "Restore the balance. Fulfill the prophecy. Save Aetheria.", "genre": "Fantasy RPG", "target_audience": "Adults 18-34", "complet": {"overview": "An immersive narrative RPG where players take on the role of a young mage chosen by prophecy...", "unique_selling_points": ["Deep narrative choices matter", "AI-powered dialogue system", "Procedurally generated quests"], "market_analysis": {"tam": "$15B", "sam": "$3B", "som": "$150M"}, "business_model": "Premium + DLC", "projected_sales": "500K units year 1", "team": [{"role": "Lead Writer", "name": "John D."}, {"role": "Art Director", "name": "Marie L."}], "timeline": {"prototype": "Q2 2026", "alpha": "Q4 2026", "release": "Q2 2027"}, "budget": "$1.2M", "contact": "team@aetheriagame.com"}}
+        },
+        {
+          "input": {"project_id": "proj_montmartre_001", "export_format": "markdown", "export_usage": "documentation"},
+          "output": {"filename": "les_ombres_de_montmartre.md", "content": "# Les Ombres de Montmartre\n\n## Synopsis\n...\n\n## Personnages\n### Marcel Duval\n...\n\n## Lieux\n...\n\n## Structure narrative\n...\n", "metadata": {"total_words": 45000, "chapters": 15, "estimated_reading_time": "6 heures"}}
+        }
+      ],
+      "validation": {
+        "required_fields": ["project_id", "export_format", "export_usage"],
+        "optional_fields": ["language", "include_options", "compression"],
+        "constraints": {
+          "project_id_format": "^proj_[a-z_]+_\\d{3}$",
+          "max_file_size_mb": {"json-standard": 50, "markdown": 10, "yaml": 5, "game-ready": 100, "pdf-document": 50, "pitch-deck": 20}
+        }
+      },
+      "output": {
+        "format": "Variable selon export_format",
+        "schema": "ExportSchema",
+        "includes": ["export_metadata", "project", "file_info"],
+        "delivery": "download_url ou fichier directement"
+      }
+    },
+    {
+      "id": "project-duplicate",
+      "name": "Dupliquer un projet",
+      "description": "Crée une copie complète ou une variante d'un projet existant",
+      "category": "projects",
+      "prompt": "Tu es un expert en gestion de projets pour StoryCore. Duplique le projet spécifié pour créer une nouvelle version.\n\nTypes de duplication possibles:\n1. **Exacte**: Copie conforme du projet (pour backup ou tests)\n2. **Variation**: Modifications ciblées (nouvelle version avec changements)\n3. **Template**: Version épurée utilisable comme modèle\n4. **Fork**: Version alternative (pour explorer une direction différente)\n5. **Adaptation**: Adaptation à un nouveau format/public (ex: jeu -> roman)\n\nLa duplication inclut:\n- Copie de tous les éléments du projet\n- Génération de nouveaux IDs uniques\n- Conservation ou modification de l'historique\n- Option pour inclure/exclure certaines parties",
+      "parameters": {
+        "source_project_id": {"type": "string", "description": "ID du projet source à dupliquer", "required": true},
+        "duplicate_type": {"type": "string", "description": "Type de duplication", "required": true, "enum": ["exacte", "variation", "template", "fork", "adaptation"]},
+        "new_project_name": {"type": "string", "description": "Nom du nouveau projet", "required": true},
+        "intended_use": {"type": "string", "description": "Usage prévu du duplicata", "required": true, "enum": ["backup", "tests", "nouvelle_version", "exploration", "adaptation", "collaboration"]},
+        "modifications": {"type": "array", "description": "Modifications spécifiques à appliquer lors de la duplication", "required": false, "items": {"type": "object", "properties": {"type": {"type": "string", "description": "Type de modification"}, "cible": {"type": "string", "description": "Élément cible"}, "description": {"type": "string", "description": "Description de la modification"}}}},
+        "include_history": {"type": "boolean", "description": "Inclure l'historique du projet source", "required": false, "default": false},
+        "include_assets": {"type": "boolean", "description": "Inclure les références aux assets", "required": false, "default": true}
+      },
+      "examples": [
+        {
+          "input": {"source_project_id": "proj_aetheria_001", "duplicate_type": "exacte", "new_project_name": "Chronicles of Aetheria - Backup", "intended_use": "backup", "include_history": true},
+          "output": {"new_project_id": "proj_aetheria_001_backup", "nom": "Chronicles of Aetheria - Backup", "source_project_id": "proj_aetheria_001", "duplicate_type": "exacte", "creation_date": "2026-02-26T10:30:00Z", "elements_copies": {"personnages": 4, "lieux": 8, "intrignes": 5, "jalons": 3, "configuration": "complète"}, "nouveaux_ids": {"project": "proj_aetheria_001_backup", "personnages": ["char_001_bak", "char_002_bak", ...], "lieux": ["loc_001_bak", ...]}, "historique_inclus": {"total_operations": 12, "derniere_modification": "2026-02-01"}}
+        },
+        {
+          "input": {"source_project_id": "proj_aetheria_001", "duplicate_type": "fork", "new_project_name": "Chronicles of Aetheria - Dark Timeline", "intended_use": "exploration", "modifications": [{"type": "tonalite", "cible": "global", "description": "Passer en tonalité dark fantasy"}, {"type": "ajout", "cible": "personnages", "description": "Ajouter un antagoniste principal"}], "include_history": false},
+          "output": {"new_project_id": "proj_aetheria_001_dark", "nom": "Chronicles of Aetheria - Dark Timeline", "source_project_id": "proj_aetheria_001", "duplicate_type": "fork", "creation_date": "2026-02-26T10:30:00Z", "modifications_appliquees": [{"type": "tonalite", "avant": "Épique", "apres": "Dark Fantasy", "details": "Tous les éléments lumineux adoucis ou supprimés"}, {"type": "ajout", "cible": "personnages", "nouveau_personnage": {"id": "char_004_dark", "nom": "Malachar the Undying", "role": "antagoniste_principal", "description": "Seigneur des ténèbres"}}], "elements_herites": {"structure_narrative": "conservée (adaptée)", "lieux": "5 sur 8 conservés", "personnages": "2 sur 4 conservés avec modifications"}, "note": "Ce fork explore une timeline où la prophétie a été mal interprétée, menant à un destin plus sombre"
+        },
+        {
+          "input": {"source_project_id": "proj_aetheria_001", "duplicate_type": "template", "new_project_name": "Template RPG Fantasy Narratif", "intended_use": "nouvelle_version"},
+          "output": {"new_project_id": "proj_template_rpg_001", "nom": "Template RPG Fantasy Narratif", "source_project_id": "proj_aetheria_001", "duplicate_type": "template", "creation_date": "2026-02-26T10:30:00Z", "elements_inclus": {"structure_narrative": "template avec placesholders", "configuration_technique": "template", "jalons": "template standard"}, "elements_retires": ["Personnages spécifiques", "Intrignes détaillées", "Lieux nommés", "Contenu exclusif"], "template_ready": true, "placeholder_instructions": "Remplacer les éléments entre {{}} par votre contenu"}
+        },
+        {
+          "input": {"source_project_id": "proj_montmartre_001", "duplicate_type": "adaptation", "new_project_name": "Les Ombres de Montmartre - Visual Novel", "intended_use": "adaptation", "modifications": [{"type": "format", "cible": "type", "description": "Convertir du polar en visual novel"}]},
+          "output": {"new_project_id": "proj_montmartre_001_vn", "nom": "Les Ombres de Montmartre - Visual Novel", "source_project_id": "proj_montmartre_001", "duplicate_type": "adaptation", "creation_date": "2026-02-26T10:30:00Z", "adaptations_appliquees": [{"element": "type", "avant": "roman interactif", "apres": "visual novel", "details": "Format ajusté pour intégrer illustrations et dialogues"}, {"element": "structure", "adaptation": "Ajout de choix visuels aux moments clés", "impact": "Expansion des points de décision"}, {"element": "personnages", "adaptation": "Descriptions visuelles requises", "impact": "Ajout du champ 'visuel_description'"}, {"element": "lieux", "adaptation": "Artwork requis pour chaque lieu", "impact": "Nouveau champ 'asset_references'"}], "nouveaux_elements": {"systeme_choix": "ajouté", "systeme_dialogue": "adapté", "assets_requis": {"personnages": 6, "lieux": 12, "backgrounds": 15}}, "compatibilite": "Format VN compatible avec moteur VN (Ren'Py, TyranoBuilder)"}
+        }
+      ],
+      "validation": {
+        "required_fields": ["source_project_id", "duplicate_type", "new_project_name", "intended_use"],
+        "optional_fields": ["modifications", "include_history", "include_assets"],
+        "constraints": {
+          "source_project_id_format": "^proj_[a-z_]+_\\d{3}$",
+          "new_project_name_unique": "Le nom doit être unique dans la base",
+          "duplicate_type_uses": {"exacte": ["backup", "tests"], "variation": ["nouvelle_version"], "template": ["nouvelle_version"], "fork": ["exploration"], "adaptation": ["adaptation"]}
+        }
+      },
+      "output": {
+        "format": "JSON",
+        "schema": "ProjectDuplicateSchema",
+        "includes": ["new_project_id", "nom", "source_project_id", "duplicate_type", "creation_date", "elements_copies", "nouveaux_ids", "modifications_appliquees"]
+      }
+    }
+  ]
+}

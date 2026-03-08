@@ -366,7 +366,7 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
         {/* Metadata indicators */}
         <div className="flex items-center gap-2 text-xs text-gray-500">
           {hasAudio && (
-            <div className="flex items-center gap-1" title={`${shot.audioTracks.length} audio track(s)`}>
+            <div className="flex items-center gap-1" title={`${(shot.audioTracks || []).length} audio track(s)`}>
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -375,12 +375,12 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
                   d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
                 />
               </svg>
-              <span>{shot.audioTracks.length}</span>
+              <span>{(shot.audioTracks || []).length}</span>
             </div>
           )}
 
           {hasEffects && (
-            <div className="flex items-center gap-1" title={`${shot.effects.length} effect(s)`}>
+            <div className="flex items-center gap-1" title={`${(shot.effects || []).length} effect(s)`}>
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -389,12 +389,12 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
                   d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"
                 />
               </svg>
-              <span>{shot.effects.length}</span>
+              <span>{(shot.effects || []).length}</span>
             </div>
           )}
 
           {hasTextLayers && (
-            <div className="flex items-center gap-1" title={`${shot.textLayers.length} text layer(s)`}>
+            <div className="flex items-center gap-1" title={`${(shot.textLayers || []).length} text layer(s)`}>
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -403,7 +403,7 @@ const ShotCard: React.FC<ShotCardProps> = ({ shot, index, isSelected, onClick, o
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              <span>{shot.textLayers.length}</span>
+              <span>{(shot.textLayers || []).length}</span>
             </div>
           )}
 

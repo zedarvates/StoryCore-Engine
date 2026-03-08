@@ -826,7 +826,7 @@ export function NeuralProductionAssistant() {
                                             >
                                                 <div className="flex items-center justify-between mb-1">
                                                     <span className="text-[8px] font-black text-primary uppercase tracking-tighter">
-                                                        {insight.category.replace('_', ' ')}
+                                                        {(insight.category || 'GENERAL').replace('_', ' ')}
                                                     </span>
                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         {!insight.isPermanent && (

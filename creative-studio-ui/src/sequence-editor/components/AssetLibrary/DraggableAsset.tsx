@@ -19,38 +19,8 @@ export const DND_ITEM_TYPES = {
   ASSET: 'asset',
 } as const;
 
-// ============================================================================
-// Local Asset type (matching AssetLibrary.tsx)
-// ============================================================================
-
-type ServiceAssetType = 'image' | 'audio' | 'video' | 'template';
-
-interface ServiceAssetMetadata {
-  description?: string;
-  author?: string;
-  license?: string;
-  source?: string;
-  category?: string;
-  tags?: string[];
-  duration?: number;
-  [key: string]: unknown;
-}
-
-interface ServiceAsset {
-  id: string;
-  name: string;
-  type: ServiceAssetType;
-  url?: string;
-  thumbnail?: string;
-  thumbnailUrl?: string;
-  previewUrl?: string;
-  metadata?: ServiceAssetMetadata;
-  category?: string;
-  subcategory?: string;
-  tags?: string[];
-  source?: 'builtin' | 'user' | 'ai-generated';
-  createdAt?: Date;
-}
+import { ServiceAsset } from '../../types';
+import './assetLibrary.css';
 
 // ============================================================================
 // Types
@@ -68,6 +38,7 @@ interface DraggableAssetProps {
   onPreview?: (asset: ServiceAsset) => void;
   onEdit?: (asset: ServiceAsset) => void;
   onDelete?: (asset: ServiceAsset) => void;
+  onPublish?: (asset: ServiceAsset) => void;
 }
 
 // ============================================================================
@@ -80,6 +51,7 @@ export const DraggableAsset: React.FC<DraggableAssetProps> = ({
   onPreview,
   onEdit,
   onDelete,
+  onPublish,
 }) => {
   // Set up drag functionality with custom preview
   const [{ isDragging }, drag, preview] = useDrag<
@@ -154,6 +126,16 @@ export const DraggableAsset: React.FC<DraggableAssetProps> = ({
     [asset, onDelete]
   );
 
+  const handlePublish = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onPublish) {
+        onPublish(asset);
+      }
+    },
+    [asset, onPublish]
+  );
+
   // Get description from metadata or fallback
   const description = asset.metadata?.description || '';
 
@@ -177,7 +159,7 @@ export const DraggableAsset: React.FC<DraggableAssetProps> = ({
       {/* Thumbnail */}
       <div className="asset-thumbnail">
         <LazyImage
-          src={asset.thumbnailUrl || asset.thumbnail}
+          src={asset.thumbnailUrl || asset.thumbnail || ''}
           alt={asset.name}
           onError={(e) => {
             // Fallback for missing images
@@ -241,6 +223,14 @@ export const DraggableAsset: React.FC<DraggableAssetProps> = ({
           aria-label={`Preview ${asset.name}`}
         >
           👁️
+        </button>
+        <button
+          className="overlay-btn marketplace-btn"
+          onClick={handlePublish}
+          title="Publish to Marketplace"
+          aria-label={`Publish ${asset.name} to Marketplace`}
+        >
+          💎
         </button>
         <button
           className="overlay-btn"

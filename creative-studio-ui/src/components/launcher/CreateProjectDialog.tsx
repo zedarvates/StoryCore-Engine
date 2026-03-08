@@ -57,6 +57,16 @@ export interface SerializableProjectFormat {
 
 const PROJECT_FORMATS: ProjectFormat[] = [
   {
+    id: 'trailer',
+    name: 'Bande-annonce / Trailer',
+    duration: '30-120 sec',
+    durationMinutes: 2,
+    sequences: 1,
+    shotDuration: 120,
+    iconType: 'video',
+    description: 'Format court et dynamique pour teaser ou bande-annonce',
+  },
+  {
     id: 'court-metrage',
     name: 'Court-métrage',
     duration: '1-15 min',
@@ -258,6 +268,15 @@ export function CreateProjectDialog({
   // Handle project name change with real-time validation
   const handleProjectNameChange = (value: string) => {
     setProjectName(value);
+
+    // Auto-detect format from name (Intelligence Layer)
+    const lowerValue = value.toLowerCase();
+    if (lowerValue.includes('trailer') || lowerValue.includes('bande-annonce') || lowerValue.includes('teaser')) {
+      const trailerFormat = PROJECT_FORMATS.find(f => f.id === 'trailer');
+      if (trailerFormat) {
+        setSelectedFormat(trailerFormat);
+      }
+    }
     
     // Clear errors and perform real-time validation
     setErrors((prev) => {

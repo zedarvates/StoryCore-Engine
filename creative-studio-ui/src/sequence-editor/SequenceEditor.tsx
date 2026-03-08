@@ -12,7 +12,9 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { store } from '@/sequence-editor/store';
 import { useAppSelector, useAppDispatch } from '@/sequence-editor/store';
 import { reorderShots, addShot } from '@/sequence-editor/store/slices/timelineSlice';
+import { toggleCompactMode } from '@/sequence-editor/store/slices/panelsSlice';
 import { updateMetadata } from '@/sequence-editor/store/slices/projectSlice';
+import type { Shot } from '@/sequence-editor/types';
 
 // Import components
 import { ToolBar } from '@/sequence-editor/components/ToolBar/ToolBar';
@@ -33,6 +35,8 @@ import { AIFeaturesPanel } from '@/sequence-editor/components/AIFeaturesPanel';
 import { AudioMixerPanel } from '@/sequence-editor/components/AudioMixerPanel';
 import { ExportPanel } from '@/sequence-editor/components/ExportPanel';
 import { EffectsPanel } from '@/sequence-editor/components/EffectsPanel';
+import { KeyframeEditorOverlay } from '@/sequence-editor/components/KeyframeEditor/KeyframeEditorOverlay';
+import { CompactDirectorPanel } from '@/sequence-editor/components/CompactDirectorPanel/CompactDirectorPanel';
 
 // Import LLM Assistant Sidebar
 import { LLMAssistantSidebar } from '@/components/LLMAssistantSidebar';
@@ -41,10 +45,11 @@ import { LLMAssistantSidebar } from '@/components/LLMAssistantSidebar';
 import { VideoEffectsPanel } from '@/sequence-editor/components/VideoEffectsPanel/VideoEffectsPanel';
 import { CompositionTemplateBrowser } from '@/sequence-editor/components/CompositionTemplateBrowser/CompositionTemplateBrowser';
 
-// Import hooks
 import { useProjectRecovery } from '@/sequence-editor/hooks/useProjectRecovery';
 import { useProjectFile } from '@/sequence-editor/hooks/useProjectFile';
 import { useAccessibilityInit } from '@/sequence-editor/hooks/useAccessibility';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useUndoRedo } from '@/sequence-editor/store/hooks/useUndoRedo';
 
 // Import utilities
 import { initializeBrowserCompat } from '@/sequence-editor/utils/browserCompat';
@@ -72,7 +77,7 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
 const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBack }) => {
   const dispatch = useAppDispatch();
   const { selectedElements, shots, playheadPosition } = useAppSelector((state) => state.timeline);
-  const { showLayerManager } = useAppSelector((state) => state.panels);
+  const { showLayerManager, compactMode } = useAppSelector((state) => state.panels);
 
   // State for right panel tabs (new enhancement panels)
   const [activeRightPanel, setActiveRightPanel] = useState<'shotConfig' | 'transitions' | 'aiFeatures' | 'effects' | 'videoFx' | 'templates'>('shotConfig');
@@ -87,21 +92,25 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
 
       // 1. Access global state (Zustand)
       // Note: We use a dynamic check for useStore to avoid circular dependencies or import issues
-      const gStore = (window as any).useStore;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gStore = (window as unknown as { useStore: any }).useStore;
       if (!gStore) {
         console.warn('[SequenceEditor] Global store (window.useStore) not found. Synchronization might fail.');
         return;
       }
 
-      const { shots: globalShots, project: globalProject } = gStore.getState();
+      const globalState = gStore.getState();
+      const globalShots = globalState.shots || [];
+      const globalProject = globalState.project;
 
       // 2. Filter shots for this sequence
-      const sequenceShots = globalShots.filter((s: any) => s.sequence_id === sequenceId || s.sequenceId === sequenceId);
+      const sequenceShots = globalShots.filter((s: { id: string; sequence_id?: string; sequenceId?: string }) => s.sequence_id === sequenceId || s.sequenceId === sequenceId);
 
       if (sequenceShots.length > 0) {
         // 3. Map to Redux Format (Data Contract v1)
         const FPS = 24; // Default to 24 FPS
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedShots = sequenceShots.map((s: any) => ({
           id: s.id,
           name: s.title || s.name || 'Untitled Shot',
@@ -177,27 +186,37 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
     handleCancel,
   } = useProjectFile();
 
-  // Keyboard shortcuts for accessibility
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Skip if user is typing in an input field
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
-        return;
-      }
+  // Undo/Redo hook
+  const { undo, redo } = useUndoRedo();
 
-      // Ctrl/Cmd + S for save
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleSave();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleSave]);
+  // Keyboard shortcuts
+  useKeyboardShortcuts({
+    shortcuts: [
+      // History
+      { key: 'z', ctrlKey: true, action: undo, description: 'Undo' },
+      { key: 'y', ctrlKey: true, action: redo, description: 'Redo' },
+      { key: 'z', ctrlKey: true, shiftKey: true, action: redo, description: 'Redo' },
+      
+      // Save
+      { key: 's', ctrlKey: true, action: handleSave, description: 'Save' },
+      
+      // Panel Switching (Right Panel)
+      { key: '1', action: () => setActiveRightPanel('shotConfig'), description: 'Switch to Shot Config' },
+      { key: '2', action: () => setActiveRightPanel('transitions'), description: 'Switch to Transitions' },
+      { key: '3', action: () => setActiveRightPanel('aiFeatures'), description: 'Switch to AI Features' },
+      { key: '4', action: () => setActiveRightPanel('effects'), description: 'Switch to Effects' },
+      { key: '5', action: () => setActiveRightPanel('videoFx'), description: 'Switch to Video FX' },
+      { key: '6', action: () => setActiveRightPanel('templates'), description: 'Switch to Templates' },
+      
+      // Bottom Panel Switching
+      { key: 't', altKey: true, action: () => setActiveBottomPanel('timeline'), description: 'Switch to Timeline' },
+      { key: 'm', altKey: true, action: () => setActiveBottomPanel('audioMixer'), description: 'Switch to Audio Mixer' },
+      { key: 'e', altKey: true, action: () => setActiveBottomPanel('export'), description: 'Switch to Export' },
+      
+      // Compact Mode
+      { key: 'k', action: () => dispatch(toggleCompactMode()), description: 'Toggle Compact Mode' },
+    ]
+  });
 
   return (
     <div
@@ -325,7 +344,7 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
             ) : activeRightPanel === 'effects' ? (
               <EffectsPanel />
             ) : activeRightPanel === 'videoFx' ? (
-              <VideoEffectsPanel shot={null as any} selectedLayerId={null} />
+              <VideoEffectsPanel shot={selectedShot || (null as unknown as Shot)} selectedLayerId={selectedLayerIds[0] || null} />
             ) : activeRightPanel === 'templates' ? (
               <CompositionTemplateBrowser
                 insertionFrame={playheadPosition}
@@ -413,8 +432,14 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
         <StatusBar />
       </div>
 
+      {/* Keyframe Editor Overlay */}
+      <KeyframeEditorOverlay />
+
       {/* LLM Assistant Sidebar - Voice Commands Helper */}
       <LLMAssistantSidebar />
+
+      {/* Compact Director Mode Overlay */}
+      {compactMode && <CompactDirectorPanel />}
     </div>
   );
 };

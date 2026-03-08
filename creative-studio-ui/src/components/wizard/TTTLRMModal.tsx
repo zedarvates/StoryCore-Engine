@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, IconButton } from '@mui/material';
+import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import { TTTLRMToolbox } from '../ai/TTTLRMToolbox';
 import { useAppStore } from '@/stores/useAppStore';
@@ -24,9 +24,7 @@ export const TTTLRMModal: React.FC = () => {
         }
       }}
     >
-      <DialogHeader sx={{ display: 'none' }}>
-        <DialogTitle>Reconstruction tttLRM</DialogTitle>
-      </DialogHeader>
+      <DialogTitle sx={{ display: 'none' }}>Reconstruction tttLRM</DialogTitle>
       
       <DialogContent sx={{ p: 0, position: 'relative' }}>
         <IconButton 

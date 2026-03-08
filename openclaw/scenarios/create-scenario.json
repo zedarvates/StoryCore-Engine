@@ -1,0 +1,20 @@
+{
+  "id": "scenario-create",
+  "name": "Créer un scénario",
+  "description": "Crée un scénario détaillé avec scènes, choix et enchaînements",
+  "prompt": "Tu es un assistant de création de scénarios pour StoryCore. Crée un scénario complet avec les éléments suivants:\n\n1. Titre et objectif du scénario\n2. Contexte et situation initiale\n3. Personnages impliqués\n4. Lieu(x) de la scène\n5. Scènes et enchaînements\n6. Points de décision\n7. Conditions et déclencheurs\n8. Issues et conséquences\n9. Éléments de tension\n10. Résumé des chemins possibles\n\nCrée un scénario dynamique avec des choix significatifs.",
+  "parameters": {
+    "titre": "Titre du scénario (optionnel)",
+    "duree": "Durée estimée (courte, moyenne, longue)",
+    "complexite": "Complexité (simple, modérée, élevée)",
+    "tonalite": "Tonalité de la scène",
+    "type": "Type de scénario (action, exploration, dialogue, réflexion, combat)",
+    "niveau_decisions": "Nombre de points de décision"
+  },
+  "examples": [
+    {
+      "input": "Crée un scénario de confrontation",
+      "output": "Titre: La Confrontation au Sommet\nObjectif: Le joueur doit choisir comment gérer une confrontation avec le vilain principal\n\nContexte: Le joueur a atteint la tour du Roi Sombre. Deux de ses compagnons sont retenus captifs.\n\nPersonnages:\n- Le joueur (protagoniste)\n- Roi Sombre (antagoniste)\n- Élia (compagne captive)\n- Garde Chef (second antagonist)\n\nLieu: Salle du Trône, Tour des Ombres\n\nScènes:\n1. Entrée dans la salle\n2. Dialogue avec le Roi Sombre\n3. Révélation sur les companions\n4. Point de décision majeur\n\nPoints de décision:\n1. Attaquer immédiatement -> Combat difficile\n2. Négocier -> Sacrifice requis\n3. Tenter de raisonner -> Échec possible\n4. Utiliser un objet spécial -> Issue secrète\n\nConditions: Si objet obtenu vorher, option 4 disponible\n\nIssues:\n- Victoire héroïque (si force)\n- Victoire diplomatique (si éloquence)\n- Sacrifice d'un compagnon (si négociation)\n- Défaite et capture (si échec)\n\nTension: Le sort des companions, le choix moral, le destin du royaume"
+    }
+  ]
+}

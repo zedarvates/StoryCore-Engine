@@ -506,6 +506,119 @@ export class BackendApiService {
       };
     }
   }
+
+  /**
+   * Submits a workflow directly to ComfyUI via engine backend
+   * @param workflow - The ComfyUI workflow (JSON or object)
+   * @param parameters - Optional mapping of node values to override
+   */
+  async submitComfyUIWorkflow(workflow: any, parameters?: Record<string, any>): Promise<ApiResponse<{ prompt_id: string }>> {
+    try {
+      const response = await this.fetchWithRetry('/api/comfyui/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ workflow, parameters }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.message || 'ComfyUI submission failed' };
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Subscribes to real-time ComfyUI updates via WebSocket
+   * @param callback - Function to call with update data
+   */
+  subscribeToComfyUIUpdates(callback: (event: any) => void): () => void {
+    // Determine WS URL - use same host as backend
+    const host = window.location.hostname || 'localhost';
+    const port = 8080; 
+    const wsUrl = `ws://${host}:${port}/ws/comfyui`;
+    
+    console.log(`[BackendApiService] Connecting to ComfyUI WebSocket: ${wsUrl}`);
+    
+    let socket: WebSocket | null = null;
+    let reconnectTimer: any = null;
+    let isExplicitlyClosed = false;
+
+    const connect = () => {
+      if (isExplicitlyClosed) return;
+      
+      try {
+        socket = new WebSocket(wsUrl);
+
+        socket.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            callback(data);
+          } catch (e) {
+            console.warn('[BackendApiService] Failed to parse WebSocket message', e);
+          }
+        };
+
+        socket.onclose = () => {
+          if (!isExplicitlyClosed) {
+            console.log('[BackendApiService] WebSocket closed, reconnecting...');
+            reconnectTimer = setTimeout(connect, 3000);
+          }
+        };
+
+        socket.onerror = (error) => {
+          console.error('[BackendApiService] WebSocket error:', error);
+        };
+      } catch (e) {
+        console.error('[BackendApiService] Failed to create WebSocket:', e);
+        reconnectTimer = setTimeout(connect, 5000);
+      }
+    };
+
+    connect();
+
+    return () => {
+      isExplicitlyClosed = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (socket) {
+        socket.close();
+        socket = null;
+      }
+    };
+  }
+
+  /**
+   * High-level execution of a task using ComfyUI with polling/updates
+   * @param taskType - Type of task (e.g., 'image_generation')
+   * @param inputData - Data for the task
+   */
+  async executeTaskWithComfyUI(taskType: string, inputData: any): Promise<ApiResponse<{ taskId: string }>> {
+    try {
+      const response = await this.fetchWithRetry(`/api/comfyui/execute/${taskType}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(inputData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        return { success: false, error: error.message || 'ComfyUI task execution failed' };
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
 }
 
 /**

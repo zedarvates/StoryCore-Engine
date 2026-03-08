@@ -119,12 +119,12 @@ class CharacterAnalysisResult:
 class VisionAnalyzerConfig:
     """Configuration for vision analyzer"""
     provider: VisionProvider = VisionProvider.AUTO
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llava:13b"  # or llava:v1.6, bakllava, etc.
-    openai_api_key: Optional[str] = None
-    openai_model: str = "gpt-4-vision-preview"
-    anthropic_api_key: Optional[str] = None
-    anthropic_model: str = "claude-3-opus-20240229"
+    ollama_base_url: str = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+    ollama_model: str = os.environ.get("OLLAMA_MODEL", "llava:13b")  # default to env or llava
+    openai_api_key: Optional[str] = os.environ.get("OPENAI_API_KEY")
+    openai_model: str = os.environ.get("OPENAI_MODEL", "gpt-4-vision-preview")
+    anthropic_api_key: Optional[str] = os.environ.get("ANTHROPIC_API_KEY")
+    anthropic_model: str = os.environ.get("ANTHROPIC_MODEL", "claude-3-opus-20240229")
     
     # Analysis settings
     max_tokens: int = 1024
@@ -177,7 +177,7 @@ class VisionCharacterAnalyzer:
         return VisionProvider.OLLAMA
     
     def _check_ollama_available(self) -> bool:
-        """Check if Ollama is available"""
+        """Check if Ollama is available and has vision-capable models"""
         if not REQUESTS_AVAILABLE:
             return False
         
@@ -187,12 +187,24 @@ class VisionCharacterAnalyzer:
                 timeout=5
             )
             if response.status_code == 200:
-                # Check if llava model is available
+                # Check if configured model or any vision-capable model is available
                 models = response.json().get("models", [])
+                
+                # Check if the configured model is present
+                configured_model = self.config.ollama_model.lower()
                 for model in models:
-                    if "llava" in model.get("name", "").lower():
+                    model_name = model.get("name", "").lower()
+                    if model_name == configured_model or model_name.startswith(configured_model + ":"):
                         return True
-        except Exception:
+                
+                # Fallback: Check if any known vision model is available
+                vision_keywords = ["llava", "bakllava", "moondream", "gemma3", "qwen-vl", "qwen3-vl"]
+                for model in models:
+                    model_name = model.get("name", "").lower()
+                    if any(kw in model_name for kw in vision_keywords):
+                        return True
+        except Exception as e:
+            logger.debug(f"Ollama availability check failed: {e}")
             pass
         return False
     

@@ -5,7 +5,7 @@ export interface SpeechBubbleProps {
   /** Le contenu textuel de la bulle */
   content: string;
   /** Le rôle de l'émetteur (assistant, utilisateur ou système) */
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'error';
   /** Indique si le message est en cours de streaming */
   isStreaming?: boolean;
   /** Indique si le streaming est terminé */
@@ -76,7 +76,8 @@ export const SpeechBubble: React.FC<SpeechBubbleProps> = ({
   children,
 }) => {
   const isUser = role === 'user';
-  const isAssistant = role === 'assistant' || role === 'system';
+  const isAssistant = role === 'assistant' || role === 'system' || role === 'error';
+  const isError = role === 'error';
 
   const formatTime = (date?: Date) => {
     if (!date) return null;
@@ -92,19 +93,33 @@ export const SpeechBubble: React.FC<SpeechBubbleProps> = ({
     >
       {/* Avatar pour l'assistant */}
       {isAssistant && (
-        <div className="speech-bubble-avatar">
+        <div className={`speech-bubble-avatar ${isError ? 'bg-red-500 shadow-red-500/50' : ''}`}>
           <div className="speech-bubble-avatar-inner">
-            <svg 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              className="w-4 h-4"
-            >
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" x2="12" y1="19" y2="22" />
-            </svg>
+            {isError ? (
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="white" 
+                strokeWidth="2"
+                className="w-4 h-4"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            ) : (
+              <svg 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                className="w-4 h-4"
+              >
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                <line x1="12" x2="12" y1="19" y2="22" />
+              </svg>
+            )}
           </div>
         </div>
       )}
@@ -120,9 +135,9 @@ export const SpeechBubble: React.FC<SpeechBubbleProps> = ({
         <div className="speech-bubble-content">
           {/* Indicateur de rôle pour l'assistant */}
           {isAssistant && (
-            <div className="speech-bubble-role">
-              <span className="speech-bubble-role-icon">✨</span>
-              <span className="speech-bubble-role-text">Assistant</span>
+            <div className={`speech-bubble-role ${isError ? 'text-red-500' : ''}`}>
+              <span className="speech-bubble-role-icon">{isError ? '⚠️' : '✨'}</span>
+              <span className="speech-bubble-role-text">{isError ? 'Erreur' : (role === 'system' ? 'Système' : 'Assistant')}</span>
               {isStreaming && (
                 <span className="speech-bubble-typing">
                   <span className="speech-bubble-dot"></span>

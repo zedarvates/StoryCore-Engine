@@ -172,3 +172,137 @@
   color: #ccc;
 }
 
+/* AI Enhancements */
+.ai-enhancements {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ai-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.toggle-row label {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.ai-divider {
+  height: 1px;
+  background: #333;
+  margin: 4px 0;
+}
+
+.ai-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-left: 8px;
+  border-left: 2px solid #2a2a2a;
+}
+
+.control-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-row label {
+  font-size: 11px;
+  color: #888;
+}
+
+.ai-select {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+}
+
+.ai-select:focus {
+  border-color: #007bff;
+}
+
+/* Sub-tabs for color section */
+.sub-tabs {
+  display: flex;
+  background: #181818;
+  padding: 4px;
+  margin: 8px 12px;
+  border-radius: 6px;
+  gap: 4px;
+}
+
+.sub-tab-btn {
+  flex: 1;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #777;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sub-tab-btn:hover {
+  background: #2a2a2a;
+  color: #ccc;
+}
+
+.sub-tab-btn.active {
+  background: #333;
+  color: #fff;
+}
+
+/* Color Presets Grid */
+.color-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 8px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.preset-card:hover {
+  background: #2a2a2a;
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.preset-card .preset-icon {
+  font-size: 24px;
+}
+
+.preset-card .preset-name {
+  font-size: 11px;
+  color: #eee;
+  font-weight: 500;
+}

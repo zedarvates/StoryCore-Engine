@@ -1,0 +1,138 @@
+{
+  "skills": [
+    {
+      "id": "character-create",
+      "name": "Creer un personnage",
+      "description": "Cree un nouveau personnage complet pour votre histoire interactive",
+      "category": "characters",
+      "prompt": "Tu es un assistant expert en creation de personnages narratifs. Cree un personnage complet avec: identite, apparence, personnalite, histoire, motivations, relations, competences et elements distinctifs.",
+      "parameters": {
+        "name": {"type": "string", "description": "Nom du personnage", "required": false},
+        "genre": {"type": "string", "description": "Genre du personnage", "required": true, "enum": ["masculin", "feminin", "non-binaire"]},
+        "type": {"type": "string", "description": "Type de personnage", "required": true, "enum": ["protagoniste", "antagoniste", "secondaire"]},
+        "age": {"type": "integer", "description": "Age du personnage", "required": false},
+        "genre_histoire": {"type": "string", "description": "Genre de l'histoire", "required": true},
+        "tonalite": {"type": "string", "description": "Tonalite", "required": true}
+      },
+      "examples": [
+        {
+          "input": {"genre": "feminin", "type": "protagoniste", "genre_histoire": "fantasy", "tonalite": "epique"},
+          "output": {"nom": "Eleonore de Ventfort", "age": 24, "genre": "feminin", "apparence": {"taille": "1m75", "cheveux": "Noirs", "yeux": "Violets"}, "personnalite": {"traits": ["Courageuse", "Loyale"], "faiblesses": ["Impusivite"]}, "histoire": {"origine": "Village de Brume-Val"}, "motivations": {"principal": "Trouver la verite sur son pere"}, "relations": {"allies": ["Prince Aldric"]}, "competences": {"physiques": ["Epee"]}, "distinctif": {"citation": "Le destin ne nous definit pas"}}
+        }
+      ],
+      "validation": {
+        "required_fields": ["nom", "genre", "type", "personnalite", "histoire", "motivations"]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": "CharacterSchema"
+      }
+    },
+    {
+      "id": "character-update",
+      "name": "Mettre a jour un personnage",
+      "description": "Modifie un personnage existant tout en preservant sa coherence",
+      "category": "characters",
+      "prompt": "Tu es un expert en evolution de personnages. Met a jour le personnage en preservant son essence.",
+      "parameters": {
+        "character_id": {"type": "string", "description": "ID du personnage", "required": true},
+        "update_type": {"type": "string", "description": "Type de mise a jour", "required": true, "enum": ["evolution", "enrichissement", "correction"]},
+        "update_reason": {"type": "string", "description": "Raison de la mise a jour", "required": true}
+      },
+      "examples": [
+        {
+          "input": {"character_id": "char_001", "update_type": "evolution", "update_reason": "Le personnage traverse une epreuve"},
+          "output": {"nom": "Eleonore de Ventfort", "modifications_appliquees": ["Ajout de la mefiance"]}
+        }
+      ],
+      "validation": {"required_fields": ["character_id", "update_type"]},
+      "output": {"format": "JSON"}
+    },
+    {
+      "id": "character-duplicate",
+      "name": "Dupliquer un personnage",
+      "description": "Cree une copie d'un personnage existant",
+      "category": "characters",
+      "prompt": "Duplique un personnage pour creer une variante ou une alternative.",
+      "parameters": {
+        "source_character_id": {"type": "string", "description": "ID du personnage source", "required": true},
+        "duplicate_type": {"type": "string", "description": "Type de duplication", "required": true, "enum": ["exacte", "variation", "temporelle", "prototype"]},
+        "intended_use": {"type": "string", "description": "Usage prevu", "required": true}
+      },
+      "examples": [
+        {
+          "input": {"source_character_id": "char_001", "duplicate_type": "temporelle", "intended_use": "alternative_story"},
+          "output": {"id": "char_001_alt", "nom": "Eleonore de Ventfort (Agee)", "differences": {"age": 40}}
+        }
+      ],
+      "validation": {"required_fields": ["source_character_id", "duplicate_type"]},
+      "output": {"format": "JSON"}
+    },
+    {
+      "id": "character-generate-portrait",
+      "name": "Generer le portrait d'un personnage",
+      "description": "Genere une description visuelle pour le portrait du personnage",
+      "category": "characters",
+      "prompt": "Genere une description detaillee pour creer une image du personnage.",
+      "parameters": {
+        "character_id": {"type": "string", "description": "ID du personnage", "required": true},
+        "art_style": {"type": "string", "description": "Style artistique", "required": true, "enum": ["realiste", "fantasy", "anime", "comic"]},
+        "usage": {"type": "string", "description": "Usage du portrait", "required": true},
+        "pose": {"type": "string", "description": "Pose souhaitee", "required": false, "default": "portrait"}
+      },
+      "examples": [
+        {
+          "input": {"character_id": "char_001", "art_style": "fantasy", "usage": "character-sheet"},
+          "output": {"nom": "Eleonore", "composition": {"position": "Debout, epee brandie"}, "visage": {"forme": "Ovale", "yeux": "Violets"}, "cheveux": {"style": "Tresses", "couleur": "Noirs"}, "tenue": {"haut": "Armure en cuir noir", "couleurs": ["Noir", "Ecarlate"]}, "prompt_ia": "fantasy warrior woman with violet eyes and black hair"}
+        }
+      ],
+      "validation": {"required_fields": ["character_id", "art_style"]},
+      "output": {"format": "JSON"}
+    },
+    {
+      "id": "character-validate",
+      "name": "Valider un personnage",
+      "description": "Verifie la coherence et la qualite d'un personnage",
+      "category": "characters",
+      "prompt": "Analyse un personnage et verifie sa coherence et qualite.",
+      "parameters": {
+        "character_id": {"type": "string", "description": "ID du personnage a valider", "required": true},
+        "validation_type": {"type": "string", "description": "Type de validation", "required": true, "enum": ["complete", "coherence", "production"]},
+        "rigor_level": {"type": "string", "description": "Niveau de rigueur", "required": false, "default": "standard", "enum": ["bas", "standard", "eleve"]}
+      },
+      "examples": [
+        {
+          "input": {"character_id": "char_001", "validation_type": "complete"},
+          "output": {"character_id": "char_001", "validation": {"completude": {"statut": "valide", "score": "95%"}, "coherence": {"statut": "valide"}}, "score_global": "95%", "statut_global": "APPROUVE"}
+        }
+      ],
+      "validation": {"required_fields": ["character_id", "validation_type"]},
+      "output": {"format": "JSON", "schema": "ValidationReportSchema"}
+    },
+    {
+      "id": "character-export",
+      "name": "Exporter un personnage",
+      "description": "Exporte un personnage dans differents formats",
+      "category": "characters",
+      "prompt": "Exporte un personnage dans le format souhaite.",
+      "parameters": {
+        "character_id": {"type": "string", "description": "ID du personnage a exporter", "required": true},
+        "export_format": {"type": "string", "description": "Format d'export", "required": true, "enum": ["json-standard", "markdown", "yaml", "game-ready"]},
+        "export_usage": {"type": "string", "description": "Usage prevu", "required": true},
+        "language": {"type": "string", "description": "Langue de l'export", "required": false, "default": "fr"}
+      },
+      "examples": [
+        {
+          "input": {"character_id": "char_001", "export_format": "json-standard", "export_usage": "archive"},
+          "output": {"export_metadata": {"version": "1.0", "character_id": "char_001"}, "character": {"nom": "Eleonore", "age": 24}}
+        },
+        {
+          "input": {"character_id": "char_001", "export_format": "game-ready", "export_usage": "developpement"},
+          "output": {"id": "char_001", "name": "Eleonore", "level": 1, "stats": {"health": 100, "mana": 50}}
+        }
+      ],
+      "validation": {"required_fields": ["character_id", "export_format"]},
+      "output": {"format": "Variable selon export_format"}
+    }
+  ]
+}

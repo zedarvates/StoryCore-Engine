@@ -59,8 +59,7 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
   
   // Calculate total duration from shots
   const totalDuration = useMemo(() => {
-    if (shots.length === 0) return 60; // Default 60 seconds
-    return Math.max(...shots.map(shot => shot.startTime + shot.duration), 60);
+    return Math.max(...shots.map(shot => (shot.startTime || 0) + (shot.duration || 5)), 60);
   }, [shots]);
 
   // Get selected phrase
@@ -196,7 +195,7 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
   const handleAddPhrase = useCallback(() => {
     // Find shot at current time
     const shotAtTime = shots.find(
-      shot => currentTime >= shot.startTime && currentTime < shot.startTime + shot.duration
+      shot => currentTime >= (shot.startTime || 0) && currentTime < (shot.startTime || 0) + (shot.duration || 5)
     );
 
     if (!shotAtTime) {
@@ -209,7 +208,7 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
       shotId: shotAtTime.id,
       text: 'New dialogue phrase',
       startTime: currentTime,
-      endTime: Math.min(currentTime + 3, shotAtTime.startTime + shotAtTime.duration),
+      endTime: Math.min(currentTime + 3, (shotAtTime.startTime || 0) + (shotAtTime.duration || 5)),
       metadata: {},
     };
 

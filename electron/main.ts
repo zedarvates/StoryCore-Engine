@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain, protocol, net } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
@@ -11,6 +11,14 @@ import { CaptureService } from './services/CaptureService';
 // import { createTOSWindow } from './tosDialogManager';
 // import { TOSStorageService } from './tosStorageService';
 // import { UpdateManager } from './UpdateManager';
+import { pathToFileURL } from 'url';
+
+// Register custom protocol for local files before app is ready
+// Requirements: 99335124-d3ad-4905-a578-646dbeda00bc (CSP fix)
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'sc-file', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true } }
+]);
+
 
 let mainWindow: BrowserWindow | null = null;
 let chatWindow: BrowserWindow | null = null;
@@ -76,17 +84,22 @@ function createWindow(url: string): void {
     frame: true, // Keep window frame for minimize/maximize/close buttons
   });
 
-  // Set Content Security Policy
+  // 2. Content Security Policy (Centralized Management)
+  // Manage all security through Electron headers for better flexibility than static meta tags.
   const isDevelopment = process.env.NODE_ENV === 'development';
   mainWindow!.webContents.session.webRequest.onHeadersReceived((details, callback) => {
-    const csp = isDevelopment
-      ? "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* data: blob:;"
-      : "default-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: http://localhost:8000 http://127.0.0.1:8000; connect-src 'self' http://localhost:* ws://localhost:*; font-src 'self' data:;";
+    // Basic policy for StoryCore-Engine:
+    // - self: our app
+    // - sc-file: / blob: / data: / file: (standard media protocols)
+    // - https: allow external APIs (OpenAI, Anthropic, Picsum, Cloud assets)
+    // - unsafe-inline / unsafe-eval: needed for many React/Vite/Three.js dev features
+    const devCSP = "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* https: data: blob: sc-file: file:; img-src 'self' data: blob: https: http://localhost:* http://127.0.0.1:* sc-file: file:; connect-src 'self' blob: data: https: http://localhost:* ws://localhost:* sc-file: file:; font-src 'self' data: https:;";
+    const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: sc-file:; connect-src 'self' blob: data: https: sc-file:; font-src 'self' data:; worker-src 'self' blob:;";
 
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [csp]
+        'Content-Security-Policy': [isDevelopment ? devCSP : prodCSP]
       }
     });
   });
@@ -409,6 +422,44 @@ function initializeServices(): void {
   });
 
   console.log('Chat window IPC listeners registered');
+
+  // Register the custom protocol handler to serve local assets
+  // Use case: loading GLB, skyboxes, and textures from local filesystem
+  protocol.handle('sc-file', (request) => {
+    // Standard format: sc-file:///C:/path/to/file.ext
+    // Extract path after the protocol prefix
+    const urlString = request.url;
+    let filePath = '';
+    
+    if (urlString.startsWith('sc-file:///')) {
+      filePath = urlString.substring(11); // After sc-file:///
+    } else if (urlString.startsWith('sc-file://')) {
+      filePath = urlString.substring(10); // After sc-file://
+    }
+    
+    try {
+      // Decode the path (important for Windows paths and special characters)
+      const decodedPath = decodeURIComponent(filePath);
+      
+      // Ensure Windows drive letters have a colon after them if they don't already
+      // This handles cases where Chromium might have mangled sc-file://C:/ to sc-file://c/
+      let normalizedPath = decodedPath;
+      if (/^[a-zA-Z]\//.test(normalizedPath)) {
+        normalizedPath = normalizedPath[0] + ':' + normalizedPath.substring(1);
+      } else if (/^\/[a-zA-Z]\//.test(normalizedPath)) {
+        // Handle leading slash if using 3 slashes (e.g. /C:/path)
+        normalizedPath = normalizedPath[1] + ':' + normalizedPath.substring(2);
+      }
+      
+      // Construct file URL for net.fetch
+      const fileUrl = pathToFileURL(normalizedPath).toString();
+      return net.fetch(fileUrl);
+    } catch (error) {
+      console.error('Failed to handle sc-file protocol:', error);
+      return new Response('File not found', { status: 404 });
+    }
+  });
+  console.log('sc-file protocol handler registered');
 }
 
 /**

@@ -22,11 +22,13 @@ import {
   reorderTracks,
   updateShot,
   splitShot,
+  reorderShots,
 } from '@/sequence-editor/store/slices/timelineSlice';
 import type { Track, Shot, LayerType, Layer, MediaLayerData } from '@/sequence-editor/types';
 import type { VideoExtensionOptions, SpeechConfigOptions } from '@/sequence-editor/hooks/useTimelineInteractions';
 import { handleShotSplit } from '@/sequence-editor/utils/toolInteractions';
 import { VirtualTimelineCanvas } from './VirtualTimelineCanvas';
+import { Reorder } from 'framer-motion';
 import { TrackHeader } from './TrackHeader';
 import { PlayheadIndicator } from './PlayheadIndicator';
 import { TimelineControls } from './TimelineControls';
@@ -34,6 +36,8 @@ import { TimeRuler } from './TimeRuler';
 import { TimelineContextMenu } from './TimelineContextMenu';
 import { VideoExtensionDialog } from './VideoExtensionDialog';
 import { SpeechConfigDialog } from './SpeechConfigDialog';
+import { Film, GripVertical, Plus, Layout } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import './timeline.css';
 import './timelineDialogs.css';
 
@@ -77,7 +81,7 @@ export const Timeline: React.FC = () => {
   const [scrollLeft, setScrollLeft] = useState(0);
   const [scrollTop, setScrollTop] = useState(0);
   const [containerWidth, setContainerWidth] = useState(0);
-  const [useVirtualMode, setUseVirtualMode] = useState(true);
+  const [viewMode, setViewMode] = useState<'timeline' | 'storyboard'>('timeline');
   const [draggingTrackIndex, setDraggingTrackIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
   const [isPanning, setIsPanning] = useState(false);
@@ -499,6 +503,55 @@ export const Timeline: React.FC = () => {
     }
   }, [dispatch, selectedElements]);
 
+  // Handle shot add
+  const handleAddShot = useCallback(() => {
+    const newShotId = `shot-${Date.now()}`;
+    const nextStartTime = shots.length > 0
+      ? shots.reduce((max, s) => Math.max(max, s.startTime + s.duration), 0)
+      : 0;
+
+    const newShot: Shot = {
+      id: newShotId,
+      name: `Shot ${shots.length + 1}`,
+      startTime: nextStartTime,
+      duration: 120, // 5 seconds at 24fps
+      layers: [
+        {
+          id: `layer-${Date.now()}`,
+          type: 'media',
+          startTime: 0,
+          duration: 120,
+          locked: false,
+          hidden: false,
+          opacity: 1,
+          blendMode: 'normal',
+          data: {
+            sourceUrl: '',
+            trim: { start: 0, end: 120 },
+            transform: {
+              position: { x: 0, y: 0 },
+              scale: { x: 1, y: 1 },
+              rotation: 0,
+              anchor: { x: 0.5, y: 0.5 },
+            },
+          } as MediaLayerData,
+        }
+      ],
+      referenceImages: [],
+      prompt: '',
+      parameters: {
+        seed: Math.floor(Math.random() * 1000000),
+        denoising: 0.7,
+        steps: 30,
+        guidance: 7.5,
+        sampler: 'euler',
+        scheduler: 'normal',
+      },
+      generationStatus: 'pending',
+    };
+    dispatch(addShot(newShot));
+  }, [dispatch, shots]);
+
   // Handle track add
   const handleAddTrack = useCallback((type: LayerType) => {
     const trackId = `track-${Date.now()}`;
@@ -570,28 +623,133 @@ export const Timeline: React.FC = () => {
 
   // Render track headers with controls
   const renderTrackHeaders = useCallback(() => {
-    return tracks.map((track: Track, index: number) => (
-      <TrackHeader
-        key={track.id}
-        track={track}
-        index={index}
-        isHovered={hoveredTrackId === track.id}
-        isDragging={draggingTrackIndex === index}
-        isDropTarget={dropTargetIndex === index}
-        onHover={(id: string | null) => setHoveredTrackId(id)}
-        onLockToggle={() => handleTrackLockToggle(track.id)}
-        onHideToggle={() => handleTrackHideToggle(track.id)}
-        onResize={(newHeight) => handleTrackResize(track.id, newHeight)}
-        onReorder={handleTrackReorder}
-        onMuteToggle={() => handleAudioMuteToggle(track.id)}
-        onSoloToggle={() => handleAudioSoloToggle(track.id)}
-      />
-    ));
-  }, [tracks, hoveredTrackId, draggingTrackIndex, dropTargetIndex, handleTrackLockToggle, handleTrackHideToggle, handleTrackResize, handleTrackReorder, handleAudioMuteToggle, handleAudioSoloToggle]);
+    return (
+      <Reorder.Group
+        axis="y"
+        values={tracks}
+        onReorder={(newTracks) => dispatch(reorderTracks(newTracks))}
+        className="timeline-track-list"
+      >
+        {tracks.map((track: Track, index: number) => (
+          <TrackHeader
+            key={track.id}
+            track={track}
+            index={index}
+            isHovered={hoveredTrackId === track.id}
+            isDragging={draggingTrackIndex === index}
+            isDropTarget={dropTargetIndex === index}
+            onHover={(id: string | null) => setHoveredTrackId(id)}
+            onLockToggle={() => handleTrackLockToggle(track.id)}
+            onHideToggle={() => handleTrackHideToggle(track.id)}
+            onResize={(newHeight) => handleTrackResize(track.id, newHeight)}
+            onReorder={handleTrackReorder}
+            onMuteToggle={() => handleAudioMuteToggle(track.id)}
+            onSoloToggle={() => handleAudioSoloToggle(track.id)}
+          />
+        ))}
+      </Reorder.Group>
+    );
+  }, [tracks, hoveredTrackId, draggingTrackIndex, dropTargetIndex, handleTrackLockToggle, handleTrackHideToggle, handleTrackResize, handleTrackReorder, handleAudioMuteToggle, handleAudioSoloToggle, dispatch]);
+
+  // Handle shot reordering within the storyboard
+  const handleShotReorder = useCallback((newShots: Shot[]) => {
+    // Update start times to maintain sequence if they were contiguous
+    let currentTime = 0;
+    const isContiguous = shots.length > 1 && 
+      shots.every((s, i) => i === 0 || s.startTime === shots[i-1].startTime + shots[i-1].duration);
+
+    const updatedShots = newShots.map(shot => {
+      const updated = isContiguous ? { ...shot, startTime: currentTime } : shot;
+      if (isContiguous) currentTime += shot.duration;
+      return updated;
+    });
+
+    dispatch(reorderShots(updatedShots));
+  }, [shots, dispatch]);
+
+  // Render storyboard view for easy reordering
+  const renderStoryboardView = () => {
+    return (
+      <div className="storyboard-view p-6 bg-background/50 overflow-y-auto h-full">
+        <div className="storyboard-header mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <Layout className="w-5 h-5 text-primary" />
+              Storyboard Editor
+            </h2>
+            <p className="text-sm text-muted-foreground">Drag and drop shots to reorder the sequence</p>
+          </div>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="px-3 py-1">
+              {shots.length} Shots
+            </Badge>
+          </div>
+        </div>
+
+        <Reorder.Group
+          axis="y"
+          values={shots}
+          onReorder={handleShotReorder}
+          className="storyboard-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        >
+          {shots.map((shot, index) => (
+            <Reorder.Item
+              key={shot.id}
+              value={shot}
+              className="storyboard-item group relative bg-secondary/30 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing"
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileDrag={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.5)", zIndex: 100 }}
+            >
+              <div className="aspect-video bg-black/40 relative">
+                {shot.outputPath ? (
+                  <img src={shot.outputPath} alt={shot.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary/50 to-background">
+                    <Film className="w-12 h-12 text-muted-foreground opacity-20" />
+                  </div>
+                )}
+                <div className="absolute top-2 left-2 flex gap-1">
+                  <Badge className="bg-black/60 backdrop-blur-md border-none text-[10px]">
+                    #{index + 1}
+                  </Badge>
+                  <Badge variant="secondary" className="bg-primary/80 backdrop-blur-md border-none text-[10px]">
+                    {(shot.duration / 24).toFixed(1)}s
+                  </Badge>
+                </div>
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <GripVertical className="w-5 h-5 text-white/50" />
+                </div>
+              </div>
+              <div className="p-4 border-t border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-sm truncate pr-2">{shot.name}</h4>
+                </div>
+                <p className="text-xs text-muted-foreground line-clamp-2 italic opacity-80">
+                  {shot.prompt || "No description provided..."}
+                </p>
+              </div>
+            </Reorder.Item>
+          ))}
+          
+          <button
+            onClick={handleAddShot}
+            className="storyboard-add-btn border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center p-8 hover:border-primary/50 hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary min-h-[200px]"
+          >
+            <Plus className="w-8 h-8 mb-2 opacity-50" />
+            <span className="text-sm font-medium">Add New Shot</span>
+          </button>
+        </Reorder.Group>
+      </div>
+    );
+  };
 
   // Add sample shots for demonstration
   useEffect(() => {
     if (shots.length === 0) {
+      // Check if we already have these specific sample IDs to avoid duplicates in strict mode/HMR
+      const hasSampleShots = shots.some(s => s.id === 'shot-1' || s.id === 'shot-2' || s.id === 'shot-3');
+      if (hasSampleShots) return;
+
       const sampleShots: Shot[] = [
         {
           id: 'shot-1',
@@ -732,7 +890,7 @@ export const Timeline: React.FC = () => {
         dispatch(addShot(shot));
       });
     }
-  }, [shots.length, dispatch]);
+  }, [shots, dispatch]);
 
   // Render time ruler using TimeRuler component
   const renderTimeRuler = useCallback(() => {
@@ -748,11 +906,6 @@ export const Timeline: React.FC = () => {
     );
   }, [zoomLevel, duration, snapToGrid, playheadPosition, handleRulerSeek]);
 
-  // Filter visible tracks for virtual mode
-  const visibleTracks: Track[] = useMemo(
-    () => tracks.filter((track: Track) => !track.hidden),
-    [tracks]
-  );
 
   // ============================================================================
   // DIALOG STATES
@@ -953,125 +1106,103 @@ export const Timeline: React.FC = () => {
         onAddTrack={handleAddTrack}
         playheadPosition={playheadPosition}
         duration={duration}
-        onToggleVirtualMode={() => setUseVirtualMode(!useVirtualMode)}
-        useVirtualMode={useVirtualMode}
         onSplit={handleSplit}
         onAutoMix={handleAutoMix}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
-      {/* Timeline Container */}
+      {/* Timeline Container / Storyboard View Selection */}
       <div
         ref={timelineRef}
-        className={`timeline-container ${isPanning ? 'panning' : ''}`}
-        onClick={handleTimelineClick}
-        onScroll={handleScroll}
-        onWheel={handleWheel}
-        onMouseDown={handleContainerMouseDown}
-        onMouseMove={handleContainerMouseMove}
-        onMouseUp={handleContainerMouseUp}
-        onMouseLeave={handleContainerMouseUp}
+        className={`timeline-container ${isPanning ? 'panning' : ''} ${viewMode === 'storyboard' ? 'storyboard-active' : ''}`}
+        onClick={viewMode === 'timeline' ? handleTimelineClick : undefined}
+        onScroll={viewMode === 'timeline' ? handleScroll : undefined}
+        onWheel={viewMode === 'timeline' ? handleWheel : undefined}
+        onMouseDown={viewMode === 'timeline' ? handleContainerMouseDown : undefined}
+        onMouseMove={viewMode === 'timeline' ? handleContainerMouseMove : undefined}
+        onMouseUp={viewMode === 'timeline' ? handleContainerMouseUp : undefined}
+        onMouseLeave={viewMode === 'timeline' ? handleContainerMouseUp : undefined}
       >
-        {/* Track Headers */}
-        <div className="timeline-track-headers">
-          <div className="timeline-ruler-spacer" />
-          {renderTrackHeaders()}
-        </div>
-
-        {/* Timeline Content Area */}
-        <div
-          ref={contentAreaRef}
-          className="timeline-content-area"
-          onMouseDown={handleSelectionBoxMouseDown}
-          onMouseMove={handleSelectionBoxMouseMove}
-          onMouseUp={handleSelectionBoxMouseUp}
-        >
-          {/* Time Ruler */}
-          {renderTimeRuler()}
-
-          {/* Track Content */}
-          {useVirtualMode ? (
-            /* Virtual Scrolling Mode */
-            <VirtualTimelineCanvas
-              tracks={tracks}
-              shots={shots}
-              zoomLevel={zoomLevel}
-              playheadPosition={playheadPosition}
-              selectedElements={selectedElements}
-              timelineWidth={timelineWidth}
-              onShotSelect={handleShotSelect}
-            />
-          ) : (
-            /* DOM-based Rendering Mode (Legacy) */
-            <div
-              className="timeline-tracks-area"
-              style={{ width: timelineWidth, height: totalTracksHeight }}
-            >
-              {visibleTracks.map((track: Track) => (
-                <div
-                  key={track.id}
-                  className="timeline-track-row"
-                  style={{ height: track.height }}
-                >
-                  {shots
-                    .filter((shot: Shot) => shot.layers.some((layer: Layer) => layer.type === track.type))
-                    .flatMap((shot: Shot) =>
-                      shot.layers
-                        .filter((layer: Layer) => layer.type === track.type)
-                        .map((layer: Layer, layerIndex: number) => ({ shot, layer, layerIndex }))
-                    )
-                    .map(({ shot, layer, layerIndex }: { shot: Shot; layer: Layer; layerIndex: number }) => {
-                      const isSelected = selectedElements.includes(shot.id);
-                      const shotLeft = shot.startTime * zoomLevel;
-                      const shotWidth = shot.duration * zoomLevel;
-
-                      return (
-                        <div
-                          key={`${track.id}-${shot.id}-${layer.id || layerIndex}`}
-                          className={`timeline-shot ${isSelected ? 'selected' : ''}`}
-                          style={{
-                            left: `${shotLeft}px`,
-                            width: `${shotWidth}px`,
-                            height: '28px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleShotSelect(shot.id, e.ctrlKey || e.metaKey);
-                          }}
-                        >
-                          <div
-                            className="shot-content"
-                            style={{
-                              backgroundColor: track.color,
-                              opacity: isSelected ? 1 : 0.8,
-                            }}
-                          >
-                            <span className="shot-name">{shot.name}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              ))}
+        {viewMode === 'storyboard' ? (
+          renderStoryboardView()
+        ) : (
+          <>
+            {/* Track Headers */}
+            <div className="timeline-track-headers">
+              <div className="timeline-ruler-spacer" />
+              {renderTrackHeaders()}
             </div>
-          )}
 
-          {/* Playhead Indicator */}
-          <PlayheadIndicator
-            position={playheadPosition * zoomLevel}
-            height={totalTracksHeight}
-            zoomLevel={zoomLevel}
-            fps={24}
-            isDragging={isDraggingPlayhead}
-            isPlaying={false}
-            snapToGrid={snapToGrid}
-            onMouseDown={handlePlayheadMouseDown}
-            onPositionChange={(frame) => dispatch(setPlayheadPosition(frame))}
-            onDragStart={handlePlayheadDragStart}
-            onDragEnd={handlePlayheadDragEnd}
-          />
-        </div>
+            {/* Timeline Content Area */}
+            <div
+              ref={contentAreaRef}
+              className="timeline-content-area"
+              onMouseDown={handleSelectionBoxMouseDown}
+              onMouseMove={handleSelectionBoxMouseMove}
+              onMouseUp={handleSelectionBoxMouseUp}
+            >
+              {/* Time Ruler */}
+              {renderTimeRuler()}
+
+              {/* Track Content */}
+              <VirtualTimelineCanvas
+                tracks={tracks}
+                shots={shots}
+                zoomLevel={zoomLevel}
+                playheadPosition={playheadPosition}
+                selectedElements={selectedElements}
+                timelineWidth={timelineWidth}
+                onShotSelect={handleShotSelect}
+                onShotMove={(shotId, newStartTime) => {
+                  const shotIndex = shots.findIndex(s => s.id === shotId);
+                  if (shotIndex === -1) return;
+
+                  // Simple move for now, but check if we need to reorder
+                  // Sort shots by start time to detect relative order change
+                  const sortedShots = [...shots].sort((a, b) => a.startTime - b.startTime);
+                  
+                  // Update the dragged shot's start time
+                  const updatedShots = shots.map(s => s.id === shotId ? { ...s, startTime: newStartTime } : s);
+                  
+                  // Resort based on new start times
+                  const newlySorted = [...updatedShots].sort((a, b) => a.startTime - b.startTime);
+                  
+                  // Check if order changed
+                  const orderChanged = newlySorted.some((s, i) => s.id !== sortedShots[i].id);
+                  
+                  if (orderChanged) {
+                    // Ripple effect: if they were contiguous, keep them contiguous
+                    let currentTime = 0;
+                    const rippleShots = newlySorted.map(s => {
+                      const updated = { ...s, startTime: currentTime };
+                      currentTime += s.duration;
+                      return updated;
+                    });
+                    dispatch(reorderShots(rippleShots));
+                  } else {
+                    dispatch(updateShot({ id: shotId, updates: { startTime: newStartTime } }));
+                  }
+                }}
+              />
+
+              {/* Playhead Indicator */}
+              <PlayheadIndicator
+                position={playheadPosition * zoomLevel}
+                height={totalTracksHeight}
+                zoomLevel={zoomLevel}
+                fps={24}
+                isDragging={isDraggingPlayhead}
+                isPlaying={false}
+                snapToGrid={snapToGrid}
+                onMouseDown={handlePlayheadMouseDown}
+                onPositionChange={(frame) => dispatch(setPlayheadPosition(frame))}
+                onDragStart={handlePlayheadDragStart}
+                onDragEnd={handlePlayheadDragEnd}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Context Menu */}

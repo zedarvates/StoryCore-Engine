@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Loader2, AlertCircle, Download } from 'lucide-react';
+import { Send, Sparkles, Loader2, AlertCircle, Download, Zap, Undo2 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
+import { promptOptimizer } from '@/services/ai/PromptOptimizationService';
 import type { ChatMessage, Shot } from '@/types';
 import { SpeechBubble } from './ui/SpeechBubble';
 
@@ -12,6 +13,8 @@ interface ChatBoxProps {
 export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [undoValue, setUndoValue] = useState<string | null>(null);
   const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -141,6 +144,38 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
 
       setIsProcessing(false);
     }, 1000);
+  };
+
+  const handleOptimizePrompt = async () => {
+    if (!inputValue.trim() || isOptimizing) return;
+    
+    setUndoValue(inputValue);
+    setIsOptimizing(true);
+    try {
+      const optimized = await promptOptimizer.balancePrompt(inputValue);
+      if (optimized && optimized !== inputValue) {
+        setInputValue(optimized);
+        // Add a specialized hint message
+        addChatMessage({
+          id: `hint-${Date.now()}`,
+          role: 'assistant',
+          content: '✨ J\'ai optimisé votre prompt selon la méthodologie GDPval. Vous pouvez l\'éditer, l\'envoyer ou annuler.',
+          timestamp: new Date(),
+        });
+      }
+    } catch (error) {
+       console.error('Failed to optimize prompt:', error);
+       setUndoValue(null);
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const handleUndo = () => {
+    if (undoValue !== null) {
+      setInputValue(undoValue);
+      setUndoValue(null);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -274,8 +309,30 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
             disabled={isProcessing}
           />
           <button
+            onClick={handleOptimizePrompt}
+            disabled={!inputValue.trim() || isProcessing || isOptimizing}
+            className={`p-3 mb-0.5 rounded-full transition-all shadow-sm ${
+              isOptimizing 
+                ? 'bg-amber-100 text-amber-600 animate-pulse' 
+                : 'bg-white/80 dark:bg-slate-700 text-amber-500 hover:bg-amber-50 dark:hover:bg-slate-600'
+            }`}
+            title="Optimiser (GDPval Engine)"
+          >
+            {isOptimizing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+          </button>
+          {undoValue !== null && (
+            <button
+              onClick={handleUndo}
+              disabled={isProcessing || isOptimizing}
+              className="p-3 mb-0.5 rounded-full bg-white/80 dark:bg-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all shadow-sm"
+              title="Annuler l'optimisation"
+            >
+              <Undo2 className="w-5 h-5" />
+            </button>
+          )}
+          <button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim() || isProcessing}
+            disabled={!inputValue.trim() || isProcessing || isOptimizing}
             className="p-3 mb-0.5 rounded-full bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:bg-slate-200 disabled:text-slate-400 transition-all shadow-sm"
             aria-label="Send message"
           >

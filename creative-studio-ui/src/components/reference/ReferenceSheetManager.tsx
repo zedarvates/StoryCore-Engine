@@ -63,9 +63,6 @@ import { WorkflowDestinationDialog } from './WorkflowDestinationDialog';
 import {
   Category,
   Settings,
-  SmartToy,
-  AutoFixHigh,
-  AutoMode
 } from '@mui/icons-material';
 
 // ============================================================================
@@ -134,19 +131,19 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
   });
   const [loading, setLoading] = useState(false);
 
-  // Initialize service and load master sheet
-  useEffect(() => {
-    if (open && projectId) {
-      loadMasterSheet();
-    }
-  }, [open, projectId, projectPath]);
-
-  const loadMasterSheet = async () => {
+  const loadMasterSheet = useCallback(async () => {
+    if (!open || !projectId) return;
+    
     setLoading(true);
     try {
       // Initialize the service with project path
       if (projectPath) {
         await referenceSheetService.initialize(projectPath);
+      } else {
+        // If no path is provided, we might still be able to work if it was already initialized
+        // but strictly speaking, the service needs it for file-based storage.
+        // We'll try to get the sheet anyway, maybe it's already set.
+        console.warn('[ReferenceSheetManager] No projectPath provided, attempting to continue...');
       }
 
       // Try to get existing or create new
@@ -159,10 +156,16 @@ export const ReferenceSheetManager: React.FC<ReferenceSheetManagerProps> = ({
       setMasterSheet(sheet);
     } catch (error) {
       console.error('[ReferenceSheetManager] Failed to load master sheet:', error);
+      // Don't leave in loading state
     } finally {
       setLoading(false);
     }
-  };
+  }, [open, projectId, projectPath]);
+
+  // Initialize service and load master sheet
+  useEffect(() => {
+    loadMasterSheet();
+  }, [loadMasterSheet]);
 
   // Handle tab change
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

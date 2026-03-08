@@ -7,6 +7,8 @@
 import { eventEmitter, type TranscriptPayload, type AddonActionPayload } from './eventEmitter';
 import { notificationService } from './NotificationService';
 
+export type { AddonActionPayload };
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -20,7 +22,9 @@ export type AddonId =
   | 'recap-engine'
   | 'asset-creator'
   | 'cinematic-editor'
-  | 'project-translator';
+  | 'project-translator'
+  | 'credits-screen'
+  | 'video-publisher';
 
 export type VerbCategory =
   | 'create'
@@ -37,7 +41,8 @@ export type VerbCategory =
   | 'mood'
   | 'undo'
   | 'redo'
-  | 'save';
+  | 'save'
+  | 'pose';
 
 export interface ParsedVoiceIntent {
   addonId: AddonId;
@@ -73,6 +78,12 @@ export const ADDON_EVENTS = {
   CINEMATIC_SELECT_SHOT: 'cinematic:select-shot',
   CINEMATIC_CHANGE_MOOD: 'cinematic:change-mood',
   CINEMATIC_SWITCH_TAB: 'cinematic:switch-tab',
+  CINEMATIC_SET_POSE: 'cinematic:set-pose',
+  CINEMATIC_SET_CAMERA: 'cinematic:set-camera',
+  CINEMATIC_REWIND: 'cinematic:rewind',
+  CINEMATIC_GENERATE_STORY: 'cinematic:generate-story',
+  CINEMATIC_GENERATE_DIALOGUES: 'cinematic:generate-dialogues',
+  CINEMATIC_GENERATE_PROMPT: 'cinematic:generate-prompt',
 };
 
 // ============================================================================
@@ -82,21 +93,22 @@ export const ADDON_EVENTS = {
 class VoiceIntentParser {
   // Dictionnaires de mots-clés
   private static readonly VERBS: Record<VerbCategory, string[]> = {
-    create: ['générer', 'créer', 'dessiner', 'faire', 'lancer', 'produire', 'create', 'generate', 'make', 'draw'],
+    create: ['générer', 'créer', 'dessiner', 'faire', 'lancer', 'produire', 'écrire', 'inventer', 'create', 'generate', 'make', 'draw', 'write', 'invent'],
     regenerate: ['régénérer', 'refaire', 'recommencer', 'relancer', 'regenerate', 'redo', 'restart'],
     fix: ['corriger', 'améliorer', 'affiner', 'retoucher', 'fixer', 'fix', 'improve', 'enhance', 'touch up'],
     edit: ['éditer', 'modifier', 'changer', 'ajuster', 'edit', 'modify', 'change', 'adjust'],
     export: ['exporter', 'sauvegarder', 'télécharger', 'export', 'save', 'download'],
     cancel: ['annuler', 'arrêter', 'stop', 'quitter', 'cancel', 'stop', 'quit', 'halt'],
     continue: ['continuer', 'prolonger', 'suite', 'prochain', 'continue', 'next', 'keep going'],
-    navigate: ['aller', 'montrer', 'ouvrir', 'naviguer', 'go', 'show', 'open', 'navigate', 'display'],
-    playback: ['jouer', 'lire', 'lecture', 'pause', 'play', 'read', 'listen'],
-    selection: ['sélectionner', 'choisir', 'select', 'choose', 'pick'],
+    navigate: ['aller', 'montrer', 'ouvrir', 'naviguer', 'go', 'show', 'open', 'navigate', 'display', 'pov'],
+    playback: ['jouer', 'lire', 'lecture', 'pause', 'play', 'read', 'listen', 'retour', 'rewind', 'rembobiner'],
+    selection: ['sélectionner', 'choisir', 'select', 'choose', 'pick', 'pov'],
     view: ['voir', 'regarder', 'view', 'look', 'watch'],
     mood: ['ambiance', 'style', 'mood', 'atmosphere'],
     undo: ['annuler action', 'revenir en arrière', 'undo', 'back'],
     redo: ['rétablir', 'refaire action', 'redo', 'forward'],
     save: ['enregistrer projet', 'sauvegarder projet', 'save project', 'store'],
+    pose: ['pose', 'position', 'posture', 'attitude', 'geste', 'pose', 'position', 'stance'],
   };
 
   private static readonly ADDONS: Record<AddonId, string[]> = {
@@ -109,6 +121,8 @@ class VoiceIntentParser {
     'asset-creator': ['asset', 'objet', 'élément', 'accessoire'],
     'cinematic-editor': ['éditeur', 'cinématique', 'cinematic', 'editor', 'timeline', 'séquence'],
     'project-translator': ['traducteur', 'traduction', 'translator', 'translate', 'traduire'],
+    'credits-screen': ['crédits', 'générique', 'remerciements', 'credits', 'thanks'],
+    'video-publisher': ['publisher', 'publication', 'publier', 'video publisher', 'social hub', 'postbot'],
   };
 
   public static parse(transcript: string, confidence: number = 1.0): ParsedVoiceIntent {
@@ -131,7 +145,7 @@ class VoiceIntentParser {
     }
 
     // Spécial : Si on parle d'action d'édition cinématique, on cible cet addon
-    if (lower.includes('lecture') || lower.includes('jouer') || lower.includes('prochain') || lower.includes('précédent') || lower.includes('onglet')) {
+    if (lower.includes('lecture') || lower.includes('jouer') || lower.includes('prochain') || lower.includes('précédent') || lower.includes('onglet') || lower.includes('pose') || lower.includes('position')) {
       result.addonId = 'cinematic-editor';
     }
 
@@ -186,6 +200,8 @@ export class AddonVoiceCommandRouter {
       case 'seedance':
       case 'comic-generator':
       case 'project-translator':
+      case 'credits-screen':
+      case 'video-publisher':
         return this.handleImageVideoAddon(intent);
       default:
         return {
@@ -250,6 +266,14 @@ export class AddonVoiceCommandRouter {
       eventEmitter.emit(ADDON_EVENTS.CINEMATIC_PAUSE, { timestamp, source, addonId: 'cinematic-editor', verb: 'playback', action: 'pause' });
       return { success: true, message: 'Lecture en pause.' };
     }
+    if (lower.includes('retour') || lower.includes('rewind') || lower.includes('revenir') || lower.includes('rembobiner')) {
+      eventEmitter.emit(ADDON_EVENTS.CINEMATIC_REWIND, { timestamp, source, addonId: 'cinematic-editor', verb: 'playback', action: 'rewind' });
+      return { success: true, message: 'Retour en arrière (Rewind) avec effet SFX.' };
+    }
+    if (lower.includes('pov') || lower.includes('p.o.v') || lower.includes('vue subjective')) {
+      eventEmitter.emit(ADDON_EVENTS.CINEMATIC_SET_CAMERA, { timestamp, source, addonId: 'cinematic-editor', verb: 'camera', camera: 'pov' });
+      return { success: true, message: 'Passage en vue subjective (POV).' };
+    }
 
     // Navigation de plans
     if (lower.includes('suivant') || lower.includes('prochain') || lower.includes('next')) {
@@ -271,6 +295,61 @@ export class AddonVoiceCommandRouter {
         tab: modifiers[0] || 'timeline'
       });
       return { success: true, message: 'Changement d\'onglet.' };
+    }
+
+    // Pose de personnage
+    if (verb === 'pose' || lower.includes('pose') || lower.includes('position')) {
+      // Tentative d'extraction du personnage et de la pose
+      // Format attendu: "[Nom/P1] en pose [Pose]"
+      let target = 'P1'; // Par défaut
+      let pose = 'idle';
+
+      // Extraction simplifiée
+      const parts = lower.split(/ en pose | pose | position | en /);
+      if (parts.length >= 2) {
+        target = parts[0].trim().replace(/^(mets|positionne|mettez) /i, '');
+        pose = parts[parts.length - 1].trim();
+      } else {
+        // Fallback si format different
+        const words = lower.split(' ');
+        if (words.length >= 2) {
+          target = words[0];
+          pose = words[words.length - 1];
+        }
+      }
+
+      eventEmitter.emit(ADDON_EVENTS.CINEMATIC_SET_POSE, {
+        timestamp,
+        source,
+        addonId: 'cinematic-editor',
+        verb: 'pose',
+        target, // Nom ou P1/P2...
+        pose // Nom de la pose (ex: "guerrier", "action")
+      });
+
+      return { 
+        success: true, 
+        message: `Pose "${pose}" appliquée à ${target}.`,
+        actionTaken: `cinematic:set-pose:${target}:${pose}`
+      };
+    }
+
+    // Story / Scenario generation
+    if (lower.includes('scénario') || lower.includes('histoire') || lower.includes('scenario') || lower.includes('story')) {
+      eventEmitter.emit(ADDON_EVENTS.CINEMATIC_GENERATE_STORY, { timestamp, source, addonId: 'cinematic-editor', verb: 'create', subject: 'scenario' });
+      return { success: true, message: 'Génération du scénario lancée.' };
+    }
+
+    // Dialogue generation
+    if (lower.includes('dialogue') || lower.includes('paroles') || lower.includes('texte')) {
+      eventEmitter.emit(ADDON_EVENTS.CINEMATIC_GENERATE_DIALOGUES, { timestamp, source, addonId: 'cinematic-editor', verb: 'create', subject: 'dialogues' });
+      return { success: true, message: 'Génération des dialogues lancée.' };
+    }
+
+    // Prompt generation
+    if (lower.includes('prompt') || lower.includes('commande ia')) {
+      eventEmitter.emit(ADDON_EVENTS.CINEMATIC_GENERATE_PROMPT, { timestamp, source, addonId: 'cinematic-editor', verb: 'create', subject: 'prompt' });
+      return { success: true, message: 'Génération du prompt lancée.' };
     }
 
     return {

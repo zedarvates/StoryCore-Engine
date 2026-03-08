@@ -14,11 +14,11 @@ interface ChatPanelProps {
   size?: { width: number; height: number };
 }
 
-const DEFAULT_POSITION = { x: 24, y: 24 };
-const DEFAULT_SIZE = { width: 384, height: 500 };
-const MIN_SIZE = { width: 300, height: 400 };
-const MAX_SIZE_RATIO = 0.9;
-const MINIMIZED_HEIGHT = 48;
+const DEFAULT_POSITION = { x: window.innerWidth - 420, y: 80 };
+const DEFAULT_SIZE = { width: 400, height: 600 };
+const MIN_SIZE = { width: 320, height: 400 };
+const MAX_SIZE_RATIO = 0.95;
+const MINIMIZED_HEIGHT = 56;
 
 // Calculate dynamic MAX_SIZE based on viewport
 const getMaxSize = () => ({

@@ -19,6 +19,7 @@ const initialState: PanelsState = {
   activePanel: null,
   shotConfigTarget: null,
   showLayerManager: false,
+  compactMode: false,
 };
 
 const panelsSlice = createSlice({
@@ -46,6 +47,12 @@ const panelsSlice = createSlice({
     setShowLayerManager: (state, action: PayloadAction<boolean>) => {
       state.showLayerManager = action.payload;
     },
+    toggleCompactMode: (state) => {
+      state.compactMode = !state.compactMode;
+    },
+    setCompactMode: (state, action: PayloadAction<boolean>) => {
+      state.compactMode = action.payload;
+    },
   },
 });
 
@@ -56,6 +63,8 @@ export const {
   setShotConfigTarget,
   toggleLayerManager,
   setShowLayerManager,
+  toggleCompactMode,
+  setCompactMode,
 } = panelsSlice.actions;
 
 export default panelsSlice.reducer;

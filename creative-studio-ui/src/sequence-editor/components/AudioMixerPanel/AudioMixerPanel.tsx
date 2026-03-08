@@ -16,7 +16,9 @@
 import React, { useState, useCallback } from 'react';
 import { useAppSelector } from '../../store';
 import { SurroundMixer } from './SurroundMixer';
+import { WaveformVisualizer } from './WaveformVisualizer';
 import './audioMixerPanel.css';
+import './waveformVisualizer.css';
 
 // =============================================================================
 // Types
@@ -107,9 +109,14 @@ export const AudioMixerPanel: React.FC = () => {
   const [duration, setDuration] = useState(30);
   const [isGenerating, setIsGenerating] = useState(false);
   
-  // Export state
   const [exportFormat, setExportFormat] = useState('wav');
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Sentiment Analysis state
+  const projectDescription = useAppSelector((state) => state.project.metadata?.description || '');
+  const [analysisText, setAnalysisText] = useState(projectDescription);
+  const [detectedSentiment, setDetectedSentiment] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   // =============================================================================
   // Handlers
@@ -138,6 +145,36 @@ export const AudioMixerPanel: React.FC = () => {
       t.id === trackId ? { ...t, solo: !t.solo } : t
     ));
   }, []);
+
+  const handleSmartPredict = useCallback(async () => {
+    if (!analysisText) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('/api/audio/analyze-sentiment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: analysisText }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDetectedSentiment(data.sentiment);
+        
+        // Auto-apply suggested profile
+        if (data.suggested_audio_profile) {
+          const profile = data.suggested_audio_profile;
+          if (profile.theme) setSelectedTheme(profile.theme);
+          // You could also set intensity/tempo if those state variables existed
+          console.log('Smart Predict suggests:', profile);
+        }
+      }
+    } catch (error) {
+      console.error('Sentiment analysis failed:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [analysisText]);
   
   const handleGenerateAudio = useCallback(async () => {
     setIsGenerating(true);
@@ -324,6 +361,15 @@ export const AudioMixerPanel: React.FC = () => {
                       <span className="fader-value">{Math.round(track.volume * 100)}%</span>
                     </div>
                     
+                    <div className="track-waveform">
+                      <WaveformVisualizer 
+                        height={40} 
+                        color={track.type === 'music' ? '#3b82f6' : track.type === 'voice' ? '#10b981' : '#f59e0b'}
+                        currentTime={0}
+                        duration={30}
+                      />
+                    </div>
+                    
                     <div className="track-pan">
                       <span>Pan</span>
                       <input
@@ -366,7 +412,35 @@ export const AudioMixerPanel: React.FC = () => {
         {/* Generate Tab */}
         {activeTab === 'generate' && (
           <div className="generate-section">
-            <h4>Generate Audio</h4>
+            <div className="section-header-row">
+              <h4>Generate Audio</h4>
+              <div className="sentiment-badge-container">
+                {detectedSentiment && (
+                  <span className={`sentiment-badge ${detectedSentiment}`}>
+                    ✨ {detectedSentiment.toUpperCase()}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="form-group analysis-group">
+              <label>Analyze Narrative for Suggestions</label>
+              <div className="analysis-input-wrapper">
+                <textarea
+                  className="analysis-textarea"
+                  value={analysisText}
+                  onChange={(e) => setAnalysisText(e.target.value)}
+                  placeholder="Paste your script or scene description here..."
+                />
+                <button 
+                  className={`predict-btn ${isAnalyzing ? 'loading' : ''}`}
+                  onClick={handleSmartPredict}
+                  disabled={isAnalyzing || !analysisText}
+                >
+                  {isAnalyzing ? 'Analyzing...' : 'Smart Predict'}
+                </button>
+              </div>
+            </div>
             
             <div className="form-group">
               <label>Audio Type</label>

@@ -15,6 +15,8 @@ import { StatusIndicator, ConnectionStatus } from './StatusIndicator';
 import { LanguageSelector } from './LanguageSelector';
 import { LLMConfigDialog } from './LLMConfigDialog';
 import { TypingIndicator } from './TypingIndicator';
+import { AgentAudioVisualizer } from '@/components/ui/AgentAudioVisualizer';
+import { VoiceTextService } from '@/services/VoiceTextService';
 import { type LLMConfig, LLMService, type LLMRequest, type ErrorRecoveryOptions, LLMError } from '@/services/llmService';
 import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
 import { getWelcomeMessage } from '@/utils/chatboxTranslations';
@@ -54,12 +56,94 @@ import {
   FileQuestion,
   MonitorUp,
   Layout,
-  Link as LinkIcon,
-  Plus
+  Plus,
+  Box
 } from 'lucide-react';
-import { VoiceTextService } from '@/services/VoiceTextService';
+import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+/**
+ * Converts a File object to a base64 string
+ */
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      // Remove data:image/*;base64, prefix
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+/**
+ * Converts a File object to a data URL
+ */
+const fileToDataUrl = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// ============================================================================
+// Internal Components
+// ============================================================================
+
+interface AttachmentPreviewItemProps {
+  file: File;
+  onRemove: () => void;
+}
+
+const AttachmentPreviewItem: React.FC<AttachmentPreviewItemProps> = ({ file, onRemove }) => {
+  const isImage = file.type.startsWith('image/');
+  const [previewUrl] = useState<string>(() => isImage ? URL.createObjectURL(file) : '');
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  return (
+    <div
+      className="group flex items-center gap-2 px-3 py-1.5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-xl text-xs text-slate-700 dark:text-slate-300 shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all hover:border-purple-500/50 hover:shadow-md"
+      role="listitem"
+    >
+      {isImage ? (
+        <div className="w-8 h-8 rounded-md overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+          <img src={previewUrl} alt="preview" className="w-full h-full object-cover" />
+        </div>
+      ) : (
+        <div className="w-8 h-8 flex items-center justify-center rounded-md bg-white dark:bg-gray-700 shadow-sm border border-slate-200 dark:border-slate-600">
+          <Paperclip className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+        </div>
+      )}
+      <div className="flex flex-col gap-0.5 min-w-0 max-w-[120px]">
+        <span className="truncate font-medium">{file.name}</span>
+        <span className="text-[9px] text-slate-400 tabular-nums">{(file.size / 1024).toFixed(0)} KB</span>
+      </div>
+      <button
+        onClick={onRemove}
+        className="ml-1 p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+        aria-label={`Remove ${file.name}`}
+        title={`Remove ${file.name}`}
+      >
+        <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">×</div>
+      </button>
+    </div>
+  );
+};
 
 // ============================================================================
 // Constants
@@ -72,12 +156,14 @@ const CONFIG_DEBOUNCE_DELAY = 500; // Debounce delay for configuration changes i
 // Types
 // ============================================================================
 
+import { type ChatAttachment } from '@/types';
+
 interface Message {
   id: string;
   type: 'user' | 'assistant' | 'error' | 'system';
   content: string;
   timestamp: Date;
-  attachments?: string[];
+  attachments?: ChatAttachment[];
   isStreaming?: boolean;
   streamComplete?: boolean;
   error?: ErrorRecoveryOptions;
@@ -180,6 +266,23 @@ export function LandingChatBox({
     }
   }, [currentLanguage, messages.length]); // Run when language changes or messages are cleared
 
+  // Listen for global events from AgentFloatingControlBar
+  useEffect(() => {
+    const onScreenCapture = () => handleScreenCapture();
+    const onOpenChatbox = () => { /* Handled externally or by layout state */ };
+    const onCloseChatbox = () => { /* keep visible; toggling off is fine too if desired */ };
+
+    window.addEventListener('storycore:trigger-screen-capture', onScreenCapture);
+    window.addEventListener('storycore:open-chatbox', onOpenChatbox);
+    window.addEventListener('storycore:close-chatbox', onCloseChatbox);
+    return () => {
+      window.removeEventListener('storycore:trigger-screen-capture', onScreenCapture);
+      window.removeEventListener('storycore:open-chatbox', onOpenChatbox);
+      window.removeEventListener('storycore:close-chatbox', onCloseChatbox);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Check for Ollama migration and load configuration on mount
   useEffect(() => {
     async function initializeConfiguration() {
@@ -211,7 +314,7 @@ export function LandingChatBox({
               type: msg.type as 'user' | 'assistant' | 'system',
               content: msg.content,
               timestamp: new Date(msg.timestamp),
-              attachments: msg.attachments,
+              attachments: msg.attachments?.map(name => ({ name, type: 'unknown', url: '' })),
             }));
             
             addMessage(restoredMessages);
@@ -573,22 +676,84 @@ export function LandingChatBox({
 
   // Handle quick action (Requirements for character, location, object, shot)
   const handleQuickAction = useCallback(async (action: string) => {
+    // Check for image attachments for vision-based creation
+    const imageFiles = attachments.filter(f => f.type.startsWith('image/'));
+    const hasImage = imageFiles.length > 0;
+    
+    // Get store actions
+    const store = useAppStore.getState();
+
     let prompt = '';
     switch (action) {
-      case 'character': prompt = "Je souhaite créer un nouveau personnage pour mon projet. Peux-tu m'aider à définir son background et sa personnalité ?"; break;
-      case 'location': prompt = "Je dois concevoir un nouveau lieu (décor/environnement). Quelles idées peux-tu me proposer ?"; break;
-      case 'object': prompt = "J'ai besoin d'un objet clé (un accessoire/prop) pour mon histoire. Peux-tu m'aider à le créer ?"; break;
-      case 'shot': prompt = "J'aimerais planifier un nouveau shot (plan de caméra) pour ma séquence. Peux-tu m'aider à définir le cadrage et l'angle ?"; break;
-      case 'scenario': prompt = "Je souhaite travailler sur le scénario de mon projet. Peux-tu m'aider à structurer l'intrigue ou à écrire une scène ?"; break;
-      case 'ghost': prompt = "Peux-tu me donner des conseils du Ghost Tracker sur l'état actuel de mon projet et les améliorations possibles ?"; break;
+      case 'character': 
+        if (hasImage) {
+          store.setShowCharacterWizard(true, { imageFile: imageFiles[0] });
+          toast({ title: "Assistant Personnage", description: "Lancement de la synthèse à partir de l'image..." });
+          return;
+        }
+        prompt = currentLanguage === 'fr' 
+          ? "Je souhaite créer un nouveau personnage pour mon projet. Peux-tu m'aider à définir son background et sa personnalité ?"
+          : "I want to create a new character for my project. Can you help me define their background and personality?"; 
+        break;
+      case 'location': 
+        if (hasImage) {
+          store.setShowLocationWizard(true, { imageFile: imageFiles[0] });
+          toast({ title: "Assistant Lieu", description: "Lancement du bâtisseur à partir de l'image..." });
+          return;
+        }
+        prompt = currentLanguage === 'fr'
+          ? "Je dois concevoir un nouveau lieu (décor/environnement). Quelles idées peux-tu me proposer ?"
+          : "I need to design a new location. What ideas can you suggest?"; 
+        break;
+      case 'object': 
+        if (hasImage) {
+          store.setShowObjectWizard(true, { imageFile: imageFiles[0] });
+          toast({ title: "Assistant Objet", description: "Lancement du forgeron à partir de l'image..." });
+          return;
+        }
+        prompt = currentLanguage === 'fr'
+          ? "J'ai besoin d'un objet clé (un accessoire/prop) pour mon histoire. Peux-tu m'aider à le créer ?"
+          : "I need a key object/prop for my story. Can you help me create it?"; 
+        break;
+      case 'shot': 
+        prompt = currentLanguage === 'fr'
+          ? "J'aimerais planifier un nouveau shot (plan de caméra) pour ma séquence. Peux-tu m'aider à définir le cadrage et l'angle ?"
+          : "I would like to plan a new shot (camera plan) for my sequence. Can you help me define the framing and angle?"; 
+        break;
+      case 'scenario': 
+        prompt = currentLanguage === 'fr'
+          ? "Je souhaite travailler sur le scénario de mon projet. Peux-tu m'aider à structurer l'intrigue ou à écrire une scène ?"
+          : "I want to work on the scenario for my project. Can you help me structure the plot or write a scene?"; 
+        break;
+      case 'ghost': 
+        prompt = currentLanguage === 'fr'
+          ? "Peux-tu me donner des conseils du Ghost Tracker sur l'état actuel de mon projet et les améliorations possibles ?"
+          : "Can you give me Ghost Tracker advice on the current state of my project and possible improvements?"; 
+        break;
       default: return;
     }
     setInputValue(prompt);
-  }, []);
+  }, [attachments, currentLanguage, toast]);
 
   // Handle prompt improvement (Requirement 3.1+)
   const handleImprovePrompt = useCallback(async (type: 'improve' | 'shorter' | 'longer') => {
-    if (!inputValue.trim() || !llmService) return;
+    if (!inputValue.trim()) {
+      toast({ 
+        title: "Texte requis", 
+        description: "Veuillez d'abord saisir un prompt dans la zone de texte pour l'améliorer.",
+        variant: "default"
+      });
+      return;
+    }
+
+    if (!llmService) {
+      toast({ 
+        variant: "destructive", 
+        title: "IA non configurée", 
+        description: "Veuillez configurer un service LLM (bouton en haut) pour utiliser cette fonction." 
+      });
+      return;
+    }
 
     setIsImproving(true);
     try {
@@ -619,6 +784,20 @@ export function LandingChatBox({
   // Handle voice recording
   const handleVoiceRecording = useCallback(() => {
     const voiceService = VoiceTextService.getInstance();
+    
+    // Check for support first to avoid blinking/crashes
+    if (!voiceService.isRecognitionSupported()) {
+      const isElectron = typeof window !== 'undefined' && 'electronAPI' in window;
+      toast({ 
+        variant: "default", 
+        title: "Microphone indisponible", 
+        description: isElectron 
+          ? "La reconnaissance vocale Google n'est pas autorisée dans la version Desktop Chromium. Veuillez utiliser le texte." 
+          : "Votre navigateur ne supporte pas la reconnaissance vocale."
+      });
+      return;
+    }
+    
     if (isListening) {
       voiceService.stopListening();
       setIsListening(false);
@@ -633,7 +812,14 @@ export function LandingChatBox({
         onError: (error) => {
           console.error('Voice error:', error);
           setIsListening(false);
-          toast({ variant: "destructive", title: "Erreur vocale", description: error });
+          
+          const isMissingKey = error.includes("Clé d'API manquante");
+          
+          toast({ 
+            variant: isMissingKey ? "default" : "destructive", 
+            title: isMissingKey ? "Mode Desktop : Aide" : "Erreur vocale", 
+            description: error 
+          });
         },
         onEnd: () => setIsListening(false),
       });
@@ -641,22 +827,22 @@ export function LandingChatBox({
   }, [isListening, toast]);
 
   // Handle screen area capture (Requirement "+" button)
-  const handleScreenCapture = async () => {
+  const handleScreenCapture = async (autoAction?: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const electron = (window as any).electron;
-      const isElectronEnv = typeof window !== 'undefined' && 'electronAPI' in window;
+      const isElectron = typeof window !== 'undefined' && 'electronAPI' in window;
+      const electronAPI = (window as Window & { electronAPI?: { screen?: { startAreaCapture: () => Promise<string> } } }).electronAPI;
       
-      if (electron && electron.startAreaCapture) {
-        const result = await electron.startAreaCapture();
-        if (result && result.base64Data) {
-          const res = await fetch(result.base64Data);
+      let capturedFile: File | null = null;
+
+      if (isElectron && electronAPI?.screen?.startAreaCapture) {
+        const result = await electronAPI.screen.startAreaCapture();
+        if (result) {
+          // result is already a base64 string from the backend
+          const res = await fetch(`data:image/png;base64,${result}`);
           const blob = await res.blob();
-          const file = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
-          setAttachments(prev => [...prev, file]);
-          toast({ title: "Capture réussie 📸", description: "L'image a été ajoutée." });
+          capturedFile = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
         }
-      } else if (!isElectronEnv && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      } else if (!isElectron && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
         // Fallback for browser mode
         const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         const video = document.createElement('video');
@@ -679,22 +865,41 @@ export function LandingChatBox({
         if (ctx) {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const file = new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' });
-              setAttachments(prev => [...prev, file]);
-              toast({ title: "Capture réussie 📸", description: "L'image a été ajoutée." });
-            }
-            // Stop all tracks to end screen sharing
-            stream.getTracks().forEach(track => track.stop());
-          }, 'image/png');
+          capturedFile = await new Promise<File | null>((resolve) => {
+            canvas.toBlob((blob) => {
+              stream.getTracks().forEach(track => track.stop());
+              if (blob) {
+                resolve(new File([blob], `capture-${Date.now()}.png`, { type: 'image/png' }));
+              } else {
+                resolve(null);
+              }
+            }, 'image/png');
+          });
         } else {
           stream.getTracks().forEach(track => track.stop());
           throw new Error("Canvas context is null");
         }
       } else {
         toast({ variant: "destructive", title: "Indisponible", description: "La capture d'écran n'est pas supportée dans ce contexte." });
+        return;
       }
+
+      if (capturedFile) {
+        setAttachments(prev => [...prev, capturedFile as File]);
+        toast({ title: "Capture réussie 📸", description: "L'image a été ajoutée." });
+
+        if (autoAction) {
+          const store = useAppStore.getState();
+          if (autoAction === 'character') {
+            store.setShowCharacterWizard(true, { imageFile: capturedFile });
+          } else if (autoAction === 'location') {
+            store.setShowLocationWizard(true, { imageFile: capturedFile });
+          } else if (autoAction === 'object') {
+            store.setShowObjectWizard(true, { imageFile: capturedFile });
+          }
+        }
+      }
+
     } catch (error) {
       console.error('Screen capture error:', error);
       toast({ variant: "destructive", title: "Erreur / Annulé", description: "La capture a été annulée ou a échoué." });
@@ -765,12 +970,19 @@ export function LandingChatBox({
       return;
     }
 
+    // Convert all attachments to data URLs for stable cross-window storage/sync (fixes Requirement 4.7 & ERR_FILE_NOT_FOUND)
+    const processedAttachments = await Promise.all(attachments.map(async f => ({
+      name: f.name,
+      type: f.type,
+      url: await fileToDataUrl(f)
+    })));
+
     const newMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
       content: inputValue,
       timestamp: new Date(),
-      attachments: attachments.map(f => f.name),
+      attachments: processedAttachments,
     };
 
     addMessage(newMessage);
@@ -788,6 +1000,10 @@ export function LandingChatBox({
     // Store last user message for retry functionality (Requirement 7.6)
     setLastUserMessage(userInput);
 
+    // Prepare images for LLM if any (Requirement: Vision Support)
+    const imageFiles = attachments.filter(f => f.type.startsWith('image/'));
+    const base64Images = await Promise.all(imageFiles.map(fileToBase64));
+
     // Generate response using LLM service or fallback (Requirement 3.1)
     if (llmService) {
       try {
@@ -799,6 +1015,7 @@ export function LandingChatBox({
           prompt: userInput,
           systemPrompt,
           stream: llmConfig.streamingEnabled,
+          images: base64Images.length > 0 ? base64Images : undefined,
         };
 
         // Generate unique request ID for cancellation support
@@ -1321,13 +1538,33 @@ export function LandingChatBox({
                 )}
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 {message.attachments && message.attachments.length > 0 && (
-                  <div className="mt-2 space-y-1" role="list" aria-label="Attachments">
-                    {message.attachments.map((attachment, idx) => (
-                      <div key={idx} className="text-xs text-gray-400 flex items-center gap-1" role="listitem">
-                        <Paperclip className="w-3 h-3" aria-hidden="true" />
-                        <span>{attachment}</span>
-                      </div>
-                    ))}
+                  <div className={`mt-3 flex flex-wrap gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`} role="list" aria-label="Attachments">
+                    {message.attachments.map((attachment, idx) => {
+                      const isImage = attachment.type?.startsWith('image/');
+                      
+                      if (isImage) {
+                        return (
+                          <div key={idx} className="group relative" role="listitem">
+                            <img 
+                              src={attachment.url} 
+                              alt={attachment.name} 
+                              className="w-24 h-24 object-cover rounded-lg border border-white/20 shadow-md transition-all hover:scale-105 hover:shadow-xl cursor-zoom-in"
+                              onClick={() => window.open(attachment.url, '_blank')}
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[10px] text-white px-2 py-1 rounded-b-lg opacity-0 group-hover:opacity-100 transition-opacity truncate">
+                              {attachment.name}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-slate-200 border border-white/10 transition-colors" role="listitem">
+                          <Paperclip className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span className="truncate max-w-[150px]">{attachment.name}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 {/* Display timestamp after streaming completes (Requirement 8.4) */}
@@ -1418,22 +1655,11 @@ export function LandingChatBox({
         >
           <div className="flex flex-wrap gap-2" role="list">
             {attachments.map((file, idx) => (
-              <div
-                key={idx}
-                className="flex items-center gap-2 px-3 py-1 bg-white dark:bg-gray-700 rounded-lg text-xs text-slate-700 dark:text-gray-300 shadow-sm border border-slate-200 dark:border-slate-600"
-                role="listitem"
-              >
-                <Paperclip className="w-3 h-3" aria-hidden="true" />
-                <span>{file.name}</span>
-                <button
-                  onClick={() => setAttachments(attachments.filter((_, i) => i !== idx))}
-                  className="ml-1 text-slate-400 hover:text-red-500 transition-colors"
-                  aria-label={`Remove ${file.name}`}
-                  title={`Remove ${file.name}`}
-                >
-                  ×
-                </button>
-              </div>
+              <AttachmentPreviewItem 
+                key={`${file.name}-${idx}`} 
+                file={file} 
+                onRemove={() => setAttachments(attachments.filter((_, i) => i !== idx))} 
+              />
             ))}
           </div>
         </div>
@@ -1445,16 +1671,18 @@ export function LandingChatBox({
         role="form"
         aria-label="Message input"
       >
-        {/* Prompt Improvement Toolbar */}
         <div className="flex items-center gap-1.5 mb-2 px-1">
+          <div className="px-2 py-0.5 text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest border-r border-slate-100 dark:border-slate-800/50 mr-0.5">
+            AI Upgrade
+          </div>
           <TooltipProvider>
-            <Tooltip>
+              <Tooltip>
               <TooltipTrigger asChild>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={() => handleImprovePrompt('improve')} 
-                  disabled={!inputValue.trim() || isImproving}
+                  disabled={isImproving || !inputValue.trim()}
                   className="h-7 w-7 text-gray-400 hover:text-purple-400 hover:bg-purple-400/10"
                 >
                   <Wand2 className={`w-3.5 h-3.5 ${isImproving ? 'animate-pulse' : ''}`} />
@@ -1469,7 +1697,7 @@ export function LandingChatBox({
                   variant="ghost" 
                   size="icon" 
                   onClick={() => handleImprovePrompt('shorter')} 
-                  disabled={!inputValue.trim() || isImproving}
+                  disabled={isImproving || !inputValue.trim()}
                   className="h-7 w-7 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10"
                 >
                   <Minimize2 className="w-3.5 h-3.5" />
@@ -1484,7 +1712,7 @@ export function LandingChatBox({
                   variant="ghost" 
                   size="icon" 
                   onClick={() => handleImprovePrompt('longer')} 
-                  disabled={!inputValue.trim() || isImproving}
+                  disabled={isImproving || !inputValue.trim()}
                   className="h-7 w-7 text-gray-400 hover:text-green-400 hover:bg-green-400/10"
                 >
                   <Type className="w-3.5 h-3.5" />
@@ -1499,7 +1727,7 @@ export function LandingChatBox({
                   variant="ghost" 
                   size="icon" 
                   onClick={() => handleImprovePrompt('improve')} // Placeholder for optimize
-                  disabled={!inputValue.trim() || isImproving}
+                  disabled={isImproving || !inputValue.trim()}
                   className="h-7 w-7 text-gray-400 hover:text-yellow-400 hover:bg-yellow-400/10"
                 >
                   <Zap className="w-3.5 h-3.5" />
@@ -1538,10 +1766,11 @@ export function LandingChatBox({
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
-                        className="h-9 w-9 text-gray-400 hover:text-white hover:bg-gray-700 rounded-full"
+                        size="sm"
+                        className="h-9 gap-2 px-3 text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full transition-all border border-transparent hover:border-gray-600"
                       >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-4 h-4" />
+                        <span className="text-xs font-semibold">Ajouter</span>
                       </Button>
                     </DropdownMenuTrigger>
                   </TooltipTrigger>
@@ -1551,7 +1780,8 @@ export function LandingChatBox({
 
               <DropdownMenuContent 
                 align="start" 
-                className="w-72 rounded-[24px] backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70 border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-2 mb-2 translate-y-[-10px]"
+                side="top"
+                className="w-72 rounded-[24px] backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70 border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] p-2 mb-4"
               >
                 <div>
                   <DropdownMenuItem onSelect={() => fileInputRef.current?.click()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
@@ -1561,28 +1791,40 @@ export function LandingChatBox({
                     <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Ajouter une image ou un fichier</span>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                  <DropdownMenuItem 
+                    onSelect={() => handleQuickAction('shot')}
+                    className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors"
+                  >
                     <div className="bg-blue-500/10 p-1.5 rounded-lg flex-shrink-0">
                       <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </div>
-                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Générer une image</span>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Générer avec l'IA</span>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                  <DropdownMenuItem 
+                    onSelect={() => toast({ title: "Recherche active", description: "L'assistant analyse votre projet pour une recherche ciblée." })}
+                    className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors"
+                  >
                     <div className="bg-green-500/10 p-1.5 rounded-lg flex-shrink-0">
                       <Search className="w-4 h-4 text-green-600 dark:text-green-400" />
                     </div>
                     <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Démarrer une recherche ciblée</span>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                  <DropdownMenuItem 
+                    onSelect={() => toast({ title: "Module Podcast", description: "Génération de script podcast pour votre projet..." })}
+                    className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors"
+                  >
                     <div className="bg-orange-500/10 p-1.5 rounded-lg flex-shrink-0">
                       <Radio className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                     </div>
                     <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Créer un podcast</span>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                  <DropdownMenuItem 
+                    onSelect={() => handleQuickAction('scenario')}
+                    className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors"
+                  >
                     <div className="bg-emerald-500/10 p-1.5 rounded-lg flex-shrink-0">
                       <FileQuestion className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </div>
@@ -1593,25 +1835,52 @@ export function LandingChatBox({
                 <DropdownMenuSeparator className="my-1 bg-slate-200 dark:bg-slate-700/50" />
                 
                 <div>
-                  <DropdownMenuItem onSelect={handleScreenCapture} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                  <DropdownMenuItem onSelect={() => handleScreenCapture()} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
                     <div className="bg-slate-500/10 p-1.5 rounded-lg flex-shrink-0">
                       <MonitorUp className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                     </div>
-                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Prendre une capture d'écran</span>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Prendre une capture d'écran simple</span>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                  <DropdownMenuItem onSelect={() => handleScreenCapture('character')} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-indigo-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <UserPlus className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Capturer & Créer Personnage</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem onSelect={() => handleScreenCapture('location')} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-amber-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <MapPin className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Capturer & Créer Lieu</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem onSelect={() => handleScreenCapture('object')} className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
+                    <div className="bg-rose-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <Box className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                    </div>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Capturer & Créer Objet</span>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    onSelect={() => toast({ title: "Onglets", description: "Gestionnaire d'onglets bientôt disponible." })}
+                    className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors"
+                  >
                     <div className="bg-slate-500/10 p-1.5 rounded-lg flex-shrink-0">
                       <Layout className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                     </div>
                     <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Ajouter des onglets</span>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors">
-                    <div className="bg-slate-500/10 p-1.5 rounded-lg flex-shrink-0">
-                      <LinkIcon className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                  <DropdownMenuItem 
+                    onSelect={() => setShowConfigDialog(true)}
+                    className="flex items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-white/50 dark:hover:bg-slate-800/50 focus:bg-white/50 dark:focus:bg-slate-800/50 transition-colors"
+                  >
+                    <div className="bg-purple-500/10 p-1.5 rounded-lg flex-shrink-0">
+                      <Settings className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     </div>
-                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Utiliser des connecteurs</span>
+                    <span className="font-medium text-sm text-slate-800 dark:text-slate-200">Amélioration / Compte utilisateur</span>
                   </DropdownMenuItem>
                 </div>
               </DropdownMenuContent>
@@ -1636,17 +1905,26 @@ export function LandingChatBox({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="flex-1 min-h-[44px] max-h-[480px] p-2 bg-transparent border-none text-slate-800 dark:text-white placeholder:text-slate-500 resize-none shadow-none focus-visible:ring-0 focus-visible:outline-none focus:ring-0"
+              className={`flex-1 min-h-[44px] max-h-[480px] p-2 bg-transparent border-none text-slate-800 dark:text-white placeholder:text-slate-500 resize-none shadow-none focus-visible:ring-0 focus-visible:outline-none focus:ring-0 transition-colors ${isListening ? 'bg-red-500/5 dark:bg-purple-500/10 rounded-md' : ''}`}
               rows={3}
             />
+            {/* Audio Visualizer (visible when listening) */}
+            {isListening && (
+              <div className="absolute left-3 bottom-0 top-0 flex items-center pointer-events-none opacity-60">
+                <AgentAudioVisualizer state="listening" size="sm" />
+              </div>
+            )}
+            
             {/* Microphone Button */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={handleVoiceRecording}
-                    className={`absolute right-3 bottom-2.5 p-1 rounded-full transition-all ${
-                      isListening ? 'bg-red-500 animate-pulse text-white' : 'text-gray-400 hover:text-white'
+                    className={`absolute right-3 bottom-2.5 p-1.5 rounded-full transition-all ${
+                      isListening 
+                        ? 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20' 
+                        : 'bg-slate-100 dark:bg-slate-800/50 text-gray-400 hover:text-purple-500 hover:bg-purple-100 dark:hover:bg-purple-500/20'
                     }`}
                   >
                     {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}

@@ -8,6 +8,8 @@ import {
   MediaFile,
   Track,
   Clip,
+  VideoClip,
+  AudioClip,
   ExportSettings,
   EditorMode,
   UndoRedoState,
@@ -56,7 +58,7 @@ interface VideoEditorContextType {
   trimClip: (clipId: string, inPoint?: number, outPoint?: number) => void;
   splitClip: (clipId: string, splitTime: number) => void;
   deleteClips: (clipIds: string[]) => void;
-  updateClip: (clipId: string, updates: Partial<Clip>) => void;
+  updateClip: (clipId: string, updates: Partial<Clip & VideoClip & AudioClip>) => void;
   updateTrack: (trackId: string, updates: Partial<Track>) => void;
   deleteMedia: (mediaId: string) => void;
   selectClip: (clipId: string, addToSelection: boolean) => void;
@@ -284,12 +286,12 @@ export const VideoEditorProvider: React.FC<VideoEditorProviderProps> = ({
   }, []);
   
   // Update clip action
-  const updateClip = useCallback((clipId: string, updates: Partial<Clip>) => {
+  const updateClip = useCallback((clipId: string, updates: Partial<Clip & VideoClip & AudioClip>) => {
     saveToUndoStack(
-      clips.map((c: Clip) => c.id === clipId ? { ...c, ...updates } : c),
+      clips.map((c: Clip) => c.id === clipId ? { ...c, ...updates } as Clip : c),
       tracks
     );
-    setClips((prev: Clip[]) => prev.map((c: Clip) => c.id === clipId ? { ...c, ...updates } : c));
+    setClips((prev: Clip[]) => prev.map((c: Clip) => c.id === clipId ? { ...c, ...updates } as Clip : c));
   }, [clips, tracks, saveToUndoStack]);
   
   // Update track action

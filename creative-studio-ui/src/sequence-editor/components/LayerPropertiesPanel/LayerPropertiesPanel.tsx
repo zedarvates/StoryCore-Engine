@@ -10,15 +10,26 @@
  */
 
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import {
   updateLayer,
   toggleLayerLock,
   toggleLayerHidden,
   setLayerOpacity,
   setLayerBlendMode,
+  togglePropertyKeyframes,
+  setActiveKeyframeEditor,
 } from '../../store/slices/timelineSlice';
-import type { Layer, Shot } from '../../types';
+import { 
+  useAppSelector, 
+  useAppDispatch 
+} from '../../store';
+import type { 
+  Shot, 
+  MediaLayerData, 
+  TextLayerData, 
+  AudioLayerData,
+  SpeechLayerData
+} from '../../types';
 import './layerPropertiesPanel.css';
 
 interface LayerPropertiesPanelProps {
@@ -46,13 +57,49 @@ const BLEND_MODES = [
   'luminosity',
 ];
 
+interface KeyframeToggleProps {
+  property: string;
+  isKeyframed: boolean;
+  onToggle: (property: string) => void;
+}
+
+const KeyframeToggle: React.FC<KeyframeToggleProps> = ({ property, isKeyframed, onToggle }) => (
+  <button
+    className={`keyframe-toggle-button ${isKeyframed ? 'active' : ''}`}
+    onClick={(e) => { e.stopPropagation(); onToggle(property); }}
+    title={isKeyframed ? 'Disable Keyframes' : 'Enable Keyframes'}
+  >
+    ⏱️
+  </button>
+);
+
+interface EditorButtonProps {
+  property: string;
+  isKeyframed: boolean;
+  isActive: boolean;
+  onOpen: (property: string) => void;
+}
+
+const EditorButton: React.FC<EditorButtonProps> = ({ property, isKeyframed, isActive, onOpen }) => (
+  isKeyframed ? (
+    <button
+      className={`open-editor-button ${isActive ? 'active' : ''}`}
+      onClick={() => onOpen(property)}
+      title="Open Graph Editor"
+    >
+      📈
+    </button>
+  ) : null
+);
+
 export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
   shot,
   selectedLayerId,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+  const activeKeyframeEditor = useAppSelector(state => state.timeline.activeKeyframeEditor);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['general', 'appearance'])
+    new Set(['general', 'appearance', 'transform', 'audio', 'textStyle'])
   );
 
   const selectedLayer = selectedLayerId
@@ -71,6 +118,18 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
       </div>
     );
   }
+
+  const toggleKeyframes = (property: string) => {
+    dispatch(togglePropertyKeyframes({ shotId: shot.id, layerId: selectedLayer.id, property }));
+  };
+
+  const openKeyframeEditor = (property: string) => {
+    dispatch(setActiveKeyframeEditor({ shotId: shot.id, layerId: selectedLayer.id, property }));
+  };
+
+  const checkIsKeyframed = (property: string) => {
+    return !!selectedLayer.animations?.[property];
+  };
 
   const toggleSection = (section: string) => {
     const newExpanded = new Set(expandedSections);
@@ -132,9 +191,9 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
 
   const handleTransformChange = (
     property: 'position' | 'scale' | 'rotation' | 'anchor',
-    value: any
+    value: number | { x?: number; y?: number }
   ) => {
-    const currentData = selectedLayer.data as any;
+    const currentData = selectedLayer.data as MediaLayerData | TextLayerData;
     const currentTransform = currentData.transform || {
       position: { x: 0, y: 0 },
       scale: { x: 1, y: 1 },
@@ -142,7 +201,8 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
       anchor: { x: 0.5, y: 0.5 },
     };
 
-    const newTransform = { ...currentTransform };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newTransform = { ...currentTransform } as any;
     if (typeof value === 'object') {
       newTransform[property] = { ...newTransform[property], ...value };
     } else {
@@ -163,8 +223,8 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
     );
   };
 
-  const handleAudioChange = (property: string, value: any) => {
-    const currentData = selectedLayer.data as any;
+  const handleAudioChange = (property: string, value: number) => {
+    const currentData = selectedLayer.data as AudioLayerData | SpeechLayerData;
     dispatch(
       updateLayer({
         shotId: shot.id,
@@ -267,7 +327,22 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
           {expandedSections.has('appearance') && (
             <div className="property-section-content">
               <div className="property-row">
-                <label className="property-label">Opacity</label>
+                <label className="property-label">
+                  Opacity
+                  <div className="property-actions">
+                    <KeyframeToggle 
+                      property="opacity" 
+                      isKeyframed={checkIsKeyframed('opacity')} 
+                      onToggle={toggleKeyframes} 
+                    />
+                    <EditorButton 
+                      property="opacity" 
+                      isKeyframed={checkIsKeyframed('opacity')} 
+                      isActive={activeKeyframeEditor?.property === 'opacity'} 
+                      onOpen={openKeyframeEditor} 
+                    />
+                  </div>
+                </label>
                 <div className="property-value">
                   <input
                     type="range"
@@ -326,14 +401,40 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
             {expandedSections.has('transform') && (
               <div className="property-section-content">
                 <div className="property-row">
-                  <label className="property-label">Position</label>
+                  <label className="property-label">
+                    Position
+                    <div className="property-actions">
+                      <KeyframeToggle 
+                        property="transform.position_x" 
+                        isKeyframed={checkIsKeyframed('transform.position_x')} 
+                        onToggle={toggleKeyframes} 
+                      />
+                      <EditorButton 
+                        property="transform.position_x" 
+                        isKeyframed={checkIsKeyframed('transform.position_x')} 
+                        isActive={activeKeyframeEditor?.property === 'transform.position_x'} 
+                        onOpen={openKeyframeEditor} 
+                      />
+                      <KeyframeToggle 
+                        property="transform.position_y" 
+                        isKeyframed={checkIsKeyframed('transform.position_y')} 
+                        onToggle={toggleKeyframes} 
+                      />
+                      <EditorButton 
+                        property="transform.position_y" 
+                        isKeyframed={checkIsKeyframed('transform.position_y')} 
+                        isActive={activeKeyframeEditor?.property === 'transform.position_y'} 
+                        onOpen={openKeyframeEditor} 
+                      />
+                    </div>
+                  </label>
                   <div className="property-value-grid">
                     <div className="property-value-pair">
                       <span className="property-unit-label">X</span>
                       <input
                         type="number"
                         className="property-input property-input-small"
-                        value={((selectedLayer.data as any).transform?.position?.x ?? 0).toFixed(1)}
+                        value={((selectedLayer.data as MediaLayerData | TextLayerData).transform?.position?.x ?? 0).toFixed(1)}
                         onChange={(e) => handleTransformChange('position', { x: Number(e.target.value) })}
                         disabled={selectedLayer.locked}
                       />
@@ -343,7 +444,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                       <input
                         type="number"
                         className="property-input property-input-small"
-                        value={((selectedLayer.data as any).transform?.position?.y ?? 0).toFixed(1)}
+                        value={((selectedLayer.data as MediaLayerData | TextLayerData).transform?.position?.y ?? 0).toFixed(1)}
                         onChange={(e) => handleTransformChange('position', { y: Number(e.target.value) })}
                         disabled={selectedLayer.locked}
                       />
@@ -352,14 +453,29 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                 </div>
 
                 <div className="property-row">
-                  <label className="property-label">Scale</label>
+                  <label className="property-label">
+                    Scale
+                    <div className="property-actions">
+                      <KeyframeToggle 
+                        property="transform.scale_x" 
+                        isKeyframed={checkIsKeyframed('transform.scale_x')} 
+                        onToggle={toggleKeyframes} 
+                      />
+                      <EditorButton 
+                        property="transform.scale_x" 
+                        isKeyframed={checkIsKeyframed('transform.scale_x')} 
+                        isActive={activeKeyframeEditor?.property === 'transform.scale_x'} 
+                        onOpen={openKeyframeEditor} 
+                      />
+                    </div>
+                  </label>
                   <div className="property-value-grid">
                     <div className="property-value-pair">
                       <span className="property-unit-label">W</span>
                       <input
                         type="number"
                         className="property-input property-input-small"
-                        value={Math.round(((selectedLayer.data as any).transform?.scale?.x ?? 1) * 100)}
+                        value={Math.round(((selectedLayer.data as MediaLayerData | TextLayerData).transform?.scale?.x ?? 1) * 100)}
                         onChange={(e) => handleTransformChange('scale', { x: Number(e.target.value) / 100 })}
                         min={1}
                         max={1000}
@@ -372,7 +488,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                       <input
                         type="number"
                         className="property-input property-input-small"
-                        value={Math.round(((selectedLayer.data as any).transform?.scale?.y ?? 1) * 100)}
+                        value={Math.round(((selectedLayer.data as MediaLayerData | TextLayerData).transform?.scale?.y ?? 1) * 100)}
                         onChange={(e) => handleTransformChange('scale', { y: Number(e.target.value) / 100 })}
                         min={1}
                         max={1000}
@@ -384,12 +500,27 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                 </div>
 
                 <div className="property-row">
-                  <label className="property-label">Rotation</label>
+                  <label className="property-label">
+                    Rotation
+                    <div className="property-actions">
+                      <KeyframeToggle 
+                        property="transform.rotation" 
+                        isKeyframed={checkIsKeyframed('transform.rotation')} 
+                        onToggle={toggleKeyframes} 
+                      />
+                      <EditorButton 
+                        property="transform.rotation" 
+                        isKeyframed={checkIsKeyframed('transform.rotation')} 
+                        isActive={activeKeyframeEditor?.property === 'transform.rotation'} 
+                        onOpen={openKeyframeEditor} 
+                      />
+                    </div>
+                  </label>
                   <div className="property-value">
                     <input
                       type="range"
                       className="property-slider"
-                      value={(selectedLayer.data as any).transform?.rotation ?? 0}
+                      value={(selectedLayer.data as MediaLayerData | TextLayerData).transform?.rotation ?? 0}
                       onChange={(e) => handleTransformChange('rotation', Number(e.target.value))}
                       min={-180}
                       max={180}
@@ -398,7 +529,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     <input
                       type="number"
                       className="property-input property-input-small"
-                      value={(selectedLayer.data as any).transform?.rotation ?? 0}
+                      value={(selectedLayer.data as MediaLayerData | TextLayerData).transform?.rotation ?? 0}
                       onChange={(e) => handleTransformChange('rotation', Number(e.target.value))}
                       min={-180}
                       max={180}
@@ -432,9 +563,9 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                   <div className="property-value">
                     <select
                       className="property-select"
-                      value={(selectedLayer.data as any).style?.fontFamily || (selectedLayer.data as any).font || 'Arial'}
+                      value={(selectedLayer.data as TextLayerData).style?.fontFamily || (selectedLayer.data as TextLayerData).font || 'Arial'}
                       onChange={(e) => {
-                        const currentData = selectedLayer.data as any;
+                        const currentData = selectedLayer.data as TextLayerData;
                         const currentStyle = currentData.style || {};
                         const newStyle = { ...currentStyle, fontFamily: e.target.value };
 
@@ -471,9 +602,9 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                   <div className="property-value">
                     <select
                       className="property-select"
-                      value={(selectedLayer.data as any).style?.fontWeight || 'normal'}
+                      value={(selectedLayer.data as TextLayerData).style?.fontWeight || 'normal'}
                       onChange={(e) => {
-                        const currentData = selectedLayer.data as any;
+                        const currentData = selectedLayer.data as TextLayerData;
                         const currentStyle = currentData.style || {};
                         const newStyle = { ...currentStyle, fontWeight: e.target.value };
 
@@ -503,10 +634,10 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     <input
                       type="number"
                       className="property-input"
-                      value={(selectedLayer.data as any).style?.fontSize || (selectedLayer.data as any).size || 24}
+                      value={(selectedLayer.data as TextLayerData).style?.fontSize || (selectedLayer.data as TextLayerData).size || 24}
                       onChange={(e) => {
                         const val = Number(e.target.value);
-                        const currentData = selectedLayer.data as any;
+                        const currentData = selectedLayer.data as TextLayerData;
                         const currentStyle = currentData.style || {};
                         const newStyle = { ...currentStyle, fontSize: val };
 
@@ -538,10 +669,10 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     <input
                       type="color"
                       className="property-color-picker"
-                      value={(selectedLayer.data as any).style?.fillColor || (selectedLayer.data as any).color || '#ffffff'}
+                      value={(selectedLayer.data as TextLayerData).style?.fillColor || (selectedLayer.data as TextLayerData).color || '#ffffff'}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const currentData = selectedLayer.data as any;
+                        const currentData = selectedLayer.data as TextLayerData;
                         const currentStyle = currentData.style || {};
                         const newStyle = { ...currentStyle, fillColor: val };
 
@@ -571,10 +702,10 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     <input
                       type="color"
                       className="property-color-picker"
-                      value={(selectedLayer.data as any).style?.strokeColor || '#000000'}
+                      value={(selectedLayer.data as TextLayerData).style?.strokeColor || '#000000'}
                       onChange={(e) => {
                         const val = e.target.value;
-                        const currentData = selectedLayer.data as any;
+                        const currentData = selectedLayer.data as TextLayerData;
                         const currentStyle = currentData.style || {};
                         const newStyle = { ...currentStyle, strokeColor: val };
                         dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
@@ -586,10 +717,10 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                       <input
                         type="number"
                         className="property-input property-input-small"
-                        value={(selectedLayer.data as any).style?.strokeWidth || 0}
+                        value={(selectedLayer.data as TextLayerData).style?.strokeWidth || 0}
                         onChange={(e) => {
                           const val = Number(e.target.value);
-                          const currentData = selectedLayer.data as any;
+                          const currentData = selectedLayer.data as TextLayerData;
                           const currentStyle = currentData.style || {};
                           const newStyle = { ...currentStyle, strokeWidth: val };
                           dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
@@ -608,11 +739,11 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     {['left', 'center', 'right'].map((align) => (
                       <button
                         key={align}
-                        className={`quick-action-button ${((selectedLayer.data as any).style?.textAlign || 'left') === align ? 'active' : ''}`}
+                        className={`quick-action-button ${((selectedLayer.data as TextLayerData).style?.textAlign || 'left') === align ? 'active' : ''}`}
                         onClick={() => {
-                          const currentData = selectedLayer.data as any;
+                          const currentData = selectedLayer.data as TextLayerData;
                           const currentStyle = currentData.style || {};
-                          const newStyle = { ...currentStyle, textAlign: align };
+                          const newStyle = { ...currentStyle, textAlign: align as 'left' | 'center' | 'right' };
                           dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
                         }}
                       >
@@ -648,7 +779,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     <input
                       type="range"
                       className="property-slider"
-                      value={Math.round(((selectedLayer.data as any).volume ?? 1) * 100)}
+                      value={Math.round(((selectedLayer.data as AudioLayerData | SpeechLayerData).volume ?? 1) * 100)}
                       onChange={(e) => handleAudioChange('volume', Number(e.target.value) / 100)}
                       min={0}
                       max={200}
@@ -657,7 +788,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                     <input
                       type="number"
                       className="property-input property-input-small"
-                      value={Math.round(((selectedLayer.data as any).volume ?? 1) * 100)}
+                      value={Math.round(((selectedLayer.data as AudioLayerData | SpeechLayerData).volume ?? 1) * 100)}
                       onChange={(e) => handleAudioChange('volume', Number(e.target.value) / 100)}
                       min={0}
                       max={200}

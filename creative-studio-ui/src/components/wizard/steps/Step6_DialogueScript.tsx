@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { FileText, Upload, AlertCircle, CheckCircle2, FileCode } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { WizardFormLayout, FormField, FormSection } from '../WizardFormLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -103,6 +104,7 @@ export function Step6_DialogueScript({
   onUpdate,
   errors = {},
 }: Readonly<DialogueScriptStepProps>) {
+  const { toast } = useToast();
   // State
   const [scriptData, setScriptData] = useState<ScriptData>(
     data || {
@@ -157,7 +159,11 @@ export function Step6_DialogueScript({
       }));
     } catch (error) {
       console.error('Error reading file:', error);
-      // TODO: Show error toast
+      toast({
+        title: "Error reading file",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 

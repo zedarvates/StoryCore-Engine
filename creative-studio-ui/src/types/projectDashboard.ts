@@ -12,6 +12,9 @@ import { z } from 'zod';
 
 import { Project as BaseProject, Shot as BaseShot, AudioTrack, Effect, TextLayer, Transition } from './index';
 
+// Re-export types to satisfy unused variable lint
+export type { AudioTrack, Effect, TextLayer, Transition };
+
 /**
  * Shot with extended prompt management capabilities
  * Extends the base Shot type with prompt validation and generation metadata
@@ -166,6 +169,122 @@ export interface GenerationRecord {
 // Zod Schemas for Runtime Validation
 // ============================================================================
 
+/**
+ * Zod schema for EffectKeyframe
+ */
+export const EffectKeyframeSchema = z.object({
+  id: z.string(),
+  time: z.number().nonnegative(),
+  value: z.number(),
+  interpolation: z.enum(['linear', 'ease-in', 'ease-out', 'ease-in-out']),
+});
+
+/**
+ * Zod schema for EffectParameter
+ */
+export const EffectParameterSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(['range', 'color', 'select', 'boolean', 'number']),
+  value: z.any(),
+  defaultValue: z.any().optional(),
+  min: z.number().optional(),
+  max: z.number().optional(),
+  step: z.number().optional(),
+  options: z.array(z.object({
+    label: z.string(),
+    value: z.any(),
+  })).optional(),
+  unit: z.string().optional(),
+  keyframes: z.array(EffectKeyframeSchema).optional(),
+});
+
+/**
+ * Zod schema for Effect
+ */
+export const EffectSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(['color-correction', 'blur', 'sharpen', 'distortion', 'filter', 'transition', 'custom']).optional(),
+  category: z.enum(['color', 'blur', 'stylize', 'distort', 'noise', 'creative', 'transform', 'temporal']),
+  enabled: z.boolean().optional(),
+  parameters: z.array(EffectParameterSchema),
+  intensity: z.number().min(0).max(1).optional(),
+  duration: z.number().nonnegative().optional(),
+  startTime: z.number().nonnegative().optional(),
+  endTime: z.number().nonnegative().optional(),
+  icon: z.any().optional(),
+  description: z.string().optional(),
+  preview: z.string().optional(),
+});
+
+/**
+ * Zod schema for TextStyle
+ */
+export const TextStyleSchema = z.object({
+  fontFamily: z.string(),
+  fontSize: z.number(),
+  fontWeight: z.enum(['normal', 'bold', 'lighter', 'bolder']),
+  fontStyle: z.enum(['normal', 'italic', 'oblique']),
+  textDecoration: z.enum(['none', 'underline', 'line-through']),
+  textAlign: z.enum(['left', 'center', 'right', 'justify']),
+  color: z.string(),
+  backgroundColor: z.string(),
+  textShadow: z.string(),
+  letterSpacing: z.number(),
+  lineHeight: z.number(),
+  textTransform: z.enum(['none', 'uppercase', 'lowercase', 'capitalize']),
+});
+
+/**
+ * Zod schema for TextAnimation
+ */
+export const TextAnimationSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  type: z.enum(['fade', 'slide', 'scale', 'rotate', 'bounce', 'typewriter', 'glow', 'fade-in', 'fade-out', 'slide-in', 'slide-out']),
+  duration: z.number().nonnegative(),
+  delay: z.number().nonnegative(),
+  easing: z.enum(['linear', 'ease-in', 'ease-out', 'ease-in-out']),
+  direction: z.enum(['left', 'right', 'up', 'down']).optional(),
+  intensity: z.number().optional(),
+});
+
+/**
+ * Zod schema for TextLayer
+ */
+export const TextLayerSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  content: z.string().optional(), // Legacy compatibility
+  style: TextStyleSchema,
+  animation: TextAnimationSchema.optional(),
+  position: z.object({
+    x: z.number(),
+    y: z.number(),
+  }),
+  size: z.object({
+    width: z.number(),
+    height: z.number(),
+  }).optional(),
+  startTime: z.number().nonnegative().optional(),
+  duration: z.number().positive().optional(),
+  // Legacy fields
+  font: z.string().optional(),
+  fontSize: z.number().optional(),
+  color: z.string().optional(),
+  alignment: z.enum(['left', 'center', 'right']).optional(),
+});
+
+/**
+ * Zod schema for Transition
+ */
+export const TransitionSchema = z.object({
+  type: z.string(),
+  duration: z.number().nonnegative(),
+  params: z.record(z.string(), z.any()).optional(),
+});
+
 export const VoiceParametersSchema = z.object({
   voiceType: z.enum(['male', 'female', 'neutral']),
   speed: z.number().min(0.5).max(2.0),
@@ -243,7 +362,7 @@ export const ShotSchema = z.object({
     prompt: z.string(),
     negativePrompt: z.string(),
     comfyuiPreset: z.string(),
-    parameters: z.record(z.any()),
+    parameters: z.record(z.string(), z.any()),
     styleReferences: z.array(z.string()),
     seed: z.number().optional(),
     referenceImage: z.string().optional(),
@@ -253,16 +372,16 @@ export const ShotSchema = z.object({
   audioTracks: z.array(z.any()).optional(),
   
   // Visual effects
-  effects: z.array(z.any()).optional(),
+  effects: z.array(EffectSchema).optional(),
   
   // Text layers
-  textLayers: z.array(z.any()).optional(),
+  textLayers: z.array(TextLayerSchema).optional(),
   
   // Keyframe animations
   animations: z.array(z.any()).optional(),
   
   // Transition to next shot
-  transitionOut: z.any().optional(),
+  transitionOut: TransitionSchema.optional(),
   
   // Metadata and legacy fields
   metadata: z.record(z.any()).optional(),
@@ -436,7 +555,7 @@ export const ProjectSchema = z.object({
   }).optional(),
   
   // Metadata
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   global_resume: z.string().optional(),
 });
 
@@ -454,5 +573,5 @@ export function isDialoguePhraseValid(phrase: DialoguePhrase): boolean {
 }
 
 export function hasValidPrompts(shots: Shot[]): boolean {
-  return shots.every(shot => isValidPrompt(shot.prompt));
+  return shots.every(shot => isValidPrompt(shot.prompt || ''));
 }

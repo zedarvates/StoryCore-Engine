@@ -4,6 +4,7 @@ import { LandingPageWithHooks } from '@/pages/LandingPageWithHooks';
 import { ProjectDashboardPage } from '@/pages/ProjectDashboardPage';
 import { EditorPageSimple } from '@/pages/EditorPageSimple';
 import { DetachedChatPage } from '@/pages/DetachedChatPage';
+import ImageEnhancementPanel from '@/components/ImageEnhancementPanel';
 
 /**
  * Application Router Configuration
@@ -26,6 +27,10 @@ const routes: RouteObject[] = [
       {
         path: 'project/:projectId/editor/:sequenceId',
         element: <EditorPageSimple />,
+      },
+      {
+        path: 'experimental-ai',
+        element: <ImageEnhancementPanel />,
       },
       {
         path: '*',

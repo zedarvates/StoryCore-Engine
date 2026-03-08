@@ -5,17 +5,27 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/storycore-icon.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/storycore-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="
-      default-src 'self' file:;
-      script-src 'self' 'unsafe-inline' 'unsafe-eval' file:;
-      style-src 'self' 'unsafe-inline' file:;
-      img-src 'self' data: blob: http://localhost:* http://127.0.0.1:* file:;
-      font-src 'self' data: file:;
-      connect-src 'self' http://localhost:* http://127.0.0.1:* https://api.openai.com https://api.anthropic.com;
-      worker-src 'self' blob: file:;
-      child-src 'self' blob: file:;
-    ">
-    <title>StoryCore Creative Studio</title>
+    
+    <!-- SEO & Discoverability -->
+    <title>StoryCore Creative Studio | AI Multimodal Production Engine</title>
+    <meta name="description" content="StoryCore Engine: The self-correcting multimodal video production pipeline. Transform scripts into cinematic experiences with visual coherence and autonomous quality control." />
+    <meta name="keywords" content="AI video generation, cinematic AI, story engine, multimodal AI, ComfyUI, automated video production, visual coherence" />
+    <meta name="author" content="StoryCore Engine Team" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://storycore-engine.ai/" />
+    <meta property="og:title" content="StoryCore Creative Studio | The Future of AI Cinema" />
+    <meta property="og:description" content="Professional-grade AI video production with guaranteed visual coherence and 100% local processing." />
+    <meta property="og:image" content="/assets/og-preview.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://storycore-engine.ai/" />
+    <meta property="twitter:title" content="StoryCore Creative Studio" />
+    <meta property="twitter:description" content="The self-correcting multimodal video production pipeline for professional creators." />
+    <meta property="twitter:image" content="/assets/og-preview.png" />
   </head>
   <body class="dark">
     <div id="root"></div>

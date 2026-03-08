@@ -18,7 +18,9 @@ import {
   UserSquare2,
   Activity,
   Server,
-  Loader2
+  Loader2,
+  Zap,
+  Bot
 } from 'lucide-react';
 import { aiPerformanceService, QueueStats, CacheStats } from '@/services/aiPerformanceService';
 import { discoveryService, DiscoveryAnalysis } from '@/services/discoveryService';
@@ -27,6 +29,10 @@ import { sequencePlanService, SequencePlanData } from '@/services/sequencePlanSe
 import { automationService, PaperEditResponse, SocialMediaAdaptResponse } from '@/services/automationService';
 import { CastStudio } from '../CastStudio/CastStudio';
 import { Shot } from '@/types';
+import { AgentDashboard } from './AgentDashboard';
+
+import { gemRewardService } from '@/services/gemRewardService';
+import { useAppStore } from '@/stores/useAppStore';
 
 export const DiscoveryLab: React.FC = () => {
   const [content, setContent] = useState('');
@@ -38,7 +44,16 @@ export const DiscoveryLab: React.FC = () => {
   const [creatingSequence, setCreatingSequence] = useState(false);
   const [sequenceCreated, setSequenceCreated] = useState(false);
   const [createdPlan, setCreatedPlan] = useState<SequencePlanData | null>(null);
-  const [view, setView] = useState<'discovery' | 'assembler' | 'narrative_lab' | 'distribution_hub' | 'casting' | 'performance'>('discovery');
+  const [view, setView] = useState<'discovery' | 'assembler' | 'narrative_lab' | 'distribution_hub' | 'casting' | 'performance' | 'effort_analysis' | 'agent_economy'>('discovery');
+
+  // Phase 4: AI Effort Analysis States
+  const [effortText, setEffortText] = useState('');
+  const [contributionType, setContributionType] = useState('bug_report');
+  const [analyzingEffort, setAnalyzingEffort] = useState(false);
+  const [effortResult, setEffortResult] = useState<{ gems_awarded: number, analysis: { effort: number, impact_multiplier: number, agent: string } } | null>(null);
+
+  const currentProjectId = useAppStore(state => state.project?.id || 'storycore-main');
+  console.log("Labo actif pour le projet:", currentProjectId);
 
   // Phase 2 & 3 States
   const [paperEdit, setPaperEdit] = useState<PaperEditResponse | null>(null);
@@ -170,6 +185,26 @@ export const DiscoveryLab: React.FC = () => {
     }
   };
 
+  const handleAnalyzeEffort = async () => {
+    if (!effortText.trim()) return;
+    setAnalyzingEffort(true);
+    setError(null);
+    try {
+      const result = await gemRewardService.analyzeContribution(
+        'storycore-studio',
+        'current-user', // In real app, get from auth
+        effortText,
+        contributionType
+      );
+      setEffortResult(result);
+    } catch (err) {
+      console.error("Effort analysis failed:", err);
+      setError("Échec de l'analyse d'effort Gem Protocol.");
+    } finally {
+      setAnalyzingEffort(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#020617] text-slate-200 overflow-hidden font-sans">
       {/* Header Area */}
@@ -275,6 +310,26 @@ export const DiscoveryLab: React.FC = () => {
                 <span className="text-[10px] font-bold uppercase tracking-wider">Performance</span>
               </div>
               <p className="text-xs text-slate-300 group-hover:text-white">Rapport d'efficacité IA (Phase 9)</p>
+            </button>
+            <button 
+              onClick={() => setView('effort_analysis')}
+              className="p-3 bg-slate-900 border border-slate-800 rounded-xl hover:bg-emerald-900/10 hover:border-emerald-800/50 transition-all text-left group"
+            >
+              <div className="flex items-center gap-2 text-emerald-400 mb-1">
+                <Zap className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">Humain</span>
+              </div>
+              <p className="text-xs text-slate-300 group-hover:text-white">Analyse d'Effort (Phase 4)</p>
+            </button>
+            <button 
+              onClick={() => setView('agent_economy')}
+              className="p-3 bg-slate-900 border border-slate-800 rounded-xl hover:bg-violet-900/10 hover:border-violet-800/50 transition-all text-left group col-span-2 shadow-inner shadow-violet-500/10"
+            >
+              <div className="flex items-center gap-2 text-violet-400 mb-1">
+                <Bot className="w-4 h-4" />
+                <span className="text-[10px] font-bold uppercase tracking-wider">Agent Economy</span>
+              </div>
+              <p className="text-xs text-slate-300 group-hover:text-white">Tableau de bord des Agents autonomes (Phase 4 & 5)</p>
             </button>
           </div>
         </div>
@@ -702,6 +757,118 @@ export const DiscoveryLab: React.FC = () => {
                 <button className="px-6 py-2 bg-white text-slate-900 rounded-xl font-bold hover:bg-slate-100 transition-all">BOOST MULTI-NODE</button>
               </div>
             </div>
+          )}
+
+          {/* PHASE 4: GEM EFFORT ANALYSIS VIEW */}
+          {view === 'effort_analysis' && (
+            <div className="animate-in fade-in slide-in-from-right-8 duration-500 space-y-6 overflow-y-auto pb-20 px-4">
+              <div className="flex items-center justify-between">
+                <button 
+                  onClick={() => setView('discovery')}
+                  className="text-[10px] text-slate-500 uppercase font-bold hover:text-white transition-colors flex items-center gap-1"
+                >
+                  ← Retour au Labo
+                </button>
+                <div className="px-3 py-1 bg-emerald-600 rounded-full text-[10px] font-bold text-white uppercase tracking-widest">
+                  Phase 4 : Quantification d'Effort (Gem Protocol)
+                </div>
+              </div>
+
+              <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6">
+                <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                  <Brain className="w-6 h-6 text-emerald-400" /> Labo de Découverte d'Effort
+                </h2>
+                <p className="text-sm text-slate-400 mb-8">
+                  Soumettez vos contributions (code, bug hunters, idées) pour une analyse par IA. Le protocole transformera votre effort intellectuel en Gemmes.
+                </p>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[10px] text-slate-500 uppercase font-black mb-2 block">Nature de la Contribution</label>
+                    <div className="flex gap-2">
+                      {['bug_report', 'bug_fix', 'feature_idea', 'documentation'].map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setContributionType(type)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            contributionType === type 
+                              ? 'bg-emerald-600 text-white' 
+                              : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                          }`}
+                        >
+                          {type.replace('_', ' ').toUpperCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-500 uppercase font-black mb-2 block">Détails de l'Effort</label>
+                    <textarea
+                      value={effortText}
+                      onChange={(e) => setEffortText(e.target.value)}
+                      placeholder="Décrivez ce que vous avez accompli, le problème résolu ou votre idée innovante..."
+                      className="w-full h-40 bg-slate-950 border border-slate-800 rounded-xl p-4 text-sm leading-relaxed resize-none focus:ring-2 focus:ring-emerald-600 outline-none transition-all"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleAnalyzeEffort}
+                    disabled={analyzingEffort || !effortText.trim()}
+                    className={`w-full py-4 rounded-xl flex items-center justify-center gap-3 font-bold text-white transition-all shadow-xl ${
+                      analyzingEffort 
+                        ? 'bg-slate-800 cursor-not-allowed opacity-50' 
+                        : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 shadow-emerald-500/20'
+                    }`}
+                  >
+                    {analyzingEffort ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" /> ANALYSER & RÉCOMPENSER L'EFFORT
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {effortResult && (
+                  <div className="mt-8 p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl animate-in zoom-in-95 duration-500">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-bold text-emerald-400">Rapport de Quantification</h3>
+                      <div className="text-2xl font-black text-white">+{effortResult.gems_awarded} 💎</div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Score d'Effort</p>
+                        <p className="text-xl font-black text-white">{effortResult.analysis.effort}/10</p>
+                      </div>
+                      <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
+                        <p className="text-[10px] text-slate-500 uppercase font-bold mb-1">Impact Multiplier</p>
+                        <p className="text-xl font-black text-white">x{effortResult.analysis.impact_multiplier}</p>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-400 italic text-center">
+                      "L'agent <strong>{effortResult.analysis.agent}</strong> a validé votre contribution. Vos Gemmes sont prêtes pour le cycle de compute."
+                    </p>
+                  </div>
+                )}
+              </div>
+
+               <div className="p-6 bg-violet-900/10 border border-violet-500/20 rounded-2xl">
+                <h3 className="text-sm font-bold text-violet-300 mb-2">Pourquoi quantifier l'effort ?</h3>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Le protocole Gem ne se contente pas de mesurer le temps passé. Il analyse la complexité via LLM 
+                  pour garantir une redistribution équitable de la valeur produite.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* AGENT ECONOMY DASHBOARD */}
+          {view === 'agent_economy' && (
+            <AgentDashboard />
           )}
         </div>
       </div>

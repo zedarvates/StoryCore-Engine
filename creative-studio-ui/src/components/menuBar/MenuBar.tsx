@@ -10,7 +10,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Menu } from './Menu';
 import { menuBarConfig } from '../../config/menuBarConfig';
-import { useI18n } from '../../utils/i18n';
+import { useI18n } from '../../utils/i18nCore';
 import { getIconElement } from '../../utils/iconMapper';
 import type { ViewState, UndoStack, ClipboardState } from '../../types/menuBarState';
 import type { Project } from '../../types';
@@ -20,6 +20,8 @@ import { projectExportService } from '../../services/projectExportService';
 import type { MenuItemProps } from './MenuItem';
 import { useToast } from '@/hooks/use-toast';
 import { VoiceStatusHeader } from '../layout/VoiceStatusHeader';
+import { GemWallet } from '../feedback/GemWallet';
+
 
 export interface MenuBarProps {
   /** Current project state */
@@ -249,7 +251,8 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
                 state: getAppState(),
                 services: {
                   persistence: {}, // Placeholder for persistence service
-                  export: projectExportService,
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  export: projectExportService as any,
                   recentProjects: {}, // Placeholder for recent projects service
                   // Notification service
                   notification: {
@@ -329,9 +332,11 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
       ))}
       
       {/* Voice Status Indicator (Requirement: Voice & Transcription) */}
-      <div className="ml-auto flex items-center pr-2">
+      <div className="ml-auto flex items-center pr-2 gap-4">
+        <GemWallet />
         <VoiceStatusHeader />
       </div>
+
     </nav>
   );
 };

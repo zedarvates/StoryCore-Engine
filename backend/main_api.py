@@ -35,6 +35,7 @@ from backend.mvp_endpoints import router as mvp_router
 from backend.scenario_api import router as scenario_router
 from backend.lip_sync_api import router as lip_sync_router
 from backend.ttt_lrm_api import router as ttt_lrm_router
+from backend.story_generation_api import router as story_router
 
 # Configure logging
 logging.basicConfig(
@@ -83,7 +84,14 @@ async def lifespan(app: FastAPI):
     for directory in directories:
         os.makedirs(directory, exist_ok=True)
         logger.info(f"Ensured directory exists: {directory}")
-    
+
+    # 💎 GemReward: Migration des tables DB au démarrage
+    try:
+        from backend.gem_migration import run_gem_migration
+        await run_gem_migration()
+    except Exception as e:
+        logger.warning(f"GemReward migration skipped: {e} (non-fatal, running in mock mode)")
+
     yield
     
     # Shutdown
@@ -209,6 +217,7 @@ app.include_router(llm_router, prefix="/api")
 app.include_router(mvp_router, prefix="/api/mvp")
 app.include_router(scenario_router, prefix="/api")
 app.include_router(lip_sync_router, prefix="/api")
+app.include_router(story_router)
 # Include rigging API router
 from backend.rigging_api import router as rigging_router
 app.include_router(rigging_router, prefix="/api")
@@ -274,12 +283,50 @@ app.include_router(ai_advanced_router)
 from backend.ai_performance_api import router as ai_performance_router
 app.include_router(ai_performance_router)
 
+# Include High-Impact Experimental AI features (Skin Enhancer, SFX, LADI-VTON, OOTD)
+try:
+    from backend.high_impact_api import router as high_impact_router
+    app.include_router(high_impact_router)
+    logger.info("Experimental High-Impact Features registered at /api/v1/experimental")
+except ImportError as e:
+    logger.warning(f"Could not load high_impact_api: {e}")
+
 # Include tttLRM 3D Reconstruction API router
 app.include_router(ttt_lrm_router)
 
 # Include CLI API router
 from backend.cli_api import router as cli_router
 app.include_router(cli_router, prefix="/api")
+
+# ─── 💎 GemReward System ─────────────────────────────────────────────────────
+# Router Gems API (balance, history, stats, leaderboard, tiers)
+try:
+    from backend.gem_api import router as gem_router
+    from backend.gem_api import agent_keys_router, report_router as gem_report_router
+    app.include_router(gem_router)
+    app.include_router(agent_keys_router)
+    app.include_router(gem_report_router)
+    logger.info("💎 GemReward API registered: /api/gems, /api/agent-keys, /api/v1/report/check-dup")
+except ImportError as e:
+    logger.warning(f"GemReward API not available: {e}")
+
+# Router Webhook GitHub (réception des labels gem-awarded, duplicate, etc.)
+try:
+    from backend.webhook_api import router as webhook_router
+    app.include_router(webhook_router)
+    logger.info("💎 GemReward Webhook registered: /api/webhooks/github")
+except ImportError as e:
+    logger.warning(f"GemReward Webhook not available: {e}")
+
+# Router Temps Réel (Notifications WebSockets pour GemWallet, progrès, etc.)
+try:
+    from backend.realtime_api import router as realtime_router
+    app.include_router(realtime_router)
+    logger.info("📡 Real-time WebSocket API registered at /ws")
+except ImportError as e:
+    logger.warning(f"Real-time API not available: {e}")
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 # Include AI Pro API router (Color Grading, Speed Ramping, Scene Detection, etc.)
 try:
@@ -313,6 +360,17 @@ try:
     if recap_engine_router is not None:
         app.include_router(recap_engine_router, prefix="/api/addons/recap_engine")
         logger.info("[Recap Engine] Router registered at /api/addons/recap_engine")
+except ImportError as e:
+    logger.warning(f"[Recap Engine] Could not load router (dependencies may be missing): {e}")
+except Exception as e:
+    logger.warning(f"[Recap Engine] Router registration skipped: {e}")
+
+# Include Credits Screen addon router
+try:
+    from addons.official.credits_screen.src.main import router as credits_screen_router
+    if credits_screen_router is not None:
+        app.include_router(credits_screen_router) # Prefix already defined in router
+        logger.info("[Credits Screen] Router registered at /api/addons/credits_screen")
 except ImportError as e:
     logger.warning(f"[Recap Engine] Could not load router (dependencies may be missing): {e}")
 except Exception as e:
@@ -402,6 +460,6 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8080,
         reload=True,
+        reload_dirs=["backend", "src"],
         log_level="info"
     )
-

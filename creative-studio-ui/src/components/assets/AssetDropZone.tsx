@@ -4,11 +4,14 @@
  * Requirements: 10.1, 10.2, 10.3, 10.4, 10.5
  */
 
-import { useState, useCallback, DragEvent, ReactNode } from 'react';
-import { AssetService } from '@/services/asset/AssetService';
+import { useState, useCallback, useMemo, DragEvent, ReactNode } from 'react';
+import { AssetService } from '@/services/assets/AssetService';
 import type { ImportResult } from '@/types/asset';
 import { useToast } from '../../hooks/use-toast';
 import { UploadCloudIcon } from 'lucide-react';
+
+// Supported file extensions
+const SUPPORTED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.mp3', '.wav', '.mp4', '.mov'];
 
 export interface AssetDropZoneProps {
   projectPath: string;
@@ -30,10 +33,7 @@ export function AssetDropZone({
   const [isDragOver, setIsDragOver] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
-  const assetService = new AssetService();
-
-  // Supported file extensions
-  const SUPPORTED_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.mp3', '.wav', '.mp4', '.mov'];
+  const assetService = useMemo(() => new AssetService(), []);
 
   /**
    * Validates if files are droppable (supported types)
@@ -151,15 +151,15 @@ export function AssetDropZone({
       const results = await assetService.importAssets(
         valid,
         projectPath,
-        (current, total, filename) => {
+        (_current: number, _total: number, _filename: string) => {
           // Progress tracking could be shown in a toast or progress indicator
           ;
         }
       );
 
       // Count successes and failures
-      const successCount = results.filter((r) => r.success).length;
-      const failureCount = results.filter((r) => !r.success).length;
+      const successCount = results.filter((r: ImportResult) => r.success).length;
+      const failureCount = results.filter((r: ImportResult) => !r.success).length;
 
       // Show success notification
       if (successCount > 0) {

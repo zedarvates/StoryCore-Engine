@@ -4,26 +4,44 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { useVideoEditor } from '@contexts/VideoEditorContext';
-import { AudioClip, Track, Clip } from '../../../types/video-editor';
+import { useVideoEditor } from '../../../contexts/VideoEditorContext';
+import { Track, Clip } from '../../../types/video-editor';
+import { cinematicAudioService } from '../../../services/CinematicAudioService';
 import './AudioMixerPanel.css';
 
+const VolumeSlider: React.FC<{
+  value: number;
+  onChange: (value: number) => void;
+  label?: string;
+  color?: string;
+}> = ({ value, onChange, label, color }) => (
+  <div className="volume-slider">
+    {label && <span className="slider-label">{label}</span>}
+    <label className="sr-only" htmlFor={`volume-${label || 'slider'}`}>{label || 'Volume'}</label>
+    <input
+      id={`volume-${label || 'slider'}`}
+      type="range"
+      className="volume-range"
+      min={0}
+      max={100}
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number.parseInt(e.target.value))}
+      style={{ accentColor: color || '#007bff' }}
+      aria-label={label || 'Volume slider'}
+    />
+    <span className="slider-value">{value}%</span>
+  </div>
+);
+
 export const AudioMixerPanel: React.FC = () => {
-  const { tracks, clips, updateClip, updateTrack } = useVideoEditor();
+  const { tracks, clips, updateTrack } = useVideoEditor();
   const [masterVolume, setMasterVolume] = useState(80);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [sfxPrompt, setSfxPrompt] = useState("");
+  const [activeTab, setActiveTab] = useState<'mixer' | 'ai'>('mixer');
 
   const audioTracks = tracks.filter((t: Track) => t.type === 'audio');
-  const audioClips = clips.filter((c: Clip): c is AudioClip => 'volume' in c);
-
-  const handleVolumeChange = useCallback(
-    (clipId: string, newVolume: number) => {
-      const clip = clips.find((c: Clip) => c.id === clipId);
-      if (clip && 'volume' in clip) {
-        updateClip(clipId, { volume: newVolume / 100 } as Partial<Clip>);
-      }
-    },
-    [clips, updateClip]
-  );
+  const videoClips = clips.filter((c: Clip) => !('volume' in c));
 
   const handleTrackVolumeChange = useCallback(
     (trackId: string, newVolume: number) => {
@@ -32,29 +50,37 @@ export const AudioMixerPanel: React.FC = () => {
     [updateTrack]
   );
 
-  const VolumeSlider: React.FC<{
-    value: number;
-    onChange: (value: number) => void;
-    label?: string;
-    color?: string;
-  }> = ({ value, onChange, label, color }) => (
-    <div className="volume-slider">
-      {label && <span className="slider-label">{label}</span>}
-      <label className="sr-only" htmlFor={`volume-${label || 'slider'}`}>{label || 'Volume'}</label>
-      <input
-        id={`volume-${label || 'slider'}`}
-        type="range"
-        className="volume-range"
-        min={0}
-        max={100}
-        value={value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number.parseInt(e.target.value))}
-        style={{ accentColor: color || '#007bff' }}
-        aria-label={label || 'Volume slider'}
-      />
-      <span className="slider-value">{value}%</span>
-    </div>
-  );
+  const handleGenerateSFX = async () => {
+    if (!sfxPrompt) return;
+    setIsGenerating(true);
+    try {
+      const result = await cinematicAudioService.generateSFX(sfxPrompt);
+      if (result.success) {
+        console.log('SFX Generated:', result.url);
+        // Add to media library (mock)
+      }
+    } finally {
+      setIsGenerating(false);
+      setSfxPrompt("");
+    }
+  };
+
+  const handleV2ASync = async () => {
+    setIsGenerating(true);
+    try {
+      // Analyze video clips to find motion events
+      const analysisPrompt = videoClips.length > 0 
+        ? `Generate synchronized foley for ${videoClips.length} clips with varying motion intensity.`
+        : "Generate ambient city soundscape with distant traffic and wind.";
+      
+      const result = await cinematicAudioService.syncVideoAudio(analysisPrompt);
+      if (result.success) {
+        console.log('V2A Sync Completed:', result.url);
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="audio-mixer-panel">
@@ -62,77 +88,112 @@ export const AudioMixerPanel: React.FC = () => {
         <h3>Audio Mixer</h3>
       </div>
 
+      <div className="panel-tabs">
+        <button 
+          className={`mixer-tab ${activeTab === 'mixer' ? 'active' : ''}`}
+          onClick={() => setActiveTab('mixer')}
+        >
+          Mixer
+        </button>
+        <button 
+          className={`mixer-tab ${activeTab === 'ai' ? 'active' : ''}`}
+          onClick={() => setActiveTab('ai')}
+        >
+          AI Tools ✨
+        </button>
+      </div>
+
       <div className="panel-content">
-        <div className="mixer-section">
-          <h4>Master Audio</h4>
-          <VolumeSlider
-            value={masterVolume}
-            onChange={setMasterVolume}
-            color="#28a745"
-            label="Master"
-          />
-        </div>
+        {activeTab === 'mixer' && (
+          <>
+            <div className="mixer-section">
+              <h4>Master Audio</h4>
+              <VolumeSlider
+                value={masterVolume}
+                onChange={setMasterVolume}
+                color="#28a745"
+                label="Master"
+              />
+            </div>
 
-        <div className="mixer-section">
-          <h4>Track Volumes</h4>
-          {audioTracks.length === 0 ? (
-            <p className="empty-message">No audio tracks</p>
-          ) : (
-            audioTracks.map((track: Track) => (
-              <div key={track.id} className="track-volume">
-                <VolumeSlider
-                  value={Math.round((track.volume || 1) * 100)}
-                  onChange={(v: number) => handleTrackVolumeChange(track.id, v)}
-                  label={track.name}
-                  color="#50C878"
-                />
+            <div className="mixer-section">
+              <h4>Track Volumes</h4>
+              {audioTracks.length === 0 ? (
+                <p className="empty-message">No audio tracks</p>
+              ) : (
+                audioTracks.map((track: Track) => (
+                  <div key={track.id} className="track-volume">
+                    <VolumeSlider
+                      value={Math.round((track.volume || 1) * 100)}
+                      onChange={(v: number) => handleTrackVolumeChange(track.id, v)}
+                      label={track.name}
+                      color="#50C878"
+                    />
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mixer-section">
+              <h4>Audio Effects</h4>
+              <div className="effect-buttons">
+                <button className="effect-btn" title="Normalize">📊 Normalize</button>
+                <button className="effect-btn" title="Compress">📉 Compress</button>
+                <button className="effect-btn" title="EQ">🎚️ EQ</button>
+                <button className="effect-btn" title="Reverb">🔊 Reverb</button>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          </>
+        )}
 
-        <div className="mixer-section">
-          <h4>Clip Volumes</h4>
-          {audioClips.length === 0 ? (
-            <p className="empty-message">No audio clips</p>
-          ) : (
-            audioClips.map((clip: AudioClip) => (
-              <div key={clip.id} className="clip-volume">
-                <VolumeSlider
-                  value={Math.round((clip.volume || 1) * 100)}
-                  onChange={(v: number) => handleVolumeChange(clip.id, v)}
-                  label={`Clip ${clip.id.slice(-4)}`}
-                  color="#F39C12"
-                />
-              </div>
-            ))
-          )}
-        </div>
+        {activeTab === 'ai' && (
+          <div className="mixer-section ai-tools-section">
+            <h4>✨ Cinematic AI Audio</h4>
+            <div className="ai-sfx-generator">
+              <input 
+                type="text" 
+                placeholder="Describe sound effect (e.g. Cinematic Boom)"
+                value={sfxPrompt}
+                onChange={(e) => setSfxPrompt(e.target.value)}
+                className="ai-input"
+                disabled={isGenerating}
+              />
+              <button 
+                className="ai-gen-btn" 
+                onClick={handleGenerateSFX}
+                disabled={isGenerating || !sfxPrompt}
+              >
+                {isGenerating ? "⏳..." : "Generate SFX"}
+              </button>
+            </div>
+            
+            <div className="ai-actions">
+              <button 
+                className={`ai-action-btn ${isGenerating ? 'loading' : ''}`} 
+                title="Sync Foley to Video"
+                onClick={handleV2ASync}
+                disabled={isGenerating}
+              >
+                🎬 V2A Sync
+              </button>
+              <button className="ai-action-btn" title="Remove Background Noise">
+                🌊 AI De-noise
+              </button>
+              <button className="ai-action-btn" title="Separate Vocals">
+                 🎤 AI Stem Split
+              </button>
+            </div>
 
-        <div className="mixer-section">
-          <h4>Audio Effects</h4>
-          <div className="effect-buttons">
-            <button className="effect-btn" title="Normalize">
-              📊 Normalize
-            </button>
-            <button className="effect-btn" title="Compress">
-              📉 Compress
-            </button>
-            <button className="effect-btn" title="EQ">
-              🎚️ EQ
-            </button>
-            <button className="effect-btn" title="Reverb">
-              🔊 Reverb
-            </button>
-            <button className="effect-btn" title="Noise Reduction">
-              🔇 De-noise
-            </button>
+            <div className="ai-status">
+               <p className="status-text">
+                 {isGenerating ? "StoryCore AI is crafting soundscapes..." : "Ready to generate cinematic audio."}
+               </p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default AudioMixerPanel;
-

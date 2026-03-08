@@ -1,10 +1,22 @@
-/**
- * Timeline Slice - Redux state management for timeline, shots, tracks, markers, and regions
- * Requirements: 1.1, 1.3, 1.8, 19.1
- */
-
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type { TimelineState, Shot, Track, ReferenceImage, TimelineMarker, TimelineRegion, Layer, StyleApplication, StyleParameters, Annotation, AnnotationReply } from '../../types';
+import { v4 as uuidv4 } from 'uuid';
+import type { 
+  TimelineState, 
+  Shot, 
+  Track, 
+  ReferenceImage, 
+  TimelineMarker, 
+  TimelineRegion, 
+  Layer, 
+  StyleApplication, 
+  StyleParameters, 
+  Annotation, 
+  AnnotationReply, 
+  TimelineKeyframe,
+  MediaLayerData,
+  TextLayerData,
+  AudioLayerData
+} from '../../types';
 
 // Default track configuration
 const DEFAULT_TRACKS: Track[] = [
@@ -50,7 +62,7 @@ const timelineSlice = createSlice({
         state.shots[index] = { ...state.shots[index], ...updates };
         // Recalculate duration if needed
         const maxEnd = Math.max(
-          ...state.shots.map((shot) => shot.startTime + shot.duration)
+          ...state.shots.map((shot) => shot.startTime + shot.duration) || [0]
         );
         state.duration = maxEnd;
       }
@@ -307,7 +319,7 @@ const timelineSlice = createSlice({
       shotIds.forEach((shotId) => {
         const shot = state.shots.find((s) => s.id === shotId);
         if (shot) {
-          shot.visualStyle = { ...styleApplication, shotId } as any;
+          shot.visualStyle = { ...styleApplication, shotId } as StyleApplication;
           shot.modified = true;
         }
       });
@@ -331,11 +343,11 @@ const timelineSlice = createSlice({
       const { shotId, parameters } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot && shot.visualStyle) {
-        shot.visualStyle.parameters = { ...shot.visualStyle.parameters, ...parameters } as any;
+        shot.visualStyle.parameters = { ...shot.visualStyle.parameters, ...parameters } as StyleParameters;
         shot.modified = true;
       }
     },
-    // Transition actions (Phase 1 - R&D)
+    // Transition actions
     addTransition: (state, action: PayloadAction<{ clipId: string; transitionType: string; position: 'in' | 'out'; duration: number }>) => {
       const { clipId, transitionType, position, duration } = action.payload;
       const shot = state.shots.find((s) => s.id === clipId);
@@ -369,6 +381,95 @@ const timelineSlice = createSlice({
         });
         shot.modified = true;
       }
+    },
+    // Keyframe actions
+    togglePropertyKeyframes: (state, action: PayloadAction<{ shotId: string; layerId: string; property: string }>) => {
+      const { shotId, layerId, property } = action.payload;
+      const shot = state.shots.find((s) => s.id === shotId);
+      if (shot) {
+        const layer = shot.layers.find((l) => l.id === layerId);
+        if (layer) {
+          if (!layer.animations) layer.animations = {};
+          if (layer.animations[property]) {
+            delete layer.animations[property];
+          } else {
+            // Add initial keyframe with current value
+            let initialValue = 0;
+            if (property === 'opacity') initialValue = layer.opacity;
+            else if (property.startsWith('transform.')) {
+              const transformProperty = property.split('.')[1];
+              const data = layer.data as MediaLayerData | TextLayerData;
+              if (data.transform) {
+                 if (transformProperty === 'rotation') initialValue = data.transform.rotation;
+                 else if (transformProperty === 'position_x') initialValue = data.transform.position?.x || 0;
+                 else if (transformProperty === 'position_y') initialValue = data.transform.position?.y || 0;
+                 else if (transformProperty === 'scale_x') initialValue = data.transform.scale?.x || 1;
+                 else if (transformProperty === 'scale_y') initialValue = data.transform.scale?.y || 1;
+              }
+            } else if (property === 'volume') {
+               initialValue = (layer.data as AudioLayerData).volume || 1;
+            }
+            layer.animations[property] = [{ id: uuidv4(), time: 0, value: initialValue, easing: 'linear' }];
+          }
+        }
+      }
+    },
+    addKeyframe: (state, action: PayloadAction<{ shotId: string; layerId: string; property: string; keyframe: TimelineKeyframe }>) => {
+      const { shotId, layerId, property, keyframe } = action.payload;
+      const shot = state.shots.find((s) => s.id === shotId);
+      if (shot) {
+        const layer = shot.layers.find((l) => l.id === layerId);
+        if (layer) {
+          if (!layer.animations) layer.animations = {};
+          if (!layer.animations[property]) layer.animations[property] = [];
+          
+          // Add or update by ID or time
+          const existingIndex = layer.animations[property].findIndex(k => 
+            (keyframe.id && k.id === keyframe.id) || k.time === keyframe.time
+          );
+          
+          if (existingIndex !== -1) {
+            layer.animations[property][existingIndex] = { 
+              ...layer.animations[property][existingIndex], 
+              ...keyframe,
+              id: layer.animations[property][existingIndex].id // Preserve ID
+            };
+          } else {
+            layer.animations[property].push({ ...keyframe, id: keyframe.id || uuidv4() });
+            layer.animations[property].sort((a, b) => a.time - b.time);
+          }
+        }
+      }
+    },
+    removeKeyframe: (state, action: PayloadAction<{ shotId: string; layerId: string; property: string; id: string }>) => {
+      const { shotId, layerId, property, id } = action.payload;
+      const shot = state.shots.find((s) => s.id === shotId);
+      if (shot) {
+        const layer = shot.layers.find((l) => l.id === layerId);
+        if (layer && layer.animations && layer.animations[property]) {
+          layer.animations[property] = layer.animations[property].filter(k => k.id !== id);
+        }
+      }
+    },
+    updateKeyframe: (state, action: PayloadAction<{ shotId: string; layerId: string; property: string; id: string; updates: Partial<TimelineKeyframe> }>) => {
+      const { shotId, layerId, property, id, updates } = action.payload;
+      const shot = state.shots.find((s) => s.id === shotId);
+      if (shot) {
+        const layer = shot.layers.find((l) => l.id === layerId);
+        if (layer && layer.animations && layer.animations[property]) {
+          const index = layer.animations[property].findIndex(k => k.id === id);
+          if (index !== -1) {
+            layer.animations[property][index] = { ...layer.animations[property][index], ...updates };
+            // Sort in case time changed
+            if (updates.time !== undefined) {
+               layer.animations[property].sort((a,b) => a.time - b.time);
+            }
+          }
+        }
+      }
+    },
+    setActiveKeyframeEditor: (state, action: PayloadAction<TimelineState['activeKeyframeEditor']>) => {
+      state.activeKeyframeEditor = action.payload;
     },
   },
 });
@@ -425,11 +526,14 @@ export const {
   removeStyleFromShot,
   updateStyleIntensity,
   updateStyleParameters,
-  // Transition actions
   addTransition,
   removeTransition,
   updateTransition,
+  togglePropertyKeyframes,
+  addKeyframe,
+  removeKeyframe,
+  updateKeyframe,
+  setActiveKeyframeEditor,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;
-

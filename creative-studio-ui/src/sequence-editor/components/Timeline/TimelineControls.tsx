@@ -16,6 +16,7 @@ import { setPlayheadPosition } from '../../store/slices/timelineSlice';
 import type { LayerType, PlaybackState } from '../../types';
 import { GoToTimeDialog } from './GoToTimeDialog';
 import { GenerateButton } from '../GenerateButton/GenerateButton';
+import { MonitorPlay, Layout } from 'lucide-react';
 
 interface TimelineControlsProps {
   zoomLevel: number;
@@ -24,8 +25,6 @@ interface TimelineControlsProps {
   onDeleteTrack?: () => void;
   playheadPosition: number;
   duration: number; // Total duration in frames
-  onToggleVirtualMode?: () => void;
-  useVirtualMode?: boolean;
   // Edit mode toggles
   snapToGrid?: boolean;
   onToggleSnapToGrid?: () => void;
@@ -35,6 +34,8 @@ interface TimelineControlsProps {
   onToggleMagneticTimeline?: () => void;
   onSplit?: () => void;
   onAutoMix?: () => void;
+  viewMode?: 'timeline' | 'storyboard';
+  onViewModeChange?: (mode: 'timeline' | 'storyboard') => void;
   className?: string;
 }
 
@@ -45,8 +46,6 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   onDeleteTrack,
   playheadPosition,
   duration,
-  onToggleVirtualMode,
-  useVirtualMode = true,
   snapToGrid = true,
   onToggleSnapToGrid,
   rippleEdit = false,
@@ -55,6 +54,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   onToggleMagneticTimeline,
   onSplit,
   onAutoMix,
+  viewMode = 'timeline',
+  onViewModeChange,
 }) => {
   const dispatch = useAppDispatch();
   const [showAddTrackMenu, setShowAddTrackMenu] = useState(false);
@@ -403,19 +404,28 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
       </div>
 
       {/* Virtual mode toggle (for large timelines) */}
-      {onToggleVirtualMode && (
-        <div className="timeline-controls-group" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div className="timeline-controls-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+        <div className="view-mode-toggle" style={{ display: 'flex', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
           <button
-            className={`timeline-control-btn toggle-btn ${useVirtualMode ? 'active' : ''}`}
-            onClick={onToggleVirtualMode}
-            title="Toggle virtual scrolling mode"
+            className={`timeline-control-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+            onClick={() => onViewModeChange?.('timeline')}
+            title="Timeline View"
+            style={{ borderRadius: 0, padding: '4px 8px' }}
           >
-            <span className="toggle-icon">{useVirtualMode ? '⚡' : '🐌'}</span>
-            <span className="toggle-label">{useVirtualMode ? 'Virtual' : 'DOM'}</span>
+            <MonitorPlay className="w-4 h-4" />
           </button>
-          <GenerateButton />
+          <button
+            className={`timeline-control-btn ${viewMode === 'storyboard' ? 'active' : ''}`}
+            onClick={() => onViewModeChange?.('storyboard')}
+            title="Storyboard View (Reorder Shots)"
+            style={{ borderRadius: 0, padding: '4px 8px' }}
+          >
+            <Layout className="w-4 h-4" />
+          </button>
         </div>
-      )}
+
+        <GenerateButton />
+      </div>
 
       {/* Go to Time Dialog */}
       <GoToTimeDialog

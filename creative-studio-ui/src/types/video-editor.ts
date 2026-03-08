@@ -278,12 +278,28 @@ export interface ClipEffect {
   params: Record<string, unknown>;
 }
 
+export interface AIEnhancementSettings {
+  skinEnhancer?: {
+    enabled: boolean;
+    smoothing: number;
+    preserveTexture: boolean;
+    removeBlemishes: boolean;
+  };
+  relighting?: {
+    enabled: boolean;
+    type: string;
+    intensity: number;
+    colorTemperature?: number;
+  };
+}
+
 export interface VideoClip extends Clip {
   transform?: Transform;
   colorCorrection?: ColorCorrection;
   filters?: Filter[];
   speed?: number;
   reverse?: boolean;
+  aiEnhancement?: AIEnhancementSettings;
 }
 
 export interface AudioClip extends Clip {

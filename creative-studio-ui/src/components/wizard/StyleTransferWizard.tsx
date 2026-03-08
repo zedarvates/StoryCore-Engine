@@ -23,16 +23,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Progress } from '../../components/ui/progress';
 import { Alert, AlertDescription } from '../../components/ui/alert';
 import { Loader2, CheckCircle2, XCircle, ArrowLeft, ArrowRight, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const TOTAL_STEPS = 4;
 
 export const StyleTransferWizard: React.FC<StyleTransferWizardProps> = ({
-  projectPath,
   initialMode = StyleTransferMode.WORKFLOW,
   onComplete,
   onCancel,
   onError
 }) => {
+  const { toast } = useToast();
   const [state, setState] = useState<StyleTransferWizardState>({
     currentStep: 1,
     totalSteps: TOTAL_STEPS,
@@ -89,7 +90,8 @@ export const StyleTransferWizard: React.FC<StyleTransferWizardProps> = ({
         updateState({
           progress: {
             message: i < 100 ? 'Processing...' : 'Complete!',
-            percentage: i
+            percentage: i,
+            status: i < 100 ? 'processing' : 'completed'
           }
         });
       }
@@ -108,8 +110,13 @@ export const StyleTransferWizard: React.FC<StyleTransferWizardProps> = ({
         isProcessing: false 
       });
       onError?.(errorMessage);
+      toast({
+        title: "Style Transfer Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
-  }, [state.mode, state.workflowConfig, state.promptConfig, updateState, onComplete, onError]);
+  }, [state.mode, state.workflowConfig, state.promptConfig, updateState, onComplete, onError, toast]);
 
   const handleReset = useCallback(() => {
     updateState({

@@ -552,6 +552,65 @@ export const SEQUENCE_TEMPLATES: SequenceTemplate[] = [
   },
 
   // ============================================================================
+  // YouTube Shorts / Social Media
+  // ============================================================================
+  {
+    id: 'youtube-shorts-story',
+    name: 'YouTube Shorts AI Story',
+    description: 'Fast-paced viral structure with Narrator (Voice-off) and Rewind effect for recaps and multi-take storytelling.',
+    category: 'youtube-shorts',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(
+          1,
+          'The Hook (Narrator)',
+          'Instant attention grabber with Voice-off Narration setting the stage',
+          5, // 5 seconds
+          'Hook'
+        ),
+        createActTemplate(
+          2,
+          'The Fail / Twist',
+          'Unexpected event or setup that requires a rewind',
+          15, // 15 seconds
+          'Engagement'
+        ),
+        createActTemplate(
+          3,
+          'The Rewind (Effect)',
+          'Rewind moment with SFX to retry or recap the story',
+          2, // 2 seconds
+          'Special Effect'
+        ),
+        createActTemplate(
+          4,
+          'The Real Story',
+          'The actual payoff or conclusion after the rewind',
+          30, // 30 seconds
+          'Payoff'
+        ),
+        createActTemplate(
+          5,
+          'Viral Outro',
+          'Call to action and engagement prompt',
+          8, // 8 seconds
+          'Conversion'
+        ),
+      ],
+      defaultSceneCount: 3,
+      defaultShotCount: 12,
+    },
+    defaults: {
+      frameRate: 60, // Preferred for shorts
+      resolution: { width: 1080, height: 1920 }, // Mandatory 9:16
+      targetDuration: 60,
+    },
+    previewImage: '/templates/youtube-shorts.svg',
+    tags: ['social', 'mobile', 'vertical', 'narrator', 'rewind', 'viral'],
+  },
+
+  // ============================================================================
   // Brand Showcase Presentation (Commercial Presentation Archetype)
   // ============================================================================
   {
@@ -1098,6 +1157,228 @@ export const SEQUENCE_TEMPLATES: SequenceTemplate[] = [
     previewImage: '/templates/underdog-victory-saga.svg',
     tags: ['sports', 'motivational', 'underdog', 'teamwork', 'victory', 'inspiring'],
   },
+  // ============================================================================
+  // Anniversary Celebration (Personal Growth Archetype)
+  // ============================================================================
+  {
+    id: 'anniversary-celebration',
+    name: 'Anniversary Celebration',
+    description: 'A sentimental journey celebrating years of love, friendship, or achievement. Perfect for wedding anniversaries or company milestones.',
+    category: 'wedding-video',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'The Beginning', 'How it all started - early memories and foundation', 45, 'Origins'),
+        createActTemplate(2, 'Growth & Moments', 'Key highlights and shared experiences over the years', 90, 'Memories'),
+        createActTemplate(3, 'Tributes', 'Messages of love, respect, and shared joy', 60, 'Celebration'),
+        createActTemplate(4, 'The Future', 'Looking forward to more years together', 45, 'Legacy'),
+      ],
+      defaultSceneCount: 8,
+      defaultShotCount: 30,
+    },
+    defaults: {
+      frameRate: 24,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 240,
+    },
+    previewImage: '/templates/anniversary-celebration.svg',
+    tags: ['anniversary', 'celebration', 'romance', 'personal', 'milestone'],
+  },
+
+  // ============================================================================
+  // Vacation Trip Vlog (Lifestyle Archetype)
+  // ============================================================================
+  {
+    id: 'vacation-trip-vlog',
+    name: 'Vacation Trip Vlog',
+    description: 'Dynamic and immersive travel vlog structure capturing the essence of a holiday. Perfect for social media and personal memories.',
+    category: 'adventure-film',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'Departure & Arrival', 'The excitement of the journey and first impressions', 30, 'Setup'),
+        createActTemplate(2, 'Main Highlights', 'Exploring landmarks, local culture, and fun activities', 120, 'Exploration'),
+        createActTemplate(3, 'Food & Atmosphere', 'Capturing local flavors and the vibe of the place', 60, 'Immersion'),
+        createActTemplate(4, 'Sunset & Farewell', 'A beautiful closing to the trip memories', 30, 'Resolution'),
+      ],
+      defaultSceneCount: 10,
+      defaultShotCount: 40,
+    },
+    defaults: {
+      frameRate: 30,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 240,
+    },
+    previewImage: '/templates/vacation-vlog.svg',
+    tags: ['vacation', 'travel', 'vlog', 'lifestyle', 'adventure'],
+  },
+
+  // ============================================================================
+  // Bedtime Series (Kids Storytelling Archetype)
+  // ============================================================================
+  {
+    id: 'bedtime-storytelling',
+    name: 'Bedtime Series',
+    description: 'Calm, soothing, and imaginative structure for children\'s stories. Perfect for episodic bedtime content with a gentle pace.',
+    category: 'narrative',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'Once Upon a Time', 'Introducing the magical world and gentle characters', 60, 'Setup'),
+        createActTemplate(2, 'The Little Adventure', 'A low-stakes, imaginative journey or discovery', 120, 'Adventure'),
+        createActTemplate(3, 'Sweet Dreams', 'Winding down the story with a positive lesson', 60, 'Resolution'),
+      ],
+      defaultSceneCount: 5,
+      defaultShotCount: 15,
+    },
+    defaults: {
+      frameRate: 24,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 240,
+    },
+    previewImage: '/templates/bedtime-series.svg',
+    tags: ['kids', 'bedtime', 'storytelling', 'calm', 'education'],
+  },
+
+  // ============================================================================
+  // Life Milestone Video (Personal Documentary Archetype)
+  // ============================================================================
+  {
+    id: 'life-milestone-video',
+    name: 'Life Milestone',
+    description: 'A comprehensive tribute to a significant life event like graduation, retirement, or a major birthday.',
+    category: 'biography',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'The Foundation', 'Early days leading up to the milestone', 60, 'Background'),
+        createActTemplate(2, 'The Achievement', 'The core effort or journey being celebrated', 120, 'Core Story'),
+        createActTemplate(3, 'Celebration Day', 'Capturing the event itself and its impact', 90, 'Event'),
+        createActTemplate(4, 'Looking Ahead', 'Future aspirations and words of wisdom', 45, 'Outcome'),
+      ],
+      defaultSceneCount: 12,
+      defaultShotCount: 45,
+    },
+    defaults: {
+      frameRate: 24,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 315,
+    },
+    previewImage: '/templates/life-milestone.svg',
+    tags: ['milestone', 'tribute', 'graduation', 'retirement', 'biography'],
+  },
+
+  // ============================================================================
+  // Horror Suspense Film (Genre Cinema Archetype)
+  // ============================================================================
+  {
+    id: 'horror-suspense-film',
+    name: 'Horror Suspense',
+    description: 'Tense, atmospheric structure designed to build dread and deliver impactful scares. Perfect for short horror films.',
+    category: 'mystery-thriller',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'Eerie Silence', 'Establishing a creepy atmosphere and subtle warning signs', 60, 'Establishment'),
+        createActTemplate(2, 'Building Dread', 'Rising tension through unexplained events and isolation', 120, 'Rising Suspense'),
+        createActTemplate(3, 'The Confrontation', 'The terrifying peak where characters face the threat', 90, 'Climax'),
+        createActTemplate(4, 'The Aftermath', 'A chilling conclusion or a twist ending', 30, 'Stinger'),
+      ],
+      defaultSceneCount: 8,
+      defaultShotCount: 40,
+    },
+    defaults: {
+      frameRate: 24,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 300,
+    },
+    previewImage: '/templates/horror-film.svg',
+    tags: ['horror', 'suspense', 'thriller', 'scary', 'cinema'],
+  },
+
+  // ============================================================================
+  // Action Packed Thriller (Genre Cinema Archetype)
+  // ============================================================================
+  {
+    id: 'action-packed-thriller',
+    name: 'Action Thriller',
+    description: 'High-octane structure with fast-paced cuts, chases, and intense combat sequences. Designed for maximum energy.',
+    category: 'narrative',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'The Hook', 'An explosive opening that sets the stakes high immediately', 45, 'Hook'),
+        createActTemplate(2, 'The Chase', 'Intense movement, pursuit, and escalating obstacles', 120, 'Action Development'),
+        createActTemplate(3, 'The Showdown', 'The ultimate fight or high-stakes confrontation', 90, 'Climax'),
+        createActTemplate(4, 'Escape & Victory', 'Resolution of the immediate threat', 45, 'Resolution'),
+      ],
+      defaultSceneCount: 12,
+      defaultShotCount: 60,
+    },
+    defaults: {
+      frameRate: 30,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 300,
+    },
+    previewImage: '/templates/action-thriller.svg',
+    tags: ['action', 'thriller', 'fast-paced', 'combat', 'cinema'],
+  },
+
+  // ============================================================================
+  // Manga Style Episode (Anime Archetype)
+  // ============================================================================
+  {
+    id: 'manga-style-episode',
+    name: 'Manga Episode',
+    description: 'Faithful adaptation of manga storytelling beats - focused on internal monologue, dynamic transformations, and epic battles.',
+    category: 'anime-styles',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'Daily Life / Setup', 'Introduction with manga-style aesthetics and inner thoughts', 60, 'Setup'),
+        createActTemplate(2, 'The Incident', 'Challenge arises, pushing the protagonist to their limits', 90, 'Inciting Incident'),
+        createActTemplate(3, 'Transformation / Peak', 'The pivotal power-up or emotional breakthrough', 60, 'Climax'),
+        createActTemplate(4, 'Cliffhanger', 'Teasing the next chapter with intense anticipation', 30, 'Epilogue'),
+      ],
+      defaultSceneCount: 10,
+      defaultShotCount: 45,
+    },
+    defaults: {
+      frameRate: 24,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 240,
+    },
+    previewImage: '/templates/manga-episode.svg',
+    tags: ['manga', 'anime', 'japanese', 'action', 'storytelling'],
+  },
+
+  // ============================================================================
+  // Road Trip Adventure (Travel Narrative Archetype)
+  // ============================================================================
+  {
+    id: 'road-trip-adventure',
+    name: 'Road Trip Adventure',
+    description: 'Capturing the freedom and discovery of the open road. Focused on scenic transitions and character bonding.',
+    category: 'adventure-film',
+    isBuiltIn: true,
+    structure: {
+      acts: [
+        createActTemplate(1, 'Hitting the Road', 'The journey begins - packing, playlists, and departure', 45, 'Start'),
+        createActTemplate(2, 'Unplanned Stops', 'The beauty of side roads and unexpected discoveries', 150, 'The Journey'),
+        createActTemplate(3, 'Deep Conversations', 'Bonding moments under the stars or inside the car', 90, 'Connection'),
+        createActTemplate(4, 'The Destination', 'Arrival and reflection on the journey itself', 45, 'Resolution'),
+      ],
+      defaultSceneCount: 15,
+      defaultShotCount: 50,
+    },
+    defaults: {
+      frameRate: 24,
+      resolution: { width: 1920, height: 1080 },
+      targetDuration: 330,
+    },
+    previewImage: '/templates/road-trip.svg',
+    tags: ['road-trip', 'adventure', 'travel', 'discovery', 'scenic'],
+  },
 ];
 
 // ============================================================================
@@ -1194,6 +1475,12 @@ export const SEQUENCE_TEMPLATE_CATEGORIES = {
     description: 'Motivational sports and competition narratives',
     icon: '🏆',
     templates: SEQUENCE_TEMPLATES.filter(t => t.category === 'sports-story'),
+  },
+  'youtube-shorts': {
+    name: 'YouTube Shorts',
+    description: 'Viral vertical content with Narrator and SFX effects',
+    icon: '🎬',
+    templates: SEQUENCE_TEMPLATES.filter(t => t.category === 'youtube-shorts'),
   },
 } as const;
 

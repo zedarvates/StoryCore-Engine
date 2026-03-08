@@ -114,7 +114,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'vignette',
     name: 'Vignette',
-    type: 'overlay',
+    type: 'filter',
     category: 'artistic',
     description: 'Darkened edges',
     defaultParameters: { amount: 50, softness: 50 },
@@ -122,7 +122,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'film-grain',
     name: 'Film Grain',
-    type: 'overlay',
+    type: 'filter',
     category: 'artistic',
     description: 'Analog film texture',
     defaultParameters: { amount: 30, size: 1 },
@@ -130,7 +130,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'light-leak',
     name: 'Light Leak',
-    type: 'overlay',
+    type: 'filter',
     category: 'artistic',
     description: 'Vintage light effects',
     defaultParameters: { intensity: 40, color: 0 },
@@ -140,7 +140,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'brightness',
     name: 'Brightness',
-    type: 'adjustment',
+    type: 'color-correction',
     category: 'adjustment',
     description: 'Adjust overall brightness',
     defaultParameters: { value: 0 },
@@ -148,7 +148,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'contrast',
     name: 'Contrast',
-    type: 'adjustment',
+    type: 'color-correction',
     category: 'adjustment',
     description: 'Adjust contrast levels',
     defaultParameters: { value: 0 },
@@ -156,7 +156,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'saturation',
     name: 'Saturation',
-    type: 'adjustment',
+    type: 'color-correction',
     category: 'adjustment',
     description: 'Adjust color intensity',
     defaultParameters: { value: 0 },
@@ -164,7 +164,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'exposure',
     name: 'Exposure',
-    type: 'adjustment',
+    type: 'color-correction',
     category: 'adjustment',
     description: 'Adjust exposure levels',
     defaultParameters: { value: 0 },
@@ -172,7 +172,7 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
   {
     id: 'sharpen',
     name: 'Sharpen',
-    type: 'adjustment',
+    type: 'sharpen',
     category: 'adjustment',
     description: 'Enhance edge definition',
     defaultParameters: { amount: 50 },
@@ -321,13 +321,13 @@ function AppliedEffectsList({ shot }: AppliedEffectsListProps) {
   const reorderEffects = useStore((state) => state.reorderEffects);
 
   const handleReorder = (dragIndex: number, hoverIndex: number) => {
-    const newEffects = [...shot.effects];
+    const newEffects = [...(shot.effects || [])];
     const [draggedEffect] = newEffects.splice(dragIndex, 1);
     newEffects.splice(hoverIndex, 0, draggedEffect);
     reorderEffects(shot.id, newEffects);
   };
 
-  if (shot.effects.length === 0) {
+  if (!shot.effects || shot.effects.length === 0) {
     return (
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">Applied Effects</h3>
@@ -349,12 +349,12 @@ function AppliedEffectsList({ shot }: AppliedEffectsListProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Applied Effects</h3>
         <Badge variant="secondary">
-          {shot.effects.length} active
+          {(shot.effects || []).length} active
         </Badge>
       </div>
 
       <div className="space-y-2">
-        {shot.effects.map((effect, index) => (
+        {(shot.effects || []).map((effect, index) => (
           <AppliedEffectItem
             key={effect.id}
             effect={effect}

@@ -166,11 +166,31 @@ interface AudioState {
 
 ## Phase 5: Future Enhancements - OPTIONAL
 
-- [ ] Add waveform visualization to AudioMixerPanel
-- [ ] Add effect preview thumbnails
-- [ ] Add transition preview animations
-- [ ] Add keyboard shortcuts for panel switching
-- [ ] Add undo/redo for effect changes
-- [ ] Add effect presets system
-- [ ] Add batch export functionality
+### 🎨 Visuals & UX
 
+- [x] **Waveform Visualization**: Affichage dynamique des ondes sonores dans le `AudioMixerPanel`.
+- [x] **Thumbnails & Previews**: Génération de vignettes de prévisualisation pour les effets et animations pour les transitions.
+- [x] **Keyboard Shortcuts**: Système complet de raccourcis (ex: `1-6` pour les panneaux de droite, `Tab` pour alterner bas/droite).
+- [x] **Undo/Redo System**: Gestionnaire d'historique robuste pour les changements d'effets et de timeline.
+- [x] **Custom Presets**: Possibilité pour l'utilisateur de sauvegarder ses propres combinaisons d'effets et paramètres d'export. ✅
+
+### 🤖 IA & Automatisation Avancée
+
+- [x] **AI Auto-Director**: Assemblage automatique de séquences basé sur un script ou une humeur (mood-based assembly).
+- [x] **Smart B-Roll Suggestion**: Suggestion automatique de médias d'ambiance basés sur l'analyse sémantique du shot.
+- [x] **Auto-Color Matching**: Harmonisation automatique des couleurs entre différents shots d'une même séquence.
+- [x] **Sentiment-Audio Sync**: Sélection et mixage automatique de la musique basés sur l'émotion détectée dans les dialogues.
+
+### ⚙️ Workflow Professionnel
+
+- [x] **Advanced Keyframing**: Contrôle précis des paramètres d'effets dans le temps avec courbes de Bézier.
+- [x] **Batch Export**: File d'attente d'exportation pour traiter plusieurs projets ou variantes simultanément. ✅
+- [x] **Cloud Rendering Integration**: Déportation des rendus lourds sur le backend via `sequence_api.py`. ✅
+- [x] **Direct Social Publishing**: Boutons d'export directs vers YouTube/TikTok via API après validation du rendu. ✅
+
+### 🌐 Collaboration & Écosystème
+
+- [ ] **Real-time Collaboration**: Présence multi-utilisateurs et édition simultanée de la timeline (WebSockets).
+- [ ] **Plugin SDK**: Documentation et outils pour permettre aux développeurs tiers d'ajouter des effets/transitions.
+- [ ] **Asset Store Integration**: Accès direct aux bibliothèques de stock (image/vidéo/musique) depuis l'onglet Templates.
+- [ ] **Mobile Responsive Editor**: Version allégée de l'interface pour les modifications rapides sur tablette/mobile.

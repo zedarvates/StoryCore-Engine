@@ -29,7 +29,7 @@ export const GaussianSplatViewer: React.FC<GaussianSplatViewerProps> = ({
   // Auto-prefix local paths if needed
   const normalizedUrl = url.startsWith('http') || url.startsWith('blob') 
     ? url 
-    : `file:///${url.replace(/\\/g, '/')}`;
+    : `sc-file:///${url.replace(/\\/g, '/')}`;
 
   return (
     <Box 

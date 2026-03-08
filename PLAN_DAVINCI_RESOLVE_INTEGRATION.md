@@ -120,8 +120,8 @@ Ce document présente un plan complet pour intégrer les fonctionnalités profes
 ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌────────────┐
 │  WAVEFORM  │ │  PARADE    │ │  VECTOR    │ │  HISTOGRAM │
 │            │ │            │ │            │ │            │
-│    ▓▓▓▓    │ │  ▓▓│▓▓│▓▓ │ │     *      │ │   ▓▓▓▓▓    │
-│   ▓▓▓▓▓▓   │ │ ▓▓▓│▓▓│▓▓▓│ │  *    *    │ │  ▓▓▓▓▓▓▓   │
+│    ▓▓▓▓    │ │  ▓▓│▓▓│▓▓  │ │     *      │ │   ▓▓▓▓▓    │
+│   ▓▓▓▓▓▓   │ │ ▓▓▓│▓▓│▓▓▓ │ │  *    *    │ │  ▓▓▓▓▓▓▓   │
 │  ▓▓▓▓▓▓▓▓  │ │▓▓▓▓│▓▓│▓▓▓▓│ │ *   ●   *  │ │ ▓▓▓▓▓▓▓▓▓  │
 │            │ │            │ │            │ │            │
 │  Luma/YUV  │ │  R │ G │ B │ │  Vectors   │ │  RGB/Luma  │
@@ -161,11 +161,11 @@ Ce document présente un plan complet pour intégrer les fonctionnalités profes
 │                     FAIRLIGHT CONSOLE                           │
 ├─────────┬─────────┬─────────┬─────────┬─────────┬───────────────┤
 │ Track 1 │ Track 2 │ Track 3 │ Track 4 │ Track 5 │   MASTER      │
-│   ▓▓▓   │   ▓▓    │  ▓▓▓▓   │   ▓     │  ▓▓▓▓▓  │   ▓▓▓▓▓▓▓▓   │
-│  -6dB  │  -12dB  │  -3dB   │ -18dB  │   0dB   │    -3dB      │
-│ [●][M] │ [●][M]  │ [●][M]  │ [●][M] │ [●][M]  │   [●][M]      │
-│ Pan:●  │ Pan:●   │ Pan:●   │ Pan:●  │ Pan:●   │   Stereo      │
-│  L   R │  L   R  │  L   R  │  L   R │  L   R  │   L      R    │
+│   ▓▓▓   │   ▓▓    │  ▓▓▓▓   │   ▓     │  ▓▓▓▓▓  │   ▓▓▓▓▓▓▓▓    │
+│  -6dB   │  -12dB  │  -3dB   │ -18dB   │   0dB   │    -3dB       │
+│ [●][M]  │ [●][M]  │ [●][M]  │ [●][M]  │ [●][M]  │   [●][M]      │
+│ Pan:●   │ Pan:●   │ Pan:●   │ Pan:●   │ Pan:●   │   Stereo      │
+│  L   R  │  L   R  │  L   R  │  L   R  │  L   R  │   L      R    │
 └─────────┴─────────┴─────────┴─────────┴─────────┴───────────────┘
 ```
 
@@ -207,15 +207,15 @@ Ce document présente un plan complet pour intégrer les fonctionnalités profes
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                     FUSION COMPOSITOR                            │
-│                                                                  │
-│  [MediaIn]──▶[ColorCorrect]──▶[Blur]──▶[Merge]──▶[MediaOut]    │
+│                     FUSION COMPOSITOR                           │
+│                                                                 │
+│  [MediaIn]──▶[ColorCorrect]──▶[Blur]──▶[Merge]──▶[MediaOut]   
 │                     │              │         ▲                  │
 │                     ▼              │         │                  │
 │               [Tracker]────────────┘         │                  │
 │                                              │                  │
-│  [Background]───────────────────────────────┘                  │
-│                                                                  │
+│  [Background]───────────────────────────────┘                   │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -255,16 +255,16 @@ Ce document présente un plan complet pour intégrer les fonctionnalités profes
 ┌─────────────────────────────────────────────────────────────────┐
 │                       CUT PAGE                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌─────────────────────┐    ┌─────────────────────────────────┐│
-│  │                     │    │                                 ││
-│  │    SOURCE           │    │        TIMELINE                 ││
-│  │    MEDIA            │    │    ────▶ [Clip1][Clip2] ◀───   ││
-│  │                     │    │                                 ││
-│  └─────────────────────┘    └─────────────────────────────────┘│
-│                                                                  │
-│  [DUPLICATE] [APPEND] [INSERT] [OVERWRITE] [REPLACE]           │
-│                                                                  │
+│                                                                 │
+│  ┌─────────────────────┐    ┌─────────────────────────────────┐ │
+│  │                     │    │                                 │ │
+│  │    SOURCE           │    │        TIMELINE                 │ │
+│  │    MEDIA            │    │    ────▶ [Clip1][Clip2] ◀───   │ │
+│  │                     │    │                                 │ │
+│  └─────────────────────┘    └─────────────────────────────────┘ │
+│                                                                 │
+│  [DUPLICATE] [APPEND] [INSERT] [OVERWRITE] [REPLACE]            │
+│                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

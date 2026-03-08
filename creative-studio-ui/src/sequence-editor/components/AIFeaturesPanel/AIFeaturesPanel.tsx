@@ -19,7 +19,7 @@ import './aiFeaturesPanel.css';
 // Types
 // =============================================================================
 
-type AIFeature = 'smartCrop' | 'tts' | 'transcription' | 'translation';
+type AIFeature = 'assistant' | 'smartCrop' | 'tts' | 'transcription' | 'translation';
 
 interface AspectRatio {
   id: string;
@@ -81,7 +81,7 @@ const LANGUAGES: Language[] = [
 export const AIFeaturesPanel: React.FC = () => {
   
   // Active feature tab
-  const [activeFeature, setActiveFeature] = useState<AIFeature>('smartCrop');
+  const [activeFeature, setActiveFeature] = useState<AIFeature>('assistant');
   
   // Smart Crop state
   const [selectedAspectRatio, setSelectedAspectRatio] = useState<string>('16:9');
@@ -107,6 +107,14 @@ export const AIFeaturesPanel: React.FC = () => {
   const [targetLanguage, setTargetLanguage] = useState('fr');
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationResult, setTranslationResult] = useState('');
+
+  // AI Assistant state (Director)
+  const [directorPrompt, setDirectorPrompt] = useState('');
+  const [directorMood, setDirectorMood] = useState('cinematic');
+  const [directorShotCount, setDirectorShotCount] = useState(5);
+  const [isProcessingDirector, setIsProcessingDirector] = useState(false);
+  const [isProcessingBRoll, setIsProcessingBRoll] = useState(false);
+  const [isProcessingColorMatch, setIsProcessingColorMatch] = useState(false);
   
   // =============================================================================
   // Handlers
@@ -230,6 +238,54 @@ export const AIFeaturesPanel: React.FC = () => {
       setIsTranslating(false);
     }
   }, [translationText, sourceLanguage, targetLanguage]);
+
+  // Director / Auto-Assistant Handlers
+  const handleAutoDirector = useCallback(async () => {
+    if (!directorPrompt.trim()) return;
+    setIsProcessingDirector(true);
+    try {
+      const response = await fetch('/api/sequences/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          project_id: 'current-project', // Need actual project ID
+          prompt: directorPrompt,
+          shot_count: directorShotCount,
+          mood: directorMood,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Auto-Director started:', data);
+      }
+    } catch (error) {
+      console.error('Auto-Director failed:', error);
+    } finally {
+      setIsProcessingDirector(false);
+    }
+  }, [directorPrompt, directorShotCount, directorMood]);
+
+  const handleSmartBRoll = useCallback(async () => {
+    setIsProcessingBRoll(true);
+    try {
+      // Mock API call for B-Roll suggestion
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Smart B-Roll suggestions generated');
+    } finally {
+      setIsProcessingBRoll(false);
+    }
+  }, []);
+
+  const handleColorMatch = useCallback(async () => {
+    setIsProcessingColorMatch(true);
+    try {
+      // Mock API call for Color Match
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('Color matching complete');
+    } finally {
+      setIsProcessingColorMatch(false);
+    }
+  }, []);
   
   // =============================================================================
   // Render
@@ -239,6 +295,13 @@ export const AIFeaturesPanel: React.FC = () => {
     <div className="ai-features-panel">
       {/* Feature Tabs */}
       <div className="ai-features-tabs">
+        <button
+          className={`feature-tab ${activeFeature === 'assistant' ? 'active' : ''}`}
+          onClick={() => setActiveFeature('assistant')}
+        >
+          <span className="tab-icon">🪄</span>
+          <span className="tab-label">AI Assistant</span>
+        </button>
         <button
           className={`feature-tab ${activeFeature === 'smartCrop' ? 'active' : ''}`}
           onClick={() => setActiveFeature('smartCrop')}
@@ -271,6 +334,91 @@ export const AIFeaturesPanel: React.FC = () => {
       
       {/* Feature Content */}
       <div className="ai-features-content">
+        {/* AI Assistant / Director */}
+        {activeFeature === 'assistant' && (
+          <div className="feature-section assistant-section">
+            <div className="section-header">
+               <h4>AI Creative Assistant</h4>
+               <span className="ai-badge">PRO</span>
+            </div>
+            
+            <div className="assistant-grid">
+              {/* Auto-Director Card */}
+              <div className="assistant-card">
+                <div className="card-icon">🎬</div>
+                <div className="card-body">
+                  <h5>Auto-Director</h5>
+                  <p>Generate a full sequence breakdown from a story script or mood.</p>
+                  <textarea
+                    value={directorPrompt}
+                    onChange={(e) => setDirectorPrompt(e.target.value)}
+                    placeholder="Describe your story, scene or mood..."
+                    className="form-textarea mini"
+                  />
+                  <div className="card-controls">
+                    <select 
+                      value={directorMood} 
+                      onChange={(e) => setDirectorMood(e.target.value)}
+                      className="form-select mini"
+                    >
+                      <option value="cinematic">Cinematic</option>
+                      <option value="cyberpunk">Cyberpunk</option>
+                      <option value="noir">Film Noir</option>
+                      <option value="vibrant">Vibrant / Pop</option>
+                      <option value="documentary">Documentary</option>
+                    </select>
+                    <input 
+                      type="number" 
+                      value={directorShotCount} 
+                      onChange={(e) => setDirectorShotCount(Number.parseInt(e.target.value))}
+                      className="form-input mini shot-count-input"
+                      min={1}
+                      max={50}
+                      title="Number of shots"
+                    />
+                    <button 
+                      className="action-btn-sm primary"
+                      onClick={handleAutoDirector}
+                      disabled={isProcessingDirector || !directorPrompt.trim()}
+                    >
+                      {isProcessingDirector ? 'Generating...' : 'Assemble'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* B-Roll & Style Tools */}
+              <div className="assistant-tools">
+                <div className="tool-item" onClick={handleSmartBRoll}>
+                  <div className="tool-icon">🖼️</div>
+                  <div className="tool-info">
+                    <h6>Smart B-Roll</h6>
+                    <p>Suggest mood-fitting assets</p>
+                  </div>
+                  {isProcessingBRoll && <div className="spinner-sm" />}
+                </div>
+
+                <div className="tool-item" onClick={handleColorMatch}>
+                  <div className="tool-icon">🌈</div>
+                  <div className="tool-info">
+                    <h6>Auto Color Match</h6>
+                    <p>Harmonize seluruh sequence</p>
+                  </div>
+                  {isProcessingColorMatch && <div className="spinner-sm" />}
+                </div>
+
+                <div className="tool-item disabled">
+                  <div className="tool-icon">🎵</div>
+                  <div className="tool-info">
+                    <h6>Sentiment Audio Sync</h6>
+                    <p>Auto-mix score (Coming soon)</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Smart Crop */}
         {activeFeature === 'smartCrop' && (
           <div className="feature-section">

@@ -13,7 +13,7 @@ export type ShotType =
   | 'over-the-shoulder'
   | 'pov';
 
-export type TransitionType = 'cut' | 'fade' | 'dissolve' | 'wipe' | 'match-cut';
+export type TransitionType = 'cut' | 'fade' | 'dissolve' | 'wipe' | 'match-cut' | 'rewind';
 
 export interface ComfyUIParameters {
   width: number;

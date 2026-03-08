@@ -20,6 +20,8 @@ import previewReducer from './slices/previewSlice';
 import historyReducer from './slices/historySlice';
 import effectsReducer from './slices/effectsSlice'; // Phase 1 - R&D
 import audioReducer from './slices/audioSlice'; // Phase 1 - R&D
+import presetsReducer from './slices/presetsSlice'; // Phase 5
+import exportReducer from './slices/exportSlice'; // Phase 5 - Batch Export
 
 // Import middleware
 import { historyMiddleware } from './middleware/historyMiddleware';
@@ -36,6 +38,8 @@ export type RootReducerState = {
   history: ReturnType<typeof historyReducer>;
   effects: ReturnType<typeof effectsReducer>;
   audio: ReturnType<typeof audioReducer>;
+  presets: ReturnType<typeof presetsReducer>;
+  export: ReturnType<typeof exportReducer>;
 };
 
 // Configure the Redux store
@@ -49,6 +53,8 @@ const rootReducer = {
   history: historyReducer,
   effects: effectsReducer,
   audio: audioReducer,
+  presets: presetsReducer,
+  export: exportReducer,
 };
 
 export const store = configureStore({

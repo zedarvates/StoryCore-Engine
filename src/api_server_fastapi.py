@@ -235,8 +235,8 @@ logger.info("Video Editor AI routes registered")
 # ADDON ROUTES
 # ============================================
 
-from src.api.addon_routes import router as addon_router
-from src.api.external_addon_routes import router as external_addon_router
+from src.api.addon_routes import router as addon_router, init_addon_api
+from src.api.external_addon_routes import router as external_addon_router, init_external_addon_api
 
 app.include_router(addon_router)
 app.include_router(external_addon_router)
@@ -294,8 +294,15 @@ async def startup_event():
         init_external_addon_api(manager, external_loader, registry_client, deps_manager)
         
         # Initialize Seedance API with manager
-        # It will try to find the "Seedance 2.0" addon from the manager
         init_seedance_api(manager)
+        
+        # Dynamically mount routers from enabled addons
+        for addon_name, addon_info in manager.addons.items():
+            if addon_info.state == AddonState.ENABLED and addon_info.module:
+                if hasattr(addon_info.module, "ADDON_INFO") and "router" in addon_info.module.ADDON_INFO:
+                    addon_router_obj = addon_info.module.ADDON_INFO["router"]
+                    app.include_router(addon_router_obj)
+                    logger.info(f"Mounted custom router for addon: {addon_name}")
         
         logger.info(f"Addon system initialized: {len(manager.addons)} addons discovered")
         

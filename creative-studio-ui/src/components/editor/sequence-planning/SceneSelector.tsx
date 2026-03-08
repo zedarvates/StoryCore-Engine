@@ -1,12 +1,14 @@
 import React from 'react';
-import { ChevronDown, Play, Film, Clock } from 'lucide-react';
+import { ChevronDown, Play, Film, Clock, GripVertical } from 'lucide-react';
 import { Scene } from '@/types/sequencePlan';
+import { Reorder, motion, AnimatePresence } from 'framer-motion';
 import './SceneSelector.css';
 
 export interface SceneSelectorProps {
   scenes: Scene[];
   selectedSceneId: string | null;
   onSceneSelect: (sceneId: string) => void;
+  onScenesReorder?: (updatedScenes: Scene[]) => void;
   className?: string;
 }
 
@@ -14,9 +16,16 @@ export const SceneSelector: React.FC<SceneSelectorProps> = ({
   scenes,
   selectedSceneId,
   onSceneSelect,
+  onScenesReorder,
   className = ''
 }) => {
   const selectedScene = scenes.find(s => s.id === selectedSceneId);
+
+  const handleReorder = (newOrder: Scene[]) => {
+    if (onScenesReorder) {
+      onScenesReorder(newOrder);
+    }
+  };
 
   return (
     <div className={`scene-selector ${className}`}>
@@ -36,31 +45,52 @@ export const SceneSelector: React.FC<SceneSelectorProps> = ({
         </div>
       </div>
 
-      <div className="scenes-list">
-        {scenes.map(scene => (
-          <div
-            key={scene.id}
-            className={`scene-item ${selectedSceneId === scene.id ? 'selected' : ''}`}
-            onClick={() => onSceneSelect(scene.id)}
-          >
-            <div className="scene-item-header">
-              <div className="scene-number">{scene.number}</div>
-              <div className="scene-details">
-                <div className="scene-title">{scene.title}</div>
-                <div className="scene-description">{scene.description}</div>
-              </div>
-              <div className="scene-duration">
-                <Clock size={12} />
-                {scene.targetDuration}s
-              </div>
-            </div>
+      <Reorder.Group
+        axis="x"
+        values={scenes}
+        onReorder={handleReorder}
+        className="scenes-list"
+        as="div"
+      >
+        <AnimatePresence initial={false}>
+          {scenes.map(scene => (
+            <Reorder.Item
+              key={scene.id}
+              value={scene}
+              className={`scene-item ${selectedSceneId === scene.id ? 'selected' : ''}`}
+              onClick={() => onSceneSelect(scene.id)}
+              whileDrag={{ scale: 1.05, boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
+            >
+              <div className="scene-item-content">
+                <div className="scene-thumbnail">
+                  {scene.coverImage ? (
+                    <img src={scene.coverImage} alt={scene.title} />
+                  ) : (
+                    <div className="thumbnail-placeholder">
+                      <Film size={24} />
+                    </div>
+                  )}
+                  <div className="scene-number-badge">{scene.number}</div>
+                  <div className="drag-handle">
+                    <GripVertical size={14} />
+                  </div>
+                </div>
 
-            <div className="scene-shots">
-              {scene.sceneIds?.length || 0} plans
-            </div>
-          </div>
-        ))}
-      </div>
+                <div className="scene-item-details">
+                  <div className="scene-title-row">
+                    <div className="scene-title-text">{scene.title}</div>
+                    <div className="scene-duration-text">
+                      <Clock size={10} />
+                      {scene.targetDuration}s
+                    </div>
+                  </div>
+                  <div className="scene-description-text">{scene.description}</div>
+                </div>
+              </div>
+            </Reorder.Item>
+          ))}
+        </AnimatePresence>
+      </Reorder.Group>
     </div>
   );
 };

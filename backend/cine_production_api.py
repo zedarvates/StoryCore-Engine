@@ -19,7 +19,7 @@ async def start_production(
     Starts a high-fidelity cinematic production job.
     """
     try:
-        job_id = await cine_service.start_production_job(request)
+        job_id = await cine_service.start_production_job(request, user_id=user_id)
         return {"jobId": job_id}
     except Exception as e:
         logger.error(f"Failed to start production: {e}")

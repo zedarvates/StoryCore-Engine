@@ -93,12 +93,14 @@ interface ImageCharacterCreatorProps {
   onCharacterCreated?: (character: Partial<Character>) => void;
   genre?: string;
   visualStyle?: string;
+  initialImage?: File;
 }
 
 export function ImageCharacterCreator({
   onCharacterCreated,
   genre,
-  visualStyle
+  visualStyle,
+  initialImage
 }: ImageCharacterCreatorProps) {
   // State
   const [image, setImage] = useState<string | null>(null);
@@ -126,10 +128,19 @@ export function ImageCharacterCreator({
   const projectGenre = genre || (projectData?.genre as string) || 'fantasy';
   const projectStyle = visualStyle || (projectData?.visualStyle as string) || 'cinematic';
   
-  // Fetch providers on mount
+  // Fetch providers and handle initial image on mount
   React.useEffect(() => {
     fetchProviders();
-  }, []);
+    
+    if (initialImage) {
+      setImageFile(initialImage);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImage(reader.result as string);
+      };
+      reader.readAsDataURL(initialImage);
+    }
+  }, [initialImage]);
   
   const fetchProviders = async () => {
     try {

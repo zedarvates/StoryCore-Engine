@@ -1,0 +1,28 @@
+{
+  "id": "43e98784-bde5-492f-aab2-97dc9bacac8d",
+  "name": "Elena Vance",
+  "description": "A focused investigative journalist, early 30s, sharp features, short dark hair, wearing a beige trench coat.",
+  "visual_attributes": {
+    "face_shape": "",
+    "skin_tone": "",
+    "eye_color": "",
+    "hair_color": "",
+    "hair_style": "",
+    "hair_length": "",
+    "body_type": "",
+    "height": "",
+    "age_appearance": "",
+    "clothing_style": "",
+    "accessories": [],
+    "distinctive_features": [],
+    "scars_marks": [],
+    "extraction_confidence": 0.0,
+    "source_image_path": ""
+  },
+  "base_prompt": "",
+  "variation_prompts": {},
+  "created_at": "2026-02-26T19:47:03.899609",
+  "updated_at": "2026-02-26T19:47:03.899610",
+  "project_id": "stability-test-001",
+  "is_locked": false
+}

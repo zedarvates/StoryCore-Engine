@@ -4,11 +4,10 @@
  * Main workspace view displaying project tools, status, and wizard launchers
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { ProjectWorkspaceProps } from '../../types/configuration';
 import { useActiveProject } from '../../hooks/useConfigurationHooks';
 import { WizardLauncher } from '@/components/wizard/WizardLauncher';
-import { GhostTrackerWizard } from '@/components/wizard/GhostTrackerWizard';
 import { WIZARD_DEFINITIONS } from '../../data/wizardDefinitions';
 import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -29,7 +28,6 @@ export function ProjectWorkspace({
   const setShowStorytellerWizard = useAppStore((state) => state.setShowStorytellerWizard);
   const setShowProjectSetupWizard = useAppStore((state) => state.setShowProjectSetupWizard);
   const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
-  const setShowDialogueWriter = useAppStore((state) => state.setShowDialogueWriter);
   const projectPath = useEditorStore((state) => state.projectPath);
   const currentProject = useEditorStore((state) => state.currentProject);
 
@@ -403,31 +401,3 @@ export function ProjectWorkspace({
 }
 
 export default ProjectWorkspace;
-
-// Ghost Tracker Wizard Modal
-function GhostTrackerWizardModal({
-  isOpen,
-  onClose,
-  projectPath
-}: Readonly<{
-  isOpen: boolean;
-  onClose: () => void;
-  projectPath?: string;
-}>) {
-  return (
-    <div className={`ghost-tracker-modal ${isOpen ? 'open' : ''}`} role="dialog" aria-modal="true">
-      <div
-        className="ghost-tracker-modal-overlay"
-        onClick={onClose}
-        onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
-        role="button"
-        tabIndex={0}
-        aria-label="Close modal"
-      />
-      <div className="ghost-tracker-modal-content">
-        <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-        <GhostTrackerWizard isOpen={isOpen} onClose={onClose} projectPath={projectPath} />
-      </div>
-    </div>
-  );
-}

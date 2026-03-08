@@ -51,6 +51,21 @@ from src.feedback_error_logger import (
     log_github_api_error
 )
 
+# ─── 💎 GemReward Imports ──────────────────────────────────────────────────
+try:
+    from backend.database import get_db
+    from backend.contributor_auth import resolve_contributor, ContributorIdentity
+    from backend.duplicate_checker import check_duplicate_full
+    from backend.gem_models import ContributionReport
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from fastapi import Depends
+    GEM_SYSTEM_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"💎 GemReward components partially missing: {e}")
+    GEM_SYSTEM_AVAILABLE = False
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 # Import Automation endpoints
 # Note: These are added at module level but imported conditionally to avoid
 # circular imports and startup errors
@@ -217,6 +232,10 @@ class ReportResponse(BaseModel):
     status: str
     issue_url: str
     issue_number: int
+    # 💎 GemReward Info
+    duplicate_warning: Optional[str] = None
+    contribution_id: Optional[str] = None
+
 
 
 class ErrorResponse(BaseModel):
@@ -280,7 +299,8 @@ async def rate_limit_stats():
     }
 )
 async def submit_report(
-    request: Request
+    request: Request,
+    db: Optional[AsyncSession] = Depends(get_db) if GEM_SYSTEM_AVAILABLE else None
 ) -> ReportResponse:
     """
     Submit a feedback report and create a GitHub issue.
@@ -307,6 +327,21 @@ async def submit_report(
     Requirements: 5.1, 5.2, 7.2, 9.5
     """
     client_ip = request.client.host if request.client else "unknown"
+    
+    # ─── 💎 GemReward: Contributor Identification ────────────────────────────
+    contributor = None
+    if GEM_SYSTEM_AVAILABLE:
+        try:
+            contributor = await resolve_contributor(request, db)
+            logger.info(f"💎 Contributor identified: {contributor.contributor_type} (ID: {contributor.user_id})")
+        except HTTPException as e:
+            # Si l'auth échoue pour un agent, on rejette. 
+            # Pour un humain (browser), on laisse passer car l'auth peut être optionnelle ou gérée par JWT plus tard.
+            if "sc_agent_" in request.headers.get("Authorization", ""):
+                raise e
+            logger.debug(f"Contributor resolution skipped for non-agent: {e.detail}")
+    # ─────────────────────────────────────────────────────────────────────────
+
     
     try:
         # 0. Parse raw JSON body first (before Pydantic validation)
@@ -609,17 +644,43 @@ async def submit_report(
         logger.info(f"  - Payload size: {size_breakdown['total_mb']:.2f} MB")
         
         # 10. Validate required fields are present
-        if not payload.user_input.description:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Description is required"
-            )
-        
         if len(payload.user_input.description) < 10:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Description must be at least 10 characters long"
             )
+
+        # ─── 💎 GemReward: AI Duplicate Checking ─────────────────────────────────
+        duplicate_warn = None
+        if GEM_SYSTEM_AVAILABLE:
+            try:
+                # On vérifie si ce rapport a déjà été soumis (hash exact ou sémantique)
+                is_agent = contributor.contributor_type == "automated_agent" if contributor else False
+                dup_result = await check_duplicate_full(
+                    description=payload.user_input.description,
+                    title=f"[{payload.report_type.upper()}] {payload.user_input.description[:50]}...",
+                    is_agent=is_agent
+                )
+                
+                if dup_result.is_duplicate:
+                    # Pour les agents : rejet strict des doublons évidents (abus)
+                    if is_agent and dup_result.confidence > 0.95:
+                        logger.warning(f"🤖 Agent rejected: Strict duplicate detected ({dup_result.existing_issue_number})")
+                        raise HTTPException(
+                            status_code=status.HTTP_409_CONFLICT,
+                            detail=f"Duplicate content detected. Similar report already exists: {dup_result.existing_issue_url}"
+                        )
+                    
+                    # Pour les humains : simples avertissements
+                    if dup_result.confidence > 0.8:
+                        duplicate_warn = f"Un rapport similaire existe peut-être déjà : #{dup_result.existing_issue_number}"
+                        logger.info(f"💎 Duplicate warning for human: {duplicate_warn}")
+
+            except HTTPException: raise
+            except Exception as e:
+                logger.warning(f"Duplicate checker failed (non-fatal): {e}")
+        # ─────────────────────────────────────────────────────────────────────────
+
         
         # 11. Create GitHub issue using the GitHub API
         # Requirements: 5.3, 8.3
@@ -639,12 +700,46 @@ async def submit_report(
             
             logger.info(f"Successfully created GitHub issue #{issue_number}: {issue_url}")
             
+            # ─── 💎 GemReward: Register Contribution ─────────────────────────────
+            contribution_id = None
+            if GEM_SYSTEM_AVAILABLE and contributor and db:
+                try:
+                    import hashlib
+                    from backend.gem_models import ContributionReport
+                    
+                    fingerprint = hashlib.sha256(payload.user_input.description.strip().lower().encode()).hexdigest()
+                    
+                    report = ContributionReport(
+                        user_id=contributor.user_id,
+                        contributor_type=contributor.contributor_type,
+                        agent_api_key_id=getattr(contributor, 'agent_key_id', None),
+                        agent_name=getattr(contributor, 'agent_name', None),
+                        github_issue_number=issue_number,
+                        github_issue_url=issue_url,
+                        github_issue_title=payload.user_input.description[:100],
+                        report_type=payload.report_type,
+                        description_fingerprint=fingerprint,
+                        description_summary=payload.user_input.description[:200],
+                        submitter_ip=client_ip
+                    )
+                    db.add(report)
+                    await db.commit()
+                    await db.refresh(report)
+                    contribution_id = report.id
+                    logger.info(f"💎 Contribution report saved: {contribution_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to save contribution report (non-fatal): {e}")
+            # ─────────────────────────────────────────────────────────────────────
+
             # 12. Return success response
             return ReportResponse(
                 status="success",
                 issue_url=issue_url,
-                issue_number=issue_number
+                issue_number=issue_number,
+                duplicate_warning=duplicate_warn,
+                contribution_id=contribution_id
             )
+
             
         except GitHubAPIError as e:
             # GitHub API specific errors

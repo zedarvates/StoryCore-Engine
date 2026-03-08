@@ -13,6 +13,7 @@ import { Badge } from './ui/badge';
 import { CheckCircle, AlertCircle, Circle } from 'lucide-react';
 import { ShotPromptEditor } from './ShotPromptEditor';
 import { VirtualShotList } from './VirtualShotList';
+import { GDPvalSourcePanel } from './ai/GDPvalSourcePanel';
 import { useProject } from '../contexts/ProjectContext';
 import { useDebounce } from '../utils/performanceOptimizations';
 import type { Shot } from '../types/projectDashboard';
@@ -116,14 +117,20 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
     };
   }, []);
 
+  const handleTemplateSelect = useCallback((template: string) => {
+    if (selectedShot) {
+       handlePromptChange(template);
+    }
+  }, [selectedShot, handlePromptChange]);
+
   // ============================================================================
   // Render
   // ============================================================================
 
   return (
-    <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${className}`} role="region" aria-label="Prompt management">
+    <div className={`grid grid-cols-1 lg:grid-cols-4 gap-6 ${className}`} role="region" aria-label="Prompt management">
       {/* Shot List Panel */}
-      <Card className="lg:col-span-1">
+      <Card className="lg:col-span-1 border-r-0 rounded-r-none">
         <CardHeader>
           <CardTitle>Shots</CardTitle>
           <CardDescription>
@@ -196,34 +203,33 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
                 </div>
               </div>
 
-              {/* Prompt Editor */}
               <ShotPromptEditor
                 shot={selectedShot}
-                prompt={selectedShot.prompt}
+                prompt={selectedShot.prompt || ''}
                 onPromptChange={handlePromptChange}
                 validationError={selectedShot.promptValidation}
               />
 
               {/* Shot Metadata */}
-              {(selectedShot.metadata.cameraAngle ||
-                selectedShot.metadata.lighting ||
-                selectedShot.metadata.mood) && (
+              {(!!selectedShot.metadata?.['cameraAngle'] ||
+                !!selectedShot.metadata?.['lighting'] ||
+                !!selectedShot.metadata?.['mood']) && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Shot Metadata</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {selectedShot.metadata.cameraAngle && (
+                    {!!selectedShot.metadata?.['cameraAngle'] && (
                       <Badge variant="outline">
-                        Camera: {selectedShot.metadata.cameraAngle}
+                        Camera: {String(selectedShot.metadata['cameraAngle'])}
                       </Badge>
                     )}
-                    {selectedShot.metadata.lighting && (
+                    {!!selectedShot.metadata?.['lighting'] && (
                       <Badge variant="outline">
-                        Lighting: {selectedShot.metadata.lighting}
+                        Lighting: {String(selectedShot.metadata['lighting'])}
                       </Badge>
                     )}
-                    {selectedShot.metadata.mood && (
+                    {!!selectedShot.metadata?.['mood'] && (
                       <Badge variant="outline">
-                        Mood: {selectedShot.metadata.mood}
+                        Mood: {String(selectedShot.metadata['mood'])}
                       </Badge>
                     )}
                   </div>
@@ -231,7 +237,7 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
               )}
 
               {/* Validation Errors Display */}
-              {selectedShot.promptValidation &&
+              {!!selectedShot.promptValidation &&
                 !selectedShot.promptValidation.isValid && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg" role="alert" aria-live="polite">
                     <div className="flex items-start gap-2">
@@ -259,6 +265,12 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
           )}
         </CardContent>
       </Card>
+
+      {/* GDPval Source Panel */}
+      <div className="lg:col-span-1 h-[700px]">
+        <GDPvalSourcePanel onSelectTemplate={handleTemplateSelect} />
+      </div>
+
     </div>
   );
 };

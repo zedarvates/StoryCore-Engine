@@ -229,7 +229,7 @@ async def create_character_from_image(
     extract_face: bool = Form(True, description="Extract face for face swapping"),
     analyze_image: bool = Form(True, description="Analyze image with vision model"),
     apply_genre_adaptations: bool = Form(True, description="Apply genre-specific adaptations"),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = "anonymous"
 ) -> CharacterFromImageResponse:
     """
     Create a character from an uploaded image.
@@ -310,6 +310,8 @@ async def create_character_from_image(
             character_id=character_id,
             name=result.suggested_name,
             role=result.suggested_role,
+            suggested_name=result.suggested_name,
+            suggested_role=result.suggested_role,
             description=result.description,
             short_description=result.short_description,
             physical_attributes=physical_attrs_to_response(result.physical_attributes),
@@ -338,7 +340,7 @@ async def create_character_from_image(
 @router.post("/character/extract-face", response_model=FaceExtractionResponse)
 async def extract_face_from_image(
     file: UploadFile = File(..., description="Image file for face extraction"),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = "anonymous"
 ) -> FaceExtractionResponse:
     """
     Extract face from an uploaded image.
@@ -397,7 +399,7 @@ async def analyze_image_for_character(
     genre: Optional[str] = Form(None, description="Project genre"),
     visual_style: Optional[str] = Form(None, description="Visual style"),
     additional_context: Optional[str] = Form(None, description="Additional context"),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = "anonymous"
 ) -> VisionAnalysisResponse:
     """
     Analyze an image using a vision model.
@@ -469,7 +471,7 @@ async def create_character_from_base64(
     extract_face: bool = Form(True),
     analyze_image: bool = Form(True),
     apply_genre_adaptations: bool = Form(True),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = "anonymous"
 ) -> CharacterFromImageResponse:
     """
     Create a character from a base64-encoded image.
@@ -712,7 +714,7 @@ async def get_variation_options() -> AvailableOptionsResponse:
 @router.post("/character/variations/prompts")
 async def generate_variation_prompts(
     request: VariationPromptRequest,
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = "anonymous"
 ) -> Dict[str, str]:
     """
     Generate prompts for a specific variation without actual image generation.

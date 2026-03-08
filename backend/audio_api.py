@@ -606,6 +606,7 @@ from backend.sfx_profile_builder import SFXProfileBuilder, SFXProfile
 from backend.voice_profile_builder import VoiceProfileBuilder, VoiceProfile
 from backend.prompt_composer import PromptComposer
 from backend.audio_mix_service import AudioMixService, MixConfiguration
+from backend.ai_sentiment_service import AISentimentService, Sentiment
 
 
 class ProfileType(str, Enum):
@@ -681,6 +682,7 @@ class AutoMixResponse(BaseModel):
 # Initialize services
 prompt_composer = PromptComposer()
 audio_mix_service = AudioMixService()
+sentiment_service = AISentimentService()
 
 
 async def run_multitrack_generation(
@@ -810,6 +812,47 @@ async def generate_multitrack(
         profile_type=request.profile_type.value,
         tracks_generated=[],
         estimated_time_seconds=60
+    )
+
+
+class SentimentAnalysisRequest(BaseModel):
+    """Request model for sentiment analysis"""
+    text: str = Field(..., min_length=1)
+
+
+class SentimentAnalysisResponse(BaseModel):
+    """Response model for sentiment analysis and audio suggestion"""
+    sentiment: str
+    confidence: float
+    suggested_audio_profile: Dict[str, Any]
+    keywords: List[str]
+
+
+@router.post("/audio/analyze-sentiment", response_model=SentimentAnalysisResponse)
+async def analyze_audio_sentiment(
+    request: SentimentAnalysisRequest,
+    user_id: str = Depends(verify_jwt_token)
+) -> SentimentAnalysisResponse:
+    """
+    Analyze sentiment of text to suggest audio profiles.
+    
+    Args:
+        request: Analysis parameters
+        user_id: Authenticated user ID
+    
+    Returns:
+        Sentiment results and suggested audio parameters
+    """
+    logger.info("Analyzing sentiment for audio suggestions")
+    
+    result = await sentiment_service.analyze_text(request.text)
+    suggested_profile = sentiment_service.map_to_audio_profile(result.sentiment)
+    
+    return SentimentAnalysisResponse(
+        sentiment=result.sentiment.value,
+        confidence=result.confidence,
+        suggested_audio_profile=suggested_profile,
+        keywords=result.keywords
     )
 
 

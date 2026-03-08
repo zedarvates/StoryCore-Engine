@@ -27,6 +27,7 @@ class LLMConfigService {
   private currentConfig: LLMConfig | null = null;
   private readonly listeners: Set<LLMConfigListener> = new Set();
   private initialized: boolean = false;
+  private initializationPromise: Promise<void> | null = null;
 
   private constructor() {
     // Private constructor for singleton
@@ -48,11 +49,15 @@ class LLMConfigService {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      logger.warn('[LLMConfigService] Already initialized');
       return;
     }
 
-    try {
+    if (this.initializationPromise) {
+      return this.initializationPromise;
+    }
+
+    this.initializationPromise = (async () => {
+      try {
       // Load configuration from storage
       let config = await loadLLMSettings();
 
@@ -122,7 +127,12 @@ class LLMConfigService {
     } catch (error) {
       logger.error('[LLMConfigService] Initialization failed:', error);
       throw new Error(`LLM configuration service initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      this.initializationPromise = null;
     }
+    })();
+
+    return this.initializationPromise;
   }
 
   /**

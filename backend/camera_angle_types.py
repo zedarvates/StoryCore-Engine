@@ -22,6 +22,9 @@ class CameraAnglePreset(str, Enum):
     FRONT = "front"
     LEFT = "left"
     RIGHT = "right"
+    SIDE_LEFT = "side_left"
+    SIDE_RIGHT = "side_right"
+    THREE_QUARTER = "three_quarter"
     TOP = "top"
     BOTTOM = "bottom"
     ISOMETRIC = "isometric"
@@ -88,16 +91,34 @@ CAMERA_ANGLE_PRESET_METADATA: Dict[str, Dict[str, str]] = {
         "prompt_suffix": "front view, facing the camera directly, eye-level shot"
     },
     CameraAnglePreset.LEFT.value: {
-        "display_name": "Left Side View",
+        "display_name": "Left View",
         "description": "Profile shot from the left, 90-degree angle",
         "icon": "camera_side",
         "prompt_suffix": "left side view, profile shot from the left, 90-degree angle"
     },
+    CameraAnglePreset.SIDE_LEFT.value: {
+        "display_name": "Side Left",
+        "description": "Profile shot from the left side",
+        "icon": "camera_side",
+        "prompt_suffix": "left side view, side profile from left"
+    },
     CameraAnglePreset.RIGHT.value: {
-        "display_name": "Right Side View",
+        "display_name": "Right View",
         "description": "Profile shot from the right, 90-degree angle",
         "icon": "camera_side",
         "prompt_suffix": "right side view, profile shot from the right, 90-degree angle"
+    },
+    CameraAnglePreset.SIDE_RIGHT.value: {
+        "display_name": "Side Right",
+        "description": "Profile shot from the right side",
+        "icon": "camera_side",
+        "prompt_suffix": "right side view, side profile from right"
+    },
+    CameraAnglePreset.THREE_QUARTER.value: {
+        "display_name": "Three-Quarter View",
+        "description": "45-degree angle between front and side",
+        "icon": "camera_three_quarter",
+        "prompt_suffix": "three-quarter view, 45-degree angle from front"
     },
     CameraAnglePreset.TOP.value: {
         "display_name": "Top View",

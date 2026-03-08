@@ -5,13 +5,8 @@
  * Uses ARIA live regions to announce menu navigation and state changes.
  */
 
-import React, { createContext, useContext, useCallback } from 'react';
-
-interface ScreenReaderAnnouncerContextType {
-  announce: (message: string, priority?: 'polite' | 'assertive', delay?: number) => void;
-}
-
-const ScreenReaderAnnouncerContext = createContext<ScreenReaderAnnouncerContextType | null>(null);
+import React, { useCallback } from 'react';
+import { ScreenReaderAnnouncerContext } from './ScreenReaderAnnouncerContext';
 
 export const ScreenReaderAnnouncerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite', delay = 0) => {
@@ -44,12 +39,4 @@ export const ScreenReaderAnnouncerProvider: React.FC<{ children: React.ReactNode
       {children}
     </ScreenReaderAnnouncerContext.Provider>
   );
-};
-
-export const useScreenReaderAnnouncer = () => {
-  const context = useContext(ScreenReaderAnnouncerContext);
-  if (!context) {
-    throw new Error('useScreenReaderAnnouncer must be used within ScreenReaderAnnouncerProvider');
-  }
-  return context;
 };

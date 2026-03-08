@@ -27,6 +27,19 @@ import type {
 import type { ScenePromptData } from './PromptGenerationService';
 import type { VoiceOver } from '../types';
 
+/** Backend URL base */
+const BACKEND_BASE = (() => {
+  try {
+    const s = localStorage.getItem('storycore-settings');
+    if (s) {
+      const p = JSON.parse(s);
+      if (p.backendUrl) return p.backendUrl.replace(/\/$/, '');
+    }
+  } catch { /* ignore */ }
+  return 'http://localhost:8000';
+})();
+
+
 /**
  * Progress callback type
  */
@@ -37,18 +50,6 @@ export type ProgressCallback = (progress: GenerationProgress) => void;
  */
 export type ErrorCallback = (error: Error) => void;
 
-/**
- * ComfyUI job status (mock structure for polling)
- */
-interface ComfyUIJobStatus {
-  status: 'queued' | 'running' | 'completed' | 'failed';
-  stage: string;
-  progress: number;
-  message: string;
-  cancellable: boolean;
-  result?: string;
-  error?: string;
-}
 
 /**
  * Generation Orchestrator Service
@@ -88,7 +89,7 @@ export class GenerationOrchestrator {
     onProgress?: ProgressCallback,
     onError?: ErrorCallback
   ): Promise<GeneratedPrompt> {
-    const jobId = crypto.randomUUID();
+    const _jobId = crypto.randomUUID();
 
     try {
       // Report initial progress
@@ -215,7 +216,7 @@ export class GenerationOrchestrator {
 
       // Create asset metadata
       const metadata: AssetMetadata = {
-        generationParams: params,
+        generationParams: params as unknown as AssetMetadata['generationParams'],
         fileSize: 0, // Would be calculated from actual file
         dimensions: { width: params.width, height: params.height },
         format: 'png',
@@ -251,7 +252,7 @@ export class GenerationOrchestrator {
    * Requirements: 12.2
    */
   public async generateVideo(
-    params: VideoGenerationParams,
+    params: VideoGenerationParams & { engine?: string; quality?: string; projectId?: string },
     onProgress?: ProgressCallback,
     onError?: ErrorCallback
   ): Promise<GeneratedAsset> {
@@ -260,7 +261,12 @@ export class GenerationOrchestrator {
     this.activeJobs.set(jobId, abortController);
 
     try {
-      // Report initial progress
+      // ── LTX2 / Wan 2.1 → Route via CineProductionService backend ──
+      if (params.engine === 'ltx_video' || params.engine === 'wan21') {
+        return await this._generateViaCineBackend(params, onProgress, onError);
+      }
+
+      // ── Default path: generic ComfyUI ──
       onProgress?.({
         stage: 'Video generation - Latent generation',
         stageProgress: 0,
@@ -270,7 +276,6 @@ export class GenerationOrchestrator {
         cancellable: true,
       });
 
-      // Submit video generation to ComfyUI
       onProgress?.({
         stage: 'Generating video',
         stageProgress: 0,
@@ -294,16 +299,14 @@ export class GenerationOrchestrator {
         }
       );
 
-      // Create asset metadata
       const metadata: AssetMetadata = {
-        generationParams: params,
-        fileSize: 0, // Would be calculated from actual file
+        generationParams: params as unknown as AssetMetadata['generationParams'],
+        fileSize: 0,
         dimensions: { width: params.width, height: params.height },
         duration: params.frameCount / params.frameRate,
         format: 'mp4',
       };
 
-      // Return generated asset
       const asset: GeneratedAsset = {
         id: crypto.randomUUID(),
         type: 'video',
@@ -322,6 +325,135 @@ export class GenerationOrchestrator {
       this.activeJobs.delete(jobId);
     }
   }
+
+  /**
+   * Route video generation through the CineProductionService backend.
+   * Used for LTX2 and Wan 2.1 chains.
+   */
+  private async _generateViaCineBackend(
+    params: VideoGenerationParams & { engine?: string; quality?: string; projectId?: string },
+    onProgress?: ProgressCallback,
+    onError?: ErrorCallback
+  ): Promise<GeneratedAsset> {
+    const engineLabel = params.engine === 'ltx_video' ? 'LTX2' : 'Wan 2.1';
+
+    onProgress?.({
+      stage: `${engineLabel} · Envoi de la requête`,
+      stageProgress: 0,
+      overallProgress: 0,
+      estimatedTimeRemaining: 180,
+      message: `Démarrage de la génération ${engineLabel}…`,
+      cancellable: true,
+    });
+
+    // Map quality mode to ProductionQuality enum value
+    const qualityMap: Record<string, string> = {
+      draft: 'draft',
+      standard: 'standard',
+      cinematic: 'cinematic',
+      ultra: 'ultra',
+    };
+
+    const payload = {
+      chainType: params.engine === 'ltx_video' ? 'ltx_video' : 'generate_scene',
+      projectId: params.projectId || 'default',
+      videoPrompt: params.prompt,
+      quality: qualityMap[params.quality || 'standard'] || 'standard',
+      width: params.width,
+      height: params.height,
+      seed: -1,
+    };
+
+    let token = '';
+    try {
+      token = localStorage.getItem('storycore-jwt') || '';
+    } catch { /* ignore */ }
+
+    // 1. Start production job
+    const startResp = await fetch(`${BACKEND_BASE}/cine-production/start`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!startResp.ok) {
+      throw new Error(`CineProduction start failed: ${startResp.status}`);
+    }
+
+    const { jobId: backendJobId } = await startResp.json() as { jobId: string };
+
+    // 2. Poll for completion
+    const POLL_MS = 3000;
+    const MAX_WAIT_MS = 15 * 60 * 1000; // 15 min
+    const started = Date.now();
+
+    while (Date.now() - started < MAX_WAIT_MS) {
+      await new Promise((r) => setTimeout(r, POLL_MS));
+
+      const statusResp = await fetch(`${BACKEND_BASE}/cine-production/status/${backendJobId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      if (!statusResp.ok) continue;
+
+      const job = await statusResp.json() as {
+        status: string;
+        progress: number;
+        currentStep: string;
+        results: Array<{ step: string; output: { filename?: string } }>;
+        error?: string;
+      };
+
+      const pct = Math.round(job.progress);
+
+      onProgress?.({
+        stage: `${engineLabel} · ${job.currentStep || 'Traitement'}`,
+        stageProgress: pct,
+        overallProgress: pct,
+        estimatedTimeRemaining: Math.ceil(((100 - pct) / 100) * 180),
+        message: job.currentStep || 'Génération en cours…',
+        cancellable: true,
+      });
+
+      if (job.status === 'completed') {
+        // Find video result
+        const videoRes = job.results.find((r) => r.step === 'muxed_video' || r.step === 'video' || r.step === 'speaking_video');
+        const filename = videoRes?.output?.filename;
+        const videoUrl = filename
+          ? `${BACKEND_BASE}/output/${filename}`
+          : `${BACKEND_BASE}/cine-production/job/${backendJobId}/result`;
+
+        const metadata: AssetMetadata = {
+          generationParams: params as unknown as AssetMetadata['generationParams'],
+          fileSize: 0,
+          dimensions: { width: params.width, height: params.height },
+          duration: params.frameCount / params.frameRate,
+          format: 'mp4',
+        };
+
+        return {
+          id: backendJobId,
+          type: 'video',
+          url: videoUrl,
+          metadata,
+          relatedAssets: [],
+          timestamp: Date.now(),
+        };
+      }
+
+      if (job.status === 'failed') {
+        const err = new Error(job.error || `${engineLabel} generation failed`);
+        onError?.(err);
+        throw err;
+      }
+    }
+
+    throw new Error(`${engineLabel} generation timed out after 15 minutes`);
+  }
+
 
   // ============================================================================
   // Audio Generation
@@ -386,7 +518,7 @@ export class GenerationOrchestrator {
 
       // Create asset metadata
       const metadata: AssetMetadata = {
-        generationParams: params,
+        generationParams: params as unknown as AssetMetadata['generationParams'],
         fileSize: 0, // Would be calculated from actual file
         duration: this.estimateAudioDuration(params.text, params.speed),
         format: 'wav',

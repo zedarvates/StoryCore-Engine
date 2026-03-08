@@ -1,0 +1,838 @@
+{
+  "skills": [
+    {
+      "id": "location-create",
+      "name": "Créer une location",
+      "description": "Crée une nouvelle location complète avec tous ses éléments narratifs et visuels pour votre histoire interactive",
+      "category": "locations",
+      "prompt": "Tu es un expert en création d'univers pour des histoires interactives StoryCore. Ta mission est de créer une location détaillée et immersive qui enrichira l'histoire de l'utilisateur.\n\n## Instructions de création\n\n### Informations essentielles à générer\n\n1. **Identité de la location**\n   - Nom complet (poétique et évocateur)\n   - Nom alternatif ou surnom usuel\n   - Type de lieu (ville, village, forêt, château, taverne, temple, académie, port, désert, etc.)\n\n2. **Description physique**\n   - Architecture et style visuel\n   - Éléments naturels présents\n   - Éclairage et ambiance générale\n   - Éléments distinctifs (statues, fontaines, jardins, etc.)\n   - Atmosphère传感器 (visuelle, sonore, olfactive)\n\n3. **Contexte historique**\n   - Origine et fondation\n   - Événements historiques marquants\n   - Transformations au fil du temps\n   - Légendes associées\n\n4. **Population et personnages**\n   - Types d'habitants ou de visiteurs fréquents\n   - Personnages clés (gardiens, chefs, mystérieux)\n   - Relations sociales et hiérarchies\n   - Règles ou lois locales\n\n5. **Éléments narratifs**\n   - Secrets et mystères cachés\n   - Connexions avec d'autres locations\n   - Événements possibles (quests, rencontres, combats)\n   - Dangers potentiels\n   - Ressources ou objets spéciaux\n\n6. **Intégration物語\n   - Comment la location s'intègre dans le monde plus large\n   - Importance stratégique ou narrative\n   - Accessibilité (comment y parvenir)\n\n## Style et ton\n\n- Utilise un style descriptif immersif qui transporte le lecteur\n- Varie le registre selon le genre (fantasy sombre, aventure héroïque, science-fiction, etc.)\n- Inclue des détails sensoriels concrets\n- Crée une atmosphère cohérente avec le genre choisi\n\n## Format de sortie\n\nRetourne un objet JSON complet avec tous les éléments décrits ci-dessus.",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "description": "Nom de la location à créer",
+          "required": false,
+          "default": "Généré automatiquement par l'IA"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type de lieu (ville, village, forêt, château, taverne, temple, académie, port, désert, mine, bibliothèque, marché, etc.)",
+          "required": true,
+          "default": "village"
+        },
+        "genre": {
+          "type": "string",
+          "description": "Genre de l'histoire",
+          "required": true,
+          "default": "fantasy",
+          "values": ["fantasy", "science-fiction", "horreur", "aventure", "romance", "thriller", "historique", "post-apocalyptique"]
+        },
+        "tonalite": {
+          "type": "string",
+          "description": "Tonalité générale de la location",
+          "required": true,
+          "default": "mystérieuse",
+          "values": ["sombre", "mystérieuse", "accueillante", "dangereuse", "majestueuse", "délaissée", "animée", "tranquille", "sacrée"]
+        },
+        "taille": {
+          "type": "string",
+          "description": "Taille de la location",
+          "required": true,
+          "default": "moyen",
+          "values": ["petit", "moyen", "grand", "immense"]
+        },
+        "connexions": {
+          "type": "array",
+          "description": "Locations existantes connectées à cette nouvelle location",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Nom d'une location connectée"
+          }
+        },
+        "elements_specifiques": {
+          "type": "array",
+          "description": "Éléments spécifiques à inclure",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Élément spécifique (ex: fontaine, statue, bibliothèque cachée)"
+          }
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "type": "taverne",
+            "genre": "fantasy",
+            "tonalite": "mystérieuse",
+            "taille": "moyen",
+            "elements_specifiques": ["cheminée centrale", "salle privée", "cave à vin"]
+          },
+          "output": {
+            "nom": "La Lance Brisée",
+            "nom_alternatif": "Le Repaire des Vagabonds",
+            "type": "Taverne",
+            "description_physique": "Une taverne aux murs de pierre sombre, traversée par des poutres en chêne noircies par les siècles. Une immense cheminée de pierre trônant au centre projette une lueur orange dansante sur les visages des clients. L'air est chargé d'odeurs de bois brûlé, de viande rôtie et d'épices exotiques. Des têtes d'animaux trophy ornent les murs, leurs yeux de verre brillant faiblement à la lumière des bougies. Le plafond bas, enfumé, crée une atmosphère intime et conspiratrice.\n\nArchitecture: Style médiéval rustique avec des éléments gothiques. Comptoir en fer forgé et bois ancien. Escalier en colimaçon menant à l'étage. Cave descendante protégée par une porte de fer.\n\nÉclairage: Chandeliers en fer sur chaque table, flamme vacillante des bougies, braises rougeoyantes de la cheminée.\n\nAmbiance sonore: Cracklement du feu, murmures conspirateurs, occasional rire gras, musique de luth au loin.",
+            "historique": {
+              "fondation": "Fondée il y a 247 ans par un ancien chevalier déchu, Sir Aldric la Lance, qui chercha refuge après une trahison politique.",
+              "evenements_marquants": [
+                "聚会 des Chevaliers de l'Ordre du Crépuscule en 1842",
+                "Rumeur d'un assassinat politique non élucidé en 1903",
+                "Incendie partiel restauré en 1956"
+              ],
+              "legendes": "On murmure que le fondateur cache un trésor somewhere dans les caves profondes, accessible only par un passage secret"
+            },
+            "population": {
+              "tenancier": "Maitre Vorn, un homme massif aux mains calleuses et au regard perçant, toujours armé d'un couperet à pain",
+              "frequentation": "Mercenaires, marchands, voyageurs, espions, occasionally membres de guildes clandestines",
+              "personnages_cles": [
+                "La Veuve Silencieuse - une femme toujours voilée qui semble attendre quelqu'un",
+                "Thorn le Borgne - ancien mercenaire devenu barde",
+                "Les Jumeaux Noirs - deux frères toujours ensemble, origine inconnue"
+              ]
+            },
+            "secrets": [
+              "Passage secret menant aux tunnels sous la ville sous la cave",
+              "Salle arrière où se tiennent des réunions de la Guilde des Ombres",
+              "Tableau pivotant révélant un réduits caché"
+            ],
+            "connexions": ["Guilde des Ombres", "Quartier des Marchands", "Le Château du Roi", "Forêt des Murmures"],
+            "evenements_possibles": [
+              "Rencontre avec un informateur de la Guilde",
+              "Duel clandestin dans la cave",
+              "Révélation d'un secret longtemps gardé",
+              "Embuscade de bandits",
+              "Arrivée d'un personnage énigmatique"
+            ],
+            "dangers": ["Bagarres occasionnelles", "Voleurs à la tire", "Poison dans les verres (rare)"]
+          }
+        },
+        {
+          "input": {
+            "type": "forêt",
+            "genre": "horreur",
+            "tonalite": "sombre",
+            "taille": "immense",
+            "connexions": ["Village de Pierre-Fendée"]
+          },
+          "output": {
+            "nom": "La Forêt des Murmures Éternelles",
+            "type": "Forêt",
+            "description_physique": "Une forêt ancestrale où les arbres atteignent des hauteurs vertigineuses, leurs branches entrelacées formant un plafond impénétrable. La lumière du jour ne filtre qu'en fins rayons obliques, créant une pénombre permanente. Le sol est couvert de mousse épaisse et de feuilles mortes qui absorbent chaque pas. Des nuées d'insectes luminescents volent entre les troncs torturés.\n\nArchitecture naturelle: Arbres millénaires aux formes torturées, rochers recouverts de lichen, ruisseaux aux eaux noires.\n\nÉclairage: Lumière verdâtre filtrant à travers la canopée, bioluminescence des champignons et insecte.\n\nAmbiance sonore: Murmures constants (le vent?), cris d'oiseaux unknown, bruissement inexplicable des feuilles.",
+            "historique": {
+              "fondation": "Existed before l'histoire écrite, certains disent que la forêt est sentient",
+              "evenements_marquants": [
+                "Disparition du Village de Pierre-Fendée en 1456",
+                "Massacre de la expedition des Archimages en 1789",
+                "La forêt a grandi de 20 lieues en 50 ans"
+              ]
+            },
+            "population": {
+              "creatures": ["Esprits des arbres", "Wendigos", "Chasseurs Silencieux", "Les Perdus (anciens villagers)"],
+              "personnages_cles": [
+                "Le Gardien - entité protectrice de la forêt, apparaît sous différentes formes",
+                "L'Enfant sans Visage - apparition qui guide les voyageurs vers leur destin"
+              ]
+            },
+            "secrets": [
+              "Temple ancien sous la racine du plus grand arbre",
+              "Les murmures contiennent des prophéties pour ceux qui savent écouter",
+              "La forêt répond aux prières mais always demande un prix"
+            ],
+            "connexions": ["Village de Pierre-Fendée", "Cimetière des Rois Oubliés", "Montagnes des Lamentations"],
+            "evenements_possibles": [
+              "Rencontre avec une créature mystique",
+              "Perte de sens (dérive circulaire)",
+              "Révélation du destin du voyageur",
+              "Sacrifice demandé par la forêt",
+              "Combat contre une entité hostile"
+            ],
+            "dangers": ["Perte définitive", "Possession par les esprits", "Métamorphose en arbre", "Faim éternelle"]
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["nom", "type", "description_physique", "historique", "population", "secrets", "connexions"],
+        "rules": [
+          "Le nom doit être évocateur et unique",
+          "La description doit inclure au moins 3 éléments sensoriels",
+          "Chaque secret doit être lié à l'histoire ou à la population",
+          "Les connexions doivent être cohérentes avec le genre",
+          "La tonalité doit être cohérente throughout"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "nom": "string",
+          "nom_alternatif": "string",
+          "type": "string",
+          "description_physique": "string",
+          "historique": {
+            "fondation": "string",
+            "evenements_marquants": ["string"],
+            "legendes": "string"
+          },
+          "population": {
+            "tenancier_ou_gardien": "string",
+            "frequentation": "string",
+            "personnages_cles": ["string"]
+          },
+          "secrets": ["string"],
+          "connexions": ["string"],
+          "evenements_possibles": ["string"],
+          "dangers": ["string"],
+          "ressources": ["string"]
+        }
+      }
+    },
+    {
+      "id": "location-update",
+      "name": "Mettre à jour une location",
+      "description": "Modifie et enrichit une location existante avec de nouveaux éléments tout en préservant la cohérence narrative",
+      "category": "locations",
+      "prompt": "Tu es un expert en évolution des univers narratifs pour StoryCore. Ta mission est de mettre à jour et enrichir une location existante en ajoutant de nouveaux éléments tout en maintenant la cohérence avec l'existant.\n\n## Instructions de mise à jour\n\n### Éléments modifiables\n\n1. **Expansion géographique**\n   - Nouvelles zones ou sections\n   - Connexions vers de nouvelles locations\n   - Accès secrets ou tunnels\n\nrichissement narratif2. **En**\n   - Nouveaux personnages fréquents\n   - Nouveaux événements possibles\n   - Évolution de l'histoire du lieu\n   - Nouveaux secrets révélés ou ajoutés\n\n3. **Changements physiques**\n   - Rénovations ou transformations\n   - Nouveaux éléments architecturaux\n   - Changements d'ambiance\n   - Dégâts ou dégradations\n\n4. **Évolution de la population**\n   - Arrivée de nouveaux personnages clés\n   - Départ ou mort de personnages\n   - Changement dans le type de fréquentation\n   - Nouvelles règles ou lois\n\n5. **Intégration avec l'histoire**\n   - Comment les événements récents ont affecté le lieu\n   - Éléments liés aux quêtes en cours\n   - Résonance avec les actions des personnages-joueurs\n\n## Principes de cohérence\n\n- Tous les ajouts doivent être cohérents avec le genre et la tonalité existants\n- Les nouveaux éléments ne doivent pas contredire les informations existantes\n- L'évolution doit être logique et graduelle\n- Préserver l'identité fondamentale du lieu\n\n## Format de sortie\n\nRetourne un objet JSON contenant uniquement les champs modifiés ou ajoutés, avec des références claires aux éléments existants préservés.",
+      "parameters": {
+        "location_existante": {
+          "type": "object",
+          "description": "La location existante à mettre à jour (au format JSON)",
+          "required": true
+        },
+        "type_update": {
+          "type": "string",
+          "description": "Type de mise à jour souhaité",
+          "required": true,
+          "values": ["expansion", "enrichissement", "transformation", "evolution_narrative", "complete"],
+          "default": "enrichissement"
+        },
+        "nouveaux_elements": {
+          "type": "array",
+          "description": "Types de nouveaux éléments à ajouter",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Type d'élément (nouvelle_zone, personnage, secret, connexion, evenement, etc.)"
+          }
+        },
+        "contexte_histoire": {
+          "type": "string",
+          "description": "Contexte narratif actuel (quêtes en cours, événements récents)",
+          "required": false,
+          "default": ""
+        },
+        "intensite_changement": {
+          "type": "string",
+          "description": "Niveau de transformation souhaité",
+          "required": true,
+          "values": ["mineur", "modéré", "majeur"],
+          "default": "modéré"
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "location_existante": {
+              "nom": "La Lance Brisée",
+              "type": "Taverne",
+              "description_physique": "Taverne aux murs de pierre sombre avec cheminée centrale",
+              "secrets": ["Passage secret vers les tunnels"],
+              "personnages_cles": ["Maitre Vorn"]
+            },
+            "type_update": "expansion",
+            "nouveaux_elements": ["nouvelle_zone", "connexion"],
+            "intensite_changement": "modéré"
+          },
+          "output": {
+            "modifications": {
+              "nouvelles_zones": [
+                {
+                  "nom": "Le Jardin Secret",
+                  "description": "Cour intérieure cachée accessible par une porte dérobée derrière la cheminée. Un jardin à l'abandon avec une fontaine asséchée, des statues moussues et un arbre mort au centre. L'air y est frais et chargé de mystère.",
+                  "atmosphere": "Tranquille et mélancolique, contrastant avec l'animation de la taverne"
+                }
+              ],
+              "connexions_ajoutees": ["Caverne des Murmures (via le passage secret)", "Jardin Secret (derrière la cheminée)"]
+            },
+            "preservation": {
+              "elements_conserves": ["Description physique de la salle principale", "Personnage de Maitre Vorn", "Secrets existants"],
+              "coherence": "Le jardin secret explique pourquoi certains clients disparaissent temporairement"
+            }
+          }
+        },
+        {
+          "input": {
+            "location_existante": {
+              "nom": "La Forêt des Murmures Éternelles",
+              "type": "Forêt",
+              "secrets": ["Temple ancien sous la racine du plus grand arbre"],
+              "population": ["Esprits des arbres", "Wendigos"]
+            },
+            "type_update": "evolution_narrative",
+            "contexte_histoire": "Le groupe de personnages vient de découvrir l'entrée du temple",
+            "intensite_changement": "majeur"
+          },
+          "output": {
+            "modifications": {
+              "nouveaux_secrets": [
+                "Le temple contient un pacte ancien entre les esprits et les premiers humains",
+                "Le Gardien peut être contrôlé par celui qui lit les runes du temple",
+                "La forêt a été créée comme barrière contre une menace venue d'ailleurs"
+              ],
+              "nouveaux_personnages": [
+                "Le Gardien Éveillé - forme aggressive du Gardien suite à la perturbation",
+                "Les Ancêtres - esprits des premiers humains, préservés dans le temple"
+              ],
+              "nouveaux_evenements": [
+                "Ritual de pacification possible au temple",
+                " Confrontation avec le Gardien Éveillé",
+                "Découverte du pacte originel"
+              ]
+            },
+            "transformation": {
+              "description": "La forêt réagit à la perturbation causée par les personnages. L'équilibre traditionnel est rompu.",
+              "impacts": ["Les murmures deviennent plus pressants", "Les chemins changent constamment", "Les créatures hostiles sont plus nombreuses près du temple"]
+            }
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["modifications", "preservation"],
+        "rules": [
+          "Les nouveaux éléments doivent être cohérents avec le genre",
+          "Aucune contradiction avec l'existant",
+          "Les changements majeurs doivent être justifiés narrativement",
+          "L'identité du lieu doit être préservée"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "modifications": {
+            "nouvelles_zones": ["object"],
+            "nouveaux_personnages": ["string"],
+            "nouveaux_secrets": ["string"],
+            "nouvelles_connexions": ["string"],
+            "nouveaux_evenements": ["string"]
+          },
+          "preservation": {
+            "elements_conserves": ["string"],
+            "coherence": "string"
+          },
+          "transformation": {
+            "description": "string",
+            "impacts": ["string"]
+          }
+        }
+      }
+    },
+    {
+      "id": "location-generate-image",
+      "name": "Générer l'image d'une location",
+      "description": "Crée un prompt visuel détaillé pour générer une image de la location avec Stable Diffusion ou autre IA génératrice d'images",
+      "category": "locations",
+      "prompt": "Tu es un expert en création de prompts visuels pour l'intelligence artificielle génératrice d'images (Stable Diffusion, Midjourney, DALL-E). Ta mission est de transformer une description textuelle de location en un prompt visuel détaillé et optimisé.\n\n## Composantes du prompt visuel\n\n### 1. Style artistique\n- Détermine le style approprié (fantasy, réaliste, aquarelle, concept art, illustration médiévale, etc.)\n- Specify l'influence artistique (Claude Monet, H.R. Giger, Alan Lee, etc.)\n- Considère le médium (digital painting, oil painting, photography, etc.)\n\n### 2. Composition de l'image\n- Point focal principal\n- Perspective (vue aérienne, vue de niveau, plongée, contre-plongée)\n- Éléments de premier plan et d'arrière-plan\n- Cadre et recadrage\n\n### 3. Détails visuels\n- Architecture et structures\n- Éclairage (naturel, artificiel, dramatique)\n- Palette de couleurs dominante\n-Textures et matériaux\n- Éléments naturels (végétation, eau, ciel)\n\n### 4. Atmosphère\n- Émotion véhiculée\n- Conditions météorologiques\n- Moment de la journée\n- Effets spéciaux (brume, particules, rayons)\n\n### 5.Éléments humains ou créatures\n- Présence ou absence de personnages\n- Types de personnages si présents\n- Activités représentées\n\n### 6. Mots-clés techniques\n- Quality tags (masterpiece, best quality, intricate details)\n- Style tags selon le générateur\n- Résolution et format\n\n## Instructions d'optimisation\n\n- Utiliser des descriptions positives (ce que vous voulez voir)\n- Éviter les négations si possible\n- Ordonner les éléments du général au spécifique\n- Inclure des références artistiques pertinentes\n- Considérer les contraintes techniques du générateur cible\n\n## Format de sortie\n\nGénère un prompt optimisé pour Stable Diffusion avec:\n- Positive prompt (section principale)\n- Negative prompt (éléments à éviter)\n- Paramètres suggérés (steps, sampler, CFG scale)",
+      "parameters": {
+        "location": {
+          "type": "object",
+          "description": "Description complète de la location à visualiser",
+          "required": true
+        },
+        "style": {
+          "type": "string",
+          "description": "Style artistique souhaité",
+          "required": false,
+          "default": "fantasy",
+          "values": ["fantasy", "realiste", "aquarelle", "concept_art", "illustration_medievale", "cyberpunk", "horreur", "surréaliste", "anime", "digital_art"]
+        },
+        "vue": {
+          "type": "string",
+          "description": "Type de vue ou perspective",
+          "required": false,
+          "default": "vue_de_niveau",
+          "values": ["vue_aerienne", "vue_de_niveau", "plongee", "contre_plongee", "vue_interieure", "vue_exterieur", "panoramique"]
+        },
+        "moment_journee": {
+          "type": "string",
+          "description": "Moment de la journée à représenter",
+          "required": false,
+          "default": "soir",
+          "values": ["aube", "matin", "midi", "apres_midi", "crepuscule", "nuit", "minuit"]
+        },
+        "meteo": {
+          "type": "string",
+          "description": "Conditions météorologiques",
+          "required": false,
+          "default": "variable selon l'ambiance",
+          "values": ["clair", "nuageux", "brouillard", "pluie", "neige", "orage", "brouillard_mystique"]
+        },
+        "presence_personnages": {
+          "type": "boolean",
+          "description": "Inclure des personnages dans l'image",
+          "required": false,
+          "default": false
+        },
+        "generateur": {
+          "type": "string",
+          "description": "Générateur d'images cible pour l'optimisation",
+          "required": false,
+          "default": "stable_diffusion",
+          "values": ["stable_diffusion", "midjourney", "dalle", "comfyui"]
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "location": {
+              "nom": "La Lance Brisée",
+              "type": "Taverne",
+              "description_physique": "Une taverne aux murs de pierre sombre, traversée par des poutres en chêne noircies. Une immense cheminée de pierre au centre projette une lueur orange. L'air chargé d'odeurs de bois brûlé et d'épices. Des têtes d'animaux trophy ornent les murs."
+            },
+            "style": "fantasy",
+            "vue": "vue_interieure",
+            "moment_journee": "soir",
+            "presence_personnages": true,
+            "generateur": "stable_diffusion"
+          },
+          "output": {
+            "positive_prompt": "masterpiece, best quality, intricate details, fantasy tavern interior, medieval tavern, stone walls with dark oak beams, massive stone fireplace at center casting warm orange light, flickering candlelight on wooden tables, mounted animal heads on walls, smoky atmosphere, warm brown and orange color palette, knights and travelers sitting at tables, bard playing lute in corner, detailed wooden furniture, tavern keeper behind counter, volumetric lighting from fireplace, cozy and mysterious atmosphere, style of Alan Lee meets Tavern scene, digital painting, 8k resolution",
+            "negative_prompt": "low quality, worst quality, blurry, dark, muddy, poor lighting, ugly, deformed, extra fingers, poorly drawn face, poorly drawn hands, missing fingers, watermark, signature, text, logo",
+            "parametres": {
+              "steps": "30",
+              "sampler": "DPM++ 2M Karras",
+              "cfg_scale": "7",
+              "seed": "random"
+            },
+            "variations_suggerees": [
+              {
+                "nom": "Vue de la salle principale",
+                "prompt_additionnel": "wide angle view of main hall, multiple tables visible"
+              },
+              {
+                "nom": "Vue de la cheminée",
+                "prompt_additionnel": "close-up on fireplace, detailed stone masonry"
+              },
+              {
+                "nom": "Ambiance nocturne",
+                "prompt_additionnel": "late night, fewer customers, more mysterious atmosphere"
+              }
+            ]
+          }
+        },
+        {
+          "input": {
+            "location": {
+              "nom": "La Forêt des Murmures Éternelles",
+              "type": "Forêt",
+              "description_physique": "Forêt ancestrale aux arbres immenses, branches entrelacées formant un plafond impénétrable. Lumière verdâtre filtrant à travers la canopée. Sol couvert de mousse et feuilles mortes."
+            },
+            "style": "horreur",
+            "vue": "vue_de_niveau",
+            "moment_journee": "nuit",
+            "meteo": "brouillard_mystique",
+            "presence_personnages": false,
+            "generateur": "stable_diffusion"
+          },
+          "output": {
+            "positive_prompt": "masterpiece, best quality, dark fantasy forest, ancient towering trees with twisted branches, thick canopy blocking most light, eerie greenish glow filtering through, misty atmosphere, moss covered ground, fallen leaves, bioluminescent mushrooms, dark forboding mood, mysterious fog swirling between trees, twisted roots, dark fantasy art style, concept art, dark greens and blacks, horror atmosphere, cinematic lighting, dramatic shadows, style of H.R. Giger meets dark fantasy, intricate details, 8k resolution",
+            "negative_prompt": "low quality, worst quality, bright, sunny, daylight, clear sky, happy, cheerful, cartoon, anime, simple, watermark, signature",
+            "parametres": {
+              "steps": "40",
+              "sampler": "DPM++ SDE Karras",
+              "cfg_scale": "8",
+              "seed": "random"
+            },
+            "variations_suggerees": [
+              {
+                "nom": "Vue aérienne",
+                "prompt_additionnel": "aerial view, forest canopy from above,可以看到forest extends to horizon"
+              },
+              {
+                "nom": "Créature dans l'ombre",
+                "prompt_additionnel": "shadowy creature visible between trees, glowing eyes in darkness"
+              },
+              {
+                "nom": "Lumière mystique",
+                "prompt_additionnel": "ethereal light beams breaking through canopy, magical atmosphere"
+              }
+            ]
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["positive_prompt", "negative_prompt"],
+        "rules": [
+          "Le prompt positif doit être détaillé et spécifique",
+          "Le prompt négatif doit couvrir les artefacts courants",
+          "Les paramètres doivent être appropriés pour le générateur cible",
+          "Le style doit correspondre au genre de la location"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "positive_prompt": "string",
+          "negative_prompt": "string",
+          "parametres": {
+            "steps": "string",
+            "sampler": "string",
+            "cfg_scale": "string",
+            "seed": "string"
+          },
+          "variations_suggerees": [
+            {
+              "nom": "string",
+              "prompt_additionnel": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "location-validate",
+      "name": "Valider une location",
+      "description": "Vérifie la cohérence et la qualité d'une location par rapport aux standards StoryCore et au contexte narratif",
+      "category": "locations",
+      "prompt": "Tu es un expert en assurance qualité narrative pour StoryCore. Ta mission est de valider qu'une location est cohérente, complète et adaptée au contexte de l'histoire.\n\n## Critères de validation\n\n### 1. Cohérence interne\n- Les éléments de la description sont-ils cohérents entre eux ?\n- La tonalité est-elle uniforme throughout ?\n- Les détails physiques sont-ils logiques ?\n- Les secrets et mystères sont-ils crédibles ?\n\n### 2. Cohérence externe\n- La location est-elle cohérente avec le genre de l'histoire ?\n- Les connexions avec d'autres locations sont-elles logiques ?\n- La population correspond-elle au type de lieu ?\n- L'atmosphère correspond-elle à la tonalité générale ?\n\n### 3. Complétude\n- Tous les champs obligatoires sont-ils présents ?\n- La description est-elle suffisamment détaillée ?\n- Y a-t-il assez d'éléments narratifs exploitables ?\n- Les événements possibles sont-ils variés et intéressants ?\n\n### 4. Originalité\n- Le nom est-il unique et évocateur ?\n- La description contient-elle des éléments originaux ?\n- Évite-t-elle les clichés surutilisés ?\n- Les secrets sont-ils intéressants et non conventionnels ?\n\n### 5. Potentiel narratif\n- La location offre-t-elle des opportunités de quêtes ?\n- Peut-elle accueillir des rencontres variées ?\n- Les dangers sont-ils appropriés et intéressants ?\n- Y a-t-il des ressources ou objets thérapeut利用率 ?\n\n### 6. Conformité technique\n- Le format JSON est-il valide ?\n- Tous les champs obligatoires sont-ils présents ?\n- Les types de données sont-ils corrects ?\n\n## Processus de validation\n\n1. Analyser chaque critère ci-dessus\n2. Attribuer un score de 1 à 5 pour chaque critère\n3. Identifier les problèmes spécifiques\n4. Proposer des corrections ou améliorations\n5. Fournir un verdict global (valide, à corriger, à rejeter)\n\n## Format de sortie\n\nRetourne un rapport de validation détaillé avec:\n- Scores par critère\n- Problèmes identifiés\n- Suggestions d'amélioration\n- Verdict final",
+      "parameters": {
+        "location": {
+          "type": "object",
+          "description": "La location à valider (au format JSON)",
+          "required": true
+        },
+        "contexte": {
+          "type": "object",
+          "description": "Contexte de l'histoire pour validation externe",
+          "required": false,
+          "properties": {
+            "genre": {
+              "type": "string",
+              "description": "Genre de l'histoire"
+            },
+            "tonalite": {
+              "type": "string",
+              "description": "Tonalité"
+ générale            },
+            "locations_existantes": {
+              "type": "array",
+              "description": "Autres locations dans l'histoire",
+              "items": {
+                "type": "string"
+              }
+            },
+            "personnages_existants": {
+              "type": "array",
+              "description": "Personnages déjà créés",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "niveau_strictesse": {
+          "type": "string",
+          "description": "Niveau de rigueur de la validation",
+          "required": false,
+          "default": "standard",
+          "values": ["relaxe", "standard", "strict"]
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "location": {
+              "nom": "La Lance Brisée",
+              "type": "Taverne",
+              "description_physique": "Une taverne avec une cheminée",
+              "secrets": [],
+              "personnages_cles": []
+            },
+            "contexte": {
+              "genre": "fantasy",
+              "tonalite": "mystérieuse",
+              "locations_existantes": ["Forêt des Murmures", "Château du Roi"]
+            },
+            "niveau_strictesse": "standard"
+          },
+          "output": {
+            "scores": {
+              "coherence_interne": 3,
+              "coherence_externe": 4,
+              "completude": 2,
+              "originalite": 4,
+              "potentiel_narratif": 2,
+              "conformite_technique": 5
+            },
+            "problemes_identifies": [
+              {
+                "categorie": "completude",
+                "severite": "haute",
+                "description": "Description physique trop courte, manque de détails sensoriels",
+                "suggestion": "Ajouter au moins 3 éléments sensoriels (visuel, olfactif, sonore)"
+              },
+              {
+                "categorie": "completude",
+                "severite": "haute",
+                "description": "Aucun secret défini",
+                "suggestion": "Ajouter au moins 2 secrets ou mystères"
+              },
+              {
+                "categorie": "completude",
+                "severite": "moyenne",
+                "description": "Aucun personnage clé défini",
+                "suggestion": "Créer au moins 1 personnage récurrent (tenancier, client régulier)"
+              },
+              {
+                "categorie": "coherence_externe",
+                "severite": "basse",
+                "description": "Connexions mentionnées dans le contexte mais absentes de la location",
+                "suggestion": "Ajouter des connexions avec 'Forêt des Murmures' et 'Château du Roi'"
+              }
+            ],
+            "score_total": 3.3,
+            "verdict": "À corriger",
+            "recommendations": [
+              "Enrichir la description physique avec des détails visuels, sonores et olfactifs",
+              "Ajouter 2-3 secrets minimum pour le potentiel narratif",
+              "Créer un personnage clé (tenancier ou client régulier)",
+              "Définir les connexions avec les autres locations",
+              "Ajouter des événements possibles (rencontres, quêtes)"
+            ]
+          }
+        },
+        {
+          "input": {
+            "location": {
+              "nom": "La Forêt des Murmures Éternelles",
+              "type": "Forêt",
+              "description_physique": "Forêt ancestrale aux arbres immenses, branches entrelacées formant un plafond impénétrable. Lumière verdâtre filtrant à travers la canopée. Sol couvert de mousse et feuilles mortes. Nuées d'insectes luminescents. Arbres aux formes torturées, ruisseaux aux eaux noires.",
+              "historique": {
+                "fondation": "Existe avant l'histoire écrite",
+                "evenements_marquants": ["Disparition du village en 1456", "Massacre des Archimages en 1789"],
+                "legendes": "La forêt est sentient selon les légendes locales"
+              },
+              "population": {
+                "creatures": ["Esprits des arbres", "Wendigos", "Chasseurs Silencieux"],
+                "personnages_cles": ["Le Gardien", "L'Enfant sans Visage"]
+              },
+              "secrets": [
+                "Temple ancien sous la racine du plus grand arbre",
+                "Les murmures contiennent des prophéties",
+                "La forêt répond aux prières mais demande toujours un prix"
+              ],
+              "connexions": ["Village de Pierre-Fendée", "Cimetière des Rois Oubliés"],
+              "evenements_possibles": [
+                "Rencontre avec une créature mystique",
+                "Perte de sens (dérive circulaire)",
+                "Révélation du destin",
+                "Sacrifice demandé par la forêt",
+                "Combat contre une entité hostile"
+              ]
+            },
+            "contexte": {
+              "genre": "horreur",
+              "tonalite": "sombre"
+            },
+            "niveau_strictesse": "strict"
+          },
+          "output": {
+            "scores": {
+              "coherence_interne": 5,
+              "coherence_externe": 5,
+              "completude": 5,
+              "originalite": 5,
+              "potentiel_narratif": 5,
+              "conformite_technique": 5
+            },
+            "problemes_identifies": [],
+            "score_total": 5.0,
+            "verdict": "Valide",
+            "recommendations": [
+              "Location de qualité supérieure",
+              "Peut être utilisée telle quelle dans l'histoire",
+              "Considérer l'ajout de ressources ou objets spéciaux pour enrichir davantage"
+            ],
+            "points_forts": [
+              "Description physique riche et immersive",
+              "Cohérence parfaite avec le genre horreur",
+              "Population variée et intéressante",
+              "Secrets nombreux et mysterieux",
+              "Événements possibles variés"
+            ]
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["scores", "verdict"],
+        "rules": [
+          "Le score total doit être la moyenne des 6 critères",
+          "Chaque critère doit avoir un score entre 1 et 5",
+          "Le verdict doit être cohérent avec le score total",
+          "Des recommandations doivent être fournies pour tout problème identifié"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "scores": {
+            "coherence_interne": "number (1-5)",
+            "coherence_externe": "number (1-5)",
+            "completude": "number (1-5)",
+            "originalite": "number (1-5)",
+            "potentiel_narratif": "number (1-5)",
+            "conformite_technique": "number (1-5)"
+          },
+          "problemes_identifies": [
+            {
+              "categorie": "string",
+              "severite": "string",
+              "description": "string",
+              "suggestion": "string"
+            }
+          ],
+          "score_total": "number",
+          "verdict": "string",
+          "recommendations": ["string"],
+          "points_forts": ["string"]
+        }
+      }
+    },
+    {
+      "id": "location-export",
+      "name": "Exporter une location",
+      "description": "Exporte une location dans différents formats (JSON, Markdown, XML, etc.) pour intégration ou partage",
+      "category": "locations",
+      "prompt": "Tu es un expert en transformation de données narratives pour StoryCore. Ta mission est d'exporter une location dans différents formats adaptés à différents usages.\n\n## Formats d'export disponibles\n\n### 1. JSON Standard\n- Format brut pour stockage et manipulation\n- Conserve toutes les données\n- Utile pour l'intégration technique\n\n### 2. Markdown (pour documentation)\n- Format lisible pour la documentation\n- Structure en titres et sections\n- Inclut des exemples de formatage\n\n### 3. XML (pour intégration legacy)\n- Compatible avec les systèmes anciens\n- Structure hiérarchique stricte\n- Utile pour l'import/export\n\n### 4. Format court (pour référence rapide)\n- Résumé concis\n- Informations essentielles uniquement\n- Utile pour les fiches de référence\n\n### 5. Format narratif (pour l'IA)\n- Description en prose continue\n- Orienté storytelling\n- Pour la génération de contenu\n\n## Options d'export\n\n- Inclusion/exclusion de champs spécifiques\n- Niveau de détail (complet, résumé, minimal)\n- Langue de sortie\n- Ajout de métadonnées\n- Formatage des descriptions\n\n## Format de sortie\n\nGénère l'export dans le format demandé avec:\n- Données de la location transformées\n- Métadonnées d'export (format, version, date)\n- Notes de transformation si nécessaire",
+      "parameters": {
+        "location": {
+          "type": "object",
+          "description": "La location à exporter (au format JSON)",
+          "required": true
+        },
+        "format": {
+          "type": "string",
+          "description": "Format d'export souhaité",
+          "required": true,
+          "values": ["json", "markdown", "xml", "court", "narratif"],
+          "default": "json"
+        },
+        "niveau_detail": {
+          "type": "string",
+          "description": "Niveau de détail de l'export",
+          "required": false,
+          "default": "complet",
+          "values": ["complet", "resumé", "minimal"]
+        },
+        "champs_inclus": {
+          "type": "array",
+          "description": "Liste des champs à inclure (si vide, tous inclus)",
+          "required": false,
+          "default": [],
+          "items": {
+            "type": "string",
+            "description": "Nom du champ à inclure"
+          }
+        },
+        "inclure_metadonnees": {
+          "type": "boolean",
+          "description": "Inclure les métadonnées d'export",
+          "required": false,
+          "default": true
+        },
+        "langue": {
+          "type": "string",
+          "description": "Langue de sortie",
+          "required": false,
+          "default": "fr",
+          "values": ["fr", "en", "es", "de"]
+        }
+      },
+      "examples": [
+        {
+          "input": {
+            "location": {
+              "nom": "La Lance Brisée",
+              "type": "Taverne",
+              "description_physique": "Une taverne aux murs de pierre sombre, traversée par des poutres en chêne noircies. Une immense cheminée de pierre au centre projette une lueur orange. L'air chargé d'odeurs de bois brûlé et d'épices.",
+              "historique": {
+                "fondation": "Fondée il y a 247 ans par un ancien chevalier déchu",
+                "evenements_marquants": ["Réunion des Chevaliers en 1842", "Rumeur d'assassinat en 1903"]
+              },
+              "population": {
+                "tenancier": "Maitre Vorn",
+                "frequentation": "Mercenaires, marchands, espions"
+              },
+              "secrets": ["Passage secret vers les tunnels", "Salle arrière de la Guilde"],
+              "connexions": ["Guilde des Ombres", "Château du Roi"]
+            },
+            "format": "markdown",
+            "niveau_detail": "complet",
+            "inclure_metadonnees": true
+          },
+          "output": {
+            "contenu": "# La Lance Brisée\n\n## Informations générales\n\n- **Nom**: La Lance Brisée\n- **Nom alternatif**: Le Repaire des Vagabonds\n- **Type**: Taverne\n\n## Description physique\n\nUne taverne aux murs de pierre sombre, traversée par des poutres en chêne noircies par les siècles. Une immense cheminée de pierre trônant au centre projette une lueur orange dansante sur les visages des clients. L'air est chargé d'odeurs de bois brûlé, de viande rôtie et d'épices exotiques.\n\n### Architecture\n- Style médiéval rustique avec éléments gothiques\n- Comptoir en fer forgé et bois ancien\n- Escalier en colimaçon menant à l'étage\n- Cave descendante protégée par une porte de fer\n\n### Éclairage et ambiance\n- Chandeliers en fer sur chaque table\n- Flamme vacillante des bougies\n- Braises rougeoyantes de la cheminée\n\n## Historique\n\n### Fondation\nFondée il y a 247 ans par un ancien chevalier déchu, Sir Aldric la Lance, qui chercha refuge après une trahison politique.\n\n### Événements marquants\n- Réunion des Chevaliers de l'Ordre du Crépuscule en 1842\n- Rumeur d'un assassinat politique non élucidé en 1903\n- Incendie partiel restauré en 1956\n\n## Population\n\n### Tenancier\nMaitre Vorn, un homme massif aux mains calleuses et au regard perçant, toujours armé d'un couperet à pain.\n\n### Fréquentation\nMercenaires, marchands, voyageurs, espions, occasionnellement membres de guildes clandestines.\n\n## Secrets\n\n- Passage secret menant aux tunnels sous la ville sous la cave\n- Salle arrière où se tiennent des réunions de la Guilde des Ombres\n- Tableau pivotant révélant un réduits caché\n\n## Connexions\n\n- Guilde des Ombres\n- Quartier des Marchands\n- Le Château du Roi\n- Forêt des Murmures\n\n## Événements possibles\n\n- Rencontre avec un informateur de la Guilde\n- Duel clandestin dans la cave\n- Révélation d'un secret longtemps gardé\n- Embuscade de bandits\n- Arrivée d'un personnage énigmatique\n\n---\n*Export généré par StoryCore - Format Markdown*",
+            "metadonnees": {
+              "format": "markdown",
+              "version": "1.0",
+              "date": "2026-02-26",
+              "niveau_detail": "complet",
+              "champs_inclus": ["nom", "type", "description_physique", "historique", "population", "secrets", "connexions", "evenements_possibles"]
+            }
+          }
+        },
+        {
+          "input": {
+            "location": {
+              "nom": "La Forêt des Murmures Éternelles",
+              "type": "Forêt",
+              "secrets": ["Temple ancien", "Prophéties dans les murmures"],
+              "dangers": ["Perte définitive", "Possession"]
+            },
+            "format": "court",
+            "niveau_detail": "minimal"
+          },
+          "output": {
+            "contenu": "# Fiche: La Forêt des Murmures Éternelles\n\n**Type**: Forêt\n\n**Dangerosité**: Élevée\n\n**Secrets**: Temple ancien, Prophéties dans les murmures\n\n**Connexions**: Village de Pierre-Fendée\n\n---\n*Format court - Résumé essentiel*",
+            "metadonnees": {
+              "format": "court",
+              "version": "1.0",
+              "date": "2026-02-26",
+              "niveau_detail": "minimal"
+            }
+          }
+        }
+      ],
+      "validation": {
+        "required_fields": ["contenu"],
+        "rules": [
+          "Le contenu doit être dans le format demandé",
+          "Les métadonnées doivent être présentes si include_metadonnees est true",
+          "Le contenu doit inclure tous les champs spécifiés dans champs_inclus",
+          "La langue doit être cohérente tout au long de l'export"
+        ]
+      },
+      "output": {
+        "format": "JSON",
+        "schema": {
+          "contenu": "string",
+          "metadonnees": {
+            "format": "string",
+            "version": "string",
+            "date": "string",
+            "niveau_detail": "string",
+            "champs_inclus": ["string"]
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "version": "2.0",
+    "date_creation": "2026-02-26",
+    "auteur": "StoryCore Team",
+    "description": "Ensemble complet des skills pour la gestion des locations dans StoryCore",
+    "categorie": "locations"
+  }
+}

@@ -38,7 +38,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Create router
-router = APIRouter(prefix="/api/locations", tags=["location-logic-loop"])
+router = APIRouter(prefix="/location-logic-loop", tags=["location-logic-loop"])
 
 
 class Settings(BaseSettings):

@@ -43,6 +43,7 @@ class WorkflowStepType(str, Enum):
     GENERATE_AUDIO = "generate_audio"
     GENERATE_MUSIC = "generate_music"
     GENERATE_VOICEOVER = "generate_voiceover"
+    GENERATE_STORY = "generate_story"
     
     # Identity & Consistency
     EXTRACT_IDENTITY = "extract_identity"
@@ -153,6 +154,10 @@ class AIWorkflowOrchestrator:
         self._cine_service = CineProductionService()
         self._progress = get_progress_manager()
         
+        # Story Generation Bridge
+        from backend.story_generation_service import StoryGenerationService
+        self._story_service = StoryGenerationService()
+        
     async def create_workflow(self, request: WorkflowRequest) -> WorkflowInstance:
         """Initialize a new workflow sequence."""
         steps = [WorkflowStep(type=t) for t in request.steps]
@@ -229,6 +234,39 @@ class AIWorkflowOrchestrator:
             await asyncio.sleep(2) 
             instance.context["image_path"] = "output/generated_image.png"
             step.output_data = {"path": instance.context["image_path"]}
+
+        elif step.type == WorkflowStepType.GENERATE_STORY:
+            # Context: prompt, genre, structure, mode, length
+            prompt = instance.context.get("prompt")
+            from backend.story_generation_service import StoryGenre, StoryStructure, ProductionMode
+            
+            genre_name = str(instance.context.get("genre", "fiction")).upper()
+            structure_name = str(instance.context.get("structure", "three_act")).upper()
+            mode_name = str(instance.context.get("mode", "fiction")).upper()
+            length = instance.context.get("length", "medium")
+            
+            genre = getattr(StoryGenre, genre_name, StoryGenre.DRAMA)
+            structure = getattr(StoryStructure, structure_name, StoryStructure.THREE_ACT)
+            mode = getattr(ProductionMode, mode_name, ProductionMode.FICTION)
+            
+            # Generate the story using the new async engine
+            story = await self._story_service.generate_story(
+                prompt=prompt,
+                genre=genre,
+                structure=structure,
+                mode=mode,
+                length=length
+            )
+            
+            instance.context["story_id"] = story.id
+            instance.context["story_title"] = story.title
+            
+            step.output_data = {
+                "story_id": story.id,
+                "title": story.title,
+                "scenes_count": len(story.scenes),
+                "characters": [c["nom"] for c in story.characters]
+            }
 
         elif step.type == WorkflowStepType.EXTRACT_IDENTITY:
             # Context: image_path, character_name

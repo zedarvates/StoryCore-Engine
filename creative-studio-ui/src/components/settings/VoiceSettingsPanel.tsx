@@ -10,7 +10,7 @@
  */
 
 import React, { useState } from 'react';
-import { Mic, Volume2, Info } from 'lucide-react';
+import { Mic, Volume2, Info, Settings2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -18,8 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import { voiceTextService, type VoiceSettings } from '@/services/VoiceTextService';
+import { voiceTextService, VoiceTextService, type VoiceSettings } from '@/services/VoiceTextService';
 import type { LanguageCode } from '@/utils/llmConfigStorage';
+import { useEffect } from 'react';
 
 interface VoiceSettingsPanelProps {
   className?: string;
@@ -52,6 +53,38 @@ export function VoiceSettingsPanel({ className, onSettingsChange }: VoiceSetting
   const [settings, setSettings] = useState<VoiceSettings>(getInitialVoiceSettings);
   const [isTestListening, setIsTestListening] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [volumeLevel, setVolumeLevel] = useState(0);
+
+  // Load devices on mount
+  useEffect(() => {
+    const loadDevices = async () => {
+      try {
+        // Request permissions first to get labels
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const allDevices = await navigator.mediaDevices.enumerateDevices();
+        const audioInputs = allDevices.filter(device => device.kind === 'audioinput');
+        setDevices(audioInputs);
+      } catch (err) {
+        console.warn('Impossible de lister les microphones:', err);
+      }
+    };
+
+    loadDevices();
+  }, []);
+
+  // Update volume Level indicator if listening
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isTestListening) {
+      interval = setInterval(() => {
+        setVolumeLevel(VoiceTextService.getInstance().getVolumeLevel());
+      }, 50);
+    } else {
+      setVolumeLevel(0);
+    }
+    return () => clearInterval(interval);
+  }, [isTestListening]);
 
   const updateSettings = (updates: Partial<VoiceSettings>) => {
     const newSettings = { ...settings, ...updates };
@@ -138,6 +171,46 @@ export function VoiceSettingsPanel({ className, onSettingsChange }: VoiceSetting
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Microphone Device Selection */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Settings2 className="w-4 h-4" />
+              Microphone principal
+            </Label>
+            <Select
+              value={settings.inputDevice || 'default'}
+              onValueChange={(value) => updateSettings({ inputDevice: value })}
+              disabled={!settings.enabled}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un microphone" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Par défaut du système</SelectItem>
+                {devices.map((device) => (
+                  <SelectItem key={device.deviceId} value={device.deviceId}>
+                    {device.label || `Microphone (${device.deviceId.slice(0, 5)}...)`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {/* Volume Indicator / VU Meter */}
+            <div className="h-2 w-full bg-muted rounded-full overflow-hidden mt-2">
+              <div 
+                className={cn(
+                  "h-full transition-all duration-75",
+                  volumeLevel > 70 ? "bg-red-500" : volumeLevel > 40 ? "bg-green-500" : "bg-blue-500"
+                )}
+                style={{ width: `${Math.min(100, volumeLevel)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground flex justify-between">
+              <span>Niveau d'entrée : {Math.round(volumeLevel)}%</span>
+              {isTestListening && <span className="text-blue-500 animate-pulse">Capteur actif</span>}
+            </p>
+          </div>
+
           {/* Enable Voice */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">

@@ -54,9 +54,11 @@ export class IntentOrchestrationService {
   1. Internal deterministic logic: No conversational filler.
   2. STRICT JSON output only.
   3. Extract entities: project_name, scene_name, style, duration, resolution, position, etc.
+     - DEDUCTION: If "trailer", "teaser" or "bande-annonce" is mentioned, set duration to "short" or "90s".
+     - DEDUCTION: If a future date (e.g. 2048, 2077) is mentioned in title/prompt, set style to "futuristic".
   4. If instruction is ambiguous and relates to improving work or asking what to do, use WORKFLOW_SUGGESTION with a 'suggestions' array.
   5. Security: Set requires_confirmation=true for destructive actions (DELETE, CLOSE with unsaved changes).
-  6. Feedback: Short, professional, and concise in French.
+  6. Feedback: Short, professional, and concise in French. Mention deductions in feedback (e.g., "Projet futuriste détecté").
   7. If NO intent matches, return intent: "NONE".
 
   OUTPUT SCHEMA:

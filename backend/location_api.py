@@ -123,7 +123,7 @@ def save_location(location_id: str, data: Dict[str, Any]) -> bool:
         logger.error(f"Error saving location {location_id}: {e}")
         return False
 
-@router.get("/", response_model=List[LocationResponse])
+@router.get("", response_model=List[LocationResponse])
 async def list_locations() -> List[LocationResponse]:
     """
     List all globally available locations.

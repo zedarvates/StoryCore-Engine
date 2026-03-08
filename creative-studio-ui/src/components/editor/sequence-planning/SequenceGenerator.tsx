@@ -1,32 +1,32 @@
-import React from 'react';
-import { Play, Pause, Square, CheckCircle, AlertCircle, Clock, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
-import { SequencePlan } from '@/types/sequencePlan';
+import React, { useState, FC } from 'react';
+import { Pause, Square, CheckCircle, Clock, Image as ImageIcon, Video } from 'lucide-react';
+import { SequencePlan, Scene } from '@/types/sequencePlan';
 import { Button } from '@/components/ui/button';
 import { ComfyUIService } from '@/services/comfyuiService';
-import { videoEditorAPI } from '@/services/videoEditorAPI';
+import { imageGalleryService } from '@/services/ImageGalleryService';
 import { toast } from '@/hooks/use-toast';
 
 export interface SequenceGeneratorProps {
   sequencePlan: SequencePlan;
-  onGenerationComplete: (results: unknown) => void;
+  onGenerationComplete?: (results: any) => void;
+  onSceneUpdate?: (sceneId: string, updates: Partial<Scene>) => void;
   onClose: () => void;
   className?: string;
 }
 
-export const SequenceGenerator: React.FC<SequenceGeneratorProps> = ({
+export const SequenceGenerator: FC<SequenceGeneratorProps> = ({
   sequencePlan,
   onGenerationComplete,
+  onSceneUpdate,
   onClose,
   className = ''
 }) => {
-  const [generationProgress, setGenerationProgress] = React.useState({
+  const [generationProgress, setGenerationProgress] = useState({
     currentScene: 0,
     totalScenes: sequencePlan.scenes.length,
     status: 'idle' as 'idle' | 'generating' | 'completed' | 'error',
-    results: [] as any[]
+    results: [] as unknown[]
   });
-
-  const [mode, setMode] = React.useState<'mock' | 'real_images' | 'real_videos'>('real_images');
 
   const handleGenerateImages = async () => {
     setGenerationProgress(prev => ({ ...prev, status: 'generating', totalScenes: sequencePlan.scenes.length, currentScene: 0 }));
@@ -36,7 +36,7 @@ export const SequenceGenerator: React.FC<SequenceGeneratorProps> = ({
       for (const scene of sequencePlan.scenes) {
         // Generate cover image for each scene
         if (scene.title) {
-          await ComfyUIService.getInstance().generateImage({
+          const imageUrl = await ComfyUIService.getInstance().generateImage({
             prompt: scene.description || `Scene: ${scene.title}`,
             width: 1024,
             height: 576,
@@ -46,12 +46,42 @@ export const SequenceGenerator: React.FC<SequenceGeneratorProps> = ({
             sampler: 'euler',
             scheduler: 'normal'
           });
+
+          // Register in gallery service
+          if (imageUrl) {
+            imageGalleryService.addGeneratedImage(
+              {
+                id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                url: imageUrl,
+                prompt: scene.description || `Scene: ${scene.title}`,
+                model: 'ComfyUI (Flux/Turbo)',
+                size: '1024x576',
+                createdAt: new Date()
+              },
+              {
+                type: 'scene',
+                id: scene.id,
+                name: scene.title,
+                description: scene.description
+              }
+            );
+
+            // Notify parent to update the scene with the new cover image
+            if (onSceneUpdate) {
+              onSceneUpdate(scene.id, { coverImage: imageUrl });
+            }
+          }
         }
         completed++;
         setGenerationProgress(prev => ({ ...prev, currentScene: completed }));
       }
       setGenerationProgress(prev => ({ ...prev, status: 'completed' }));
-      toast({ title: "Génération terminée", description: "Toutes les images ont été générées." });
+      
+      if (onGenerationComplete) {
+        onGenerationComplete({ status: 'success', scenesCount: sequencePlan.scenes.length });
+      }
+      
+      toast({ title: "Génération terminée", description: "Toutes les images ont été générées et ajoutées à la galerie." });
     } catch (error) {
       console.error("Generation failed", error);
       setGenerationProgress(prev => ({ ...prev, status: 'error' }));

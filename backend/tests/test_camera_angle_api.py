@@ -116,16 +116,14 @@ def mock_job() -> CameraAngleJob:
     return CameraAngleJob(
         id="test-job-123",
         user_id="test-user-123",
+        image_base64="test-image",
+        angle_ids=[CameraAnglePreset.FRONT, CameraAnglePreset.SIDE_LEFT],
+        preserve_style=True,
+        quality="standard",
         status=CameraAngleJobStatus.COMPLETED,
         progress=100,
         current_step="Generation complete",
-        request=CameraAngleRequest(
-            image_base64="test-image",
-            angle_ids=[CameraAnglePreset.FRONT, CameraAnglePreset.SIDE_LEFT],
-            preserve_style=True,
-            quality="standard"
-        ),
-        completed_angles=[CameraAnglePreset.FRONT, CameraAnglePreset.SIDE_LEFT],
+        completed_angles=[CameraAnglePreset.FRONT.value, CameraAnglePreset.SIDE_LEFT.value],
         remaining_angles=[],
         created_at=datetime.now(),
         started_at=datetime.now(),
@@ -139,7 +137,9 @@ def mock_result() -> CameraAngleResult:
     return CameraAngleResult(
         id="result-123",
         angle_id=CameraAnglePreset.FRONT,
+        original_image_base64="original-image-base64",
         generated_image_base64="generated-image-base64",
+        prompt_used="test prompt",
         generation_time_seconds=5.5,
         metadata={"test": "metadata"}
     )
@@ -413,6 +413,7 @@ class TestResultsEndpoint:
 class TestCancelEndpoint:
     """Tests for DELETE /camera-angle/jobs/{job_id}"""
     
+    @pytest.mark.asyncio
     @patch('backend.camera_angle_api.get_camera_angle_service')
     async def test_cancel_success(self, mock_get_service, client, mock_job):
         """Test successful job cancellation"""
@@ -467,6 +468,7 @@ class TestCancelEndpoint:
         assert response.status_code == 400
         assert "Cannot cancel" in response.json()["detail"]
     
+    @pytest.mark.asyncio
     @patch('backend.camera_angle_api.get_camera_angle_service')
     async def test_cancel_service_failure(self, mock_get_service, client, mock_job):
         """Test handling of service failure during cancellation"""
@@ -489,6 +491,7 @@ class TestCancelEndpoint:
 class TestConnectionEndpoint:
     """Tests for GET /camera-angle/test-connection"""
     
+    @pytest.mark.asyncio
     @patch('backend.camera_angle_api.get_camera_angle_service')
     async def test_connection_success(self, mock_get_service, client):
         """Test successful connection check"""
@@ -505,6 +508,7 @@ class TestConnectionEndpoint:
         assert data["success"] is True
         assert "Successfully connected" in data["message"]
     
+    @pytest.mark.asyncio
     @patch('backend.camera_angle_api.get_camera_angle_service')
     async def test_connection_failure(self, mock_get_service, client):
         """Test failed connection check"""
@@ -521,6 +525,7 @@ class TestConnectionEndpoint:
         assert data["success"] is False
         assert "not responding" in data["message"]
     
+    @pytest.mark.asyncio
     @patch('backend.camera_angle_api.get_camera_angle_service')
     async def test_connection_error(self, mock_get_service, client):
         """Test connection check with error"""

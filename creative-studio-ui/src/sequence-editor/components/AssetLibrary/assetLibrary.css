@@ -393,6 +393,7 @@
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -742,6 +743,7 @@
   flex: 1;
   height: 4px;
   -webkit-appearance: none;
+  appearance: none;
   background-color: var(--border-color, #3a3a3a);
   border-radius: 2px;
   outline: none;
@@ -1103,4 +1105,161 @@
 .drop-target.cannot-drop {
   cursor: not-allowed;
   opacity: 0.5;
+}
+/* ============================================================================
+   Preset Library
+   ============================================================================ */
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.preset-card {
+  position: relative;
+  background-color: var(--bg-secondary, #2a2a2a);
+  border: 1px solid var(--border-color, #3a3a3a);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 200ms ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.preset-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-color, #4A90E2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.preset-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preset-type-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.preset-card.effects .preset-type-tag {
+  background: rgba(74, 144, 217, 0.2);
+  color: #4A90E2;
+}
+
+.preset-card.export .preset-type-tag {
+  background: rgba(240, 192, 64, 0.2);
+  color: #f0c040;
+}
+
+.preset-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #666);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+.preset-delete-btn:hover {
+  color: #e74c3c;
+}
+
+.preset-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.preset-icon {
+  font-size: 32px;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.preset-card-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary, #fff);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.25rem;
+}
+
+.preset-date {
+  font-size: 10px;
+  color: var(--text-muted, #666);
+}
+
+.preset-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(74, 144, 226, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: 10;
+}
+
+.preset-card:hover .preset-overlay {
+  opacity: 1;
+}
+
+.preset-overlay span {
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  background: rgba(0,0,0,0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.preset-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text-secondary, #aaa);
+}
+
+.preset-empty-state .empty-icon {
+  font-size: 64px;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+.preset-empty-state h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 18px;
+  color: var(--text-primary, #fff);
+}
+
+.preset-empty-state p {
+  font-size: 13px;
+  max-width: 300px;
+  line-height: 1.5;
 }

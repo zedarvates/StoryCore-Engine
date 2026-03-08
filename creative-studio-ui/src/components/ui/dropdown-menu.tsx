@@ -61,10 +61,16 @@ export function DropdownMenuTrigger({ children, asChild }: DropdownMenuTriggerPr
 interface DropdownMenuContentProps {
   children: ReactNode;
   align?: 'start' | 'center' | 'end';
+  side?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
 }
 
-export function DropdownMenuContent({ children, align = 'start', className }: DropdownMenuContentProps) {
+export function DropdownMenuContent({ 
+  children, 
+  align = 'start', 
+  side = 'bottom',
+  className 
+}: DropdownMenuContentProps) {
   const context = useContext(DropdownMenuContext);
   if (!context) throw new Error('DropdownMenuContent must be used within DropdownMenu');
 
@@ -103,12 +109,20 @@ export function DropdownMenuContent({ children, align = 'start', className }: Dr
     end: 'right-0',
   };
 
+  const sideClasses = {
+    top: 'bottom-full mb-1',
+    bottom: 'top-full mt-1',
+    left: 'right-full mr-1 top-0',
+    right: 'left-full ml-1 top-0',
+  };
+
   return (
     <div
       ref={contentRef}
       className={cn(
-        'absolute z-50 mt-1 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-        alignmentClasses[align],
+        'absolute z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
+        side === 'bottom' || side === 'top' ? alignmentClasses[align] : '',
+        sideClasses[side],
         className
       )}
     >

@@ -1,0 +1,35 @@
+{
+  "name": "video_publisher",
+  "display_name": "Video Multi-Publisher",
+  "version": "1.0.0",
+  "type": "integration",
+  "author": "StoryCore Team",
+  "description": "Multi-platform video publishing addon. One-click synchronization to YouTube, TikTok, Instagram, and more. Inspired by PostBot.",
+  "compatibility": {
+    "engine_version": ">=2.0.0"
+  },
+  "permissions": [
+    "network_access",
+    "file_system_read",
+    "file_system_write",
+    "project_access"
+  ],
+  "entry_points": {
+    "main": "src/main.py"
+  },
+  "dependencies": {
+    "aiohttp": ">=3.8.0",
+    "pydantic": ">=2.0.0"
+  },
+  "metadata": {
+    "category": "social_distribution",
+    "supported_platforms": [
+      "youtube_shorts",
+      "tiktok",
+      "instagram_reels",
+      "x_twitter",
+      "facebook_reels"
+    ],
+    "icon": "Share2"
+  }
+}

@@ -25,6 +25,7 @@ export const CHARACTER_ARCHETYPES = [
   'Shapeshifter',
   'Shadow',
   'Herald',
+  'Extra / Background Character',
 ] as const;
 
 export type CharacterArchetype = typeof CHARACTER_ARCHETYPES[number];

@@ -537,6 +537,59 @@ async def transcribe_audio(request: TranscriptionRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/transcribe-file", response_model=TranscriptionResponse)
+async def transcribe_audio_file(
+    file: UploadFile = File(...),
+    language: str = Query("auto"),
+    backend: str = Query("whisper")
+):
+    """
+    Transcribe an uploaded audio file.
+    
+    This saves the uploaded file to a temporary location and then
+    runs the transcription service on it.
+    """
+    try:
+        # Create a temporary file to store the upload
+        with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as temp:
+            content = await file.read()
+            temp.write(content)
+            temp_path = temp.name
+            
+        try:
+            service = get_transcription_service()
+            result = service.transcribe(
+                temp_path,
+                language,
+                backend
+            )
+            
+            return TranscriptionResponse(
+                success=result.success,
+                text=result.text,
+                words=[
+                    TranscriptionWordResponse(
+                        word=w.word,
+                        start_time=w.start_time,
+                        end_time=w.end_time,
+                        confidence=w.confidence,
+                        speaker_id=w.speaker_id
+                    ) for w in result.words
+                ],
+                language=result.language,
+                duration=result.duration,
+                word_count=len(result.words)
+            )
+        finally:
+            # Always clean up the temp file
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+                
+    except Exception as e:
+        logger.error(f"File transcription error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/transcribe/search")
 async def search_transcription(
     transcription_json: str,

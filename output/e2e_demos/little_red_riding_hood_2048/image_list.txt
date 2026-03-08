@@ -1,0 +1,8 @@
+file 'C:\storycore-engine\output\e2e_demos\little_red_riding_hood_2048\images\scene_01.png'
+duration 8
+file 'C:\storycore-engine\output\e2e_demos\little_red_riding_hood_2048\images\scene_02.png'
+duration 6
+file 'C:\storycore-engine\output\e2e_demos\little_red_riding_hood_2048\images\scene_03.png'
+duration 10
+file 'C:\storycore-engine\output\e2e_demos\little_red_riding_hood_2048\images\scene_04.png'
+duration 12

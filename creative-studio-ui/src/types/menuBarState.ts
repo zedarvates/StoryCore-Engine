@@ -114,6 +114,8 @@ export interface AppState {
   clipboard: ClipboardState;
   /** Whether a long-running operation is in progress */
   isProcessing: boolean;
+  /** Currently selected shot ID */
+  selectedShotId: string | null;
 }
 
 /**

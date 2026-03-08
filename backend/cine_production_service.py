@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from backend.config import settings
 from backend.ffmpeg_service import FFmpegService
+from backend.gem_service_client import gem_client
 from src.addon_manager import AddonManager, AddonType, AddonState
 
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ class CineChainType(Enum):
     MUSIC_PRO = "music_pro"                     # Music generation with Ace Step 1.5 Professional
     AUDIO_REMIX = "audio_remix"                 # Regenerate audio for existing video
     TTS_SPEAKING_CHARACTER = "tts_speaking"     # Text -> Qwen TTS -> LipSync Video
+    LTX_VIDEO_GENERATION = "ltx_video"          # LTX2 text-to-video or image-to-video
 
 class CineProductionRequest(BaseModel):
     chain_type: CineChainType = Field(alias="chainType")
@@ -93,6 +95,8 @@ class CineProductionJob(BaseModel):
     current_step: str = Field(default="", alias="currentStep")
     results: List[Dict[str, Any]] = Field(default_factory=list)
     comfyui_url: Optional[str] = None
+    user_id: Optional[str] = Field(default=None, alias="userId")
+    escrow_id: Optional[str] = Field(default=None, alias="escrowId")
     error: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow, alias="startTime")
     completed_at: Optional[datetime] = Field(default=None, alias="endTime")
@@ -119,7 +123,8 @@ class CineProductionService:
         "wan_s2v": "workflows/high_fidelity/generate_one_character_speaking_video.json",
         "ace_step": "workflows/high_fidelity/smart_vision_ace_step_1.5_Professional.json",
         "none_character": "workflows/high_fidelity/generate_none_character_scene.json",
-        "one_character": "workflows/high_fidelity/generate_one_character_scene.json"
+        "one_character": "workflows/high_fidelity/generate_one_character_scene.json",
+        "ltx_video": "workflows/high_fidelity/smart_vision_ltx2_i2v_gguf.json"
     }
 
     # Mapping of visual styles to musical/audio characteristics
@@ -155,13 +160,39 @@ class CineProductionService:
         
         logger.info(f"CineProductionService initialized with ComfyUI at {self.comfyui_url}")
 
-    async def start_production_job(self, request: CineProductionRequest) -> str:
+    def _calculate_job_cost(self, job: CineProductionJob) -> int:
+        """Determines the cost in gems based on complexity."""
+        base_costs = {
+            CineChainType.STORYBOARD_ONLY.value: 1,
+            CineChainType.GENERATE_SCENE.value: 5,
+            CineChainType.LTX_VIDEO_GENERATION.value: 5,
+            CineChainType.SPEAKING_CHARACTER.value: 3,
+            CineChainType.MUSIC_PRO.value: 2,
+            CineChainType.TTS_SPEAKING_CHARACTER.value: 4
+        }
+        
+        # Use string lookup
+        cost = base_costs.get(job.request.chain_type, 2)
+        
+        # Quality Multiplier
+        quality_multipliers = {
+            ProductionQuality.DRAFT.value: 0.5,
+            ProductionQuality.STANDARD.value: 1.0,
+            ProductionQuality.CINEMATIC.value: 2.0,
+            ProductionQuality.ULTRA.value: 5.0
+        }
+        
+        multiplier = quality_multipliers.get(job.request.quality, 1.0)
+        return int(cost * multiplier)
+
+    async def start_production_job(self, request: CineProductionRequest, user_id: str = None) -> str:
         """Starts a background production job."""
         job_id = str(uuid.uuid4())
         job = CineProductionJob(
             id=job_id, 
             request=request,
-            comfyui_url=request.comfyui_url or self.comfyui_url
+            comfyui_url=request.comfyui_url or self.comfyui_url,
+            user_id=user_id
         )
         self._jobs[job_id] = job
         
@@ -180,6 +211,44 @@ class CineProductionService:
         job = self._jobs[job_id]
         job.status = CineJobStatus.PROCESSING
         
+        # Phase -1: Escrow Setup (New)
+        if job.user_id:
+            cost = self._calculate_job_cost(job)
+            if cost > 0:
+                # Map internal request to hardware-aware task_type
+                # Pydantic with use_enum_values=True converts Enums to strings
+                task_type_val = job.request.chain_type
+                quality_val = job.request.quality
+                
+                # Refined mapping for MVP Secure
+                if task_type_val == CineChainType.STORYBOARD_ONLY.value:
+                    task_type = "audio_sfx" # Storyboard is light
+                elif quality_val == ProductionQuality.DRAFT.value:
+                    task_type = "video_draft"
+                elif quality_val == ProductionQuality.STANDARD.value:
+                    task_type = "video_cinematic" # Standard is already cinematic in high-fidelity
+                elif quality_val == ProductionQuality.CINEMATIC.value:
+                    task_type = "video_cinematic"
+                elif quality_val == ProductionQuality.ULTRA.value:
+                    task_type = "video_ultra"
+                else:
+                    task_type = str(task_type_val)
+                
+                logger.info(f"Creating escrow for job {job_id} (Type: {task_type}): {cost} gems from {job.user_id}")
+                
+                escrow_id = await gem_client.create_escrow(
+                    sender_id=job.user_id,
+                    receiver_id="system_shared_compute",
+                    amount=cost,
+                    reason=f"Cine Production: {job.request.chain_type}",
+                    task_type=task_type
+                )
+                if not escrow_id:
+                    job.status = CineJobStatus.FAILED
+                    job.error = "Escrow rejected: Insufficient gems or no suitable hardware (VRAM)."
+                    return
+                job.escrow_id = escrow_id
+
         try:
             # Load project context (genre, style, tone)
             project_context = await self._get_project_context(job.request.project_id)
@@ -212,6 +281,8 @@ class CineProductionService:
             if not use_addon:
                 if job.request.chain_type == CineChainType.GENERATE_SCENE:
                     await self._run_scene_generation_chain(job)
+                elif job.request.chain_type == CineChainType.LTX_VIDEO_GENERATION:
+                    await self._run_ltx_video_generation_chain(job)
                 elif job.request.chain_type == CineChainType.SPEAKING_CHARACTER:
                     await self._run_speaking_character_chain(job)
                 elif job.request.chain_type == CineChainType.MUSIC_PRO:
@@ -235,9 +306,16 @@ class CineProductionService:
             job.current_step = "Finished"
             job.completed_at = datetime.utcnow()
             
+            # Step Final: Release Escrow
+            if job.escrow_id:
+                logger.info(f"Releasing escrow {job.escrow_id} for job {job_id}")
+                await gem_client.release_escrow(job.escrow_id)
+            
         except asyncio.CancelledError:
             job.status = CineJobStatus.CANCELLED
             logger.info(f"Job {job_id} was cancelled")
+            if job.escrow_id:
+                await gem_client.cancel_escrow(job.escrow_id)
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
@@ -245,6 +323,9 @@ class CineProductionService:
             job.status = CineJobStatus.FAILED
             job.error = str(e)
             job.completed_at = datetime.utcnow()
+            if job.escrow_id:
+                logger.warning(f"Refunding gems for failed job {job_id} (escrow {job.escrow_id})")
+                await gem_client.cancel_escrow(job.escrow_id)
         finally:
             if job_id in self._active_tasks:
                 del self._active_tasks[job_id]
@@ -453,6 +534,57 @@ class CineProductionService:
 
         # Step 4: Muxing (Optional but recommended for high-fidelity)
         await self._mux_results(job, video_result, audio_result)
+
+    async def _run_ltx_video_generation_chain(self, job: CineProductionJob):
+        """
+        LTX2 Video Generation Chain (Fast/Pro/Ultra mode support)
+        """
+        job.current_step = "Generating Cinematic Video (LTX2)"
+        job.progress = 20.0
+        
+        # Configure quality/mode overrides
+        steps = 20
+        if job.request.quality == ProductionQuality.DRAFT:
+            steps = 10 # Fast Mode
+        elif job.request.quality == ProductionQuality.STANDARD:
+            steps = 20 # Pro Mode
+        elif job.request.quality in [ProductionQuality.CINEMATIC, ProductionQuality.ULTRA]:
+            steps = 40 # Ultra Mode
+            
+        video_result = await self._execute_workflow(
+            "ltx_video",
+            self.WORKFLOW_PATHS["ltx_video"],
+            {
+                "positive": job.request.video_prompt or job.request.image_prompt or "cinematic video scene",
+                "image": job.request.character_image_path, # Optional image-to-video
+                "width": job.request.width,
+                "height": job.request.height,
+                "steps": steps,
+                "seed": job.request.seed
+            },
+            comfyui_url=job.comfyui_url
+        )
+        job.results.append({"step": "video", "output": video_result})
+        job.progress = 80.0
+        
+        # Optional audio muxing if requested
+        if job.request.audio_prompt:
+            job.current_step = "Designing Sound & Music (ACE Step)"
+            project_context = await self._get_project_context(job.request.project_id)
+            audio_context = self._build_audio_context_prompt(job, project_context)
+            audio_result = await self._execute_workflow(
+                "ace_step",
+                self.WORKFLOW_PATHS["ace_step"],
+                {
+                    "audio_input": audio_context,
+                    "image": None 
+                },
+                comfyui_url=job.comfyui_url
+            )
+            job.results.append({"step": "audio", "output": audio_result})
+            await self._mux_results(job, video_result, audio_result)
+        else:
+            job.progress = 100.0
 
     async def _run_tts_speaking_character_chain(self, job: CineProductionJob):
         """
@@ -802,6 +934,12 @@ class CineProductionService:
                 "audio_tags": ("13", "tags"),
                 "image": ("21", "image"),           # Storyboard Influence
                 "duration": ("14", "value")         # Song Duration Node
+            },
+            "ltx_video": {
+                "positive": ("3", "text"),          # Prompt node reference
+                "image": ("5", "image"),            # Image load node
+                "steps": ("10", "steps"),           # Sampler steps node
+                "seed": ("10", "seed")              # Sampler seed
             }
         }
         

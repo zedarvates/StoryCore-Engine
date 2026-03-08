@@ -211,9 +211,11 @@ function drawLayer(
   isSelected: boolean,
   trackColor: string,
   isLocked: boolean,
-  isHidden: boolean
+  isHidden: boolean,
+  dragOffset: number = 0,
+  sequenceNumber?: number
 ): void {
-  const x = shot.startTime * zoomLevel;
+  const x = shot.startTime * zoomLevel + dragOffset;
   const width = Math.max(shot.duration * zoomLevel, MIN_SHOT_WIDTH);
   const layerIndex = getLayerIndex(shot, trackType, layer);
   const y = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
@@ -262,7 +264,7 @@ function drawLayer(
   const nameX = x + iconWidth + iconPadding;
   const maxTextWidth = width - iconWidth - textPadding * 2;
   
-  let text = shot.name || 'Untitled';
+  let text = (sequenceNumber ? `#${sequenceNumber} ` : '') + (shot.name || 'Untitled');
   if (maxTextWidth > 0) {
     while (ctx.measureText(text).width > maxTextWidth && text.length > 3) {
       text = text.slice(0, -4) + '...';
@@ -380,6 +382,13 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   const canvasRefs = useRef<Map<string, HTMLCanvasElement>>(new Map());
   const [containerSize, setContainerSize] = useState({ width: 800, height: 400 });
   
+  // Drag and Drop state
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedShotId, setDraggedShotId] = useState<string | null>(null);
+  const [dragStartX, setDragStartX] = useState(0);
+  const [currentDragX, setCurrentDragX] = useState(0);
+  const [dragTrackId, setDragTrackId] = useState<string | null>(null);
+  
   // Filter out hidden tracks
   const visibleTracks = useMemo(
     () => tracks.filter((track) => !track.hidden),
@@ -436,6 +445,13 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       
       const trackLayers = getTrackShots(shots, track.type);
       
+      // Calculate sequence numbers based on startTime
+      const sortedShotIds = [...shots]
+        .sort((a, b) => a.startTime - b.startTime)
+        .map(s => s.id);
+      
+      const shotIndices = new Map(sortedShotIds.map((id, index) => [id, index + 1]));
+
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
@@ -449,6 +465,16 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       // Draw layers
       trackLayers.forEach(({ shot, layer }) => {
         const isSelected = selectedElements.includes(shot.id);
+        const isDraggingThis = isDragging && draggedShotId === shot.id && dragTrackId === track.id;
+        const dragOffset = isDraggingThis ? currentDragX - dragStartX : 0;
+        
+        ctx.save();
+        if (isDraggingThis) {
+          ctx.globalAlpha = 0.6;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+        }
+
         drawLayer(
           ctx,
           shot,
@@ -459,8 +485,11 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           isSelected,
           track.color,
           layer.locked,
-          layer.hidden
+          layer.hidden,
+          dragOffset,
+          shotIndices.get(shot.id)
         );
+        ctx.restore();
       });
       
       // Draw playhead
@@ -469,10 +498,11 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         drawPlayhead(ctx, playheadX, canvas.height, isPlaying);
       }
     });
-  }, [visibleTracks, shots, zoomLevel, playheadPosition, selectedElements, isPlaying]);
+  }, [visibleTracks, shots, zoomLevel, playheadPosition, selectedElements, isPlaying, isDragging, draggedShotId, currentDragX, dragStartX, dragTrackId]);
   
   // Handle canvas click for shot/layer selection
-  const handleCanvasClick = useCallback(
+  // Handle canvas mouse down for shot/layer selection and drag start
+  const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>, track: Track) => {
       const rect = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -480,46 +510,72 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       
       const trackLayers = getTrackShots(shots, track.type);
       
-      // If onLayerSelect is provided, try to find the specific layer clicked
-      if (onLayerSelect) {
-        for (const { shot, layer } of trackLayers) {
-          const shotStart = shot.startTime * zoomLevel;
-          const shotEnd = (shot.startTime + shot.duration) * zoomLevel;
-          const layerIndex = getLayerIndex(shot, track.type, layer);
-          const layerTop = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
-          const layerBottom = layerTop + LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
-          
-          // Check if click is within layer bounds (both X and Y)
-          if (x >= shotStart && x <= shotEnd && y >= layerTop && y <= layerBottom) {
-            // Layer clicked
-            onLayerSelect(shot.id, layer.id, e.ctrlKey || e.metaKey);
-            return;
-          }
-        }
-      }
-      
-      // If no specific layer was clicked or onLayerSelect not provided,
-      // check if any shot was clicked (more lenient - just check X coordinate)
-      for (const { shot } of trackLayers) {
+      // Try to find the specific layer clicked
+      for (const { shot, layer } of trackLayers) {
         const shotStart = shot.startTime * zoomLevel;
         const shotEnd = (shot.startTime + shot.duration) * zoomLevel;
+        const layerIndex = getLayerIndex(shot, track.type, layer);
+        const layerTop = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
+        const layerBottom = layerTop + LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
         
-        if (x >= shotStart && x <= shotEnd) {
+        if (x >= shotStart && x <= shotEnd && y >= layerTop && y <= layerBottom) {
+          // Found shot to drag or select
+          onShotSelect(shot.id, e.ctrlKey || e.metaKey);
           if (onLayerSelect) {
-            // If onLayerSelect is provided but we didn't find exact layer,
-            // call it with the first layer of the shot
-            const firstLayer = shot.layers.find(l => l.type === track.type);
-            if (firstLayer) {
-              onLayerSelect(shot.id, firstLayer.id, e.ctrlKey || e.metaKey);
-            }
-          } else {
-            onShotSelect(shot.id, e.ctrlKey || e.metaKey);
+            onLayerSelect(shot.id, layer.id, e.ctrlKey || e.metaKey);
+          }
+          
+          if (!layer.locked) {
+            setIsDragging(true);
+            setDraggedShotId(shot.id);
+            setDragTrackId(track.id);
+            setDragStartX(x);
+            setCurrentDragX(x);
           }
           return;
         }
       }
+      
+      // If clicking empty area, maybe deselect?
+      // onShotSelect('', false);
     },
     [shots, zoomLevel, onShotSelect, onLayerSelect]
+  );
+
+  // Handle canvas mouse move for dragging
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (isDragging) {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        setCurrentDragX(x);
+      }
+    },
+    [isDragging]
+  );
+
+  // Handle canvas mouse up to end dragging
+  const handleMouseUp = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (isDragging && draggedShotId && onShotMove) {
+        const deltaX = currentDragX - dragStartX;
+        const currentShot = shots.find(s => s.id === draggedShotId);
+        
+        if (currentShot) {
+          const deltaFrames = Math.round(deltaX / zoomLevel);
+          const newStartTime = Math.max(0, currentShot.startTime + deltaFrames);
+          
+          if (newStartTime !== currentShot.startTime) {
+            onShotMove(draggedShotId, newStartTime);
+          }
+        }
+      }
+      
+      setIsDragging(false);
+      setDraggedShotId(null);
+      setDragTrackId(null);
+    },
+    [isDragging, draggedShotId, currentDragX, dragStartX, zoomLevel, shots, onShotMove]
   );
   
   // Resize canvas observer
@@ -602,11 +658,14 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
                   className="track-canvas"
                   width={timelineWidth}
                   height={track.height}
-                  onClick={(e) => handleCanvasClick(e, track)}
+                  onMouseDown={(e) => handleMouseDown(e, track)}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
                   style={{
                     width: timelineWidth,
                     height: track.height,
-                    cursor: 'pointer',
+                    cursor: isDragging ? 'grabbing' : 'pointer',
                   }}
                 />
                 
@@ -652,11 +711,14 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
                   className="track-canvas"
                   width={timelineWidth}
                   height={track.height}
-                  onClick={(e) => handleCanvasClick(e, track)}
+                  onMouseDown={(e) => handleMouseDown(e, track)}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUp}
+                  onMouseLeave={handleMouseUp}
                   style={{
                     width: timelineWidth,
                     height: track.height,
-                    cursor: 'pointer',
+                    cursor: isDragging ? 'grabbing' : 'pointer',
                   }}
                 />
                 

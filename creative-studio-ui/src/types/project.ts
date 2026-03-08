@@ -23,7 +23,15 @@ export interface ProjectSetupData {
   visualStyle?: string;
   audioStyle?: string;
   constraints?: ProjectConstraint[];
+  tags?: string[];
+  seoMetadata?: {
+    searchTitle?: string;
+    searchDescription?: string;
+    canonicalUrl?: string;
+  };
 }
+
+import type { MoodboardData } from './moodboard';
 
 export interface ProjectData {
   schema_version: string;
@@ -37,6 +45,7 @@ export interface ProjectData {
   world?: WorldDefinition;
   global_resume?: string;
   projectSetup?: ProjectSetupData;
+  moodboard?: MoodboardData;
   metadata?: Record<string, unknown>;
 }
 

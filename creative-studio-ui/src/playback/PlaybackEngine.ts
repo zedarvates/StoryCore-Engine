@@ -30,6 +30,18 @@ export class PlaybackEngine {
    */
   setShots(shots: Shot[]): void {
     this.shots = [...shots].sort((a, b) => a.position - b.position);
+    
+    // Prune image cache to avoid memory leaks
+    const currentImages = new Set<string>();
+    this.shots.forEach((shot) => {
+      if (shot.image) currentImages.add(shot.image);
+    });
+    
+    for (const key of Array.from(this.imageCache.keys())) {
+      if (!currentImages.has(key)) {
+        this.imageCache.delete(key);
+      }
+    }
   }
 
   /**
@@ -232,14 +244,14 @@ export class PlaybackEngine {
     }
 
     // Apply effects
-    shot.effects.forEach((effect) => {
+    (shot.effects || []).forEach((effect) => {
       if (effect.enabled) {
         this.applyEffect(effect);
       }
     });
 
     // Render text layers
-    shot.textLayers.forEach((layer) => {
+    (shot.textLayers || []).forEach((layer) => {
       if (shotTime >= layer.startTime && shotTime < layer.startTime + layer.duration) {
         this.renderTextLayer(layer, shotTime - layer.startTime);
       }
@@ -434,20 +446,25 @@ export class PlaybackEngine {
    * Apply visual effect
    */
   private applyEffect(effect: Effect): void {
-    const intensity = effect.intensity / 100;
+    const intensity = (effect.intensity || 100) / 100;
+
+    const getParamValue = (id: string, defaultValue: number = 0): number => {
+      const param = effect.parameters.find(p => p.id === id);
+      return typeof param?.value === 'number' ? param.value : defaultValue;
+    };
 
     switch (effect.name) {
       case 'brightness':
-        this.ctx.filter = `brightness(${100 + (effect.parameters.value || 0) * intensity}%)`;
+        this.ctx.filter = `brightness(${100 + getParamValue('value') * intensity}%)`;
         break;
       case 'contrast':
-        this.ctx.filter = `contrast(${100 + (effect.parameters.value || 0) * intensity}%)`;
+        this.ctx.filter = `contrast(${100 + getParamValue('value') * intensity}%)`;
         break;
       case 'saturation':
-        this.ctx.filter = `saturate(${100 + (effect.parameters.value || 0) * intensity}%)`;
+        this.ctx.filter = `saturate(${100 + getParamValue('value') * intensity}%)`;
         break;
       case 'blur':
-        this.ctx.filter = `blur(${(effect.parameters.value || 0) * intensity}px)`;
+        this.ctx.filter = `blur(${getParamValue('value') * intensity}px)`;
         break;
       case 'grayscale':
         this.ctx.filter = `grayscale(${intensity * 100}%)`;
@@ -456,7 +473,7 @@ export class PlaybackEngine {
         this.ctx.filter = `sepia(${intensity * 100}%)`;
         break;
       case 'hue-rotate':
-        this.ctx.filter = `hue-rotate(${(effect.parameters.value || 0) * intensity}deg)`;
+        this.ctx.filter = `hue-rotate(${getParamValue('value') * intensity}deg)`;
         break;
       case 'invert':
         this.ctx.filter = `invert(${intensity * 100}%)`;
@@ -468,7 +485,7 @@ export class PlaybackEngine {
    * Apply animations to the context
    */
   private applyAnimations(shot: Shot, shotTime: number): void {
-    shot.animations.forEach((animation) => {
+    (shot.animations || []).forEach((animation) => {
       const value = this.interpolateKeyframes(animation.keyframes, shotTime);
       this.applyAnimationValue(animation.property, value);
     });
@@ -480,8 +497,11 @@ export class PlaybackEngine {
   private applyAnimationValue(property: Animation['property'], value: unknown): void {
     switch (property) {
       case 'position':
-        if (typeof value === 'object' && 'x' in value && 'y' in value) {
-          this.ctx.translate(value.x, value.y);
+        if (value && typeof value === 'object' && 'x' in value && 'y' in value) {
+          const pos = value as { x: unknown; y: unknown };
+          if (typeof pos.x === 'number' && typeof pos.y === 'number') {
+            this.ctx.translate(pos.x, pos.y);
+          }
         }
         break;
       case 'scale':
@@ -506,7 +526,7 @@ export class PlaybackEngine {
    * Interpolate between keyframes
    */
   private interpolateKeyframes(keyframes: Keyframe[], time: number): unknown {
-    if (keyframes.length === 0) return 0;
+    if (!keyframes || keyframes.length === 0) return 0;
     if (keyframes.length === 1) return keyframes[0].value;
 
     const sorted = [...keyframes].sort((a, b) => a.time - b.time);
@@ -529,18 +549,30 @@ export class PlaybackEngine {
       }
     }
 
+    const duration = next.time - prev.time;
+    if (duration <= 0) return next.value;
+
     // Calculate progress between keyframes
-    const progress = (time - prev.time) / (next.time - prev.time);
-    const easedProgress = this.applyEasing(progress, prev.easing);
+    const progress = (time - prev.time) / duration;
+    const easedProgress = this.applyEasing(progress, prev.easing || 'linear');
 
     // Interpolate value
     if (typeof prev.value === 'number' && typeof next.value === 'number') {
       return prev.value + (next.value - prev.value) * easedProgress;
-    } else if (typeof prev.value === 'object' && typeof next.value === 'object') {
-      return {
-        x: prev.value.x + (next.value.x - prev.value.x) * easedProgress,
-        y: prev.value.y + (next.value.y - prev.value.y) * easedProgress,
-      };
+    } else if (
+      prev.value && typeof prev.value === 'object' &&
+      next.value && typeof next.value === 'object'
+    ) {
+      const pVal = prev.value as Record<string, unknown>;
+      const nVal = next.value as Record<string, unknown>;
+      if ('x' in pVal && 'y' in pVal && 'x' in nVal && 'y' in nVal &&
+          typeof pVal.x === 'number' && typeof pVal.y === 'number' &&
+          typeof nVal.x === 'number' && typeof nVal.y === 'number') {
+        return {
+          x: pVal.x + (nVal.x - pVal.x) * easedProgress,
+          y: pVal.y + (nVal.y - pVal.y) * easedProgress,
+        };
+      }
     }
 
     return prev.value;

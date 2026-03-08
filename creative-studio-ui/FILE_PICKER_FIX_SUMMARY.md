@@ -3,7 +3,7 @@
 ## Problème Initial
 
 **Question de l'utilisateur** :
-> "Pourquoi sur UI version web quand je clique sur Open Existing Project je n'ai pas la même fenêtre que celle de l'Electron ? Celle de l'Electron est la bonne."
+> "Pourquoi sur UI version web quand je clique sur Open Existing Project je n'ai pas la même fenêtre que celle de l'Electron ? Celle de StorycoreIconeV2.png est la bonne."
 
 **Diagnostic** :
 - Version Electron : Utilise le dialogue natif de l'OS (Windows Explorer, macOS Finder) ✅

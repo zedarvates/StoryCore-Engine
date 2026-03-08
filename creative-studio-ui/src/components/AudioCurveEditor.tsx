@@ -37,7 +37,8 @@ export const AudioCurveEditor: React.FC<AudioCurveEditorProps> = ({
   // Convert time to canvas X coordinate
   const timeToX = useCallback(
     (time: number): number => {
-      return PADDING + ((time / duration) * (width - 2 * PADDING));
+      const safeDuration = Math.max(duration, 0.1);
+      return PADDING + ((time / safeDuration) * (width - 2 * PADDING));
     },
     [duration, width]
   );
@@ -54,7 +55,8 @@ export const AudioCurveEditor: React.FC<AudioCurveEditorProps> = ({
   // Convert canvas X to time
   const xToTime = useCallback(
     (x: number): number => {
-      return Math.max(0, Math.min(duration, ((x - PADDING) / (width - 2 * PADDING)) * duration));
+      const safeDuration = Math.max(duration, 0.1);
+      return Math.max(0, Math.min(safeDuration, ((x - PADDING) / (width - 2 * PADDING)) * safeDuration));
     },
     [duration, width]
   );
@@ -71,35 +73,18 @@ export const AudioCurveEditor: React.FC<AudioCurveEditorProps> = ({
     [parameterRange, height]
   );
 
-  // Draw the curve editor
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-
-    // Draw grid
-    drawGrid(ctx);
-
-    // Draw curve
-    drawCurve(ctx);
-
-    // Draw keyframes
-    drawKeyframes(ctx);
-  }, [curve, selectedKeyframe, hoveredKeyframe, width, height]);
-
   // Draw grid with time markers
-  const drawGrid = (ctx: CanvasRenderingContext2D) => {
+  const drawGrid = useCallback((ctx: CanvasRenderingContext2D) => {
     ctx.strokeStyle = GRID_COLOR;
     ctx.lineWidth = 1;
 
     // Vertical grid lines (time)
-    const timeSteps = Math.ceil(duration);
-    for (let i = 0; i <= timeSteps; i++) {
+    const validDuration = Number.isFinite(duration) ? duration : Math.max(1, width / 50);
+    const timeSteps = Math.max(1, Math.ceil(validDuration));
+    const timeStepSize = Math.max(1, Math.ceil(timeSteps / 20)); // Max ~20 grid lines
+
+    for (let i = 0; i <= timeSteps; i += timeStepSize) {
+      if (i > 100000) break; // Absolute safety fallback against infinite loops
       const x = timeToX(i);
       ctx.beginPath();
       ctx.moveTo(x, PADDING);
@@ -140,10 +125,10 @@ export const AudioCurveEditor: React.FC<AudioCurveEditorProps> = ({
     ctx.font = '12px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(parameterLabel, width / 2, 20);
-  };
+  }, [duration, height, parameterLabel, parameterRange, timeToX, valueToY, width]);
 
   // Draw the automation curve
-  const drawCurve = (ctx: CanvasRenderingContext2D) => {
+  const drawCurve = useCallback((ctx: CanvasRenderingContext2D) => {
     if (curve.keyframes.length < 2) return;
 
     const sortedKeyframes = [...curve.keyframes].sort((a, b) => a.time - b.time);
@@ -190,10 +175,10 @@ export const AudioCurveEditor: React.FC<AudioCurveEditorProps> = ({
     }
 
     ctx.stroke();
-  };
+  }, [curve, timeToX, valueToY]);
 
   // Draw keyframes
-  const drawKeyframes = (ctx: CanvasRenderingContext2D) => {
+  const drawKeyframes = useCallback((ctx: CanvasRenderingContext2D) => {
     curve.keyframes.forEach((kf) => {
       const x = timeToX(kf.time);
       const y = valueToY(kf.value);
@@ -254,7 +239,28 @@ export const AudioCurveEditor: React.FC<AudioCurveEditorProps> = ({
         }
       }
     });
-  };
+  }, [curve, hoveredKeyframe, selectedKeyframe, timeToX, valueToY]);
+
+  // Draw the curve editor
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw grid
+    drawGrid(ctx);
+
+    // Draw curve
+    drawCurve(ctx);
+
+    // Draw keyframes
+    drawKeyframes(ctx);
+  }, [drawCurve, drawGrid, drawKeyframes, height, width]);
 
   // Find keyframe at position
   const findKeyframeAt = (x: number, y: number): string | null => {

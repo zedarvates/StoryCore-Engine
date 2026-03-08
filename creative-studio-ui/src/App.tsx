@@ -12,6 +12,7 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 import { DEFAULT_VIEW_STATE } from '@/types/menuBarState';
 import type { ViewState, UndoStack, ClipboardState } from '@/types/menuBarState';
 import { MenuBar } from '@/components/menuBar/MenuBar';
+import ImageEnhancementPanel from '@/components/ImageEnhancementPanel';
 import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
 import { ToggleButton } from '@/components/ToggleButton';
 import { I18nProvider } from '@/utils/i18n';
@@ -44,6 +45,8 @@ import { ScenarioBuilderWizardModal } from '@/components/wizard/ScenarioBuilderW
 import { DialogueBuilderWizardModal } from '@/components/wizard/DialogueBuilderWizardModal';
 import { ProjectTranslatorModal } from '@/components/wizard/ProjectTranslatorModal';
 import { TTTLRMModal } from '@/components/wizard/TTTLRMModal';
+import { VideoPublisherEditor } from '@/components/addons/video_publisher/VideoPublisherEditor';
+import { CreditsScreenModal } from '@/components/addons/credits_screen/CreditsScreenModal';
 import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
 import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
 import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
@@ -59,9 +62,12 @@ import { FactCheckModal } from '@/components/modals/FactCheckModal';
 import { AboutModal } from '@/components/modals/AboutModal';
 import { DocumentationModal } from '@/components/modals/menuBar/DocumentationModal';
 import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
+import { MoodboardModal } from '@/components/modals/MoodboardModal';
 import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
 import { PendingReportsList } from '@/components/feedback/PendingReportsList';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ComputeDashboard } from '@/components/feedback/ComputeDashboard';
+import { ScreenReaderAnnouncerProvider } from '@/components/menuBar/ScreenReaderAnnouncer';
 import { ReferenceSheetManager } from '@/components/reference/ReferenceSheetManager';
 import { VideoReplicationDialog } from '@/components/reference/VideoReplicationDialog';
 import { CrossShotReferencePicker } from '@/components/reference/CrossShotReferencePicker';
@@ -141,6 +147,8 @@ function AppContent() {
     setShowFactCheckModal,
     showAboutModal,
     setShowAboutModal,
+    showMoodboardModal,
+    setShowMoodboardModal,
     showDocumentationModal,
     setShowDocumentationModal,
     showKeyboardShortcutsDialog,
@@ -174,6 +182,14 @@ function AppContent() {
     setShowDiscoveryLab,
     showProjectTranslator,
     setShowProjectTranslator,
+    showVideoPublisher,
+    setShowVideoPublisher,
+    showLocationWizard,
+    setShowLocationWizard,
+    showComputeDashboard,
+    setShowComputeDashboard,
+    characterWizardContext,
+    objectWizardContext,
     selectedShotId,
   } = useAppStore(useShallow((state) => ({
     project: state.project,
@@ -218,6 +234,8 @@ function AppContent() {
     setShowFactCheckModal: state.setShowFactCheckModal,
     showAboutModal: state.showAboutModal,
     setShowAboutModal: state.setShowAboutModal,
+    showMoodboardModal: state.showMoodboardModal,
+    setShowMoodboardModal: state.setShowMoodboardModal,
     showDocumentationModal: state.showDocumentationModal,
     setShowDocumentationModal: state.setShowDocumentationModal,
     showKeyboardShortcutsDialog: state.showKeyboardShortcutsDialog,
@@ -251,6 +269,14 @@ function AppContent() {
     setShowDiscoveryLab: state.setShowDiscoveryLab,
     showProjectTranslator: state.showProjectTranslator,
     setShowProjectTranslator: state.setShowProjectTranslator,
+    showVideoPublisher: state.showVideoPublisher,
+    setShowVideoPublisher: state.setShowVideoPublisher,
+    showLocationWizard: state.showLocationWizard,
+    setShowLocationWizard: state.setShowLocationWizard,
+    showComputeDashboard: state.showComputeDashboard,
+    setShowComputeDashboard: state.setShowComputeDashboard,
+    characterWizardContext: state.characterWizardContext,
+    objectWizardContext: state.objectWizardContext,
     selectedShotId: state.selectedShotId,
   })));
 
@@ -484,7 +510,7 @@ function AppContent() {
     return () => sub.unsubscribe();
   }, [toast]);
 
-  const [currentView, setCurrentView] = useState<'dashboard' | 'editor'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'editor' | 'experimental-ai'>('dashboard');
   const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
 
   // Listen for navigation events from menu bar
@@ -510,9 +536,17 @@ function AppContent() {
     window.addEventListener('storycore:navigate-to-dashboard', handleNavigateToDashboard);
     window.addEventListener('storycore:exit-project', handleExitProject);
 
+    const handleNavigateToExperimentalAI = () => {
+      setCurrentView('experimental-ai');
+      setSelectedSequenceId(undefined);
+    };
+
+    window.addEventListener('storycore:navigate-to-experimental-ai', handleNavigateToExperimentalAI);
+
     return () => {
       window.removeEventListener('storycore:navigate-to-dashboard', handleNavigateToDashboard);
       window.removeEventListener('storycore:exit-project', handleExitProject);
+      window.removeEventListener('storycore:navigate-to-experimental-ai', handleNavigateToExperimentalAI);
     };
   }, [setProject, setShots]);
 
@@ -984,10 +1018,26 @@ function AppContent() {
         initialData={{
           // Pre-fill genre and tone from project setup to aid AI
           role: {
-            archetype: project?.projectSetup?.genre?.[0] || '',
-          } as Character['role'],
-          // If we wanted to edit existing, we'd need a way to select which one
-        }}
+            archetype: (project?.projectSetup?.genre?.[0] || '') as string,
+            narrative_function: '',
+            character_arc: '',
+          },
+          // If launched from chatbox with context
+          ...(characterWizardContext?.imageFile && { 
+            visual_identity: { 
+              generated_portrait: URL.createObjectURL(characterWizardContext.imageFile) 
+            } as Character['visual_identity']
+          }),
+          ...(characterWizardContext?.name && { name: characterWizardContext.name }),
+          ...(characterWizardContext?.role && { 
+            role: { 
+              archetype: characterWizardContext.role || '',
+              narrative_function: '',
+              character_arc: '',
+            } 
+          }),
+        } as Partial<Character>}
+        initialImage={characterWizardContext?.imageFile}
       />
 
       {/* Scenario Builder Wizard Modal */}
@@ -1022,7 +1072,22 @@ function AppContent() {
         isOpen={showObjectWizard}
         onClose={() => setShowObjectWizard(false)}
         onComplete={handleObjectComplete}
+        initialData={{
+          ...(objectWizardContext?.imageFile && { 
+            imageUrl: URL.createObjectURL(objectWizardContext.imageFile) 
+          }),
+          ...(objectWizardContext?.name && { name: objectWizardContext.name }),
+        }}
       />
+
+      {/* Location Wizard Placeholder (Linked to LocationsModal for now) */}
+      {showLocationWizard && (
+        <LocationsModal
+          isOpen={showLocationWizard}
+          onClose={() => setShowLocationWizard(false)}
+          // Since there's no LocationWizard yet, we just open the modal
+        />
+      )}
 
       {/* Storyteller Wizard Modal */}
       <StorytellerWizardModal
@@ -1072,11 +1137,20 @@ function AppContent() {
         isOpen={showProjectTranslator}
         onClose={() => setShowProjectTranslator(false)}
         projectId={project?.id || ''}
-        projectData={project || {}}
+        projectData={(project as unknown as Record<string, unknown>) || {}}
       />
 
       {/* tttLRM Reconstruction Modal */}
       <TTTLRMModal />
+
+      {/* Video Publisher Modal */}
+      <VideoPublisherEditor
+        isOpen={showVideoPublisher}
+        onClose={() => setShowVideoPublisher(false)}
+      />
+
+      {/* Credits Screen Modal */}
+      <CreditsScreenModal />
 
       {/* Generic Wizard Modal (Requirements 1.2, 1.3, 1.4) */}
       <GenericWizardModal
@@ -1160,6 +1234,16 @@ function AppContent() {
         onClose={() => setShowDialogueEditor(false)}
       />
 
+      <AboutModal
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
+      />
+
+      <MoodboardModal
+        isOpen={showMoodboardModal}
+        onClose={() => setShowMoodboardModal(false)}
+      />
+
       {/* Feedback Panel */}
       <FeedbackPanel
         isOpen={showFeedbackPanel}
@@ -1178,11 +1262,6 @@ function AppContent() {
       <FactCheckModal
         isOpen={showFactCheckModal}
         onClose={() => setShowFactCheckModal(false)}
-      />
-
-      <AboutModal
-        isOpen={showAboutModal}
-        onClose={() => setShowAboutModal(false)}
       />
 
       {/* Keyboard Shortcuts Dialog */}
@@ -1276,6 +1355,23 @@ function AppContent() {
             </Button>
           </div>
           <DiscoveryLab />
+        </div>
+      )}
+
+      {/* Compute Marketplace Dashboard */}
+      {showComputeDashboard && (
+        <div className="fixed inset-0 z-[100] bg-slate-950 flex flex-col p-10 overflow-auto">
+          <div className="absolute top-4 right-6 z-[110]">
+            <Button 
+              variant="secondary" 
+              size="icon" 
+              onClick={() => setShowComputeDashboard(false)}
+              className="rounded-full"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+          <ComputeDashboard />
         </div>
       )}
 
@@ -1374,7 +1470,7 @@ function AppContent() {
           setSelectedSequenceId(sequenceId);
           setCurrentView('editor');
         }} />
-      ) : (
+      ) : currentView === 'editor' ? (
         <EditorPageSimple
           sequenceId={selectedSequenceId}
           onBackToDashboard={() => {
@@ -1382,6 +1478,8 @@ function AppContent() {
             setCurrentView('dashboard');
           }}
         />
+      ) : (
+        <ImageEnhancementPanel />
       )}
       {/* Single instance of all modals - shared across all views */}
       {renderModals()}
@@ -1389,7 +1487,7 @@ function AppContent() {
   );
 }
 
-// Wrapper component with LanguageProvider, NavigationProvider, SecretModeProvider, LLMProvider and ErrorBoundary
+// Wrapper component with LanguageProvider, NavigationProvider, SecretModeProvider, LLMProvider, ScreenReaderAnnouncerProvider and ErrorBoundary
 function App() {
   return (
     <ErrorBoundary>
@@ -1398,15 +1496,17 @@ function App() {
           <NavigationProvider>
             <SecretModeProvider>
               <LLMProvider>
-                <div className="relative min-h-screen">
-                  <AppContent />
+                <ScreenReaderAnnouncerProvider>
+                  <div className="relative min-h-screen">
+                    <AppContent />
 
-                  {/* Floating AI Assistant */}
-                  <FloatingAIAssistant />
+                    {/* Floating AI Assistant */}
+                    <FloatingAIAssistant />
 
-                  {/* Toggle Button */}
-                  <ToggleButton position="bottom-right" />
-                </div>
+                    {/* Toggle Button */}
+                    <ToggleButton position="bottom-right" />
+                  </div>
+                </ScreenReaderAnnouncerProvider>
               </LLMProvider>
             </SecretModeProvider>
           </NavigationProvider>

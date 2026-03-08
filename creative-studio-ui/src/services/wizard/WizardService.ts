@@ -592,7 +592,7 @@ export class WizardService {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+   
   async executeDialogueWriter(_input: DialogueInput): Promise<WizardOutput> {
     logger.warn('executeDialogueWriter not fully implemented, returning mock');
     return {

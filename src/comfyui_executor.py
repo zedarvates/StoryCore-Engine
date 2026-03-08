@@ -40,6 +40,23 @@ class ComfyUIExecutor:
         """Returns the dictionary of configured ComfyUI servers."""
         return settings.get_comfyui_servers()
 
+    async def upload_image(self, image_data: bytes, filename: str, server_name: str = "local") -> Dict[str, Any]:
+        """Uploads an image to the ComfyUI server."""
+        comfyui_url = get_comfyui_url(server_name=server_name)
+        upload_url = f"{comfyui_url.rstrip('/')}/upload/image"
+        
+        async with aiohttp.ClientSession() as session:
+            form = aiohttp.FormData()
+            form.add_field('image', image_data, filename=filename, content_type='image/jpeg')
+            form.add_field('overwrite', 'true')
+            
+            async with session.post(upload_url, data=form) as response:
+                if response.status == 200:
+                    return await response.json()
+                else:
+                    error_text = await response.text()
+                    raise ComfyUIExecutionError(f"Upload failed: {error_text}")
+
     async def execute_workflow(
         self, 
         workflow: Dict[str, Any], 

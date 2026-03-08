@@ -8,6 +8,7 @@
 
 import { notificationService } from './NotificationService';
 import { LanguageCode } from '@/utils/llmConfigStorage';
+import { transcriptionService } from './ai/TranscriptionService';
 
 import { VOICE_COMMANDS_DATA, type VoiceCommandDef } from '../data/voiceCommands';
 
@@ -53,6 +54,13 @@ interface ISpeechSynthesis {
   getVoices(): ISpeechSynthesisVoice[];
 }
 
+type WindowWithElectron = Window & {
+  electronAPI?: unknown;
+  SpeechRecognition?: new() => ISpeechRecognition;
+  webkitSpeechRecognition?: new() => ISpeechRecognition;
+  webkitAudioContext?: typeof AudioContext;
+};
+
 export interface VoiceHotkeyConfig {
   key: string;
   modifier: 'alt' | 'ctrl' | 'shift' | 'meta' | 'none';
@@ -79,6 +87,7 @@ export interface VoiceSettings {
   autoGainControl: boolean;
   commandPrefix: string; // e.g. "slash"
   pttKeybind: string; // Key for Push-to-Talk
+  transcriptionBackend: 'whisper' | 'vosk';
 }
 
 export interface SpeechRecognitionResult {
@@ -131,6 +140,11 @@ export class VoiceTextService {
   private stream: MediaStream | null = null;
   private volumeLevel = 0;
 
+  // Local recording for Electron
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
+  private isElectron = false;
+
   private constructor() {
     this.settings = this.loadSettings();
     this.initializeAPIs();
@@ -143,6 +157,13 @@ export class VoiceTextService {
       VoiceTextService.instance = new VoiceTextService();
     }
     return VoiceTextService.instance;
+  }
+
+  /**
+   * Vérifie si la reconnaissance vocale est disponible
+   */
+  isRecognitionSupported(): boolean {
+    return this.isElectron || !!this.speechRecognition;
   }
 
   /**
@@ -162,13 +183,13 @@ export class VoiceTextService {
       // Eviter le déclenchement en boucle lors d'un appui long
       if (e.repeat) return;
 
-      const isControl = e.key === 'Control';
       const isCustomPTT = this.settings.inputMode === 'push-to-talk' && e.code === this.settings.pttKeybind;
+      const isControlFallback = this.settings.inputMode === 'voice-activity' && (e.key === 'Control' || e.key === 'ControlLeft');
 
-      if (isControl || isCustomPTT) {
+      if (isCustomPTT || isControlFallback) {
         if (!this.isListening) {
           // Si c'est Control, on preventDefault pour éviter les comportements système indésirables
-          if (isControl) e.preventDefault();
+          if (e.key === 'Control' || e.key === 'ControlLeft') e.preventDefault();
           
           window.dispatchEvent(new CustomEvent('storycore:voice-ptt-start'));
           this.startListening({
@@ -196,10 +217,10 @@ export class VoiceTextService {
     };
 
     const handlePTTUp = (e: KeyboardEvent) => {
-      const isControl = e.key === 'Control';
       const isCustomPTT = this.settings.inputMode === 'push-to-talk' && e.code === this.settings.pttKeybind;
+      const isControlFallback = this.settings.inputMode === 'voice-activity' && (e.key === 'Control' || e.key === 'ControlLeft');
 
-      if (isControl || isCustomPTT) {
+      if (isCustomPTT || isControlFallback) {
         if (this.isListening) {
           // On laisse un petit délai pour capturer les derniers mots
           setTimeout(() => {
@@ -217,12 +238,22 @@ export class VoiceTextService {
    * Initialise les APIs du navigateur
    */
   private initializeAPIs(): void {
-    // Reconnaissance vocale - use any to access browser API
-    const SpeechRecognition = (window as Window & { SpeechRecognition?: new() => ISpeechRecognition; webkitSpeechRecognition?: new() => ISpeechRecognition }).SpeechRecognition
-      || (window as Window & { webkitSpeechRecognition?: new() => ISpeechRecognition }).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      this.speechRecognition = new SpeechRecognition();
-      this.configureSpeechRecognition();
+    // Reconnaissance vocale - use typed window access
+    const win = window as unknown as WindowWithElectron;
+    this.isElectron = typeof window !== 'undefined' && !!win.electronAPI;
+    
+    // IMPORTANT: In Electron, native webkitSpeechRecognition is broken/unsupported 
+    // without specific Google API keys. We use local recording + backend Whisper instead.
+    if (this.isElectron) {
+      console.info('[VoiceTextService] Using local recording + backend transcription in Electron.');
+      this.speechRecognition = null;
+    } else {
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        this.speechRecognition = new SpeechRecognition();
+        this.configureSpeechRecognition();
+      }
     }
 
     // Synthèse vocale
@@ -294,15 +325,16 @@ export class VoiceTextService {
 
       switch (event.error) {
         case 'network': {
-          const isElectronEnv = typeof window !== 'undefined' && 'electronAPI' in window;
-          if (isElectronEnv) {
-            errorMessage = "Reconnaissance vocale non supportée dans cette version (Clé d'API manquante). Utilisez le mode navigateur.";
+          const win = window as unknown as WindowWithElectron;
+          if (win.electronAPI) {
+            errorMessage = "Service vocal limité : Clé d'API manquante dans cette version Desktop. La reconnaissance vocale native Chromium nécessite une clé Google. Mode texte uniquement.";
             this.isListening = false;
+            // Ne pas déclencher de retry pour cette erreur spécifique car elle est permanente
+            this.resetRetryState();
             this.recognitionCallbacks?.onError(errorMessage);
             return;
           }
           errorMessage = 'Erreur réseau lors de la reconnaissance vocale';
-          console.warn('[VoiceTextService] Network error detected, will retry if possible');
           break;
         }
         case 'not-allowed':
@@ -381,7 +413,8 @@ export class VoiceTextService {
       echoCancellation: true,
       autoGainControl: false,
       commandPrefix: 'slash',
-      pttKeybind: 'KeyV'
+      pttKeybind: 'ControlLeft',
+      transcriptionBackend: 'whisper'
     };
 
     try {
@@ -468,7 +501,9 @@ export class VoiceTextService {
   private async startAudioAnalysis(): Promise<void> {
     try {
       if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext || AudioContext)();
+        const win = window as unknown as WindowWithElectron;
+        const AudioContextClass = window.AudioContext || win.webkitAudioContext || AudioContext;
+        this.audioContext = new AudioContextClass();
       }
 
       if (this.audioContext.state === 'suspended') {
@@ -477,6 +512,7 @@ export class VoiceTextService {
 
       this.stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
+          deviceId: this.settings.inputDevice ? { exact: this.settings.inputDevice } : undefined,
           echoCancellation: this.settings.echoCancellation,
           noiseSuppression: this.settings.noiseSuppression,
           autoGainControl: this.settings.autoGainControl,
@@ -537,20 +573,25 @@ export class VoiceTextService {
   /**
    * Démarre la reconnaissance vocale
    */
-  startListening(callbacks: {
+  async startListening(callbacks: {
     onResult: (result: SpeechRecognitionResult) => void;
     onError: (error: string) => void;
     onStart: () => void;
     onEnd?: () => void;
-  }): boolean {
-    if (!this.settings.enabled || !this.speechRecognition) {
-      callbacks.onError('Reconnaissance vocale non disponible');
+  }): Promise<boolean> {
+    if (!this.settings.enabled) {
+      callbacks.onError("Reconnaissance vocale désactivée dans les paramètres.");
       return false;
     }
 
-    // Check if we're online before attempting to start
-    if (!navigator.onLine) {
-      callbacks.onError('Pas de connexion internet. La reconnaissance vocale nécessite une connexion.');
+    if (!this.speechRecognition && !this.isElectron) {
+      callbacks.onError("Reconnaissance vocale non disponible dans ce navigateur.");
+      return false;
+    }
+
+    // Check if we're online (only if using native speech web API)
+    if (!this.isElectron && !navigator.onLine) {
+      callbacks.onError('Pas de connexion internet. La reconnaissance vocale native nécessite une connexion.');
       return false;
     }
 
@@ -563,8 +604,12 @@ export class VoiceTextService {
 
     this.recognitionCallbacks = callbacks;
 
+    if (this.isElectron) {
+      return this.startLocalRecording();
+    }
+
     try {
-      this.speechRecognition.start();
+      this.speechRecognition!.start();
       this.startAudioAnalysis();
       return true;
     } catch {
@@ -577,9 +622,84 @@ export class VoiceTextService {
    * Arrête la reconnaissance vocale
    */
   stopListening(): void {
-    if (this.speechRecognition && this.isListening) {
-      this.speechRecognition.stop();
+    if (this.isListening) {
+      if (this.isElectron && this.mediaRecorder) {
+        this.mediaRecorder.stop();
+      } else if (this.speechRecognition) {
+        this.speechRecognition.stop();
+      }
       this.stopAudioAnalysis();
+      this.isListening = false;
+    }
+  }
+
+  /**
+   * Démarre l'enregistrement local via MediaRecorder (pour Electron)
+   */
+  private async startLocalRecording(): Promise<boolean> {
+    try {
+      await this.startAudioAnalysis();
+      if (!this.stream) throw new Error("No audio stream available");
+
+      this.audioChunks = [];
+      this.mediaRecorder = new MediaRecorder(this.stream);
+      
+      this.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          this.audioChunks.push(event.data);
+        }
+      };
+
+      this.mediaRecorder.onstop = async () => {
+        if (this.audioChunks.length === 0) return;
+        
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.audioChunks = [];
+        
+        try {
+          // Visual feedback
+          window.dispatchEvent(new CustomEvent('storycore:voice-processing', { detail: { isProcessing: true } }));
+          
+          const response = await transcriptionService.transcribeAudio(
+            audioBlob, 
+            this.settings.inputLanguage,
+            this.settings.transcriptionBackend
+          );
+          
+          // Process character correction
+          const transcript = this.correctTranscript(response.text);
+          
+          // Check for voice command
+          const handled = this.processVoiceCommand(transcript);
+          
+          if (!handled && this.recognitionCallbacks) {
+            this.recognitionCallbacks.onResult({
+              transcript,
+              confidence: 0.9,
+              isFinal: true,
+              language: this.settings.inputLanguage
+            });
+          }
+        } catch (error) {
+          console.error('[VoiceTextService] Local transcription failed:', error);
+          if (this.recognitionCallbacks?.onError) {
+             this.recognitionCallbacks.onError("Erreur de transcription locale.");
+          }
+        } finally {
+          window.dispatchEvent(new CustomEvent('storycore:voice-processing', { detail: { isProcessing: false } }));
+        }
+      };
+
+      this.mediaRecorder.start();
+      this.isListening = true;
+      this.recognitionCallbacks?.onStart();
+      return true;
+    } catch (err) {
+      console.error('[VoiceTextService] Failed to start local recording:', err);
+      if (this.recognitionCallbacks?.onError) {
+        this.recognitionCallbacks.onError("Impossible d'accéder au microphone.");
+      }
+      return false;
     }
   }
 

@@ -1,0 +1,21 @@
+{
+  "id": "setup-initial",
+  "name": "Configuration initiale",
+  "description": "Configure les paramètres initiaux d'un nouveau projet StoryCore",
+  "prompt": "Tu es un assistant de configuration pour StoryCore. Configure un nouveau projet avec les éléments suivants:\n\n1. Paramètres de base (nom, version)\n2. Configuration du moteur narratif\n3. Paramètres des personnages\n4. Configuration des lieux\n5. Paramètres de sauvegarde\n6. Configuration audio/vidéo\n7. Paramètres d'IA et de génération\n8. Options d'interface utilisateur\n9. Paramètres de performance\n10. Configuration de distribution\n\nFournis un fichier de configuration complet et optimisé.",
+  "parameters": {
+    "nom_projet": "Nom du projet",
+    "version": "Version initiale (défaut: 1.0.0)",
+    "genre": "Genre du projet",
+    "plateforme": "Plateforme cible (PC, Mobile, Web, Console)",
+    "moteur": "Moteur à utiliser (propre, Unity, Unreal, Godot)",
+    "langues": "Langues supportées",
+    "resolution": "Résolution cible"
+  },
+  "examples": [
+    {
+      "input": "Configure un projet fantasy pour PC",
+      "output": "Configuration:\n- Nom: Chronicles of Valdoria\n- Version: 1.0.0\n- Genre: Fantasy Épique\n- Plateforme: PC\n- Moteur: Moteur propriétaire\n- Langues: FR, EN, ES, DE\n- Résolution: 1920x1080\n\nParamètres narratifs:\n- Type de branches: Multiples avec convergence\n- Système de choix: Pondéré\n- Sauvegardes: Auto + Manuelle\n- Contrôle du joueur: Total\n\nParamètres IA:\n- Génération dialogues: Activée\n- Génération descriptions: Activée\n- Niveau de détail: Élevé\n- Cache: Activé\n\nInterface:\n- Style: Fantasy épique\n- Animations: Activées\n- Transitions: Fluides"
+    }
+  ]
+}

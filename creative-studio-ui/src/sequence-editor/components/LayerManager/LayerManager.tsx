@@ -9,8 +9,10 @@
  * - Layer selection and highlighting
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import { Reorder, motion, AnimatePresence } from 'framer-motion';
+import { GripVertical } from 'lucide-react';
 import {
   addLayer,
   deleteLayer,
@@ -18,7 +20,7 @@ import {
   selectElement,
   deselectElement,
 } from '../../store/slices/timelineSlice';
-import type { Layer, LayerType, Shot } from '../../types';
+import type { Layer, LayerType, Shot, LayerData } from '../../types';
 import './layerManager.css';
 
 interface LayerManagerProps {
@@ -46,9 +48,11 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [draggedLayerId, setDraggedLayerId] = useState<string | null>(null);
 
-  const handleAddLayer = (type: LayerType) => {
+  const handleAddLayer = useCallback((type: LayerType) => {
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substr(2, 9);
     const newLayer: Layer = {
-      id: `layer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `layer-${timestamp}-${randomStr}`,
       type,
       startTime: 0,
       duration: shot.duration,
@@ -56,11 +60,15 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
       hidden: false,
       opacity: 1,
       blendMode: 'normal',
-      data: getDefaultLayerData(type),
+      data: getDefaultLayerData(type) as LayerData,
     };
 
     dispatch(addLayer({ shotId: shot.id, layer: newLayer }));
     setShowAddMenu(false);
+  }, [dispatch, shot.id, shot.duration]);
+
+  const handleReorder = (newLayers: Layer[]) => {
+    dispatch(reorderLayers({ shotId: shot.id, layers: newLayers }));
   };
 
   const handleDeleteLayer = (layerId: string) => {
@@ -83,33 +91,6 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
         dispatch(selectElement(layerId));
       }
     }
-  };
-
-  const handleDragStart = (layerId: string) => {
-    setDraggedLayerId(layerId);
-  };
-
-  const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault();
-  };
-
-  const handleDrop = (targetLayerId: string) => {
-    if (!draggedLayerId || draggedLayerId === targetLayerId) {
-      setDraggedLayerId(null);
-      return;
-    }
-
-    const layers = [...shot.layers];
-    const draggedIndex = layers.findIndex((l) => l.id === draggedLayerId);
-    const targetIndex = layers.findIndex((l) => l.id === targetLayerId);
-
-    if (draggedIndex !== -1 && targetIndex !== -1) {
-      const [draggedLayer] = layers.splice(draggedIndex, 1);
-      layers.splice(targetIndex, 0, draggedLayer);
-      dispatch(reorderLayers({ shotId: shot.id, layers }));
-    }
-
-    setDraggedLayerId(null);
   };
 
   return (
@@ -146,69 +127,86 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
         </div>
       )}
 
-      <div className="layer-list">
-        {shot.layers.length === 0 ? (
-          <div className="layer-list-empty">
-            <p>No layers yet</p>
-            <p className="layer-list-empty-hint">Click "Add Layer" to get started</p>
-          </div>
-        ) : (
-          shot.layers.map((layer) => {
-            const config = LAYER_TYPE_CONFIG[layer.type];
-            const isSelected = selectedLayerIds.includes(layer.id);
-            const isDragging = draggedLayerId === layer.id;
+      <Reorder.Group
+        axis="y"
+        values={shot.layers}
+        onReorder={handleReorder}
+        className="layer-list"
+      >
+        <AnimatePresence initial={false}>
+          {shot.layers.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="layer-list-empty"
+            >
+              <p>No layers yet</p>
+              <p className="layer-list-empty-hint">Click "Add Layer" to get started</p>
+            </motion.div>
+          ) : (
+            shot.layers.map((layer) => {
+              const config = LAYER_TYPE_CONFIG[layer.type];
+              const isSelected = selectedLayerIds.includes(layer.id);
+              const isDragging = draggedLayerId === layer.id;
 
-            return (
-              <div
-                key={layer.id}
-                className={`layer-item ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${layer.hidden ? 'hidden' : ''} ${layer.locked ? 'locked' : ''}`}
-                onClick={(e) => handleLayerClick(layer.id, e)}
-                draggable
-                onDragStart={() => handleDragStart(layer.id)}
-                onDragOver={handleDragOver}
-                onDrop={() => handleDrop(layer.id)}
-                style={{ borderLeftColor: config.color }}
-              >
-                <div className="layer-item-icon" style={{ color: config.color }}>
-                  {config.icon}
-                </div>
-                <div className="layer-item-content">
-                  <div className="layer-item-name">
-                    {config.name} {layer.id.split('-').pop()}
+              return (
+                <Reorder.Item
+                  key={layer.id}
+                  value={layer}
+                  className={`layer-item ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${layer.hidden ? 'hidden' : ''} ${layer.locked ? 'locked' : ''}`}
+                  onClick={(e) => handleLayerClick(layer.id, e)}
+                  whileDrag={{ 
+                    scale: 1.02,
+                    boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.4)",
+                    zIndex: 10
+                  }}
+                  onDragStart={() => setDraggedLayerId(layer.id)}
+                  onDragEnd={() => setDraggedLayerId(null)}
+                  style={{ borderLeftColor: config.color }}
+                >
+                  <div className="layer-item-drag-handle">
+                    <GripVertical className="w-4 h-4 text-white/20 hover:text-white/60 transition-colors" />
                   </div>
-                  <div className="layer-item-info">
-                    Duration: {layer.duration} frames
-                    {layer.opacity < 1 && ` • Opacity: ${Math.round(layer.opacity * 100)}%`}
-                    {layer.blendMode !== 'normal' && ` • Blend: ${layer.blendMode}`}
+                  <div className="layer-item-icon" style={{ color: config.color }}>
+                    {config.icon}
                   </div>
-                </div>
-                <div className="layer-item-actions">
-                  {layer.locked && (
-                    <span className="layer-status-icon" title="Locked">
-                      🔒
-                    </span>
-                  )}
-                  {layer.hidden && (
-                    <span className="layer-status-icon" title="Hidden">
-                      👁️‍🗨️
-                    </span>
-                  )}
-                  <button
-                    className="layer-delete-button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteLayer(layer.id);
-                    }}
-                    title="Delete Layer"
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+                  <div className="layer-item-content">
+                    <div className="layer-item-name">
+                      {config.name} {layer.id.split('-').pop()}
+                    </div>
+                    <div className="layer-item-info">
+                      Duration: {layer.duration} frames
+                    </div>
+                  </div>
+                  <div className="layer-item-actions">
+                    {layer.locked && (
+                      <span className="layer-status-icon" title="Locked">
+                        🔒
+                      </span>
+                    )}
+                    {layer.hidden && (
+                      <span className="layer-status-icon" title="Hidden">
+                        👁️‍🗨️
+                      </span>
+                    )}
+                    <button
+                      className="layer-delete-button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteLayer(layer.id);
+                      }}
+                      title="Delete Layer"
+                    >
+                      ×
+                    </button>
+                  </div>
+                </Reorder.Item>
+              );
+            })
+          )}
+        </AnimatePresence>
+      </Reorder.Group>
     </div>
   );
 };

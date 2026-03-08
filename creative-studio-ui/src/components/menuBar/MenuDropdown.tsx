@@ -15,7 +15,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MenuItem, MenuItemProps } from './MenuItem';
-import { useScreenReaderAnnouncer } from './ScreenReaderAnnouncer';
+import { useOptionalScreenReaderAnnouncer } from './ScreenReaderAnnouncerContext';
 import {
   getNextEnabledItemIndex,
   getFirstEnabledItemIndex,
@@ -79,12 +79,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   // Get screen reader announcer (optional - only if provider is available)
-  let announcer: ReturnType<typeof useScreenReaderAnnouncer> | null = null;
-  try {
-    announcer = useScreenReaderAnnouncer();
-  } catch {
-    // Provider not available, announcements will be skipped
-  }
+  const announcer = useOptionalScreenReaderAnnouncer();
 
   /**
    * Handle keyboard navigation
@@ -138,6 +133,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
           }
           break;
       }
+      console.log(`Key Pressed: ${event.key}, Focused Index: ${focusedIndex}`);
     },
     [isOpen, onClose, items, focusedIndex]
   );
@@ -186,6 +182,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   useEffect(() => {
     if (isOpen) {
       const firstEnabled = getFirstEnabledItemIndex(items);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFocusedIndex(firstEnabled);
     }
   }, [isOpen, items]);
@@ -204,12 +201,8 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
       if (!isMenuOpen || !menuContainer) return;
 
       if (!menuContainer.contains(event.target as Node)) {
-        // Use setTimeout to allow event propagation before closing
-        setTimeout(() => {
-          if (isMenuOpen && menuRef.current) {
-            onClose();
-          }
-        }, 0);
+        // Close menu immediately without delay
+        onClose();
       }
     };
 
@@ -225,7 +218,7 @@ export const MenuDropdown: React.FC<MenuDropdownProps> = ({
   /**
    * Handle item click
    */
-  const handleItemClick = (item: typeof items[0], index: number) => {
+const handleItemClick = (item: typeof items[0], _: number) => {
     // Skip if it's a separator
     if ('separator' in item) return;
 

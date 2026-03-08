@@ -1,0 +1,20 @@
+{
+  "id": "story-create",
+  "name": "Créer une histoire",
+  "description": "Crée une histoire complète avec structure narrative et éléments de plot",
+  "prompt": "Tu es un assistant de création d'histoires pour StoryCore. Crée une histoire complète avec les éléments suivants:\n\n1. Titre et synopsis\n2. Genre et tonalite\n3. Concept central\n4. Personnages principaux et leurs arcs\n5. Structure narrative (actes, chapitres)\n6. Points de plot majeurs\n7. Thèmes et messages\n8. Conflict principal et sous-conflits\n9. Résolution et conclusion\n10. Extensions possibles\n\nCrée une histoire engageante avec un début, un milieu et une fin satisfaisants.",
+  "parameters": {
+    "titre": "Titre de l'histoire (optionnel)",
+    "genre": "Genre principal",
+    "tonalite": "Tonalité (dramatique, humoristique, sombre, espoir, etc.)",
+    "longueur": "Longueur souhaitée (courte, moyenne, longue, épique)",
+    "type_narrative": "Type narratif (linéaire, branches, boucles, interactif)",
+    "public": "Public cible"
+  },
+  "examples": [
+    {
+      "input": "Crée une histoire de fantasy épique",
+      "output": "Titre: La Quête des Six Cristaux\nGenre: Fantasy épique\nTonalite: Espoir au milieu des ténèbres\n\nSynopsis: Dans un monde où la magie s'éteint, un groupe de héros disparates doit réunr les Six Cristaux pour sauver l'humanité d'une menace ancestrale.\n\nPersonnages:\n- Kiran: Jeune mage découvrant ses pouvoirs, arc: peur -> courage\n- Aryana: Guerrière brisée cherchant la rédemption, arc: culpabilité -> pardon\n- Thorin: Nain philosophe, arc: cynisme -> foi\n- Lyra: Voleuse au cœur d'or, arc: solitude -> appartenance\n\nStructure:\nActe 1: Réunion des héros, découverte de la quête\nActe 2: Épreuves et séparations, pertes\nActe 3: Réunion finale, combat ultime\n\nPoints de plot:\n- Révélation du passé d'Aryana\n- Trahison et réconciliation\n- Sacrifice nécessaire\n- Résurrection inattendue\n\nThèmes: Le pouvoir de l'espoir, le sacrifice, la rédemption\n\nConclusion: Victoire bittersweet, nouveaux défis à venir\n\nExtensions: Spin-offs sur les personnages secondaires, préquelle"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "2a56d6b8-795a-475f-abd9-c52d4c88bcc8",
+  "user_id": "test-user-123",
+  "image_base64": "",
+  "angle_ids": [
+    "front",
+    "side_left",
+    "three_quarter"
+  ],
+  "granular_angles": [],
+  "preserve_style": true,
+  "quality": "standard",
+  "seed": 42,
+  "custom_prompt": "Test prompt",
+  "lens_type": "standard",
+  "comfyui_url": "http://127.0.0.1:7860",
+  "status": "processing",
+  "progress": 0.0,
+  "current_step": "Initializing generation",
+  "completed_angles": [],
+  "remaining_angles": [
+    "front",
+    "side_left",
+    "three_quarter"
+  ],
+  "error": null,
+  "created_at": "2026-03-02T09:57:39.609383",
+  "started_at": "2026-03-02T09:57:39.611395",
+  "completed_at": null,
+  "priority": 5
+}

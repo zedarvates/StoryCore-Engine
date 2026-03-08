@@ -14,7 +14,7 @@
  * Requirements: Phase 2 of R&D plan
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { updateLayer } from '../../store/slices/timelineSlice';
 import type { Shot, MediaLayerData, VideoMask, VideoEffects } from '../../types';
@@ -33,7 +33,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
     const [activeTab, setActiveTab] = useState<'mask' | 'chroma' | 'color' | 'blur' | 'vignette'>('mask');
     const [isProcessingAI, setIsProcessingAI] = useState(false);
 
-    const selectedLayer = selectedLayerId
+    const selectedLayer = (selectedLayerId && shot?.layers)
         ? shot.layers.find(l => l.id === selectedLayerId)
         : null;
 
@@ -46,7 +46,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
     };
 
     const mediaData = getMediaData();
-    const currentEffects: VideoEffects = mediaData.effects ?? {};
+    const currentEffects: VideoEffects = useMemo(() => mediaData.effects ?? {}, [mediaData.effects]);
     const currentMask: VideoMask | undefined = mediaData.mask;
 
     // ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
     // ---------------------------------------------------------------------------
 
     const updateMediaData = useCallback((updates: Partial<MediaLayerData>) => {
-        if (!selectedLayer) return;
+        if (!selectedLayer || !shot) return;
         dispatch(
             updateLayer({
                 shotId: shot.id,
@@ -67,7 +67,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                 },
             }),
         );
-    }, [dispatch, shot.id, selectedLayer, mediaData]);
+    }, [dispatch, shot, selectedLayer, mediaData]);
 
     const updateEffects = useCallback((updates: Partial<VideoEffects>) => {
         updateMediaData({
@@ -271,7 +271,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         <button
                             className="vfx-action-btn vfx-action-btn-danger"
                             onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                 
                                 const { chromaKey: _chromaKey, ...rest } = currentEffects;
                                 updateMediaData({ effects: rest });
                             }}
@@ -333,7 +333,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         <button
                             className="vfx-action-btn"
                             onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                 
                                 const { colorCorrection: _colorCorrection, ...rest } = currentEffects;
                                 updateMediaData({ effects: rest });
                             }}
@@ -451,7 +451,7 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
                         <button
                             className="vfx-action-btn"
                             onClick={() => {
-                                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                                 
                                 const { vignette: _vignette, ...rest } = currentEffects;
                                 updateMediaData({ effects: rest });
                             }}

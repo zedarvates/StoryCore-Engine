@@ -1,0 +1,20 @@
+{
+  "id": "consequence-create",
+  "name": "Créer des conséquences",
+  "description": "Définit les conséquences et ramifications des choix des personnages",
+  "prompt": "Tu es un assistant de création de conséquences pour StoryCore. Crée un système de conséquences avec les éléments suivants:\n\n1. Action ou choix initial\n2. Conséquence immédiate\n3. Conséquences à moyen terme\n4. Conséquences à long terme\n5. Personnages affectés\n6. Changements dans le monde\n7. Implications émotionnelles\n8. Alternatives et variations\n9. Réversibilité\n10. Opportunities cachées\n\nCrée des conséquences logiques mais surprenantes qui thérapeut l'engagement du joueur.",
+  "parameters": {
+    "action": "L'action ou le choix initial",
+    "type": "Type de conséquence (positive, négative, neutre, ambiguë)",
+    "echelle": "Échelle (personnelle, locale, mondiale)",
+    "delai": "Délai d'effet (immédiat, court terme, long terme)",
+    "reversibilite": "Réversibilité (oui, non, partiel)",
+    "complexite": "Complexité (simple, modérée, élevée)"
+  },
+  "examples": [
+    {
+      "input": "Crée des conséquences pour le choix de tuer le vilain ou l'épargner",
+      "output": "CHOIX: Épargner le Roi Sombre au lieu de le tuer\n\nCONSÉQUENCE IMMÉDIATE:\n- Le Roi Sombre est affaibli et captif\n- Les alliés sont divisés (certains approuvent, d'autres non)\n- Un sentiment de paix temporaire\n\nCONSÉQUENCES COURT TERME (jours/semaines):\n- Le Roi Sombre révèle des informations cruciales sur la menace réelle\n- Certains seigneurs refusent l'autorité du héros\n- Une faction se forme pour libérer le Roi\n- Le héros doit gérer les tensions politiques\n\nCONSÉQUENCES LONG TERME (mois/années):\n- Le Roi Sombre se repent sincèrement (ou fake)\n- Le royaume doit se reconstruire avec l'ancien ennemi\n- Relations complexes avec les alliés\n- Le héros est vu comme clément ou faible selon les factions\n- Une nouvelle menace émerge, utilisant le chaos\n\nPERSONNAGES AFFECTÉS:\n- Le héros (fardeau du pardon, poids des décisions)\n- Le Roi Sombre (transformation ou manipulation)\n- Les companions (désaccords, loyauté mise à l'épreuve)\n- Le peuple (réactions variées)\n\nCHANGEMENTS MONDIAUX:\n- Politique de pardon du royaume\n- Réputation du héros\n- Équilibre des pouvoirs\n\nÉMOTIONS:\n- Espoir, doute, responsabilité, regrets potentiels\n\nALTERNATIVES:\n- Si le Roi Simbre meurt: Victoire amère, continuité du conflit differently\n- Si le Roi est exilé: Problèmes différés, possible retour\n\nOPPORTUNITÉS:\n- Alliance inattendue\n- Histoire de rédemption\n- Leçons sur le pardon et la justice"
+    }
+  ]
+}

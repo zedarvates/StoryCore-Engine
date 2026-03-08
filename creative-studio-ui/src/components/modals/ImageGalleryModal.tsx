@@ -1,16 +1,11 @@
 /**
- * ImageGalleryModal - Galerie d'images générées par IA
+ * ImageGalleryModal - Project Asset Library
  *
- * Permet de voir, organiser et gérer toutes les images générées
- * pour les personnages, objets, mondes et scènes
- *
- * Améliorations de lisibilité:
- * - Meilleur contraste des textes
- * - Couleurs adaptées au thème sombre/clair
- * - Accessibilité améliorée
+ * Manage all generated images for characters, objects, worlds, and scenes.
+ * Premium UI with category filters, favorites, and collections.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './ImageGalleryModal.css';
 import {
   Dialog,
@@ -22,36 +17,51 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  BookOpenIcon,
-  PlusIcon,
-  EditIcon,
-  TrashIcon,
-  SaveIcon,
-  XIcon,
-  SearchIcon,
-  DownloadIcon,
-  HeartIcon,
-  StarIcon,
-  FolderIcon,
-  ImageIcon,
-  SparklesIcon,
-  FilterIcon,
-  GridIcon,
-  ListIcon,
-  EyeIcon,
-  TagIcon,
-  CalendarIcon,
-  UserIcon,
-  GlobeIcon,
-  MapPinIcon,
-  GemIcon,
-  TargetIcon,
-  CameraIcon,
-} from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { imageGalleryService, type ImageMetadata, type ImageCollection } from '@/services/ImageGalleryService';
 import { notificationService } from '@/services/NotificationService';
+import { I18nContext } from '@/utils/i18nContext';
+import { useContext } from 'react';
+import { cn } from '@/lib/utils';
+import {
+  BookOpen as BookOpenIcon,
+  Plus as PlusIcon,
+  Edit as EditIcon,
+  Trash as TrashIcon,
+  Save as SaveIcon,
+  X as XIcon,
+  Search as SearchIcon,
+  Download as DownloadIcon,
+  Heart as HeartIcon,
+  Star as StarIcon,
+  Folder as FolderIcon,
+  Image as ImageIcon,
+  Sparkles as SparklesIcon,
+  Filter as FilterIcon,
+  Grid as GridIcon,
+  List as ListIcon,
+  Eye as EyeIcon,
+  Tag as TagIcon,
+  Calendar as CalendarIcon,
+  User as UserIcon,
+  Globe as GlobeIcon,
+  MapPin as MapPinIcon,
+  Gem as GemIcon,
+  Target as TargetIcon,
+  Camera as CameraIcon,
+  Users as UsersIcon,
+  Map as MapIcon,
+  Package as PackageIcon,
+  Film as FilmIcon,
+} from 'lucide-react';
+
+interface GalleryStats {
+  totalImages: number;
+  favoriteImages: number;
+  totalCollections: number;
+  imagesByType: Record<string, number>;
+  storageUsed?: number;
+}
 
 interface ImageGalleryModalProps {
   isOpen: boolean;
@@ -60,8 +70,10 @@ interface ImageGalleryModalProps {
 
 export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   const project = useAppStore((state) => state.project);
+  const context = useContext(I18nContext);
+  const t = context?.t || ((key: string) => key);
 
-  // État local pour la galerie
+  // local state
   const [images, setImages] = useState<ImageMetadata[]>([]);
   const [collections, setCollections] = useState<ImageCollection[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,36 +81,45 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
-  const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [currentView, setCurrentView] = useState<'grid' | 'collections'>('grid');
   const [showImageDetails, setShowImageDetails] = useState<ImageMetadata | null>(null);
+  const [stats, setStats] = useState<GalleryStats>({
+    totalImages: 0,
+    favoriteImages: 0,
+    totalCollections: 0,
+    imagesByType: {},
+  });
 
-  // Charger les images et collections du projet
-  useEffect(() => {
-    if (project && isOpen) {
-      loadGallery();
-    }
-  }, [project, isOpen]);
-
-  const loadGallery = () => {
+  const loadGallery = useCallback(() => {
     if (!project) return;
+    
+    // Ensure service knows current project
+    imageGalleryService.setCurrentProject(project.id);
 
     try {
       const projectImages = imageGalleryService.getProjectImages();
       const projectCollections = imageGalleryService.getProjectCollections();
+      const galleryStats = imageGalleryService.getGalleryStats();
 
       setImages(projectImages);
       setCollections(projectCollections);
+      setStats(galleryStats);
     } catch (error) {
       console.error('Failed to load gallery:', error);
-      notificationService.error('Erreur', 'Impossible de charger la galerie d\'images');
     }
-  };
+  }, [project]);
 
-  // Images filtrées
+  useEffect(() => {
+    if (project && isOpen) {
+      loadGallery();
+    }
+  }, [project, isOpen, loadGallery]);
+
+  // Combined filtering
   const filteredImages = useMemo(() => {
-    let filtered = images;
+    let filtered = [...images];
 
-    // Filtre par recherche
+    // Query search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(img =>
@@ -109,17 +130,17 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
       );
     }
 
-    // Filtre par contexte
+    // Context filter
     if (selectedContext !== 'all') {
       filtered = filtered.filter(img => img.contextType === selectedContext);
     }
 
-    // Filtre par favoris
+    // Favorites filter
     if (showOnlyFavorites) {
       filtered = filtered.filter(img => img.favorite);
     }
 
-    // Filtre par collection
+    // Collection filter
     if (selectedCollection) {
       const collection = collections.find(c => c.id === selectedCollection);
       if (collection) {
@@ -127,8 +148,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
       }
     }
 
-    // Tri par date de création (plus récent en premier)
-    return filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return filtered; // Service already sorts them by date
   }, [images, searchQuery, selectedContext, showOnlyFavorites, selectedCollection, collections]);
 
   const handleDownloadImage = (image: ImageMetadata) => {
@@ -138,102 +158,81 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   const handleToggleFavorite = (image: ImageMetadata) => {
     const success = imageGalleryService.toggleFavorite(image.id);
     if (success) {
-      // Mettre à jour l'état local
       setImages(prev => prev.map(img =>
         img.id === image.id ? { ...img, favorite: !img.favorite } : img
       ));
+      // Refresh stats
+      loadGallery();
     }
   };
 
   const handleDeleteImage = (image: ImageMetadata) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'image "${image.prompt.substring(0, 50)}..." ?`)) {
+    if (confirm(`Are you sure you want to delete this asset?`)) {
       const success = imageGalleryService.deleteImage(image.id);
       if (success) {
         setImages(prev => prev.filter(img => img.id !== image.id));
-        notificationService.success('Image supprimée', 'L\'image a été retirée de la galerie');
+        loadGallery();
       }
     }
   };
 
   const handleCreateCollection = () => {
-    const collectionName = prompt('Nom de la nouvelle collection:');
+    const collectionName = prompt('New Collection Name:');
     if (collectionName?.trim()) {
       const newCollection = imageGalleryService.createCollection(collectionName.trim());
-      setCollections(prev => [...prev, newCollection]);
+      setCollections(prev => [newCollection, ...prev]);
+      loadGallery();
     }
   };
 
   const handleAddToCollection = (imageId: string, collectionId: string) => {
     const success = imageGalleryService.addImageToCollection(collectionId, imageId);
     if (success) {
-      // Mettre à jour l'état local des collections
-      setCollections(prev => prev.map(coll =>
-        coll.id === collectionId
-          ? { ...coll, imageIds: [...coll.imageIds, imageId], updatedAt: new Date() }
-          : coll
-      ));
-      notificationService.success('Image ajoutée', 'L\'image a été ajoutée à la collection');
+      loadGallery();
+      notificationService.success('Added', 'Asset added to collection');
     }
   };
 
   const handleRemoveFromCollection = (imageId: string, collectionId: string) => {
     const success = imageGalleryService.removeImageFromCollection(collectionId, imageId);
     if (success) {
-      setCollections(prev => prev.map(coll =>
-        coll.id === collectionId
-          ? { ...coll, imageIds: coll.imageIds.filter(id => id !== imageId), updatedAt: new Date() }
-          : coll
-      ));
+      loadGallery();
     }
   };
 
   const getContextIcon = (contextType: ImageMetadata['contextType']) => {
     switch (contextType) {
-      case 'character':
-        return <UserIcon className="w-4 h-4 text-blue-500" />;
-      case 'world':
-        return <GlobeIcon className="w-4 h-4 text-green-500" />;
-      case 'location':
-        return <MapPinIcon className="w-4 h-4 text-purple-500" />;
-      case 'object':
-        return <GemIcon className="w-4 h-4 text-orange-500" />;
-      case 'scene':
-        return <CameraIcon className="w-4 h-4 text-red-500" />;
-      default:
-        return <ImageIcon className="w-4 h-4 text-gray-500" />;
+      case 'character': return <UsersIcon className="w-4 h-4 text-blue-500" />;
+      case 'world': return <GlobeIcon className="w-4 h-4 text-green-500" />;
+      case 'location': return <MapIcon className="w-4 h-4 text-purple-500" />;
+      case 'object': return <PackageIcon className="w-4 h-4 text-orange-500" />;
+      case 'scene': return <FilmIcon className="w-4 h-4 text-red-500" />;
+      default: return <ImageIcon className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getContextLabel = (contextType: ImageMetadata['contextType']) => {
     switch (contextType) {
-      case 'character':
-        return 'Personnage';
-      case 'world':
-        return 'Monde';
-      case 'location':
-        return 'Lieu';
-      case 'object':
-        return 'Objet';
-      case 'scene':
-        return 'Scène';
-      default:
-        return 'Général';
+      case 'character': return t('imageGallery.characters');
+      case 'world': return t('imageGallery.worlds');
+      case 'location': return t('imageGallery.locations');
+      case 'object': return t('imageGallery.objects');
+      case 'scene': return t('imageGallery.scenes');
+      default: return t('imageGallery.general');
     }
   };
-
-  const stats = imageGalleryService.getGalleryStats();
 
   if (!project) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle>Galerie d'images</DialogTitle>
+            <DialogTitle>{t('imageGallery.title')}</DialogTitle>
           </DialogHeader>
           <div className="p-8 text-center text-gray-500">
             <BookOpenIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Aucun projet ouvert</p>
-            <p className="text-sm">Ouvrez un projet pour accéder à la galerie d'images</p>
+            <p>{t('imageGallery.noProject')}</p>
+            <p className="text-sm">{t('imageGallery.openToAccess')}</p>
           </div>
         </DialogContent>
       </Dialog>
@@ -243,293 +242,213 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="image-gallery-dialog max-w-7xl max-h-[95vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="dialog-title flex items-center gap-2">
-              <BookOpenIcon className="w-5 h-5" />
-              Galerie d'images - {project.project_name}
+        <DialogContent className="image-gallery-dialog max-w-7xl max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 pb-2 border-b">
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <BookOpenIcon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">{t('imageGallery.title')}</h2>
+                  <p className="text-sm text-muted-foreground font-normal">{project.project_name}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-sm font-normal">
+                <div className="flex flex-col items-end">
+                   <span className="font-semibold">{stats.totalImages}</span>
+                   <span className="text-[10px] uppercase text-muted-foreground">Assets</span>
+                </div>
+                <div className="h-8 w-[1px] bg-border" />
+                <div className="flex flex-col items-end">
+                   <span className="font-semibold">{stats.favoriteImages}</span>
+                   <span className="text-[10px] uppercase text-muted-foreground">Favorites</span>
+                </div>
+              </div>
             </DialogTitle>
           </DialogHeader>
 
-          {/* Stats Bar */}
-          <div className="flex-shrink-0 px-6 py-2 stats-bar">
-            <div className="flex items-center justify-between text-sm stat-text">
-              <div className="flex items-center gap-4">
-                <span>{stats.totalImages} images</span>
-                <span>{stats.favoriteImages} favoris</span>
-                <span>{stats.totalCollections} collections</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {Object.entries(stats.imagesByType).map(([type, count]) => (
-                  <Badge key={type} variant="outline" className="text-xs">
-                    {getContextLabel(type as ImageMetadata['contextType'])}: {count}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Toolbar */}
-          <div className="flex-shrink-0 p-4 toolbar border-b border-gray-200">
+          {/* New Toolbar */}
+          <div className="p-4 bg-muted/30 border-b space-y-4">
             <div className="flex items-center justify-between gap-4">
-              {/* Search and filters */}
-              <div className="flex items-center gap-4 flex-1">
-                <div className="relative flex-1 max-w-sm">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" style={{ color: 'var(--gallery-text-muted)' }} />
-                  <Input
-                    placeholder="Rechercher dans les prompts, noms..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                    aria-label="Rechercher des images"
-                  />
-                </div>
-
-                <select
-                  value={selectedContext}
-                  onChange={(e) => setSelectedContext(e.target.value as ImageMetadata['contextType'] | 'all')}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  aria-label="Filtrer par contexte"
-                  title="Filtrer par contexte"
-                >
-                  <option value="all">Tous les contextes</option>
-                  <option value="character">Personnages</option>
-                  <option value="world">Mondes</option>
-                  <option value="location">Lieux</option>
-                  <option value="object">Objets</option>
-                  <option value="scene">Scènes</option>
-                  <option value="general">Général</option>
-                </select>
-
-                <select
-                  value={selectedCollection || ''}
-                  onChange={(e) => setSelectedCollection(e.target.value || null)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  aria-label="Filtrer par collection"
-                  title="Filtrer par collection"
-                >
-                  <option value="">Toutes les images</option>
-                  {collections.map(collection => (
-                    <option key={collection.id} value={collection.id}>
-                      📁 {collection.name} ({collection.imageIds.length})
-                    </option>
-                  ))}
-                </select>
-
-                <Button
-                  variant={showOnlyFavorites ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-                  className="flex items-center gap-1"
-                >
-                  <HeartIcon className="w-4 h-4" />
-                  Favoris
-                </Button>
+              <div className="relative flex-1 max-w-md">
+                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder={t('imageGallery.searchPlaceholder')} 
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-background"
+                />
               </div>
 
-              {/* View controls */}
               <div className="flex items-center gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
+                <Button 
+                  variant={showOnlyFavorites ? "default" : "outline"} 
+                  size="sm" 
+                  onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+                  className="gap-2"
+                >
+                  <HeartIcon className={cn("w-4 h-4", showOnlyFavorites && "fill-current")} />
+                  {t('imageGallery.favorites')}
+                </Button>
+                
+                <div className="h-6 w-[1px] bg-border mx-1" />
+
+                <Button 
+                  variant={viewMode === 'grid' ? "secondary" : "ghost"} 
+                  size="icon" 
                   onClick={() => setViewMode('grid')}
                 >
                   <GridIcon className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
+                <Button 
+                  variant={viewMode === 'list' ? "secondary" : "ghost"} 
+                  size="icon" 
                   onClick={() => setViewMode('list')}
                 >
                   <ListIcon className="w-4 h-4" />
                 </Button>
-                <Button onClick={handleCreateCollection} className="flex items-center gap-2">
+                
+                <Button onClick={handleCreateCollection} size="sm" className="gap-2">
                   <PlusIcon className="w-4 h-4" />
-                  Collection
+                  New Collection
                 </Button>
               </div>
             </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                {[
+                  { id: 'all', label: t('imageGallery.all'), icon: GlobeIcon },
+                  { id: 'character', label: t('imageGallery.characters'), icon: UsersIcon },
+                  { id: 'world', label: t('imageGallery.worlds'), icon: GlobeIcon },
+                  { id: 'location', label: t('imageGallery.locations'), icon: MapIcon },
+                  { id: 'object', label: t('imageGallery.objects'), icon: PackageIcon },
+                  { id: 'scene', label: t('imageGallery.scenes'), icon: FilmIcon },
+                ].map(cat => (
+                  <Button
+                    key={cat.id}
+                    variant={selectedContext === cat.id ? "secondary" : "ghost"}
+                    size="sm"
+                    onClick={() => setSelectedContext(cat.id as any)}
+                    className={cn(
+                      "rounded-full gap-2 px-4 whitespace-nowrap",
+                      selectedContext === cat.id && "bg-primary text-primary-foreground hover:bg-primary/90"
+                    )}
+                  >
+                    <cat.icon className="w-3.5 h-3.5" />
+                    {cat.label}
+                    {stats.imagesByType?.[cat.id] > 0 && (
+                       <Badge variant="outline" className="ml-1 px-1 h-4 min-w-[1.25rem] border-none bg-black/20 text-[10px]">
+                         {stats.imagesByType[cat.id]}
+                       </Badge>
+                    )}
+                  </Button>
+                ))}
+              </div>
+
+              {collections.length > 0 && (
+                <div className="flex items-center gap-2 ml-4">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Collection:</span>
+                  <select
+                    value={selectedCollection || ''}
+                    onChange={e => setSelectedCollection(e.target.value || null)}
+                    className="h-8 rounded-md border bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">All Collections</option>
+                    {collections.map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Images Display */}
-          <div className="flex-1 overflow-y-auto p-4">
+          {/* Main Content Area */}
+          <div className="flex-1 overflow-y-auto p-6">
             {filteredImages.length === 0 ? (
-              <div className="empty-state text-center py-12">
-                <ImageIcon className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--gallery-text-muted)' }} />
-                <h3 className="empty-state-title text-lg font-medium mb-2">
-                  {searchQuery || selectedContext !== 'all' || showOnlyFavorites || selectedCollection
-                    ? 'Aucune image trouvée'
-                    : 'Aucune image dans la galerie'}
-                </h3>
-                <p className="empty-state-text mb-4">
-                  {searchQuery || selectedContext !== 'all' || showOnlyFavorites || selectedCollection
-                    ? 'Essayez de modifier vos critères de recherche.'
-                    : 'Générez des images avec l\'IA pour commencer votre collection.'}
-                </p>
+              <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-60">
+                <ImageIcon className="w-16 h-16 mb-4" />
+                <h3 className="text-lg font-medium">{t('imageGallery.noImages')}</h3>
+                <p className="text-sm">{t('imageGallery.emptyState')}</p>
               </div>
             ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {filteredImages.map(image => (
-                  <div
-                    key={image.id}
-                    className="image-card group"
-                  >
-                    {/* Image */}
-                    <div className="aspect-square relative overflow-hidden" style={{ background: 'var(--gallery-bg-hover)' }}>
+                  <div key={image.id} className="group relative bg-card rounded-xl border overflow-hidden hover:shadow-xl transition-all duration-300">
+                    <div className="aspect-square relative overflow-hidden bg-muted">
                       <img
                         src={image.url}
                         alt={image.prompt}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDMTMuMSAyIDE0IDIuOSAxNCA0VjIwQzE0IDIxLjEgMTMuMSAyMiAxMiAyMkMxMC45IDIyIDEwIDIxLjEgMTAgMjBWNEMxMCAyLjkgMTAuOSAyIDEyIDJaTTEyIDE2QzEzLjY1NjkgMTYgMTUgMTQuNjU2OSAxNSAxM0MxNC42NTY5IDEyIDEzLjY1NjkgMTIgMTIgMTJDMTAuMzQzMSAxMiA5LjY1Njg1IDEyLjY1NjkgOS44NDMxIDE0QzEwLjE4MzEgMTQuNjU2OSAxMC42MzEzIDE1IDExLjMxMjUgMTVDMTEuOTg0NCAxNSAxMi42NDM4IDE0LjY1NjkgMTIuODQzMSAxNFoiIGZpbGw9IiM5Q0E0QUYiLz4KPC9zdmc+';
-                        }}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-
-                      {/* Overlay avec actions */}
-                      <div className="absolute inset-0 image-overlay transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => setShowImageDetails(image)}
-                            className="bg-white/90 hover:bg-white"
-                            aria-label="Voir les détails"
-                          >
-                            <EyeIcon className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleDownloadImage(image)}
-                            className="bg-white/90 hover:bg-white"
-                            aria-label="Télécharger"
-                          >
-                            <DownloadIcon className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleToggleFavorite(image)}
-                            className={`bg-white/90 hover:bg-white ${image.favorite ? 'text-red-500' : ''}`}
-                            aria-label={image.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                          >
-                            <HeartIcon className="w-4 h-4" />
-                          </Button>
-                        </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                        <Button size="icon" variant="secondary" className="rounded-full w-8 h-8" onClick={() => setShowImageDetails(image)}>
+                          <EyeIcon className="w-4 h-4" />
+                        </Button>
+                        <Button size="icon" variant="secondary" className="rounded-full w-8 h-8" onClick={() => handleDownloadImage(image)}>
+                          <DownloadIcon className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="secondary" 
+                          className={cn("rounded-full w-8 h-8", image.favorite && "text-red-500")}
+                          onClick={() => handleToggleFavorite(image)}
+                        >
+                          <HeartIcon className={cn("w-4 h-4", image.favorite && "fill-current")} />
+                        </Button>
                       </div>
-
-                      {/* Badge favori */}
-                      {image.favorite && (
-                        <div className="absolute top-2 right-2">
-                          <HeartIcon className="w-5 h-5 text-red-500 bg-white rounded-full p-1" />
-                        </div>
-                      )}
+                      
+                      <div className="absolute top-2 left-2">
+                         <div className="bg-black/60 backdrop-blur-md rounded-full p-1.5 border border-white/10">
+                           {getContextIcon(image.contextType)}
+                         </div>
+                      </div>
                     </div>
-
-                    {/* Info */}
                     <div className="p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        {getContextIcon(image.contextType)}
-                        <span className="image-info-context text-xs">
-                          {getContextLabel(image.contextType)}
-                        </span>
-                      </div>
-                      <p className="image-info-title text-xs line-clamp-2 mb-1">
-                        {image.contextName || image.prompt.substring(0, 50) + '...'}
-                      </p>
-                      <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--gallery-text-muted)' }}>
-                        <CalendarIcon className="w-3 h-3" />
-                        {image.createdAt.toLocaleDateString('fr-FR')}
+                      <h4 className="text-xs font-semibold truncate text-foreground">{image.contextName || "Untitled Asset"}</h4>
+                      <div className="flex items-center justify-between mt-2">
+                         <span className="text-[10px] text-muted-foreground">{image.createdAt.toLocaleDateString()}</span>
+                         <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">{image.size}</Badge>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              /* Vue liste */
               <div className="space-y-2">
-                {filteredImages.map(image => (
-                  <div
-                    key={image.id}
-                    className="image-card flex items-center gap-4 p-4"
-                  >
-                    {/* Miniature */}
-                    <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0" style={{ background: 'var(--gallery-bg-hover)' }}>
-                      <img
-                        src={image.url}
-                        alt={image.prompt}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
+                 {filteredImages.map(image => (
+                    <div key={image.id} className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors group">
+                       <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
+                          <img src={image.url} className="w-full h-full object-cover" />
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                             <h4 className="text-sm font-semibold truncate">{image.contextName || "Untitled Asset"}</h4>
+                             {image.favorite && <HeartIcon className="w-3 h-3 text-red-500 fill-current" />}
+                          </div>
+                          <p className="text-xs text-muted-foreground line-clamp-1">{image.prompt}</p>
+                          <div className="flex items-center gap-3 mt-1 text-[10px] text-muted-foreground">
+                             <span className="flex items-center gap-1">{getContextIcon(image.contextType)} {getContextLabel(image.contextType)}</span>
+                             <span>{image.model}</span>
+                             <span>{image.createdAt.toLocaleDateString()}</span>
+                          </div>
+                       </div>
+                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button size="sm" variant="ghost" onClick={() => setShowImageDetails(image)}><EyeIcon className="w-4 h-4" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDownloadImage(image)}><DownloadIcon className="w-4 h-4" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleToggleFavorite(image)} className={cn(image.favorite && "text-red-500")}><HeartIcon className="w-4 h-4" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDeleteImage(image)} className="text-destructive"><TrashIcon className="w-4 h-4" /></Button>
+                       </div>
                     </div>
-
-                    {/* Infos */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {getContextIcon(image.contextType)}
-                        <span className="text-sm font-medium" style={{ color: 'var(--gallery-text-primary)' }}>
-                          {image.contextName || 'Image générée'}
-                        </span>
-                        {image.favorite && <HeartIcon className="w-4 h-4 text-red-500" />}
-                      </div>
-                      <p className="text-sm line-clamp-1 mb-1" style={{ color: 'var(--gallery-text-secondary)' }}>
-                        {image.prompt}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--gallery-text-muted)' }}>
-                        <span>{getContextLabel(image.contextType)}</span>
-                        <span>{image.model} • {image.size}</span>
-                        <span>{image.createdAt.toLocaleDateString('fr-FR')}</span>
-                        {image.quality && <span>Qualité: {image.quality}</span>}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setShowImageDetails(image)}
-                        aria-label="Voir les détails"
-                      >
-                        <EyeIcon className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDownloadImage(image)}
-                        aria-label="Télécharger"
-                      >
-                        <DownloadIcon className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleToggleFavorite(image)}
-                        className={image.favorite ? 'text-red-500' : ''}
-                        aria-label={image.favorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                      >
-                        <HeartIcon className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDeleteImage(image)}
-                        className="text-red-500 hover:text-red-700"
-                        aria-label="Supprimer"
-                      >
-                        <TrashIcon className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                 ))}
               </div>
             )}
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Modal détails d'image */}
       {showImageDetails && (
         <ImageDetailsModal
           image={showImageDetails}
@@ -543,227 +462,93 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   );
 }
 
-/**
- * ImageDetailsModal - Détails complets d'une image
- */
-interface ImageDetailsModalProps {
-  image: ImageMetadata;
-  collections: ImageCollection[];
-  onAddToCollection: (imageId: string, collectionId: string) => void;
-  onRemoveFromCollection: (imageId: string, collectionId: string) => void;
-  onClose: () => void;
-}
-
-function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFromCollection, onClose }: ImageDetailsModalProps) {
-  const [notes, setNotes] = useState(image.notes || '');
-  const [rating, setRating] = useState(image.rating || 0);
-  const [selectedCollection, setSelectedCollection] = useState('');
-
-  const handleSaveNotes = () => {
-  };
-
-  const handleRateImage = (newRating: number) => {
-    setRating(newRating);
-  };
-
-  const handleAddToCollection = () => {
-    if (selectedCollection) {
-      onAddToCollection(image.id, selectedCollection);
-      setSelectedCollection('');
-    }
-  };
-
-  const availableCollections = collections.filter(coll => !coll.imageIds.includes(image.id));
-
+function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFromCollection, onClose }: any) {
+  // Simple implementation redirecting to original logic
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="image-gallery-dialog details-section max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="details-section-title flex items-center gap-2">
-            <ImageIcon className="w-5 h-5" />
-            Détails de l'image
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Image */}
-            <div className="space-y-4">
-              <div className="aspect-square rounded-lg overflow-hidden" style={{ background: 'var(--gallery-bg-hover)' }}>
-                <img
-                  src={image.url}
-                  alt={image.prompt}
-                  className="w-full h-full object-contain"
-                />
-              </div>
-
-              {/* Actions rapides */}
-              <div className="flex gap-2">
-                <Button className="flex-1" variant="outline">
-                  <DownloadIcon className="w-4 h-4 mr-2" />
-                  Télécharger
-                </Button>
-                <Button variant={image.favorite ? "default" : "outline"}>
-                  <HeartIcon className="w-4 h-4 mr-2" />
-                  {image.favorite ? 'Favori' : 'Ajouter aux favoris'}
-                </Button>
-              </div>
-            </div>
-
-            {/* Métadonnées */}
-            <div className="space-y-6">
-              {/* Informations de base */}
-              <div>
-                <h3 className="details-section-title text-lg font-semibold mb-3">Informations</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="details-label">Contexte:</span>
-                    <Badge variant="outline">{image.contextType}</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="details-label">Modèle:</span>
-                    <span className="details-value">{image.model}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="details-label">Taille:</span>
-                    <span className="details-value">{image.size}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="details-label">Qualité:</span>
-                    <span className="details-value">{image.quality}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="details-label">Créée le:</span>
-                    <span className="details-value">{image.createdAt.toLocaleString('fr-FR')}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Prompt */}
-              <div>
-                <h3 className="details-section-title text-lg font-semibold mb-3">Prompt original</h3>
-                <p className="prompt-box text-sm">
-                  {image.prompt}
-                </p>
-                {image.revisedPrompt && (
-                  <div className="mt-2">
-                    <h4 className="text-sm font-medium mb-1" style={{ color: 'var(--gallery-text-secondary)' }}>Prompt révisé par IA:</h4>
-                    <p className="prompt-box-revised text-sm">
-                      {image.revisedPrompt}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Évaluation */}
-              <div>
-                <h3 className="details-section-title text-lg font-semibold mb-3">Évaluation</h3>
-                <div className="star-rating flex items-center gap-1 mb-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => handleRateImage(star)}
-                      className={`w-6 h-6 ${star <= rating ? 'filled' : 'empty'} star`}
-                      aria-label={`Noter ${star} étoiles sur 5`}
-                      title={`Noter ${star} étoiles sur 5`}
-                    >
-                      <StarIcon className="w-full h-full fill-current" />
-                    </button>
-                  ))}
-                  <span className="ml-2 text-sm" style={{ color: 'var(--gallery-text-secondary)' }}>
-                    {rating > 0 ? `${rating}/5 étoiles` : 'Non évaluée'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Notes personnelles */}
-              <div>
-                <h3 className="details-section-title text-lg font-semibold mb-3">Notes personnelles</h3>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Ajoutez vos notes sur cette image..."
-                  rows={4}
-                  className="notes-area"
-                />
-                <Button onClick={handleSaveNotes} className="mt-2" size="sm">
-                  Sauvegarder les notes
-                </Button>
-              </div>
-
-              {/* Collections */}
-              <div>
-                <h3 className="details-section-title text-lg font-semibold mb-3">Collections</h3>
-                <div className="flex gap-2 mb-3">
-                  <select
-                    value={selectedCollection}
-                    onChange={(e) => setSelectedCollection(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                    aria-label="Choisir une collection"
-                    title="Choisir une collection"
-                  >
-                    <option value="">Choisir une collection...</option>
-                    {availableCollections.map(collection => (
-                      <option key={collection.id} value={collection.id}>
-                        {collection.name}
-                      </option>
-                    ))}
-                  </select>
-                  <Button onClick={handleAddToCollection} disabled={!selectedCollection}>
-                    Ajouter
-                  </Button>
-                </div>
-
-                {/* Collections actuelles */}
-                {collections.filter(coll => coll.imageIds.includes(image.id)).length > 0 && (
-                  <div>
-                    <h4 className="text-sm font-medium mb-2" style={{ color: 'var(--gallery-text-secondary)' }}>Dans les collections:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {collections
-                        .filter(coll => coll.imageIds.includes(image.id))
-                        .map(collection => (
-                          <Badge key={collection.id} variant="secondary" className="flex items-center gap-1">
-                            {collection.name}
-                            <button
-                              onClick={() => onRemoveFromCollection(image.id, collection.id)}
-                              className="ml-1 hover:text-red-500"
-                              style={{ color: 'var(--gallery-text-muted)' }}
-                              aria-label={`Retirer de la collection ${collection.name}`}
-                              title={`Retirer de la collection ${collection.name}`}
-                            >
-                              <XIcon className="w-3 h-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Tags */}
-              {image.tags.length > 0 && (
-                <div>
-                  <h3 className="details-section-title text-lg font-semibold mb-3">Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {image.tags.map(tag => (
-                      <Badge key={tag} variant="outline">
-                        <TagIcon className="w-3 h-3 mr-1" />
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background">
+        <div className="flex h-[80vh]">
+          <div className="flex-1 bg-black flex items-center justify-center p-4">
+             <img src={image.url} className="max-w-full max-h-full object-contain" />
           </div>
-        </div>
+          <div className="w-80 border-l p-6 flex flex-col gap-6 overflow-y-auto">
+             <div className="space-y-1">
+                <h3 className="text-lg font-bold">Asset Details</h3>
+                <p className="text-xs text-muted-foreground">ID: {image.id}</p>
+             </div>
 
-        <div className="flex-shrink-0 flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          <Button variant="outline" onClick={onClose}>
-            Fermer
-          </Button>
+             <div className="space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Prompt</h4>
+                  <div className="p-3 bg-muted rounded-lg text-xs leading-relaxed max-h-40 overflow-y-auto">
+                    {image.prompt}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase">Model</span>
+                      <p className="text-xs font-medium">{image.model}</p>
+                   </div>
+                   <div className="space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase">Size</span>
+                      <p className="text-xs font-medium">{image.size}</p>
+                   </div>
+                   <div className="space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase">Date</span>
+                      <p className="text-xs font-medium">{image.createdAt.toLocaleDateString()}</p>
+                   </div>
+                   <div className="space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase">Type</span>
+                      <p className="text-xs font-medium">{image.contextType}</p>
+                   </div>
+                </div>
+
+                <div>
+                   <h4 className="text-xs font-bold uppercase text-muted-foreground mb-3">Add to Collection</h4>
+                   <div className="flex gap-2">
+                      <select 
+                        className="flex-1 h-8 rounded border bg-background text-xs px-2"
+                        onChange={e => e.target.value && onAddToCollection(image.id, e.target.value)}
+                        value=""
+                      >
+                         <option value="">Select collection...</option>
+                         {collections.filter((c:any) => !c.imageIds.includes(image.id)).map((c:any) => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                         ))}
+                      </select>
+                   </div>
+                </div>
+                
+                {collections.filter((c:any) => c.imageIds.includes(image.id)).length > 0 && (
+                   <div>
+                      <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">In Collections</h4>
+                      <div className="flex flex-wrap gap-1">
+                         {collections.filter((c:any) => c.imageIds.includes(image.id)).map((c:any) => (
+                            <Badge key={c.id} variant="secondary" className="gap-1 px-2 py-0.5 text-[10px]">
+                               {c.name}
+                               <XIcon className="w-2 h-2 cursor-pointer hover:text-destructive" onClick={() => onRemoveFromCollection(image.id, c.id)} />
+                            </Badge>
+                         ))}
+                      </div>
+                   </div>
+                )}
+             </div>
+
+             <div className="mt-auto pt-6 flex flex-col gap-2">
+                <Button className="w-full gap-2" size="sm" onClick={() => imageGalleryService.downloadImage(image.id)}>
+                   <DownloadIcon className="w-4 h-4" />
+                   Download Original
+                </Button>
+                <Button variant="outline" className="w-full gap-2" size="sm" onClick={onClose}>
+                   Close
+                </Button>
+             </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+
+export default ImageGalleryModal;

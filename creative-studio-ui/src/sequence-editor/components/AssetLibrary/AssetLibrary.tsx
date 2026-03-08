@@ -12,42 +12,10 @@ import { TransitionLibrary } from './TransitionLibrary';
 import { EffectLibrary } from './EffectLibrary';
 import { AssetGenerationDialog } from './AssetGenerationDialog';
 import { AssetDragLayer } from './AssetDragLayer';
+import { PresetLibrary } from './PresetLibrary';
 import { AssetLibraryService, type AssetSource } from '../../../services/assetLibraryService';
+import { ServiceAsset } from '../../types';
 import './assetLibrary.css';
-
-// ============================================================================
-// Local Asset type compatible with both the service and sequence-editor
-// ============================================================================
-
-// Asset type from the service (original format)
-type ServiceAssetType = 'image' | 'audio' | 'video' | 'template';
-
-interface ServiceAssetMetadata {
-  description?: string;
-  author?: string;
-  license?: string;
-  source?: string;
-  category?: string;
-  tags?: string[];
-  duration?: number;
-  [key: string]: unknown;
-}
-
-interface ServiceAsset {
-  id: string;
-  name: string;
-  type: ServiceAssetType;
-  url?: string;
-  thumbnail?: string;
-  thumbnailUrl?: string;
-  previewUrl?: string;
-  metadata?: ServiceAssetMetadata;
-  category?: string;
-  subcategory?: string;
-  tags?: string[];
-  source?: 'builtin' | 'user' | 'ai-generated';
-  createdAt?: Date;
-}
 
 // ============================================================================
 // Category Configuration (without assets - populated dynamically)
@@ -69,6 +37,7 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
   { id: 'transitions', name: 'Transitions', icon: '↔️' },
   { id: 'effects', name: 'Effects', icon: '✨' },
   { id: 'audio-sound', name: 'Audio & Sound', icon: '🔊' },
+  { id: 'custom-presets', name: 'My Presets', icon: '💾' },
 ];
 
 // Helper to get assets for a category from all sources
@@ -410,7 +379,11 @@ export const AssetLibrary: React.FC = () => {
           />
         )}
 
-        {!loading && !error && activeCategory !== 'transitions' && activeCategory !== 'effects' && (
+        {!loading && !error && activeCategory === 'custom-presets' && (
+          <PresetLibrary />
+        )}
+
+        {!loading && !error && activeCategory !== 'transitions' && activeCategory !== 'effects' && activeCategory !== 'custom-presets' && (
           <AssetGrid
             assets={filteredAssets}
             categoryId={currentCategory.id}

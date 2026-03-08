@@ -1,0 +1,35 @@
+{
+  "id": "credits_screen",
+  "name": "Cinematic Credits & Screen",
+  "version": "1.0.0",
+  "status": "stable",
+  "description": "Create cinematic scrolling credits at the end of videos with custom text, PEG watermarks, and auto-attribution to StoryCore Engine.",
+  "author": "Cline AI",
+  "license": "MIT",
+  "entry_point": "src/main.py",
+  "engine_version_min": "1.0.0",
+  "permissions": ["read_project", "write_video", "write_assets"],
+  "category": "export_addon",
+  "config_schema": {
+    "default_duration": {
+      "type": "integer",
+      "default": 10,
+      "description": "Duration of the credits screen in seconds"
+    },
+    "font_size": {
+      "type": "integer",
+      "default": 32,
+      "description": "Font size for the scrolling text"
+    },
+    "scroll_speed": {
+      "type": "integer",
+      "default": 50,
+      "description": "Pixels per second for scrolling"
+    },
+    "include_pegi": {
+      "type": "boolean",
+      "default": true,
+      "description": "Include semi-transparent PEGI watermark"
+    }
+  }
+}

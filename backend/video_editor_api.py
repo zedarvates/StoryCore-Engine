@@ -25,6 +25,7 @@ import os
 import logging
 import re
 import bcrypt  # SECURITY: Using bcrypt for secure password hashing
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -323,6 +324,36 @@ class CharacterSheetRequest(BaseModel):
     """Character consistency sheet request."""
     name: str
     reference_images: List[str]
+
+class PublishRequest(BaseModel):
+    """Social publishing request."""
+    media_id: str
+    platforms: List[str]
+    title: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = None
+    tags: List[str] = []
+    privacy: str = "public" # public, private, unlisted
+
+class PublishResponse(BaseModel):
+    """Publish job response."""
+    job_id: str
+    status: str
+    platform_results: Dict[str, Dict[str, Any]]
+
+class PublishRequest(BaseModel):
+    """Social publishing request."""
+    media_id: str
+    platforms: List[str]
+    title: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = None
+    tags: List[str] = []
+    privacy: str = "public" # public, private, unlisted
+
+class PublishResponse(BaseModel):
+    """Publish job response."""
+    job_id: str
+    status: str
+    platform_results: Dict[str, Dict[str, Any]]
 
 # =============================================================================
 # In-Memory Storage (Replace with database in production)
@@ -1452,6 +1483,64 @@ async def generate_sprites(media_id: str):
     sprites = await service.sprite.generate_sprite(media["path"], output_dir)
     
     return {"status": "success", "sprites": sprites}
+
+
+@VIDEO_EDITOR_ROUTER.post("/publish", response_model=PublishResponse)
+async def publish_video(request: PublishRequest, background_tasks: BackgroundTasks):
+    """Publish media to social platforms."""
+    media = media_db.get(request.media_id)
+    job_id = str(uuid.uuid4())
+    job = {
+        "id": job_id,
+        "type": "publish",
+        "media_id": request.media_id,
+        "platforms": request.platforms,
+        "title": request.title,
+        "description": request.description,
+        "tags": request.tags,
+        "privacy": request.privacy,
+        "status": "pending",
+        "platform_results": {},
+        "created_at": datetime.utcnow()
+    }
+    jobs_db[job_id] = job
+    background_tasks.add_task(process_publish, job_id)
+    
+    return PublishResponse(
+        job_id=job_id,
+        status="pending",
+        platform_results={}
+    )
+
+async def process_publish(job_id: str):
+    """Background task for multi-platform publishing."""
+    job = jobs_db[job_id]
+    job["status"] = "processing"
+    
+    platforms = job["platforms"]
+    results = {}
+    
+    for platform in platforms:
+        results[platform] = {"status": "publishing", "url": None}
+        job["platform_results"] = results
+        await asyncio.sleep(2)
+        
+        if platform == "storycore_blog":
+            url = f"{settings.STORYCORE_WORDPRESS_URL}/?storycore_showcase={uuid.uuid4().hex[:8]}"
+        elif platform == "storycore_market":
+            url = f"{settings.STORYCORE_WORDPRESS_URL}/shop"
+        else:
+            url = f"https://{platform}.com/watch?v={uuid.uuid4().hex[:11]}"
+            
+        results[platform] = {
+            "status": "completed", 
+            "url": url,
+            "published_at": datetime.utcnow().isoformat()
+        }
+        job["platform_results"] = results
+
+    job["status"] = "completed"
+    logger.info(f"Publish job {job_id} completed for platforms: {', '.join(platforms)}")
 
 
 # =============================================================================

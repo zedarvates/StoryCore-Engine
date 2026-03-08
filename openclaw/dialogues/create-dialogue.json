@@ -1,0 +1,20 @@
+{
+  "id": "dialogue-create",
+  "name": "Créer un dialogue",
+  "description": "Rédige des dialogues réalistes et engageants entre personnages",
+  "prompt": "Tu es un assistant de rédaction de dialogues pour StoryCore. Crée des dialogues naturels avec les éléments suivants:\n\n1. Personnages impliqués\n2. Contexte de la scène\n3. Objectif du dialogue\n4. Ton et style\n5. Sous-texte et intentions cachées\n6. Réactions émotionnelles\n7. Pacing et rythme\n8. Gestes et actions\n9. Transitions\n\nCrée des dialogues qui révèlent le caractère et font avancer l'histoire.",
+  "parameters": {
+    "personnages": "Liste des personnages impliqués",
+    "contexte": "Situation et lieu",
+    "ton": "Ton du dialogue (tendu, humorous, romantique, tragique, etc.)",
+    "style": "Style (formel, familier, poétique, contemporain, archaïque)",
+    "longueur": "Longueur (court, moyen, long)",
+    "emotion": "Émotion dominante (joie, colère, peur, amour, doute)"
+  },
+  "examples": [
+    {
+      "input": "Crée un dialogue tendu entre un père et sa fille qui se retrouvent après des années",
+      "output": "SCÈNE: La salle du château, soir\nPERSONNAGES: Lord Aldric (père), Elara (fille)\n\n[Elara entre dans la salle. Lord Aldric se tient près de la fenêtre. Un long silence.]\n\nALDRIC: Alors, tu es revenue.\n[Il ne se retourne pas.]\n\nELARA: Comme tu le vois.\n[Elle garde les bras croisés, posture défensive.]\n\nALDRIC: J'ai entendu dire que tu avais rejoint la Guilde des Ombres.\n[Finally, il se retourne. Son visage est difficult à lire.]\n\nELARA: J'ai trouvé une famille. Quelque part où je n'étais pas juste... le poids de ton héritage.\n[Sa voix tremble légèrement.]\n\nALDRIC: [s'approche]\nLe poids de mon héritage t'a protégée. T'a donnée un nom, un toit—\n\nELARA: [l'interrompt]\nUn nom que je devais mérit. Chaque jour. Comme si je n'étais jamais assez.\n[Elle détourn le regard.]\n\nALDRIC: [s'arrête]\n...J'aurais dû te le dire. Pour ta mère. Pour pourquoi elle est partie.\n[Son голос est brisé.]\n\nELARA: [lev les yeux]\nMaintenant, tu veux parler?\n\n[Silence. Puis, doucement:]\n\nALDRIC: Je ne sais pas si je peux réparation. Mais je veux essayer.\n\n[Elara ne répond pas. Mais elle ne part pas. Pas encore.]"
+    }
+  ]
+}

@@ -166,7 +166,8 @@ export function clearAnalysisCache(): void {
  * @param delay - Delay in milliseconds
  * @returns Debounced function
  */
-export function useDebounce<T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useDebounce<T extends (...args: any[]) => any>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -210,7 +211,8 @@ export function useDebounce<T extends (...args: unknown[]) => unknown>(
  * @param delay - Minimum delay between calls in milliseconds
  * @returns Throttled function
  */
-export function useThrottle<T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useThrottle<T extends (...args: any[]) => any>(
   callback: T,
   delay: number
 ): (...args: Parameters<T>) => void {
@@ -357,8 +359,8 @@ export class WorkerPool {
   private availableWorkers: Worker[] = [];
   private taskQueue: Array<{
     data: unknown;
-    resolve: (value: unknown) => void;
-    reject: (error: unknown) => void;
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
   }> = [];
 
   constructor(workerScript: string, poolSize: number = navigator.hardwareConcurrency || 4) {
@@ -373,6 +375,7 @@ export class WorkerPool {
   /**
    * Execute task in worker pool
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async execute<T = any>(data: unknown): Promise<T> {
     return new Promise((resolve, reject) => {
       const worker = this.availableWorkers.pop();
@@ -393,8 +396,10 @@ export class WorkerPool {
   private executeInWorker(
     worker: Worker,
     data: unknown,
-    resolve: (value: unknown) => void,
-    reject: (error: unknown) => void
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolve: (value: any) => void,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    reject: (error: any) => void
   ): void {
     const handleMessage = (e: MessageEvent) => {
       worker.removeEventListener('message', handleMessage);

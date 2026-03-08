@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Download, CheckCircle, AlertCircle, History, RotateCcw, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Download, CheckCircle, AlertCircle, History, RotateCcw, RefreshCw, ChevronLeft, Send, Bot, Sparkles } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { ExportOptions, Story, StoryPart, CharacterReference, LocationReference } from '@/types/story';
 import { exportStory } from '@/services/storyExportService';
 import { saveStoryToDisk } from '@/utils/storyFileIO';
 import { useStore } from '@/store';
+import { refineStory, generateStoryboard } from '@/services/storyGenerationService';
+import { Image as ImageIcon, Layout, Maximize2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/SkeletonLoader';
 import {
   Select,
   SelectContent,
@@ -34,6 +37,7 @@ interface StoryWizardFormData {
   generatedSummary?: string;
   parts?: StoryPart[];
   assetPrompts?: Record<string, string>;
+  critique?: string;
 }
 
 // ============================================================================
@@ -57,6 +61,16 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
   const [storyId] = useState(() => crypto.randomUUID()); // Generate stable ID for this story
   const [versions, setVersions] = useState<Array<{ id: string; versionNumber: number; createdAt: number; changes: string }>>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  
+  // Interactive Script Doctoring
+  const [refineFeedback, setRefineFeedback] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
+  const [refineError, setRefineError] = useState<string | null>(null);
+  
+  // Storyboard Generation
+  const [isGeneratingStoryboard, setIsGeneratingStoryboard] = useState(false);
+  const [storyboard, setStoryboard] = useState<Array<{ scene_index: number; scene_title: string; image_url: string }>>([]);
+  const [storyboardError, setStoryboardError] = useState<string | null>(null);
 
   // Load versions when component mounts or storyId changes
   useEffect(() => {
@@ -157,6 +171,48 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
     }
   };
 
+  const handleRefine = async () => {
+    if (!refineFeedback.trim() || !storyId) return;
+    
+    setIsRefining(true);
+    setRefineError(null);
+    
+    try {
+      const updatedStory = await refineStory(storyId, refineFeedback);
+      updateFormData({
+        generatedContent: updatedStory.content,
+        generatedSummary: updatedStory.summary,
+        parts: updatedStory.parts,
+        critique: updatedStory.critique,
+        title: updatedStory.title
+      });
+      setRefineFeedback('');
+      setHasUnsavedChanges(true);
+    } catch (error) {
+      console.error('Refinement failed:', error);
+      setRefineError(error instanceof Error ? error.message : 'Failed to refine story');
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const handleGenerateStoryboard = async () => {
+    if (!storyId) return;
+    
+    setIsGeneratingStoryboard(true);
+    setStoryboardError(null);
+    
+    try {
+      const results = await generateStoryboard(storyId);
+      setStoryboard(results);
+    } catch (error) {
+      console.error('Storyboard generation failed:', error);
+      setStoryboardError(error instanceof Error ? error.message : 'Failed to generate storyboard');
+    } finally {
+      setIsGeneratingStoryboard(false);
+    }
+  };
+
   const wordCount = formData.generatedContent?.split(' ').length || 0;
   const characterCount = formData.generatedContent?.length || 0;
 
@@ -234,6 +290,138 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
             {formData.generatedSummary || 'No summary available'}
           </p>
         </div>
+      </div>
+
+      {/* Multi-Agent Critique Section */}
+      {formData.critique && (
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2 text-indigo-600">
+            <Bot className="w-4 h-4" />
+            Analyse de Cohérence Multi-Agent
+          </Label>
+          <div className="p-4 rounded-lg bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800">
+            <div className="text-sm text-indigo-900 dark:text-indigo-100 whitespace-pre-wrap">
+              {formData.critique}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Script Doctoring Chat */}
+      <div className="space-y-3 p-4 rounded-lg bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20 border border-indigo-100 dark:border-indigo-900">
+        <div className="flex items-center justify-between">
+          <Label className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-indigo-500" />
+            Chat with Script Doctor
+          </Label>
+          <span className="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">Interactive Refinement</span>
+        </div>
+        
+        <div className="flex gap-2">
+          <Input 
+            value={refineFeedback}
+            onChange={(e) => setRefineFeedback(e.target.value)}
+            placeholder="Ex: 'Applique la suggestion n°3' ou 'Rends le protagoniste plus mystérieux'..."
+            className="flex-1 bg-white dark:bg-gray-950"
+            disabled={isRefining}
+            onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
+          />
+          <Button 
+            onClick={handleRefine} 
+            disabled={isRefining || !refineFeedback.trim()}
+            size="icon"
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            {isRefining ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+          </Button>
+        </div>
+      
+      {/* Visual Storyboard Section */}
+      <div className="space-y-4 pt-4 border-t">
+        <div className="flex items-center justify-between">
+          <Label className="flex items-center gap-2 text-primary text-blue-600">
+            <Layout className="w-4 h-4" />
+            Visual Storyboard (ComfyUI)
+          </Label>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleGenerateStoryboard}
+            disabled={isGeneratingStoryboard}
+            className="h-8 gap-2 border-primary/20 hover:bg-primary/5 text-blue-600"
+          >
+            {isGeneratingStoryboard ? (
+              <RefreshCw className="w-3 h-3 animate-spin" />
+            ) : (
+              <ImageIcon className="w-3 h-3" />
+            )}
+            Generate Visuals
+          </Button>
+        </div>
+
+        {storyboardError && (
+          <div className="p-3 rounded bg-red-50 text-red-600 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            {storyboardError}
+          </div>
+        )}
+
+        {isGeneratingStoryboard && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="aspect-video w-full rounded-lg" variant="rectangular" />
+                <Skeleton className="h-4 w-3/4" variant="text" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!isGeneratingStoryboard && storyboard.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {storyboard.map((frame) => (
+              <div key={frame.scene_index} className="group relative rounded-lg overflow-hidden border border-border bg-card shadow-sm hover:shadow-md transition-all">
+                <div className="aspect-video w-full relative overflow-hidden bg-muted">
+                  <img 
+                    src={frame.image_url} 
+                    alt={frame.scene_title}
+                    className="object-cover w-full h-full transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                      <Maximize2 className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <h4 className="text-xs font-semibold truncate">{frame.scene_title}</h4>
+                  <p className="text-[10px] text-muted-foreground">Scene {frame.scene_index + 1}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!isGeneratingStoryboard && storyboard.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 px-4 rounded-lg bg-muted/30 border border-dashed border-muted">
+            <ImageIcon className="w-8 h-8 text-muted-foreground mb-2 opacity-20" />
+            <p className="text-sm text-muted-foreground text-center max-w-[200px]">
+              Visualize your story with AI-generated concept art.
+            </p>
+          </div>
+        )}
+      </div>
+        
+        {refineError && (
+          <p className="text-xs text-red-500 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {refineError}
+          </p>
+        )}
+        
+        <p className="text-[11px] text-muted-foreground italic">
+          Cette IA analyse votre feedback et réécrit intelligemment les parties concernées pour maintenir la cohérence globale.
+        </p>
       </div>
 
       {/* Story Content (Editable) */}

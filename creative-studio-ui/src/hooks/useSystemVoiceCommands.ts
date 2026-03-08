@@ -14,7 +14,7 @@ import { ProjectData } from '@/types/project';
  * S'assure que les actions déclenchées par la voix sont cohérentes avec l'état de l'application.
  */
 export function useSystemVoiceCommands() {
-  const { project, setShowLLMSettings, setShowGeneralSettings, setShowProjectTranslator } = useAppStore();
+  const { project, setShowLLMSettings, setShowGeneralSettings, setShowProjectTranslator, setShowVideoPublisher } = useAppStore();
   const { toast } = useToast();
 
   const handleUndo = useCallback(() => {
@@ -73,13 +73,15 @@ export function useSystemVoiceCommands() {
       setShowLLMSettings(true);
     } else if (target.includes('traduct') || target.includes('translat')) {
       setShowProjectTranslator(true);
+    } else if (target.includes('publish') || target.includes('publier') || target.includes('social') || target.includes('hub')) {
+      setShowVideoPublisher(true);
     } else {
       toast({
         title: 'Navigation',
         description: `Navigation vers "${target}" non encore supportée par commande vocale.`,
       });
     }
-  }, [setShowGeneralSettings, setShowLLMSettings, setShowProjectTranslator, toast]);
+  }, [setShowGeneralSettings, setShowLLMSettings, setShowProjectTranslator, setShowVideoPublisher, toast]);
 
   useEffect(() => {
     // Souscrire aux événements système émis par le VoiceCommandRouter
@@ -93,12 +95,17 @@ export function useSystemVoiceCommands() {
       setShowProjectTranslator(true);
     });
 
+    const subPublisherNav = eventEmitter.on('addon:video-publisher:navigate', () => {
+      setShowVideoPublisher(true);
+    });
+
     return () => {
       subUndo.unsubscribe();
       subRedo.unsubscribe();
       subSave.unsubscribe();
       subNav.unsubscribe();
       subTranslatorNav.unsubscribe();
+      subPublisherNav.unsubscribe();
     };
-  }, [handleUndo, handleRedo, handleSave, handleNavigate, setShowProjectTranslator]);
+  }, [handleUndo, handleRedo, handleSave, handleNavigate, setShowProjectTranslator, setShowVideoPublisher]);
 }

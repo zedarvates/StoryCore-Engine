@@ -228,6 +228,35 @@
     --cinematic-glow-purple: 280 100% 70%;
     --cinematic-glow-cyan: 190 100% 55%;
   }
+
+  /* Theme: 2026 Glass Evolution (Glassmorphism 2.0) */
+  .theme-2026-glass {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9% / 0.7;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9% / 0.85;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 240 5% 10% / 0.5;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 5% 10% / 0.5;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 263.4 70% 50.4% / 0.15;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 5% 15% / 0.5;
+    --input: 240 5% 10% / 0.5;
+    --ring: 263.4 70% 50.4%;
+
+    /* Glass Tokens */
+    --glass-blur: 12px;
+    --glass-border: 255 255 255 / 0.1;
+    --glass-reflection: 255 255 255 / 0.05;
+    --index-dense: 0.5rem;
+  }
 }
 
 @layer base {
@@ -443,5 +472,62 @@
   .focus-visible-ring:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary));
+  }
+
+  /* Glassmorphism 2.0 & Archival Index 2026 */
+  .glass-panel {
+    background: hsla(var(--card));
+    backdrop-filter: blur(var(--glass-blur, 12px));
+    border: 1px solid hsla(var(--border) / 0.5);
+    box-shadow: 
+      0 8px 32px 0 rgba(0, 0, 0, 0.37),
+      inset 0 0 0 1px hsla(var(--foreground) / 0.05);
+  }
+
+  .glass-card {
+    background: hsla(var(--card));
+    backdrop-filter: blur(8px);
+    border: 1px solid hsla(var(--border) / 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    background: hsla(var(--card) / 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  .index-grid {
+    display: grid;
+    gap: var(--index-dense, 0.5rem);
+    padding: var(--index-dense, 0.5rem);
+  }
+
+  .index-row {
+    padding: calc(var(--index-dense, 0.5rem) / 2);
+    border-bottom: 1px solid hsla(var(--border) / 0.5);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: background 0.2s ease;
+  }
+
+  .index-row:hover {
+    background: hsla(var(--accent));
+  }
+
+  .animate-success-pulse {
+    animation: success-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+@keyframes success-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: .7;
+    transform: scale(1.05);
   }
 }

@@ -12,10 +12,10 @@
  * @module components/menuBar/Menu
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { MenuDropdown } from './MenuDropdown';
 import { MenuItemProps } from './MenuItem';
-import { useScreenReaderAnnouncer } from './ScreenReaderAnnouncer';
+import { useOptionalScreenReaderAnnouncer } from './ScreenReaderAnnouncerContext';
 
 export interface MenuProps {
   /** Unique identifier for the menu */
@@ -86,20 +86,15 @@ export const Menu: React.FC<MenuProps> = ({
   // Menu open state - use controlled mode if isOpen prop provided, otherwise use internal state
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-  const setIsOpen = controlledIsOpen !== undefined 
+  const setIsOpen = useMemo(() => controlledIsOpen !== undefined 
     ? (open: boolean) => { if (open && onOpen) onOpen(); if (!open && onClose) onClose(); }
-    : setInternalIsOpen;
+    : setInternalIsOpen, [controlledIsOpen, onOpen, onClose]);
   
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuContainerRef = useRef<HTMLDivElement>(null);
   
   // Get screen reader announcer (optional - only if provider is available)
-  let announcer: ReturnType<typeof useScreenReaderAnnouncer> | null = null;
-  try {
-    announcer = useScreenReaderAnnouncer();
-  } catch {
-    // Provider not available, announcements will be skipped
-  }
+  const announcer = useOptionalScreenReaderAnnouncer();
 
   /**
    * Register trigger ref with parent MenuBar for Alt key focus management
@@ -120,7 +115,7 @@ export const Menu: React.FC<MenuProps> = ({
   /**
    * Open the menu
    */
-  const openMenu = () => {
+  const openMenu = useCallback(() => {
     if (disabled) return;
     setIsOpen(true);
     if (onOpen) {
@@ -132,12 +127,12 @@ export const Menu: React.FC<MenuProps> = ({
     if (announcer) {
       announcer.announce(`${label} menu opened`, 'polite', 100);
     }
-  };
+  }, [disabled, setIsOpen, onOpen, announcer, label]);
 
   /**
    * Close the menu
    */
-  const closeMenu = () => {
+  const closeMenu = useCallback(() => {
     setIsOpen(false);
     if (onClose) {
       onClose();
@@ -150,18 +145,18 @@ export const Menu: React.FC<MenuProps> = ({
     if (announcer) {
       announcer.announce(`${label} menu closed`, 'polite');
     }
-  };
+  }, [setIsOpen, onClose, announcer, label]);
 
   /**
    * Toggle menu open/close
    */
-  const toggleMenu = () => {
+  const toggleMenu = useCallback(() => {
     if (isOpen) {
       closeMenu();
     } else {
       openMenu();
     }
-  };
+  }, [isOpen, closeMenu, openMenu]);
 
   /**
    * Handle trigger button click

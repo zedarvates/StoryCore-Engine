@@ -12,48 +12,17 @@ import React, { useCallback, useState, useMemo } from 'react';
 import { DraggableAsset } from './DraggableAsset';
 import { TemplatePreview } from '../TemplatePreview';
 import { PresetPreview } from '../PresetPreview';
+import { MarketplacePublishDialog } from './MarketplacePublishDialog';
 import { useTemplates } from '../../hooks/useTemplates';
 import { useAppSelector } from '../../store';
-import type { Asset, AssetType } from '../../types';
+import type { Asset, AssetType, ServiceAsset, ServiceAssetType } from '../../types';
 import './assetLibrary.css';
-
-// ============================================================================
-// Local Asset type (matching AssetLibrary.tsx)
-// ============================================================================
-
-type ServiceAssetType = 'image' | 'audio' | 'video' | 'template';
-
-interface ServiceAssetMetadata {
-  description?: string;
-  author?: string;
-  license?: string;
-  source?: string;
-  category?: string;
-  tags?: string[];
-  duration?: number;
-  [key: string]: unknown;
-}
-
-interface ServiceAsset {
-  id: string;
-  name: string;
-  type: ServiceAssetType;
-  url?: string;
-  thumbnail?: string;
-  thumbnailUrl?: string;
-  previewUrl?: string;
-  metadata?: ServiceAssetMetadata;
-  category?: string;
-  subcategory?: string;
-  tags?: string[];
-  source?: 'builtin' | 'user' | 'ai-generated';
-  createdAt?: Date;
-}
 
 interface AssetGridProps {
   assets: ServiceAsset[];
   categoryId: string;
   searchQuery: string;
+  onPublish?: (asset: ServiceAsset) => void;
 }
 
 // ============================================================================
@@ -88,7 +57,7 @@ function convertToAsset(serviceAsset: ServiceAsset): Asset {
     },
     tags: serviceAsset.tags || serviceAsset.metadata?.tags || [],
     source: serviceAsset.source || 'builtin',
-    createdAt: serviceAsset.createdAt || new Date(),
+    createdAt: serviceAsset.createdAt || Date.now(),
   };
 }
 
@@ -103,8 +72,8 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
   // ============================================================================
   
   // Hook 1: useState for preview management
-  // Called first to ensure consistent hook order
   const [previewAsset, setPreviewAsset] = useState<ServiceAsset | null>(null);
+  const [publishingAsset, setPublishingAsset] = useState<ServiceAsset | null>(null);
   
   // Hook 2: useAppSelector for timeline state
   // Called second to maintain consistent hook order
@@ -172,6 +141,10 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
     setPreviewAsset(null);
   }, [previewAsset, applyTemplate, applyPreset]);
 
+  const handlePublish = useCallback((asset: ServiceAsset) => {
+    setPublishingAsset(asset);
+  }, []);
+
   // ============================================================================
   // STEP 4: EARLY RETURNS (only after ALL hooks are defined)
   // Now it's safe to return early since all hooks have been called
@@ -216,6 +189,7 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
             asset={asset}
             categoryId={categoryId}
             onPreview={handlePreview}
+            onPublish={handlePublish}
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -235,9 +209,17 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
       {previewAsset && previewAsset.type === 'template' && isNarrativePreset && (
         <PresetPreview
           asset={convertToAsset(previewAsset)}
-          selectedShotCount={selectedShotCount}
           onClose={() => setPreviewAsset(null)}
           onApply={handleApplyTemplate}
+          selectedShotCount={selectedShotCount}
+        />
+      )}
+
+      {/* Marketplace Publish Dialog */}
+      {publishingAsset && (
+        <MarketplacePublishDialog
+          asset={publishingAsset}
+          onClose={() => setPublishingAsset(null)}
         />
       )}
     </>

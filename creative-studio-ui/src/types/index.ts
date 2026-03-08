@@ -11,6 +11,9 @@ export type {
   GeneratedPrompt
 } from './generation';
 
+// Import Moodboard types
+import type { MoodboardData } from './moodboard';
+
 // Import Character types
 import type { Character } from './character';
 // Import Story types
@@ -398,6 +401,7 @@ export interface Project {
   objects?: StoryObject[];
   sequencePlans?: SequencePlan[];
   projectSetup?: ProjectSetupData;
+  moodboard?: MoodboardData;
 
   // Dashboard / Generation metadata
   audio_phrases?: DialoguePhrase[]; // For DialoguePhrase
@@ -974,11 +978,19 @@ export interface PhraseData {
 // Chat Assistant Types
 // ============================================================================
 
+export interface ChatAttachment {
+  name: string;
+  type: string;
+  url: string;
+  size?: number;
+}
+
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'error';
   content: string;
   timestamp: Date;
+  attachments?: ChatAttachment[];
   suggestions?: string[]; // Suggested follow-up actions
 }
 

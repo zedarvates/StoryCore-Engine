@@ -8,10 +8,10 @@
  */
 
 import React, { useCallback, useEffect } from 'react';
-import { useAppDispatch, useAppSelector, store } from '../../store';
+import { useAppDispatch, useAppSelector, store, useUndoRedo } from '../../store';
 import { setActiveTool } from '../../store/slices/toolsSlice';
 import { markSaved, setSaveStatus } from '../../store/slices/projectSlice';
-import { setActivePanel, toggleLayerManager } from '../../store/slices/panelsSlice';
+import { setActivePanel, toggleLayerManager, toggleCompactMode } from '../../store/slices/panelsSlice';
 import { saveProjectToFile, generateProjectFilename } from '../../services/projectPersistence';
 import type { ToolType } from '../../types';
 import './toolBar.css';
@@ -178,6 +178,9 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
   const { activeTool } = useAppSelector((state) => state.tools);
   const { saveStatus } = useAppSelector((state) => state.project);
   const { showLayerManager } = useAppSelector((state) => state.panels);
+
+  // Undo/Redo state
+  const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   // Handle tool selection
   const handleToolSelect = useCallback((toolId: ToolType) => {
@@ -441,6 +444,32 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
         ))}
       </div>
 
+      <div className="tool-separator" />
+
+      {/* Undo/Redo Tools */}
+      <div className="tool-group history-tools">
+        <button
+          className="tool-btn undo-btn"
+          onClick={() => undo()}
+          disabled={!canUndo}
+          title="Undo (Ctrl+Z)"
+          aria-label="Undo"
+        >
+          <span className="tool-icon">↩</span>
+          <span className="tool-label">Undo</span>
+        </button>
+        <button
+          className="tool-btn redo-btn"
+          onClick={() => redo()}
+          disabled={!canRedo}
+          title="Redo (Ctrl+Y)"
+          aria-label="Redo"
+        >
+          <span className="tool-icon">↪</span>
+          <span className="tool-label">Redo</span>
+        </button>
+      </div>
+
       {/* Spacer */}
       <div className="tool-spacer" />
 
@@ -455,6 +484,16 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
         >
           <span className="tool-icon">@</span>
           <span className="tool-label">Advanced</span>
+        </button>
+
+        <button
+          className={`tool-btn project-btn ${useAppSelector(state => state.panels.compactMode) ? 'active' : ''}`}
+          onClick={() => dispatch(toggleCompactMode())}
+          title="Compact Mode (K)"
+          aria-label="Compact Mode"
+        >
+          <span className="tool-icon">📦</span>
+          <span className="tool-label">Compact</span>
         </button>
 
         <button

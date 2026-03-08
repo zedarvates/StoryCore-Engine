@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { MethodologySelector, FullSettings } from './MethodologySelector';
-import { WritingStyle, type MethodologyState } from '@/types/storyMethodology';
+import { WritingStyle } from '@/types/storyMethodology';
 import type { StorySetupData } from '@/types/story';
 import { loadStylePreferences, saveStylePreferences } from '@/services/globalTemplatesService';
 
@@ -55,6 +55,20 @@ const LENGTH_OPTIONS = [
   { value: 'mega_epic', label: 'Mega Epic (Wheel of Time scale)', description: '250 000–400 000 words' }
 ];
 
+const PRODUCTION_MODE_OPTIONS = [
+  { value: 'FICTION', label: 'Fiction Standard' },
+  { value: 'CINEMATIC', label: 'Cinématique Pro' },
+  { value: 'INFLUENCER', label: 'Influenceur / Vlog' },
+  { value: 'SCIENTIFIC_REVIEW', label: 'Revue Scientifique' },
+  { value: 'TECH_REVIEW', label: 'Tech Review / Unboxing' },
+  { value: 'DOCUMENTARY', label: 'Documentaire' },
+  { value: 'RECAP', label: 'Recap / Résumé' },
+  { value: 'RENOVATION', label: 'Rénovation (Avant/Après)' },
+  { value: 'GARDENING', label: 'Jardinage' },
+  { value: 'FINANCE_REVIEW', label: 'Finance / Marché' },
+  { value: 'TOP_TIER_LIST', label: 'Top / Tier List' },
+];
+
 // ============================================================================
 // Extended Form Data with Methodology
 // ============================================================================
@@ -96,7 +110,7 @@ export function Step1StorySetup() {
         updates.tone = savedPreferences.lastUsedTone;
       }
       if (!hasExistingLength && savedPreferences.lastUsedLength) {
-        updates.length = savedPreferences.lastUsedLength as any;
+        updates.length = savedPreferences.lastUsedLength as ExtendedStorySetupData['length'];
       }
 
       // Only update if there are changes to make
@@ -107,7 +121,7 @@ export function Step1StorySetup() {
 
       preferencesAppliedRef.current = true;
     }
-  }, [updateFormData]); // Include updateFormData in dependencies
+  }, [updateFormData, formData.genre?.length, formData.tone?.length, formData.length]);
 
   // Local state for methodology selection (synced with formData)
   const [selectedMethodology, setSelectedMethodology] = useState(formData.methodology || 'sequential');
@@ -309,6 +323,59 @@ export function Step1StorySetup() {
           ))}
         </RadioGroup>
       </FormField>
+
+      {/* Advanced AI Backend (Task 4/5 integration) */}
+      <div className="border border-primary/20 bg-primary/5 rounded-lg p-5 mt-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-semibold text-primary">Advanced AI Production Engine</h3>
+            <p className="text-xs text-muted-foreground italic">Use the latest asynchronous backend for high-quality production bibles & scenario structural acts.</p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+               id="useAdvancedBackend" 
+               checked={formData.useAdvancedBackend || false}
+               onCheckedChange={(checked) => updateFormData({ useAdvancedBackend: !!checked })}
+            />
+            <Label htmlFor="useAdvancedBackend" className="text-xs font-bold uppercase tracking-tight">Enable Async Engine</Label>
+          </div>
+        </div>
+
+        {formData.useAdvancedBackend && (
+          <div className="pt-4 space-y-4 border-t border-primary/10 animate-in fade-in slide-in-from-top-2">
+            <FormField label="Production Mode" name="productionMode" helpText="Tailors the AI generation logic to specific content styles.">
+              <RadioGroup
+                value={formData.productionMode || 'FICTION'}
+                onValueChange={(val) => updateFormData({ productionMode: val as ExtendedStorySetupData['productionMode'] })}
+                className="grid grid-cols-2 gap-2"
+              >
+                {PRODUCTION_MODE_OPTIONS.map((mode: { value: string, label: string }) => (
+                  <div key={mode.value} className="flex items-center space-x-2 bg-background/50 p-2 rounded border border-primary/10 hover:border-primary/30 transition-colors">
+                    <RadioGroupItem value={mode.value} id={`mode-${mode.value}`} />
+                    <Label htmlFor={`mode-${mode.value}`} className="text-xs cursor-pointer">{mode.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </FormField>
+
+            <div className="flex items-center space-x-3 bg-blue-500/10 p-3 rounded-md border border-blue-500/20">
+              <Checkbox 
+                id="withCritique" 
+                checked={formData.withCritique || false}
+                onCheckedChange={(checked) => updateFormData({ withCritique: !!checked })}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="withCritique" className="text-xs font-bold leading-none cursor-pointer">
+                  Activate Multi-Agent Critique
+                </Label>
+                <p className="text-[10px] text-muted-foreground">
+                  A second AI instance will review the script for logical errors before finalization.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Methodology Selection Toggle */}
       <div className="border-t pt-6 mt-6">

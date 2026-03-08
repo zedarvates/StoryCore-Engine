@@ -47,6 +47,10 @@ export class ActionDispatcher {
     // Execute based on intent
     switch (response.intent) {
       // --- PROJECT ---
+      case 'CREATE_PROJECT':
+        useAppStore.getState().setShowCreateProjectDialog(true);
+        break;
+      
       case 'SAVE_PROJECT':
         this.emitSystemEvent(ADDON_EVENTS.SYSTEM_SAVE, 'save');
         break;

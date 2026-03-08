@@ -56,7 +56,7 @@ let path: NodePath | null = null;
 if (isNodeEnvironment) {
   try {
     // Use dynamic import for ES module compatibility
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+     
     import('node:fs/promises').then((nodeFsPromises) => {
       fs = nodeFsPromises as unknown as NodeFsPromises;
     }).catch((error: unknown) => {

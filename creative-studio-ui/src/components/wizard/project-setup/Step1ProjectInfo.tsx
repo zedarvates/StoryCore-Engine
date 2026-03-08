@@ -41,7 +41,8 @@ export function Step1ProjectInfo() {
       if (suggestions.projectName) {
         const updates: Partial<ProjectSetupData> = {
           projectName: suggestions.projectName,
-          projectDescription: suggestions.description || formData.projectDescription
+          projectDescription: suggestions.description || formData.projectDescription,
+          tags: suggestions.tags || formData.tags
         };
 
         updateFormData(updates);
@@ -54,7 +55,34 @@ export function Step1ProjectInfo() {
 
   const handleProjectNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
-    updateFormData({ projectName: name });
+    const lowerName = name.toLowerCase();
+    
+    // Intelligence Layer: Detect futuristic dates
+    const futuristicYears = ['2048', '2077', '2150', '2100', '2200', '3000'];
+    const hasFuturisticDate = futuristicYears.some(year => lowerName.includes(year));
+    
+    if (hasFuturisticDate) {
+      const updates: Partial<ProjectSetupData> = { projectName: name };
+      
+      // Suggest Sci-Fi or Cyberpunk genre if not already set
+      if (!formData.genre?.includes('sci-fi') && !formData.genre?.includes('cyberpunk')) {
+        updates.genre = [...(formData.genre || []), 'sci-fi'];
+      }
+      
+      // Suggest tone
+      if (!formData.tone?.includes('serious') && !formData.tone?.includes('adventurous') && (!formData.tone || formData.tone.length === 0)) {
+        updates.tone = [...(formData.tone || []), 'adventurous'];
+      }
+      
+      // Auto-fill visual style if empty
+      if (!formData.visualStyle) {
+        updates.visualStyle = 'Futuristic / Sci-Fi aesthetic with advanced technology and holographic interfaces.';
+      }
+      
+      updateFormData(updates);
+    } else {
+      updateFormData({ projectName: name });
+    }
   };
 
   const handleTargetAudienceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,7 +141,8 @@ Target Audience: ${formData.targetAudience || 'general audience'}
 RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
 {
   "projectName": "A memorable project name (2-4 words max)",
-  "description": "A brief description (1-2 sentences max)"
+  "description": "A brief description (1-2 sentences max)",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
 }`;
 
     try {
@@ -131,7 +160,7 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
     }
   };
 
-  const parseLLMSuggestions = (response: string): { projectName?: string; description?: string } => {
+  const parseLLMSuggestions = (response: string): { projectName?: string; description?: string; tags?: string[] } => {
     console.log('🔍 [parseLLMSuggestions] Raw response:', response);
     console.log('🔍 [parseLLMSuggestions] Response length:', response.length);
     
@@ -151,6 +180,7 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
           const result = {
             projectName: (parsed.projectName || parsed.name || '').trim(),
             description: (parsed.description || parsed.projectDescription || '').trim(),
+            tags: Array.isArray(parsed.tags) ? parsed.tags : (parsed.tags || '').split(',').map((t: string) => t.trim()).filter(Boolean)
           };
 
           console.log('📊 [parseLLMSuggestions] Extracted result:', result);
@@ -172,7 +202,7 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
 
       // Fallback: Try to extract from plain text
       console.log('🔄 [parseLLMSuggestions] Trying text-based parsing...');
-      const result: { projectName?: string; description?: string } = {};
+      const result: { projectName?: string; description?: string; tags?: string[] } = {};
       const lines = response.split('\n');
 
       for (const line of lines) {
@@ -193,6 +223,13 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
           result.description = descMatch[1].trim().replace(/['"]/g, '');
           console.log('📝 [parseLLMSuggestions] Found description from text:', result.description);
           continue;
+        }
+
+        // Look for tags
+        const tagsMatch = trimmedLine.match(/(?:tags|keywords|hashtags):\s*(.+)/i);
+        if (tagsMatch && !result.tags) {
+          result.tags = tagsMatch[1].split(/,|\s+/).map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+          console.log('📝 [parseLLMSuggestions] Found tags from text:', result.tags);
         }
 
         // If we don't have a name yet and this looks like a title
@@ -223,6 +260,11 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     updateFormData({ projectDescription: e.target.value });
+  };
+
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tags = e.target.value.split(',').map(t => t.trim().replace(/^#/, ''));
+    updateFormData({ tags });
   };
 
   return (
@@ -451,6 +493,69 @@ RESPOND WITH ONLY THIS JSON FORMAT, NO OTHER TEXT:
           placeholder="e.g., 90 minutes, 10 episodes, 5 minutes"
         />
       </FormField>
+
+      {/* Tags for Discoverability */}
+      <FormField
+        label={
+          <span className="flex items-center gap-2">
+            <Rocket className="w-4 h-4 text-purple-500" />
+            Tags & Discoverability (SEO)
+          </span>
+        }
+        name="tags"
+        helpText="Add comma-separated tags to help people find your project (e.g. scifi, epic, adventure)"
+      >
+        <Input
+          id="tags"
+          value={(formData.tags || []).join(', ')}
+          onChange={handleTagsChange}
+          placeholder="e.g., ai, storytelling, cyberpunk, futuristic"
+        />
+        <div className="flex flex-wrap gap-2 mt-2">
+          {(formData.tags || []).map((tag, idx) => (
+            <span key={idx} className="px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-md text-[10px] font-bold uppercase tracking-wider">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      </FormField>
+
+      {/* SEO Overrides */}
+      <div className="p-4 bg-muted/30 rounded-xl border border-border/50 space-y-4">
+        <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          <Sparkles className="w-3 h-3" /> Search Engine Optimization (Advanced)
+        </h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            label="Search Title"
+            name="searchTitle"
+            helpText="Custom title for Google search results"
+          >
+            <Input
+              value={formData.seoMetadata?.searchTitle || ''}
+              onChange={(e) => updateFormData({ 
+                seoMetadata: { ...formData.seoMetadata, searchTitle: e.target.value } 
+              })}
+              placeholder={formData.projectName || "Search Title"}
+              className="text-xs h-8"
+            />
+          </FormField>
+          <FormField
+            label="Search Description"
+            name="searchDescription"
+            helpText="Custom description for Google search results"
+          >
+            <Input
+              value={formData.seoMetadata?.searchDescription || ''}
+              onChange={(e) => updateFormData({ 
+                seoMetadata: { ...formData.seoMetadata, searchDescription: e.target.value } 
+              })}
+              placeholder="A brief snippet for search results..."
+              className="text-xs h-8"
+            />
+          </FormField>
+        </div>
+      </div>
 
       {/* Project Description */}
       {showDescription && (

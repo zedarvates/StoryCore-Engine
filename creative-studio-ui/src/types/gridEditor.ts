@@ -157,7 +157,7 @@ export interface PanelPosition {
 }
 
 export interface PanelMetadata {
-  generatedAt?: string;
+  generatedAt?: number;
   seed?: number;
   qualityScore?: number;
   modified?: boolean;
@@ -201,8 +201,8 @@ export interface Preset {
 // ============================================================================
 
 export interface GridMetadata {
-  createdAt: string;
-  modifiedAt: string;
+  createdAt: number;
+  modifiedAt: number;
   author?: string;
   description?: string;
 }

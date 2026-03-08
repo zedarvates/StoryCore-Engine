@@ -25,9 +25,10 @@ import {
   Speaker,
   Package,
   Image as ImageIcon,
-  Video
+  Video,
+  Accessibility
 } from 'lucide-react';
-import { SequencePlan } from '@/types/sequencePlan';
+import { SequencePlan, Scene } from '@/types/sequencePlan';
 import { ScenePlanningCanvas } from './ScenePlanningCanvas';
 import { AIPromptGenerator } from './AIPromptGenerator';
 import { SequenceGenerator } from './SequenceGenerator';
@@ -42,6 +43,7 @@ import { useAudioSpatialization } from './useAudioSpatialization';
 import { AudioSurroundPreview } from './AudioSurroundPreview';
 import { DialogueGenerator } from './DialogueGenerator';
 import { useDialogueManagement } from './useDialogueManagement';
+import { PoseLibrary } from './PoseLibrary';
 import './SequencePlanningStudio.css';
 
 export interface SequencePlanningStudioProps {
@@ -85,7 +87,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
     }
   });
 
-  const [leftPanel, setLeftPanel] = useState<'puppets' | 'scenes' | 'objects' | 'properties'>('puppets');
+  const [leftPanel, setLeftPanel] = useState<'puppets' | 'scenes' | 'objects' | 'properties' | 'poses'>('puppets');
   const [rightPanel, setRightPanel] = useState<'prompt' | 'generator' | 'audio' | 'dialogue' | 'media' | 'none'>('none');
   const [surroundMode, setSurroundMode] = useState<'5.1' | '7.1'>('5.1');
   const [audioSpatializationEnabled, setAudioSpatializationEnabled] = useState(true);
@@ -156,6 +158,34 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
     });
     console.log('Generation complete', results);
   }, [updatePlanningState, planningState.generationProgress]);
+
+  const handleSceneUpdate = useCallback((sceneId: string, updates: Partial<Scene>) => {
+    const updatedScenes = sequencePlan.scenes.map(s =>
+      s.id === sceneId ? { ...s, ...updates } : s
+    );
+
+    const updatedPlan = {
+      ...sequencePlan,
+      scenes: updatedScenes
+    };
+
+    onSequenceUpdate(updatedPlan);
+  }, [sequencePlan, onSequenceUpdate]);
+
+  const handleScenesReorder = useCallback((updatedScenes: Scene[]) => {
+    // Re-index scenes
+    const reindexedScenes = updatedScenes.map((s, idx) => ({
+      ...s,
+      number: idx + 1
+    }));
+
+    const updatedPlan = {
+      ...sequencePlan,
+      scenes: reindexedScenes
+    };
+
+    onSequenceUpdate(updatedPlan);
+  }, [sequencePlan, onSequenceUpdate]);
 
   // Audio spatialization hook
   useAudioSpatialization(
@@ -274,7 +304,14 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
             onClick={() => setLeftPanel('properties')}
           >
             <Settings size={16} />
-            Propriétés
+            Properties
+          </button>
+          <button
+            className={`tool-btn ${leftPanel === 'poses' ? 'active' : ''}`}
+            onClick={() => setLeftPanel('poses')}
+          >
+            <Accessibility size={16} />
+            Poses
           </button>
         </div>
 
@@ -354,6 +391,15 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
               onElementSelect={(el: any) => handleElementSelect(el)}
             />
           )}
+          {leftPanel === 'poses' && (
+            <PoseLibrary
+              onPoseSelect={(poseId) => {
+                if (planningState.selectedElement && planningState.selectedElement.type === 'puppet') {
+                  handleElementUpdate(planningState.selectedElement.id, { pose: poseId } as any);
+                }
+              }}
+            />
+          )}
           {leftPanel === 'properties' && (
             <ElementPropertiesPanel
               selectedElement={planningState.selectedElement}
@@ -369,6 +415,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
             scenes={sequencePlan.scenes}
             selectedSceneId={planningState.currentScene.id}
             onSceneSelect={handleSceneSelect}
+            onScenesReorder={handleScenesReorder}
           />
 
           <ScenePlanningCanvas
@@ -398,6 +445,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
             <SequenceGenerator
               sequencePlan={sequencePlan}
               onGenerationComplete={handleGenerationComplete}
+              onSceneUpdate={handleSceneUpdate}
               onClose={() => setRightPanel('none')}
             />
           )}

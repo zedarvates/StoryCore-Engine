@@ -93,6 +93,7 @@ if __name__ == "__main__":
         host=args.host,
         port=args.port,
         reload=reload,
+        reload_dirs=["backend", "src"],
         workers=args.workers,
         log_level="info"
     )

@@ -19,8 +19,8 @@ export const AudioAutomationPanel: React.FC<AudioAutomationPanelProps> = ({
   const updateAudioTrack = useStore((state) => state.updateAudioTrack);
   const [selectedParameter, setSelectedParameter] = useState<string | null>(null);
 
-  const track = shot?.audioTracks.find((t) => t.id === trackId);
-  const effect = track?.effects.find((e) => e.id === effectId);
+  const track = (shot?.audioTracks || []).find((t) => t.id === trackId);
+  const effect = (track?.effects || []).find((e) => e.id === effectId);
 
   if (!effect || !track) {
     return null;
@@ -40,18 +40,18 @@ export const AudioAutomationPanel: React.FC<AudioAutomationPanelProps> = ({
     if (!paramInfo) return;
 
     const newCurve: AutomationCurve = {
-      id: `curve-${Date.now()}`,
+      id: crypto.randomUUID(),
       parameter,
       keyframes: [
         {
-          id: `kf-${Date.now()}-1`,
+          id: crypto.randomUUID(),
           time: 0,
           value: paramInfo.default,
           easing: 'linear',
         },
         {
-          id: `kf-${Date.now()}-2`,
-          time: track.duration,
+          id: crypto.randomUUID(),
+          time: track.duration ?? 5,
           value: paramInfo.default,
           easing: 'linear',
         },
@@ -76,7 +76,7 @@ export const AudioAutomationPanel: React.FC<AudioAutomationPanelProps> = ({
 
   // Update effect
   const updateEffect = (updates: Partial<AudioEffect>) => {
-    const updatedEffects = track.effects.map((e) =>
+    const updatedEffects = (track.effects || []).map((e) =>
       e.id === effectId ? { ...e, ...updates } : e
     );
     updateAudioTrack(shotId, trackId, { effects: updatedEffects });
@@ -155,7 +155,7 @@ export const AudioAutomationPanel: React.FC<AudioAutomationPanelProps> = ({
               {currentParamInfo && (
                 <AudioCurveEditor
                   curve={currentCurve}
-                  duration={track.duration}
+                  duration={track.duration ?? 5}
                   parameterRange={currentParamInfo.range}
                   parameterLabel={currentParamInfo.label}
                   onUpdate={updateAutomationCurve}
@@ -191,7 +191,7 @@ export const AudioAutomationPanel: React.FC<AudioAutomationPanelProps> = ({
             {CURVE_PRESETS.map((preset) => (
               <button
                 key={preset.name}
-                onClick={() => applyCurvePreset(preset, currentCurve, currentParamInfo, track.duration, updateAutomationCurve)}
+                onClick={() => applyCurvePreset(preset, currentCurve, currentParamInfo, track.duration ?? 5, updateAutomationCurve)}
                 className="px-3 py-2 text-xs border rounded hover:bg-gray-50"
               >
                 {preset.name}
@@ -267,32 +267,32 @@ function applyCurvePreset(
   switch (preset.type) {
     case 'fade-in':
       keyframes = [
-        { id: `kf-${Date.now()}-1`, time: 0, value: min, easing: 'ease-out' },
-        { id: `kf-${Date.now()}-2`, time: duration, value: max, easing: 'linear' },
+        { id: crypto.randomUUID(), time: 0, value: min, easing: 'ease-out' },
+        { id: crypto.randomUUID(), time: duration, value: max, easing: 'linear' },
       ];
       break;
     case 'fade-out':
       keyframes = [
-        { id: `kf-${Date.now()}-1`, time: 0, value: max, easing: 'ease-in' },
-        { id: `kf-${Date.now()}-2`, time: duration, value: min, easing: 'linear' },
+        { id: crypto.randomUUID(), time: 0, value: max, easing: 'ease-in' },
+        { id: crypto.randomUUID(), time: duration, value: min, easing: 'linear' },
       ];
       break;
     case 'pulse':
       keyframes = [
-        { id: `kf-${Date.now()}-1`, time: 0, value: mid, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-2`, time: duration * 0.25, value: max, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-3`, time: duration * 0.5, value: mid, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-4`, time: duration * 0.75, value: max, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-5`, time: duration, value: mid, easing: 'linear' },
+        { id: crypto.randomUUID(), time: 0, value: mid, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration * 0.25, value: max, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration * 0.5, value: mid, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration * 0.75, value: max, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration, value: mid, easing: 'linear' },
       ];
       break;
     case 'wave':
       keyframes = [
-        { id: `kf-${Date.now()}-1`, time: 0, value: mid, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-2`, time: duration * 0.25, value: max, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-3`, time: duration * 0.5, value: mid, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-4`, time: duration * 0.75, value: min, easing: 'ease-in-out' },
-        { id: `kf-${Date.now()}-5`, time: duration, value: mid, easing: 'linear' },
+        { id: crypto.randomUUID(), time: 0, value: mid, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration * 0.25, value: max, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration * 0.5, value: mid, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration * 0.75, value: min, easing: 'ease-in-out' },
+        { id: crypto.randomUUID(), time: duration, value: mid, easing: 'linear' },
       ];
       break;
   }

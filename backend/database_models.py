@@ -59,6 +59,17 @@ class User(Base, TimestampMixin):
     # Settings
     settings = Column(JSON, nullable=True)  # User preferences
     
+    # ─── 💎 GemReward System ────────────────────────────────────────────────
+    # Solde actuel (peut diminuer si dépenses futures)
+    gem_balance = Column(Integer, default=0, nullable=False, server_default="0")
+    # Total cumulatif historique (ne diminue jamais)
+    gem_total_earned = Column(Integer, default=0, nullable=False, server_default="0")
+    # Tier actuel : "contributor" | "silver" | "gold" | "legend"
+    gem_tier = Column(String(50), default="contributor", server_default="contributor")
+    # GitHub username (optionnel - pour lier contributions GitHub au compte)
+    github_username = Column(String(255), nullable=True)
+    # ────────────────────────────────────────────────────────────────────────
+
     # Relationships
     projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
     export_jobs = relationship("ExportJob", back_populates="user", cascade="all, delete-orphan")

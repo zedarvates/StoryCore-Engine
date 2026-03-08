@@ -8,7 +8,7 @@ import logging
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -23,6 +23,13 @@ try:
     from .ai_enhancement_engine import AIConfig
 except ImportError:
     from ai_enhancement_engine import AIConfig
+
+try:
+    from backend.llm_api import call_llm_real, LLMRequest
+except ImportError:
+    # Fallback/Mock if called outside backend context
+    async def call_llm_real(req, uid): return type('obj', (object,), {'text': f"Translated: {req.prompt}"})
+    LLMRequest = Any
 
 
 class SegmentType(Enum):
@@ -307,6 +314,52 @@ class TranscriptionEngine:
         
         self.logger.info(f"Transcription complete: {len(mock_segments)} segments, {transcript.word_count} words")
         return transcript
+    
+    async def translate_transcript(self, transcript: Transcript, target_language: str) -> Transcript:
+        """Translates all segments of a transcript into the target language."""
+        self.logger.info(f"Translating transcript {transcript.transcript_id} to {target_language}")
+        
+        translated_segments = []
+        
+        # We translate segment by segment (or could batch if LLM context allows)
+        for segment in transcript.segments:
+            prompt = f"Translate the following spoken text into {target_language}. Keep the tone natural and informal if it is dialogue. Original text: \"{segment.text}\""
+            
+            # Call internal LLM API
+            try:
+                request = LLMRequest(prompt=prompt, temperature=0.3)
+                response = await call_llm_real(request, user_id="system_transcription")
+                translated_text = response.text.strip().strip('"')
+            except Exception as e:
+                self.logger.error(f"Translation failed for segment {segment.segment_id}: {e}")
+                translated_text = segment.text # Fallback to original
+            
+            translated_seg = TranscriptSegment(
+                segment_id=f"{segment.segment_id}_tr_{target_language}",
+                start_time=segment.start_time,
+                end_time=segment.end_time,
+                text=translated_text,
+                speaker=segment.speaker,
+                confidence=segment.confidence,
+                words=segment.words, # We keep original word timings as best effort
+                segment_type=segment.segment_type
+            )
+            translated_segments.append(translated_seg)
+            
+        new_transcript = Transcript(
+            transcript_id=f"{transcript.transcript_id}_tr_{target_language}",
+            audio_id=transcript.audio_id,
+            audio_url=transcript.audio_url,
+            language=target_language,
+            duration=transcript.duration,
+            segments=translated_segments,
+            created_at=datetime.now(),
+            speaker_count=transcript.speaker_count,
+            word_count=sum(len(s.text.split()) for s in translated_segments),
+            language_confidence=1.0
+        )
+        
+        return new_transcript
     
     def _generate_mock_transcript(self, audio_id: str) -> List[TranscriptSegment]:
         """Générer une transcription mock."""

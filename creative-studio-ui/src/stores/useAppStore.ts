@@ -26,7 +26,9 @@ export type WizardType =
   | 'marketing-wizard'
   | 'discovery-lab'
   | 'project-translator'
-  | 'ttt-lrm';
+  | 'ttt-lrm'
+  | 'credits-screen'
+  | 'video-publisher';
 
 // Character filter types for character integration system
 // Requirements: 9.3
@@ -97,6 +99,7 @@ interface AppState {
   showFeedbackPanel: boolean;
   showPendingReportsList: boolean;
   showFactCheckModal: boolean;
+  showMoodboardModal: boolean;
   settingsAddonId: string | null; // ID of the addon to show settings for
   showRogerWizard: boolean;
   showGhostTrackerWizard: boolean;
@@ -116,6 +119,7 @@ interface AppState {
   showDiscoveryLab: boolean;
   showProjectTranslator: boolean;
   showTTTLRMModal: boolean;
+  showCreditsScreen: boolean;
   marketingWizardContext: {
     projectId: string;
     projectName: string;
@@ -126,6 +130,9 @@ interface AppState {
     conflict?: string;
     stakes?: string;
   } | null;
+  characterWizardContext: { imageFile?: File; imageData?: string; name?: string; role?: string } | null;
+  objectWizardContext: { imageFile?: File; imageData?: string; name?: string } | null;
+  locationWizardContext: { imageFile?: File; imageData?: string; name?: string } | null;
 
   // Production wizards state
   showSequencePlanWizard: boolean;
@@ -142,6 +149,9 @@ interface AppState {
   showAboutModal: boolean;
   showDocumentationModal: boolean;
   showKeyboardShortcutsDialog: boolean;
+  showVideoPublisher: boolean;
+  showLocationWizard: boolean;
+  showComputeDashboard: boolean;
   activeWizardType: WizardType | null;
 
   // Character integration system UI state
@@ -194,7 +204,7 @@ interface AppState {
   setShowInstallationWizard: (show: boolean) => void;
   setInstallationComplete: (complete: boolean) => void;
   setShowWorldWizard: (show: boolean) => void;
-  setShowCharacterWizard: (show: boolean) => void;
+  setShowCharacterWizard: (show: boolean, context?: AppState['characterWizardContext']) => void;
   setShowProjectSetupWizard: (show: boolean) => void;
   setShowCreateProjectDialog: (show: boolean) => void;
   setShowStorytellerWizard: (show: boolean) => void;
@@ -206,13 +216,14 @@ interface AppState {
   setShowWorldModal: (show: boolean) => void;
   setShowLocationsModal: (show: boolean) => void;
   setShowObjectsModal: (show: boolean) => void;
-  setShowObjectWizard: (show: boolean) => void;
+  setShowObjectWizard: (show: boolean, context?: AppState['objectWizardContext']) => void;
   setShowImageGalleryModal: (show: boolean) => void;
   setShowVaultModal: (show: boolean) => void;
   setShowDialogueEditor: (show: boolean) => void;
   setShowFeedbackPanel: (show: boolean) => void;
   setShowPendingReportsList: (show: boolean) => void;
   setShowFactCheckModal: (show: boolean) => void;
+  setShowMoodboardModal: (show: boolean) => void;
   setShowAboutModal: (show: boolean) => void;
   setShowDocumentationModal: (show: boolean) => void;
   setShowKeyboardShortcutsDialog: (show: boolean) => void;
@@ -232,10 +243,14 @@ interface AppState {
   setShowDiscoveryLab: (show: boolean) => void;
   setShowProjectTranslator: (show: boolean) => void;
   setShowTTTLRMModal: (show: boolean) => void;
+  setShowCreditsScreen: (show: boolean) => void;
   openSequencePlanWizard: (context?: SequencePlanWizardContext) => void;
   closeSequencePlanWizard: () => void;
   openShotWizard: (context?: ShotWizardContext) => void;
   closeShotWizard: () => void;
+  setShowVideoPublisher: (show: boolean) => void;
+  setShowLocationWizard: (show: boolean, context?: AppState['locationWizardContext']) => void;
+  setShowComputeDashboard: (show: boolean) => void;
 
   // Generic wizard form actions (simple forms in GenericWizardModal)
   setShowDialogueWriter: (show: boolean) => void;
@@ -325,6 +340,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   showImageGalleryModal: false,
   showVaultModal: false,
   showFactCheckModal: false,
+  showMoodboardModal: false,
   showAboutModal: false,
   showDocumentationModal: false,
   showKeyboardShortcutsDialog: false,
@@ -351,6 +367,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   showDiscoveryLab: false,
   showProjectTranslator: false,
   showTTTLRMModal: false,
+  showCreditsScreen: false,
+  showVideoPublisher: false,
+  showLocationWizard: false,
+  showComputeDashboard: false,
+  characterWizardContext: null,
+  objectWizardContext: null,
+  locationWizardContext: null,
 
   // Generic wizard forms initial state (simple forms in GenericWizardModal)
   showDialogueWriter: false,
@@ -416,9 +439,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   setShowInstallationWizard: (show) => set({ showInstallationWizard: show }),
   setInstallationComplete: (complete) => set({ installationComplete: complete }),
   setShowWorldWizard: (show) => set({ showWorldWizard: show }),
-  setShowCharacterWizard: (show) => {
-    logger.debug('[useAppStore] setShowCharacterWizard called with:', show);
-    set({ showCharacterWizard: show });
+  setShowCharacterWizard: (show, context) => {
+    logger.debug('[useAppStore] setShowCharacterWizard called with:', show, context);
+    set({ 
+      showCharacterWizard: show,
+      characterWizardContext: context || null
+    });
   },
   setShowProjectSetupWizard: (show) => set({ showProjectSetupWizard: show }),
   setShowCreateProjectDialog: (show) => set({ showCreateProjectDialog: show }),
@@ -434,13 +460,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   setShowWorldModal: (show) => set({ showWorldModal: show }),
   setShowLocationsModal: (show) => set({ showLocationsModal: show }),
   setShowObjectsModal: (show) => set({ showObjectsModal: show }),
-  setShowObjectWizard: (show) => {
-    logger.debug('[useAppStore] setShowObjectWizard called with:', show);
-    set({ showObjectWizard: show });
+  setShowObjectWizard: (show, context) => {
+    logger.debug('[useAppStore] setShowObjectWizard called with:', show, context);
+    set({ 
+      showObjectWizard: show,
+      objectWizardContext: context || null
+    });
   },
   setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
   setShowVaultModal: (show) => set({ showVaultModal: show }),
   setShowFactCheckModal: (show) => set({ showFactCheckModal: show }),
+  setShowMoodboardModal: (show) => set({ showMoodboardModal: show }),
   setShowAboutModal: (show) => set({ showAboutModal: show }),
   setShowDocumentationModal: (show) => set({ showDocumentationModal: show }),
   setShowKeyboardShortcutsDialog: (show) => set({ showKeyboardShortcutsDialog: show }),
@@ -499,6 +529,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (show) get().closeActiveWizard();
     set({ showTTTLRMModal: show });
   },
+  setShowCreditsScreen: (show) => {
+    if (show) get().closeActiveWizard();
+    set({ showCreditsScreen: show });
+  },
   openSequencePlanWizard: (context) => {
     set({
       showSequencePlanWizard: true,
@@ -520,6 +554,12 @@ export const useAppStore = create<AppState>((set, get) => ({
       showShotWizard: false,
       shotWizardContext: null,
     }),
+  setShowVideoPublisher: (show) => set({ showVideoPublisher: show }),
+  setShowLocationWizard: (show, context) => set({
+    showLocationWizard: show,
+    locationWizardContext: context || null
+  }),
+  setShowComputeDashboard: (show) => set({ showComputeDashboard: show }),
 
   // Generic wizard form actions (simple forms in GenericWizardModal)
   setShowDialogueWriter: (show) => set({ showDialogueWriter: show }),
@@ -563,6 +603,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       ...(wizardType === 'discovery-lab' && { showDiscoveryLab: true }),
       ...(wizardType === 'project-translator' && { showProjectTranslator: true }),
       ...(wizardType === 'ttt-lrm' && { showTTTLRMModal: true }),
+      ...(wizardType === 'credits-screen' && { showCreditsScreen: true }),
+      ...(wizardType === 'video-publisher' && { showVideoPublisher: true }),
     }),
 
   // Close active wizard (Requirement 3.3)
@@ -585,6 +627,8 @@ export const useAppStore = create<AppState>((set, get) => ({
       showDiscoveryLab: false,
       showProjectTranslator: false,
       showTTTLRMModal: false,
+      showCreditsScreen: false,
+      showVideoPublisher: false,
       activeWizardType: null,
     }),
 

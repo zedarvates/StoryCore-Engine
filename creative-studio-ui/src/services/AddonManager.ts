@@ -52,6 +52,7 @@ export class AddonManager {
   private addons = new Map<string, AddonInfo>();
   private addonResources = new Map<string, AddonResource>();
   private config: AddonConfig = {};
+  private initializationPromise: Promise<void> | null = null;
   private initialized = false;
   private settingsDefinitions: AddonSettingsDefinition = {};
 
@@ -71,17 +72,26 @@ export class AddonManager {
    */
   async initialize(): Promise<void> {
     if (this.initialized) return;
+    if (this.initializationPromise) return this.initializationPromise;
 
-    // Load configuration from localStorage
-    await this.loadConfig();
+    this.initializationPromise = (async () => {
+      try {
+        // Load configuration from localStorage
+        await this.loadConfig();
 
-    // Register built-in add-ons
-    await this.registerBuiltinAddons();
+        // Register built-in add-ons
+        await this.registerBuiltinAddons();
 
-    // Load external add-ons (if present)
-    await this.loadExternalAddons();
+        // Load external add-ons (if present)
+        await this.loadExternalAddons();
 
-    this.initialized = true;
+        this.initialized = true;
+      } finally {
+        this.initializationPromise = null;
+      }
+    })();
+
+    return this.initializationPromise;
   }
 
   /**
@@ -827,6 +837,32 @@ export class AddonManager {
       builtin: true,
       icon: '🌐',
       tags: ['marketplace', 'nexrealm', 'assets', 'characters', 'scenes', '3d', 'addons', 'shop']
+    });
+
+    // Credits Screen Add-on
+    this.registerAddon({
+      id: 'credits-screen',
+      name: 'Génériques & Remerciements',
+      description: 'Génère des écrans de génériques, textes de remerciements, crédits et avertissements (Censure, PEGI) pour vos vidéos.',
+      version: '1.0.0',
+      author: 'StoryCore AI',
+      category: 'ui',
+      builtin: true,
+      icon: '🎬',
+      tags: ['credits', 'ui', 'rendering', 'production', 'générique', 'remerciements']
+    });
+
+    // Video Publisher Add-on
+    this.registerAddon({
+      id: 'video-publisher',
+      name: 'Video Studio Publisher',
+      description: 'Module avancé de publication et d\'exportation vidéo multi-plateforme.',
+      version: '1.0.0',
+      author: 'StoryCore AI',
+      category: 'export',
+      builtin: true,
+      icon: '📡',
+      tags: ['export', 'video', 'publishing', 'social']
     });
   }
 

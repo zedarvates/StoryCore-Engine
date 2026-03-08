@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { I18nContext } from '@/utils/i18nContext';
+import { useContext } from 'react';
 
 interface IdentityStepProps {
   data: Partial<Character>;
@@ -20,6 +22,8 @@ interface IdentityStepProps {
 
 export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProps) {
   const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
+  const context = useContext(I18nContext);
+  const t = context?.t || ((key: string) => key);
 
   const handleFieldChange = (field: string, value: any) => {
     if (field === 'archetype') {
@@ -43,7 +47,7 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="w-5 h-5 text-amber-500" />
           <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 uppercase tracking-tight">
-            Identity Template
+            {t('characterWizard.identity.template')}
           </h3>
         </div>
         
@@ -108,20 +112,20 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
       <section className="bg-white dark:bg-gray-900 p-8 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl space-y-8">
         <div className="flex items-center gap-3 pb-2 border-b border-gray-100 dark:border-gray-800">
            <Fingerprint className="w-5 h-5 text-blue-500" />
-           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-400">Core Matrix</h3>
+           <h3 className="text-sm font-black uppercase tracking-[0.2em] text-gray-400">{t('characterWizard.identity.coreMatrix')}</h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
-              Character Name
+              {t('characterWizard.identity.name')}
             </label>
             <div className="relative group">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
               <Input
                 value={data.name || ''}
                 onChange={(e) => handleFieldChange('name', e.target.value)}
-                placeholder="Name your creation..."
+                placeholder={t('characterWizard.identity.placeholderName')}
                 className="pl-10 h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl"
               />
             </div>
@@ -129,7 +133,7 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
-              Archetype
+              {t('characterWizard.identity.archetype')}
             </label>
             <Select
               value={data.role?.archetype || ''}
@@ -140,7 +144,9 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
               </SelectTrigger>
               <SelectContent>
                 {CHARACTER_ARCHETYPES.map((arch) => (
-                  <SelectItem key={arch} value={arch}>{arch}</SelectItem>
+                  <SelectItem key={arch} value={arch}>
+                    {t(`archetype.${arch.toLowerCase().replace(/ \/ /g, '_').replace(/ /g, '_')}`) || arch}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -148,7 +154,7 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
-              Maturity Cycle
+              {t('characterWizard.identity.maturityCycle')}
             </label>
             <div className="relative">
                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
@@ -170,7 +176,7 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
-              Identity Matrix (Gender)
+              {t('characterWizard.identity.identityMatrix')}
             </label>
             <Select
               value={data.visual_identity?.gender || ''}
@@ -190,12 +196,12 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
 
         <div className="space-y-2 pt-4">
            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
-              Narrative Purpose
+              {t('characterWizard.identity.narrativePurpose')}
            </label>
            <textarea
               value={data.role?.narrative_function || ''}
               onChange={(e) => handleFieldChange('narrative_function', e.target.value)}
-              placeholder="What is this character's primary goal or purpose in the story?"
+              placeholder={t('characterWizard.identity.placeholderPurpose')}
               className="w-full p-4 min-h-[100px] bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-950 rounded-2xl transition-all outline-none resize-none"
            />
         </div>

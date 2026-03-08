@@ -62,7 +62,7 @@ router = APIRouter(prefix="/camera-angle", tags=["Camera Angle Editor"])
 
 class GenerateRequest(BaseModel):
     """Request model for starting a generation job"""
-    image_base64: str = Field(..., description="Base64 encoded source image")
+    image_base64: str = Field(..., min_length=1, description="Base64 encoded source image")
     angle_ids: List[CameraAnglePreset] = Field(
         ...,
         min_length=1,
@@ -127,8 +127,8 @@ def _job_to_response(job: CameraAngleJob) -> CameraAngleJobResponse:
         status=job.status,
         progress=job.progress,
         current_step=job.current_step,
-        completed_angles=[a.value for a in job.completed_angles],
-        remaining_angles=[a.value for a in job.remaining_angles],
+        completed_angles=job.completed_angles,
+        remaining_angles=job.remaining_angles,
         error=job.error,
         created_at=job.created_at.isoformat() if job.created_at else "",
         started_at=job.started_at.isoformat() if job.started_at else None,

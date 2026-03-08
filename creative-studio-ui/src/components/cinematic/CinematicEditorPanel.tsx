@@ -187,7 +187,7 @@ export function CinematicEditorPanel({
       endMood: cinematicShots[cinematicShots.length - 1]?.mood || 'neutral',
       dominantMood: sequenceMetrics.dominantMood as MoodType,
       progression: cinematicShots.map(s => ({
-        time: cinematicShots.filter(s2 => s2.position <= s.position)
+        time: cinematicShots.filter(s2 => (s2.position ?? 0) <= (s.position ?? 0))
           .reduce((sum, s2) => sum + s2.duration, 0),
         mood: s.mood
       }))
@@ -210,11 +210,11 @@ export function CinematicEditorPanel({
     const baseUpdates: Partial<Shot> = {
       metadata: {
         ...(shots.find(s => s.id === shotId)?.metadata || {}),
-        cameraMovement: updates.cameraMovement,
+        cameraMovement: updates.cameraMovement === null ? undefined : updates.cameraMovement,
         mood: updates.mood,
         tone: updates.tone,
         pacing: updates.pacing,
-        beatId: updates.beatId,
+        beatId: updates.beatId === null ? undefined : updates.beatId,
         transition: updates.transition,
         characterIds: updates.characters?.map(c => c.characterId),
         location: updates.locationId,
@@ -229,9 +229,9 @@ export function CinematicEditorPanel({
   }, [shots, onUpdateShot]);
 
   // Handle camera movement change
-  const handleCameraChange = useCallback((movement: CameraMovement | null) => {
+  const handleCameraChange = useCallback((movement: CameraMovement | null | undefined) => {
     if (!selectedShotId) return;
-    handleShotUpdate(selectedShotId, { cameraMovement: movement });
+    handleShotUpdate(selectedShotId, { cameraMovement: movement === null ? undefined : movement });
   }, [selectedShotId, handleShotUpdate]);
 
   // Handle mood change
@@ -241,9 +241,9 @@ export function CinematicEditorPanel({
   }, [selectedShotId, handleShotUpdate]);
 
   // Handle beat change
-  const handleBeatChange = useCallback((beatId: string | null, beatType?: BeatType) => {
+  const handleBeatChange = useCallback((beatId: string | null | undefined, beatType?: BeatType) => {
     if (!selectedShotId) return;
-    handleShotUpdate(selectedShotId, { beatId, beatType });
+    handleShotUpdate(selectedShotId, { beatId: beatId === null ? undefined : beatId, beatType });
   }, [selectedShotId, handleShotUpdate]);
 
   // Add director note
@@ -491,7 +491,7 @@ export function CinematicEditorPanel({
                     </div>
                     {expandedSections.camera && (
                       <CameraMovementSelector
-                        value={selectedShot.cameraMovement}
+                        value={selectedShot.cameraMovement === null ? undefined : selectedShot.cameraMovement}
                         onChange={handleCameraChange}
                       />
                     )}
@@ -641,7 +641,7 @@ export function CinematicEditorPanel({
                     <span>Arc Émotionnel</span>
                   </div>
                   <div className="arc-visual">
-                    {moodArc.progression.map((point, i) => (
+                    {(moodArc.progression || []).map((point, i) => (
                       <div
                         key={i}
                         className="arc-point"

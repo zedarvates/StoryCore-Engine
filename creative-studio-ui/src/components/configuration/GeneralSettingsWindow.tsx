@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { voiceTextService, type VoiceSettings } from '@/services/VoiceTextService';
 import { type ThemeType } from '@/stores/themeStore';
-import { useI18n, type SupportedLanguage } from '@/utils/i18n';
+import { useI18n, type SupportedLanguage } from '@/utils/i18nCore';
 
 interface GeneralSettingsWindowProps {
   isOpen: boolean;
@@ -507,6 +507,19 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Transcription Engine</Label>
+                <Select value={voiceSettings.transcriptionBackend || 'whisper'} onValueChange={(value) => updateVoiceSetting('transcriptionBackend', value as 'whisper' | 'vosk')}>
+                  <SelectTrigger className="bg-background/50 border-primary/30">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="whisper">Whisper (High Quality)</SelectItem>
+                    <SelectItem value="vosk">Vosk (Fast / Offline)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {voiceSettings.inputMode === 'voice-activity' && (
                 <div className="space-y-4 pt-2">
                   <div className="flex justify-between items-center">
@@ -614,7 +627,12 @@ export function GeneralSettingsWindow({ isOpen, onClose }: GeneralSettingsWindow
                     variant="outline" 
                     size="sm" 
                     className="neon-border hover:bg-primary/20"
-                    onClick={() => voiceTextService.testSpeechRecognition()}
+                    onClick={() => voiceTextService.startListening({
+                      onStart: () => {},
+                      onResult: () => {},
+                      onError: () => {},
+                      onEnd: () => voiceTextService.stopListening(),
+                    })}
                   >
                     <Mic className="w-4 h-4 mr-2" />
                     Let's Check

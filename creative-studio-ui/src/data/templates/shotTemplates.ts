@@ -421,6 +421,125 @@ export const SHOT_TEMPLATES: ShotTemplate[] = [
       },
     }
   ),
+
+  // ============================================================================
+  // Special/Shorts Shots
+  // ============================================================================
+  createShotTemplate(
+    'special-rewind',
+    'Rewind Effect (SFX)',
+    'Reverse playback visual effect with tape scratching SFX. Perfect for story recaps or multi-take jokes.',
+    'custom',
+    {
+      type: 'medium',
+      category: 'custom',
+      camera: {
+        framing: 'medium',
+        angle: 'eye-level',
+        movement: {
+          type: 'static',
+        },
+      },
+      timing: {
+        duration: 45, // 1.5 seconds at 30fps
+        inPoint: 0,
+        outPoint: 45,
+        transition: 'rewind',
+        transitionDuration: 15,
+      },
+      composition: {
+        characterIds: [],
+        characterPositions: [],
+        environmentId: '',
+        props: [],
+        lightingMood: 'dramatic',
+        timeOfDay: 'day',
+      },
+      backgroundAudio: {
+        type: 'sound-effect',
+        assetId: 'sfx_rewind_tape',
+        volume: 0.8,
+        fadeIn: 0,
+        fadeOut: 0,
+        loop: false
+      }
+    }
+  ),
+
+  createShotTemplate(
+    'youtube-shorts-vertical',
+    'YouTube Shorts Vertical',
+    'Native 9:16 vertical shot optimized for YouTube Shorts and TikTok.',
+    'custom',
+    {
+      type: 'medium',
+      category: 'custom',
+      camera: {
+        framing: 'medium',
+        angle: 'eye-level',
+        movement: {
+          type: 'static',
+        },
+      },
+      generation: {
+        aiProvider: 'stable-diffusion',
+        model: 'xl-base-1.0',
+        prompt: '',
+        negativePrompt: '',
+        comfyuiPreset: 'vertical-shots',
+        parameters: {
+          width: 720,
+          height: 1280,
+          steps: 25,
+          cfgScale: 7.5,
+          sampler: 'euler_a',
+          scheduler: 'karras'
+        },
+        styleReferences: []
+      },
+      timing: {
+        duration: 90,
+        inPoint: 0,
+        outPoint: 90,
+        transition: 'cut',
+        transitionDuration: 0,
+      }
+    }
+  ),
+
+  createShotTemplate(
+    'special-pov',
+    'POV (Vue Subjective)',
+    'Point of View shot placing the audience in the character\'s eyes. Essential for immersive storytelling and reaction shorts.',
+    'shorts',
+    {
+      type: 'pov',
+      category: 'reaction',
+      camera: {
+        framing: 'medium',
+        angle: 'eye-level',
+        movement: {
+          type: 'handheld',
+          speed: 'slow',
+        },
+      },
+      timing: {
+        duration: 90,
+        inPoint: 0,
+        outPoint: 90,
+        transition: 'cut',
+        transitionDuration: 0,
+      },
+      composition: {
+        characterIds: [],
+        characterPositions: [],
+        environmentId: '',
+        props: [],
+        lightingMood: 'natural',
+        timeOfDay: 'day',
+      }
+    }
+  ),
 ];
 
 // ============================================================================
@@ -469,6 +588,12 @@ export const SHOT_TEMPLATE_CATEGORIES = {
     description: 'Advanced and specialized shot techniques',
     icon: '🎭',
     templates: SHOT_TEMPLATES.filter(t => t.category === 'custom'),
+  },
+  shorts: {
+    name: 'YouTube Shorts',
+    description: 'Vertical 9:16 shots and special social media effects',
+    icon: '📱',
+    templates: SHOT_TEMPLATES.filter(t => t.id.includes('shorts') || t.id.includes('rewind')),
   },
 } as const;
 

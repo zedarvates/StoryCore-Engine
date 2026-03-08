@@ -7,8 +7,10 @@
  * This configuration supports Requirements 1.1-6.5 and 11.1-11.5.
  */
 
-import { MenuBarConfig, MenuConfig } from '../types/menuConfig';
+import { MenuBarConfig, MenuConfig, MenuItemConfig } from '../types/menuConfig';
 import { fileActions, editActions, viewActions, projectActions, wizardsActions, toolsActions, helpActions, continuousCreationActions } from '../components/menuBar/menuActions';
+
+/* cspell:ignore moodboard */
 
 /**
  * File Menu Configuration
@@ -217,7 +219,7 @@ const editMenuConfig: MenuConfig = {
       type: 'action',
       enabled: (state) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = state.selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       },
       visible: true,
@@ -232,7 +234,7 @@ const editMenuConfig: MenuConfig = {
       type: 'action',
       enabled: (state) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = state.selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       },
       visible: true,
@@ -429,6 +431,16 @@ const projectMenuConfig: MenuConfig = {
       icon: 'image',
       description: 'Asset library',
       action: projectActions.assets,
+    },
+    {
+      id: 'moodboard',
+      label: 'project.moodboard',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: (state) => state.project !== null,
+      icon: 'palette',
+      description: 'Project Moodboard & Vision',
+      action: projectActions.moodboard,
     },
   ],
 };
@@ -679,6 +691,16 @@ const toolsMenuConfig: MenuConfig = {
       action: toolsActions.comfyuiServer,
     },
     {
+      id: 'ai-enhancement-suite',
+      label: 'tools.aiEnhancementSuite',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'sparkles',
+      description: 'AI Enhancement Suite - Virtual Try-On, Skin Enhancement, and more',
+      action: toolsActions.aiEnhancementSuite,
+    },
+    {
       id: 'ttt-lrm-reconstruction',
       label: 'tools.tttLRM',
       type: 'action',
@@ -765,6 +787,26 @@ const toolsMenuConfig: MenuConfig = {
       icon: 'globe',
       description: 'Project Translator - Local AI Translation Engine',
       action: toolsActions.projectTranslator,
+    },
+    {
+      id: 'video-publisher',
+      label: 'tools.videoPublisher',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'share-2',
+      description: 'Video Multi-Publisher - Post to YouTube, TikTok, Reels, etc.',
+      action: toolsActions.videoPublisher,
+    },
+    {
+      id: 'compute-marketplace',
+      label: 'tools.computeMarketplace',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'cpu',
+      description: 'Compute Marketplace (P2P) - Network status and Active Escrows',
+      action: toolsActions.computeMarketplace,
     },
   ],
 };
@@ -863,7 +905,7 @@ export function getMenuById(menuId: string): MenuConfig | undefined {
 /**
  * Get menu item by ID (searches all menus)
  */
-export function getMenuItemById(itemId: string): { menu: MenuConfig; item: unknown } | undefined {
+export function getMenuItemById(itemId: string): { menu: MenuConfig; item: MenuItemConfig } | undefined {
   for (const menu of menuBarConfig) {
     const item = findMenuItemRecursive(menu.items, itemId);
     if (item) {
@@ -876,7 +918,7 @@ export function getMenuItemById(itemId: string): { menu: MenuConfig; item: unkno
 /**
  * Recursively find menu item by ID
  */
-function findMenuItemRecursive(items: unknown[], itemId: string): unknown {
+function findMenuItemRecursive(items: MenuItemConfig[], itemId: string): MenuItemConfig | undefined {
   for (const item of items) {
     if (item.id === itemId) {
       return item;

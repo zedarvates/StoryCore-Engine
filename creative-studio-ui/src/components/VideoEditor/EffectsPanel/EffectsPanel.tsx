@@ -1,46 +1,88 @@
 /**
  * Effects Panel Component
- * Color correction and filter controls
+ * Color correction, filter controls, and AI enhancements
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useVideoEditor } from '../../../contexts/VideoEditorContext';
-import { ColorCorrection, VideoFilter, Clip } from '../../../types/video-editor';
+import { ColorCorrection, VideoFilter, VideoClip, FilterType } from '../../../types/video-editor';
 import './EffectsPanel.css';
 
+const SliderControl: React.FC<{
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}> = ({ label, value, min, max, onChange }) => (
+  <div className="slider-control">
+    <div className="slider-header">
+      <span className="slider-label">{label}</span>
+      <span className="slider-value">{value > 0 ? '+' : ''}{value}</span>
+    </div>
+    <label className="sr-only" htmlFor={`slider-${label}`}>{label}</label>
+    <input
+      id={`slider-${label}`}
+      type="range"
+      className="slider-input"
+      min={min}
+      max={max}
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number.parseFloat(e.target.value))}
+      aria-label={label}
+    />
+  </div>
+);
+
 const PRESET_FILTERS: { id: VideoFilter; name: string; icon: string }[] = [
-  { id: 'none', name: 'None', icon: '○' },
-  { id: 'black_white', name: 'Grayscale', icon: '⬛' },
-  { id: 'sepia', name: 'Sepia', icon: '🟤' },
-  { id: 'vintage', name: 'Vintage', icon: '📷' },
-  { id: 'vignette', name: 'Vignette', icon: '🔘' },
-  { id: 'blur', name: 'Blur', icon: '💧' },
-  { id: 'sharpen', name: 'Sharpen', icon: '🔪' },
-  { id: 'warm', name: 'Warm', icon: '🔥' },
-  { id: 'cool', name: 'Cool', icon: '❄️' },
-  { id: 'dramatic', name: 'Dramatic', icon: '🎭' },
+  { id: FilterType.NONE, name: 'None', icon: '○' },
+  { id: FilterType.BLACK_WHITE, name: 'Grayscale', icon: '⬛' },
+  { id: FilterType.SEPIA, name: 'Sepia', icon: '🟤' },
+  { id: FilterType.VINTAGE, name: 'Vintage', icon: '📷' },
+  { id: FilterType.VIGNETTE, name: 'Vignette', icon: '🔘' },
+  { id: FilterType.BLUR, name: 'Blur', icon: '💧' },
+  { id: FilterType.SHARPEN, name: 'Sharpen', icon: '🔪' },
+  { id: FilterType.WARM, name: 'Warm', icon: '🔥' },
+  { id: FilterType.COOL, name: 'Cool', icon: '❄️' },
+  { id: FilterType.DRAMATIC, name: 'Dramatic', icon: '🎭' },
+];
+
+const CINEMATIC_PRESETS = [
+  { id: 'teal_orange', name: 'Teal & Orange', icon: '🎨', correction: { brightness: 0, contrast: 15, saturation: 10, temperature: -10, tint: 5, exposure: 0, highlights: 5, shadows: -10, whites: 5, blacks: -5, gamma: 0, hue: 0 } },
+  { id: 'cyberpunk', name: 'Cyberpunk', icon: '⚡', correction: { brightness: 5, contrast: 20, saturation: 30, temperature: -20, tint: 40, exposure: 0, highlights: 15, shadows: -5, whites: 10, blacks: 0, gamma: 0, hue: 0 } },
+  { id: 'noir', name: 'Film Noir', icon: '📼', correction: { brightness: -10, contrast: 40, saturation: -100, temperature: 0, tint: 0, exposure: -5, highlights: 20, shadows: -30, whites: 10, blacks: -15, gamma: 0, hue: 0 } },
+  { id: 'dreamy', name: 'Dreamy', icon: '☁️', correction: { brightness: 10, contrast: -10, saturation: 10, temperature: 5, tint: 10, exposure: 5, highlights: 20, shadows: 10, whites: 15, blacks: 5, gamma: 5, hue: 0 } },
 ];
 
 export const EffectsPanel: React.FC = () => {
   const { clips, selectedClipIds, updateClip } = useVideoEditor();
-  const [activeTab, setActiveTab] = useState<'color' | 'filters'>('color');
+  const [activeTab, setActiveTab] = useState<'color' | 'filters' | 'ai'>('color');
+  const [activeSubTab, setActiveSubTab] = useState<'basic' | 'presets'>('basic');
 
-  const selectedClip = clips.find((c: string) => selectedClipIds.includes(c));
-  const corrections = selectedClip?.corrections || {
+  const selectedClip = useMemo(() => 
+    clips.find((c) => selectedClipIds.includes(c.id)) as VideoClip | undefined
+  , [clips, selectedClipIds]);
+
+  const corrections = useMemo(() => selectedClip?.colorCorrection || {
     brightness: 0,
     contrast: 0,
     saturation: 0,
     temperature: 0,
     tint: 0,
-    shadows: 0,
+    exposure: 0,
     highlights: 0,
-  };
+    shadows: 0,
+    whites: 0,
+    blacks: 0,
+    gamma: 0,
+    hue: 0
+  }, [selectedClip]);
 
   const handleCorrectionChange = useCallback(
     (key: keyof ColorCorrection, value: number) => {
       if (!selectedClip) return;
       updateClip(selectedClip.id, {
-        corrections: { ...corrections, [key]: value },
+        colorCorrection: { ...corrections, [key]: value },
       });
     },
     [selectedClip, corrections, updateClip]
@@ -50,7 +92,7 @@ export const EffectsPanel: React.FC = () => {
     (filterId: VideoFilter) => {
       if (!selectedClip) return;
       updateClip(selectedClip.id, {
-        filter: filterId,
+        filters: [{ id: 'filter-1', type: filterId, intensity: 1 }],
       });
     },
     [selectedClip, updateClip]
@@ -59,44 +101,24 @@ export const EffectsPanel: React.FC = () => {
   const handleReset = useCallback(() => {
     if (!selectedClip) return;
     updateClip(selectedClip.id, {
-      corrections: {
+      colorCorrection: {
         brightness: 0,
         contrast: 0,
         saturation: 0,
         temperature: 0,
         tint: 0,
-        shadows: 0,
+        exposure: 0,
         highlights: 0,
+        shadows: 0,
+        whites: 0,
+        blacks: 0,
+        gamma: 0,
+        hue: 0
       },
-      filter: 'none',
+      filters: [],
+      aiEnhancement: undefined
     });
   }, [selectedClip, updateClip]);
-
-  const SliderControl: React.FC<{
-    label: string;
-    value: number;
-    min: number;
-    max: number;
-    onChange: (value: number) => void;
-  }> = ({ label, value, min, max, onChange }) => (
-    <div className="slider-control">
-      <div className="slider-header">
-        <span className="slider-label">{label}</span>
-        <span className="slider-value">{value > 0 ? '+' : ''}{value}</span>
-      </div>
-      <label className="sr-only" htmlFor={`slider-${label}`}>{label}</label>
-      <input
-        id={`slider-${label}`}
-        type="range"
-        className="slider-input"
-        min={min}
-        max={max}
-        value={value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(Number.parseFloat(e.target.value))}
-        aria-label={label}
-      />
-    </div>
-  );
 
   return (
     <div className="effects-panel">
@@ -120,7 +142,30 @@ export const EffectsPanel: React.FC = () => {
         >
           Filters
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'ai' ? 'active' : ''}`}
+          onClick={() => setActiveTab('ai')}
+        >
+          AI ✨
+        </button>
       </div>
+
+      {activeTab === 'color' && (
+        <div className="sub-tabs">
+          <button 
+            className={`sub-tab-btn ${activeSubTab === 'basic' ? 'active' : ''}`}
+            onClick={() => setActiveSubTab('basic')}
+          >
+            Basic
+          </button>
+          <button 
+            className={`sub-tab-btn ${activeSubTab === 'presets' ? 'active' : ''}`}
+            onClick={() => setActiveSubTab('presets')}
+          >
+            Cinematic Presets
+          </button>
+        </div>
+      )}
 
       {!selectedClip ? (
         <div className="panel-empty">
@@ -128,7 +173,7 @@ export const EffectsPanel: React.FC = () => {
         </div>
       ) : (
         <div className="panel-content">
-          {activeTab === 'color' && (
+          {activeTab === 'color' && activeSubTab === 'basic' && (
             <div className="color-corrections">
               <SliderControl
                 label="Brightness"
@@ -182,19 +227,188 @@ export const EffectsPanel: React.FC = () => {
             </div>
           )}
 
+          {activeTab === 'color' && activeSubTab === 'presets' && (
+            <div className="color-presets-grid">
+              {CINEMATIC_PRESETS.map((preset) => (
+                <button
+                  key={preset.id}
+                  className="preset-card"
+                  onClick={() => {
+                    if (!selectedClip) return;
+                    updateClip(selectedClip.id, {
+                      colorCorrection: preset.correction,
+                    });
+                  }}
+                >
+                  <div className="preset-icon">{preset.icon}</div>
+                  <div className="preset-name">{preset.name}</div>
+                </button>
+              ))}
+            </div>
+          )}
+
           {activeTab === 'filters' && (
             <div className="filter-presets">
               <div className="filter-grid">
                 {PRESET_FILTERS.map((filter) => (
                   <button
                     key={filter.id}
-                    className={`filter-btn ${selectedClip.filter === filter.id ? 'active' : ''}`}
+                    className={`filter-btn ${selectedClip.filters?.[0]?.type === filter.id ? 'active' : ''}`}
                     onClick={() => handleFilterChange(filter.id)}
                   >
                     <span className="filter-icon">{filter.icon}</span>
                     <span className="filter-name">{filter.name}</span>
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'ai' && (
+            <div className="ai-enhancements">
+              <div className="ai-section">
+                <h4>✨ Skin Enhancer</h4>
+                <div className="toggle-row">
+                  <label>Enabled</label>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedClip.aiEnhancement?.skinEnhancer?.enabled || false}
+                    onChange={(e) => {
+                      const settings = selectedClip.aiEnhancement || {};
+                      updateClip(selectedClip.id, {
+                        aiEnhancement: {
+                          ...settings,
+                          skinEnhancer: {
+                            enabled: e.target.checked,
+                            smoothing: settings.skinEnhancer?.smoothing ?? 50,
+                            preserveTexture: settings.skinEnhancer?.preserveTexture ?? true,
+                            removeBlemishes: settings.skinEnhancer?.removeBlemishes ?? true
+                          }
+                        }
+                      });
+                    }}
+                  />
+                </div>
+                {selectedClip.aiEnhancement?.skinEnhancer?.enabled && (
+                  <div className="ai-controls">
+                    <SliderControl
+                      label="Smoothing"
+                      value={selectedClip.aiEnhancement?.skinEnhancer?.smoothing || 50}
+                      min={0}
+                      max={100}
+                      onChange={(v) => {
+                        const settings = selectedClip.aiEnhancement || {};
+                        updateClip(selectedClip.id, {
+                          aiEnhancement: {
+                            ...settings,
+                            skinEnhancer: {
+                              enabled: settings.skinEnhancer?.enabled ?? true,
+                              preserveTexture: settings.skinEnhancer?.preserveTexture ?? true,
+                              removeBlemishes: settings.skinEnhancer?.removeBlemishes ?? true,
+                              smoothing: v
+                            }
+                          }
+                        });
+                      }}
+                    />
+                    <div className="toggle-row">
+                      <label>Preserve Texture</label>
+                      <input 
+                        type="checkbox" 
+                        checked={selectedClip.aiEnhancement?.skinEnhancer?.preserveTexture ?? true}
+                        onChange={(e) => {
+                          const settings = selectedClip.aiEnhancement || {};
+                          updateClip(selectedClip.id, {
+                            aiEnhancement: {
+                              ...settings,
+                              skinEnhancer: {
+                                enabled: settings.skinEnhancer?.enabled ?? true,
+                                smoothing: settings.skinEnhancer?.smoothing ?? 50,
+                                removeBlemishes: settings.skinEnhancer?.removeBlemishes ?? true,
+                                preserveTexture: e.target.checked
+                              }
+                            }
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="ai-divider" />
+
+              <div className="ai-section">
+                <h4>💡 Relighting</h4>
+                <div className="toggle-row">
+                  <label>Enabled</label>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedClip.aiEnhancement?.relighting?.enabled || false}
+                    onChange={(e) => {
+                      const settings = selectedClip.aiEnhancement || {};
+                      updateClip(selectedClip.id, {
+                        aiEnhancement: {
+                          ...settings,
+                          relighting: {
+                            enabled: e.target.checked,
+                            type: settings.relighting?.type ?? 'natural',
+                            intensity: settings.relighting?.intensity ?? 100
+                          }
+                        }
+                      });
+                    }}
+                  />
+                </div>
+                {selectedClip.aiEnhancement?.relighting?.enabled && (
+                  <div className="ai-controls">
+                    <div className="control-row">
+                      <label>Type</label>
+                      <select 
+                        className="ai-select"
+                        value={selectedClip.aiEnhancement?.relighting?.type || 'natural'}
+                        onChange={(e) => {
+                          const settings = selectedClip.aiEnhancement || {};
+                          updateClip(selectedClip.id, {
+                            aiEnhancement: {
+                              ...settings,
+                              relighting: {
+                                enabled: settings.relighting?.enabled ?? true,
+                                intensity: settings.relighting?.intensity ?? 100,
+                                type: e.target.value
+                              }
+                            }
+                          });
+                        }}
+                      >
+                        <option value="natural">Natural</option>
+                        <option value="studio">Studio</option>
+                        <option value="cinematic">Cinematic</option>
+                        <option value="dramatic">Dramatic</option>
+                        <option value="golden_hour">Golden Hour</option>
+                      </select>
+                    </div>
+                    <SliderControl
+                      label="Intensity"
+                      value={selectedClip.aiEnhancement?.relighting?.intensity || 100}
+                      min={0}
+                      max={200}
+                      onChange={(v) => {
+                        const settings = selectedClip.aiEnhancement || {};
+                        updateClip(selectedClip.id, {
+                          aiEnhancement: {
+                            ...settings,
+                            relighting: {
+                              enabled: settings.relighting?.enabled ?? true,
+                              type: settings.relighting?.type ?? 'natural',
+                              intensity: v
+                            }
+                          }
+                        });
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -205,4 +419,3 @@ export const EffectsPanel: React.FC = () => {
 };
 
 export default EffectsPanel;
-

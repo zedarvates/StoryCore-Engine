@@ -17,6 +17,7 @@ import { WorkflowOrchestrator } from '@/services/WorkflowOrchestrator';
 import { cn } from '@/lib/utils';
 import { FolderOpen, Settings, Image } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AgentFloatingControlBar } from '@/components/ui/AgentFloatingControlBar';
 
 interface MainLayoutProps {
   children?: React.ReactNode;
@@ -28,6 +29,23 @@ type ViewType = 'dashboard' | 'projects' | 'wizards' | 'media' | 'settings' | 'a
 export function MainLayout({ children, className }: MainLayoutProps) {
   const [activeView, setActiveView] = useState<ViewType>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showFloatingBar, setShowFloatingBar] = useState(true);
+  const [agentChatOpen, setAgentChatOpen] = useState(false);
+
+  // When agent chat toggle is hit, fire event to open/close LandingChatBox
+  useEffect(() => {
+    if (agentChatOpen) {
+      window.dispatchEvent(new CustomEvent('storycore:open-chatbox'));
+    } else {
+      window.dispatchEvent(new CustomEvent('storycore:close-chatbox'));
+    }
+  }, [agentChatOpen]);
+
+  // Screen capture relay: fires into LandingChatBox
+  const handleAgentScreenCapture = () => {
+    window.dispatchEvent(new CustomEvent('storycore:trigger-screen-capture'));
+  };
+
 
   // Initialize Workflow Orchestrator
   useEffect(() => {
@@ -142,7 +160,7 @@ export function MainLayout({ children, className }: MainLayoutProps) {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Header Bar */}
         <header className="h-20 border-b border-border flex flex-col justify-center bg-background">
           <div className="flex items-center justify-between px-4 h-10">
@@ -179,6 +197,26 @@ export function MainLayout({ children, className }: MainLayoutProps) {
             </motion.div>
           </AnimatePresence>
         </main>
+
+        {/* Floating Agent Control Bar (LiveKit-style) */}
+        <AnimatePresence>
+          {showFloatingBar && (
+            <motion.div
+              key="agent-floating-bar"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50"
+            >
+              <AgentFloatingControlBar
+                onScreenCapture={handleAgentScreenCapture}
+                onToggleChat={() => setAgentChatOpen(prev => !prev)}
+                onEndCall={() => setShowFloatingBar(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Toast Notifications */}

@@ -20,6 +20,7 @@ import {
   AVAILABLE_EFFECTS,
   selectShotEffects
 } from '../../store/slices/effectsSlice';
+import { addPreset } from '../../store/slices/presetsSlice';
 import './effectsPanel.css';
 
 // =============================================================================
@@ -183,7 +184,10 @@ export const EffectsPanel: React.FC = () => {
               onClick={() => handleApplyEffect(effect.id)}
               title={effect.description}
             >
-              <span className="effect-icon">{effect.icon}</span>
+              <div className={`effect-preview preview-${effect.id}`}>
+                <span className="effect-icon-large">{effect.icon}</span>
+                <div className="effect-overlay" />
+              </div>
               <span className="effect-name">{effect.name}</span>
               {isApplied && <span className="applied-badge">✓</span>}
             </button>
@@ -245,9 +249,27 @@ export const EffectsPanel: React.FC = () => {
             );
           })}
           
-          <button className="save-effects-btn" onClick={handleSaveEffects}>
-            Apply Effects
-          </button>
+          <div className="effects-button-row">
+            <button className="save-effects-btn" onClick={handleSaveEffects}>
+              Apply Changes
+            </button>
+            <button 
+              className="save-preset-btn" 
+              onClick={() => {
+                const name = window.prompt('Enter a name for this effects preset:');
+                if (name) {
+                  dispatch(addPreset({
+                    name,
+                    type: 'effects',
+                    data: appliedEffects
+                  }));
+                }
+              }}
+              title="Save current effects as a reusable preset"
+            >
+              💾 Save Preset
+            </button>
+          </div>
         </div>
       )}
     </div>

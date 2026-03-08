@@ -33,6 +33,7 @@ export interface CharacterWizardProps {
   onCancel: () => void;
   worldContext?: World;
   initialData?: Partial<Character>;
+  initialImage?: File;
 }
 
 export function CharacterWizard({
@@ -40,10 +41,11 @@ export function CharacterWizard({
   onCancel,
   worldContext,
   initialData,
+  initialImage,
 }: CharacterWizardProps) {
   // State
   const [currentStep, setCurrentStep] = useState(1);
-  const [creationMethod, setCreationMethod] = useState<'manual' | 'vision' | null>(null);
+  const [creationMethod, setCreationMethod] = useState<'manual' | 'vision' | null>(initialImage ? 'vision' : null);
   const [data, setData] = useState<Partial<Character>>(initialData || createEmptyCharacter());
   const [lastSaved, setLastSaved] = useState<Date | undefined>();
 

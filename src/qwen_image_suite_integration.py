@@ -70,6 +70,13 @@ class EditingMode(Enum):
     LAYERED_GENERATION = "layered_generation"
     MATERIAL_TRANSFER = "material_transfer"
     LIGHTNING_FAST = "lightning_fast"
+    SKIN_ENHANCE = "skin_enhance"
+    AI_STYLIST = "ai_stylist"
+    OUTFIT_CHANGER = "outfit_changer"
+    STYLE_SNAP = "style_snap"
+    FACE_IDENTITY = "face_identity"
+    CLOTHES_SWAPPER = "clothes_swapper"
+    INFOGRAPHICS_GENERATOR = "infographics_generator"
 
 
 class LightingType(Enum):
@@ -84,6 +91,8 @@ class LightingType(Enum):
     NEON = "neon"
     CANDLELIGHT = "candlelight"
     MOONLIGHT = "moonlight"
+    CINEMATIC = "cinematic"
+    STUDIO_THREE_POINT = "studio_three_point"
 
 
 class LayerType(Enum):
@@ -157,6 +166,30 @@ class LightingCondition:
     shadows: bool = True
     highlights: bool = True
     ambient_strength: float = 0.3
+
+@dataclass
+class LightSource:
+    """Individual light source for advanced multi-point lighting"""
+    light_type: str = "point" # point, spot, area, directional
+    position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    rotation: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    color: Tuple[int, int, int] = (255, 255, 255)
+    intensity: float = 1.0
+    shadow_enabled: bool = True
+    shadow_softness: float = 0.5
+    ies_profile: Optional[str] = None
+
+@dataclass
+class AdvancedRelightConfig:
+    """Advanced relighting configuration with multi-source support"""
+    multi_light_sources: bool = True
+    max_lights: int = 4
+    light_shapes: List[str] = field(default_factory=lambda: ["point", "spot", "area", "directional"])
+    ies_profiles: bool = True
+    hdri_environment: bool = True
+    shadow_softness_control: bool = True
+    volumetric_lighting: bool = False
+    lights: List[LightSource] = field(default_factory=list)
 
 
 @dataclass
@@ -251,6 +284,63 @@ class QwenImageSuiteIntegration:
         }
         
         self.logger.info("Qwen Image Suite Integration initialized successfully")
+        
+        # Initialize sub-modules
+        try:
+            from src.image_enhancement.skin_enhancer import SkinEnhancerEngine
+            self.skin_enhancer = SkinEnhancerEngine()
+        except ImportError:
+            self.logger.warning("SkinEnhancerEngine module not found, using internal mock")
+            self.skin_enhancer = None
+
+        try:
+            from src.ai_stylist.stylist_engine import AIStylistEngine
+            self.ai_stylist = AIStylistEngine()
+        except ImportError:
+            self.logger.warning("AIStylistEngine module not found, using internal mock")
+            self.ai_stylist = None
+
+        try:
+            from src.image_enhancement.face_identity import FaceIdentityEngine
+            self.face_identity = FaceIdentityEngine()
+        except ImportError:
+            self.logger.warning("FaceIdentityEngine module not found, using internal mock")
+            self.face_identity = None
+
+        try:
+            from src.image_enhancement.outfit_changer import OutfitChangerEngine
+            self.outfit_changer = OutfitChangerEngine()
+        except ImportError:
+            self.logger.warning("OutfitChanger module not found, using internal mock")
+            self.outfit_changer = None
+
+        try:
+            from src.image_enhancement.style_snap import StyleSnapEngine
+            self.style_snap = StyleSnapEngine()
+        except ImportError:
+            self.logger.warning("StyleSnap module not found, using internal mock")
+            self.style_snap = None
+
+        try:
+            from src.image_enhancement.relight_engine import AdvancedRelightEngine
+            self.relight_engine = AdvancedRelightEngine()
+        except ImportError:
+            self.logger.warning("AdvancedRelightEngine module not found, using internal mock")
+            self.relight_engine = None
+
+        try:
+            from src.image_enhancement.clothes_swapper import ClothesSwapperEngine
+            self.clothes_swapper = ClothesSwapperEngine()
+        except ImportError:
+            self.logger.warning("ClothesSwapperEngine module not found, using internal mock")
+            self.clothes_swapper = None
+
+        try:
+            from src.image_enhancement.infographics_generator import InfographicsGeneratorEngine
+            self.infographics_generator = InfographicsGeneratorEngine()
+        except ImportError:
+            self.logger.warning("InfographicsGeneratorEngine module not found, using internal mock")
+            self.infographics_generator = None
     
     def _create_lighting_presets(self) -> Dict[LightingType, LightingCondition]:
         """Create predefined lighting conditions"""
@@ -294,6 +384,22 @@ class QwenImageSuiteIntegration:
                 direction=(0.2, 0.8, 0.4),
                 softness=0.9,
                 ambient_strength=0.6
+            ),
+            LightingType.CINEMATIC: LightingCondition(
+                lighting_type=LightingType.CINEMATIC,
+                intensity=1.1,
+                color_temperature=6500,
+                direction=(-0.5, 0.8, 0.3),
+                softness=0.4,
+                ambient_strength=0.2
+            ),
+            LightingType.DRAMATIC: LightingCondition(
+                lighting_type=LightingType.DRAMATIC,
+                intensity=1.8,
+                color_temperature=4500,
+                direction=(1.0, 0.2, 0.2),
+                softness=0.1,
+                ambient_strength=0.05
             )
         }
     
@@ -345,6 +451,36 @@ class QwenImageSuiteIntegration:
                 'guidance_scale': self.config.guidance_scale
             }
             
+            # Use AdvancedRelightEngine if multiple sources or specific config provided
+            if 'advanced_config' in kwargs or isinstance(lighting_condition, LightingCondition):
+                if self.relight_engine:
+                    from src.image_enhancement.relight_engine import LightSource as RS_LightSource
+                    adv_lights = []
+                    
+                    if 'advanced_config' in kwargs:
+                        adv_cfg = kwargs['advanced_config']
+                        if hasattr(adv_cfg, 'lights'):
+                            for l in adv_cfg.lights:
+                                adv_lights.append(RS_LightSource(l.light_type, l.position, l.rotation, l.color, l.intensity))
+                    else:
+                        # Convert standard condition to single light source for the engine
+                        adv_lights.append(RS_LightSource(
+                            light_type="directional", 
+                            position=lighting_condition.direction, 
+                            intensity=lighting_condition.intensity
+                        ))
+                    
+                    adv_res = await self.relight_engine.apply_lighting(image, adv_lights)
+                    if adv_res.success:
+                        return EditingResult(
+                            success=True,
+                            image=adv_res.image,
+                            metadata={'applied_lights': adv_res.applied_lights},
+                            quality_score=adv_res.quality_score,
+                            processing_time=adv_res.processing_time,
+                            editing_mode=EditingMode.RELIGHT
+                        )
+
             # Mock image processing (replace with actual ComfyUI workflow)
             processed_image = await self._mock_relight_processing(image, relight_params)
             
@@ -716,6 +852,178 @@ class QwenImageSuiteIntegration:
                 editing_mode=EditingMode.LIGHTNING_FAST,
                 error_message=error_msg
             )
+
+    async def skin_enhance(
+        self,
+        image: PIL_Image,
+        config: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> EditingResult:
+        """
+        Enhance skin details using the specialized SkinEnhancer module.
+        """
+        if not self.skin_enhancer:
+            return EditingResult(success=False, error_message="SkinEnhancerEngine not initialized")
+
+        res = await self.skin_enhancer.enhance(image, config)
+        
+        return EditingResult(
+            success=res.success,
+            image=res.image,
+            metadata={
+                "quality_metrics": res.quality_score,
+                "processing_time": res.processing_time,
+                "mask_areas": res.mask_areas
+            },
+            quality_score=res.quality_score,
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.SKIN_ENHANCE,
+            error_message=res.error_message
+        )
+
+    async def ai_style_assist(
+        self,
+        image: PIL_Image,
+        context: Optional[Dict[str, Any]] = None,
+        **kwargs
+    ) -> EditingResult:
+        """
+        Analyze style and get suggestions from AI Stylist.
+        """
+        if not self.ai_stylist:
+            return EditingResult(success=False, error_message="AIStylistEngine not initialized")
+
+        res = await self.ai_stylist.analyze_and_suggest(image, context)
+        
+        return EditingResult(
+            success=res.success,
+            metadata={
+                "suggestions": [str(s) for s in res.suggestions],
+                "style_analysis": res.style_analysis
+            },
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.AI_STYLIST,
+            error_message=res.error_message
+        )
+
+    async def face_identity_preserve(
+        self,
+        image: PIL_Image,
+        identity_id: str,
+        strength: float = 0.9,
+        **kwargs
+    ) -> EditingResult:
+        """
+        Preserve character identity in a generated image.
+        """
+        if not self.face_identity:
+            return EditingResult(success=False, error_message="FaceIdentityEngine not initialized")
+
+        res = await self.face_identity.apply_identity(image, identity_id, strength)
+        
+        return EditingResult(
+            success=res.success,
+            image=res.image,
+            metadata={
+                "match_score": res.match_score,
+                "modifications": res.modifications
+            },
+            quality_score=res.match_score,
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.FACE_IDENTITY,
+            error_message=res.error_message
+        )
+
+    async def change_outfit(
+        self,
+        image: PIL_Image,
+        outfit_data: List[Any],
+        **kwargs
+    ) -> EditingResult:
+        """
+        Change outfits/clothing items in the image.
+        """
+        if not self.outfit_changer:
+            return EditingResult(success=False, error_message="OutfitChangerEngine not initialized")
+
+        res = await self.outfit_changer.change_outfit(image, outfit_data)
+        
+        return EditingResult(
+            success=res.success,
+            image=res.image,
+            quality_score=res.quality_score,
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.OUTFIT_CHANGER,
+            error_message=res.error_message
+        )
+
+    async def transfer_style_snap(
+        self,
+        source_image: PIL_Image,
+        reference_image: PIL_Image,
+        **kwargs
+    ) -> EditingResult:
+        """
+        Transfer style from reference image to source image.
+        """
+        if not self.style_snap:
+            return EditingResult(success=False, error_message="StyleSnapEngine not initialized")
+
+        res = await self.style_snap.transfer_style(source_image, reference_image)
+        
+        return EditingResult(
+            success=res.success,
+            image=res.image,
+            metadata={"extracted_style": res.extracted_style.__dict__ if res.extracted_style else None},
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.STYLE_SNAP,
+            error_message=res.error_message
+        )
+
+    async def swap_clothes_specialized(
+        self,
+        person_image: PIL_Image,
+        garment_image: PIL_Image,
+        **kwargs
+    ) -> EditingResult:
+        """
+        Perform specialized garment transfer.
+        """
+        if not self.clothes_swapper:
+            return EditingResult(success=False, error_message="ClothesSwapperEngine not initialized")
+
+        res = await self.clothes_swapper.swap_clothes(person_image, garment_image)
+        
+        return EditingResult(
+            success=res.success,
+            image=res.result_image,
+            quality_score=res.quality_score,
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.CLOTHES_SWAPPER,
+            error_message=res.error_message
+        )
+
+    async def generate_infographics(
+        self,
+        data_visualizations: List[Any],
+        background_prompt: Optional[str] = None,
+        **kwargs
+    ) -> EditingResult:
+        """
+        Generate automated infographics from data.
+        """
+        if not self.infographics_generator:
+            return EditingResult(success=False, error_message="InfographicsGeneratorEngine not initialized")
+
+        res = await self.infographics_generator.generate_infographic(data_visualizations, background_prompt)
+        
+        return EditingResult(
+            success=res.success,
+            metadata={"components": res.components_meta},
+            processing_time=res.processing_time,
+            editing_mode=EditingMode.INFOGRAPHICS_GENERATOR,
+            error_message=res.error_message
+        )
     
     def _get_steps_for_quality(self, quality: EditingQuality) -> int:
         """Get number of steps for quality level"""

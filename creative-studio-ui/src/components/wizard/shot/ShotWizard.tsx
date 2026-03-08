@@ -1,10 +1,11 @@
+/* cSpell:ignore steadicam, spatialization, euler */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import { WizardStep } from '@/types/wizard';
 import { ShotWizardState } from '@/types/wizard';
 import { ShotTemplate } from '@/types/template';
-import { ProductionShot, ShotType } from '@/types/shot';
+import { ProductionShot, ShotType, TransitionType } from '@/types/shot';
 import { ShotTypeSelector } from './ShotTypeSelector';
 import {
   CameraAngleSelector,
@@ -14,6 +15,9 @@ import {
   TimeOfDaySelector,
   TransitionSelector,
 } from '@/components/assets/AssetSelector';
+import { PoseSelector } from '@/components/assets/PoseSelector';
+import { useCinematicVoiceCommands } from '@/hooks/useCinematicVoiceCommands';
+import { POSE_TEMPLATES } from '@/data/templates/poseTemplates';
 import {
   Camera,
   Layers,
@@ -28,6 +32,7 @@ import {
 import { templateManager } from '@/services/templateManager';
 import { draftStorage } from '@/services/draftStorage';
 import { aiShotCompositionService } from '@/services/aiShotCompositionService';
+import { dialogueService, Character } from '../../../services/dialogueService';
 import { Button } from '@/components/ui/button';
 import { Wand2, Loader2 } from 'lucide-react';
 
@@ -129,7 +134,7 @@ export function ShotWizard({
 
   const [wizardState, setWizardState] = useState<ShotWizardState>(() => ({
     currentStep: 0,
-    formData: existingShot ? { dialogues: [], ...existingShot } : { dialogues: [] },
+    formData: existingShot ? { ...existingShot } : { dialogues: [] },
     selectedTemplate: undefined,
     generatedPrompt: '',
     validationErrors: {},
@@ -143,6 +148,7 @@ export function ShotWizard({
     lastSaved: 0,
     quickMode,
   }));
+
 
   const [availableTemplates, setAvailableTemplates] = useState<ShotTemplate[]>([]);
   void availableTemplates; // Used in ShotTypeSelector step
@@ -161,8 +167,7 @@ export function ShotWizard({
       setIsGeneratingAI(true);
       const suggestion = await aiShotCompositionService.generateConfigWithAI(sceneDescription);
       
-      // Mapping AI suggestion to Wizard's ProductionShot format
-      const framingMap: Record<string, string> = {
+      const framingMap: Record<string, ShotType> = {
         'extreme_close_up': 'extreme-close-up',
         'close_up': 'close-up',
         'medium_close_up': 'close-up',
@@ -171,14 +176,14 @@ export function ShotWizard({
         'establishing': 'extreme-wide'
       };
 
-      const angleMap: Record<string, string> = {
+      const angleMap: Record<string, "low" | "eye-level" | "high" | "dutch" | "birds-eye" | "worms-eye"> = {
         'low_angle': 'low',
         'eye_level': 'eye-level',
         'high_angle': 'high',
         'dutch_angle': 'dutch'
       };
 
-      const movementMap: Record<string, string> = {
+      const movementMap: Record<string, "static" | "pan" | "tilt" | "dolly" | "tracking" | "crane" | "handheld" | "zoom"> = {
         'static': 'static',
         'pan': 'pan',
         'tilt': 'tilt',
@@ -189,31 +194,84 @@ export function ShotWizard({
 
       const updatedFormData = {
         ...wizardState.formData,
-        type: framingMap[suggestion.shotType] as any || wizardState.formData.type,
+        type: (framingMap[suggestion.shotType] || wizardState.formData.type) as ShotType,
         camera: {
           ...wizardState.formData.camera,
-          framing: framingMap[suggestion.shotType] as any || wizardState.formData.camera?.framing,
-          angle: angleMap[suggestion.cameraAngle] as any || wizardState.formData.camera?.angle,
+          framing: (framingMap[suggestion.shotType] || wizardState.formData.camera?.framing) as ShotType,
+          angle: (angleMap[suggestion.cameraAngle] || wizardState.formData.camera?.angle) as ProductionShot['camera']['angle'],
           movement: {
-            ...wizardState.formData.camera?.movement,
-            type: movementMap[suggestion.cameraMovement] as any || 'static'
+            ...(wizardState.formData.camera?.movement || { type: 'static' }),
+            type: (movementMap[suggestion.cameraMovement] || wizardState.formData.camera?.movement?.type || 'static') as ProductionShot['camera']['movement']['type']
           }
-        },
+        } as ProductionShot['camera'],
         composition: {
           ...wizardState.formData.composition,
+          characterIds: wizardState.formData.composition?.characterIds || [],
+          characterPositions: wizardState.formData.composition?.characterPositions || [],
+          props: wizardState.formData.composition?.props || [],
+          environmentId: wizardState.formData.composition?.environmentId || '',
+          timeOfDay: wizardState.formData.composition?.timeOfDay || '',
           lightingMood: suggestion.lightingStyle,
-        },
+        } as ProductionShot['composition'],
         notes: (wizardState.formData.notes || '') + (suggestion.reasoning ? `\n\nAI Reasoning: ${suggestion.reasoning}` : '')
       };
 
       setWizardState(prev => ({
         ...prev,
-        formData: updatedFormData as any,
+        formData: updatedFormData as ProductionShot,
         isDirty: true
       }));
 
     } catch (err) {
       console.error('AI suggestion failed:', err);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const handleGenerateDialogues = async () => {
+    try {
+      setIsGeneratingAI(true);
+      const chars = wizardState.formData.composition?.characterPositions.map(cp => ({
+        id: cp.characterId,
+        name: cp.characterId.split('-')[0],
+        voiceProfile: 'default',
+        personality: ['balanced']
+      })) || [];
+
+      if (chars.length === 0) return;
+
+      const dialogues = await dialogueService.generateDialogues(chars as Character[], {
+        topic: wizardState.formData.notes || 'A scene in the story',
+        length: 'short'
+      });
+
+      updateFormData({
+        dialogues: dialogues.map((d) => ({
+          id: d.id,
+          characterId: d.character,
+          text: d.text,
+          timing: { startTime: 0, duration: 3, emotionalTone: 'neutral' as const },
+          audio: { voiceId: 'default', pitch: 1, speed: 1, volume: 1, spatialization: { enabled: false, speakerAssignment: 'auto' as const, reverb: 0, delay: 0 } },
+          sapiGenerated: false
+        }))
+      });
+    } catch (err) {
+      console.error('Dialogue generation failed:', err);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const handleGeneratePrompt = async () => {
+    try {
+      setIsGeneratingAI(true);
+      const shot = wizardState.formData;
+      const charInfo = shot.composition?.characterPositions.map(cp => `${cp.characterId} in ${cp.pose} pose`).join(', ') || 'characters';
+      
+      const prompt = `Cinematic ${shot.type} shot, ${shot.camera?.angle} angle. ${charInfo}. ${shot.composition?.lightingMood} lighting, ${shot.composition?.timeOfDay}. High quality, detailed.`;
+      
+      updateGeneratedPrompt(prompt);
     } finally {
       setIsGeneratingAI(false);
     }
@@ -255,7 +313,6 @@ export function ShotWizard({
       if (existingShot) {
         // Editing existing shot
         initialState.formData = { 
-          dialogues: [],
           ...existingShot 
         };
         initialState.currentStep = 0; // Start at first step for review
@@ -278,10 +335,10 @@ export function ShotWizard({
 
       // Try to load draft if no existing shot
       if (!existingShot) {
-        const draftMetas = await draftStorage.listDrafts('shot');
-        if (draftMetas.length > 0) {
+        const draftList = await draftStorage.listDrafts('shot');
+        if (draftList.length > 0) {
           // Load the most recent draft
-          const mostRecentDraft = draftMetas[0];
+          const mostRecentDraft = draftList[0];
           const draftData = await draftStorage.loadDraft<ProductionShot>('shot', mostRecentDraft.id);
           if (draftData) {
             initialState.formData = { 
@@ -416,6 +473,92 @@ export function ShotWizard({
     }));
   }, []);
 
+  useCinematicVoiceCommands({
+    onSetCamera: useCallback((camera: string) => {
+      // Si la caméra est 'pov', on règle le type de plan sur 'pov'
+      if (camera.toLowerCase() === 'pov') {
+        updateFormData({ 
+          type: 'pov',
+          camera: {
+            ...wizardState.formData.camera!,
+            framing: 'medium', // Framing par défaut pour POV
+            movement: { type: 'handheld', speed: 'slow' }
+          }
+        });
+        console.info('Mode POV activé via commande vocale.');
+      }
+    }, [wizardState.formData, updateFormData]),
+    onSetPose: useCallback((target: string, poseName: string) => {
+      const composition = wizardState.formData.composition;
+      if (!composition || !composition.characterPositions) return;
+
+      // 1. Resolve target to index (P1, P2, P3... or index number)
+      let targetIdx = -1;
+      const t = target.toLowerCase();
+      
+      if (t === 'p1' || t === 'personnage 1') targetIdx = 0;
+      else if (t === 'p2' || t === 'personnage 2') targetIdx = 1;
+      else if (t === 'p3' || t === 'personnage 3') targetIdx = 2;
+      else if (t === 'p4' || t === 'personnage 4') targetIdx = 3;
+      else {
+        // Try to match by characterId
+        const matchById = composition.characterPositions.findIndex(cp => 
+          cp.characterId.toLowerCase().includes(t)
+        );
+        if (matchById !== -1) {
+          targetIdx = matchById;
+        } else {
+          const matchIdx = t.match(/\d+/);
+          if (matchIdx) targetIdx = parseInt(matchIdx[0], 10) - 1;
+        }
+      }
+
+      if (targetIdx < 0 || targetIdx >= composition.characterPositions.length) return;
+
+      // 2. Resolve poseName to poseId from POSE_TEMPLATES
+      const foundPose = POSE_TEMPLATES.find(p => 
+        p.id.toLowerCase().includes(poseName.toLowerCase()) || 
+        p.name.toLowerCase().includes(poseName.toLowerCase()) ||
+        p.tags.some(tag => tag.toLowerCase() === poseName.toLowerCase())
+      );
+
+      if (foundPose) {
+        const newPositions = [...composition.characterPositions];
+        newPositions[targetIdx] = { ...newPositions[targetIdx], pose: foundPose.id };
+        
+        updateFormData({
+          composition: {
+            ...composition,
+            characterPositions: newPositions,
+          } as ProductionShot['composition'],
+        });
+      }
+    }, [wizardState.formData, updateFormData]),
+
+    onRewind: useCallback(() => {
+      updateFormData({
+        timing: {
+          ...wizardState.formData.timing!,
+          transition: 'rewind',
+          transitionDuration: 15,
+        },
+        backgroundAudio: {
+          type: 'sound-effect',
+          assetId: 'sfx_rewind_tape',
+          volume: 0.8,
+          fadeIn: 0,
+          fadeOut: 0,
+          loop: false,
+        },
+      });
+      console.info('Effet Rewind appliqué via commande vocale.');
+    }, [wizardState.formData, updateFormData]),
+
+    onGenerateStory: handleAISuggest,
+    onGenerateDialogues: handleGenerateDialogues,
+    onGeneratePrompt: handleGeneratePrompt,
+  });
+
   const updateGeneratedPrompt = useCallback((prompt: string) => {
     setWizardState(prev => ({
       ...prev,
@@ -509,7 +652,7 @@ export function ShotWizard({
         generation: {
           ...wizardState.formData.generation,
           prompt: wizardState.generatedPrompt || wizardState.formData.generation?.prompt || '',
-        } as any,
+        } as ProductionShot['generation'],
         dialogues: wizardState.formData.dialogues || [],
         status: 'planned',
         thumbnailUrl: undefined,
@@ -683,9 +826,9 @@ export function ShotWizard({
                 onSelect={(asset) => {
                   updateFormData({
                     composition: {
-                      ...wizardState.formData.composition,
+                      ...wizardState.formData.composition!,
                       lightingMood: asset.id,
-                    } as any,
+                    },
                   });
                 }}
               />
@@ -695,9 +838,9 @@ export function ShotWizard({
                 onSelect={(asset) => {
                   updateFormData({
                     composition: {
-                      ...wizardState.formData.composition,
+                      ...wizardState.formData.composition!,
                       timeOfDay: asset.id,
-                    } as any,
+                    },
                   });
                 }}
               />
@@ -707,13 +850,51 @@ export function ShotWizard({
                 onSelect={(asset) => {
                   updateFormData({
                     composition: {
-                      ...wizardState.formData.composition,
+                      ...wizardState.formData.composition!,
                       lightingMood: asset.id,
-                    } as any,
+                    },
                   });
                 }}
                 className="md:col-span-2"
               />
+
+              <div className="md:col-span-2 p-4 border rounded-xl bg-primary/2 border-primary/10">
+                <h4 className="text-sm font-black uppercase tracking-widest text-primary mb-4">Character Layout & Poses</h4>
+                <div className="space-y-4">
+                  {(wizardState.formData.composition?.characterPositions || []).length > 0 ? (
+                    wizardState.formData.composition?.characterPositions.map((charPos, idx) => (
+                      <div key={idx} className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 bg-black/20 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center font-bold text-primary">
+                            P{idx + 1}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-white uppercase">Character {charPos.characterId.split('-')[0]}</p>
+                            <p className="text-[10px] text-primary/60">{charPos.position}</p>
+                          </div>
+                        </div>
+                        <PoseSelector
+                          selectedPoseId={charPos.pose}
+                          onSelect={(poseId: string) => {
+                            const newPositions = [...(wizardState.formData.composition?.characterPositions || [])];
+                            newPositions[idx] = { ...charPos, pose: poseId };
+                            updateFormData({
+                              composition: {
+                                ...wizardState.formData.composition!,
+                                characterPositions: newPositions,
+                              },
+                            });
+                          }}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 border-2 border-dashed border-primary/10 rounded-lg">
+                      <p className="text-xs text-primary/40 uppercase font-bold">No characters assigned to this shot composition</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -739,9 +920,9 @@ export function ShotWizard({
                 onSelect={(asset) => {
                   updateFormData({
                     camera: {
-                      ...wizardState.formData.camera,
-                      angle: asset.id as any,
-                    } as any,
+                      ...wizardState.formData.camera!,
+                      angle: asset.id as ProductionShot['camera']['angle'],
+                    },
                   });
                 }}
               />
@@ -753,9 +934,10 @@ export function ShotWizard({
                     camera: {
                       ...wizardState.formData.camera,
                       movement: {
-                        type: asset.id as any,
+                        ...(wizardState.formData.camera?.movement || { type: 'static' }),
+                        type: asset.id as ProductionShot['camera']['movement']['type'],
                       },
-                    } as any,
+                    } as ProductionShot['camera'],
                   });
                 }}
               />
@@ -793,7 +975,7 @@ export function ShotWizard({
                       timing: {
                         ...wizardState.formData.timing,
                         duration: parseInt(e.target.value) || 5,
-                      } as any,
+                      } as ProductionShot['timing'],
                     });
                   }}
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-700"
@@ -808,8 +990,8 @@ export function ShotWizard({
                   updateFormData({
                     timing: {
                       ...wizardState.formData.timing,
-                      transition: asset.id as any,
-                    } as any,
+                      transition: asset.id as TransitionType,
+                    } as ProductionShot['timing'],
                   });
                 }}
               />

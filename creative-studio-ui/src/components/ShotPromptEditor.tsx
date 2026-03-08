@@ -11,8 +11,10 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
-import { AlertCircle, CheckCircle, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle, AlertTriangle, Zap, Loader2, Undo2 } from 'lucide-react';
 import { validatePrompt } from '../utils/promptValidation';
+import { checkOllamaStatus } from '../services/ollamaConfig';
+import { promptOptimizer } from '../services/ai/PromptOptimizationService';
 import type { Shot, PromptValidation } from '../types/projectDashboard';
 
 // ============================================================================
@@ -57,6 +59,9 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
     validationError || null
   );
   const [isValidating, setIsValidating] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  const [previousPrompt, setPreviousPrompt] = useState<string | null>(null);
+  const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // ============================================================================
@@ -66,6 +71,15 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
   useEffect(() => {
     setLocalPrompt(prompt);
   }, [prompt]);
+
+  // Check Ollama status on mount
+  useEffect(() => {
+    async function checkOllama() {
+      const available = await checkOllamaStatus();
+      setIsOllamaAvailable(available);
+    }
+    checkOllama();
+  }, []);
 
   // ============================================================================
   // Validation Logic
@@ -104,6 +118,39 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
   // ============================================================================
   // Cleanup on unmount
   // ============================================================================
+
+  // ============================================================================
+  // Optimization Logic
+  // ============================================================================
+  
+  const handleOptimize = useCallback(async () => {
+    if (!localPrompt.trim() || isOptimizing) return;
+    
+    setPreviousPrompt(localPrompt);
+    setIsOptimizing(true);
+    try {
+      const optimized = await promptOptimizer.balancePrompt(localPrompt);
+      if (optimized && optimized !== localPrompt) {
+        setLocalPrompt(optimized);
+        onPromptChange(optimized);
+        performValidation(optimized);
+      }
+    } catch (error) {
+      console.error('Failed to optimize prompt:', error);
+      setPreviousPrompt(null);
+    } finally {
+      setIsOptimizing(false);
+    }
+  }, [localPrompt, isOptimizing, onPromptChange, performValidation]);
+
+  const handleUndo = useCallback(() => {
+    if (previousPrompt !== null) {
+      setLocalPrompt(previousPrompt);
+      onPromptChange(previousPrompt);
+      setPreviousPrompt(null);
+      performValidation(previousPrompt);
+    }
+  }, [previousPrompt, onPromptChange, performValidation]);
 
   useEffect(() => {
     return () => {
@@ -156,29 +203,55 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
           Shot Prompt
         </Label>
         
-        {/* Validation Status Badge */}
-        {validationState !== 'idle' && (
-          <div className="flex items-center gap-2" role="status" aria-live="polite">
-            {validationState === 'valid' && (
-              <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-600" aria-label="Prompt is valid">
-                <CheckCircle className="h-3 w-3" aria-hidden="true" />
-                Valid
-              </Badge>
-            )}
-            {validationState === 'invalid' && (
-              <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-600" aria-label="Prompt is invalid">
-                <AlertCircle className="h-3 w-3" aria-hidden="true" />
-                Invalid
-              </Badge>
-            )}
-            {validationState === 'warning' && (
-              <Badge variant="outline" className="flex items-center gap-1 text-yellow-600 border-yellow-600" aria-label="Prompt has warnings">
-                <AlertTriangle className="h-3 w-3" aria-hidden="true" />
-                Warning
-              </Badge>
-            )}
-          </div>
-        )}
+        {/* Validation Status Badge & Optimization Button */}
+        <div className="flex items-center gap-2" role="status" aria-live="polite">
+          <button
+            onClick={handleOptimize}
+            disabled={!localPrompt.trim() || isOptimizing || isOllamaAvailable === false}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+              isOptimizing 
+                ? 'bg-amber-100 text-amber-700 animate-pulse' 
+                : isOllamaAvailable === false
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed grayscale'
+                : 'bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200 shadow-sm'
+            }`}
+            title={isOllamaAvailable === false ? "Ollama non détecté (Service AI requis)" : "Optimiser avec GDPval (IA)"}
+          >
+            {isOptimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className={`h-3 w-3 ${isOllamaAvailable === false ? 'text-gray-400' : 'text-amber-500'}`} />}
+            Boost GDPval
+          </button>
+
+          {previousPrompt !== null && (
+            <button
+              onClick={handleUndo}
+              disabled={isOptimizing}
+              className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200 transition-all"
+              title="Annuler l'optimisation"
+            >
+              <Undo2 className="h-3 w-3" />
+              Undo
+            </button>
+          )}
+
+          {validationState === 'valid' && (
+            <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-600" aria-label="Prompt is valid">
+              <CheckCircle className="h-3 w-3" aria-hidden="true" />
+              Valid
+            </Badge>
+          )}
+          {validationState === 'invalid' && (
+            <Badge variant="outline" className="flex items-center gap-1 text-red-600 border-red-600" aria-label="Prompt is invalid">
+              <AlertCircle className="h-3 w-3" aria-hidden="true" />
+              Invalid
+            </Badge>
+          )}
+          {validationState === 'warning' && (
+            <Badge variant="outline" className="flex items-center gap-1 text-yellow-600 border-yellow-600" aria-label="Prompt has warnings">
+              <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+              Warning
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Textarea with Visual Indicators */}

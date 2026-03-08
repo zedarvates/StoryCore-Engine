@@ -1,6 +1,7 @@
-import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Environment } from '@react-three/drei';
+import React, { Suspense, useEffect } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
+import { OrbitControls, useGLTF, Environment, useTexture } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface FiberSceneViewProps {
   puppetPath?: string;
@@ -11,10 +12,48 @@ interface FiberSceneViewProps {
   cameraProps?: { position: { x: number; y: number; z: number }; fov: number };
 }
 
+const setLdrEnv = (scene: THREE.Scene, texture: THREE.Texture) => {
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.colorSpace = THREE.SRGBColorSpace;
+  scene.background = texture;
+  scene.environment = texture;
+};
+
+const clearLdrEnv = (scene: THREE.Scene) => {
+  scene.background = null;
+  scene.environment = null;
+};
+
+const LdrEnvironment = ({ url }: { url: string }) => {
+  const texture = useTexture(url);
+  const { scene } = useThree();
+
+  useEffect(() => {
+    setLdrEnv(scene, texture);
+
+    return () => {
+      clearLdrEnv(scene);
+    };
+  }, [texture, scene]);
+
+  return null;
+};
+
+const SkyboxEnvironment = ({ path }: { path: string }) => {
+  const fileUrl = `sc-file:///${path.replace(/\\/g, '/')}`;
+  const lowerUrl = fileUrl.toLowerCase();
+  
+  if (lowerUrl.endsWith('.png') || lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg')) {
+    return <LdrEnvironment url={fileUrl} />;
+  }
+  
+  return <Environment background files={fileUrl} />;
+};
+
 const PuppetModel = ({ url }: { url: string }) => {
   // Use atomUrl/file protocols depending on platform setup. 
   // Wait, in vite electron, usually you use the proxy or just file://. We'll use absolute path with file:///
-  const gltfUrl = `file:///${url.replace(/\\/g, '/')}`;
+  const gltfUrl = `sc-file:///${url.replace(/\\/g, '/')}`;
   const { scene } = useGLTF(gltfUrl);
   
   return <primitive object={scene} scale={[1, 1, 1]} position={[0, 0, 0]} />;
@@ -56,8 +95,7 @@ export const FiberSceneView: React.FC<FiberSceneViewProps> = ({ puppetPath, skyb
 
         <Suspense fallback={null}>
           {skyboxPath ? (
-            // Needs to be an HDRI usually. A generic png skybox might not be correctly projected by Environment
-            <Environment background files={`file:///${skyboxPath.replace(/\\/g, '/')}`} />
+            <SkyboxEnvironment path={skyboxPath} />
           ) : null}
         </Suspense>
 

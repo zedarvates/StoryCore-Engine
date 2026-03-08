@@ -101,7 +101,7 @@ export function ProjectSetupWizardContainer({
         {/* Progress Bar */}
         <div className="project-setup-wizard-header__progress">
           <div className="project-setup-wizard-header__progress-bar">
-            {/* eslint-disable-next-line no-inline-styles -- CSS custom property requires inline style for dynamic value */}
+            {/* CSS custom property requires inline style for dynamic value */}
             <div
               className="project-setup-wizard-header__progress-fill"
               style={{ '--progress-width': `${progress}%` } as React.CSSProperties}

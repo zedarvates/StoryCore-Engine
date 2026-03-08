@@ -4,15 +4,13 @@
  * A collapsible sidebar panel that displays available voice commands
  * to help users discover and use voice commands effectively.
  * 
- * Features:
- * - Collapsible panel with carrot icon 🥕
- * - Expand/collapse arrow indicator
- * - Categorized voice commands list
- * - Bilingual support (English/French)
- * - Click to copy command text
+ * Modernized for 2026 UI Trends (Glassmorphism 2.0, Purposeful Motion)
  */
 
 import React, { useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Lightbulb, ChevronRight, Copy, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import './LLMAssistantSidebar.css';
 
 import { VOICE_COMMANDS_DATA, type VoiceCommandDef, type CommandCategory } from '../../data/voiceCommands';
@@ -112,142 +110,196 @@ export const LLMAssistantSidebar: React.FC<LLMAssistantSidebarProps> = ({
   // Translations
   const t = {
     title: language === 'fr' ? 'Protocole Carotte' : 'Carrot Protocol',
-    subtitle: language === 'fr' ? 'Commandes Vocales' : 'Voice Commands',
+    subtitle: language === 'fr' ? 'Partenaire Créatif IA' : 'AI Creative Partner',
     shortSubtitle: language === 'fr' ? 'Voix' : 'Voice',
-    searchPlaceholder: language === 'fr' ? 'Rechercher une commande...' : 'Search for a command...',
+    searchPlaceholder: language === 'fr' ? 'Rechercher une commande...' : 'Search commands...',
     all: language === 'fr' ? 'Tous' : 'All',
     copied: language === 'fr' ? 'Copié!' : 'Copied!',
-    noResults: language === 'fr' ? 'Aucune commande trouvée' : 'No command found',
+    noResults: language === 'fr' ? 'Aucun résultat' : 'No results',
     helpText: language === 'fr' 
-      ? 'Dites "slash" (ou votre préfixe réglé) suivi d\'une commande pour l\'activer. Les phrases sans préfixe sont traitées comme de la dictée normale.'
-      : 'Say "slash" (or your set prefix) followed by a command to activate it. Phrases without a prefix are treated as normal dictation.',
-    clickToCopy: language === 'fr' ? 'Cliquez pour copier:' : 'Click to copy:',
+      ? 'Énoncez le préfixe réglé suivi d\'une commande.'
+      : 'Say the configured prefix followed by a command.',
+    clickToCopy: language === 'fr' ? 'Cliquer pour copier' : 'Click to copy',
   };
 
   return (
-    <div className={`llm-assistant-sidebar ${isExpanded ? 'expanded' : 'collapsed'} ${className}`}>
+    <motion.div 
+      initial={false}
+      animate={{ 
+        width: isExpanded ? 340 : 50,
+        height: isExpanded ? 'auto' : 50
+      }}
+      className={cn(
+        'fixed left-0 top-1/2 -translate-y-1/2 z-[100] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        'glass-panel rounded-r-3xl overflow-hidden shadow-2xl border-l-0',
+        className
+      )}
+    >
       {/* Header with carrot icon */}
-      <div className="llm-sidebar-header" onClick={toggleExpanded}>
-        <div className="llm-sidebar-header-left">
-          <span className="llm-carrot-icon" title="Protocole Carotte">🥕</span>
+      <div 
+        className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 transition-colors" 
+        onClick={toggleExpanded}
+      >
+        <div className="flex items-center gap-3">
+          <motion.span 
+            animate={{ 
+              rotate: [0, 10, -10, 0],
+              scale: isExpanded ? 1.2 : 1
+            }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="text-2xl"
+          >
+            🥕
+          </motion.span>
           {isExpanded && (
-            <div className="flex flex-col">
-              <span className="llm-sidebar-title">{t.title}</span>
-              <span className="text-[10px] text-primary/70 font-mono">StoryCore System</span>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex flex-col"
+            >
+              <span className="text-sm font-bold text-white leading-none">{t.title}</span>
+              <span className="text-[10px] text-primary font-bold uppercase tracking-widest mt-0.5">{t.subtitle}</span>
+            </motion.div>
           )}
         </div>
-        <div className="llm-sidebar-header-right">
-          <span className="llm-sidebar-subtitle">
-            {isExpanded ? t.subtitle : t.shortSubtitle}
-          </span>
-          <span className={`llm-expand-arrow ${isExpanded ? 'expanded' : ''}`}>
-            ▶
-          </span>
+        <div className="flex items-center gap-2">
+          {!isExpanded && <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest mr-1">{t.shortSubtitle}</span>}
+          <motion.div
+            animate={{ rotate: isExpanded ? 180 : 0 }}
+          >
+            <ChevronRight className="w-4 h-4 text-white/40" />
+          </motion.div>
         </div>
       </div>
 
       {/* Expandable content */}
-      {isExpanded && (
-        <div className="llm-sidebar-content">
-          {/* Language toggle */}
-          <div className="llm-language-toggle">
-            <button
-              className={`llm-lang-btn ${language === 'en' ? 'active' : ''}`}
-              onClick={() => setLanguage('en')}
-            >
-              🇬🇧 EN
-            </button>
-            <button
-              className={`llm-lang-btn ${language === 'fr' ? 'active' : ''}`}
-              onClick={() => setLanguage('fr')}
-            >
-              🇫🇷 FR
-            </button>
-          </div>
-
-          {/* Search input */}
-          <div className="llm-search-container">
-            <input
-              type="text"
-              className="llm-search-input"
-              placeholder={t.searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <span className="llm-search-icon">🔍</span>
-          </div>
-
-          {/* Category filters */}
-          <div className="llm-category-filters">
-            <button
-              className={`llm-category-btn ${activeCategory === 'all' ? 'active' : ''}`}
-              onClick={() => setActiveCategory('all')}
-            >
-              {t.all}
-            </button>
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat.id}
-                className={`llm-category-btn ${activeCategory === cat.id ? 'active' : ''}`}
-                onClick={() => setActiveCategory(cat.id)}
-                style={{ '--category-color': cat.color } as React.CSSProperties}
-              >
-                <span className="llm-category-icon">{cat.icon}</span>
-                <span className="llm-category-label">{getLocalizedLabel(cat)}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Commands list */}
-          <div className="llm-commands-list">
-            {(activeCategory === 'all' ? CATEGORIES.filter(c => groupedCommands[c.id]) : [CATEGORIES.find(c => c.id === activeCategory)!])
-              .filter(Boolean)
-              .map(cat => (
-                <div key={cat.id} className="llm-command-group">
-                  {activeCategory === 'all' && (
-                    <div className="llm-group-header" style={{ color: cat.color }}>
-                      <span>{cat.icon}</span>
-                      <span>{getLocalizedLabel(cat)}</span>
-                    </div>
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="p-4 pt-2 max-h-[70vh] overflow-y-auto"
+          >
+            {/* Language toggle */}
+            <div className="flex bg-black/40 p-1 rounded-xl mb-4">
+              {(['en', 'fr'] as const).map(l => (
+                <button
+                  key={l}
+                  className={cn(
+                    'flex-1 py-1 px-3 rounded-lg text-[10px] font-bold transition-all',
+                    language === l ? 'bg-white/10 text-white shadow-sm' : 'text-white/40 hover:text-white/60'
                   )}
-                  <div className="llm-group-commands">
-                    {(activeCategory === 'all' ? groupedCommands[cat.id] || [] : filteredCommands).map(cmd => (
-                      <div
-                        key={cmd.id}
-                        className={`llm-command-item ${copiedCommand === cmd.id ? 'copied' : ''}`}
-                        onClick={() => handleCommandClick(cmd)}
-                        title={`${t.clickToCopy} "${getLocalizedCommand(cmd)}"`}
-                      >
-                        <div className="llm-command-text">{getLocalizedCommand(cmd)}</div>
-                        <div className="llm-command-desc">{getLocalizedDescription(cmd)}</div>
-                        {copiedCommand === cmd.id && (
-                          <div className="llm-copied-badge">{t.copied}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  onClick={() => setLanguage(l)}
+                >
+                  {l === 'en' ? '🇬🇧 EN' : '🇫🇷 FR'}
+                </button>
               ))}
-            
-            {filteredCommands.length === 0 && (
-              <div className="llm-no-results">
-                <span className="llm-no-results-icon">🔍</span>
-                <span>{t.noResults}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Help section */}
-          <div className="llm-help-section">
-            <div className="llm-help-icon">💡</div>
-            <div className="llm-help-text">
-              {t.helpText}
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+
+            {/* Search input */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <input
+                type="text"
+                className="w-full bg-black/40 border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-white placeholder:text-white/20 focus:border-primary/50 outline-none transition-all"
+                placeholder={t.searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            {/* Category filters */}
+            <div className="flex flex-wrap gap-1.5 mb-6">
+              <button
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border',
+                  activeCategory === 'all' 
+                    ? 'bg-primary/20 border-primary/50 text-white' 
+                    : 'bg-white/5 border-transparent text-white/40 hover:bg-white/10'
+                )}
+                onClick={() => setActiveCategory('all')}
+              >
+                {t.all}
+              </button>
+              {CATEGORIES.map(cat => (
+                <button
+                  key={cat.id}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border',
+                    activeCategory === cat.id 
+                      ? 'bg-white/10 border-white/20 text-white' 
+                      : 'bg-white/5 border-transparent text-white/40 hover:bg-white/10'
+                  )}
+                  onClick={() => setActiveCategory(cat.id)}
+                  style={activeCategory === cat.id ? { borderColor: cat.color + '80', backgroundColor: cat.color + '20' } : {}}
+                >
+                  <span>{cat.icon}</span>
+                  <span>{getLocalizedLabel(cat)}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Commands list */}
+            <div className="space-y-6">
+              {(activeCategory === 'all' ? CATEGORIES.filter(c => groupedCommands[c.id]) : [CATEGORIES.find(c => c.id === activeCategory)!])
+                .filter(Boolean)
+                .map(cat => (
+                  <div key={cat.id} className="space-y-3">
+                    {activeCategory === 'all' && (
+                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: cat.color }}>
+                        <span className="w-4 h-[1px] bg-current opacity-30" />
+                        <span>{getLocalizedLabel(cat)}</span>
+                      </div>
+                    )}
+                    <div className="space-y-1.5 px-1">
+                      {(activeCategory === 'all' ? groupedCommands[cat.id] || [] : filteredCommands).map(cmd => (
+                        <motion.div
+                          key={cmd.id}
+                          layout
+                          whileHover={{ x: 3, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                          className={cn(
+                            'group flex items-center justify-between p-3 rounded-xl border border-white/5 cursor-pointer transition-colors',
+                            copiedCommand === cmd.id ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/2'
+                          )}
+                          onClick={() => handleCommandClick(cmd)}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-white/90 group-hover:text-primary transition-colors">{getLocalizedCommand(cmd)}</div>
+                            <div className="text-[10px] text-white/40 mt-0.5 truncate">{getLocalizedDescription(cmd)}</div>
+                          </div>
+                          <div className="flex-shrink-0 ml-2">
+                             {copiedCommand === cmd.id ? (
+                               <Check className="w-3.5 h-3.5 text-emerald-400" />
+                             ) : (
+                               <Copy className="w-3.5 h-3.5 text-white/10 group-hover:text-white/40 transition-colors" />
+                             )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              
+              {filteredCommands.length === 0 && (
+                <div className="py-12 flex flex-col items-center justify-center text-white/20 gap-3">
+                  <Search className="w-8 h-8 opacity-20" />
+                  <span className="text-xs font-bold uppercase tracking-widest">{t.noResults}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Help section */}
+            <div className="mt-8 p-4 bg-white/2 rounded-2xl border border-white/5 flex gap-3">
+              <Lightbulb className="w-5 h-5 text-amber-400 shrink-0" />
+              <div className="text-[10px] text-white/40 leading-relaxed font-medium">
+                {t.helpText}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

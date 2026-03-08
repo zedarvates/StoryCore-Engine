@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useStore } from '../store';
 import type { AudioTrack } from '../types';
 import { Volume2, VolumeX, Music, Mic, Radio, Headphones, Trash2, Settings } from 'lucide-react';
-import { WaveformDisplay, generateWaveformData } from './WaveformDisplay';
+import { WaveformDisplay } from './WaveformDisplay';
 import { AudioPlayer } from './AudioPlayer';
 import { AudioEffectsPanel } from './AudioEffectsPanel';
 
@@ -26,11 +26,12 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ shotId }) => {
     );
   }
 
-  const handleAddTrack = (type: AudioTrack['type']) => {
+  const handleAddTrack = (type?: AudioTrack['type']) => {
+    const trackType = type || 'ambient';
     const newTrack: AudioTrack = {
-      id: `track-${Date.now()}`,
-      name: `${type.charAt(0).toUpperCase() + type.slice(1)} Track`,
-      type,
+      id: crypto.randomUUID(),
+      name: `${trackType.charAt(0).toUpperCase() + trackType.slice(1)} Track`,
+      type: trackType,
       url: '',
       startTime: 0,
       duration: shot.duration,
@@ -90,7 +91,7 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ shotId }) => {
 
       {/* Audio Tracks List */}
       <div className="space-y-3">
-        {shot.audioTracks.length === 0 ? (
+        {(!shot.audioTracks || shot.audioTracks.length === 0) ? (
           <div className="text-center py-8 border border-dashed rounded">
             <Volume2 className="w-12 h-12 mx-auto text-gray-400 mb-2" />
             <p className="text-gray-500 mb-4">No audio tracks</p>
@@ -103,14 +104,14 @@ export const AudioPanel: React.FC<AudioPanelProps> = ({ shotId }) => {
           </div>
         ) : (
           <>
-            {shot.audioTracks.map((track) => (
+            {(shot.audioTracks || []).map((track) => (
               <AudioTrackCard
                 key={track.id}
                 track={track}
                 shotId={shotId}
                 onDelete={() => handleDeleteTrack(track.id)}
-                onToggleMute={() => handleToggleMute(track.id, track.muted)}
-                onToggleSolo={() => handleToggleSolo(track.id, track.solo)}
+                onToggleMute={() => handleToggleMute(track.id, !!track.muted)}
+                onToggleSolo={() => handleToggleSolo(track.id, !!track.solo)}
                 getIcon={getTrackIcon}
               />
             ))}
@@ -193,7 +194,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="text-gray-600">{getIcon(track.type)}</div>
+          <div className="text-gray-600">{getIcon(track.type || 'ambient')}</div>
           <input
             type="text"
             value={track.name}
@@ -215,10 +216,9 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
         </button>
       </div>
 
-      {/* Track Type Badge */}
       <div className="flex items-center gap-2">
         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded capitalize">
-          {track.type}
+          {track.type || 'ambient'}
         </span>
         {track.muted && (
           <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded">
@@ -366,11 +366,11 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
             Pan (L/R)
           </label>
           <span className="text-xs text-gray-500">
-            {track.pan === 0
+            {(track.pan ?? 0) === 0
               ? 'Center'
-              : track.pan < 0
-                ? `${Math.abs(track.pan)}% L`
-                : `${track.pan}% R`}
+              : (track.pan ?? 0) < 0
+                ? `${Math.abs(track.pan ?? 0)}% L`
+                : `${(track.pan ?? 0)}% R`}
           </span>
         </div>
         <input
@@ -378,7 +378,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
           type="range"
           min={-100}
           max={100}
-          value={track.pan}
+          value={track.pan ?? 0}
           onChange={(e) =>
             updateAudioTrack(shotId, track.id, {
               pan: parseInt(e.target.value),
@@ -460,10 +460,10 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       </div>
 
       {/* Effects Count */}
-      {track.effects.length > 0 && (
+      {(track.effects || []).length > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-xs text-gray-600">
-            {track.effects.length} effect{track.effects.length !== 1 ? 's' : ''}{' '}
+            {(track.effects || []).length} effect{(track.effects || []).length !== 1 ? 's' : ''}{' '}
             applied
           </div>
           <button
@@ -477,7 +477,7 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
         </div>
       )}
 
-      {!track.effects.length && (
+      {!(track.effects || []).length && (
         <button
           onClick={() => setShowEffects(!showEffects)}
           className="w-full text-xs px-2 py-1 border border-dashed rounded text-gray-600 hover:border-blue-500 hover:text-blue-600"
@@ -492,8 +492,8 @@ const AudioTrackCard: React.FC<AudioTrackCardProps> = ({
       {showEffects && (
         <div className="border-t pt-3 -mx-3 -mb-3">
           <AudioEffectsPanel
-            onApplyEffects={(effects: any) => {
-              updateAudioTrack(shotId, track.id, { effects });
+            onApplyEffects={(effects) => {
+              updateAudioTrack(shotId, track.id, { effects: effects as import('../types').AudioEffect[] });
             }}
           />
         </div>

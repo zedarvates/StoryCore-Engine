@@ -15,7 +15,14 @@ import {
   LocationCreationRequest,
   WorldContext,
   GenerationProgress,
+  GeneratedCharacterResult,
+  GeneratedLocationResult,
+  AdvancedBackendResponse,
+  AdvancedBackendCharacter,
+  AdvancedBackendLocation,
+  AdvancedBackendScene,
 } from '../types/story';
+import type { LLMService } from './llmService';
 
 // ============================================================================
 // LLM Prompt Templates
@@ -275,27 +282,6 @@ function extractJsonFromMarkdown(text: string): string {
 // Story Generation Service
 // ============================================================================
 
-/** Generated character result from LLM */
-export interface GeneratedCharacterResult {
-  name: string;
-  archetype: string;
-  role: string;
-  visual_identity?: Partial<import('../types/character').VisualIdentity>;
-  personality?: Partial<import('../types/character').Personality>;
-  background?: Partial<import('../types/character').Background>;
-  [key: string]: unknown;
-}
-
-/** Generated location result from LLM */
-export interface GeneratedLocationResult {
-  name: string;
-  type: string;
-  description?: string;
-  atmosphere?: string;
-  significance?: string;
-  [key: string]: unknown;
-}
-
 export interface StoryGenerationService {
   generateStoryContent(params: StoryGenerationParams): Promise<string>;
   generateStorySummary(content: string): Promise<string>;
@@ -319,7 +305,7 @@ export async function generateStoryContent(
 ): Promise<string> {
   // Import LLM service dynamically to avoid circular dependencies
   const { getLLMService } = await import('./llmService');
-  const llmService = getLLMService();
+  const llmService: LLMService = await getLLMService();
 
   // Calculate target word count based on length
   const wordCountMap: Record<string, string> = {
@@ -391,7 +377,7 @@ export async function generateStoryContent(
 export async function generateStorySummary(content: string): Promise<string> {
   // Import LLM service dynamically to avoid circular dependencies
   const { getLLMService } = await import('./llmService');
-  const llmService = getLLMService();
+  const llmService: LLMService = await getLLMService();
 
   // Substitute story content in the prompt template
   const prompt = SUMMARY_GENERATION_PROMPT.replace('{storyContent}', content);
@@ -494,10 +480,10 @@ function buildExtendedWorldContextDescription(worldContext: WorldContext | undef
 export async function createCharacter(
   request: CharacterCreationRequest,
   worldContext?: WorldContext
-): Promise<any> {
+): Promise<GeneratedCharacterResult> {
   // Import LLM service dynamically to avoid circular dependencies
   const { getLLMService } = await import('./llmService');
-  const llmService = getLLMService();
+  const llmService: LLMService = await getLLMService();
 
   // Build world context description using helper function
   const worldContextDescription = buildExtendedWorldContextDescription(worldContext);
@@ -556,10 +542,10 @@ export async function createCharacter(
 export async function createLocation(
   request: LocationCreationRequest,
   worldContext?: WorldContext
-): Promise<any> {
+): Promise<GeneratedLocationResult> {
   // Import LLM service dynamically to avoid circular dependencies
   const { getLLMService } = await import('./llmService');
-  const llmService = getLLMService();
+  const llmService: LLMService = await getLLMService();
 
   // Build world context description using helper function
   const worldContextDescription = buildExtendedWorldContextDescription(worldContext);
@@ -610,6 +596,99 @@ export async function createLocation(
 }
 
 /**
+ * Generate story using advanced asynchronous backend (Python/FastAPI)
+ * @param params Generation parameters
+ * @param onProgress Progress callback
+ * @returns Complete story object
+ */
+export async function generateStoryFromAdvancedBackend(
+  params: StoryGenerationParams,
+  onProgress?: (progress: GenerationProgress) => void
+): Promise<Story> {
+  onProgress?.({
+    stage: 'preparing',
+    progress: 5,
+    currentTask: 'Establishing connection to Narrative Engine...',
+  });
+
+  try {
+    // Determine backend parameters
+    const backendGenre = params.genre.length > 0 ? params.genre[0].toUpperCase() : 'FANTASY';
+    const backendLength = ['short', 'medium', 'long'].includes(params.length)
+      ? params.length.toUpperCase()
+      : 'MEDIUM';
+
+    // Call the FastAPI endpoint
+    const response = await fetch('/api/story/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: params.totalTitle || 'Untitled Exploration',
+        genre: backendGenre,
+        structure: 'THREE_ACT', // Default for now
+        mode: params.productionMode || 'FICTION',
+        length: backendLength,
+        with_critique: params.withCritique || false,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown backend error' }));
+      throw new Error(errorData.detail || `Server error: ${response.status}`);
+    }
+
+    onProgress?.({
+      stage: 'generating_story',
+      progress: 50,
+      currentTask: 'Synthesizing narrative acts and character arcs...',
+    });
+
+    const result: AdvancedBackendResponse = await response.json();
+
+    // Transform backend Result to Story interface
+    return {
+      id: result.id || crypto.randomUUID(),
+      title: result.title || params.totalTitle || 'Advanced Generated Story',
+      content: result.synopsis || '', // Use synopsis as main content if no scenes are joined yet
+      summary: result.synopsis || '',
+      genre: result.genre ? [result.genre] : params.genre,
+      tone: params.tone,
+      length: (result.length as Story['length']) || params.length,
+      charactersUsed: (result.characters || []).map((c: AdvancedBackendCharacter) => ({
+        id: c.id || crypto.randomUUID(),
+        name: c.name,
+        role: c.role || 'Character',
+        description: c.description || '',
+      })),
+      locationsUsed: (result.locations || []).map((l: AdvancedBackendLocation) => ({
+        id: l.id || crypto.randomUUID(),
+        name: l.name,
+        significance: 'Primary',
+        type: l.type,
+      })),
+      autoGeneratedElements: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      version: 1,
+      critique: result.critique,
+      parts: (result.scenes || []).map((s: AdvancedBackendScene, idx: number) => ({
+        id: crypto.randomUUID(),
+        type: 'chapter',
+        title: s.title || `Scene ${idx + 1}`,
+        content: s.description || '',
+        summary: s.description?.substring(0, 100) || '',
+        order: idx + 1,
+      })),
+    } as Story;
+  } catch (error) {
+    console.error('[StoryGenerationService] Advanced backend failed:', error);
+    throw error;
+  }
+}
+
+/**
  * Generate complete story with progress tracking
  * @param data Partial story data or generation params
  * @param onProgress Progress callback
@@ -636,11 +715,16 @@ export async function generateStory(
       genre: d.genre || [],
       tone: d.tone || [],
       length: d.length || 'medium',
-      characters: d.charactersUsed || [],
-      locations: d.locationsUsed || [],
+      characters: (d.charactersUsed || []) as unknown as StoryGenerationParams['characters'],
+      locations: (d.locationsUsed || []) as unknown as StoryGenerationParams['locations'],
       worldContext,
       totalTitle: d.title,
     };
+  }
+
+  // Check if we should use the advanced backend
+  if (params.useAdvancedBackend) {
+    return generateStoryFromAdvancedBackend(params, onProgress);
   }
 
   const generatedStory = await storyWeaver.weaveStory(params, undefined, undefined, onProgress);
@@ -727,3 +811,97 @@ export function handleLLMError(error: unknown): string {
   return `Generation error: ${err.message || 'Unknown error occurred'}`;
 }
 
+/**
+ * Generate a visual storyboard for a story using ComfyUI via advanced backend
+ * @param storyId The ID of the story to generate a storyboard for
+ * @returns Array of storyboard frames with image URLs
+ */
+export async function generateStoryboard(storyId: string): Promise<Array<{
+  scene_index: number;
+  scene_title: string;
+  image_url: string;
+}>> {
+  try {
+    const response = await fetch(`/api/story/${storyId}/storyboard`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown storyboard error' }));
+      throw new Error(errorData.detail || `Server error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('[StoryGenerationService] Storyboard generation failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Process a story refinement with user feedback
+ * @param storyId The ID of the story to refine
+ * @param feedback User feedback string
+ * @returns The refined story object
+ */
+export async function refineStory(storyId: string, feedback: string): Promise<Story> {
+  try {
+    const response = await fetch(`/api/story/${storyId}/refine`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ feedback }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Unknown refinement error' }));
+      throw new Error(errorData.detail || `Server error: ${response.status}`);
+    }
+
+    const result: AdvancedBackendResponse = await response.json();
+
+    // Map AdvancedBackendResponse to Story interface
+    return {
+      id: result.id,
+      title: result.title,
+      content: result.synopsis || '',
+      summary: result.synopsis || '',
+      critique: result.critique,
+      genre: result.genre ? [result.genre] : [],
+      tone: [], // We don't get tone back from backend currently
+      length: 'medium', // Default
+      charactersUsed: (result.characters || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        role: c.role || 'Character',
+        description: c.description || '',
+      })),
+      locationsUsed: (result.locations || []).map(l => ({
+        id: l.id,
+        name: l.name,
+        significance: 'Primary',
+        type: l.type,
+        description: l.description
+      })),
+      autoGeneratedElements: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      version: 1,
+      parts: (result.scenes || []).map((s, idx) => ({
+        id: crypto.randomUUID(),
+        type: 'chapter',
+        title: s.title || `Scene ${idx + 1}`,
+        content: s.description || '',
+        summary: s.description?.substring(0, 100) || '',
+        order: idx + 1,
+      })),
+    } as Story;
+  } catch (error) {
+    console.error('[StoryGenerationService] Refinement failed:', error);
+    throw error;
+  }
+}

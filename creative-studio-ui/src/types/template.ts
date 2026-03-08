@@ -18,7 +18,7 @@ export interface SequenceTemplate {
   id: string;
   name: string;
   description: string;
-  category: 'narrative' | 'commercial' | 'music-video' | 'tutorial' | 'documentary' | 'adventure-film' | 'animated-series' | 'sitcom' | 'wedding-video' | 'commercial-presentation' | 'anime-styles' | 'superhero-saga' | 'mystery-thriller' | 'biography' | 'sports-story' | 'custom';
+  category: 'narrative' | 'commercial' | 'music-video' | 'tutorial' | 'documentary' | 'adventure-film' | 'animated-series' | 'sitcom' | 'wedding-video' | 'commercial-presentation' | 'anime-styles' | 'superhero-saga' | 'mystery-thriller' | 'biography' | 'sports-story' | 'youtube-shorts' | 'custom';
   isBuiltIn: boolean;
 
   structure: {
@@ -77,7 +77,7 @@ export const SequenceTemplateSchema = z.object({
   id: z.string(),
   name: z.string().min(1),
   description: z.string(),
-  category: z.enum(['narrative', 'commercial', 'music-video', 'tutorial', 'documentary', 'adventure-film', 'animated-series', 'sitcom', 'wedding-video', 'commercial-presentation', 'anime-styles', 'superhero-saga', 'mystery-thriller', 'biography', 'sports-story', 'custom']),
+  category: z.enum(['narrative', 'commercial', 'music-video', 'tutorial', 'documentary', 'adventure-film', 'animated-series', 'sitcom', 'wedding-video', 'commercial-presentation', 'anime-styles', 'superhero-saga', 'mystery-thriller', 'biography', 'sports-story', 'youtube-shorts', 'custom']),
   isBuiltIn: z.boolean(),
   structure: z.object({
     acts: z.array(ActTemplateSchema),

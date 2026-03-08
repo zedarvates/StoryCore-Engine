@@ -358,6 +358,20 @@ class TTSService:
                 self.model = TTS(model_name="tts_models/fr/vits", progress_bar=False)
             except ImportError:
                 raise ImportError("VITS not available. Install TTS library.")
+        
+        elif model_type == "qwen":
+            try:
+                # Add src to path if needed
+                src_path = str(Path(__file__).parent.parent / "src")
+                if src_path not in sys.path:
+                    sys.path.insert(0, src_path)
+                
+                from qwen3_tts_integration import Qwen3TTSIntegration
+                self.model = Qwen3TTSIntegration()
+                # Initialization to be handled by the class itself or on first use
+            except ImportError as e:
+                logging.getLogger("TTSService").error(f"Failed to import Qwen3TTSIntegration: {e}")
+                raise ImportError(f"Qwen TTS integration not found: {e}")
     
     async def get_available_voices(self) -> List[Dict[str, str]]:
         """Get list of available voices."""
@@ -386,12 +400,20 @@ class TTSService:
             output_path = str(temp_dir / f"tts_{uuid.uuid4()}.wav")
         
         # Generate speech
-        self.model.tts_to_file(
-            text=text,
-            file_path=output_path,
-            speaker=voice,
-            speed=speed
-        )
+        if self.config.tts_model == "qwen":
+            # Qwen special handling
+            await self.model.generate_voice(
+                text=text,
+                output_path=output_path,
+                voice_name=voice
+            )
+        else:
+            self.model.tts_to_file(
+                text=text,
+                file_path=output_path,
+                speaker=voice,
+                speed=speed
+            )
         
         # Get audio duration
         duration = await self._get_audio_duration(output_path)

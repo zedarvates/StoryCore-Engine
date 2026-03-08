@@ -311,7 +311,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
     setIsLoading(true);
     setGenerationProgress('Connecting to ComfyUI...');
     const prompt = buildCharacterPrompt(character, selectedOutfits);
-    let serverUrl = 'http://localhost:8000';
+    const serverUrl = 'http://localhost:8000';
     try {
       const response = await fetch(`${serverUrl}/prompt`, {
         method: 'POST',
