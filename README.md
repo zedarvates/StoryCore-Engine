@@ -18,7 +18,10 @@
 ---
 
 ## 🌟 A Message from the Creator
-</details>
+
+<details>
+<summary><b>Read the vision</b></summary>
+
 StoryCore is more than just a pipeline. It’s a system that lets you control ComfyUI or other tools through add‑ons. It helps you organize your entire workflow for video creation — from the written story, to the script, to the dialogue.
 
 > "The future of the internet? And of cinema? It’s on‑demand videos built according to people’s tastes. According to each customer. Directly on their TV. Basically, it’s instant, made‑to‑order cinema."
@@ -35,8 +38,9 @@ And everything runs **locally**. Your data, your images, your scripts, your indu
 
 ## 🎯 Why StoryCore?
 
-### Competitive Advantages
-</details>
+<details open>
+<summary><b>Competitive Advantages</b></summary>
+
 | Benefit | Impact |
 | :--- | :--- |
 | **100% Local Processing** | Data secured on your machine, no leaks. |
@@ -51,13 +55,18 @@ And everything runs **locally**. Your data, your images, your scripts, your indu
 ---
 
 ## 🚀 Concrete Use Cases
-</details>
-| Content Type                   | Benefit                                     | Estimated Time (ne prend pas en compte le temps de generation de medias)|
-| :---                           | :--- | :--- |
-| **Scientific Documentaries**   | Guaranteed visual accuracy & fact-checking. | 20-30 min |
-| **Indie Short Films**          | Stylistic consistency & narrative flow.     | 15-25 min |
-| **Educational Content**        | Professional quality & rapid iteration.     | 10-20 min |
-| **Corporate Presentations**   | Consistent branding & private data handling. | 5-15 min |
+
+<details open>
+<summary><b>Production Examples</b></summary>
+
+| Content Type | Benefit | Estimated Time* |
+| :--- | :--- | :--- |
+| **Scientific Documentaries** | Guaranteed visual accuracy & fact-checking. | 20-30 min |
+| **Indie Short Films** | Stylistic consistency & narrative flow. | 15-25 min |
+| **Educational Content** | Professional quality & rapid iteration. | 10-20 min |
+| **Corporate Presentations** | Consistent branding & private data handling. | 5-15 min |
+
+*\*Excluding media generation time.*
 </details>
 
 ### Workflow
@@ -118,7 +127,7 @@ graph LR
    > [!IMPORTANT]
    > **CORS must be enabled** in ComfyUI settings. Set the allowed origins to `*` to allow StoryCore Engine to communicate with it.
 
-1. Start the Engine
+4. Start the Engine
 
    ```bash
    python storycore.py
@@ -154,7 +163,10 @@ python scripts/run_e2e_demo.py --canonical --mock
 ## ✨ Key Features
 
 ### 🎬 Video Generation
-</details>
+
+<details open>
+<summary><b>Advanced Production Features</b></summary>
+
 - **Visual Coherence System**: Master Coherence Sheet ensures consistent style.
 - **Total Recall (Living Protocol)**: Persistent neural memory that captures stylistic decisions, character facts, and production rules as they emerge during chat or creation.
 - **Multimodal Vision Analysis**: Native support for analyzing reference images to extract visual archetypes, atmospheres, and cinematic styles.
@@ -175,30 +187,47 @@ python scripts/run_e2e_demo.py --canonical --mock
   - **tttLRM 3D Reconstruction (CVPR 2026)**: Transform single images or 360 videos into high-fidelity 3D Gaussian Splats at 1024 resolution. Features Test-Time Training (TTT) adaptation for superior geometry.
   - **Native Gaussian Splat Viewer**: Premium 3D viewer integrated into the UI with OrbitControls, real-time rendering, and glassmorphism interface.
   - **GS-to-Mesh Export**: One-click conversion from Gaussian Splats to standard GLB/OBJ meshes (SuGaR-inspired) for immediate use in Blender or game engines.
+
 </details>
+
 ### 🛠 Neural Augmented Creation & Project Genesis
-</details>
+
+<details>
+<summary><b>Methodology & Asset Creation</b></summary>
+
 - **"Bout en Bout" (End-to-End) Methodology**: Strict production bible enforcement for different modes (Fiction, Documentary, Music Video, Social Media, Cinematic).
 - **Context-Bound Intelligence**: Every created character, world, and story part is cross-referenced with the **Total Recall Working Context**, ensuring zero narrative drift.
 - **Autonomous Genesis**: AI can now autonomously suggest names, archetypes, and lore based on the project's living protocol, transforming creative prompts into fully realized entities instantly.
 - **Multi-Methodology Weaving**: From legacy sequential generation to advanced structured drafting, the methodology engine uses neural augmentation to maintain consistency across different creative workflows.
 - **Vision-to-Asset Genesis**: Transform visual inspiration into persistent project assets (Characters, Worlds, Objects) with the integrated Multimodal Vision system.
 </details>
+
 ### ✍️ Story & Content Creation
-</details>
+
+<details>
+<summary><b>Audio & Dialogue</b></summary>
+
 - **AI Dialogue**: Natural voice generation with emotion control.
 - **Background Music**: Automatic composition based on scene mood.
 - **Sound Effects**: Integrated SFX library and synchronization.
 </details>
+
 ### 🛠️ Production Tools
-</details>
+
+<details>
+<summary><b>Tracking & Registry</b></summary>
+
 - **Production Ledger**: A verified manifest of all AI-generated assets (Character Sheets, Style Guides, Lore fragments).
 - **Director Rig Metadata**: High-fidelity technical metadata for shots (Lens geometry, Sensor look, Emotional intensity).
 - **World Aesthetic Registry**: Persistent visual intent registry (Colors, Vibe, Artistic Signature) integrated with the World Genesis engine.
 - **Production Guide**: Comprehensive shot recap with Technical Rig metadata (Lens, Sensor, Emotion).
 </details>
+
 ### 🧠 Neural Brain — RLM Engine + GraphRAG
-</details>
+
+<details open>
+<summary><b>Reasoning & Lore Consistency</b></summary>
+
 The **Recursive Language Model (RLM)** engine transforms StoryCore's assistant from a simple Q&A chatbot into a **deep reasoning system** capable of actively exploring massive contexts, decomposing complex tasks, and self-correcting its own outputs through a multi-stage reflection loop.
 
 | Capability                    | Description |
@@ -253,6 +282,7 @@ The engine enforces a strict **Production Bible** structure for every project, e
 | **Renovation** | Before/After sites, Construction tools | Transformation flow & Process clarity |
 
 Every story generation automatically populates:
+
 - **Story Props**: Classified as "Worn" (character-bound) or "Immutable" (location-bound).
 - **Spatial SFX**: Interaction sounds (objects), signatures (characters), and ambiences (global).
 
@@ -444,8 +474,10 @@ Built-in marketplace powered by [nexrealm.shop](https://nexrealm.shop) for disco
 ---
 
 ## 🏗️ Architecture Overview
-</details>
-</details>
+
+<details open>
+<summary><b>System Block Diagram</b></summary>
+
 ```mermaid
 graph TD
     Input["📝 Input\n(Script / Prompt / Image)"] --> StoryEngine
@@ -549,13 +581,14 @@ graph TD
 | **Q1 2026** | GraphRAG & Knowledge Graph Lore Continuity                             | ✅ Completed   |
 | **Q1 2026** | Character Arc Tracking & Timeline Reconstruction                       | ✅ Completed   |
 | **Q1 2026** | Lore Graph Visualization (Force-Directed Canvas)                       | ✅ Completed   |
-| **Q1 2026** | RLM Critique-Correction Loop (12 Consistency Patterns)                 | ✅ Completed   | 
+| **Q1 2026** | RLM Critique-Correction Loop (12 Consistency Patterns)                 | ✅ Completed   |
 | **Q1 2026** | Location & Object Reference Sheets                                     | ✅ Completed   |
 | **Q1 2026** | **Creative Studio v3.2: Voice & Style Synergy**                        | ✅ Completed   |
 | **Q1 2026** | Project Translator Add-on (Local AI / Jina Embeddings v5)              | ✅ Completed   |
 | **Q1 2026** | Voice-Directed Lighting & Camera Controls (VDC)                        | ✅ Completed   |
-| **Q1 2026** | Automated Credits & Sequence Planning                               | ✅ Completed   |
-| **Q1 2026** | Advanced AI Chat Assistant (v4) with Pro-active UI                  | ✅ Completed   |
+| **Q1 2026** | Automated Credits & Sequence Planning                                  | ✅ Completed   |
+
+| **Q1 2026** | Advanced AI Chat Assistant (v4) with Pro-active UI                    | ✅ Completed   |
 | **Q1 2026** | UI Glitch Fixes & Icon Coherence                                       | ✅ Completed   |
 | **Q1 2026** | **"Bout en Bout" Production Bible Methodology**                        | ✅ Completed   |
 | **Q1 2026** | **Multi-Mode Generation (Social, Music, Doc, Cinema)** | ✅ Completed   |
