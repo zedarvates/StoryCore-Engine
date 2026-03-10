@@ -15,6 +15,7 @@ export { ComfyUIConfigurationWindow } from './configuration/ComfyUIConfiguration
 // Workspace Components
 export { ProjectWorkspace } from './workspace/ProjectWorkspace';
 export { WizardLauncher } from './wizard/WizardLauncher';
+export { NanoBananaDirector } from './DirectorMode/NanoBananaDirector';
 
 // UI Components (Error Handling & Validation)
 export * from './ui';

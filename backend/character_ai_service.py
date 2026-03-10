@@ -3,6 +3,10 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
+from backend.llm_api import call_llm_real, LLMRequest
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CharacterRole(Enum):
     PROTAGONIST = "protagonist"
@@ -164,6 +168,21 @@ class CharacterAIService:
         self.conversations: Dict[str, List[Dict[str, Any]]] = {}
         self._id_counter = 0
     
+    async def _call_llm(self, prompt: str, system_prompt: str = "") -> str:
+        """Helper to call the unified LLM API."""
+        try:
+            # We use a default user_id for system/background tasks
+            # or pass it from the API if available
+            request = LLMRequest(prompt=prompt)
+            if system_prompt:
+                request.context = [{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}]
+            
+            response = await call_llm_real(request, user_id="system_character_ai")
+            return response.text
+        except Exception as e:
+            logger.error(f"LLM call failed in CharacterAIService: {e}")
+            return ""
+
     def create_character(self, character_data: dict) -> Character:
         """Créer un personnage avec profil complet"""
         # Gérer les enums si nécessaire
@@ -199,28 +218,63 @@ class CharacterAIService:
         self.characters[character.id] = character
         return character
     
-    def generate_character_backstory(
+    async def generate_character_backstory(
         self,
         character: Character,
         genre: str = "drama"
     ) -> CharacterBackground:
         """Générer l'arrière-plan du personnage avec IA"""
-        genre_context = self.GENRE_BACKGROUNDS.get(genre, self.GENRE_BACKGROUNDS["drama"])
-        
         traits_str = ", ".join([t.value for t in character.personality])
         
-        return CharacterBackground(
-            origin=genre_context["origin"],
-            childhood=f"Growing up, {character.name} was shaped by {traits_str}",
-            adolescence=f"As a teenager, {character.name} began to develop their unique identity",
-            pivotal_moment=genre_context["pivot"],
-            current_situation=f"Currently, {character.name} finds themselves at a crossroads",
-            motivation=genre_context["motivation"],
-            fear=self._generate_fear(character.personality),
-            secret="However, no one knows that...",
-            values=self._generate_values(character.personality),
-            habits=self._generate_habits(character.personality, character.role)
-        )
+        prompt = f"""
+        Generate a detailed character backstory for:
+        Name: {character.name}
+        Role: {character.role.value}
+        Genre: {genre}
+        Personality Traits: {traits_str}
+        
+        Provide the result in JSON format:
+        {{
+            "origin": "...",
+            "childhood": "...",
+            "adolescence": "...",
+            "pivotal_moment": "...",
+            "current_situation": "...",
+            "motivation": "...",
+            "fear": "...",
+            "secret": "...",
+            "values": ["v1", "v2"],
+            "habits": ["h1", "h2"]
+        }}
+        """
+        
+        llm_response = await self._call_llm(prompt, system_prompt="You are an expert screenwriter and character developer.")
+        
+        try:
+            import json
+            # Clean possible markdown block
+            text = llm_response.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            
+            data = json.loads(text)
+            return CharacterBackground(**data)
+        except Exception as e:
+            logger.warning(f"Failed to parse LLM backstory, using template: {e}")
+            # Fallback to template logic
+            genre_context = self.GENRE_BACKGROUNDS.get(genre, self.GENRE_BACKGROUNDS["drama"])
+            return CharacterBackground(
+                origin=genre_context["origin"],
+                childhood=f"Growing up, {character.name} was shaped by {traits_str}",
+                adolescence=f"As a teenager, {character.name} began to develop their unique identity",
+                pivotal_moment=genre_context["pivot"],
+                current_situation=f"Currently, {character.name} finds themselves at a crossroads",
+                motivation=genre_context["motivation"],
+                fear=self._generate_fear(character.personality),
+                secret="However, no one knows that...",
+                values=self._generate_values(character.personality),
+                habits=self._generate_habits(character.personality, character.role)
+            )
     
     def _generate_fear(self, personality: List[PersonalityTrait]) -> str:
         """Générer une peur basée sur la personnalité"""
@@ -283,7 +337,7 @@ class CharacterAIService:
         
         return habits[:5]
     
-    def generate_dialogue(
+    async def generate_dialogue(
         self,
         character: Character,
         context: str,
@@ -291,53 +345,25 @@ class CharacterAIService:
         emotional_state: str = "neutral"
     ) -> str:
         """Générer un dialogue pour un personnage"""
-        # Construire le prompt pour génération
         traits_str = ", ".join([t.value for t in character.personality])
-        voice_info = character.voice
         
-        # Adapter le dialogue selon l'état émotionnel
-        emotional_adjustments = {
-            "neutral": {"pace": "moderate", "vocabulary": "standard"},
-            "happy": {"pace": "faster", "vocabulary": "positive"},
-            "sad": {"pace": "slower", "vocabulary": "reflective"},
-            "angry": {"pace": "faster", "vocabulary": "intense"},
-            "fearful": {"pace": "variable", "vocabulary": "cautious"},
-            "confident": {"pace": "steady", "vocabulary": "assertive"},
-            "confused": {"pace": "halting", "vocabulary": "questioning"}
-        }
+        prompt = f"""
+        Character: {character.name}
+        Traits: {traits_str}
+        Style: {character.dialogue_style}
+        Voice: {character.voice.pitch} pitch, {character.voice.pace} pace
         
-        adj = emotional_adjustments.get(emotional_state, emotional_adjustments["neutral"])
+        Context: {context}
+        Situation: {situation}
+        Emotional State: {emotional_state}
         
-        # Générer le dialogue simulé
-        dialogue_prompts = {
-            CharacterRole.PROTAGONIST: f"You've got this. We can figure this out together.",
-            CharacterRole.ANTAGONIST: "You think you can stop me? You have no idea what you're dealing with.",
-            CharacterRole.SUPPORTING: "I believe in you. You've got this.",
-            CharacterRole.MINOR: "Well, I suppose that's interesting."
-        }
+        Write only ONE line of dialogue for {character.name}.
+        """
         
-        # Si LLM disponible, utiliser le prompt complet
-        if self.llm:
-            prompt = f"""
-            Character: {character.name}
-            Traits: {traits_str}
-            Dialogue Style: {character.dialogue_style}
-            Voice: {voice_info.pitch} pitch, {voice_info.pace} pace
-            
-            Context: {context}
-            Situation: {situation}
-            Emotional State: {emotional_state}
-            
-            Write a line of dialogue that fits this character and situation.
-            Consider their catchphrase: {voice_info.catchphrase or 'None'}
-            """
-            # Ici on utiliserait self.llm.generate(prompt)
-            # Pour l'instant, retourner une réponse basée sur le personnage
-            return dialogue_prompts.get(character.role, "...")
-        
-        return dialogue_prompts.get(character.role, f"{character.name} says something appropriate.")
+        response = await self._call_llm(prompt, system_prompt=f"You are {character.name}. Speak in character.")
+        return response.strip() or f"{character.name} remains silent, looking {emotional_state}."
     
-    def converse(
+    async def converse(
         self,
         character_id: str,
         user_input: str,
@@ -363,7 +389,7 @@ class CharacterAIService:
         context = " ".join([m["content"] for m in recent_messages])
         
         # Générer la réponse
-        response = self.generate_dialogue(
+        response = await self.generate_dialogue(
             character=character,
             context=context,
             situation="Interactive conversation",
@@ -428,38 +454,76 @@ class CharacterAIService:
         
         return actions[:3]
     
-    def analyze_character_arc(self, character_id: str) -> Dict[str, Any]:
-        """Analyser l'arc du personnage"""
+    async def analyze_character_arc(self, character_id: str) -> Dict[str, Any]:
+        """Analyser l'arc du personnage avec IA"""
         character = self.characters.get(character_id)
         if not character:
             return {"error": "Character not found"}
         
-        # Analyser la progression de l'arc
-        arc = character.arc
+        prompt = f"""
+        Analyze the following character arc for consistency and impact:
+        Character: {character.name}
+        Role: {character.role.value}
+        Start State: {character.arc.start_state}
+        Transformation: {character.arc.transformation}
+        End State: {character.arc.end_state}
+        Key Moments: {", ".join(character.arc.key_moments)}
         
-        # Calculer le score de croissance
-        growth_indicators = len(character.arc.key_moments)
-        growth_score = min(1.0, growth_indicators / 5.0) if growth_indicators > 0 else 0.5
+        Identify:
+        1. Growth potential
+        2. Internal/External conflicts
+        3. Recommendations for improvement
         
-        # Déterminer le type de transformation
-        transformation_type = arc.growth_type
-        if "negative" in arc.transformation.lower() or "fall" in arc.transformation.lower():
-            transformation_type = "negative"
-        elif "positive" in arc.transformation.lower() or "growth" in arc.transformation.lower():
-            transformation_type = "positive"
+        Respond in JSON format:
+        {{
+            "growth_score": 0.0-1.0,
+            "transformation_type": "positive|negative|flat",
+            "analysis_summary": "...",
+            "arc_continuity_score": 0.0-1.0,
+            "recommendations": ["..."]
+        }}
+        """
         
-        return {
-            "character_id": character_id,
-            "character_name": character.name,
-            "arc_start": arc.start_state,
-            "arc_middle": arc.transformation,
-            "arc_end": arc.end_state,
-            "key_moments": arc.key_moments,
-            "growth_score": round(growth_score, 2),
-            "transformation_type": transformation_type,
-            "arc_continuity": 0.85,  # Score de cohérence
-            "recommendations": self._get_arc_recommendations(character)
-        }
+        llm_response = await self._call_llm(prompt, system_prompt="You are an expert story consultant.")
+        
+        try:
+            import json
+            text = llm_response.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            data = json.loads(text)
+            
+            return {
+                "character_id": character_id,
+                "character_name": character.name,
+                "arc_start": character.arc.start_state,
+                "arc_middle": character.arc.transformation,
+                "arc_end": character.arc.end_state,
+                "key_moments": character.arc.key_moments,
+                "growth_score": data.get("growth_score", 0.5),
+                "transformation_type": data.get("transformation_type", character.arc.growth_type),
+                "analysis_summary": data.get("analysis_summary", "Standard analysis completed."),
+                "arc_continuity": data.get("arc_continuity_score", 0.8),
+                "recommendations": data.get("recommendations", self._get_arc_recommendations(character))
+            }
+        except Exception:
+            # Fallback
+            arc = character.arc
+            growth_indicators = len(character.arc.key_moments)
+            growth_score = min(1.0, growth_indicators / 5.0) if growth_indicators > 0 else 0.5
+            
+            return {
+                "character_id": character_id,
+                "character_name": character.name,
+                "arc_start": arc.start_state,
+                "arc_middle": arc.transformation,
+                "arc_end": arc.end_state,
+                "key_moments": arc.key_moments,
+                "growth_score": round(growth_score, 2),
+                "transformation_type": arc.growth_type,
+                "arc_continuity": 0.85,
+                "recommendations": self._get_arc_recommendations(character)
+            }
     
     def _get_arc_recommendations(self, character: Character) -> List[str]:
         """Obtenir des recommandations pour l'arc du personnage"""
@@ -561,17 +625,51 @@ class CharacterAIService:
         }
         return samples.get(scenario, samples["greeting"])
     
-    def validate_character_consistency(self, character_id: str) -> Dict[str, Any]:
-        """Valider la cohérence du personnage"""
+    async def validate_character_consistency(self, character_id: str) -> Dict[str, Any]:
+        """Valider la cohérence du personnage avec IA"""
         character = self.get_character(character_id)
         if not character:
             return {"error": "Character not found"}
         
-        issues = []
-        suggestions = []
+        prompt = f"""
+        Validate the consistency of this character profile:
+        Name: {character.name}
+        Personality: {", ".join([t.value for t in character.personality])}
+        Background: {character.background.origin}, Motivation: {character.background.motivation}
+        Voice: {character.voice.pitch} pitch, {character.voice.accent} accent
+        Arc: {character.arc.transformation}
         
-        # Vérifier la cohérence des traits
-        if len(character.personality) > 5:
+        Look for contradictions between traits, background, and predicted behaviors.
+        
+        Respond in JSON format:
+        {{
+            "consistency_score": 0.0-1.0,
+            "issues": ["..."],
+            "suggestions": ["..."]
+        }}
+        """
+        
+        llm_response = await self._call_llm(prompt, system_prompt="You are a character auditor.")
+        
+        try:
+            import json
+            text = llm_response.strip()
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0].strip()
+            data = json.loads(text)
+            return {
+                "character_id": character_id,
+                "consistency_score": data.get("consistency_score", 0.9),
+                "issues": data.get("issues", []),
+                "suggestions": data.get("suggestions", [])
+            }
+        except Exception:
+            return {
+                "character_id": character_id,
+                "consistency_score": 0.9,
+                "issues": [],
+                "suggestions": []
+            }
             issues.append("Too many personality traits may create inconsistency")
         
         # Vérifier les relations

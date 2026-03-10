@@ -186,11 +186,7 @@ def get_async_queue_stats() -> Optional[Dict[str, Any]]:
         logger.debug(f"Could not get AsyncTaskQueue stats: {e}")
         return None
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Logger configuration
 logger = logging.getLogger(__name__)
 
 # Create router

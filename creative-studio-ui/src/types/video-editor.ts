@@ -379,6 +379,7 @@ export interface EditorProject {
   media: MediaFile[];
   createdAt: Date;
   updatedAt: Date;
+  clips: Clip[];
 }
 
 // Export Settings

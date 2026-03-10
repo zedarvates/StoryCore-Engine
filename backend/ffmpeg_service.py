@@ -31,6 +31,7 @@ from urllib.parse import urlencode
 
 import sseclient  # For SSE support
 import requests  # For HTTP requests
+from backend.config import settings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -257,6 +258,11 @@ class FFmpegService:
     
     def _find_ffmpeg(self) -> str:
         """Find ffmpeg binary path."""
+        # Check custom path from settings first
+        if settings.FFMPEG_PATH and os.path.exists(settings.FFMPEG_PATH):
+            logger.info(f"Using FFmpeg from settings: {settings.FFMPEG_PATH}")
+            return settings.FFMPEG_PATH
+
         # Check common locations
         possible_paths = [
             "ffmpeg",
@@ -320,10 +326,16 @@ class FFmpegService:
             stderr=stderr.decode()
         )
 
-    async def _check_ffmpeg_installed(self):
+    def _check_ffmpeg_installed(self):
         """Check if FFmpeg is properly installed."""
         try:
-            result = await self._run_subprocess([self.ffmpeg_path, "-version"], timeout=10)
+            # Use synchronous subprocess.run for the initial check in __init__
+            result = subprocess.run(
+                [self.ffmpeg_path, "-version"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
             if result.returncode == 0:
                 version_info = result.stdout.split('\n')[0]
                 logger.info(f"FFmpeg version: {version_info}")
@@ -334,7 +346,7 @@ class FFmpegService:
             # FFmpeg binary not found at the specified path
             logger.error(f"FFmpeg binary not found at {self.ffmpeg_path}: {e}")
             raise RuntimeError(f"FFmpeg not found at {self.ffmpeg_path}") from e
-        except asyncio.TimeoutError as e:
+        except subprocess.TimeoutExpired as e:
             # FFmpeg version check timed out
             logger.error(f"FFmpeg version check timed out: {e}")
             raise RuntimeError("FFmpeg version check timed out") from e

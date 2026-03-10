@@ -13,6 +13,7 @@ import { PromptGenerationButton } from './PromptGenerationButton';
 import { ImageGenerationButton } from './ImageGenerationButton';
 import { VideoGenerationButton } from './VideoGenerationButton';
 import { AudioGenerationButton } from './AudioGenerationButton';
+import { DirectorModeButton } from './DirectorModeButton';
 import { RegenerationGroup, ExportFilmButton } from './RegenerationButtons';
 import { useGenerationStore } from '../../stores/generationStore';
 import type { Shot, Sequence } from '../../types';
@@ -24,6 +25,7 @@ const PromptGenerationDialog = lazy(() => import('./PromptGenerationDialog').the
 const ImageGenerationDialog = lazy(() => import('./ImageGenerationDialog').then(m => ({ default: m.ImageGenerationDialog })));
 const VideoGenerationDialog = lazy(() => import('./VideoGenerationDialog').then(m => ({ default: m.VideoGenerationDialog })));
 const AudioGenerationDialog = lazy(() => import('./AudioGenerationDialog').then(m => ({ default: m.AudioGenerationDialog })));
+const DirectorModeDialog = lazy(() => import('./DirectorModeDialog').then(m => ({ default: m.DirectorModeDialog })));
 const GenerationProgressModal = lazy(() => import('./GenerationProgressModal').then(m => ({ default: m.GenerationProgressModal })));
 
 export interface GenerationButtonToolbarProps {
@@ -68,7 +70,6 @@ export interface GenerationButtonToolbarProps {
 export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = ({
   context,
   currentShot,
-  currentSequence,
   onGenerationComplete,
   onExportFilm,
   className = '',
@@ -76,7 +77,7 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
   const { currentPipeline } = useGenerationStore();
 
   // Dialog state management
-  const [activeDialog, setActiveDialog] = useState<'prompt' | 'image' | 'video' | 'audio' | null>(null);
+  const [activeDialog, setActiveDialog] = useState<'prompt' | 'image' | 'video' | 'audio' | 'director' | null>(null);
 
   // Determine if generation is in progress
   const isGenerating = currentPipeline?.stages.prompt?.status === 'in_progress' ||
@@ -99,6 +100,10 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
 
   const handleAudioClick = useCallback(() => {
     setActiveDialog('audio');
+  }, []);
+
+  const handleDirectorClick = useCallback(() => {
+    setActiveDialog('director');
   }, []);
 
   // Dialog close handlers
@@ -141,6 +146,11 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
           <AudioGenerationButton
             onClick={handleAudioClick}
             isGenerating={currentPipeline?.stages.audio?.status === 'in_progress'}
+          />
+
+          <DirectorModeButton
+            onClick={handleDirectorClick}
+            disabled={currentPipeline?.stages.image?.status !== 'completed'}
           />
         </div>
 
@@ -210,6 +220,13 @@ export const GenerationButtonToolbar: React.FC<GenerationButtonToolbarProps> = (
 
         {activeDialog === 'audio' && (
           <AudioGenerationDialog
+            isOpen={true}
+            onClose={handleCloseDialog}
+          />
+        )}
+
+        {activeDialog === 'director' && (
+          <DirectorModeDialog
             isOpen={true}
             onClose={handleCloseDialog}
           />

@@ -200,3 +200,34 @@
   color: #fff;
   border-color: #666;
 }
+
+.active-job-progress {
+  background: rgba(0, 123, 255, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.2);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.job-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #007bff;
+  text-transform: uppercase;
+}
+
+.progress-bar-container {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #00d4ff);
+  transition: width 0.3s ease;
+}

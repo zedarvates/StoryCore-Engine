@@ -14,7 +14,7 @@ import { backendApiService } from './backendApiService';
 /**
  * Supported LLM providers
  */
-export type LLMProvider = 'openai' | 'anthropic' | 'local' | 'custom';
+export type LLMProvider = 'openai' | 'anthropic' | 'local' | 'custom' | 'diffusion';
 
 /**
  * LLM provider configuration
@@ -30,6 +30,7 @@ export interface LLMConfig {
     topP: number; // 0-1
     frequencyPenalty: number; // -2 to 2
     presencePenalty: number; // -2 to 2
+    draftMode?: boolean;      // Use local diffusion for fast drafting
   };
   systemPrompts: {
     worldGeneration: string;
@@ -1110,16 +1111,77 @@ class CustomProvider extends LLMProviderBase {
 }
 
 /**
+ * Diffusion Provider Implementation (Local Fast)
+ */
+class DiffusionProvider extends LLMProviderBase {
+  getProviderName(): string {
+    return 'Diffusion (Local Fast)';
+  }
+
+  async generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse> {
+    const endpoint = this.config.apiEndpoint || 'http://localhost:8005';
+    const response = await fetch(`${endpoint}/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: request.prompt,
+        max_tokens: request.maxTokens || this.config.parameters.maxTokens,
+        temperature: request.temperature || this.config.parameters.temperature,
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new LLMError('Diffusion server error', 'api_error', true);
+    }
+
+    const data = await response.json();
+    return {
+      content: data.text,
+      usage: {
+        prompt_tokens: 0,
+        completion_tokens: data.steps,
+        total_tokens: data.steps,
+      },
+    };
+  }
+
+  async generateStreamingCompletion(
+    request: LLMRequest,
+    onChunk: StreamChunkCallback,
+    signal?: AbortSignal
+  ): Promise<LLMResponse> {
+    const response = await this.generateCompletion(request, signal);
+    onChunk(response.content);
+    return response;
+  }
+
+  async validateConnection(): Promise<boolean> {
+    try {
+      const endpoint = this.config.apiEndpoint || 'http://localhost:8005';
+      const response = await fetch(`${endpoint}/health`);
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+/**
  * Main LLM Service with retry logic and error handling
  */
 export class LLMService {
   private provider: LLMProviderBase;
+  private draftProvider: DiffusionProvider;
   private config: LLMConfig;
   private readonly abortControllers: Map<string, AbortController> = new Map();
 
   constructor(config?: Partial<LLMConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.provider = this.createProvider(this.config);
+    this.draftProvider = new DiffusionProvider(this.config);
   }
 
   /**
@@ -1134,6 +1196,8 @@ export class LLMService {
       case 'local':
       case 'custom':
         return new CustomProvider(config);
+      case 'diffusion':
+        return new DiffusionProvider(config);
       default:
         throw new Error(`Unsupported provider: ${config.provider}`);
     }
@@ -1164,7 +1228,12 @@ export class LLMService {
         // Create a timeout controller that combines timeout and abort signal
         const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
 
-        const response = await this.provider.generateCompletion(request, timeoutController.signal);
+        // HYBRID LOGIC: If draftMode is active, use the fast local provider
+        const activeProvider = this.config.parameters.draftMode ? this.draftProvider : this.provider;
+        
+        logger.info(`[LLMService] ⚡ Using provider: ${activeProvider.getProviderName()} (DraftMode: ${this.config.parameters.draftMode})`);
+        
+        const response = await activeProvider.generateCompletion(request, timeoutController.signal);
 
         const elapsedMs = Date.now() - startTime;
         logger.info(`[LLMService] ✅ Provider response received in ${elapsedMs}ms`);
@@ -1232,7 +1301,12 @@ export class LLMService {
         // Create a timeout controller that combines timeout and abort signal
         const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
 
-        const response = await this.provider.generateStreamingCompletion(request, onChunk, timeoutController.signal);
+        // HYBRID LOGIC: If draftMode is active, use the fast local provider
+        const activeProvider = this.config.parameters.draftMode ? this.draftProvider : this.provider;
+        
+        logger.info(`[LLMService] ⚡ Using provider: ${activeProvider.getProviderName()} (DraftMode: ${this.config.parameters.draftMode})`);
+
+        const response = await activeProvider.generateStreamingCompletion(request, onChunk, timeoutController.signal);
         return {
           success: true,
           data: response,
@@ -2159,6 +2233,27 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       requiresApiKey: false,
       supportsStreaming: true,
       defaultEndpoint: '',
+    },
+    {
+      id: 'diffusion',
+      name: 'Diffusion LLM (Local Fast)',
+      models: [
+        {
+          id: 'llda-v1',
+          name: 'LLDA v1 (Super Fast Diffusion)',
+          contextWindow: 1024,
+          capabilities: ['completion', 'fast'],
+        },
+        {
+          id: 'sseds-beta',
+          name: 'SSEDS Beta (High Speed)',
+          contextWindow: 2048,
+          capabilities: ['completion', 'fast'],
+        },
+      ],
+      requiresApiKey: false,
+      supportsStreaming: false,
+      defaultEndpoint: 'http://localhost:8005',
     },
   ];
 }

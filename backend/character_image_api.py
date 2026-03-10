@@ -54,9 +54,9 @@ try:
         get_face_swap_workflow
     )
     CHARACTER_WIZARD_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     CHARACTER_WIZARD_AVAILABLE = False
-    logging.warning("Character wizard services not available")
+    logging.warning(f"Character wizard services not available: {e}")
 
 # Configure logging
 logging.basicConfig(

@@ -57,11 +57,88 @@ import {
   MonitorUp,
   Layout,
   Plus,
-  Box
+  Box,
+  ExternalLink
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ChatService, type ProjectCreationRequest } from '@/services/chatService';
+import { projectCreationService } from '@/services/ProjectCreationService';
+
+// ============================================================================
+// Internal Components
+// ============================================================================
+
+const ToolIcon: React.FC<{ id: string; className?: string }> = ({ id, className }) => {
+  switch (id) {
+    case 'character': return <UserPlus className={className} />;
+    case 'location': return <MapPin className={className} />;
+    case 'object': return <Package className={className} />;
+    case 'shot': return <Video className={className} />;
+    case 'scenario': return <BookOpen className={className} />;
+    case 'video': return <Sparkles className={className} />;
+    case 'audio': return <Radio className={className} />;
+    case 'ghost': return <Ghost className={className} />;
+    case 'settings': return <Settings className={className} />;
+    default: return <Wand2 className={className} />;
+  }
+};
+
+const ToolButton: React.FC<{ id: string; onAction: (id: string, direct: boolean) => void }> = ({ id, onAction }) => {
+  const colors: Record<string, string> = {
+    character: 'text-blue-400 border-blue-400/30 hover:bg-blue-400/10',
+    location: 'text-green-400 border-green-400/30 hover:bg-green-400/10',
+    object: 'text-yellow-400 border-yellow-400/30 hover:bg-yellow-400/10',
+    shot: 'text-purple-400 border-purple-400/30 hover:bg-purple-400/10',
+    scenario: 'text-cyan-400 border-cyan-400/30 hover:bg-cyan-400/10',
+    video: 'text-indigo-400 border-indigo-400/30 hover:bg-indigo-400/10',
+    audio: 'text-pink-400 border-pink-400/30 hover:bg-pink-400/10',
+    ghost: 'text-orange-400 border-orange-400/30 hover:bg-orange-400/10',
+    settings: 'text-gray-400 border-gray-400/30 hover:bg-gray-400/10',
+  };
+
+  const labels: Record<string, string> = {
+    character: 'Assistant Personnage',
+    location: 'Bâtisseur de Lieux',
+    object: 'Forgeron d\'Objets',
+    shot: 'Duo-Cam / Shot Planner',
+    scenario: 'Scenario Editor',
+    video: 'Générateur Vidéo',
+    audio: 'Production Audio',
+    ghost: 'Audit Ghost Tracker',
+    settings: 'Paramètres Projet',
+  };
+
+  return (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      className={`mt-2 flex items-center gap-2 rounded-xl border bg-transparent py-1.5 h-auto ${colors[id] || 'text-purple-400'}`}
+      onClick={() => onAction(id, true)}
+    >
+      <ToolIcon id={id} className="w-4 h-4" />
+      <span className="font-semibold text-xs">{labels[id] || id}</span>
+      <ExternalLink className="w-3 h-3 opacity-50" />
+    </Button>
+  );
+};
+
+const parseContentWithTools = (content: string, onAction: (id: string, direct: boolean) => void) => {
+  const toolRegex = /\[TOOL:([a-z0-9_-]+)\]/g;
+  const parts = content.split(toolRegex);
+  const elements: React.ReactNode[] = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      if (parts[i]) elements.push(parts[i]);
+    } else {
+      elements.push(<ToolButton key={i} id={parts[i]} onAction={onAction} />);
+    }
+  }
+
+  return elements.length > 0 ? elements : [content];
+};
 
 // ============================================================================
 // Helpers
@@ -675,13 +752,30 @@ export function LandingChatBox({
   }, [handleRetryMessage]);
 
   // Handle quick action (Requirements for character, location, object, shot)
-  const handleQuickAction = useCallback(async (action: string) => {
+  const handleQuickAction = useCallback(async (action: string, directOpen: boolean = false) => {
     // Check for image attachments for vision-based creation
     const imageFiles = attachments.filter(f => f.type.startsWith('image/'));
     const hasImage = imageFiles.length > 0;
     
     // Get store actions
     const store = useAppStore.getState();
+
+    if (directOpen) {
+      switch (action) {
+        case 'character': store.setShowCharacterWizard(true, hasImage ? { imageFile: imageFiles[0] } : undefined); break;
+        case 'location': store.setShowLocationWizard(true, hasImage ? { imageFile: imageFiles[0] } : undefined); break;
+        case 'object': store.setShowObjectWizard(true, hasImage ? { imageFile: imageFiles[0] } : undefined); break;
+        case 'shot': store.openShotWizard(); break;
+        case 'scenario': store.setShowScenarioBuilder(true); break;
+        case 'ghost': store.setShowGhostTrackerWizard(true); break;
+        case 'settings': store.setShowGeneralSettings(true); break;
+        case 'video': store.setShowVideoEditorWizard(true); break;
+        case 'audio': store.setShowAudioProductionWizard(true); break;
+        case 'world': store.setShowWorldWizard(true); break;
+        default: break;
+      }
+      return;
+    }
 
     let prompt = '';
     switch (action) {
@@ -729,6 +823,9 @@ export function LandingChatBox({
         prompt = currentLanguage === 'fr'
           ? "Peux-tu me donner des conseils du Ghost Tracker sur l'état actuel de mon projet et les améliorations possibles ?"
           : "Can you give me Ghost Tracker advice on the current state of my project and possible improvements?"; 
+        break;
+      case 'settings':
+        prompt = currentLanguage === 'fr' ? "Je souhaite configurer les paramètres de mon projet." : "I want to configure my project settings.";
         break;
       default: return;
     }
@@ -906,6 +1003,54 @@ export function LandingChatBox({
     }
   };
 
+  // Handle project creation with enhanced error handling
+  const handleProjectCreation = useCallback(async (projectRequest: ProjectCreationRequest) => {
+    try {
+      // Validate project request
+      if (!projectRequest.name || projectRequest.name.trim().length === 0) {
+        throw new Error('Project name is required');
+      }
+
+      // Use the centralized ProjectCreationService
+      const result = await projectCreationService.createProjectAndNavigate(projectRequest);
+      
+      if (result.success) {
+        toast({ 
+          title: currentLanguage === 'fr' ? "Projet créé avec succès !" : "Project created successfully!",
+          description: currentLanguage === 'fr' 
+            ? `Le projet "${projectRequest.name}" a été créé et ouvert.` 
+            : `Project "${projectRequest.name}" has been created and opened.`
+        });
+      } else {
+        throw new Error(result.error || 'Failed to create project');
+      }
+    } catch (error) {
+      console.error('Project creation failed:', error);
+      
+      // Enhanced error handling with specific messages
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const isNetworkError = errorMessage.toLowerCase().includes('network') || 
+                            errorMessage.toLowerCase().includes('connection') ||
+                            errorMessage.toLowerCase().includes('timeout');
+      
+      toast({ 
+        variant: "destructive",
+        title: currentLanguage === 'fr' ? "Erreur de création" : "Creation Error",
+        description: currentLanguage === 'fr' 
+          ? isNetworkError 
+            ? "Erreur réseau. Vérifiez votre connexion internet et réessayez." 
+            : errorMessage === 'Project name is required'
+            ? "Le nom du projet est requis. Veuillez spécifier un nom pour votre projet."
+            : "Impossible de créer le projet. Vérifiez votre connexion."
+          : isNetworkError
+            ? "Network error. Please check your internet connection and try again."
+            : errorMessage === 'Project name is required'
+            ? "Project name is required. Please specify a name for your project."
+            : "Failed to create project. Please check your connection."
+      });
+    }
+  }, [currentLanguage, toast]);
+
   // Handle send message
   const handleSend = async () => {
     if (!inputValue.trim() && attachments.length === 0) return;
@@ -1073,6 +1218,19 @@ export function LandingChatBox({
                     }
                   : msg
               ));
+
+              // Check if the response contains project creation actions
+              const assistantMessage = response.data.content;
+              if (assistantMessage.includes('[TOOL:createProject]') || 
+                  assistantMessage.toLowerCase().includes('create project') ||
+                  assistantMessage.toLowerCase().includes('créer un projet')) {
+                
+                // Parse project creation request from the response
+                const projectRequest = parseProjectCreationFromResponse(assistantMessage, userInput);
+                if (projectRequest) {
+                  await handleProjectCreation(projectRequest);
+                }
+              }
             } else {
               // Handle streaming error - display error with recovery options (Requirement 8.7)
               setMessages(prev => prev.filter(msg => msg.id !== streamingMessageId));
@@ -1130,6 +1288,19 @@ export function LandingChatBox({
               streamComplete: true,
             };
             addMessage(assistantMessage);
+
+            // Check if the response contains project creation actions
+            const assistantMessageContent = response.data.content;
+            if (assistantMessageContent.includes('[TOOL:createProject]') || 
+                assistantMessageContent.toLowerCase().includes('create project') ||
+                assistantMessageContent.toLowerCase().includes('créer un projet')) {
+              
+              // Parse project creation request from the response
+              const projectRequest = parseProjectCreationFromResponse(assistantMessageContent, userInput);
+              if (projectRequest) {
+                await handleProjectCreation(projectRequest);
+              }
+            }
           } else {
             // Handle error - create error message with recovery options
             const error = new LLMError(
@@ -1182,6 +1353,101 @@ export function LandingChatBox({
         addMessage(assistantMessage);
       }, 1000);
     }
+  };
+
+  // Helper function to parse project creation request from assistant response
+  const parseProjectCreationFromResponse = (assistantMessage: string, userInput: string): ProjectCreationRequest | null => {
+    // Extract project name from various patterns
+    const nameMatch = assistantMessage.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
+      || assistantMessage.match(/["']([^"']+)["']/)
+      || userInput.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
+      || userInput.match(/["']([^"']+)["']/);
+    
+    const name = nameMatch ? nameMatch[1].trim() : undefined;
+
+    // Extract theme/universe/genre
+    const theme = extractThemeFromInput(userInput);
+    const universe = extractUniverseFromInput(userInput);
+    const genre = extractGenreFromInput(userInput);
+
+    return {
+      name: name || `Project ${new Date().toISOString().split('T')[0]}`,
+      theme,
+      universe,
+      genre,
+      description: userInput,
+      settings: {
+        created_by: 'llm-assistant',
+        creation_timestamp: new Date().toISOString(),
+      },
+    };
+  };
+
+  // Helper function to extract theme from input
+  const extractThemeFromInput = (input: string): string | undefined => {
+    const themePatterns = [
+      /(?:theme|setting|atmosphere|mood)(?:\s+is|\s+of)?\s+["']?([^"',.]+)["']?/i,
+      /(?:in|with)\s+(?:a|an)\s+([a-z\s]+?)\s+(?:theme|setting|atmosphere)/i,
+    ];
+
+    for (const pattern of themePatterns) {
+      const match = input.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+
+    // Check for common theme keywords
+    const themes = [
+      'fantasy', 'sci-fi', 'science fiction', 'horror', 'thriller', 'comedy', 'drama',
+      'action', 'adventure', 'romance', 'mystery', 'western', 'noir', 'cyberpunk',
+      'steampunk', 'post-apocalyptic', 'medieval', 'futuristic', 'historical',
+      'tropical', 'arctic', 'desert', 'urban', 'rural', 'space', 'underwater',
+    ];
+
+    for (const theme of themes) {
+      if (input.toLowerCase().includes(theme)) {
+        return theme;
+      }
+    }
+
+    return undefined;
+  };
+
+  // Helper function to extract universe from input
+  const extractUniverseFromInput = (input: string): string | undefined => {
+    const universePatterns = [
+      /(?:universe|world|realm|dimension)(?:\s+where|\s+in which|\s+with)?\s+([^,.]+)/i,
+      /(?:in|set in)\s+(?:a|an)\s+(?:universe|world|realm)\s+(?:where|with)?\s+([^,.]+)/i,
+      /where\s+([^,.]+?)(?:\s+and|\s+but|$)/i,
+    ];
+
+    for (const pattern of universePatterns) {
+      const match = input.match(pattern);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+
+    return undefined;
+  };
+
+  // Helper function to extract genre from input
+  const extractGenreFromInput = (input: string): string | undefined => {
+    const genres = [
+      'action', 'adventure', 'comedy', 'drama', 'fantasy', 'horror', 'mystery',
+      'romance', 'sci-fi', 'science fiction', 'thriller', 'western', 'animation',
+      'documentary', 'musical', 'crime', 'war', 'biographical', 'historical',
+    ];
+
+    const lowerInput = input.toLowerCase();
+    for (const genre of genres) {
+      if (lowerInput.includes(genre)) {
+        return genre;
+      }
+    }
+
+    return undefined;
   };
 
   // Handle file attachment
@@ -1536,7 +1802,12 @@ export function LandingChatBox({
                     )}
                   </div>
                 )}
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <div className="text-sm whitespace-pre-wrap">
+                  {message.type === 'assistant' 
+                    ? parseContentWithTools(message.content, handleQuickAction)
+                    : message.content
+                  }
+                </div>
                 {message.attachments && message.attachments.length > 0 && (
                   <div className={`mt-3 flex flex-wrap gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`} role="list" aria-label="Attachments">
                     {message.attachments.map((attachment, idx) => {

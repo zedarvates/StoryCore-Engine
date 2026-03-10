@@ -3,7 +3,7 @@
  * Title and subtitle editor
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useVideoEditor } from '../../../contexts/VideoEditorContext';
 import { TextStyle, TextAnimation, TextLayer, Clip } from '../../../types/video-editor';
 import './TextPanel.css';
@@ -29,7 +29,14 @@ const ANIMATIONS: { id: TextAnimation; name: string }[] = [
 ];
 
 export const TextPanel: React.FC = () => {
-  const { clips, selectedClipIds, updateClip } = useVideoEditor();
+  const { clips, selectedClipIds, updateClip, transcribeMedia, aiJobs } = useVideoEditor();
+  
+  const activeTranscriptionJob = useMemo(() => {
+    return Object.values(aiJobs).find(job => 
+      (job.status === 'pending' || job.status === 'processing') && 
+      job.type === 'transcription'
+    );
+  }, [aiJobs]);
   const [text, setText] = useState('Enter your text here');
   const [textStyle, setTextStyle] = useState<TextStyle>('title');
   const [animation, setAnimation] = useState<TextAnimation>('none');
@@ -40,41 +47,29 @@ export const TextPanel: React.FC = () => {
   const handleAddText = useCallback(() => {
     if (!selectedClip) return;
     updateClip(selectedClip.id, {
-      text: {
-        content: text,
-        style: textStyle,
-        animation: animation,
-        fontFamily: 'Arial',
-        fontSize: 48,
-        fontWeight: 'bold',
-        color: '#ffffff',
-        strokeColor: '#000000',
-        strokeWidth: 2,
-        shadowColor: '#000000',
-        shadowBlur: 10,
-        shadowOffsetX: 2,
-        shadowOffsetY: 2,
-        positionX: 50,
-        positionY: 50,
-        rotation: 0,
-        opacity: 100,
-      },
-    });
+      text: text,
+      style: textStyle,
+      animation: animation,
+      fontFamily: 'Arial',
+      fontSize: 48,
+      fontWeight: 'bold',
+      color: '#ffffff',
+      opacity: 100,
+      position: { x: 50, y: 50 }
+    } as any);
   }, [selectedClip, text, textStyle, animation, updateClip]);
 
   const handleUpdateText = useCallback(
     (updates: Partial<typeof textOverlay>) => {
       if (!selectedClip || !textOverlay) return;
-      updateClip(selectedClip.id, {
-        text: { ...textOverlay, ...updates },
-      });
+      updateClip(selectedClip.id, { ...updates } as any);
     },
     [selectedClip, textOverlay, updateClip]
   );
 
   const handleRemoveText = useCallback(() => {
     if (!selectedClip) return;
-    updateClip(selectedClip.id, { text: null });
+    updateClip(selectedClip.id, { text: '' } as any);
   }, [selectedClip, updateClip]);
 
   return (
@@ -177,6 +172,28 @@ export const TextPanel: React.FC = () => {
             </div>
           </div>
         )}
+
+        <div className="ai-text-section">
+          {activeTranscriptionJob && (
+            <div className="active-job-progress">
+              <div className="job-info">
+                <span>SUBTITLES GENERATION...</span>
+                <span>{Math.round(activeTranscriptionJob.progress)}%</span>
+              </div>
+              <div className="progress-bar-container">
+                <div className="progress-bar-fill" style={{ width: `${activeTranscriptionJob.progress}%` }} />
+              </div>
+            </div>
+          )}
+          <label>AI Tools ✨</label>
+          <button 
+            className="ai-action-btn"
+            onClick={() => clips[0] && transcribeMedia(clips[0].mediaId)}
+            title="Generate automatic subtitles from audio"
+          >
+            🪄 Auto-Captions
+          </button>
+        </div>
 
         <div className="text-actions">
           {textOverlay ? (

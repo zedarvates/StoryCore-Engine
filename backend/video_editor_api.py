@@ -118,8 +118,12 @@ class ProjectCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     aspect_ratio: str = "16:9"
-    resolution: str = "1920x1080"
-    frame_rate: float = 30.0
+    resolution: Union[str, Dict[str, int]] = "1920x1080"
+    frame_rate: float = Field(30.0, alias="frameRate")
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class ProjectUpdate(BaseModel):
@@ -127,23 +131,40 @@ class ProjectUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     aspect_ratio: Optional[str] = None
-    resolution: Optional[str] = None
-    frame_rate: Optional[float] = None
+    resolution: Optional[Union[str, Dict[str, int]]] = None
+    frame_rate: Optional[float] = Field(None, alias="frameRate")
+    tracks: Optional[List[Dict[str, Any]]] = None
+    clips: Optional[List[Dict[str, Any]]] = None
+    media: Optional[List[Dict[str, Any]]] = None
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class ProjectResponse(BaseModel):
     """Project response model."""
     id: str
     name: str
-    description: Optional[str]
-    user_id: str
-    aspect_ratio: str
-    resolution: str
-    frame_rate: float
+    description: Optional[str] = None
+    user_id: str = Field(..., alias="userId")
+    aspect_ratio: str = Field(..., alias="aspectRatio")
+    resolution: Union[str, Dict[str, int]]
+    frame_rate: float = Field(..., alias="frameRate")
     duration: float
-    created_at: datetime
-    modified_at: datetime
-    thumbnail_path: Optional[str] = None
+    created_at: datetime = Field(..., alias="createdAt")
+    modified_at: datetime = Field(..., alias="updatedAt")
+    thumbnail_path: Optional[str] = Field(None, alias="thumbnailPath")
+    tracks: List[Dict[str, Any]] = []
+    clips: List[Dict[str, Any]] = []
+    media: List[Dict[str, Any]] = []
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 
 class MediaUpload(BaseModel):
@@ -157,42 +178,68 @@ class MediaResponse(BaseModel):
     """Media item response."""
     id: str
     name: str
-    media_type: str
+    media_type: str = Field(..., alias="type")
     path: str
-    duration: Optional[float]
-    resolution: Optional[str]
-    thumbnail_path: Optional[str]
-    file_size: int
-    created_at: datetime
+    url: Optional[str] = None
+    duration: Optional[float] = None
+    resolution: Optional[str] = None
+    thumbnail_path: Optional[str] = Field(None, alias="thumbnail")
+    file_size: int = Field(..., alias="fileSize")
+    created_at: datetime = Field(..., alias="createdAt")
+    tags: List[str] = []
+    metadata: Dict[str, Any] = {}
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 class ExportRequest(BaseModel):
     """Export request model."""
-    project_id: str
+    project_id: Optional[str] = None
     format: str = "mp4"
     preset: str = "custom"
     resolution: Optional[str] = None
     quality: str = "high"  # low, medium, high, ultra
+    frame_rate: int = Field(30, alias="frameRate")
+    include_audio: bool = Field(True, alias="includeAudio")
+    bitrate: Optional[int] = None
 
 
 class ExportResponse(BaseModel):
     """Export job response."""
-    job_id: str
-    status: str  # pending, processing, completed, failed
+    id: str = Field(..., alias="id")
+    project_id: str = Field(..., alias="projectId")
+    status: str
     progress: float
-    estimated_time: Optional[int]
-    download_url: Optional[str]
-    error: Optional[str]
+    estimated_time: Optional[int] = Field(None, alias="estimatedTime")
+    output_path: Optional[str] = Field(None, alias="outputPath")
+    error: Optional[str] = None
+    settings: Optional[Dict[str, Any]] = None
+    started_at: datetime = Field(default_factory=datetime.utcnow, alias="startedAt")
+    completed_at: Optional[datetime] = Field(None, alias="completedAt")
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
 
 
 class ExportStatusResponse(BaseModel):
     """Export status response."""
-    job_id: str
+    id: str = Field(..., alias="id")
     status: str
     progress: float
-    message: str
-    download_url: Optional[str]
-    error: Optional[str]
+    message: Optional[str] = None
+    output_path: Optional[str] = Field(None, alias="outputPath")
+    error: Optional[str] = None
+    download_url: Optional[str] = Field(None, alias="downloadUrl")
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
 
 
 # =============================================================================
@@ -615,7 +662,17 @@ async def create_project(project_data: ProjectCreate, authorization: str = None)
     
     # Parse resolution
     resolution = project_data.resolution
-    width, height = map(int, resolution.split("x"))
+    if isinstance(resolution, dict):
+        width = resolution.get("width", 1920)
+        height = resolution.get("height", 1080)
+        resolution_str = f"{width}x{height}"
+    else:
+        resolution_str = resolution
+        try:
+            width, height = map(int, resolution_str.split("x"))
+        except:
+            width, height = 1920, 1080
+            resolution_str = "1920x1080"
     
     # Create project directory
     project_path = PROJECTS_DIR / user_id / project_id
@@ -628,10 +685,12 @@ async def create_project(project_data: ProjectCreate, authorization: str = None)
         "description": project_data.description,
         "user_id": user_id,
         "aspect_ratio": project_data.aspect_ratio,
-        "resolution": resolution,
+        "resolution": resolution if isinstance(resolution, dict) else resolution_str,
         "frame_rate": project_data.frame_rate,
         "duration": 0.0,
         "tracks": [],
+        "clips": [],
+        "media": [],
         "created_at": now,
         "modified_at": now,
         "thumbnail_path": None,
@@ -746,22 +805,23 @@ async def update_project(
         project["resolution"] = update_data.resolution
     if update_data.frame_rate is not None:
         project["frame_rate"] = update_data.frame_rate
-    
+    if update_data.tracks is not None:
+        project["tracks"] = update_data.tracks
+    if update_data.clips is not None:
+        project["clips"] = update_data.clips
+    if update_data.media is not None:
+        project["media"] = update_data.media
+        
     project["modified_at"] = datetime.utcnow()
     
-    return ProjectResponse(
-        id=project["id"],
-        name=project["name"],
-        description=project.get("description"),
-        user_id=project["user_id"],
-        aspect_ratio=project["aspect_ratio"],
-        resolution=project["resolution"],
-        frame_rate=project["frame_rate"],
-        duration=project["duration"],
-        created_at=project["created_at"],
-        modified_at=project["modified_at"],
-        thumbnail_path=project.get("thumbnail_path")
-    )
+    # Save project metadata
+    project_path = Path(project.get("path", PROJECTS_DIR / project["user_id"] / project_id))
+    project_path.mkdir(parents=True, exist_ok=True)
+    metadata_file = project_path / "project.json"
+    with open(metadata_file, "w") as f:
+        json.dump(project, f, default=str)
+    
+    return ProjectResponse(**project)
 
 
 @VIDEO_EDITOR_ROUTER.delete("/projects/{project_id}")
@@ -791,6 +851,7 @@ async def delete_project(project_id: str, authorization: str = None):
 # =============================================================================
 
 @VIDEO_EDITOR_ROUTER.post("/media/upload", response_model=MediaResponse)
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/media", response_model=MediaResponse)
 async def upload_media(
     file: UploadFile = File(...),
     project_id: str = None,
@@ -832,7 +893,8 @@ async def upload_media(
         'image': ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
     }
     
-    original_filename = file.filename or ''
+    original_filename = file.filename or 'unnamed_file'
+    safe_name = name or original_filename
     file_ext = Path(original_filename).suffix.lower()
     allowed_exts = allowed_extensions.get(media_type, allowed_extensions['video'])
     
@@ -891,7 +953,7 @@ async def upload_media(
     # Store media metadata
     media = {
         "id": media_id,
-        "name": file_name,
+        "name": safe_name,
         "media_type": media_type,
         "path": str(storage_path),
         "duration": duration,
@@ -906,7 +968,7 @@ async def upload_media(
     
     return MediaResponse(
         id=media_id,
-        name=file_name,
+        name=safe_name,
         media_type=media_type,
         path=str(storage_path),
         duration=duration,
@@ -972,19 +1034,27 @@ async def delete_media(media_id: str, authorization: str = None):
 # =============================================================================
 
 @VIDEO_EDITOR_ROUTER.post("/export", response_model=ExportResponse)
-async def start_export(export_request: ExportRequest, background_tasks: BackgroundTasks):
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/export", response_model=ExportResponse)
+async def start_export(
+    export_request: ExportRequest, 
+    background_tasks: BackgroundTasks,
+    project_id: str = None
+):
     """Start a video export job."""
-    project_id = export_request.project_id
+    current_project_id = project_id or export_request.project_id
     
-    if project_id not in projects_db:
+    if not current_project_id:
+        raise HTTPException(status_code=400, detail="Project ID is required")
+        
+    if current_project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+        
     job_id = str(uuid.uuid4())
     
     # Create export job
     job = {
         "id": job_id,
-        "project_id": project_id,
+        "project_id": current_project_id,
         "format": export_request.format,
         "preset": export_request.preset,
         "resolution": export_request.resolution,
@@ -992,9 +1062,10 @@ async def start_export(export_request: ExportRequest, background_tasks: Backgrou
         "status": "pending",
         "progress": 0.0,
         "message": "Job created",
-        "download_url": None,
+        "output_path": None,
         "error": None,
-        "created_at": datetime.utcnow()
+        "settings": export_request.dict(),
+        "started_at": datetime.utcnow()
     }
     
     jobs_db[job_id] = job
@@ -1002,17 +1073,11 @@ async def start_export(export_request: ExportRequest, background_tasks: Backgrou
     # Add export task to background
     background_tasks.add_task(process_export, job_id)
     
-    return ExportResponse(
-        job_id=job_id,
-        status="pending",
-        progress=0.0,
-        estimated_time=60,
-        download_url=None,
-        error=None
-    )
+    return ExportResponse(**job)
 
 
 @VIDEO_EDITOR_ROUTER.get("/export/{job_id}/status", response_model=ExportStatusResponse)
+@VIDEO_EDITOR_ROUTER.get("/export/{job_id}/progress", response_model=ExportStatusResponse)
 async def get_export_status(job_id: str):
     """Get export job status."""
     job = jobs_db.get(job_id)
@@ -1021,11 +1086,12 @@ async def get_export_status(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     
     return ExportStatusResponse(
-        job_id=job["id"],
+        id=job["id"],
         status=job["status"],
         progress=job["progress"],
         message=job["message"],
-        download_url=job.get("download_url"),
+        output_path=job.get("output_path"),
+        download_url=f"/api/video-editor/export/{job_id}/download" if job["status"] == "completed" else None,
         error=job.get("error")
     )
 
@@ -1056,18 +1122,24 @@ async def process_export(job_id: str):
     job["status"] = "processing"
     job["message"] = "Starting high-quality export..."
     
-    project_id = job["project_id"]
-    format_ext = job["format"]
+    project_id = job.get("projectId") or job.get("project_id")
+    format_ext = job.get("format", "mp4")
     
     try:
         # En production, on rendrait la timeline. Ici on simule sur le premier média pour la démo
         # Mais avec les vrais réglages de qualité/format/transparent
-        project = projects_db[project_id]
-        if not project["media_items"]:
+        project = projects_db.get(project_id)
+        if not project:
+            raise ValueError(f"Project {project_id} not found")
+            
+        # Try both media and media_items for compatibility
+        media_list = project.get("media", project.get("media_items", []))
+        if not media_list:
              raise FileNotFoundError("No media in project to export")
              
-        input_path = project["media_items"][0]["path"]
-        output_path = str(EXPORT_DIR / f"{project_id}_{job_id}.{format_ext}")
+        input_path = media_list[0]["path"]
+        output_filename = f"{project_id}_{job_id}.{format_ext}"
+        output_path = str(EXPORT_DIR / output_filename)
         
         job["progress"] = 30.0
         job["message"] = f"Encoding {format_ext}..."
@@ -1084,29 +1156,20 @@ async def process_export(job_id: str):
             job["status"] = "completed"
             job["progress"] = 100.0
             job["message"] = "Export completed successfully"
-            job["download_url"] = f"/api/video-editor/export/{job_id}/file"
+            job["completed_at"] = datetime.utcnow()
+            job["output_path"] = f"/api/video-editor/export/{job_id}/file"
         else:
             job["status"] = "failed"
             job["message"] = "FFmpeg export failed"
+            job["error"] = "Process failed internally"
+            job["completed_at"] = datetime.utcnow()
         
-    except FileNotFoundError as e:
-        # Export file or project file not found
+    except Exception as e:
         job["status"] = "failed"
-        job["error"] = f"File not found: {e.filename}"
-        job["message"] = f"Export failed - file not found: {e.filename}"
-        logger.error(f"Export file not found: {e}")
-    except PermissionError as e:
-        # Permission denied for output directory
-        job["status"] = "failed"
-        job["error"] = f"Permission denied: {e.filename}"
-        job["message"] = f"Export failed - permission denied: {e.filename}"
-        logger.error(f"Export permission denied: {e}")
-    except OSError as e:
-        # System error (disk full, etc.)
-        job["status"] = "failed"
-        job["error"] = f"System error: {e}"
-        job["message"] = f"Export failed - system error: {e}"
-        logger.error(f"Export system error: {e}")
+        job["error"] = str(e)
+        job["message"] = f"Export failed: {str(e)}"
+        job["completed_at"] = datetime.utcnow()
+        logger.error(f"Export task failed: {job_id} - {e}")
 
 
 # =============================================================================
@@ -1381,6 +1444,15 @@ async def automate_dialogue(request: DialogueAutomationRequest):
         results.append(res)
     
     return {"status": "success", "results": results}
+
+
+@VIDEO_EDITOR_ROUTER.get("/ai/jobs/{job_id}/status")
+async def get_ai_job_status(job_id: str):
+    """Get the status and results of an AI job."""
+    job = jobs_db.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/voice-isolation")

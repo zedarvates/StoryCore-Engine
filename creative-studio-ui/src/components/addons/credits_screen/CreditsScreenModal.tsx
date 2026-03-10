@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent } from '../../ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '../../ui/dialog';
 import { CreditsScreenEditor } from './CreditsScreenEditor';
 import { useAppStore } from '@/stores/useAppStore';
 
@@ -10,6 +10,7 @@ export const CreditsScreenModal: React.FC = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+        <DialogTitle className="sr-only">Credits Screen Editor</DialogTitle>
         <CreditsScreenEditor />
       </DialogContent>
     </Dialog>

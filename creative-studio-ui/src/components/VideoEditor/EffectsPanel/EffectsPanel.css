@@ -306,3 +306,82 @@
   color: #eee;
   font-weight: 500;
 }
+
+.active-job-progress {
+  background: rgba(0, 123, 255, 0.1);
+  border: 1px solid rgba(0, 123, 255, 0.3);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.job-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #007bff;
+  letter-spacing: 0.5px;
+}
+
+.progress-bar-container {
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bottom-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.ai-action-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.ai-action-btn.primary {
+    background: #007bff;
+    color: white;
+}
+
+.ai-action-btn.secondary {
+    background: #333;
+    color: #ccc;
+}
+
+.ai-action-btn:hover {
+    filter: brightness(1.2);
+    transform: translateY(-1px);
+}
+
+.ai-desc {
+    font-size: 10px;
+    color: #666;
+    margin: -8px 0 12px 0;
+}
+
+.ai-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #00d4ff);
+  transition: width 0.3s ease;
+}

@@ -9,6 +9,7 @@ import { PersonalitySection } from './editor/PersonalitySection';
 import { BackgroundSection } from './editor/BackgroundSection';
 import { RelationshipsSection } from './editor/RelationshipsSection';
 import { CharacterImagesSection } from './editor/CharacterImagesSection';
+import { AIChatSection } from './editor/AIChatSection';
 import { PromptsManager } from '../common/PromptsManager';
 import { buildVisualPromptForCharacter } from '@/lib/promptUtils';
 import './CharacterEditor.css';
@@ -31,7 +32,7 @@ export interface CharacterEditorProps {
   onDelete?: (characterId: string) => void;
 }
 
-type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images' | 'prompts';
+type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images' | 'prompts' | 'ai_chat';
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -281,6 +282,7 @@ export function CharacterEditor({
     { id: 'relationships', label: 'Relationships' },
     { id: 'images', label: 'Images' },
     { id: 'prompts', label: 'Prompts' },
+    { id: 'ai_chat', label: 'Personality Chat' },
   ];
 
   return (
@@ -413,6 +415,13 @@ export function CharacterEditor({
             />
           )}
 
+          {activeTab === 'ai_chat' && (
+            <AIChatSection 
+              characterId={characterId} 
+              characterName={formData.name || 'Ce personnage'} 
+              id="panel-ai-chat"
+            />
+          )}
 
           {activeTab === 'prompts' && (
             <div className="character-editor__section">

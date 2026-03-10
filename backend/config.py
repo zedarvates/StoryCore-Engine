@@ -257,6 +257,26 @@ class Settings(BaseSettings):
         description="Custom FFmpeg path"
     )
     
+    # =======================
+    # LTX 2.3 Configuration
+    # =======================
+    LTX_MODEL_PATH: str = Field(
+        default="models/ltx-video-2.3.safetensors",
+        description="Path to LTX 2.3 model"
+    )
+    LTX_DEFAULT_RESOLUTION: str = Field(
+        default="1280x720",
+        description="Default resolution for LTX generation"
+    )
+    LTX_MAX_DURATION: int = Field(
+        default=20,
+        description="Maximum duration of LTX video in seconds"
+    )
+    LTX_AUDIO_ENABLED: bool = Field(
+        default=True,
+        description="Enable native audio generation in LTX"
+    )
+    
     # Audio/Video timeouts
     AUDIO_GENERATION_TIMEOUT: int = Field(
         default=300,

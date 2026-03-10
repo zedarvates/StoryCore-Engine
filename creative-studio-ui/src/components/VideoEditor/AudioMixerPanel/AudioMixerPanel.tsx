@@ -3,7 +3,7 @@
  * Audio levels and effects
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useVideoEditor } from '../../../contexts/VideoEditorContext';
 import { Track, Clip } from '../../../types/video-editor';
 import { cinematicAudioService } from '../../../services/CinematicAudioService';
@@ -34,7 +34,7 @@ const VolumeSlider: React.FC<{
 );
 
 export const AudioMixerPanel: React.FC = () => {
-  const { tracks, clips, updateTrack } = useVideoEditor();
+  const { tracks, clips, updateTrack, isolateVoice, autoDucking, aiJobs } = useVideoEditor();
   const [masterVolume, setMasterVolume] = useState(80);
   const [isGenerating, setIsGenerating] = useState(false);
   const [sfxPrompt, setSfxPrompt] = useState("");
@@ -42,6 +42,13 @@ export const AudioMixerPanel: React.FC = () => {
 
   const audioTracks = tracks.filter((t: Track) => t.type === 'audio');
   const videoClips = clips.filter((c: Clip) => !('volume' in c));
+
+  const activeAudioJob = useMemo(() => {
+    return Object.values(aiJobs).find(job => 
+      (job.status === 'pending' || job.status === 'processing') && 
+      (job.type === 'voice_isolation' || job.type === 'auto_ducking')
+    );
+  }, [aiJobs]);
 
   const handleTrackVolumeChange = useCallback(
     (trackId: string, newVolume: number) => {
@@ -148,6 +155,17 @@ export const AudioMixerPanel: React.FC = () => {
 
         {activeTab === 'ai' && (
           <div className="mixer-section ai-tools-section">
+            {activeAudioJob && (
+              <div className="active-job-progress">
+                <div className="job-info">
+                  <span>{activeAudioJob.type.replace('_', ' ').toUpperCase()} IN PROGRESS...</span>
+                  <span>{Math.round(activeAudioJob.progress)}%</span>
+                </div>
+                <div className="progress-bar-container">
+                  <div className="progress-bar-fill" style={{ width: `${activeAudioJob.progress}%` }} />
+                </div>
+              </div>
+            )}
             <h4>✨ Cinematic AI Audio</h4>
             <div className="ai-sfx-generator">
               <input 
@@ -171,15 +189,26 @@ export const AudioMixerPanel: React.FC = () => {
               <button 
                 className={`ai-action-btn ${isGenerating ? 'loading' : ''}`} 
                 title="Sync Foley to Video"
-                onClick={handleV2ASync}
+                onClick={() => {
+                  handleV2ASync();
+                  if (clips[0] && tracks[1]) autoDucking(clips[0].mediaId, tracks[1].id, 15);
+                }}
                 disabled={isGenerating}
               >
                 🎬 V2A Sync
               </button>
-              <button className="ai-action-btn" title="Remove Background Noise">
+              <button 
+                className="ai-action-btn" 
+                title="Remove Background Noise"
+                onClick={() => clips[0] && isolateVoice(clips[0].mediaId, 1.0)}
+              >
                 🌊 AI De-noise
               </button>
-              <button className="ai-action-btn" title="Separate Vocals">
+              <button 
+                className="ai-action-btn" 
+                title="Separate Vocals"
+                onClick={() => clips[0] && isolateVoice(clips[0].mediaId, 0.5)}
+              >
                  🎤 AI Stem Split
               </button>
             </div>

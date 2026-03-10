@@ -55,13 +55,21 @@ const CINEMATIC_PRESETS = [
 ];
 
 export const EffectsPanel: React.FC = () => {
-  const { clips, selectedClipIds, updateClip } = useVideoEditor();
+  const { clips, selectedClipIds, updateClip, smartCrop, enhanceClip, aiJobs } = useVideoEditor();
   const [activeTab, setActiveTab] = useState<'color' | 'filters' | 'ai'>('color');
   const [activeSubTab, setActiveSubTab] = useState<'basic' | 'presets'>('basic');
 
   const selectedClip = useMemo(() => 
     clips.find((c) => selectedClipIds.includes(c.id)) as VideoClip | undefined
   , [clips, selectedClipIds]);
+
+  const activeJob = useMemo(() => {
+    if (!selectedClip) return null;
+    return Object.values(aiJobs).find(job => 
+      (job.status === 'pending' || job.status === 'processing') && 
+      (job as any).media_id === selectedClip.mediaId
+    );
+  }, [aiJobs, selectedClip]);
 
   const corrections = useMemo(() => selectedClip?.colorCorrection || {
     brightness: 0,
@@ -266,6 +274,17 @@ export const EffectsPanel: React.FC = () => {
 
           {activeTab === 'ai' && (
             <div className="ai-enhancements">
+              {activeJob && (
+                <div className="active-job-progress">
+                  <div className="job-info">
+                    <span>{activeJob.type.replace('_', ' ').toUpperCase()} IN PROGRESS...</span>
+                    <span>{Math.round(activeJob.progress)}%</span>
+                  </div>
+                  <div className="progress-bar-container">
+                    <div className="progress-bar-fill" style={{ width: `${activeJob.progress}%` }} />
+                  </div>
+                </div>
+              )}
               <div className="ai-section">
                 <h4>✨ Skin Enhancer</h4>
                 <div className="toggle-row">
@@ -409,6 +428,54 @@ export const EffectsPanel: React.FC = () => {
                     />
                   </div>
                 )}
+              </div>
+
+              <div className="ai-divider" />
+
+              <div className="ai-section">
+                <h4>📐 AI Smart Crop</h4>
+                <p className="ai-desc">Auto-reframing for vertical/horizontal socials.</p>
+                <div className="ai-actions">
+                  <button 
+                    className="ai-action-btn secondary"
+                    onClick={() => selectedClip && smartCrop(selectedClip.mediaId, '9:16')}
+                  >
+                    📱 9:16 (TikTok/Reels)
+                  </button>
+                  <button 
+                    className="ai-action-btn secondary"
+                    onClick={() => selectedClip && smartCrop(selectedClip.mediaId, '1:1')}
+                  >
+                    🔳 1:1 (Insta)
+                  </button>
+                  <button 
+                    className="ai-action-btn secondary"
+                    onClick={() => selectedClip && smartCrop(selectedClip.mediaId, '16:9')}
+                  >
+                    💻 16:9 (YouTube)
+                  </button>
+                </div>
+              </div>
+
+              <div className="ai-divider" />
+
+              <div className="ai-section">
+                <h4>🚀 AI Super-Resolution</h4>
+                <p className="ai-desc">Upscale and sharpen with deep learning.</p>
+                <div className="ai-actions">
+                  <button 
+                    className="ai-action-btn primary"
+                    onClick={() => selectedClip && enhanceClip(selectedClip.id, { type: 'super-res', intensity: 100 })}
+                  >
+                    💎 Enhance to 4K
+                  </button>
+                  <button 
+                    className="ai-action-btn primary"
+                    onClick={() => selectedClip && enhanceClip(selectedClip.id, { type: 'sharpen', intensity: 50 })}
+                  >
+                    ✨ Deep Sharpen
+                  </button>
+                </div>
               </div>
             </div>
           )}

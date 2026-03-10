@@ -10,7 +10,13 @@ from backend.auth import verify_jwt_token
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/post-production", tags=["post-production"])
-ffmpeg = FFmpegService()
+
+# Initialize FFmpeg service with error handling
+try:
+    ffmpeg = FFmpegService()
+except Exception as e:
+    logger.warning(f"FFmpeg not available in post-production: {e}")
+    ffmpeg = None
 
 # Directory where outputs are stored
 OUTPUT_DIR = "./output"

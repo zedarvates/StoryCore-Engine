@@ -88,15 +88,6 @@ async def submit_job_to_async_queue(
 ) -> bool:
     """
     Submit a job to the AsyncTaskQueue for advanced processing.
-    
-    Args:
-        job_id: Unique job identifier
-        coroutine: Async function to execute
-        priority: Job priority (1 = highest, 10 = lowest)
-        timeout_seconds: Maximum execution time
-    
-    Returns:
-        True if submission succeeded
     """
     if not ASYNC_QUEUE_AVAILABLE:
         return False
@@ -119,12 +110,6 @@ async def submit_job_to_async_queue(
 async def cancel_job_in_async_queue(job_id: str) -> bool:
     """
     Cancel a job in the AsyncTaskQueue.
-    
-    Args:
-        job_id: Job identifier to cancel
-    
-    Returns:
-        True if cancellation succeeded
     """
     if not ASYNC_QUEUE_AVAILABLE:
         return False
@@ -136,11 +121,6 @@ async def cancel_job_in_async_queue(job_id: str) -> bool:
         logger.error(f"Failed to cancel job {job_id} in AsyncTaskQueue: {e}")
         return False
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
 logger = logging.getLogger(__name__)
 
 # Create router
@@ -273,8 +253,7 @@ def load_job(job_id: str) -> Optional[GenerationJob]:
 job_results: Dict[str, Dict[str, Any]] = {}
 active_connections: Dict[str, List[Any]] = {}
 
-# Thread pool for background generation
-executor = ThreadPoolExecutor(max_workers=settings.queue_worker_count)
+# Thread pool removal: Executor is no longer used since we shifted to AsyncTaskQueue.
 
 
 async def run_generation(job_id: str, job: GenerationJob):

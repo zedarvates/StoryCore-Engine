@@ -24,6 +24,7 @@ import uuid
 import torch
 import numpy as np
 import logging
+from backend.config import settings
 
 # Import from existing modules
 import sys
@@ -980,9 +981,10 @@ class ExportService:
         if self._ffmpeg_available is not None:
             return self._ffmpeg_available
         
+        ffmpeg_cmd = settings.FFMPEG_PATH or "ffmpeg"
         try:
             result = subprocess.run(
-                ["ffmpeg", "-version"], 
+                [ffmpeg_cmd, "-version"], 
                 capture_output=True, 
                 timeout=5
             )
@@ -1017,7 +1019,8 @@ class ExportService:
             return False
         
         # Base command
-        cmd = ["ffmpeg", "-y"]
+        ffmpeg_cmd = settings.FFMPEG_PATH or "ffmpeg"
+        cmd = [ffmpeg_cmd, "-y"]
         
         # GPU Acceleration check
         use_gpu = self.gpu and self.gpu.is_gpu_available()
@@ -1139,14 +1142,15 @@ class MagicMaskService:
         
         # Pour sortir du Transparent WebM (VP9), on utilise FFmpeg en pipe
         import subprocess
-        ffmpeg_cmd = [
-            "ffmpeg", "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
+        ffmpeg_cmd = settings.FFMPEG_PATH or "ffmpeg"
+        ffmpeg_cmd_list = [
+            ffmpeg_cmd, "-y", "-f", "rawvideo", "-vcodec", "rawvideo",
             "-s", f"{w}x{h}", "-pix_fmt", "bgra", "-r", str(fps),
             "-i", "-", "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p",
             "-lossless", "1", output_path
         ]
         
-        process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+        process = subprocess.Popen(ffmpeg_cmd_list, stdin=subprocess.PIPE)
         
         mp_selfie = mp.solutions.selfie_segmentation
         with mp_selfie.SelfieSegmentation(model_selection=1) as segmentation:

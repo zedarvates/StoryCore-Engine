@@ -199,7 +199,9 @@ async def api_info():
             "ai-pro": "/api/ai/pro",
             "ai-workflow": "/api/ai/workflow",
             "comic-generator": "/api/addons/comic_generator",
-            "recap-engine": "/api/addons/recap_engine"
+            "recap-engine": "/api/addons/recap_engine",
+            "ltx": "/api/ltx",
+            "director": "/api/director"
         },
         "documentation": {
             "swagger": "/docs",
@@ -344,6 +346,22 @@ try:
 except ImportError as e:
     logger.warning(f"Could not load ai_workflow_api: {e}")
 
+# Include LTX 2.3 Video API router
+try:
+    from backend.ltx_api import LTX_ROUTER
+    app.include_router(LTX_ROUTER)
+    logger.info("LTX 2.3 Video API Router registered at /api/ltx")
+except ImportError as e:
+    logger.warning(f"Could not load ltx_api: {e}")
+
+# Include Director API router (Nano Banana 2)
+try:
+    from backend.director_api import DIRECTOR_ROUTER
+    app.include_router(DIRECTOR_ROUTER)
+    logger.info("Director API (Nano Banana 2) Router registered at /api/director")
+except ImportError as e:
+    logger.warning(f"Could not load director_api: {e}")
+
 # Include Comic Generator addon router
 try:
     from addons.official.comic_generator.src.main import router as comic_generator_router
@@ -394,6 +412,14 @@ try:
     logger.info("Character Image API Router registered at /api")
 except ImportError as e:
     logger.warning(f"Could not load character_image_api: {e}")
+
+# Include Character Logic/AI API router
+try:
+    from backend.character_api import router as character_api_router
+    app.include_router(character_api_router)
+    logger.info("Character AI API Router registered at /api/characters")
+except ImportError as e:
+    logger.warning(f"Could not load character_api: {e}")
 
 # Include Location and Object Image API router
 try:

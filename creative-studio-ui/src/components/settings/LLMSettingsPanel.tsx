@@ -184,6 +184,7 @@ export function LLMSettingsPanel({
   const [vectorialOptimization, setVectorialOptimization] = useState(currentConfig?.parameters?.vectorialOptimization || 'standard');
   const [embeddingModel, setEmbeddingModel] = useState(currentConfig?.parameters?.embeddingModel || 'default');
   const [similarityThreshold, setSimilarityThreshold] = useState(currentConfig?.parameters?.similarityThreshold || 0.7);
+  const [draftMode, setDraftMode] = useState(currentConfig?.parameters?.draftMode || false);
   
   const defaultPrompts = getDefaultSystemPrompts();
   const [worldPrompt, setWorldPrompt] = useState(
@@ -248,6 +249,7 @@ export function LLMSettingsPanel({
           setTimeout(storedConfig.timeout);
           setRetryAttempts(storedConfig.retryAttempts);
           setStreamingEnabled(storedConfig.streamingEnabled);
+          setDraftMode(storedConfig.parameters.draftMode || false);
           
           // Safely access systemPrompts with fallback to defaults
           if (storedConfig.systemPrompts) {
@@ -276,7 +278,7 @@ export function LLMSettingsPanel({
     };
 
     loadStoredSettings();
-  }, []); // Only run on mount
+  }, [currentConfig, defaultPrompts, providers]); // Fixed dependencies
 
   // Update model when provider changes
   useEffect(() => {
@@ -288,15 +290,15 @@ export function LLMSettingsPanel({
         setModel(providerInfo.models[0].id);
       }
     }
-  }, [provider, providers, model]);
+  }, [provider, providers, model, setModel]);
 
   // Update endpoint when provider changes
   useEffect(() => {
     const providerInfo = providers.find(p => p.id === provider);
-    if (providerInfo && !apiEndpoint) {
+    if (providerInfo && providerInfo.defaultEndpoint) {
       setApiEndpoint(providerInfo.defaultEndpoint);
     }
-  }, [provider, providers, apiEndpoint]);
+  }, [provider, providers, apiEndpoint, setApiEndpoint]); // Fixed dependencies
 
   // ============================================================================
   // Handlers
@@ -446,6 +448,7 @@ export function LLMSettingsPanel({
           vectorialOptimization,
           embeddingModel,
           similarityThreshold,
+          draftMode,
         },
         systemPrompts: {
           worldGeneration: worldPrompt,
@@ -542,6 +545,7 @@ export function LLMSettingsPanel({
             setTimeout(storedConfig.timeout);
             setRetryAttempts(storedConfig.retryAttempts);
             setStreamingEnabled(storedConfig.streamingEnabled);
+            setDraftMode(storedConfig.parameters.draftMode || false);
             
             // Safely access systemPrompts with fallback to defaults
             const defaults = getDefaultSystemPrompts();
@@ -599,6 +603,7 @@ export function LLMSettingsPanel({
       setWorldPrompt(defaults.worldGeneration);
       setCharacterPrompt(defaults.characterGeneration);
       setDialoguePrompt(defaults.dialogueGeneration);
+      setDraftMode(false);
       setConnectionStatus({ state: 'idle' });
       setLastValidated(null);
 
@@ -825,6 +830,34 @@ export function LLMSettingsPanel({
               )}
             </div>
           )}
+
+          <Separator className="my-4" />
+
+          {/* Hybrid & Draft Mode */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-base">Draft Mode (High Speed)</Label>
+                <p className="text-sm text-muted-foreground">
+                  Use local Diffusion LLM for quick iterations. Switches to Cloud only for final polishing.
+                </p>
+              </div>
+              <Switch
+                checked={draftMode}
+                onCheckedChange={setDraftMode}
+              />
+            </div>
+            {draftMode && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md text-xs text-blue-700 dark:text-blue-300 flex gap-2">
+                <Info className="h-4 w-4 shrink-0" />
+                <span>
+                  Draft mode active: The system will prioritize local inference (&lt; 200ms) for most tasks.
+                </span>
+              </div>
+            )}
+          </div>
+
+          <Separator className="my-4" />
 
           {/* Connection Test */}
           {onTestConnection && (

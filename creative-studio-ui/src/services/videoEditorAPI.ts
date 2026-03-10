@@ -234,6 +234,62 @@ class VideoEditorAPI {
     });
   }
 
+  async transcribeMedia(params: {
+    media_id: string;
+    project_id: string;
+    language?: string;
+  }): Promise<{ job_id: string; status: string }> {
+    return this.request<{ job_id: string; status: string }>('/ai/transcribe', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async enhanceVideo(params: {
+    media_id: string;
+    enhancements: Array<{ type: string; strength: number }>;
+  }): Promise<{ job_id: string; status: string }> {
+    return this.request<{ job_id: string; status: string }>('/ai/enhance', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async getAIJobStatus(jobId: string): Promise<{ 
+    id: string; 
+    status: string; 
+    progress?: number; 
+    outputPath?: string; 
+    error?: string;
+    text?: string;
+    segments?: any[];
+    crop_regions?: any[];
+  }> {
+    return this.request<any>(`/ai/jobs/${jobId}/status`, {
+      method: 'GET',
+    });
+  }
+
+  async isolateVoice(params: {
+    media_id: string;
+    intensity?: number;
+  }): Promise<{ job_id: string; status: string }> {
+    return this.request<{ job_id: string; status: string }>('/ai/voice-isolation', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async autoDucking(params: {
+    music_id: string;
+    speech_id: string;
+    reduction_db?: number;
+  }): Promise<{ job_id: string; status: string }> {
+    return this.request<{ job_id: string; status: string }>('/ai/auto-ducking', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
 
   async generateVideoFromReference(
     projectId: string,
@@ -379,9 +435,7 @@ class VideoEditorAPI {
     );
   }
 
-  async getAiJobStatus(jobId: string): Promise<Record<string, unknown>> {
-    return this.request<Record<string, unknown>>(`/jobs/${jobId}`);
-  }
+
 }
 
 // Singleton instance

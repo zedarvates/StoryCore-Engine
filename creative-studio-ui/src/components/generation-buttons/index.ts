@@ -18,3 +18,6 @@ export type { VideoGenerationButtonProps } from './VideoGenerationButton';
 
 export { GenerationButtonToolbar } from './GenerationButtonToolbar';
 export type { GenerationButtonToolbarProps } from './GenerationButtonToolbar';
+
+export { DirectorModeButton } from './DirectorModeButton';
+export { DirectorModeDialog } from './DirectorModeDialog';

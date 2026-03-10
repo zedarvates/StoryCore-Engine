@@ -3,7 +3,7 @@
  * UI component for managing master reference sheets, character appearances, and location appearances
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogTitle,

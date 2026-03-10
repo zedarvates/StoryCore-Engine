@@ -143,7 +143,11 @@ class CineProductionService:
         self.comfyui_url = comfyui_url or settings.COMFYUI_BASE_URL
         self._jobs: Dict[str, CineProductionJob] = {}
         self._active_tasks: Dict[str, asyncio.Task] = {}
-        self.ffmpeg = FFmpegService()
+        try:
+            self.ffmpeg = FFmpegService()
+        except Exception as e:
+            logger.warning(f"FFmpeg not available: {e}")
+            self.ffmpeg = None
         self.output_dir = "./output"
         os.makedirs(self.output_dir, exist_ok=True)
         

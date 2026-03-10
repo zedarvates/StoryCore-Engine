@@ -1,0 +1,219 @@
+/* NanoBananaDirector.css - Premium Glassmorphism UI */
+
+.director-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  background: linear-gradient(135deg, rgba(10, 10, 31, 0.95) 0%, rgba(20, 10, 45, 0.95) 100%);
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 80px rgba(139, 92, 246, 0.1);
+  color: #e2e8f0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  max-width: 900px;
+  margin: 0 auto;
+  backdrop-filter: blur(20px);
+}
+
+.director-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 20px;
+}
+
+.director-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.director-badge {
+  background: linear-gradient(90deg, #7c3aed, #db2777);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+}
+
+.director-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.director-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.director-section:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.director-section h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0 0 15px 0;
+  color: #a78bfa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.director-input, .director-textarea {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: white;
+  font-size: 0.85rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.director-input:focus, .director-textarea:focus {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.director-button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6d28d9 0%, #4f46e5 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.research-result {
+  margin-top: 15px;
+  padding: 12px;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+  font-size: 0.8rem;
+}
+
+.fact-item {
+  color: #34d399;
+  margin-bottom: 4px;
+}
+
+.aspect-ratio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.ratio-chip {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 0.7rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ratio-chip.active {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
+  font-weight: 700;
+}
+
+.spectrum-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.progress-banner {
+  padding: 16px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.generating-text {
+  animation: pulse 1.5s infinite;
+  color: #a78bfa;
+  font-weight: 600;
+  font-size: 0.9rem;
+}

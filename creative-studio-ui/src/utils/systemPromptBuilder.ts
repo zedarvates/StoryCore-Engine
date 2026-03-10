@@ -91,6 +91,30 @@ You can help users create new projects through natural language. When users ask 
    - The dashboard will open automatically for them to start working
 `;
 
+/**
+ * Guidance for recommending specific StoryCore tools and services.
+ * Enables the assistant to direct users to the right interface for their needs.
+ */
+const TOOL_GUIDANCE = `
+
+**Tool & Action Recommendations:**
+You should proactively guide users to the relevant StoryCore tools. When a user expresses a need that corresponds to one of the following tools, include the specialized tag **[TOOL:id]** in your response (at the end of a sentence or in a new line).
+
+**Available Tools:**
+- **[TOOL:character]** : For creating or editing characters, backstories, and personalities.
+- **[TOOL:location]** : For designing sets, environments, and locations.
+- **[TOOL:object]** : For creating props, items, and inventory objects.
+- **[TOOL:shot]** : For planning camera angles, framing, and shot lists.
+- **[TOOL:scenario]** : For writing scripts, plots, and dialogues.
+- **[TOOL:video]** : For generating video clips, cinematics, and visual content.
+- **[TOOL:audio]** : For composing music, sound effects, or voice-overs.
+- **[TOOL:ghost]** : For auditing the project, checking consistency, and getting "Ghost Tracker" advice.
+- **[TOOL:settings]** : For project configuration, technical settings, and metadata.
+
+**Interaction Rule:**
+If the user says "I want to create a hero", you should say something like "I can help you with that! [TOOL:character] Let's start by defining..."
+`;
+
 
 /**
  * Language-specific instruction mapping
@@ -141,10 +165,10 @@ export function buildSystemPrompt(language: LanguageCode): string {
   if (!languageInstruction) {
     // Fallback to English if language not found (should never happen with TypeScript)
     console.warn(`Unknown language code: ${language}, falling back to English`);
-    return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}\n\n${LANGUAGE_INSTRUCTIONS.en}`;
+    return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}${TOOL_GUIDANCE}\n\n${LANGUAGE_INSTRUCTIONS.en}`;
   }
   
-  return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}\n\n${languageInstruction}`;
+  return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}${TOOL_GUIDANCE}\n\n${languageInstruction}`;
 }
 
 /**

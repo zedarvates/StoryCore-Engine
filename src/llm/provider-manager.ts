@@ -5,6 +5,7 @@ import { OpenRouterProvider } from './openrouter-provider';
 import { OllamaProvider } from './ollama-provider';
 import { GrokProvider } from './grok-provider';
 import { GeminiProvider } from './gemini-provider';
+import { LLDAProvider } from './diffusion-providers/llda-provider';
 
 /**
  * Provider configuration with encrypted API key
@@ -196,6 +197,10 @@ export class LLMProviderManager implements LLMProvider {
 
       case 'gemini':
         return new GeminiProvider(apiKey, config.baseUrl, config.timeout);
+
+      case 'diffusion':
+      case 'llda':
+        return new LLDAProvider({ baseUrl: config.baseUrl, timeout: config.timeout });
 
       default:
         throw new Error(`Unsupported provider: ${config.provider}`);
