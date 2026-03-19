@@ -2,7 +2,7 @@
  * Location Storage Utilities
  * 
  * Provides functions to save and load location data as JSON files in project directories.
- * Locations are stored in: ./projects/{project_id}/locations/{location_id}.json
+ * Locations are stored in: ./projects/{project_id}/locations/{location_name}/location.json
  */
 
 import type { Location, LocationType, LocationMetadata } from '@/types/location';
@@ -14,6 +14,18 @@ export interface SaveLocationResult {
   success: boolean;
   filePath?: string;
   error?: string;
+}
+
+/**
+ * Sanitize a name for use as a folder name
+ */
+function sanitizeFolderName(name: string): string {
+  return name
+    .trim()
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_') // Replace invalid characters
+    .replace(/\s+/g, '_') // Replace spaces with underscores
+    .substring(0, 100); // Limit length
 }
 
 /**
@@ -89,6 +101,7 @@ function getLocationsDir(projectId: string): string {
 
 /**
  * Saves a location to the project's locations directory
+ * Creates a folder with the location's name and stores location.json inside
  * 
  * @param projectId - The project ID
  * @param locationId - The location UUID
@@ -110,6 +123,8 @@ export async function saveLocationToProject(
       return { success: false, error: 'Location name is required' };
     }
 
+    const sanitizedName = sanitizeFolderName(locationData.name);
+
     // Check if Electron API is available
     if (!window.electronAPI?.fs) {
       console.warn('[locationStorage] Electron API not available, falling back to localStorage');
@@ -122,17 +137,35 @@ export async function saveLocationToProject(
 
       return {
         success: true,
-        filePath: `localStorage://${projectId}/locations/${locationId}.json`
+        filePath: `localStorage://${projectId}/locations/${sanitizedName}/location.json`
       };
     }
 
-    // Build file path
-    const locationsDir = getLocationsDir(projectId);
-    const filePath = `${locationsDir}/${locationId}.json`;
+    // Build file path with location name as folder
+    const locationsBaseDir = getLocationsDir(projectId);
+    let locationDir = `${locationsBaseDir}/${sanitizedName}`;
+    let filePath = `${locationDir}/location.json`;
+
+    // Collision detection: Check if folder exists and belongs to a DIFFERENT location
+    if (await window.electronAPI.fs.exists(filePath)) {
+      try {
+        const existingRaw = await window.electronAPI.fs.readFile(filePath);
+        const existingData = JSON.parse(new TextDecoder().decode(existingRaw));
+        if (existingData.location_id && existingData.location_id !== locationId) {
+          // Name collision! Use ID suffix to differentiate
+          const shortId = locationId.substring(0, 5);
+          locationDir = `${locationsBaseDir}/${sanitizedName}_${shortId}`;
+          filePath = `${locationDir}/location.json`;
+          console.log(`[locationStorage] Name collision detected, using unique path: ${locationDir}`);
+        }
+      } catch (err) {
+        console.warn('[locationStorage] Could not read existing location for collision check', err);
+      }
+    }
 
     // Ensure directory exists using mkdir (recursive to create parent directories if needed)
     if (window.electronAPI.fs.mkdir) {
-      await window.electronAPI.fs.mkdir(locationsDir, { recursive: true });
+      await window.electronAPI.fs.mkdir(locationDir, { recursive: true });
     }
 
     // Create JSON content
@@ -142,6 +175,15 @@ export async function saveLocationToProject(
     await window.electronAPI.fs.writeFile(filePath, jsonData);
 
     console.log(`[locationStorage] Location saved: ${filePath}`);
+
+    // Create subdirectories for resources
+    try {
+      await window.electronAPI.fs.mkdir(`${locationDir}/images`, { recursive: true });
+      await window.electronAPI.fs.mkdir(`${locationDir}/cube_textures`, { recursive: true });
+      await window.electronAPI.fs.mkdir(`${locationDir}/assets`, { recursive: true });
+    } catch (error) {
+      console.warn('[locationStorage] Could not create resource directories:', error);
+    }
 
     return { success: true, filePath };
   } catch (error) {
@@ -168,6 +210,7 @@ export async function saveLocationsToProject(
 
 /**
  * Loads a location from the project
+ * Searches in location folders
  */
 export async function loadLocationFromProject(
   projectId: string,
@@ -181,34 +224,35 @@ export async function loadLocationFromProject(
       return existingLocations[locationId] || null;
     }
 
-    // Try standard path first
-    const locationsDir = getLocationsDir(projectId);
-    const standardPath = `${locationsDir}/${locationId}.json`;
-    if (await window.electronAPI.fs.exists(standardPath)) {
-      const fileContent = await window.electronAPI.fs.readFile(standardPath);
-      const decoder = new TextDecoder();
-      return JSON.parse(decoder.decode(fileContent)) as Location;
+    const locationsBaseDir = getLocationsDir(projectId);
+
+    // List all location folders
+    const exists = await window.electronAPI.fs.exists(locationsBaseDir);
+    if (!exists) {
+      return null;
     }
 
-    // Try new directory-based organization: locations/{name}/{locationId}.json
-    const items = await window.electronAPI.fs.readdir(locationsDir);
-    
-    for (const item of items) {
-      if (item.includes('.')) continue; // Skip files with extensions
+    const folders = await window.electronAPI.fs.readdir(locationsBaseDir);
+
+    // Search for location.json in each folder
+    for (const folder of folders) {
+      const filePath = `${locationsBaseDir}/${folder}/location.json`;
       
-      const nestedPath = `${locationsDir}/${item}/${locationId}.json`;
-      if (await window.electronAPI.fs.exists(nestedPath)) {
-        const fileContent = await window.electronAPI.fs.readFile(nestedPath);
+      try {
+        const fileExists = await window.electronAPI.fs.exists(filePath);
+        if (!fileExists) continue;
+
+        const fileContent = await window.electronAPI.fs.readFile(filePath);
         const decoder = new TextDecoder();
-        return JSON.parse(decoder.decode(fileContent)) as Location;
-      }
-      
-      // Also try locations/{name}/{name}.json if locationId matches the name
-      const namePath = `${locationsDir}/${item}/${item}.json`;
-      if (item === locationId && await window.electronAPI.fs.exists(namePath)) {
-        const fileContent = await window.electronAPI.fs.readFile(namePath);
-        const decoder = new TextDecoder();
-        return JSON.parse(decoder.decode(fileContent)) as Location;
+        const jsonData = decoder.decode(fileContent);
+        const location = JSON.parse(jsonData) as Location;
+
+        // Check if this is the location we're looking for
+        if (location.location_id === locationId) {
+          return location;
+        }
+      } catch (error) {
+        console.warn(`[locationStorage] Failed to read location from ${folder}:`, error);
       }
     }
 
@@ -221,58 +265,100 @@ export async function loadLocationFromProject(
 
 /**
  * Lists all locations in a project
+ * Searches through location folders
  */
-export async function listLocationsInProject(
+/**
+ * Loads all locations for a given project in a single parallel pass
+ */
+export async function loadAllLocationsInProject(
   projectId: string
-): Promise<string[]> {
+): Promise<Location[]> {
   try {
     if (!window.electronAPI?.fs) {
       // Fallback to localStorage
       const key = `project-${projectId}-locations`;
-      const existingLocations = JSON.parse(localStorage.getItem(key) || '{}');
-      return Object.keys(existingLocations);
+      const existingLocationsObj = JSON.parse(localStorage.getItem(key) || '{}');
+      return Object.values(existingLocationsObj) as Location[];
     }
 
-    const locationsDir = getLocationsDir(projectId);
+    const locationsBaseDir = getLocationsDir(projectId);
+    const exists = await window.electronAPI.fs.exists(locationsBaseDir);
+    if (!exists) return [];
 
-    const exists = await window.electronAPI.fs.exists(locationsDir);
-    if (!exists) {
-      return [];
-    }
+    const folders = await window.electronAPI.fs.readdir(locationsBaseDir);
+    
+    // Process all folders in parallel
+    const locationPromises = folders.map(async (folder) => {
+      const filePath = `${locationsBaseDir}/${folder}/location.json`;
+      try {
+        const fileExists = await window.electronAPI.fs.exists(filePath);
+        if (!fileExists) return null;
 
-    const items = await window.electronAPI.fs.readdir(locationsDir);
-    const locationIds: string[] = [];
-
-    for (const item of items) {
-      if (item.endsWith('.json')) {
-        // Standard organization: locations/{id}.json
-        locationIds.push(item.replace('.json', ''));
-      } else {
-        // New organization: locations/{name}/ containing a .json file
-        try {
-          const subDir = `${locationsDir}/${item}`;
-          // Check if it's a directory by trying to readdir it (simplest check if we don't have isDirectory)
-          const subFiles = await window.electronAPI.fs.readdir(subDir);
-          const jsonFile = subFiles.find((f: string) => f.endsWith('.json'));
-          if (jsonFile) {
-            // Use the JSON filename as the ID (consistent with standard approach)
-            locationIds.push(jsonFile.replace('.json', ''));
-          }
-        } catch {
-          // Skip items that aren't directories or fail to read
-        }
+        const fileContent = await window.electronAPI.fs.readFile(filePath);
+        return JSON.parse(new TextDecoder().decode(fileContent)) as Location;
+      } catch (err) {
+        console.warn(`[locationStorage] Failed to read location in folder ${folder}:`, err);
+        return null;
       }
-    }
+    });
 
-    return Array.from(new Set(locationIds));
+    const results = await Promise.all(locationPromises);
+    return results.filter((loc): loc is Location => loc !== null);
   } catch (error) {
-    console.error('[locationStorage] Failed to list locations:', error);
+    console.error('[locationStorage] Failed to load all locations:', error);
     return [];
   }
 }
 
 /**
+ * Lists the IDs of all locations in the project
+ * (Now uses the optimized parallel loading internally to get the IDs)
+ */
+export async function listLocationsInProject(
+  projectId: string
+): Promise<string[]> {
+  const locations = await loadAllLocationsInProject(projectId);
+  return locations.map(l => l.location_id);
+}
+
+/**
+ * Recursively delete a directory and all its contents
+ */
+async function deleteDirectoryRecursive(dirPath: string): Promise<void> {
+  if (!window.electronAPI?.fs) {
+    throw new Error('Electron API not available');
+  }
+
+  try {
+    const exists = await window.electronAPI.fs.exists(dirPath);
+    if (!exists) return;
+
+    const items = await window.electronAPI.fs.readdir(dirPath);
+
+    // Delete all files and subdirectories
+    for (const item of items) {
+      const itemPath = `${dirPath}/${item}`;
+      const stats = await window.electronAPI.fs.stat(itemPath);
+
+      if (stats.isDirectory) {
+        // Recursively delete subdirectory
+        await deleteDirectoryRecursive(itemPath);
+      } else {
+        // Delete file
+        await window.electronAPI.fs.unlink(itemPath);
+      }
+    }
+
+    console.log(`[locationStorage] Deleted directory: ${dirPath}`);
+  } catch (error) {
+    console.error(`[locationStorage] Failed to delete directory ${dirPath}:`, error);
+    throw error;
+  }
+}
+
+/**
  * Deletes a location from the project
+ * Deletes the entire location folder
  */
 export async function deleteLocationFromProject(
   projectId: string,
@@ -288,19 +374,34 @@ export async function deleteLocationFromProject(
       return true;
     }
 
-    const locationsDir = getLocationsDir(projectId);
-    const filePath = `${locationsDir}/${locationId}.json`;
+    const locationsBaseDir = getLocationsDir(projectId);
+    const folders = await window.electronAPI.fs.readdir(locationsBaseDir);
 
-    // Try to delete the file, but don't fail if it doesn't exist
-    try {
-      if (window.electronAPI.fs.unlink) {
-        await window.electronAPI.fs.unlink(filePath);
+    // Find the folder containing this location
+    for (const folder of folders) {
+      const filePath = `${locationsBaseDir}/${folder}/location.json`;
+      
+      try {
+        const exists = await window.electronAPI.fs.exists(filePath);
+        if (!exists) continue;
+
+        const fileContent = await window.electronAPI.fs.readFile(filePath);
+        const decoder = new TextDecoder();
+        const jsonData = decoder.decode(fileContent);
+        const location = JSON.parse(jsonData) as Location;
+
+        if (location.location_id === locationId) {
+          // Delete the entire folder recursively
+          const folderPath = `${locationsBaseDir}/${folder}`;
+          await deleteDirectoryRecursive(folderPath);
+          return true;
+        }
+      } catch (error) {
+        console.warn(`[locationStorage] Failed to check location in ${folder}:`, error);
       }
-    } catch {
-      // Ignore deletion errors - file may not exist
     }
 
-    return true;
+    return false;
   } catch (error) {
     console.error('[locationStorage] Failed to delete location:', error);
     return false;

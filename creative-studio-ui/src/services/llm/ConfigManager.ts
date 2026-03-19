@@ -12,7 +12,7 @@ import { logger } from '@/utils/logger';
 
 export interface LLMConfig {
   // Existing fields
-  provider: 'local' | 'openai' | 'anthropic';
+  provider: 'local' | 'openai' | 'anthropic' | 'openrouter';
   model: string;
   apiEndpoint: string;
   streamingEnabled: boolean;
@@ -254,7 +254,7 @@ export class ConfigManager {
     }
     
     // Check provider is valid
-    if (!['local', 'openai', 'anthropic'].includes(config.provider)) {
+    if (!['local', 'openai', 'anthropic', 'openrouter'].includes(config.provider)) {
       return false;
     }
     

@@ -140,7 +140,7 @@ export interface CubeTextureMapping {
   right?: CubeFaceTexture;
 
   /** Top view image (bird's eye, looking toward positive Y) */
-  top?: FaceTexture;
+  top?: CubeFaceTexture;
 
   /** Bottom view image (underground, looking toward negative Y) */
   bottom?: CubeFaceTexture;

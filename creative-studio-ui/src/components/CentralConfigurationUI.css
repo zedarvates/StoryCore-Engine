@@ -77,6 +77,11 @@ le/* Central Configuration UI Styles */
   backdrop-filter: blur(4px);
 }
 
+/* Nested modal overlays need higher z-index */
+.modal-window .modal-overlay {
+  z-index: 100000;
+}
+
 .modal-window {
   background: var(--bg-secondary, #222);
   border: 1px solid var(--border-color, #444);

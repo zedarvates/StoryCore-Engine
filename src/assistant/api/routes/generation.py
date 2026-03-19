@@ -11,7 +11,7 @@ from ..dependencies import get_current_user
 from ..models import (
     GenerateProjectRequest, GenerateProjectResponse,
     FinalizeProjectRequest, FinalizeProjectResponse,
-    GenerateRLMRequest, GenerateRLMResponse,
+    GenerateRLMRequest, GenerateRLMResponse, NSMStep,
     ScenePreview, CharacterPreview, SequencePreview, ShotPreview,
     GraphResponse, GraphNodeModel, GraphEdgeModel
 )
@@ -59,7 +59,9 @@ async def generate_project(request: GenerateProjectRequest, user: User = Depends
         preview = assistant.generate_project(
             prompt=request.prompt,
             language=request.language,
-            preferences=request.preferences
+            preferences=request.preferences,
+            llm_provider=request.llm_provider,
+            llm_model=request.llm_model
         )
         
         # Convert to response format
@@ -190,14 +192,26 @@ async def generate_rlm(request: GenerateRLMRequest, user: User = Depends(get_cur
             logger.info(f"[RLM-STEP]: {msg}")
 
         # Call the async RLM method
-        result, rlm_steps = await assistant.generate_complex_scenario_rlm(
+        result, rlm_trajectory = await assistant.generate_complex_scenario_rlm(
             main_prompt=request.prompt,
-            massive_context=request.massive_context
+            massive_context=request.massive_context,
+            llm_provider=request.llm_provider,
+            llm_model=request.llm_model
         )
+        
+        # Convert steps to NSMStep models
+        response_steps = [
+            NSMStep(
+                type=step.get("type", "thinking"),
+                message=step.get("message", ""),
+                timestamp=step.get("timestamp")
+            )
+            for step in rlm_trajectory
+        ]
         
         return GenerateRLMResponse(
             final_answer=result,
-            steps=rlm_steps if rlm_steps else steps
+            steps=response_steps
         )
         
     except Exception as e:

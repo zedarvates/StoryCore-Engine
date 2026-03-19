@@ -207,10 +207,117 @@ class SequenceResponse(BaseModel):
     description: Optional[str]
     shots: List[Dict[str, Any]]
     total_duration: float
-    prompt: str
-    style: Optional[str]
-    mood: Optional[str]
-    created_at: datetime
+    prompt: Optional[str] = None
+    style: Optional[str] = None
+    mood: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+# ============================================================================
+# Project-specific Sequence Plan Management
+# ============================================================================
+
+from pathlib import Path
+
+@router.get("/sequences/project/{project_id}", response_model=List[SequenceResponse])
+async def list_project_sequences(project_id: str) -> List[SequenceResponse]:
+    """
+    List all sequence plans in a project's sequences folder.
+    """
+    if not project_id or '/' in project_id or '\\' in project_id:
+        return []
+        
+    sequences_dir = Path("./projects") / project_id / "sequences"
+    if not sequences_dir.exists():
+        return []
+        
+    sequences = []
+    for filename in sequences_dir.iterdir():
+        if filename.suffix == '.json':
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    plan_data = json.load(f)
+                    # Normalize fields for SequenceResponse
+                    res = {
+                        "id": plan_data.get("id", filename.stem),
+                        "project_id": project_id,
+                        "name": plan_data.get("name", filename.stem),
+                        "description": plan_data.get("description", ""),
+                        "shots": plan_data.get("shots", []),
+                        "total_duration": plan_data.get("total_duration", plan_data.get("totalDuration", 0)),
+                        "prompt": plan_data.get("prompt"),
+                        "style": plan_data.get("style"),
+                        "mood": plan_data.get("mood"),
+                        "created_at": datetime.fromtimestamp(os.path.getctime(filename)) if os.path.getctime(filename) else datetime.utcnow()
+                    }
+                    sequences.append(SequenceResponse(**res))
+            except Exception as e:
+                logger.error(f"Error loading sequence plan {filename}: {e}")
+                continue
+                
+    return sequences
+
+@router.get("/sequences/project/{project_id}/{plan_id}", response_model=SequenceResponse)
+async def get_project_sequence(project_id: str, plan_id: str) -> SequenceResponse:
+    """
+    Load a specific sequence plan from a project.
+    """
+    if not project_id or '/' in project_id or '\\' in project_id:
+        raise HTTPException(status_code=400, detail="Invalid project ID")
+        
+    sequences_dir = Path("./projects") / project_id / "sequences"
+    
+    # Try exact match or pattern
+    possible_files = [
+        sequences_dir / f"{plan_id}.json",
+        sequences_dir / f"sequence_{plan_id[:8]}.json"
+    ]
+    
+    for filepath in possible_files:
+        if filepath.exists():
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    plan_data = json.load(f)
+                    res = {
+                        "id": plan_data.get("id", plan_id),
+                        "project_id": project_id,
+                        "name": plan_data.get("name", "Unnamed Plan"),
+                        "description": plan_data.get("description", ""),
+                        "shots": plan_data.get("shots", []),
+                        "total_duration": plan_data.get("total_duration", plan_data.get("totalDuration", 0)),
+                        "prompt": plan_data.get("prompt"),
+                        "style": plan_data.get("style"),
+                        "mood": plan_data.get("mood"),
+                        "created_at": datetime.fromtimestamp(os.path.getctime(filepath)) if os.path.getctime(filepath) else datetime.utcnow()
+                    }
+                    return SequenceResponse(**res)
+            except Exception as e:
+                logger.error(f"Error loading sequence plan {filepath}: {e}")
+    
+    # If not found by direct name, search all files for matching ID
+    if sequences_dir.exists():
+        for filename in sequences_dir.iterdir():
+            if filename.suffix == '.json':
+                try:
+                    with open(filename, 'r', encoding='utf-8') as f:
+                        plan_data = json.load(f)
+                        if plan_data.get("id") == plan_id:
+                            res = {
+                                "id": plan_id,
+                                "project_id": project_id,
+                                "name": plan_data.get("name", "Unnamed Plan"),
+                                "description": plan_data.get("description", ""),
+                                "shots": plan_data.get("shots", []),
+                                "total_duration": plan_data.get("total_duration", plan_data.get("totalDuration", 0)),
+                                "prompt": plan_data.get("prompt"),
+                                "style": plan_data.get("style"),
+                                "mood": plan_data.get("mood"),
+                                "created_at": datetime.fromtimestamp(os.path.getctime(filename)) if os.path.getctime(filename) else datetime.utcnow()
+                            }
+                            return SequenceResponse(**res)
+                except:
+                    continue
+
+    raise HTTPException(status_code=404, detail="Sequence plan not found")
 
 
 # Initialize shared storage with LRU cache (max 500 job entries)

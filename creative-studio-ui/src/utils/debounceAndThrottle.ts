@@ -9,8 +9,7 @@
  * Creates a debounced function that delays invoking func until after wait milliseconds
  * have elapsed since the last time the debounced function was invoked.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -34,8 +33,7 @@ export function debounce<T extends (...args: any[]) => any>(
  * @param immediate - Whether to execute the function immediately on the leading edge
  * @returns A debounced version of the function
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function debounceWithImmediate<T extends (...args: any[]) => any>(
+export function debounceWithImmediate<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number,
   immediate: boolean = false
@@ -65,8 +63,7 @@ export function debounceWithImmediate<T extends (...args: any[]) => any>(
 /**
  * Creates a throttled function that only invokes func at most once per every wait milliseconds.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {

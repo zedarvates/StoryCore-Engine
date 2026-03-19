@@ -34,6 +34,8 @@ const createMockStore = (initialState = {}) => {
         },
         activePanel: null,
         shotConfigTarget: null,
+        showLayerManager: false,
+        compactMode: false,
         ...initialState,
       },
     },
@@ -68,12 +70,7 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock ResizeObserver
-global.ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
+// Redundant mocks removed - now handled by src/test/setup.ts
 
 // ============================================================================
 // Integration Test Suite

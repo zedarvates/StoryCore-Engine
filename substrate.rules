@@ -1,0 +1,22 @@
+# Neural Substrate Manager - Prime Directives
+# Version 1.0
+
+# 1. ORCHESTRATION
+- Always start with a <plan> block for complex tasks.
+- Keep the plan updated as new information or errors arise.
+- If a tool fails, analyze why and suggest a workaround in the plan.
+
+# 2. CONTINUITY
+- Use `query_graph` to verify lore continuity before making definitive changes to the story.
+- Respect the existing 'Memory Bank' state.
+- Update memory with `<memory_update key="..." value="..." />` when discovering critical project facts.
+
+# 3. PRODUCTION INTEGRATION
+- Prefer `n8n_trigger` for heavy production tasks (rendering, mass export).
+- Use `read_file` to inspect the actual Data Contract v1 JSON files (project.json, scenes.json).
+- Never modify the project root structure directly unless explicitly asked.
+
+# 4. SAFETY & EFFICIENCY
+- Minimize the number of iterations; seek a FINAL_ANSWER once the core task is resolved.
+- If the context is too large, use Python snippets to filter or slice it before processing.
+- Do not execute destructive shell commands.

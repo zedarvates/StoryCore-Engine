@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import type { Shot, StoryObject, SequencePlan } from '@/types';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -12,68 +12,63 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 import { DEFAULT_VIEW_STATE } from '@/types/menuBarState';
 import type { ViewState, UndoStack, ClipboardState } from '@/types/menuBarState';
 import { MenuBar } from '@/components/menuBar/MenuBar';
-import ImageEnhancementPanel from '@/components/ImageEnhancementPanel';
 import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
 import { ToggleButton } from '@/components/ToggleButton';
 import { I18nProvider } from '@/utils/i18n';
-import { LandingPageWithHooks } from '@/pages/LandingPageWithHooks';
-import { EditorPageSimple } from '@/pages/EditorPageSimple';
-import { ProjectDashboardPage } from '@/pages/ProjectDashboardPage';
-import { AdvancedGridEditorPage } from '@/pages/experimental/AdvancedGridEditorPage';
-import { AIAssistantV3Page } from '@/pages/experimental/AIAssistantV3Page';
-import { PerformanceProfilerPage } from '@/pages/experimental/PerformanceProfilerPage';
-import { DetachedChatPage } from '@/pages/DetachedChatPage';
-import { InstallationWizardModal } from '@/components/installation/InstallationWizardModal';
-import { WorldWizardModal } from '@/components/wizard/WorldWizardModal';
-import { CharacterWizardModal } from '@/components/wizard/CharacterWizardModal';
-import { ObjectWizardModal } from '@/components/wizard/ObjectWizardModal';
-import { StorytellerWizardModal } from '@/components/wizard/StorytellerWizardModal';
-import { ProjectSetupWizardModal } from '@/components/wizard/ProjectSetupWizardModal';
-import { CreateProjectDialogModal } from '@/components/wizard/CreateProjectDialogModal';
-import { SequencePlanWizardModal } from '@/components/wizard/SequencePlanWizardModal';
-import { ShotWizardModal } from '@/components/wizard/ShotWizardModal';
-import { GenericWizardModal } from '@/components/wizard/GenericWizardModal';
-import { RogerWizardModal } from './components/wizard/RogerWizardModalWrapper';
-import { GhostTrackerWizardModal } from './components/wizard/GhostTrackerWizardModal';
-import { DialogueWriterWizardModal } from './components/wizard/DialogueWriterWizardModal';
-import { LipSyncWizardModal } from './components/wizard/LipSyncWizardModal';
-import { AudioProductionWizardModal } from '@/components/wizard/production/AudioProductionWizardModal';
-import { VideoEditorWizardModal } from '@/components/wizard/production/VideoEditorWizardModal';
-import { ComicToSequenceWizardModal } from '@/components/wizard/production/ComicToSequenceWizardModal';
-import { MarketingWizardModal } from '@/components/wizard/marketing/MarketingWizardModal';
-import { ScenarioBuilderWizardModal } from '@/components/wizard/ScenarioBuilderWizardModal';
-import { DialogueBuilderWizardModal } from '@/components/wizard/DialogueBuilderWizardModal';
-import { ProjectTranslatorModal } from '@/components/wizard/ProjectTranslatorModal';
-import { TTTLRMModal } from '@/components/wizard/TTTLRMModal';
-import { VideoPublisherEditor } from '@/components/addons/video_publisher/VideoPublisherEditor';
-import { CreditsScreenModal } from '@/components/addons/credits_screen/CreditsScreenModal';
-import { LLMSettingsModal } from '@/components/settings/LLMSettingsModal';
-import { ComfyUISettingsModal } from '@/components/settings/ComfyUISettingsModal';
-import { GeneralSettingsWindow } from '@/components/configuration/GeneralSettingsWindow';
-import { AddonsModal } from '@/components/settings/AddonsModal';
-import { AddonSettingsModal } from '@/components/settings/AddonSettingsModal';
-import { CharactersModal } from '@/components/modals/CharactersModal';
-import { WorldModal } from '@/components/modals/WorldModal';
-import { LocationsModal } from '@/components/modals/LocationsModal';
-import { ObjectsModal } from '@/components/modals/ObjectsModal';
-import { ImageGalleryModal } from '@/components/modals/ImageGalleryModal';
-import { VaultModal } from '@/components/modals/VaultModal';
-import { FactCheckModal } from '@/components/modals/FactCheckModal';
-import { AboutModal } from '@/components/modals/AboutModal';
-import { DocumentationModal } from '@/components/modals/menuBar/DocumentationModal';
-import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
-import { MoodboardModal } from '@/components/modals/MoodboardModal';
-import { FeedbackPanel } from '@/components/feedback/FeedbackPanel';
-import { PendingReportsList } from '@/components/feedback/PendingReportsList';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ComputeDashboard } from '@/components/feedback/ComputeDashboard';
-import { ScreenReaderAnnouncerProvider } from '@/components/menuBar/ScreenReaderAnnouncer';
-import { ReferenceSheetManager } from '@/components/reference/ReferenceSheetManager';
-import { VideoReplicationDialog } from '@/components/reference/VideoReplicationDialog';
-import { CrossShotReferencePicker } from '@/components/reference/CrossShotReferencePicker';
-import { ProjectBranchingDialog } from '@/components/reference/ProjectBranchingDialog';
-import { EpisodeReferenceDialog } from '@/components/reference/EpisodeReferenceDialog';
-import DialogueEditor from '@/ui/DialogueEditor';
+const DetachedChatPage = lazy(() => import('@/pages/DetachedChatPage').then(m => ({ default: m.DetachedChatPage })));
+const LandingPageWithHooks = lazy(() => import('@/pages/LandingPageWithHooks').then(m => ({ default: m.LandingPageWithHooks })));
+const AdvancedGridEditorPage = lazy(() => import('@/pages/experimental/AdvancedGridEditorPage').then(m => ({ default: m.AdvancedGridEditorPage })));
+const AIAssistantV3Page = lazy(() => import('@/pages/experimental/AIAssistantV3Page').then(m => ({ default: m.AIAssistantV3Page })));
+const PerformanceProfilerPage = lazy(() => import('@/pages/experimental/PerformanceProfilerPage').then(m => ({ default: m.PerformanceProfilerPage })));
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { projectCreationService, convertElectronProjectToStore } from '@/services/ProjectCreationService';
+const InstallationWizardModal = lazy(() => import('@/components/installation/InstallationWizardModal').then(m => ({ default: m.InstallationWizardModal })));
+const WorldWizardModal = lazy(() => import('@/components/wizard/WorldWizardModal').then(m => ({ default: m.WorldWizardModal })));
+const CharacterWizardModal = lazy(() => import('@/components/wizard/CharacterWizardModal').then(m => ({ default: m.CharacterWizardModal })));
+const ObjectWizardModal = lazy(() => import('@/components/wizard/ObjectWizardModal').then(m => ({ default: m.ObjectWizardModal })));
+const StorytellerWizardModal = lazy(() => import('@/components/wizard/StorytellerWizardModal').then(m => ({ default: m.StorytellerWizardModal })));
+const ProjectSetupWizardModal = lazy(() => import('@/components/wizard/ProjectSetupWizardModal').then(m => ({ default: m.ProjectSetupWizardModal })));
+const CreateProjectDialogModal = lazy(() => import('@/components/wizard/CreateProjectDialogModal').then(m => ({ default: m.CreateProjectDialogModal })));
+const SequencePlanWizardModal = lazy(() => import('@/components/wizard/SequencePlanWizardModal').then(m => ({ default: m.SequencePlanWizardModal })));
+const ShotWizardModal = lazy(() => import('@/components/wizard/ShotWizardModal').then(m => ({ default: m.ShotWizardModal })));
+const GenericWizardModal = lazy(() => import('@/components/wizard/GenericWizardModal').then(m => ({ default: m.GenericWizardModal })));
+const RogerWizardModal = lazy(() => import('./components/wizard/RogerWizardModalWrapper').then(m => ({ default: m.RogerWizardModal })));
+const GhostTrackerWizardModal = lazy(() => import('./components/wizard/GhostTrackerWizardModal').then(m => ({ default: m.GhostTrackerWizardModal })));
+const DialogueWriterWizardModal = lazy(() => import('./components/wizard/DialogueWriterWizardModal').then(m => ({ default: m.DialogueWriterWizardModal })));
+const LipSyncWizardModal = lazy(() => import('./components/wizard/LipSyncWizardModal').then(m => ({ default: m.LipSyncWizardModal })));
+const AudioProductionWizardModal = lazy(() => import('@/components/wizard/production/AudioProductionWizardModal').then(m => ({ default: m.AudioProductionWizardModal })));
+const VideoEditorWizardModal = lazy(() => import('@/components/wizard/production/VideoEditorWizardModal').then(m => ({ default: m.VideoEditorWizardModal })));
+const ComicToSequenceWizardModal = lazy(() => import('@/components/wizard/production/ComicToSequenceWizardModal').then(m => ({ default: m.ComicToSequenceWizardModal })));
+const MarketingWizardModal = lazy(() => import('@/components/wizard/marketing/MarketingWizardModal').then(m => ({ default: m.MarketingWizardModal })));
+const ScenarioBuilderWizardModal = lazy(() => import('@/components/wizard/ScenarioBuilderWizardModal').then(m => ({ default: m.ScenarioBuilderWizardModal })));
+const DialogueBuilderWizardModal = lazy(() => import('@/components/wizard/DialogueBuilderWizardModal').then(m => ({ default: m.DialogueBuilderWizardModal })));
+const ProjectTranslatorModal = lazy(() => import('@/components/wizard/ProjectTranslatorModal').then(m => ({ default: m.ProjectTranslatorModal })));
+const TTTLRMModal = lazy(() => import('@/components/wizard/TTTLRMModal').then(m => ({ default: m.TTTLRMModal })));
+const VideoPublisherEditor = lazy(() => import('@/components/addons/video_publisher/VideoPublisherEditor').then(m => ({ default: m.VideoPublisherEditor })));
+const CreditsScreenModal = lazy(() => import('@/components/addons/credits_screen/CreditsScreenModal').then(m => ({ default: m.CreditsScreenModal })));
+const LLMSettingsModal = lazy(() => import('@/components/settings/LLMSettingsModal').then(m => ({ default: m.LLMSettingsModal })));
+const ComfyUISettingsModal = lazy(() => import('@/components/settings/ComfyUISettingsModal').then(m => ({ default: m.ComfyUISettingsModal })));
+const GeneralSettingsWindow = lazy(() => import('@/components/configuration/GeneralSettingsWindow').then(m => ({ default: m.GeneralSettingsWindow })));
+const AddonsModal = lazy(() => import('@/components/settings/AddonsModal').then(m => ({ default: m.AddonsModal })));
+const AddonSettingsModal = lazy(() => import('@/components/settings/AddonSettingsModal').then(m => ({ default: m.AddonSettingsModal })));
+const CharactersModal = lazy(() => import('@/components/modals/CharactersModal').then(m => ({ default: m.CharactersModal })));
+const WorldModal = lazy(() => import('@/components/modals/WorldModal').then(m => ({ default: m.WorldModal })));
+const LocationsModal = lazy(() => import('@/components/modals/LocationsModal').then(m => ({ default: m.LocationsModal })));
+const ObjectsModal = lazy(() => import('@/components/modals/ObjectsModal').then(m => ({ default: m.ObjectsModal })));
+const ImageGalleryModal = lazy(() => import('@/components/modals/ImageGalleryModal').then(m => ({ default: m.ImageGalleryModal })));
+const VaultModal = lazy(() => import('@/components/modals/VaultModal').then(m => ({ default: m.VaultModal })));
+const FactCheckModal = lazy(() => import('@/components/modals/FactCheckModal').then(m => ({ default: m.FactCheckModal })));
+const AboutModal = lazy(() => import('@/components/modals/AboutModal').then(m => ({ default: m.AboutModal })));
+const DocumentationModal = lazy(() => import('@/components/modals/menuBar/DocumentationModal').then(m => ({ default: m.DocumentationModal })));
+const KeyboardShortcutsDialog = lazy(() => import('@/components/KeyboardShortcutsDialog').then(m => ({ default: m.KeyboardShortcutsDialog })));
+const MoodboardModal = lazy(() => import('@/components/modals/MoodboardModal').then(m => ({ default: m.MoodboardModal })));
+const ComputeDashboard = lazy(() => import('@/components/feedback/ComputeDashboard').then(m => ({ default: m.ComputeDashboard })));
+const ReferenceSheetManager = lazy(() => import('@/components/reference/ReferenceSheetManager').then(m => ({ default: m.ReferenceSheetManager })));
+const VideoReplicationDialog = lazy(() => import('@/components/reference/VideoReplicationDialog').then(m => ({ default: m.VideoReplicationDialog })));
+const CrossShotReferencePicker = lazy(() => import('@/components/reference/CrossShotReferencePicker').then(m => ({ default: m.CrossShotReferencePicker })));
+const ProjectBranchingDialog = lazy(() => import('@/components/reference/ProjectBranchingDialog').then(m => ({ default: m.ProjectBranchingDialog })));
+const EpisodeReferenceDialog = lazy(() => import('@/components/reference/EpisodeReferenceDialog').then(m => ({ default: m.EpisodeReferenceDialog })));
+const DialogueEditor = lazy(() => import('@/ui/DialogueEditor'));
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
 import { useOllamaInit } from '@/hooks/useOllamaInit';
@@ -90,14 +85,19 @@ import { addonManager } from '@/services/AddonManager';
 import type { FeedbackInitialContext } from '@/components/feedback/types';
 import { logger } from '@/utils/logger';
 import { devLog } from '@/utils/devOnly';
-import type { World } from '@/types/world';
+import type { World, Genre, Tone } from '@/types/world';
 import type { Character } from '@/types/character';
 import { eventEmitter, WizardEventType, GenerationCompletedPayload } from '@/services/eventEmitter';
 import { useThemeStore } from '@/stores/themeStore';
-import { DialogueBuilderData } from '@/components/wizard/dialogue-builder/DialogueBuilderWizard';
-import { DiscoveryLab } from '@/components/DiscoveryLab/DiscoveryLab';
+const FeedbackPanel = lazy(() => import('@/components/feedback/FeedbackPanel').then(m => ({ default: m.FeedbackPanel })));
+const PendingReportsList = lazy(() => import('@/components/feedback/PendingReportsList').then(m => ({ default: m.PendingReportsList })));
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ScreenReaderAnnouncerProvider } from '@/components/menuBar/ScreenReaderAnnouncer';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { DialogueBuilderData } from '@/components/wizard/dialogue-builder/DialogueBuilderWizard';
+const DiscoveryLab = lazy(() => import('@/components/DiscoveryLab/DiscoveryLab').then(m => ({ default: m.DiscoveryLab })));
+const AutomationPanel = lazy(() => import('@/components/automation/AutomationPanel').then(m => ({ default: m.AutomationPanel })));
 
 
 function AppContent() {
@@ -108,6 +108,10 @@ function AppContent() {
     project,
     setProject,
     setShots,
+    setCurrentView,
+    setSelectedSequenceId,
+    isInitialLoading,
+    setIsInitialLoading,
     showInstallationWizard,
     setShowInstallationWizard,
     setInstallationComplete,
@@ -188,6 +192,8 @@ function AppContent() {
     setShowLocationWizard,
     showComputeDashboard,
     setShowComputeDashboard,
+    showAutomationPanel,
+    setShowAutomationPanel,
     characterWizardContext,
     objectWizardContext,
     selectedShotId,
@@ -195,6 +201,10 @@ function AppContent() {
     project: state.project,
     setProject: state.setProject,
     setShots: state.setShots,
+    setCurrentView: state.setCurrentView,
+    setSelectedSequenceId: state.setSelectedSequenceId,
+    isInitialLoading: state.isInitialLoading,
+    setIsInitialLoading: state.setIsInitialLoading,
     showInstallationWizard: state.showInstallationWizard,
     setShowInstallationWizard: state.setShowInstallationWizard,
     setInstallationComplete: state.setInstallationComplete,
@@ -275,6 +285,8 @@ function AppContent() {
     setShowLocationWizard: state.setShowLocationWizard,
     showComputeDashboard: state.showComputeDashboard,
     setShowComputeDashboard: state.setShowComputeDashboard,
+    showAutomationPanel: state.showAutomationPanel,
+    setShowAutomationPanel: state.setShowAutomationPanel,
     characterWizardContext: state.characterWizardContext,
     objectWizardContext: state.objectWizardContext,
     selectedShotId: state.selectedShotId,
@@ -315,10 +327,20 @@ function AppContent() {
   // This ensures characters and other project data are available to all components
   // Requirements: 8.1, 8.4
   const storeSetProject = useStore((state) => state.setProject);
+  const currentStoreProject = useStore((state) => state.project);
+  
   useEffect(() => {
-    console.log('🔄 [App] Syncing project to main store:', project ? project.project_name : 'null');
-    storeSetProject(project);
-  }, [project, storeSetProject]);
+    // Only sync if projects are actually different to prevent infinite loops
+    const isDifferent = !currentStoreProject || 
+                        project?.id !== currentStoreProject?.id || 
+                        project?.path !== currentStoreProject?.path ||
+                        (project?.characters?.length !== currentStoreProject?.characters?.length);
+                        
+    if (project && isDifferent) {
+      console.log('🔄 [App] Syncing project to main store:', project.project_name);
+      storeSetProject(project);
+    }
+  }, [project, storeSetProject, currentStoreProject]);
 
   // Handle view state changes from MenuBar
   // Requirements: 3.1-3.9
@@ -492,26 +514,166 @@ function AppContent() {
   }, [project, toast]);
 
   // Generation notifications (Toasts)
-  useEffect(() => {
-    const handleGenerationCompleted = (payload: GenerationCompletedPayload) => {
-      const isSuccess = payload.status === 'completed';
-      
-      toast({
-        title: isSuccess ? 'Generation Complete' : 'Generation Failed',
-        description: isSuccess 
-          ? `Successfully generated ${payload.type}: "${payload.prompt.substring(0, 50)}..."`
-          : `Error generating ${payload.type}: ${payload.error || 'Unknown error'}`,
-        variant: isSuccess ? 'default' : 'destructive',
-        duration: 5000,
-      });
-    };
-
-    const sub = eventEmitter.on(WizardEventType.GENERATION_COMPLETED, handleGenerationCompleted);
-    return () => sub.unsubscribe();
+  const handleGenerationCompleted = useCallback((payload: GenerationCompletedPayload) => {
+    const isSuccess = payload.status === 'completed';
+    
+    toast({
+      title: isSuccess ? 'Generation Complete' : 'Generation Failed',
+      description: isSuccess 
+        ? `Successfully generated ${payload.type}: "${payload.prompt.substring(0, 50)}..."`
+        : `Error generating ${payload.type}: ${payload.error || 'Unknown error'}`,
+      variant: isSuccess ? 'default' : 'destructive',
+      duration: 5000,
+    });
   }, [toast]);
 
-  const [currentView, setCurrentView] = useState<'dashboard' | 'editor' | 'experimental-ai'>('dashboard');
-  const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    const sub = eventEmitter.on(WizardEventType.GENERATION_COMPLETED, handleGenerationCompleted);
+    return () => sub.unsubscribe();
+  }, [handleGenerationCompleted]);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Ref to track if we are currently loading a project to avoid concurrent loads
+  const isSyncingRef = useRef(false);
+
+  // Handle URL changes to load project if needed
+  useEffect(() => {
+    async function syncUrlWithProject() {
+      if (!window.electronAPI) {
+         if (setIsInitialLoading) setIsInitialLoading(false);
+         return;
+      }
+      if (isSyncingRef.current) return;
+
+      const pathParts = location.pathname.split('/');
+      const projectIndex = pathParts.indexOf('project');
+      
+      if (projectIndex !== -1 && pathParts[projectIndex + 1]) {
+        const encodedPath = pathParts[projectIndex + 1];
+        const projectPath = decodeURIComponent(encodedPath);
+        
+        // Normalize paths for comparison (handle Windows backslashes, case-insensitivity, and trailing slashes)
+        const normalize = (p: string) => {
+          if (!p) return '';
+          let normalized = p.replace(/\\/g, '/').toLowerCase();
+          // Remove trailing slash if present
+          if (normalized.endsWith('/')) {
+            normalized = normalized.substring(0, normalized.length - 1);
+          }
+          return normalized;
+        };
+
+        const normalizedUrlPath = normalize(projectPath);
+        const currentStorePath = project?.path || (project?.metadata?.path as string) || '';
+        const normalizedStorePath = normalize(currentStorePath);
+        
+        // If no project is loaded, or a different project is in the URL, load it
+        const needsLoading = !project || normalizedUrlPath !== normalizedStorePath;
+        
+        // Detailed logging for debugging loops
+        console.log(`[App] Sync check: URL="${normalizedUrlPath}", Store="${normalizedStorePath}", storeHasProject=${!!project}, needsLoading=${needsLoading}`);
+        
+        if (needsLoading) {
+          console.log(`[App] Triggering project load for: "${projectPath}"`);
+          
+          isSyncingRef.current = true;
+          if (setIsInitialLoading) setIsInitialLoading(true);
+          
+          try {
+            const api = window.electronAPI as any;
+            if (api.project && api.project.open) {
+              const electronProject = await api.project.open(projectPath);
+              
+              if (electronProject) {
+                const storeProject = convertElectronProjectToStore(electronProject);
+                
+                // Ensure the path in the store matches the path we used to open it 
+                // to prevent mismatch on next effect run
+                if (!storeProject.path) storeProject.path = projectPath;
+                if (storeProject.metadata && !storeProject.metadata.path) {
+                  storeProject.metadata.path = projectPath;
+                }
+                
+                // Load additional entities
+                let characters = [];
+                let worlds = [];
+                let locations = [];
+                let sequences = [];
+                
+                try {
+                  if (api.character) characters = await api.character.list(projectPath);
+                  if (api.world) worlds = await api.world.list(projectPath);
+                  if (api.location) locations = await api.location.list(projectPath);
+                  if (api.sequence) sequences = await api.sequence.list(projectPath);
+                } catch (e) {
+                  console.warn('[App] Failed to load some project entities:', e);
+                }
+
+                const finalProject = {
+                  ...storeProject,
+                  characters: characters || [],
+                  worlds: worlds || [],
+                  locations: locations || [],
+                  stories: [],
+                  sequencePlans: sequences || []
+                };
+
+                // Use the service to load into stores
+                await projectCreationService.loadProjectIntoStores(finalProject as any, projectPath, sequences);
+                console.log('[App] Project successfully loaded into stores');
+              } else {
+                console.error('[App] Failed to open project: electronProject is null');
+                toast({
+                  variant: 'destructive',
+                  title: 'Load Error',
+                  description: 'Could not open the project directory.',
+                });
+                navigate('/');
+              }
+            }
+          } catch (error) {
+            console.error('[App] Exception while loading project from URL:', error);
+            toast({
+              variant: 'destructive',
+              title: 'Load Error',
+              description: 'An error occurred while loading the project.',
+            });
+            navigate('/');
+          } finally {
+            isSyncingRef.current = false;
+            if (setIsInitialLoading) setIsInitialLoading(false);
+          }
+        } else {
+          // Project already loaded and matches URL, ensure we're not showing loader
+          if (isInitialLoading && setIsInitialLoading) {
+            console.log('[App] Project already loaded and matches URL. Hiding loader.');
+            setIsInitialLoading(false);
+          }
+        }
+      } else {
+        // Not on a specific project path, or path is incomplete
+        if (isInitialLoading && setIsInitialLoading) {
+          setIsInitialLoading(false);
+        }
+      }
+    }
+
+    syncUrlWithProject();
+    // We intentionally only depend on paths and specific flags to avoid infinite loops 
+    // when other project properties (like characters or shots) update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    location.pathname, 
+    location.search,
+    project?.path, 
+    project?.metadata?.path, 
+    toast, 
+    navigate, 
+    setIsInitialLoading
+  ]);
+
 
   // Listen for navigation events from menu bar
   useEffect(() => {
@@ -548,7 +710,7 @@ function AppContent() {
       window.removeEventListener('storycore:exit-project', handleExitProject);
       window.removeEventListener('storycore:navigate-to-experimental-ai', handleNavigateToExperimentalAI);
     };
-  }, [setProject, setShots]);
+  }, [setProject, setShots, setCurrentView, setSelectedSequenceId]);
 
   // handleNewProject removed - use store actions directly or via menuActions
 
@@ -989,7 +1151,8 @@ function AppContent() {
   // - State conflicts between modal instances
   // - Memory leaks from multiple modal instances
   const renderModals = () => (
-    <>
+    <Suspense fallback={null}>
+      <>
       {/* Installation Wizard Modal */}
       <InstallationWizardModal
         isOpen={showInstallationWizard}
@@ -1004,8 +1167,8 @@ function AppContent() {
         onComplete={handleWorldComplete}
         initialData={project?.worlds?.[0] || {
           // Pre-fill genre and tone from project setup
-          genre: project?.projectSetup?.genre,
-          tone: project?.projectSetup?.tone,
+          genre: (project?.projectSetup?.genre as Genre[]) || [],
+          tone: (project?.projectSetup?.tone as Tone[]) || [],
         }}
       />
 
@@ -1375,9 +1538,29 @@ function AppContent() {
         </div>
       )}
 
+      {/* Automation Studio & n8n Panel */}
+      {showAutomationPanel && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/90 backdrop-blur-md flex flex-col p-4 md:p-8 overflow-auto">
+          <div className="absolute top-4 right-6 z-[110]">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setShowAutomationPanel(false)}
+              className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-full"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+          <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
+            <AutomationPanel />
+          </div>
+        </div>
+      )}
+
       {/* Toast Notifications */}
       <Toaster />
-    </>
+      </>
+    </Suspense>
   );
 
   // Check for detached chat route
@@ -1431,30 +1614,45 @@ function AppContent() {
     }
   }
 
-  // Show landing page if no project is loaded (default view)
-  if (!project) {
+  // Check if we are on a project route
+  const isProjectRoute = location.pathname.includes('/project/');
+
+  // Initial loading state
+  if (isInitialLoading) {
     return (
-      <>
+      <div className="flex flex-col items-center justify-center h-screen bg-background text-foreground">
+        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+        <h2 className="text-xl font-semibold">Loading Project...</h2>
+        <p className="text-muted-foreground text-center px-4">Synchronizing your creative world</p>
+      </div>
+    );
+  }
+
+  // Show landing page if no project is loaded and not a project route
+  if (!project && !isProjectRoute) {
+    return (
+      <div className="flex flex-col min-h-screen">
         <MenuBar
-          project={project}
-          hasUnsavedChanges={hasUnsavedChanges}
+          project={null}
+          hasUnsavedChanges={false}
           onProjectChange={handleProjectChange}
           onViewStateChange={handleViewStateChange}
           viewState={viewState}
           undoStack={undoStack}
           clipboard={clipboard}
-          isProcessing={isProcessing}
+          isProcessing={false}
         />
-        <LandingPageWithHooks />
-        {/* Single instance of all modals */}
+        <main className="flex-1 overflow-hidden">
+          <LandingPageWithHooks />
+        </main>
         {renderModals()}
-      </>
+      </div>
     );
   }
 
-  // Show editor or dashboard based on current view
+  // Full app layout with MenuBar and Router Outlet
   return (
-    <>
+    <div className="flex flex-col h-screen overflow-hidden">
       <MenuBar
         project={project}
         hasUnsavedChanges={hasUnsavedChanges}
@@ -1465,25 +1663,13 @@ function AppContent() {
         clipboard={clipboard}
         isProcessing={isProcessing}
       />
-      {currentView === 'dashboard' ? (
-        <ProjectDashboardPage onOpenEditor={(sequenceId) => {
-          setSelectedSequenceId(sequenceId);
-          setCurrentView('editor');
-        }} />
-      ) : currentView === 'editor' ? (
-        <EditorPageSimple
-          sequenceId={selectedSequenceId}
-          onBackToDashboard={() => {
-            setSelectedSequenceId(undefined);
-            setCurrentView('dashboard');
-          }}
-        />
-      ) : (
-        <ImageEnhancementPanel />
-      )}
-      {/* Single instance of all modals - shared across all views */}
+      <main className="flex-1 overflow-hidden relative">
+        <Outlet />
+      </main>
+      
+      {/* Single instance of all modals */}
       {renderModals()}
-    </>
+    </div>
   );
 }
 

@@ -61,7 +61,10 @@ class RestrictedPythonREPL:
             "math": py_math,
             "json": py_json,
             "re": py_re,
-            "subtasks": {}
+            "subtasks": {},
+            "n8n_trigger": None,
+            "n8n_list_workflows": None,
+            "n8n_create_workflow": None
         }
 
     def execute(self, code: str) -> str:
@@ -139,6 +142,7 @@ class RLMEngine:
     4. Recursive Solving (Async)  
     5. Synthesis
     6. Critique-Correction Loop  ← enhanced with GraphRAG
+    7. Automation Integration (n8n)
     """
     def __init__(
         self,
@@ -184,6 +188,11 @@ class RLMEngine:
             "```python\n# your code here\n```\n"
             "To create a subtask, use `run_subtask(description, context_slice)`.\n"
             "To run multiple subtasks at once, use `run_subtasks_parallel([{'description': '...', 'context_slice': '...'}, ...])`.\n"
+            "To trigger an external n8n automation workflow, use `n8n_trigger(webhook_id, {'key': 'value'})`.\n"
+            "To list available n8n workflows, use `n8n_list_workflows()`.\n"
+            "To create a new n8n workflow, use `n8n_create_workflow(name, nodes, connections)`.\n"
+            "To send a notification, use `send_message(platform, text, target_id=None)` where platform is 'telegram' or 'discord'.\n"
+            "To check messaging status, use `get_messaging_status()`.\n"
             "To finish, reply with:\n"
             "FINAL_ANSWER: your complete detailed response."
         )
@@ -240,10 +249,92 @@ class RLMEngine:
                 return loop.run_until_complete(self.agent_core.query_graph(entities, max_depth))
             return asyncio.run(self.agent_core.query_graph(entities, max_depth))
 
+        async def _repl_n8n_trigger(webhook_id: str, payload: Dict[str, Any]) -> str:
+            self._notify(f"Triggering n8n workflow: {webhook_id}...")
+            # We defer implementation to agent_core if it supports it
+            if hasattr(self.agent_core, 'trigger_n8n'):
+                res = await self.agent_core.trigger_n8n(webhook_id, payload)
+                return py_json.dumps(res)
+            return "n8n trigger not supported by this agent core."
+
+        def _repl_n8n_trigger_sync(webhook_id: str, payload: Dict[str, Any]) -> str:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import nest_asyncio
+                nest_asyncio.apply()
+                return loop.run_until_complete(_repl_n8n_trigger(webhook_id, payload))
+            return asyncio.run(_repl_n8n_trigger(webhook_id, payload))
+
+        async def _repl_n8n_list() -> str:
+            self._notify("Listing n8n workflows...")
+            if hasattr(self.agent_core, 'list_n8n'):
+                res = await self.agent_core.list_n8n()
+                return py_json.dumps(res)
+            return "n8n list not supported by this agent core."
+
+        def _repl_n8n_list_sync() -> str:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import nest_asyncio
+                nest_asyncio.apply()
+                return loop.run_until_complete(_repl_n8n_list())
+            return asyncio.run(_repl_n8n_list())
+
+        async def _repl_n8n_create(name: str, nodes: List[Dict[str, Any]], connections: Dict[str, Any]) -> str:
+            self._notify(f"Creating n8n workflow: {name}...")
+            if hasattr(self.agent_core, 'create_n8n'):
+                res = await self.agent_core.create_n8n(name, nodes, connections)
+                return py_json.dumps(res)
+            return "n8n create not supported by this agent core."
+
+        def _repl_n8n_create_sync(name: str, nodes: List[Dict[str, Any]], connections: Dict[str, Any]) -> str:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import nest_asyncio
+                nest_asyncio.apply()
+                return loop.run_until_complete(_repl_n8n_create(name, nodes, connections))
+            return asyncio.run(_repl_n8n_create(name, nodes, connections))
+
         repl.set_variable("run_subtask", _repl_subtask)
         repl.set_variable("run_subtasks_parallel", _repl_run_parallel)
         repl.set_variable("query_database", _repl_query_db)
         repl.set_variable("query_graph", _repl_query_graph)
+        repl.set_variable("n8n_trigger", _repl_n8n_trigger_sync)
+        repl.set_variable("n8n_list_workflows", _repl_n8n_list_sync)
+        repl.set_variable("n8n_create_workflow", _repl_n8n_create_sync)
+        
+        # Messaging Integration
+        async def _repl_send_message(platform: str, text: str, target_id: Optional[str] = None) -> str:
+            self._notify(f"Sending {platform} message...")
+            if hasattr(self.agent_core, 'send_message'):
+                res = await self.agent_core.send_message(platform, text, target_id)
+                return py_json.dumps(res)
+            return "Messaging not supported by this agent core."
+
+        def _repl_send_message_sync(platform: str, text: str, target_id: Optional[str] = None) -> str:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import nest_asyncio
+                nest_asyncio.apply()
+                return loop.run_until_complete(_repl_send_message(platform, text, target_id))
+            return asyncio.run(_repl_send_message(platform, text, target_id))
+
+        async def _repl_get_msg_status() -> str:
+            if hasattr(self.agent_core, 'get_messaging_status'):
+                res = await self.agent_core.get_messaging_status()
+                return py_json.dumps(res)
+            return "Messaging status not supported by this agent core."
+
+        def _repl_get_msg_status_sync() -> str:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import nest_asyncio
+                nest_asyncio.apply()
+                return loop.run_until_complete(_repl_get_msg_status())
+            return asyncio.run(_repl_get_msg_status())
+
+        repl.set_variable("send_message", _repl_send_message_sync)
+        repl.set_variable("get_messaging_status", _repl_get_msg_status_sync)
         
         # NOTE: Multi-Agent Swarm (Specialization of Sub-Agents)
         # We could route specific subtasks to different expert agents here based on intent analysis.

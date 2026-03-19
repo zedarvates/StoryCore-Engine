@@ -11,11 +11,9 @@
 //
 // Solution: All characters go through the store, project references store characters
 //
-// Requirements: 8.1, 8.4
-// ============================================================================
-
-import { useEffect, useCallback, useMemo, useState } from 'react';
+import { useEffect, useCallback, useMemo, useState, useRef } from 'react';
 import { useStore } from '../store';
+import { useAppStore } from '../stores/useAppStore';
 import type { Character } from '../types/character';
 import { logger as Logger } from '../utils/logger';
 
@@ -69,6 +67,11 @@ export function useCharacterSync(): CharacterSyncResult {
   const characters = useStore((state) => state.characters);
   const project = useStore((state) => state.project);
   const setProject = useStore((state) => state.setProject);
+  
+  // AppStore access for cross-sync
+  const appStoreProject = useAppStore((state) => state.project);
+  const setAppStoreProject = useAppStore((state) => state.setProject);
+
   const addCharacterStore = useStore((state) => state.addCharacter);
   const updateCharacterStore = useStore((state) => state.updateCharacter);
   const deleteCharacterStore = useStore((state) => state.deleteCharacter);
@@ -113,39 +116,72 @@ export function useCharacterSync(): CharacterSyncResult {
     project: typeof project;
   };
 
+  const isSyncingRef = useRef(false);
+
   // ============================================================================
   // Sync Effect - Ensure project.characters matches store.characters
   // ============================================================================
   useEffect(() => {
-    if (!project) return;
+    if (!project || isSyncingRef.current) return;
 
     // Check if sync is needed
-    const projectChars = project.characters;
+    const projectChars = project.characters || [];
     const storeCharIds = new Set(characters.map(c => c.character_id));
     
     let needsSync = false;
-    if (!projectChars || projectChars.length !== characters.length) {
+    if (projectChars.length !== characters.length) {
       needsSync = true;
     } else {
-      // Check if any character is missing from project
-      for (const pc of projectChars) {
-        const pcAny = pc as { character_id?: string };
-        if (!storeCharIds.has(pcAny.character_id || '')) {
+      // Check if any character matches by ID to detect additions/removals
+      const projectCharIds = projectChars.map(c => (c as any).character_id || '');
+      for (const id of projectCharIds) {
+        if (!storeCharIds.has(id)) {
           needsSync = true;
           break;
+        }
+      }
+      
+      if (!needsSync) {
+        // Double check reverse direction
+        const projectCharIdSet = new Set(projectCharIds);
+        for (const c of characters) {
+          if (!projectCharIdSet.has(c.character_id)) {
+            needsSync = true;
+            break;
+          }
         }
       }
     }
 
     if (needsSync) {
-      Logger.info('[useCharacterSync] Syncing characters to project:', characters.length);
-      setProject({
-        ...project,
-        characters: characters,
-      });
-      setLastSynced(new Date());
+      Logger.info('[useCharacterSync] Syncing characters to projects (dual-store):', characters.length);
+      isSyncingRef.current = true;
+      try {
+        const updatedProject = {
+          ...project,
+          characters: characters,
+        };
+        
+        // Sync Main Store
+        setProject(updatedProject);
+        
+        // Sync App Store only if needed
+        if (appStoreProject) {
+           setAppStoreProject({
+             ...appStoreProject,
+             characters: characters as any
+           });
+        }
+        
+        setLastSynced(new Date());
+      } finally {
+        // Reset after a short delay to allow state to settle
+        setTimeout(() => {
+          isSyncingRef.current = false;
+        }, 100);
+      }
     }
-  }, [characters, project, setProject]);
+  }, [characters, project, appStoreProject, setProject, setAppStoreProject]);
 
   // ============================================================================
   // Character Operations

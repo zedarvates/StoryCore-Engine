@@ -40,7 +40,7 @@ export type ObjectCondition =
 
 export interface ObjectProperties {
   weight?: string | number;  // e.g., "2 kg" or 2.0
-  size?: string;             // e.g., "small", "medium", "large"
+  size?: ObjectSize;         // e.g., "small", "medium", "large"
   material?: string;         // e.g., "wood", "metal", "crystal"
   color?: string;            // Primary color
   durability?: ObjectCondition;
@@ -48,6 +48,9 @@ export interface ObjectProperties {
   value?: string | number;   // Monetary or symbolic value
   origin?: string;           // Where it came from
 }
+
+// Type definitions for Object properties
+export type ObjectSize = 'tiny' | 'small' | 'medium' | 'large' | 'huge' | 'gargantuan';
 
 export interface ObjectAbility {
   id: string;

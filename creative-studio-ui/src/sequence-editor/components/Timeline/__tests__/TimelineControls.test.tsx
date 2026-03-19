@@ -16,6 +16,7 @@ import { TimelineControls } from '../TimelineControls';
 import previewReducer from '../../../store/slices/previewSlice';
 import timelineReducer from '../../../store/slices/timelineSlice';
 import projectReducer from '../../../store/slices/projectSlice';
+import historyReducer from '../../../store/slices/historySlice';
 
 
 // Helper to create a test store
@@ -25,6 +26,7 @@ const createTestStore = () => {
       preview: previewReducer,
       timeline: timelineReducer,
       project: projectReducer,
+      history: historyReducer,
     },
   });
 };
@@ -512,46 +514,40 @@ describe('TimelineControls', () => {
     });
   });
 
-  describe('Virtual Mode Toggle', () => {
-    it('should show virtual mode toggle when onToggleVirtualMode is provided', () => {
-      const onToggleVirtualMode = vi.fn();
+  describe('View Mode Toggle', () => {
+    it('should show view mode toggle when onViewModeChange is provided', () => {
+      const onViewModeChange = vi.fn();
       renderWithRedux(
-        <TimelineControls {...defaultProps} onToggleVirtualMode={onToggleVirtualMode} />
+        <TimelineControls {...defaultProps} onViewModeChange={onViewModeChange} />
       );
 
-      expect(screen.getByTitle(/toggle virtual scrolling mode/i)).toBeInTheDocument();
+      expect(screen.getByTitle(/timeline view/i)).toBeInTheDocument();
+      expect(screen.getByTitle(/storyboard view/i)).toBeInTheDocument();
     });
 
-    it('should not show virtual mode toggle when onToggleVirtualMode is not provided', () => {
-      renderWithRedux(<TimelineControls {...defaultProps} />);
-
-      expect(screen.queryByTitle(/toggle virtual scrolling mode/i)).not.toBeInTheDocument();
-    });
-
-    it('should call onToggleVirtualMode when virtual mode button is clicked', () => {
-      const onToggleVirtualMode = vi.fn();
+    it('should call onViewModeChange when mode button is clicked', () => {
+      const onViewModeChange = vi.fn();
       renderWithRedux(
-        <TimelineControls {...defaultProps} onToggleVirtualMode={onToggleVirtualMode} />
+        <TimelineControls {...defaultProps} onViewModeChange={onViewModeChange} />
       );
 
-      const virtualButton = screen.getByTitle(/toggle virtual scrolling mode/i);
-      fireEvent.click(virtualButton);
+      const storyboardButton = screen.getByTitle(/storyboard view/i);
+      fireEvent.click(storyboardButton);
 
-      expect(onToggleVirtualMode).toHaveBeenCalled();
+      expect(onViewModeChange).toHaveBeenCalledWith('storyboard');
     });
 
-    it('should show active state when virtual mode is enabled', () => {
-      const onToggleVirtualMode = vi.fn();
+    it('should show active state for current view mode', () => {
       renderWithRedux(
         <TimelineControls
           {...defaultProps}
-          onToggleVirtualMode={onToggleVirtualMode}
-          useVirtualMode={true}
+          viewMode="storyboard"
+          onViewModeChange={vi.fn()}
         />
       );
 
-      const virtualButton = screen.getByTitle(/toggle virtual scrolling mode/i);
-      expect(virtualButton).toHaveClass('active');
+      const storyboardButton = screen.getByTitle(/storyboard view/i);
+      expect(storyboardButton).toHaveClass('active');
     });
   });
 });

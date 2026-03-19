@@ -1,5 +1,5 @@
 /* cspell:ignore ollama trage intitulé nommé nommée consommée métrage court-métrage construi Kling REQUETE atmos */
-import type { ChatMessage, Shot, Project, Asset } from '@/types';
+import type { ChatMessage, Shot, Project, Asset, Character, Location as ProductionLocation, StoryObject, SequencePlan, ElectronProjectData } from '@/types';
 import type { LanguageCode } from '@/utils/llmConfigStorage';
 import { useMemoryStore } from '@/stores/memoryStore';
 import { projectMemory } from '@/services/ProjectMemoryService';
@@ -50,7 +50,14 @@ export interface ProjectCreationRequest {
   universe?: string;
   genre?: string;
   description?: string;
+  formatId?: string;
   settings?: Record<string, unknown>;
+  initialEntities?: {
+    characters?: Character[];
+    locations?: ProductionLocation[];
+    objects?: StoryObject[];
+    sequences?: SequencePlan[];
+  };
 }
 
 /**
@@ -250,11 +257,18 @@ export class ChatService {
     const universe = this.extractUniverseFromInput(input);
     const genre = this.extractGenreFromInput(input);
 
+    // Deduce music-album format
+    let formatId: string | undefined = undefined;
+    if (lowerInput.includes('album') || lowerInput.includes('13 tracks') || lowerInput.includes('13 titres')) {
+      formatId = 'music-album';
+    }
+
     return {
       name: projectName,
       theme,
       universe,
       genre,
+      formatId,
       description: input,
       settings: {
         created_by: 'llm-assistant',
@@ -449,10 +463,14 @@ export class ChatService {
       }
 
       // Prepare project data with theme/universe metadata
-      const projectData = {
+      const projectData: ElectronProjectData = {
         name: request.name,
         format: {
           schema_version: '1.0',
+          aspectRatio: '16:9',
+          resolution: '1920x1080',
+          frameRate: 24,
+          colorSpace: 'sRGB',
           capabilities: {
             grid_generation: true,
             promotion_engine: true,

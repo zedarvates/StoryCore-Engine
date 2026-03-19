@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
+import './AutomationPanel.css';
 import {
   automationService,
   DialogueCharacterData,
@@ -13,169 +14,73 @@ import {
   DialogueSceneData,
 } from '../../services/automationService';
 
-// CSS-in-JS styles for the panel
-const styles: Record<string, React.CSSProperties> = {
-  panel: {
-    padding: '20px',
-    backgroundColor: '#1a1a2e',
-    borderRadius: '8px',
-    color: '#eee',
-    fontFamily: 'system-ui, sans-serif',
-  },
-  header: {
-    marginBottom: '20px',
-    borderBottom: '1px solid #333',
-    paddingBottom: '10px',
-  },
-  section: {
-    marginBottom: '24px',
-    padding: '16px',
-    backgroundColor: '#16213e',
-    borderRadius: '6px',
-  },
-  sectionTitle: {
-    fontSize: '16px',
-    fontWeight: 600,
-    marginBottom: '12px',
-    color: '#00d4ff',
-  },
-  input: {
-    width: '100%',
-    padding: '8px 12px',
-    marginBottom: '8px',
-    backgroundColor: '#0f3460',
-    border: '1px solid #333',
-    borderRadius: '4px',
-    color: '#eee',
-    fontSize: '14px',
-    boxSizing: 'border-box',
-  },
-  select: {
-    width: '100%',
-    padding: '8px 12px',
-    marginBottom: '8px',
-    backgroundColor: '#0f3460',
-    border: '1px solid #333',
-    borderRadius: '4px',
-    color: '#eee',
-    fontSize: '14px',
-    boxSizing: 'border-box',
-  },
-  button: {
-    padding: '10px 20px',
-    backgroundColor: '#e94560',
-    border: 'none',
-    borderRadius: '4px',
-    color: '#fff',
-    fontSize: '14px',
-    cursor: 'pointer',
-    marginRight: '8px',
-    marginTop: '8px',
-  },
-  buttonSecondary: {
-    backgroundColor: '#533483',
-  },
-  buttonDisabled: {
-    backgroundColor: '#444',
-    cursor: 'not-allowed',
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '12px',
-    marginTop: '12px',
-  },
-  card: {
-    padding: '12px',
-    backgroundColor: '#0f3460',
-    borderRadius: '4px',
-    border: '1px solid #333',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '4px',
-    fontSize: '12px',
-    color: '#aaa',
-  },
-  value: {
-    fontSize: '14px',
-    fontWeight: 500,
-  },
-  loading: {
-    padding: '20px',
-    textAlign: 'center',
-    color: '#aaa',
-  },
-  error: {
-    padding: '12px',
-    backgroundColor: '#ff4444',
-    borderRadius: '4px',
-    marginBottom: '12px',
-    color: '#fff',
-  },
-  success: {
-    padding: '12px',
-    backgroundColor: '#44aa44',
-    borderRadius: '4px',
-    marginBottom: '12px',
-    color: '#fff',
-  },
-  dialogueLine: {
-    padding: '8px 12px',
-    marginBottom: '8px',
-    backgroundColor: '#0f3460',
-    borderRadius: '4px',
-    borderLeft: '3px solid #00d4ff',
-  },
-  dialogueSpeaker: {
-    fontWeight: 600,
-    color: '#00d4ff',
-    marginBottom: '4px',
-  },
-  dialogueText: {
-    fontSize: '14px',
-    lineHeight: 1.5,
-  },
-  tabs: {
-    display: 'flex',
-    marginBottom: '16px',
-    borderBottom: '1px solid #333',
-  },
-  tab: {
-    padding: '10px 20px',
-    cursor: 'pointer',
-    borderBottom: '2px solid transparent',
-    color: '#aaa',
-    transition: 'all 0.2s',
-  },
-  tabActive: {
-    color: '#00d4ff',
-    borderBottomColor: '#00d4ff',
-  },
-  promptPreview: {
-    padding: '12px',
-    backgroundColor: '#0a0a1a',
-    borderRadius: '4px',
-    fontFamily: 'monospace',
-    fontSize: '12px',
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
-  },
-};
-
 // Component type
-type TabType = 'dialogue' | 'grid' | 'prompt';
+type TabType = 'dialogue' | 'grid' | 'prompt' | 'n8n' | 'messaging';
 
 interface AutomationPanelProps {
   projectId?: string;
 }
 
+import { n8nService, n8nStatus, n8nWorkflow, n8nTemplate } from '../../services/n8nService';
+import { messagingService, MessagingStatus } from '../../services/messagingService';
+
 // Main component
-export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) => {
+export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId: _projectId }) => {
   const [activeTab, setActiveTab] = useState<TabType>('dialogue');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // State for n8n
+  const [n8nStatus, setN8nStatus] = useState<n8nStatus | null>(null);
+  const [n8nWorkflows, setN8nWorkflows] = useState<n8nWorkflow[]>([]);
+  const [n8nTemplates, setN8nTemplates] = useState<n8nTemplate[]>([]);
+  const [triggeringWorkflowId, setTriggeringWorkflowId] = useState<string | null>(null);
+  const [importingTemplate, setImportingTemplate] = useState<string | null>(null);
+
+  // State for Messaging
+  const [messagingStatus, setMessagingStatus] = useState<MessagingStatus | null>(null);
+  const [testMessage, setTestMessage] = useState<string>('Hello from ElectroClaw! 🚀');
+  const [telegramChatId, setTelegramChatId] = useState<string>('');
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState<string>('');
+  const [sendingMessage, setSendingMessage] = useState<boolean>(false);
+
+  // Effect to load n8n data when tab is active
+  useEffect(() => {
+    if (activeTab === 'n8n') {
+      const loadN8nData = async () => {
+        setLoading(true);
+        try {
+          const status = await n8nService.getStatus();
+          setN8nStatus(status);
+          const workflows = await n8nService.listWorkflows();
+          setN8nWorkflows(workflows);
+          const templates = await n8nService.listTemplates();
+          setN8nTemplates(templates);
+        } catch (_err) {
+          console.debug("AutomationPanel: n8n service not reachable (expected if backend is down)");
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadN8nData();
+    }
+
+    if (activeTab === 'messaging') {
+      const loadMessagingStatus = async () => {
+        setLoading(true);
+        try {
+          const status = await messagingService.getStatus();
+          setMessagingStatus(status);
+        } catch (_err) {
+          console.debug("AutomationPanel: messaging service not reachable (expected if backend is down)");
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadMessagingStatus();
+    }
+  }, [activeTab]);
 
   // State for dialogues
   const [dialogueCharacters, setDialogueCharacters] = useState<DialogueCharacterData[]>([]);
@@ -316,16 +221,35 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
     }
   };
 
+  const handleTriggerWorkflow = async (workflowId: string) => {
+    const workflow = n8nWorkflows.find(w => w.id === workflowId);
+    if (!workflow) return;
+
+    let webhookId = workflow.id;
+    if (workflow.name.includes("Webhook Test")) webhookId = "electroclaw-test";
+    else if (workflow.name.includes("Character Enhancer")) webhookId = "enhance-character";
+
+    setTriggeringWorkflowId(workflowId);
+    try {
+      await n8nService.triggerWorkflow(webhookId, {
+        source: 'ElectroClaw UI',
+        triggered_at: new Date().toISOString()
+      });
+      setSuccess(`Workflow "${workflow.name}" triggered successfully!`);
+    } catch (err: unknown) {
+      setError(`Failed to trigger workflow: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setTriggeringWorkflowId(null);
+    }
+  };
+
   // Render tabs
   const renderTabs = (): React.ReactNode => (
-    <div style={styles.tabs}>
-      {(['dialogue', 'grid', 'prompt'] as TabType[]).map((tab) => (
+    <div className="automation-tabs">
+      {(['dialogue', 'grid', 'prompt', 'messaging', 'n8n'] as TabType[]).map((tab) => (
         <div
           key={tab}
-          style={{
-            ...styles.tab,
-            ...(activeTab === tab ? styles.tabActive : {}),
-          }}
+          className={`automation-tab ${activeTab === tab ? 'automation-tab-active' : ''}`}
           onClick={() => setActiveTab(tab)}
           role="button"
           tabIndex={0}
@@ -338,6 +262,8 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
           {tab === 'dialogue' && 'Dialogues'}
           {tab === 'grid' && 'Grids'}
           {tab === 'prompt' && 'Prompts'}
+          {tab === 'messaging' && 'Messaging'}
+          {tab === 'n8n' && 'n8n Automation'}
         </div>
       ))}
     </div>
@@ -347,32 +273,32 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
   const renderDialogueTab = (): React.ReactNode => (
     <div>
       {/* Characters */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>Characters</div>
+      <div className="automation-section">
+        <div className="automation-section-title">Characters</div>
         
         {dialogueCharacters.map((char, index) => (
-          <div key={char.character_id} style={styles.card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600 }}>Character {index + 1}</span>
+          <div key={char.character_id} className="automation-card">
+            <div className="automation-flex-row">
+              <span className="automation-bold">Character {index + 1}</span>
               <button
-                style={{ ...styles.button, ...styles.buttonSecondary, padding: '4px 8px', marginTop: 0 }}
+                className="automation-button automation-button-secondary automation-btn-sm"
                 onClick={() => removeCharacter(index)}
               >
                 X
               </button>
             </div>
             
-            <label style={styles.label}>Name</label>
+            <label className="automation-label">Name</label>
             <input
-              style={styles.input}
+              className="automation-input"
               value={char.name}
               onChange={(e: ChangeEvent<HTMLInputElement>) => updateCharacter(index, 'name', e.target.value)}
               placeholder="Character name"
             />
             
-            <label style={styles.label}>Archetype</label>
+            <label className="automation-label">Archetype</label>
             <select
-              style={styles.select}
+              className="automation-select"
               value={char.archetype}
               onChange={(e: ChangeEvent<HTMLSelectElement>) => updateCharacter(index, 'archetype', e.target.value)}
               title="Character archetype"
@@ -387,26 +313,26 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
           </div>
         ))}
         
-        <button style={styles.button} onClick={addCharacter}>
+        <button className="automation-button" onClick={addCharacter}>
           + Add Character
         </button>
       </div>
 
       {/* Context */}
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>Context</div>
+      <div className="automation-section">
+        <div className="automation-section-title">Context</div>
         
-        <label style={styles.label}>Location</label>
+        <label className="automation-label">Location</label>
         <input
-          style={styles.input}
+          className="automation-input"
           value={dialogueContext.location}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setDialogueContext({ ...dialogueContext, location: e.target.value })}
           placeholder="Scene location"
         />
         
-        <label style={styles.label}>Time of Day</label>
+        <label className="automation-label">Time of Day</label>
         <select
-          style={styles.select}
+          className="automation-select"
           value={dialogueContext.time_of_day}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setDialogueContext({ ...dialogueContext, time_of_day: e.target.value })}
           title="Time of day"
@@ -418,9 +344,9 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
           <option value="night">Night</option>
         </select>
         
-        <label style={styles.label}>Situation</label>
+        <label className="automation-label">Situation</label>
         <select
-          style={styles.select}
+          className="automation-select"
           value={dialogueContext.situation}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setDialogueContext({ ...dialogueContext, situation: e.target.value })}
           title="Situation type"
@@ -432,9 +358,9 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
           <option value="rest">Rest</option>
         </select>
         
-        <label style={styles.label}>Mood</label>
+        <label className="automation-label">Mood</label>
         <select
-          style={styles.select}
+          className="automation-select"
           value={dialogueContext.mood}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setDialogueContext({ ...dialogueContext, mood: e.target.value })}
           title="Mood atmosphere"
@@ -450,7 +376,7 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
 
       {/* Generation */}
       <button
-        style={{ ...styles.button, width: '100%' }}
+        className="automation-button w-100"
         onClick={generateDialogue}
         disabled={loading}
       >
@@ -459,12 +385,12 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
 
       {/* Result */}
       {generatedDialogue && (
-        <div style={{ marginTop: '20px' }}>
-          <div style={styles.sectionTitle}>Generated Dialogue</div>
+        <div className="mt-20">
+          <div className="automation-section-title">Generated Dialogue</div>
           {generatedDialogue.lines?.map((line, index) => (
-            <div key={line.line_id || index} style={styles.dialogueLine}>
-              <div style={styles.dialogueSpeaker}>{line.character_name}</div>
-              <div style={styles.dialogueText}>{line.dialogue}</div>
+            <div key={line.line_id || index} className="automation-dialogue-line">
+              <div className="automation-dialogue-speaker">{line.character_name}</div>
+              <div className="automation-dialogue-text">{line.dialogue}</div>
             </div>
           ))}
         </div>
@@ -475,28 +401,28 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
   // Render grid content
   const renderGridTab = (): React.ReactNode => (
     <div>
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>Configuration</div>
+      <div className="automation-section">
+        <div className="automation-section-title">Configuration</div>
         
-        <label style={styles.label}>Character ID</label>
+        <label className="automation-label">Character ID</label>
         <input
-          style={styles.input}
+          className="automation-input"
           value={gridCharacterId}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setGridCharacterId(e.target.value)}
           placeholder="hero_001"
         />
         
-        <label style={styles.label}>Character Name</label>
+        <label className="automation-label">Character Name</label>
         <input
-          style={styles.input}
+          className="automation-input"
           value={gridCharacterName}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setGridCharacterName(e.target.value)}
           placeholder="Main Hero"
         />
         
-        <label style={styles.label}>Grid Size</label>
+        <label className="automation-label">Grid Size</label>
         <select
-          style={styles.select}
+          className="automation-select"
           value={gridSize}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setGridSize(e.target.value)}
           title="Grid size selection"
@@ -508,7 +434,7 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
       </div>
 
       <button
-        style={{ ...styles.button, width: '100%' }}
+        className="automation-button w-100"
         onClick={generateGrid}
         disabled={loading}
       >
@@ -517,14 +443,14 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
 
       {/* Generated Grids */}
       {generatedGrids.length > 0 && (
-        <div style={{ marginTop: '20px' }}>
-          <div style={styles.sectionTitle}>Generated Grids</div>
-          <div style={styles.grid}>
+        <div className="mt-20">
+          <div className="automation-section-title">Generated Grids</div>
+          <div className="automation-grid">
             {generatedGrids.map((grid) => (
-              <div key={grid.bundle_id} style={styles.card}>
-                <div style={styles.label}>{grid.character_name}</div>
-                <div style={styles.value}>{grid.grid_size}</div>
-                <div style={styles.label}>{grid.total_panels} panels</div>
+              <div key={grid.bundle_id} className="automation-card">
+                <div className="automation-label">{grid.character_name}</div>
+                <div className="automation-value">{grid.grid_size}</div>
+                <div className="automation-label">{grid.total_panels} panels</div>
               </div>
             ))}
           </div>
@@ -536,20 +462,20 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
   // Render prompt content
   const renderPromptTab = (): React.ReactNode => (
     <div>
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>Base Prompt</div>
+      <div className="automation-section">
+        <div className="automation-section-title">Base Prompt</div>
         <textarea
-          style={{ ...styles.input, minHeight: '100px', resize: 'vertical' }}
+          className="automation-input automation-textarea"
           value={basePrompt}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBasePrompt(e.target.value)}
           placeholder="Enter your base prompt..."
         />
       </div>
 
-      <div style={styles.section}>
-        <div style={styles.sectionTitle}>Style</div>
+      <div className="automation-section">
+        <div className="automation-section-title">Style</div>
         <select
-          style={styles.select}
+          className="automation-select"
           value={promptStyle}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setPromptStyle(e.target.value)}
           title="Art style selection"
@@ -566,9 +492,9 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
           <option value="minimalist">Minimalist</option>
         </select>
 
-        <label style={styles.label}>Lighting</label>
+        <label className="automation-label">Lighting</label>
         <select
-          style={styles.select}
+          className="automation-select"
           value={promptLighting}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setPromptLighting(e.target.value)}
           title="Lighting type selection"
@@ -583,9 +509,9 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
           <option value="blue_hour">Blue Hour</option>
         </select>
 
-        <label style={styles.label}>Mood</label>
+        <label className="automation-label">Mood</label>
         <select
-          style={styles.select}
+          className="automation-select"
           value={promptMood}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setPromptMood(e.target.value)}
           title="Mood atmosphere selection"
@@ -604,7 +530,7 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
       </div>
 
       <button
-        style={{ ...styles.button, width: '100%' }}
+        className="automation-button w-100"
         onClick={enhancePrompt}
         disabled={loading}
       >
@@ -613,15 +539,15 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
 
       {/* Result */}
       {enhancedPrompt && (
-        <div style={{ marginTop: '20px' }}>
-          <div style={styles.sectionTitle}>Enhanced Prompt</div>
-          <div style={styles.section}>
-            <div style={styles.label}>Positive Prompt</div>
-            <div style={styles.promptPreview}>{enhancedPrompt.enhanced_prompt}</div>
+        <div className="mt-20">
+          <div className="automation-section-title">Enhanced Prompt</div>
+          <div className="automation-section">
+            <div className="automation-label">Positive Prompt</div>
+            <div className="automation-prompt-preview">{enhancedPrompt.enhanced_prompt}</div>
             
-            <div style={{ marginTop: '12px' }}>
-              <div style={styles.label}>Negative Prompt</div>
-              <div style={styles.promptPreview}>{enhancedPrompt.negative_prompt}</div>
+            <div className="mt-12">
+              <div className="automation-label">Negative Prompt</div>
+              <div className="automation-prompt-preview">{enhancedPrompt.negative_prompt}</div>
             </div>
           </div>
         </div>
@@ -629,21 +555,275 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
     </div>
   );
 
+  // Render messaging content
+  const renderMessagingTab = (): React.ReactNode => (
+    <div className="automation-tab-content">
+      <div className="automation-section">
+        <div className="automation-section-title">Connectivity Status</div>
+        <div className="n8n-status-container">
+          <div className="n8n-status-card">
+            <div className={`n8n-status-icon ${messagingStatus?.telegram === 'configured' ? 'n8n-status-online' : 'n8n-status-offline'}`}></div>
+            <div>
+              <div className="automation-bold">Telegram Bot</div>
+              <div className={messagingStatus?.telegram === 'configured' ? 'status-text-online' : 'status-text-offline'}>
+                {messagingStatus?.telegram === 'configured' ? 'CONNECTED' : 'NOT CONFIGURED'}
+              </div>
+            </div>
+          </div>
+          <div className="n8n-status-card">
+            <div className={`n8n-status-icon ${messagingStatus?.discord === 'configured' ? 'n8n-status-online' : 'n8n-status-offline'}`}></div>
+            <div>
+              <div className="automation-bold">Discord Webhook</div>
+              <div className={messagingStatus?.discord === 'configured' ? 'status-text-online' : 'status-text-offline'}>
+                {messagingStatus?.discord === 'configured' ? 'CONNECTED' : 'NOT CONFIGURED'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="automation-section">
+        <div className="automation-section-title">Test Notifications</div>
+        <div className="automation-form-group">
+          <label className="automation-label">Test Message Content</label>
+          <textarea
+            className="automation-input automation-textarea"
+            value={testMessage}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setTestMessage(e.target.value)}
+            placeholder="Enter message to send..."
+          />
+        </div>
+
+        <div className="automation-grid">
+          <div className="automation-card">
+            <div className="automation-section-title no-margin">
+              <span className="automation-service-icon">🔹</span> Telegram
+            </div>
+            <div className="automation-form-group mt-20">
+              <label className="automation-label">Chat ID (Optional override)</label>
+              <input
+                className="automation-input"
+                value={telegramChatId}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setTelegramChatId(e.target.value)}
+                placeholder="Defaults to config if empty"
+              />
+            </div>
+            <button
+              className="automation-button w-100"
+              disabled={messagingStatus?.telegram !== 'configured' || sendingMessage}
+              onClick={async () => {
+                setSendingMessage(true);
+                try {
+                  await messagingService.sendTelegram(testMessage, telegramChatId || undefined);
+                  setSuccess("Telegram message sent successfully!");
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Failed to send Telegram message");
+                } finally {
+                  setSendingMessage(false);
+                }
+              }}
+            >
+              {sendingMessage ? 'Sending...' : 'Send to Telegram'}
+            </button>
+          </div>
+
+          <div className="automation-card">
+            <div className="automation-section-title no-margin">
+              <span className="automation-service-icon">🟣</span> Discord
+            </div>
+            <div className="automation-form-group mt-20">
+              <label className="automation-label">Webhook URL (Optional override)</label>
+              <input
+                className="automation-input"
+                value={discordWebhookUrl}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setDiscordWebhookUrl(e.target.value)}
+                placeholder="Defaults to config if empty"
+              />
+            </div>
+            <button
+              className="automation-button automation-button-secondary w-100"
+              disabled={messagingStatus?.discord !== 'configured' || sendingMessage}
+              onClick={async () => {
+                setSendingMessage(true);
+                try {
+                  await messagingService.sendDiscord(testMessage, discordWebhookUrl || undefined);
+                  setSuccess("Discord message sent successfully!");
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Failed to send Discord message");
+                } finally {
+                  setSendingMessage(false);
+                }
+              }}
+            >
+              {sendingMessage ? 'Sending...' : 'Send via Discord'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="automation-info">
+        <p><strong>Pro Tip:</strong> Ensure that the environment variables <code>TELEGRAM_BOT_TOKEN</code> and <code>DISCORD_WEBHOOK_URL</code> are set in your <code>.env</code> file for default connectivity.</p>
+      </div>
+    </div>
+  );
+
+  // Render n8n content
+  const renderN8nTab = (): React.ReactNode => (
+    <div className="automation-tab-content">
+      <div className="automation-section">
+        <div className="automation-section-title">n8n Connection Status</div>
+        <div className="n8n-status-container">
+          <div className="n8n-status-card">
+            <div 
+              className={`n8n-status-icon ${n8nStatus?.status === 'online' ? 'n8n-status-online' : 'n8n-status-offline'}`}
+            ></div>
+            <span className={n8nStatus?.status === 'online' ? 'status-text-online' : 'status-text-offline'}>
+              {n8nStatus?.status === 'online' ? 'Online' : 'Offline'}
+            </span>
+            <span className="n8n-status-message">
+              {n8nStatus?.message}
+            </span>
+          </div>
+          
+          <div className="automation-flex-row automation-gap-8 no-margin">
+            <button 
+              className="automation-button automation-button-secondary"
+              onClick={() => window.open(n8nService.getN8nUrl(), '_blank')}
+            >
+              Open n8n UI
+            </button>
+            <button 
+              className="automation-button"
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  await n8nService.createWorkflow(`Automation ${new Date().toLocaleTimeString()}`, [], {});
+                  setSuccess('New workflow shell created in n8n!');
+                  const workflows = await n8nService.listWorkflows();
+                  setN8nWorkflows(workflows);
+                } catch (_err) {
+                  setError('Failed to create workflow');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading || n8nStatus?.status !== 'online'}
+            >
+              + Create New Workflow
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="automation-section">
+        <div className="automation-section-title">Workflow Catalog</div>
+        {n8nWorkflows.length > 0 ? (
+          <div className="automation-grid">
+            {n8nWorkflows.map((wf) => (
+              <div key={wf.id} className={`automation-card ${!wf.active ? 'n8n-card-inactive' : ''}`}>
+                <div className="automation-flex-row">
+                  <div className="automation-flex-col">
+                    <div className="automation-wf-name">{wf.name}</div>
+                    <div className="automation-label mt-4">
+                      ID: {wf.id}
+                    </div>
+                  </div>
+                  <div className="automation-flex-col automation-align-end automation-gap-8">
+                    <span className={`n8n-badge ${wf.active ? 'n8n-badge-active' : 'n8n-badge-inactive'}`}>
+                      {wf.active ? 'Active' : 'Inactive'}
+                    </span>
+                    <button
+                      className="n8n-trigger-btn"
+                      onClick={() => handleTriggerWorkflow(wf.id)}
+                      disabled={triggeringWorkflowId === wf.id}
+                    >
+                      {triggeringWorkflowId === wf.id ? '...' : 'Trigger'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="automation-loading">
+            No workflows found or n8n API not configured.
+          </div>
+        )}
+      </div>
+
+      <div className="automation-section">
+        <div className="automation-section-title">Template Library</div>
+        <p className="automation-label mb-12">Import pre-configured workflows for ElectroClaw</p>
+        
+        {n8nTemplates.length > 0 ? (
+          <div className="automation-grid">
+            {n8nTemplates.map((template) => (
+              <div key={template.filename} className="automation-card n8n-template-card">
+                <div className="automation-flex-col">
+                  <div className="automation-wf-name">{template.name}</div>
+                  <div className="automation-label mt-4">{template.description || template.filename}</div>
+                  {template.tags && template.tags.length > 0 && (
+                    <div className="n8n-template-tags mt-8">
+                      {template.tags.map(tag => (
+                        <span key={tag} className="n8n-tag">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-16">
+                  <button
+                    className="automation-button automation-button-secondary w-100"
+                    disabled={!!importingTemplate || n8nStatus?.status !== 'online'}
+                    onClick={async () => {
+                      setImportingTemplate(template.filename);
+                      try {
+                        await n8nService.importTemplate(template.filename);
+                        setSuccess(`Template "${template.name}" imported successfully!`);
+                        const workflows = await n8nService.listWorkflows();
+                        setN8nWorkflows(workflows);
+                      } catch (err) {
+                        setError(`Failed to import template: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                      } finally {
+                        setImportingTemplate(null);
+                      }
+                    }}
+                  >
+                    {importingTemplate === template.filename ? 'Importing...' : 'Import to n8n'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="automation-loading">No templates available.</div>
+        )}
+      </div>
+      
+      <div className="automation-section">
+        <div className="automation-section-title">Direct Connection Info</div>
+        <p className="automation-label">API Gateway / Webhook URL Context:</p>
+        <div className="n8n-url-display">
+          {n8nService.getN8nUrl()}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div style={styles.panel}>
-      <div style={styles.header}>
-        <h2 style={{ margin: 0, color: '#00d4ff' }}>Automation Studio</h2>
-        <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#aaa' }}>
-          Automatic generation of dialogues, images and prompts
+    <div className="automation-panel">
+      <div className="automation-header">
+        <h2>Automation Studio</h2>
+        <p>
+          Automatic generation of dialogues, images and prompts + n8n management
         </p>
       </div>
 
       {/* Messages */}
-      {error && <div style={styles.error}>{error}</div>}
-      {success && <div style={styles.success}>{success}</div>}
+      {error && <div className="automation-error">{error}</div>}
+      {success && <div className="automation-success">{success}</div>}
 
       {/* Loading */}
-      {loading && <div style={styles.loading}>Processing...</div>}
+      {loading && <div className="automation-loading">Processing...</div>}
 
       {/* Tabs */}
       {renderTabs()}
@@ -652,6 +832,8 @@ export const AutomationPanel: React.FC<AutomationPanelProps> = ({ projectId }) =
       {activeTab === 'dialogue' && renderDialogueTab()}
       {activeTab === 'grid' && renderGridTab()}
       {activeTab === 'prompt' && renderPromptTab()}
+      {activeTab === 'messaging' && renderMessagingTab()}
+      {activeTab === 'n8n' && renderN8nTab()}
     </div>
   );
 };

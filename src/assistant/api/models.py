@@ -45,21 +45,31 @@ class GenerateProjectRequest(BaseModel):
         default=None,
         description="Optional preferences (sceneCount, duration, style)"
     )
+    llm_provider: Optional[str] = Field(default=None, description="Force a specific LLM provider")
+    llm_model: Optional[str] = Field(default=None, description="Force a specific LLM model")
 
 
 class GenerateRLMRequest(BaseModel):
-    """Request for advanced RLM-based generation"""
-    prompt: str = Field(..., description="The complex request for the RLM brain")
+    """Request for advanced RLM-based generation (Neural Substrate Manager)"""
+    prompt: str = Field(..., description="The complex request for the brain")
     massive_context: Optional[str] = Field(
         default="", 
         description="Optional massive context or reference text to slice and analyze"
     )
+    llm_provider: Optional[str] = Field(default=None, description="Force a specific LLM provider")
+    llm_model: Optional[str] = Field(default=None, description="Force a specific LLM model")
 
+
+class NSMStep(BaseModel):
+    """A single step in the Neural Substrate Manager trajectory"""
+    type: str = Field(..., description="Type of step (thinking, action, observation, etc.)")
+    message: str = Field(..., description="Human-readable description of the step")
+    timestamp: Optional[str] = Field(default=None, description="ISO timestamp")
 
 class GenerateRLMResponse(BaseModel):
-    """Response from the RLM engine"""
+    """Response from the Neural Substrate Manager (NSM) engine"""
     final_answer: str = Field(..., description="The highly refined and critique-corrected answer")
-    steps: Optional[List[str]] = Field(default=None, description="The internal exploration steps (if enabled)")
+    steps: Optional[List[NSMStep]] = Field(default=None, description="The internal Plan-Act-Observe trajectory")
 
 
 class ScenePreview(BaseModel):

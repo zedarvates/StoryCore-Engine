@@ -14,7 +14,7 @@ import { backendApiService } from './backendApiService';
 /**
  * Supported LLM providers
  */
-export type LLMProvider = 'openai' | 'anthropic' | 'local' | 'custom' | 'diffusion';
+export type LLMProvider = 'openai' | 'anthropic' | 'openrouter' | 'local' | 'custom' | 'diffusion';
 
 /**
  * LLM provider configuration
@@ -306,7 +306,7 @@ export type StreamChunkCallback = (chunk: string) => void;
 const DEFAULT_CONFIG: LLMConfig = {
   provider: 'openai',
   apiKey: '',
-  model: 'gpt-4',
+  model: 'gpt-4o',
   parameters: {
     temperature: 0.7,
     maxTokens: 2000,
@@ -812,6 +812,162 @@ class AnthropicProvider extends LLMProviderBase {
 }
 
 /**
+ * OpenRouter Provider Implementation
+ */
+class OpenRouterProvider extends LLMProviderBase {
+  private readonly baseUrl = 'https://openrouter.ai/api/v1';
+
+  getProviderName(): string {
+    return 'OpenRouter';
+  }
+
+  async generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse> {
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.config.apiKey}`,
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'StoryCore Creative Studio',
+      },
+      body: JSON.stringify({
+        model: this.config.model,
+        messages: [
+          ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
+          { role: 'user', content: request.prompt },
+        ],
+        temperature: request.temperature ?? this.config.parameters.temperature,
+        max_tokens: request.maxTokens ?? this.config.parameters.maxTokens,
+        stream: false,
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new LLMError(
+        error.error?.message || 'OpenRouter API request failed',
+        error.error?.code || 'api_error',
+        response.status === 429 || response.status >= 500,
+        error
+      );
+    }
+
+    const data = await response.json();
+    return {
+      content: data.choices[0].message.content,
+      usage: data.usage,
+    };
+  }
+
+  async generateStreamingCompletion(
+    request: LLMRequest,
+    onChunk: StreamChunkCallback,
+    signal?: AbortSignal,
+    modelOverride?: string
+  ): Promise<LLMResponse> {
+    const model = modelOverride || this.config.model;
+    const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.config.apiKey}`,
+        'HTTP-Referer': (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
+        'X-Title': 'StoryCore Creative Studio',
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          ...(request.systemPrompt ? [{ role: 'system', content: request.systemPrompt }] : []),
+          { role: 'user', content: request.prompt },
+        ],
+        temperature: request.temperature ?? this.config.parameters.temperature,
+        max_tokens: request.maxTokens ?? this.config.parameters.maxTokens,
+        stream: true,
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new LLMError(
+        error.error?.message || 'OpenRouter API request failed',
+        error.error?.code || 'api_error',
+        response.status === 429 || response.status >= 500,
+        error
+      );
+    }
+
+    return this.processStream(response, onChunk);
+  }
+
+  private async processStream(
+    response: Response,
+    onChunk: StreamChunkCallback
+  ): Promise<LLMResponse> {
+    const reader = response.body?.getReader();
+    if (!reader) throw new LLMError('No response body', 'stream_error', false);
+
+    const decoder = new TextDecoder();
+    let fullContent = '';
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n').filter(line => {
+          const trimmed = line.trim();
+          return trimmed.startsWith('data: ') && trimmed !== 'data: [DONE]';
+        });
+
+        for (const line of lines) {
+          const data = line.replace('data: ', '').trim();
+          try {
+            const parsed = JSON.parse(data);
+            const delta = parsed.choices[0]?.delta?.content;
+            if (delta) {
+              fullContent += delta;
+              onChunk(delta);
+            }
+          } catch { /* skip invalid JSON */ }
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return { content: fullContent };
+  }
+
+  async validateConnection(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/models`, {
+        headers: { 'Authorization': `Bearer ${this.config.apiKey}` },
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Fetch available models from OpenRouter
+   */
+  async getAvailableModels(): Promise<any[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/models`);
+      if (!response.ok) return [];
+      const data = await response.json();
+      return data.data || [];
+    } catch {
+      return [];
+    }
+  }
+}
+
+/**
  * Local/Custom Provider Implementation
  */
 class CustomProvider extends LLMProviderBase {
@@ -1193,6 +1349,8 @@ export class LLMService {
         return new OpenAIProvider(config);
       case 'anthropic':
         return new AnthropicProvider(config);
+      case 'openrouter':
+        return new OpenRouterProvider(config);
       case 'local':
       case 'custom':
         return new CustomProvider(config);
@@ -1200,6 +1358,24 @@ export class LLMService {
         return new DiffusionProvider(config);
       default:
         throw new Error(`Unsupported provider: ${config.provider}`);
+    }
+  }
+
+  /**
+   * Get available models for OpenRouter (public endpoint)
+   */
+  async getOpenRouterModels(): Promise<any[]> {
+    if (this.provider instanceof OpenRouterProvider) {
+      return this.provider.getAvailableModels();
+    }
+    
+    // Fallback if current provider is not OpenRouter but we want to know models
+    try {
+      const resp = await fetch('https://openrouter.ai/api/v1/models');
+      const data = await resp.json();
+      return data.data || [];
+    } catch {
+      return [];
     }
   }
 
@@ -1274,6 +1450,51 @@ export class LLMService {
     }
 
     return response.data.content;
+  }
+
+  /**
+   * High-level generation method used by ChatBox and other components.
+   * Allows overriding provider and model for a single call.
+   */
+  async generate(prompt: string, options: {
+    provider?: LLMProvider;
+    model?: string;
+    systemPrompt?: string;
+    temperature?: number;
+    maxTokens?: number;
+  } = {}): Promise<string> {
+    const originalProvider = this.provider;
+    const originalConfig = { ...this.config };
+
+    try {
+      if (options.provider && options.provider !== this.config.provider) {
+        // Temporarily switch provider
+        const tempConfig = { ...this.config, provider: options.provider, model: options.model || this.config.model };
+        this.provider = this.createProvider(tempConfig);
+      } else if (options.model && options.model !== this.config.model) {
+        // Temporarily switch model
+        this.provider.updateConfig({ model: options.model });
+      }
+
+      const request: LLMRequest = {
+        prompt,
+        systemPrompt: options.systemPrompt,
+        temperature: options.temperature,
+        maxTokens: options.maxTokens,
+      };
+
+      const response = await this.generateCompletion(request);
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to generate response');
+      }
+
+      return response.data.content;
+    } finally {
+      // Restore original provider and config
+      this.provider = originalProvider;
+      this.provider.updateConfig({ model: originalConfig.model });
+    }
   }
 
   /**
@@ -2125,6 +2346,18 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       requiresApiKey: true,
       supportsStreaming: true,
       defaultEndpoint: 'https://api.openai.com/v1',
+    },
+    {
+      id: 'openrouter',
+      name: 'OpenRouter',
+      models: [
+        { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', contextWindow: 128000, capabilities: ['storytelling', 'quick'] },
+        { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', contextWindow: 128000, capabilities: ['storytelling', 'reasoning'] },
+        { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', contextWindow: 200000, capabilities: ['vision', 'storytelling', 'reasoning'] },
+      ],
+      requiresApiKey: true,
+      supportsStreaming: true,
+      defaultEndpoint: 'https://openrouter.ai/api/v1',
     },
     {
       id: 'anthropic',

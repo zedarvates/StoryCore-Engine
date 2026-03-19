@@ -1,9 +1,10 @@
 /**
  * Backend API Service
  * 
+ *
  * Handles communication with StoryCore-Engine backend for generation tasks
  * Integrates with ComfyUI for image and video generation workflows
- * 
+ *
  * Validates Requirements: 7.4, 4.6
  */
 
@@ -512,7 +513,10 @@ export class BackendApiService {
    * @param workflow - The ComfyUI workflow (JSON or object)
    * @param parameters - Optional mapping of node values to override
    */
-  async submitComfyUIWorkflow(workflow: any, parameters?: Record<string, any>): Promise<ApiResponse<{ prompt_id: string }>> {
+  async submitComfyUIWorkflow(
+    workflow: Record<string, unknown> | string,
+    parameters?: Record<string, unknown>
+  ): Promise<ApiResponse<{ prompt_id: string }>> {
     try {
       const response = await this.fetchWithRetry('/api/comfyui/submit', {
         method: 'POST',
@@ -538,7 +542,7 @@ export class BackendApiService {
    * Subscribes to real-time ComfyUI updates via WebSocket
    * @param callback - Function to call with update data
    */
-  subscribeToComfyUIUpdates(callback: (event: any) => void): () => void {
+  subscribeToComfyUIUpdates(callback: (event: ComfyUIStatusUpdate | Record<string, unknown>) => void): () => void {
     // Determine WS URL - use same host as backend
     const host = window.location.hostname || 'localhost';
     const port = 8080; 
@@ -547,7 +551,7 @@ export class BackendApiService {
     console.log(`[BackendApiService] Connecting to ComfyUI WebSocket: ${wsUrl}`);
     
     let socket: WebSocket | null = null;
-    let reconnectTimer: any = null;
+    let reconnectTimer: number | NodeJS.Timeout | null = null;
     let isExplicitlyClosed = false;
 
     const connect = () => {
@@ -598,7 +602,10 @@ export class BackendApiService {
    * @param taskType - Type of task (e.g., 'image_generation')
    * @param inputData - Data for the task
    */
-  async executeTaskWithComfyUI(taskType: string, inputData: any): Promise<ApiResponse<{ taskId: string }>> {
+  async executeTaskWithComfyUI(
+    taskType: string,
+    inputData: Record<string, unknown>
+  ): Promise<ApiResponse<{ taskId: string }>> {
     try {
       const response = await this.fetchWithRetry(`/api/comfyui/execute/${taskType}`, {
         method: 'POST',

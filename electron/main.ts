@@ -93,8 +93,9 @@ function createWindow(url: string): void {
     // - sc-file: / blob: / data: / file: (standard media protocols)
     // - https: allow external APIs (OpenAI, Anthropic, Picsum, Cloud assets)
     // - unsafe-inline / unsafe-eval: needed for many React/Vite/Three.js dev features
-    const devCSP = "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* https: data: blob: sc-file: file:; img-src 'self' data: blob: https: http://localhost:* http://127.0.0.1:* sc-file: file:; connect-src 'self' blob: data: https: http://localhost:* ws://localhost:* sc-file: file:; font-src 'self' data: https:;";
-    const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: sc-file:; connect-src 'self' blob: data: https: sc-file:; font-src 'self' data:; worker-src 'self' blob:;";
+    // - localhost:8000 / 127.0.0.1:8000: allow ComfyUI connections
+    const devCSP = "default-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* ws://localhost:* https: data: blob: sc-file: file:; img-src 'self' data: blob: https: http://localhost:* http://127.0.0.1:* sc-file: file:; connect-src 'self' blob: data: https: http://localhost:* ws://localhost:* http://127.0.0.1:* sc-file: file:; font-src 'self' data: https:;";
+    const prodCSP = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https: sc-file:; connect-src 'self' blob: data: https: http://127.0.0.1:* sc-file:; font-src 'self' data:; worker-src 'self' blob:;";
 
     callback({
       responseHeaders: {

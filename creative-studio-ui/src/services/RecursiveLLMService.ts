@@ -202,18 +202,20 @@ If you use a <subtask>, the execution will halt and resume with the result.`;
      */
     public async generateRLM(
         prompt: string, 
-        massiveContext: string = ""
-    ): Promise<{ final_answer: string; steps: string[] }> {
+        massiveContext: string = "",
+        llmProvider?: string,
+        llmModel?: string
+    ): Promise<{ final_answer: string; steps: any[] }> {
         const response = await fetch(`${BACKEND_URL}/api/v1/generate/rlm/generate`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // Add Authorization header if needed by your backend
-                // 'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify({
                 prompt,
-                massive_context: massiveContext
+                massive_context: massiveContext,
+                llm_provider: llmProvider,
+                llm_model: llmModel
             })
         });
 

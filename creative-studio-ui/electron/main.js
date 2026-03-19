@@ -22,7 +22,7 @@ function createWindow() {
       webSecurity: false,
       preload: path.join(__dirname, 'preload.js'),
     },
-    icon: path.join(__dirname, '..', 'public', 'icon.png'),
+    icon: path.join(__dirname, '..', 'public', 'storycore-icon.png'),
     show: false // Don't show until ready
   });
 

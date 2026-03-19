@@ -47,6 +47,7 @@ export const SecretModeIndicator: React.FC = () => {
       role="status"
       aria-live="polite"
       aria-label={isKeysHeld ? 'Secret mode is active' : 'Viewing experimental feature'}
+      data-testid="secret-mode-indicator"
     >
       {/* Icon - changes based on state */}
       <span className="indicator-icon" aria-hidden="true">

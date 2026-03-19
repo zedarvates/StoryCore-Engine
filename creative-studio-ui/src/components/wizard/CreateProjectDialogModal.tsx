@@ -2,12 +2,13 @@ import React from 'react';
 import { CreateProjectDialog, type SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 import { useAppStore } from '@/stores/useAppStore';
 import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
+import { useNavigate } from 'react-router-dom';
+import { projectCreationService, convertElectronProjectToStore } from '@/services/ProjectCreationService';
 
 export function CreateProjectDialogModal() {
   const showCreateProjectDialog = useAppStore((state) => state.showCreateProjectDialog);
   const setShowCreateProjectDialog = useAppStore((state) => state.setShowCreateProjectDialog);
-  const setProject = useAppStore((state) => state.setProject);
-  const setShots = useAppStore((state) => state.setShots);
+  const navigate = useNavigate();
 
   if (!showCreateProjectDialog) {
     return null;
@@ -16,32 +17,35 @@ export function CreateProjectDialogModal() {
   const handleCreateProject = async (
     projectName: string,
     projectPath: string,
-    format: SerializableProjectFormat
+    format: SerializableProjectFormat,
+    options?: Record<string, any>
   ) => {
+    const electronAPI = (window as any).electronAPI;
     console.log('[CreateProjectDialogModal] Creating project:', {
       projectName,
       projectPath: projectPath || '(default)',
       format: format.name,
+      options,
       electronAPIAvailable: !!window.electronAPI,
       projectAPIAvailable: !!window.electronAPI?.project,
       createAPIAvailable: !!window.electronAPI?.project?.create,
     });
 
     try {
-      // Generate project template based on format
-      const template = generateProjectTemplate(format);
+      // Generate project template based on format and options
+      const template = generateProjectTemplate(format, options);
       const initialShots = sequencesToShots(template.sequences);
       console.log('[CreateProjectDialogModal] Generated template:', {
         sequencesCount: template.sequences.length,
         shotsCount: initialShots.length,
       });
 
-      if (window.electronAPI) {
-        // Create project via Electron API
-        const createData: unknown = {
+      if (electronAPI) {
+        const createData: any = {
           name: projectName,
           format: format,
           initialShots: initialShots,
+          options: options,
         };
 
         // Only include location if it's not empty
@@ -53,38 +57,21 @@ export function CreateProjectDialogModal() {
         const electronProject = await window.electronAPI.project.create(createData);
         console.log('[CreateProjectDialogModal] Project created successfully:', electronProject);
 
-        // Convert Electron project to Store project format
-        const storeProject = {
-          schema_version: electronProject.config?.schema_version || '1.0',
-          project_name: electronProject.name || projectName,
-          shots: initialShots,
-          assets: [],
-          capabilities: {
-            grid_generation: true,
-            promotion_engine: true,
-            qa_engine: true,
-            autofix_engine: true,
-          },
-          generation_status: {
-            grid: 'pending',
-            promotion: 'pending',
-          },
-          metadata: {
-            id: electronProject.id,
-            path: electronProject.path,
-            version: electronProject.version,
-            created_at: electronProject.createdAt instanceof Date
-              ? electronProject.createdAt.toISOString()
-              : electronProject.createdAt || new Date().toISOString(),
-            updated_at: electronProject.modifiedAt instanceof Date
-              ? electronProject.modifiedAt.toISOString()
-              : electronProject.modifiedAt || new Date().toISOString(),
-          },
-        };
+        // Convert Electron project to Store project format using the service
+        const storeProject = convertElectronProjectToStore(electronProject as any);
+        
+        // Ensure shots and sequences are properly set
+        storeProject.shots = initialShots;
+        (storeProject as any).sequencePlans = template.sequences;
 
-        // Load the created project into the store
-        setProject(storeProject as any);
-        setShots(initialShots);
+        // Load the created project into the store via the service
+        await projectCreationService.loadProjectIntoStores(storeProject, electronProject.path, template.sequences);
+
+        // Navigate to the project dashboard immediately
+        if (electronProject.path) {
+          const encodedPath = encodeURIComponent(electronProject.path);
+          navigate(`/project/${encodedPath}`);
+        }
       } else {
         throw new Error('Electron API not available. Cannot create project files.');
       }

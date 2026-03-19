@@ -187,13 +187,36 @@ export class SequencePlanService {
    */
   public async loadSequencePlan(planId: string): Promise<SequencePlanData | null> {
     try {
-      // In a real implementation, this would load from file system or database
-      // For now, we'll use localStorage as a mock
-      const stored = localStorage.getItem(`sequence-plan-${planId}`);
-      if (!stored) return null;
+      // 1. Try Electron/File Storage if available
+      const { useAppStore } = await import('@/stores/useAppStore');
+      const project = useAppStore.getState().project;
+      const projectPath = project?.path || project?.metadata?.path;
+      const projectId = project?.id;
 
-      const plan = JSON.parse(stored) as SequencePlanData;
-      return plan;
+      if (window.electronAPI && projectPath) {
+        const { persistenceService } = await import('./PersistenceService');
+        const plan = await persistenceService.loadSequencePlan(planId, projectPath as string);
+        if (plan) return plan as unknown as SequencePlanData;
+      }
+
+      // 2. Try Backend API if available and project loaded
+      if (projectId && !window.electronAPI) {
+        try {
+          const response = await fetch(`/api/sequences/project/${projectId}/${planId}`);
+          if (response.ok) {
+            const plan = await response.json();
+            return plan as SequencePlanData;
+          }
+        } catch (apiError) {
+          console.warn('[SequencePlanService] Backend API load failed:', apiError);
+        }
+      }
+
+      // 3. Fallback to localStorage
+      const stored = localStorage.getItem(`sequence-plan-${planId}`);
+      if (stored) return JSON.parse(stored) as SequencePlanData;
+
+      return null;
     } catch (error) {
       console.error('Failed to load sequence plan:', error);
       return null;
@@ -288,10 +311,42 @@ export class SequencePlanService {
    */
   public async listSequencePlans(): Promise<SequencePlan[]> {
     try {
+      // 1. Try local sources first
       const stored = localStorage.getItem('sequence-plan-list');
-      if (!stored) return [];
+      const planList: SequencePlan[] = stored ? JSON.parse(stored) : [];
 
-      const planList = JSON.parse(stored) as SequencePlan[];
+      try {
+        const { useStore } = await import('@/store');
+        const storePlans = useStore.getState().sequencePlans || [];
+        storePlans.forEach(sp => {
+            if (!planList.some(p => p.id === sp.id)) {
+                planList.push(sp);
+            }
+        });
+      } catch (_err) {
+        // useStore might not be available or initialized
+      }
+
+      // 2. Try Backend API if project is loaded and no Electron
+      try {
+        const { useAppStore } = await import('@/stores/useAppStore');
+        const projectId = useAppStore.getState().project?.id;
+        
+        if (projectId && !window.electronAPI) {
+          const response = await fetch(`/api/sequences/project/${projectId}`);
+          if (response.ok) {
+            const apiPlans: SequencePlan[] = await response.json();
+            apiPlans.forEach(ap => {
+              if (!planList.some(p => p.id === ap.id)) {
+                planList.push(ap);
+              }
+            });
+          }
+        }
+      } catch (apiError) {
+        console.warn('[SequencePlanService] Failed to fetch plans from backend:', apiError);
+      }
+
       return planList;
     } catch (error) {
       console.error('Failed to list sequence plans:', error);
@@ -318,7 +373,7 @@ export class SequencePlanService {
     } = options;
 
     // Prepare export data
-    const exportData: unknown = {
+    const exportData: Record<string, any> = {
       ...plan,
     };
 
@@ -329,8 +384,8 @@ export class SequencePlanService {
 
     // Remove thumbnails if not included
     if (!includeThumbnails) {
-      exportData.shots = exportData.shots.map((shot: Shot) => {
-        const { image, ...shotWithoutImage } = shot;
+      exportData.shots = exportData.shots.map((shot: any) => {
+        const { image: _image, ...shotWithoutImage } = shot;
         return shotWithoutImage;
       });
     }
@@ -400,7 +455,7 @@ export class SequencePlanService {
 
       // Validate shots
       if (Array.isArray(plan.shots)) {
-        plan.shots.forEach((shot: unknown, index: number) => {
+        plan.shots.forEach((shot: any, index: number) => {
           if (!shot.id) errors.push(`Shot ${index}: Missing required field: id`);
           if (!shot.title) errors.push(`Shot ${index}: Missing required field: title`);
           if (typeof shot.duration !== 'number') {
@@ -408,7 +463,7 @@ export class SequencePlanService {
           }
         });
       }
-    } catch (error) {
+    } catch (_error) {
       errors.push('Invalid JSON format');
     }
 
@@ -489,8 +544,8 @@ export class SequencePlanService {
         id: plan.id,
         name: plan.name,
         description: plan.description || '',
-        worldId: plan.metadata?.worldId || '',
-        templateId: plan.metadata?.templateId,
+        worldId: (plan.metadata?.worldId as string) || '',
+        templateId: plan.metadata?.templateId as string | undefined,
         targetDuration: plan.totalDuration,
         frameRate: plan.frameRate,
         resolution: plan.resolution,

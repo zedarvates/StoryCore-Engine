@@ -1,0 +1,35 @@
+{
+  "id": "1c364da9-8aa4-466a-86c1-71ad37bb5609",
+  "name": "Paris",
+  "description": "Description auto-g\u00e9n\u00e9r\u00e9e par l'assistant",
+  "location_type": "(This is a placeholder - we need a specific location within Paris to create a visual)\n*   **[TOOL:createSequence:Music:Beat",
+  "metadata": {
+    "description": "",
+    "atmosphere": "",
+    "genre_tags": []
+  },
+  "cube_faces": null,
+  "skybox_data": null,
+  "tile_image_path": null,
+  "significance": "",
+  "atmosphere": "",
+  "created_at": "2026-03-11T11:43:26.084801",
+  "updated_at": "2026-03-11T14:30:43.571841",
+  "location_id": "1c364da9-8aa4-466a-86c1-71ad37bb5609",
+  "prompts": [
+    "Breathtaking (This is a placeholder - we need a specific location within Paris to create a visual)\n*   **[TOOL:createSequence:Music:Beat view of Paris]**, cinematic composition, detailed environment, 8k, wide angle, professional photography"
+  ],
+  "skybox_config": {
+    "type": "procedural",
+    "skybox_type": "clear_night",
+    "shot_type": "standard",
+    "time_of_day": 12,
+    "intensity": 1,
+    "weather": "clear",
+    "colors": {
+      "top": "#87CEEB",
+      "horizon": "#E0F6FF",
+      "bottom": "#FFFFFF"
+    }
+  }
+}

@@ -1,0 +1,343 @@
+
+> creative-studio-ui@0.0.0 test
+> vitest --run src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx
+
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/storycore-engine/creative-studio-ui[39m
+
+ [31mÔØ»[39m src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx [2m([22m[2m23 tests[22m[2m | [22m[31m3 failed[39m[2m)[22m[33m 3140[2mms[22m[39m
+       [32mÔ£ô[39m should have configuration for all 6 track types[32m 1[2mms[22m[39m
+       [32mÔ£ô[39m should have unique colors for each track type[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should have unique icons for each track type[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should have appropriate heights for each track type[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should render virtual timeline canvas container[32m 27[2mms[22m[39m
+       [32mÔ£ô[39m should render track list with virtual items[32m 4[2mms[22m[39m
+       [32mÔ£ô[39m should filter out hidden tracks[32m 3[2mms[22m[39m
+       [32mÔ£ô[39m should render canvas for each track[32m 6[2mms[22m[39m
+       [32mÔ£ô[39m should set canvas dimensions based on timeline width and track height[32m 4[2mms[22m[39m
+       [32mÔ£ô[39m should render shots on appropriate tracks[32m 4[2mms[22m[39m
+       [32mÔ£ô[39m should handle shots with multiple layers[32m 3[2mms[22m[39m
+       [32mÔ£ô[39m should display layer count badge when track has layers[32m 3[2mms[22m[39m
+[31m       [31m├ù[31m should call onShotSelect when shot is clicked[39m[33m 1022[2mms[22m[39m
+[31m       [31m├ù[31m should support multi-select with Ctrl/Cmd key[39m[33m 1016[2mms[22m[39m
+       [32mÔ£ô[39m should highlight selected shots[32m 4[2mms[22m[39m
+[31m       [31m├ù[31m should call onLayerSelect when layer is clicked[39m[33m 1018[2mms[22m[39m
+       [32mÔ£ô[39m should render playhead at current position[32m 3[2mms[22m[39m
+       [32mÔ£ô[39m should show playing indicator when isPlaying is true[32m 2[2mms[22m[39m
+       [32mÔ£ô[39m should adjust rendering based on zoom level[32m 3[2mms[22m[39m
+       [32mÔ£ô[39m getTrackShots should filter shots by track type[32m 1[2mms[22m[39m
+       [32mÔ£ô[39m getTrackShots should handle shots with multiple layers of same type[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should handle large number of shots efficiently[32m 9[2mms[22m[39m
+       [32mÔ£ô[39m should use virtual scrolling for performance[32m 3[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 3 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should call onShotSelect when shot is clicked
+AssertionError: expected "vi.fn()" to be called at least once
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="virtual-timeline-canvas"
+      >
+        <div
+          class="static-overlay-canvas"
+          style="width: 1000px; height: 140px; position: absolute; top: 0px; left: 0px; pointer-events: none; z-index: 5;"
+        >
+          <canvas
+            class="overlay-canvas"
+            height="140"
+            width="1000"
+          />
+        </div>
+        <div
+          class="timeline-track-list"
+          style="height: 140px; width: 100%; position: relative;"
+        >
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 60px; transform: translateY(0px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-media"
+              style="width: 100%; height: 60px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="60"
+                style="width: 1000px; height: 60px; cursor: pointer;"
+                width="1000"
+              />
+              <div
+                class="layer-count-badge"
+                title="1 layers"
+              >
+                1
+              </div>
+            </div>
+          </div>
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 40px; transform: translateY(60px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-audio"
+              style="width: 100%; height: 40px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="40"
+                style="width: 1000px; height: 40px; cursor: pointer;"
+                width="1000"
+              />
+            </div>
+          </div>
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 40px; transform: translateY(100px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-effects"
+              style="width: 100%; height: 40px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="40"
+                style="width: 1000px; height: 40px; cursor: pointer;"
+                width="1000"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:397:36
+    395|         
+    396|         await waitFor(() => {
+    397|           expect(mockOnShotSelect).toHaveBeenCalled();
+       |                                    ^
+    398|         });
+    399|       }
+ ÔØ» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ÔØ» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ÔØ» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/3]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Shot Selection > should support multi-select with Ctrl/Cmd key
+AssertionError: expected "vi.fn()" to be called with arguments: [ Any<String>, true ]
+
+Number of calls: 0
+
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="virtual-timeline-canvas"
+      >
+        <div
+          class="static-overlay-canvas"
+          style="width: 1000px; height: 140px; position: absolute; top: 0px; left: 0px; pointer-events: none; z-index: 5;"
+        >
+          <canvas
+            class="overlay-canvas"
+            height="140"
+            width="1000"
+          />
+        </div>
+        <div
+          class="timeline-track-list"
+          style="height: 140px; width: 100%; position: relative;"
+        >
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 60px; transform: translateY(0px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-media"
+              style="width: 100%; height: 60px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="60"
+                style="width: 1000px; height: 60px; cursor: pointer;"
+                width="1000"
+              />
+              <div
+                class="layer-count-badge"
+                title="1 layers"
+              >
+                1
+              </div>
+            </div>
+          </div>
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 40px; transform: translateY(60px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-audio"
+              style="width: 100%; height: 40px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="40"
+                style="width: 1000px; height: 40px; cursor: pointer;"
+                width="1000"
+              />
+            </div>
+          </div>
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 40px; transform: translateY(100px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-effects"
+              style="width: 100%; height: 40px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="40"
+                style="width: 1000px; height: 40px; cursor: pointer;"
+                width="1000"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:423:36
+    421|         
+    422|         await waitFor(() => {
+    423|           expect(mockOnShotSelect).toHaveBeenCalledWith(
+       |                                    ^
+    424|             expect.any(String),
+    425|             true // multiSelect flag
+ ÔØ» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ÔØ» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ÔØ» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/3]ÔÄ»
+
+ FAIL  src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx > VirtualTimelineCanvas Component > Layer Selection > should call onLayerSelect when layer is clicked
+AssertionError: expected "vi.fn()" to be called at least once
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="virtual-timeline-canvas"
+      >
+        <div
+          class="static-overlay-canvas"
+          style="width: 1000px; height: 140px; position: absolute; top: 0px; left: 0px; pointer-events: none; z-index: 5;"
+        >
+          <canvas
+            class="overlay-canvas"
+            height="140"
+            width="1000"
+          />
+        </div>
+        <div
+          class="timeline-track-list"
+          style="height: 140px; width: 100%; position: relative;"
+        >
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 60px; transform: translateY(0px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-media"
+              style="width: 100%; height: 60px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="60"
+                style="width: 1000px; height: 60px; cursor: pointer;"
+                width="1000"
+              />
+              <div
+                class="layer-count-badge"
+                title="1 layers"
+              >
+                1
+              </div>
+            </div>
+          </div>
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 40px; transform: translateY(60px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-audio"
+              style="width: 100%; height: 40px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="40"
+                style="width: 1000px; height: 40px; cursor: pointer;"
+                width="1000"
+              />
+            </div>
+          </div>
+          <div
+            class="virtual-track-row"
+            style="position: absolute; top: 0px; left: 0px; width: 100%; height: 40px; transform: translateY(100px);"
+          >
+            <div
+              class="track-canvas-container"
+              id="track-container-track-effects"
+              style="width: 100%; height: 40px;"
+            >
+              <canvas
+                class="track-canvas"
+                height="40"
+                style="width: 1000px; height: 40px; cursor: pointer;"
+                width="1000"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+ ÔØ» src/sequence-editor/components/Timeline/__tests__/VirtualTimelineCanvas.test.tsx:475:37
+    473|         
+    474|         await waitFor(() => {
+    475|           expect(mockOnLayerSelect).toHaveBeenCalled();
+       |                                     ^
+    476|         });
+    477|       }
+ ÔØ» runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ÔØ» checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ÔØ» Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3/3]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[90m (23)[39m
+[2m   Start at [22m 06:12:57
+[2m   Duration [22m 4.01s[2m (transform 63ms, setup 90ms, import 118ms, tests 3.14s, environment 535ms)[22m
+

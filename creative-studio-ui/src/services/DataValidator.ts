@@ -69,28 +69,6 @@ function createValidator<T>(
   return (data: unknown) => validator(data as T);
 }
 
-/** Sequence validation data interface - replaces `any` */
-export interface SequenceValidationData {
-  id?: string;
-  name?: string;
-  duration?: number;
-  shots?: number;
-}
-
-/** Scene validation data interface - replaces `any` */
-export interface SceneValidationData {
-  description?: string;
-  characters?: string[];
-}
-
-/** Shot validation data interface - replaces `any` */
-export interface ShotValidationData {
-  id?: string;
-  description?: string;
-  duration?: number;
-  camera_angle?: string;
-}
-
 /**
  * Service de validation centralisé
  */
@@ -195,33 +173,33 @@ export class DataValidator {
       // Règles critiques (errors)
       {
         name: 'has-valid-id',
-        validator: (world: World) => !!world.id && typeof world.id === 'string' && world.id.length > 0,
+        validator: createValidator<World>((world) => !!world.id && typeof world.id === 'string' && world.id.length > 0),
         message: 'World must have a valid string ID',
         severity: 'error',
         weight: 10
       },
       {
         name: 'has-name',
-        validator: (world: World) => !!world.name && world.name.trim().length > 0,
+        validator: createValidator<World>((world) => !!world.name && world.name.trim().length > 0),
         message: 'World must have a name',
         severity: 'error',
         weight: 8
       },
       {
         name: 'has-genre',
-        validator: (world: World) => !!world.genre && Array.isArray(world.genre) && world.genre.length > 0,
+        validator: createValidator<World>((world) => !!world.genre && Array.isArray(world.genre) && world.genre.length > 0),
         message: 'World must have at least one genre',
-        severity: 'error',
+        severity: 'warning',
         weight: 7
       },
       {
         name: 'valid-timestamps',
-        validator: (world: World) => {
+        validator: createValidator<World>((world) => {
           if (!world.createdAt && !world.updatedAt) return true; // Optionnel
           const created = world.createdAt ? new Date(world.createdAt) : null;
           const updated = world.updatedAt ? new Date(world.updatedAt) : null;
           return (!created || !isNaN(created.getTime())) && (!updated || !isNaN(updated.getTime()));
-        },
+        }),
         message: 'Timestamps must be valid dates',
         severity: 'error',
         weight: 3
@@ -230,21 +208,21 @@ export class DataValidator {
       // Règles recommandées (warnings)
       {
         name: 'has-time-period',
-        validator: (world: World) => !!world.timePeriod && world.timePeriod.trim().length > 0,
+        validator: createValidator<World>((world) => !!world.timePeriod && world.timePeriod.trim().length > 0),
         message: 'Time period is recommended for world consistency',
         severity: 'warning',
         weight: 4
       },
       {
         name: 'has-tone',
-        validator: (world: World) => !!world.tone && Array.isArray(world.tone) && world.tone.length > 0,
+        validator: createValidator<World>((world) => !!world.tone && Array.isArray(world.tone) && world.tone.length > 0),
         message: 'Tone helps define the world atmosphere',
         severity: 'warning',
         weight: 3
       },
       {
         name: 'has-atmosphere',
-        validator: (world: World) => !!world.atmosphere && world.atmosphere.trim().length > 0,
+        validator: createValidator<World>((world) => !!world.atmosphere && world.atmosphere.trim().length > 0),
         message: 'Atmosphere description enhances world immersion',
         severity: 'warning',
         weight: 2
@@ -253,24 +231,24 @@ export class DataValidator {
       // Règles de qualité (warnings légères)
       {
         name: 'has-locations',
-        validator: (world: World) => !!world.locations && Array.isArray(world.locations) && world.locations.length > 0,
+        validator: createValidator<World>((world) => !!world.locations && Array.isArray(world.locations) && world.locations.length > 0),
         message: 'Adding locations makes the world more detailed',
         severity: 'warning',
         weight: 1
       },
       {
         name: 'has-rules',
-        validator: (world: World) => !!world.rules && Array.isArray(world.rules) && world.rules.length > 0,
+        validator: createValidator<World>((world) => !!world.rules && Array.isArray(world.rules) && world.rules.length > 0),
         message: 'World rules provide structure and consistency',
         severity: 'warning',
         weight: 1
       },
       {
         name: 'has-cultural-elements',
-        validator: (world: World) => !!world.culturalElements &&
+        validator: createValidator<World>((world) => !!world.culturalElements &&
           (world.culturalElements.languages?.length > 0 ||
            world.culturalElements.religions?.length > 0 ||
-           world.culturalElements.traditions?.length > 0),
+           world.culturalElements.traditions?.length > 0)),
         message: 'Cultural elements enrich the world background',
         severity: 'warning',
         weight: 1
@@ -281,38 +259,38 @@ export class DataValidator {
     this.rules.set('character', [
       {
         name: 'has-valid-id',
-        validator: (character: Character) => !!character.character_id && typeof character.character_id === 'string',
+        validator: createValidator<Character>((character) => !!character.character_id && typeof character.character_id === 'string'),
         message: 'Character must have a valid string ID',
         severity: 'error',
         weight: 10
       },
       {
         name: 'has-name',
-        validator: (character: Character) => !!character.name && character.name.trim().length > 0,
+        validator: createValidator<Character>((character) => !!character.name && character.name.trim().length > 0),
         message: 'Character must have a name',
         severity: 'error',
         weight: 8
       },
       {
         name: 'has-visual-identity',
-        validator: (character: Character) => !!character.visual_identity &&
-          Object.keys(character.visual_identity).length > 0,
+        validator: createValidator<Character>((character) => !!character.visual_identity &&
+          Object.keys(character.visual_identity).length > 0),
         message: 'Character must have visual identity information',
-        severity: 'error',
+        severity: 'warning',
         weight: 6
       },
       {
         name: 'has-personality',
-        validator: (character: Character) => !!character.personality &&
-          Object.keys(character.personality).length > 0,
+        validator: createValidator<Character>((character) => !!character.personality &&
+          Object.keys(character.personality).length > 0),
         message: 'Character must have personality information',
         severity: 'warning',
         weight: 4
       },
       {
         name: 'has-background',
-        validator: (character: Character) => !!character.background &&
-          Object.keys(character.background).length > 0,
+        validator: createValidator<Character>((character) => !!character.background &&
+          Object.keys(character.background).length > 0),
         message: 'Character background provides depth',
         severity: 'warning',
         weight: 2
@@ -460,7 +438,6 @@ export class DataValidator {
     if (!schema || data === null || data === undefined) return;
 
     const objData = data as Record<string, unknown>;
-    const objSchema = schema as JsonSchema & { properties?: Record<string, JsonSchema> };
 
     // Validation de type
     if (schema.type) {

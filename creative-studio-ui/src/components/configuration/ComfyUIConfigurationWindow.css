@@ -164,9 +164,8 @@
 }
 
 /* Nested modal overlay - must be higher than parent modal */
-.comfyui-configuration-window + .modal-overlay,
-.modal-overlay .modal-overlay {
-  z-index: 99999;
+.comfyui-configuration-window .modal-overlay {
+  z-index: 100000;
 }
 
 /* CORS Warning Banner */

@@ -158,13 +158,15 @@ interface ActivityItem {
   icon: LucideIcon;
 }
 
-interface SequenceData {
+export interface SequenceData {
   id: string;
   name: string;
   duration: number;
   shots: number;
   resume: string;
   order: number;
+  shots_count?: number; // Dashboard compatibility
+  isFormal?: boolean; // Track if this is a formal sequence plan
 }
 
 // Helper type for sequence plan from store
@@ -319,7 +321,7 @@ export function ProjectDashboardNew({
   const comfyuiStatus = useAppStore((state) => state.comfyuiStatus);
 
   const [editingSequence, setEditingSequence] = useState<SequenceData | null>(null);
-  const [forceUpdate, setForceUpdate] = useState(0);
+  const [_forceUpdate, setForceUpdate] = useState(0);
 
   const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
 
@@ -354,40 +356,43 @@ export function ProjectDashboardNew({
     const sequenceArray: (SequenceData & { isFormal?: boolean })[] = [];
 
     // 1. Add formal plans from the store or project (highest priority)
-    // Synchronize both sources to ensure updates from wizard are visible
     const projectPlans = project?.sequencePlans || [];
     const storePlans = (Array.isArray(sequencePlans) ? sequencePlans : Object.values(sequencePlans || {})) as SequencePlanFromStore[];
     
-    // Merge both sources (by ID) to be safe
-    const masterPlans = [...projectPlans];
+    // Create a Set of formal plan IDs for O(1) matching
+    const formalPlanIds = new Set<string>();
+
+    const masterPlans: SequencePlanFromStore[] = [...(projectPlans as SequencePlanFromStore[])];
+    masterPlans.forEach((plan) => formalPlanIds.add(plan.id));
+
     storePlans.forEach((sp: SequencePlanFromStore) => {
-      if (!masterPlans.some(mp => mp.id === sp.id)) {
-        masterPlans.push(sp as unknown as any); // Type assertion for compatibility
+      if (!formalPlanIds.has(sp.id)) {
+        masterPlans.push(sp);
+        formalPlanIds.add(sp.id);
       }
     });
 
     masterPlans.forEach((plan, index) => {
-      const typedPlan = plan as SequencePlanFromStore;
       sequenceArray.push({
-        id: typedPlan.id,
-        name: typedPlan.name,
-        duration: typedPlan.targetDuration || typedPlan.totalDuration || 0,
-        shots: typedPlan.shots?.length || 0,
-        resume: typedPlan.description || typedPlan.resume || '',
-        order: typedPlan.order || (index + 1),
+        id: plan.id,
+        name: plan.name,
+        duration: plan.targetDuration || plan.totalDuration || 0,
+        shots: plan.shots?.length || 0,
+        resume: plan.description || plan.resume || '',
+        order: plan.order || (index + 1),
         isFormal: true
       });
     });
 
     // 2. Add legacy sequences from shots (only if not already present as formal plan)
-    let order = sequenceArray.length + 1;
+    let order_counter = sequenceArray.length + 1;
     for (const sequenceId in sequenceMap) {
-      if (sequenceArray.some(s => s.id === sequenceId)) continue;
+      if (formalPlanIds.has(sequenceId)) continue;
       if (sequenceId === 'default' && Object.keys(sequenceMap).length > 1) continue;
 
       const seqShots = sequenceMap[sequenceId];
       const totalDuration = seqShots.reduce((sum, shot) => sum + (shot.duration || 0), 0);
-      const sequenceName = sequenceId === 'default' ? 'Ad-hoc Sequence' : `Sequence ${order}`;
+      const sequenceName = sequenceId === 'default' ? 'Ad-hoc Sequence' : `Sequence ${order_counter}`;
       const firstShot = seqShots[0];
       const resume = firstShot?.description || `Sequence with ${seqShots.length} shot(s)`;
 
@@ -397,10 +402,10 @@ export function ProjectDashboardNew({
         duration: totalDuration,
         shots: seqShots.length,
         resume: resume,
-        order: order,
+        order: order_counter,
       });
 
-      order++;
+      order_counter++;
     }
 
     // Sort by order
@@ -465,6 +470,15 @@ export function ProjectDashboardNew({
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [openSequencePlanWizard, openShotWizard]);
 
+  // Manual reload triggered by some actions
+  const handleManualReload = useCallback(() => {
+    logger.info('[ProjectDashboard] Manual reload triggered');
+    setForceUpdate(p => p + 1);
+  }, []);
+  // Removed redundant syncAllData effect - initial sync is handled by ProjectDashboardPage (parent)
+  // This prevents race conditions and infinite loops that were causing renderer crashes.p
+
+  // Écouter les événements de synchronisation
   // Handle wizard launches
   const handleLaunchWizard = useCallback((wizardId: string) => {
     logger.info('[ProjectDashboard] Launching wizard:', { wizardId });
@@ -506,9 +520,6 @@ export function ProjectDashboardNew({
       case 'marketing-wizard':
         setShowMarketingWizard(true, {
           projectId: project?.id || '',
-          projectName: project?.project_name || 'My Project',
-          storySummary: project?.metadata?.description as string | undefined,
-          characters: project?.characters?.map(c => c.name),
         });
         break;
       case 'shot-planning':
@@ -594,7 +605,7 @@ export function ProjectDashboardNew({
             await syncManager.fullSync(projectPath);
 
           } else {
-            logger.error('[ProjectDashboard] Migration failed:', migrationResult.errors);
+            logger.error('[ProjectDashboard] Migration failed\\n', JSON.stringify(migrationResult.errors, null, 2));
           }
         }
       } catch (error) {
@@ -623,7 +634,8 @@ export function ProjectDashboardNew({
         setRecentAssets(sorted.slice(0, 5) as RecentAsset[]);
       }
     } catch (error) {
-      console.error('[ProjectDashboard] Failed to fetch recent assets:', error);
+      // Log as warning instead of error since the backend might not be running in all environments
+      console.warn('[ProjectDashboard] Could not fetch recent assets. This is normal if the backend API is not yet running.', error);
     } finally {
       setIsLoadingAssets(false);
     }
@@ -631,7 +643,7 @@ export function ProjectDashboardNew({
 
   useEffect(() => {
     fetchRecentAssets();
-  }, [fetchRecentAssets, forceUpdate]);
+  }, [fetchRecentAssets]);
 
   // Real recent activity based on project events and assets
   const recentActivity = useMemo(() => {
@@ -720,6 +732,9 @@ export function ProjectDashboardNew({
 
       // Update shots in store
       setShots(updatedShots);
+      
+      // SYNC: Also update main Technical Store to prevent divergence
+      useStore.getState().reorderShots(updatedShots);
 
       // Force re-render
       setForceUpdate(prev => prev + 1);
@@ -744,12 +759,13 @@ export function ProjectDashboardNew({
 
   // Helper function to save sequence to file
   const saveSequenceToFile = useCallback(async (sequence: SequenceData, sequencesDir: string) => {
-    const fileName = `sequence_${String(sequence.order).padStart(3, '0')}.json`;
+    // FIX: Standardize filename to use ID instead of order prefix
+    const fileName = `sequence_${sequence.id.substring(0, 8)}.json`;
     const filePath = `${sequencesDir}/${fileName}`;
 
     // Get shots for this sequence
     const sequenceShots = shots?.filter((shot): shot is Shot & { sequence_id: string } => 
-      'sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id
+      'sequence_id' in shot && ((shot as ShotWithSequenceId).sequence_id === sequence.id || (shot as ShotWithSequenceId).sequenceId === sequence.id)
     ) || [];
     const shotIds = sequenceShots.map((shot) => shot.id);
 
@@ -758,7 +774,7 @@ export function ProjectDashboardNew({
       name: sequence.name,
       order: sequence.order,
       duration: sequence.duration,
-      shots_count: sequence.shots,
+      shots: sequence.shots_count || sequence.shots,
       resume: sequence.resume,
       shot_ids: shotIds,
       created_at: project?.metadata?.created_at || new Date().toISOString(),
@@ -1447,8 +1463,7 @@ export function ProjectDashboardNew({
    * Handle character delete from editor
    * Requirement: 7.4
    */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleCharacterDelete = (characterId: string) => {
+  const handleCharacterDelete = (_characterId: string) => {
     // Character is already deleted by the editor via useCharacterManager
     // Just close the editor
     closeCharacterEditor();
@@ -1535,6 +1550,13 @@ export function ProjectDashboardNew({
       for (const seq of newOrder) {
         await saveSequenceToFile(seq, sequencesDir);
         
+        // FIX: Also update the sequence plan in the store if it's a formal plan
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const seqService = (window as any).sequencePlanService;
+        if (seq.isFormal && seqService?.saveSequencePlan) {
+            await seqService.saveSequencePlan(seq, projectPath);
+        }
+
         // Update shots associations (important for the timeline/editor)
         const sequenceShots = shots.filter((shot: Shot) => {
           const s = shot as ShotWithSequenceId;
@@ -1595,6 +1617,11 @@ export function ProjectDashboardNew({
             <button className="quick-btn glass-panel border-white/5 hover:border-primary/50 group" onClick={handleNewPlan}>
               <Plus className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors" />
               <span>New Plan</span>
+            </button>
+
+            <button className="quick-btn glass-panel border-white/5 hover:border-primary/50 group" onClick={handleManualReload}>
+              <RefreshCw className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors" />
+              <span>Force Sync</span>
             </button>
             <button className="quick-btn quick-btn-primary shadow-xl shadow-primary/20" onClick={handleSyncSequences}>
               <Sparkles className="w-4 h-4" />

@@ -110,3 +110,6 @@ export const SequencePlanSchema = z.object({
   preferredEngine: z.string().optional(),
   tags: z.array(z.string()),
 });
+
+// Type definitions for SequencePlan status
+export type SequencePlanStatus = 'draft' | 'in-progress' | 'completed';

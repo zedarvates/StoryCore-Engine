@@ -12,15 +12,23 @@ export interface EffectKeyframe {
 export interface EffectParameter {
   id: string;
   name: string;
-  type: 'range' | 'color' | 'select' | 'boolean' | 'number';
-  value: unknown;
-  defaultValue?: unknown;
+  type: EffectParameterType;
+  value: EffectParameterValue;
+  defaultValue?: EffectParameterValue;
   min?: number;
   max?: number;
   step?: number;
-  options?: { label: string; value: unknown }[];
+  options?: EffectParameterOption[];
   unit?: string;
   keyframes?: EffectKeyframe[];
+}
+
+// Type definitions for Effect parameters
+export type EffectParameterType = 'range' | 'color' | 'select' | 'boolean' | 'number';
+export type EffectParameterValue = string | number | boolean | [number, number, number] | [number, number, number, number];
+export interface EffectParameterOption {
+  label: string;
+  value: EffectParameterValue;
 }
 
 export interface Effect {

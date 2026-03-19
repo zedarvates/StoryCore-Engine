@@ -33,9 +33,15 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   
-  const [assetType, setAssetType] = useState<AssetType>(
-    defaultCategory.replace('-', '') as AssetType
-  );
+  const [assetType, setAssetType] = useState<AssetType>(() => {
+    if (defaultCategory === 'environments') return 'environment';
+    if (defaultCategory === 'props') return 'prop';
+    if (defaultCategory === 'visual-styles') return 'visual-style';
+    if (defaultCategory === 'templates') return 'template';
+    if (defaultCategory === 'camera-presets') return 'camera-preset';
+    if (defaultCategory === 'lighting-rigs') return 'lighting-rig';
+    return 'character';
+  });
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -65,7 +71,7 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
     try {
       // Simulate asset generation (in real implementation, this would call the AI API)
       for (let i = 0; i <= 100; i += 10) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         setProgress(i);
       }
 
@@ -89,7 +95,7 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
               assetType === 'environment' ? ['environment', 'ai-generated'] :
               ['asset', 'ai-generated'],
         source: 'ai-generated',
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       // Add asset to store
@@ -182,11 +188,12 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
             
             <div className="parameter-row">
               <div className="parameter">
-                <label>
+                <label htmlFor="seed-input">
                   Seed
                   <span className="value">{seed}</span>
                 </label>
                 <input
+                  id="seed-input"
                   type="number"
                   value={seed}
                   onChange={(e) => setSeed(Number(e.target.value))}
@@ -205,11 +212,12 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
               </div>
               
               <div className="parameter">
-                <label>
+                <label htmlFor="guidance-input">
                   Guidance
                   <span className="value">{guidance}</span>
                 </label>
                 <input
+                  id="guidance-input"
                   type="range"
                   value={guidance}
                   onChange={(e) => setGuidance(Number(e.target.value))}
@@ -221,11 +229,12 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
               </div>
               
               <div className="parameter">
-                <label>
+                <label htmlFor="steps-input">
                   Steps
                   <span className="value">{steps}</span>
                 </label>
                 <input
+                  id="steps-input"
                   type="range"
                   value={steps}
                   onChange={(e) => setSteps(Number(e.target.value))}
@@ -269,7 +278,7 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
           <button
             className="btn btn-primary generate-btn"
             onClick={handleGenerate}
-            disabled={isGenerating || !prompt.trim()}
+            disabled={isGenerating}
           >
             {isGenerating ? (
               <>

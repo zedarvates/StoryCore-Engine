@@ -800,6 +800,12 @@ export const toolsActions = {
     store.setShowChat(true);
   },
 
+  automationStudio(_ctx: ActionContext): void {
+    console.log('[MenuAction] Automation Studio');
+    const store = useAppStore.getState();
+    store.setShowAutomationPanel(true);
+  },
+
   comfyuiServer(_ctx: ActionContext): void {
     console.log('[MenuAction] ComfyUI Server');
     const store = useAppStore.getState();

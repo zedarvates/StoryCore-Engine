@@ -92,16 +92,15 @@ export function LocationSection({
   className = '',
   style = {},
 }: LocationSectionProps) {
-  const {
-    locations,
-    fetchLocations,
-    fetchProjectLocations,
-    addLocation,
-    updateLocation,
-    deleteLocation,
-    isLoading,
-    error,
-  } = useLocationStore();
+  // Use individual selectors for stability
+  const locations = useLocationStore(state => state.locations);
+  const fetchLocations = useLocationStore(state => state.fetchLocations);
+  const fetchProjectLocations = useLocationStore(state => state.fetchProjectLocations);
+  const isLoading = useLocationStore(state => state.isLoading);
+  const error = useLocationStore(state => state.error);
+  const addLocation = useLocationStore(state => state.addLocation);
+  const updateLocation = useLocationStore(state => state.updateLocation);
+  const deleteLocation = useLocationStore(state => state.deleteLocation);
 
   // Get project ID from app store for fetching project-local locations
   const project = useAppStore((state) => state.project);
@@ -115,13 +114,15 @@ export function LocationSection({
 
   // Fetch locations on mount (both central and project-local)
   useEffect(() => {
-    if (autoFetch) {
+    // Eviter les appels redondants si déjà en cours de chargement
+    if (autoFetch && !isLoading) {
       fetchLocations();
       if (projectId && projectId !== 'unknown') {
         fetchProjectLocations(projectId);
       }
     }
-  }, [autoFetch, fetchLocations, fetchProjectLocations, projectId]);
+  }, [autoFetch, fetchLocations, fetchProjectLocations, projectId, isLoading]);
+
 
   const handleCreateLocation = useCallback(() => {
     setEditingLocation(null);

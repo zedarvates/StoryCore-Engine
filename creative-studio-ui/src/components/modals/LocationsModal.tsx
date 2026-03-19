@@ -65,14 +65,7 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // Load locations from the project and central API when the modal opens
-  useEffect(() => {
-    if (project && isOpen) {
-      loadAllLocations();
-    }
-  }, [project, isOpen, fetchLocations, fetchProjectLocations]);
-
-  const loadAllLocations = async () => {
+  const loadAllLocations = useCallback(async () => {
     if (!project) return;
 
     try {
@@ -86,16 +79,23 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
       console.error('Failed to load locations:', error);
       notificationService.error('Error', 'Failed to load locations');
     }
-  };
+  }, [project, fetchLocations, fetchProjectLocations]);
+
+  // Load locations from the project and central API when the modal opens
+  useEffect(() => {
+    if (project && isOpen) {
+      loadAllLocations();
+    }
+  }, [project, isOpen, loadAllLocations]);
 
   const filteredLocations = storeLocations.filter(location => {
     const matchesSearch = searchQuery === '' ||
       location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.metadata.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.metadata.genre_tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      (location.metadata?.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (location.metadata?.genre_tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesType = selectedType === 'all' || location.location_type === selectedType;
-    const matchesImportance = selectedImportance === 'all' || location.metadata.importance === selectedImportance;
+    const matchesImportance = selectedImportance === 'all' || location.metadata?.importance === selectedImportance;
 
     return matchesSearch && matchesType && matchesImportance;
   });
@@ -105,7 +105,7 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
       location_id: `loc_${Date.now()}`,
       name: '',
       creation_method: 'manual',
-      creation_timestamp: new Date().toISOString(),
+      creation_timestamp: Date.now(),
       version: '1.0',
       location_type: 'exterior',
       texture_direction: 'outward',
@@ -291,28 +291,28 @@ export function LocationsModal({ isOpen, onClose }: LocationsModalProps) {
                           <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                             {location.name}
                           </h3>
-                          <Badge variant="outline" className={`text-[10px] mt-1 ${getImportanceColor(location.metadata.importance)}`}>
-                            {location.metadata.importance?.toUpperCase() || 'MEDIUM'}
+                          <Badge variant="outline" className={`text-[10px] mt-1 ${getImportanceColor(location.metadata?.importance)}`}>
+                            {location.metadata?.importance?.toUpperCase() || 'MEDIUM'}
                           </Badge>
                         </div>
                       </div>
                     </div>
 
                     <p className="text-sm text-gray-600 line-clamp-3 mb-4 flex-1">
-                      {location.metadata.description}
+                      {location.metadata?.description}
                     </p>
 
                     <div className="space-y-2 mb-4">
-                      {location.metadata.address && (
+                      {location.metadata?.address && (
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <MapPinIcon className="w-3 h-3" />
                           <span className="truncate">{location.metadata.address}</span>
                         </div>
                       )}
 
-                      {location.metadata.genre_tags.length > 0 && (
+                      {(location.metadata?.genre_tags || []).length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {location.metadata.genre_tags.slice(0, 3).map(tag => (
+                          {(location.metadata?.genre_tags || []).slice(0, 3).map(tag => (
                             <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0">
                               {tag}
                             </Badge>
@@ -382,17 +382,19 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
   };
 
   const handleAddTag = () => {
-    if (newTag.trim() && !editedLocation.metadata.genre_tags.includes(newTag.trim())) {
+    const currentTags = editedLocation.metadata?.genre_tags || [];
+    if (newTag.trim() && !currentTags.includes(newTag.trim())) {
       handleUpdateMetadata({
-        genre_tags: [...editedLocation.metadata.genre_tags, newTag.trim()]
+        genre_tags: [...currentTags, newTag.trim()]
       });
       setNewTag('');
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
+    const currentTags = editedLocation.metadata?.genre_tags || [];
     handleUpdateMetadata({
-      genre_tags: editedLocation.metadata.genre_tags.filter(t => t !== tagToRemove)
+      genre_tags: currentTags.filter(t => t !== tagToRemove)
     });
   };
 
@@ -435,7 +437,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Short Description</label>
             <Textarea
-              value={editedLocation.metadata.description}
+              value={editedLocation.metadata?.description || ''}
               onChange={(e) => handleUpdateMetadata({ description: e.target.value })}
               placeholder="Describe this location..."
               className="min-h-[100px]"
@@ -446,7 +448,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Atmosphere</label>
               <Input
-                value={editedLocation.metadata.atmosphere}
+                value={editedLocation.metadata?.atmosphere || ''}
                 onChange={(e) => handleUpdateMetadata({ atmosphere: e.target.value })}
                 placeholder="Ex: Dark and spooky"
               />
@@ -454,7 +456,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">Importance</label>
               <Select
-                value={editedLocation.metadata.importance || 'medium'}
+                value={editedLocation.metadata?.importance || 'medium'}
                 onValueChange={(val: any) => handleUpdateMetadata({ importance: val })}
               >
                 <SelectTrigger>
@@ -472,7 +474,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Address / Location</label>
             <Input
-              value={editedLocation.metadata.address || ''}
+              value={editedLocation.metadata?.address || ''}
               onChange={(e) => handleUpdateMetadata({ address: e.target.value })}
               placeholder="Ex: South of the village"
             />
@@ -490,7 +492,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
               <Button onClick={handleAddTag} type="button">Add</Button>
             </div>
             <div className="flex flex-wrap gap-2">
-              {editedLocation.metadata.genre_tags.map(tag => (
+              {(editedLocation.metadata?.genre_tags || []).map(tag => (
                 <Badge key={tag} className="flex items-center gap-1">
                   {tag}
                   <XIcon

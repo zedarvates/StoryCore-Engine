@@ -42,19 +42,27 @@ interface MemoryState {
  */
 export const useMemoryStore = create<MemoryState>()(
     persist(
-        (set, get) => ({
+        (set, _get) => ({
             insights: [],
             workingContext: "Standard StoryCore production protocols active.",
 
             addInsight: (insight) => {
-                const newInsight: MemoryInsight = {
-                    ...insight,
-                    id: crypto.randomUUID(),
-                    timestamp: Date.now(),
-                };
-                set((state) => ({
-                    insights: [newInsight, ...state.insights]
-                }));
+                set((state) => {
+                    // PREVENT EXPONENTIAL GROWTH: Check if insight text already exists
+                    const isDuplicate = state.insights.some(i => i.text === insight.text);
+                    if (isDuplicate) return state;
+
+                    const newInsight: MemoryInsight = {
+                        ...insight,
+                        id: crypto.randomUUID(),
+                        timestamp: Date.now(),
+                    };
+                    
+                    // Keep only last 100 insights to prevent memory bloat
+                    const updatedInsights = [newInsight, ...state.insights].slice(0, 100);
+                    
+                    return { insights: updatedInsights };
+                });
             },
 
             promoteInsight: (id) => {

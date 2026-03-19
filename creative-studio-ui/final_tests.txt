@@ -1,0 +1,785 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/storycore-engine/creative-studio-ui[39m
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Error Handling > should handle fetch errors gracefully
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Error Handling > should call custom error handler if provided
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Error Handling > should show fallback SVG on image error
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Performance > should unobserve after loading
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Performance > should unobserve after loading
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Visual States > should apply loading class initially
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Visual States > should apply loading class initially
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx > LazyImage Component > Visual States > should apply loaded class after loading
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx
+Failed to load image: Error: Fetch failed
+    at C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx:115:9
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/traces.CCmnQaNT.js:142:27)
+    at trace (file:///C:/storycore-engine/creative-studio-ui/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///C:/storycore-engine/creative-studio-ui/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32mÔ£ô[39m src/sequence-editor/components/AssetLibrary/__tests__/LazyImage.test.tsx [2m([22m[2m16 tests[22m[2m)[22m[32m 218[2mms[22m[39m
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/DraggableAsset.test.tsx[2m > [22m[2mDraggableAsset[2m > [22m[2mInteractions[2m > [22m[2mshould call onClick when asset is clicked
+[22m[39mAsset clicked: Test Character
+
+ [31mÔØ»[39m src/sequence-editor/components/AssetLibrary/__tests__/DraggableAsset.test.tsx [2m([22m[2m20 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 403[2mms[22m[39m
+[31m       [31m├ù[31m should render asset with thumbnail and name[39m[32m 100[2mms[22m[39m
+       [32mÔ£ô[39m should render asset description[32m 14[2mms[22m[39m
+       [32mÔ£ô[39m should render asset tags[32m 14[2mms[22m[39m
+       [32mÔ£ô[39m should render source indicator for builtin assets[32m 15[2mms[22m[39m
+       [32mÔ£ô[39m should render source indicator for AI-generated assets[32m 13[2mms[22m[39m
+       [32mÔ£ô[39m should render action buttons in overlay[32m 15[2mms[22m[39m
+       [32mÔ£ô[39m should call onClick when asset is clicked[32m 16[2mms[22m[39m
+       [32mÔ£ô[39m should call onEdit when asset is double-clicked[32m 10[2mms[22m[39m
+       [32mÔ£ô[39m should call onPreview when preview button is clicked[32m 10[2mms[22m[39m
+       [32mÔ£ô[39m should call onEdit when edit button is clicked[32m 8[2mms[22m[39m
+       [32mÔ£ô[39m should call onDelete when delete button is clicked[32m 6[2mms[22m[39m
+       [32mÔ£ô[39m should have correct data attributes for drag operations[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should have grab cursor by default[32m 120[2mms[22m[39m
+       [32mÔ£ô[39m should export correct DND_ITEM_TYPES constant[32m 0[2mms[22m[39m
+       [32mÔ£ô[39m should have accessible labels for action buttons[32m 7[2mms[22m[39m
+[31m       [31m├ù[31m should have alt text for thumbnail image[39m[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should handle long asset names with ellipsis[32m 19[2mms[22m[39m
+       [32mÔ£ô[39m should handle long descriptions with truncation[32m 7[2mms[22m[39m
+       [32mÔ£ô[39m should handle assets with many tags[32m 8[2mms[22m[39m
+       [32mÔ£ô[39m should handle missing callbacks gracefully[32m 6[2mms[22m[39m
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.1: Category Tabs[2m > [22m[2mshould display 10 category tabs
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.1: Category Tabs > should display 10 category tabs
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.1: Category Tabs[2m > [22m[2mshould have category icons
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.1: Category Tabs > should have category icons
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.1: Category Tabs[2m > [22m[2mshould highlight active category
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.1: Category Tabs > should highlight active category
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.1: Category Tabs[2m > [22m[2mshould switch categories on click
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.1: Category Tabs > should switch categories on click
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.2: Search Functionality[2m > [22m[2mshould display search input field
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.2: Search Functionality > should display search input field
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.2: Search Functionality[2m > [22m[2mshould update search query on input
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.2: Search Functionality > should update search query on input
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.2: Search Functionality[2m > [22m[2mshould show clear button when search has text
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.2: Search Functionality > should show clear button when search has text
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.2: Search Functionality[2m > [22m[2mshould clear search on clear button click
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.2: Search Functionality > should clear search on clear button click
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.2: Search Functionality[2m > [22m[2mshould debounce search input
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.3: Asset Grid[2m > [22m[2mshould display empty state when no assets
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.3: Asset Grid[2m > [22m[2mshould display asset grid when assets exist
+[22m[39m[AssetLibrary] Loaded [33m1[39m sources
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.8: New AI Asset Button[2m > [22m[2mshould display "New AI Asset" button
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.8: New AI Asset Button > should display "New AI Asset" button
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.8: New AI Asset Button[2m > [22m[2mshould open generation dialog on button click
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.8: New AI Asset Button > should open generation dialog on button click
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mRequirement 5.8: New AI Asset Button[2m > [22m[2mshould have permanent position at bottom
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Requirement 5.8: New AI Asset Button > should have permanent position at bottom
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mAccessibility[2m > [22m[2mshould have proper ARIA labels
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Accessibility > should have proper ARIA labels
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mAccessibility[2m > [22m[2mshould support keyboard navigation
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Accessibility > should support keyboard navigation
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mVisual Styling[2m > [22m[2mshould apply focus styles to search input
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Visual Styling > should apply focus styles to search input
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+[90mstdout[2m | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx[2m > [22m[2mAssetLibrary Component[2m > [22m[2mVisual Styling[2m > [22m[2mshould remove focus styles on blur
+[22m[39m[AssetLibrary] Loaded [33m0[39m sources
+
+stderr | src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx > AssetLibrary Component > Visual Styling > should remove focus styles on blur
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AssetLibrary inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [32mÔ£ô[39m src/sequence-editor/components/AssetLibrary/__tests__/AssetLibrary.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[33m 776[2mms[22m[39m
+ [32mÔ£ô[39m src/sequence-editor/components/AssetLibrary/__tests__/AssetGenerationDialog.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[33m 2630[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m should close dialog after successful generation [33m 1649[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/sequence-editor/components/AssetLibrary/__tests__/DraggableAsset.test.tsx > DraggableAsset > Rendering > should render asset with thumbnail and name
+TestingLibraryElementError: Unable to find an element with the alt text: Test Character
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="asset-card "
+      data-asset-id="test-asset-1"
+      data-asset-type="character"
+      draggable="true"
+      style="opacity: 1; cursor: grab;"
+    >
+      <div
+        class="asset-thumbnail"
+      >
+        <div
+          class="lazy-image-container "
+        >
+          <div
+            class="lazy-image-placeholder"
+          >
+            <div
+              class="lazy-image-spinner"
+            />
+          </div>
+        </div>
+        <div
+          class="asset-source builtin"
+          title="builtin"
+        >
+          ­ƒôª
+        </div>
+      </div>
+      <div
+        class="asset-info"
+      >
+        <h4
+          class="asset-name"
+          title="Test Character"
+        >
+          Test Character
+        </h4>
+        <p
+          class="asset-description"
+        >
+          A test character asset for unit testing
+        </p>
+        <div
+          class="asset-tags"
+        >
+          <span
+            class="asset-tag"
+          >
+            test
+          </span>
+          <span
+            class="asset-tag"
+          >
+            character
+          </span>
+          <span
+            class="asset-tag"
+          >
+            hero
+          </span>
+        </div>
+      </div>
+      <div
+        class="asset-overlay"
+      >
+        <button
+          aria-label="Preview Test Character"
+          class="overlay-btn"
+          title="Preview"
+        >
+          ­ƒæü´©Å
+        </button>
+        <button
+          aria-label="Publish Test Character to Marketplace"
+          class="overlay-btn marketplace-btn"
+          title="Publish to Marketplace"
+        >
+          ­ƒÆÄ
+        </button>
+        <button
+          aria-label="Edit Test Character"
+          class="overlay-btn"
+          title="Edit"
+        >
+          Ô£Å´©Å
+        </button>
+        <button
+          aria-label="Delete Test Character"
+          class="overlay-btn"
+          title="Delete"
+        >
+          ­ƒùæ´©Å
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ÔØ» src/sequence-editor/components/AssetLibrary/__tests__/DraggableAsset.test.tsx:82:21
+     80| 
+     81|       expect(screen.getByText('Test Character')).toBeInTheDocument();
+     82|       expect(screen.getByAltText('Test Character')).toBeInTheDocument(ÔÇª
+       |                     ^
+     83|     });
+     84| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/2]ÔÄ»
+
+ FAIL  src/sequence-editor/components/AssetLibrary/__tests__/DraggableAsset.test.tsx > DraggableAsset > Accessibility > should have alt text for thumbnail image
+TestingLibraryElementError: Unable to find an element with the alt text: Test Character
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="asset-card "
+      data-asset-id="test-asset-1"
+      data-asset-type="character"
+      draggable="true"
+      style="opacity: 1; cursor: grab;"
+    >
+      <div
+        class="asset-thumbnail"
+      >
+        <div
+          class="lazy-image-container "
+        >
+          <div
+            class="lazy-image-placeholder"
+          >
+            <div
+              class="lazy-image-spinner"
+            />
+          </div>
+        </div>
+        <div
+          class="asset-source builtin"
+          title="builtin"
+        >
+          ­ƒôª
+        </div>
+      </div>
+      <div
+        class="asset-info"
+      >
+        <h4
+          class="asset-name"
+          title="Test Character"
+        >
+          Test Character
+        </h4>
+        <p
+          class="asset-description"
+        >
+          A test character asset for unit testing
+        </p>
+        <div
+          class="asset-tags"
+        >
+          <span
+            class="asset-tag"
+          >
+            test
+          </span>
+          <span
+            class="asset-tag"
+          >
+            character
+          </span>
+          <span
+            class="asset-tag"
+          >
+            hero
+          </span>
+        </div>
+      </div>
+      <div
+        class="asset-overlay"
+      >
+        <button
+          aria-label="Preview Test Character"
+          class="overlay-btn"
+          title="Preview"
+        >
+          ­ƒæü´©Å
+        </button>
+        <button
+          aria-label="Publish Test Character to Marketplace"
+          class="overlay-btn marketplace-btn"
+          title="Publish to Marketplace"
+        >
+          ­ƒÆÄ
+        </button>
+        <button
+          aria-label="Edit Test Character"
+          class="overlay-btn"
+          title="Edit"
+        >
+          Ô£Å´©Å
+        </button>
+        <button
+          aria-label="Delete Test Character"
+          class="overlay-btn"
+          title="Delete"
+        >
+          ­ƒùæ´©Å
+        </button>
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ÔØ» src/sequence-editor/components/AssetLibrary/__tests__/DraggableAsset.test.tsx:327:28
+    325|       );
+    326| 
+    327|       const image = screen.getByAltText('Test Character');
+       |                            ^
+    328|       expect(image).toBeInTheDocument();
+    329|     });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/2]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m78 passed[39m[22m[90m (80)[39m
+[2m   Start at [22m 07:17:21
+[2m   Duration [22m 5.68s[2m (transform 2.41s, setup 1.68s, import 5.03s, tests 4.03s, environment 3.81s)[22m
+

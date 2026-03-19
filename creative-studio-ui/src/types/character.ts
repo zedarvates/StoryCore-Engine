@@ -65,7 +65,7 @@ export interface VisualIdentity {
   facial_structure: string;
   distinctive_features: string[];
   age_range: string;
-  gender: string;
+  gender: Gender;
   height: string;
   build: string;
   posture: string;
@@ -77,6 +77,14 @@ export interface VisualIdentity {
   reference_images: ReferenceImageData[];  // Generated reference images
   reference_sheet_images: SheetImageData[];  // Multi-view sheet images (front, left, right, back)
 }
+
+// Type definitions for Character properties
+export type Gender = 'male' | 'female' | 'non-binary' | 'other' | 'unspecified';
+export type CreationMethod = 'wizard' | 'auto_generated' | 'manual' | 'ai_vision';
+export type RelationshipType = 'friend' | 'enemy' | 'family' | 'romantic' | 'professional' | 'neutral';
+export type Archetype = 'hero' | 'villain' | 'mentor' | 'sidekick' | 'love_interest' | 'comic_relief' | 'anti_hero' | 'neutral';
+export type NarrativeFunction = 'protagonist' | 'antagonist' | 'supporting' | 'minor' | 'background';
+export type CharacterArc = 'positive' | 'negative' | 'flat' | 'tragic' | 'redemptive';
 
 export interface Personality {
   traits: string[];
@@ -134,7 +142,7 @@ export function createEmptyCharacter(): Partial<Character> {
       facial_structure: '',
       distinctive_features: [],
       age_range: '',
-      gender: '',
+      gender: 'unspecified',
       height: '',
       build: '',
       posture: '',

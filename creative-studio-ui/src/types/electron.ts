@@ -7,8 +7,12 @@ export interface ProjectData {
   name: string;
   location?: string;
   template?: string;
-  format?: ProjectFormat;
-  initialShots?: ShotData[];
+  format?: unknown;
+  initialShots?: unknown[];
+  initialCharacters?: unknown[];
+  initialLocations?: unknown[];
+  initialObjects?: unknown[];
+  settings?: Record<string, unknown>;
 }
 
 export interface ProjectFormat {
@@ -20,14 +24,11 @@ export interface ProjectFormat {
 
 export interface ShotData {
   id: string;
-  name: string;
-  type: string;
-  duration: number;
-  parameters: Record<string, unknown>;
-  sequence_order?: number;
-  sequence_duration?: number;
-  sequence_shots_count?: number;
-  sequence_resume?: string;
+  name?: string;
+  type?: string;
+  duration?: number;
+  parameters?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 export interface Project {
@@ -35,16 +36,16 @@ export interface Project {
   name: string;
   path: string;
   version: string;
-  createdAt: number; // timestamp
-  modifiedAt: number; // timestamp
-  config: ProjectConfig;
+  createdAt: number | string | Date;
+  modifiedAt: number | string | Date;
+  config: Record<string, unknown>;
 }
 
 export interface ProjectConfig {
-  autoSave: boolean;
-  defaultOutput: string;
-  preferredModels: Record<string, string>;
-  theme: 'light' | 'dark' | 'system';
+  [key: string]: unknown;
+  autoSave?: boolean;
+  defaultOutput?: string;
+  theme?: 'light' | 'dark' | 'system';
 }
 
 export interface RecentProject {

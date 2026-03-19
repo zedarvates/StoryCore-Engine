@@ -17,14 +17,14 @@ describe('systemPromptBuilder', () => {
       
       languages.forEach((lang) => {
         const prompt = buildSystemPrompt(lang);
-        expect(prompt).toContain('StoryCore AI assistant');
-        expect(prompt).toContain('video storyboard projects');
+        expect(prompt).toContain('StoryCore Creative Mentor');
+        expect(prompt).toContain('proactive AI assistant');
       });
     });
 
     it('should include French instruction for French language', () => {
       const prompt = buildSystemPrompt('fr');
-      expect(prompt).toContain('Respond in French');
+      expect(prompt).toContain('ENTIRELY in French');
       expect(prompt).toContain('Français');
     });
 
@@ -75,13 +75,10 @@ describe('systemPromptBuilder', () => {
       expect(prompt).toContain('한국어');
     });
 
-    it('should return consistent format with base prompt followed by language instruction', () => {
+    it('should include base components in the final prompt', () => {
       const prompt = buildSystemPrompt('en');
-      const parts = prompt.split('\n\n');
-      
-      expect(parts).toHaveLength(2);
-      expect(parts[0]).toContain('StoryCore AI assistant');
-      expect(parts[1]).toContain('Respond in');
+      expect(prompt).toContain('StoryCore Creative Mentor');
+      expect(prompt).toContain('Respond in English');
     });
   });
 

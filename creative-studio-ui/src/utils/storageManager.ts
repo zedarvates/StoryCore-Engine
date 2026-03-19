@@ -1,10 +1,11 @@
 /**
  * Storage Manager - Gère localStorage avec limite de taille
- * Bascule vers IndexedDB si localStorage est plein
+ * Bascule vers IndexedDB si localStorage est plein ou pour les gros volumes
  */
 
-const STORAGE_LIMIT = 5 * 1024 * 1024; // 5MB
-const STORAGE_WARNING_THRESHOLD = 0.8; // 80%
+const STORAGE_LIMIT = 100 * 1024 * 1024 * 1024; // 100GB
+const STORAGE_WARNING_THRESHOLD = 0.9;
+const LOCAL_STORAGE_SAFE_LIMIT = 2 * 1024 * 1024; // 2MB
 
 export interface StorageStats {
   used: number;
@@ -43,53 +44,46 @@ export class StorageManager {
     return stats.available > dataSize;
   }
 
-  static setItem(key: string, value: string): boolean {
+  /**
+   * Persist item to storage.
+   * Uses localStorage for small data, IndexedDB for large data.
+   */
+  static async setItem(key: string, value: string): Promise<boolean> {
     try {
-      const stats = this.getStats();
-      
-      // Avertissement si proche de la limite
-      if (stats.percentage > STORAGE_WARNING_THRESHOLD) {
-        console.warn(
-          `⚠️ Storage usage at ${stats.percentage.toFixed(1)}%`,
-          stats
-        );
+      // For large data, go straight to IndexedDB
+      if (value.length > LOCAL_STORAGE_SAFE_LIMIT) {
+        return await this.setItemIndexedDB(key, value);
       }
 
-      // Check if we can store
-      if (!this.canStore(value)) {
-        console.error(
-          `❌ Storage limit exceeded. Need ${value.length} bytes, ` +
-          `available ${stats.available} bytes`
-        );
-        
-        // Try to clean up old data
-        this.cleanup();
-        
-        // Retry
-        if (this.canStore(value)) {
-          localStorage.setItem(key, value);
-          return true;
-        }
-        
-        // Switch to IndexedDB
-        return this.setItemIndexedDB(key, value);
+      // Check if localStorage has space
+      try {
+        localStorage.setItem(key, value);
+        return true;
+      } catch (error) {
+        // If localStorage is full or throws (QuotaExceededError)
+        console.warn('❌ LocalStorage full or blocked, falling back to IndexedDB:', error);
+        return await this.setItemIndexedDB(key, value);
       }
-
-      localStorage.setItem(key, value);
-      return true;
     } catch (error) {
-      console.error('Failed to set item in localStorage:', error);
-      
-      // Switch to IndexedDB
-      return this.setItemIndexedDB(key, value);
+      console.error('❌ StorageManager.setItem failed:', error);
+      return false;
     }
   }
 
-  static getItem(key: string): string | null {
+  /**
+   * Retrieve item from storage.
+   * Checks both localStorage and IndexedDB.
+   */
+  static async getItem(key: string): Promise<string | null> {
     try {
-      return localStorage.getItem(key);
+      // 1. Try localStorage first (fastest)
+      const localValue = localStorage.getItem(key);
+      if (localValue !== null) return localValue;
+
+      // 2. Fallback to IndexedDB
+      return await this.getItemIndexedDB(key);
     } catch (error) {
-      console.error('Failed to get item from localStorage:', error);
+      console.error('❌ StorageManager.getItem failed:', error);
       return null;
     }
   }
@@ -97,86 +91,96 @@ export class StorageManager {
   static removeItem(key: string): void {
     try {
       localStorage.removeItem(key);
+      // Fire and forget removal from IndexedDB as well
+      this.removeItemIndexedDB(key);
     } catch (error) {
-      console.error('Failed to remove item from localStorage:', error);
+      console.error('Failed to remove item:', error);
     }
   }
 
-  private static cleanup(): void {
-    try {
-      // Delete oldest data
-      const keys = Object.keys(localStorage);
-      const timestampKeys = keys.filter(key => key.includes('timestamp'));
-      
-      if (timestampKeys.length === 0) {
-        // If no timestamp, delete the oldest 10% by key
-        const toDelete = Math.ceil(keys.length * 0.1);
-        for (let i = 0; i < toDelete && i < keys.length; i++) {
-          localStorage.removeItem(keys[i]);
-        }
-      } else {
-        // Delete the oldest 10% by timestamp
-        const sorted = timestampKeys.sort((a, b) => {
-          const timeA = parseInt(localStorage.getItem(a) || '0');
-          const timeB = parseInt(localStorage.getItem(b) || '0');
-          return timeA - timeB;
-        });
+  private static setItemIndexedDB(key: string, value: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.open('StoryCore', 1);
 
-        const toDelete = Math.ceil(sorted.length * 0.1);
-        for (let i = 0; i < toDelete; i++) {
-          localStorage.removeItem(sorted[i]);
-        }
+        request.onupgradeneeded = (event) => {
+          const db = (event.target as IDBOpenDBRequest).result;
+          if (!db.objectStoreNames.contains('data')) {
+            db.createObjectStore('data', { keyPath: 'key' });
+          }
+        };
+
+        request.onerror = () => {
+          console.error('IndexedDB open error');
+          resolve(false);
+        };
+
+        request.onsuccess = () => {
+          const db = request.result;
+          const transaction = db.transaction(['data'], 'readwrite');
+          const store = transaction.objectStore('data');
+          const putRequest = store.put({ key, value, timestamp: Date.now() });
+
+          putRequest.onsuccess = () => resolve(true);
+          putRequest.onerror = () => resolve(false);
+        };
+      } catch (error) {
+        console.error('IndexedDB setItem error:', error);
+        resolve(false);
       }
-      
-      console.log('✅ Storage cleanup completed');
-    } catch (error) {
-      console.error('Failed to cleanup storage:', error);
-    }
+    });
   }
 
-  private static setItemIndexedDB(key: string, value: string): boolean {
+  private static getItemIndexedDB(key: string): Promise<string | null> {
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.open('StoryCore', 1);
+
+        request.onupgradeneeded = (event) => {
+          const db = (event.target as IDBOpenDBRequest).result;
+          if (!db.objectStoreNames.contains('data')) {
+            db.createObjectStore('data', { keyPath: 'key' });
+          }
+        };
+
+        request.onsuccess = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains('data')) {
+            resolve(null);
+            return;
+          }
+
+          const transaction = db.transaction(['data'], 'readonly');
+          const store = transaction.objectStore('data');
+          const getRequest = store.get(key);
+
+          getRequest.onsuccess = () => {
+            resolve(getRequest.result ? getRequest.result.value : null);
+          };
+          getRequest.onerror = () => resolve(null);
+        };
+
+        request.onerror = () => resolve(null);
+      } catch (error) {
+        console.error('IndexedDB getItem error:', error);
+        resolve(null);
+      }
+    });
+  }
+
+  private static removeItemIndexedDB(key: string): void {
     try {
       const request = indexedDB.open('StoryCore', 1);
-      
-      request.onerror = () => {
-        console.error('Failed to open IndexedDB');
-      };
-      
       request.onsuccess = () => {
         const db = request.result;
-        
-        // Create object store if necessary
-        if (!db.objectStoreNames.contains('data')) {
-          const version = db.version + 1;
-          db.close();
-          const upgradeRequest = indexedDB.open('StoryCore', version);
-          upgradeRequest.onupgradeneeded = (event) => {
-            const upgradeDb = (event.target as IDBOpenDBRequest).result;
-            if (!upgradeDb.objectStoreNames.contains('data')) {
-              upgradeDb.createObjectStore('data', { keyPath: 'key' });
-            }
-          };
-          return;
-        }
-        
-        const transaction = db.transaction(['data'], 'readwrite');
-        const store = transaction.objectStore('data');
-        store.put({ key, value, timestamp: Date.now() });
-        
-        console.log(`✅ Stored in IndexedDB: ${key}`);
-      };
-      
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains('data')) {
-          db.createObjectStore('data', { keyPath: 'key' });
+        if (db.objectStoreNames.contains('data')) {
+          const transaction = db.transaction(['data'], 'readwrite');
+          const store = transaction.objectStore('data');
+          store.delete(key);
         }
       };
-      
-      return true;
-    } catch (error) {
-      console.error('Failed to store in IndexedDB:', error);
-      return false;
+    } catch (e) {
+      // Ignore errors on removal
     }
   }
 }

@@ -8,11 +8,17 @@
 // Requirements: 8.1, 8.2, 8.3, 8.4, 8.5
 // ============================================================================
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useStore } from '../store';
 import { useEditorStore } from '../stores/editorStore';
+import { useAppStore } from '../stores/useAppStore';
 import type { Character } from '../types/character';
 import { toast } from '../utils/toast';
+import { 
+  saveCharacterToProject, 
+  loadCharacterFromProject, 
+  listCharactersInProject 
+} from '../utils/characterStorage';
 
 // ============================================================================
 // Types
@@ -339,7 +345,7 @@ export function useCharacterPersistence() {
    * Requirements: 8.2, 8.3
    */
   const saveToProjectDirectory = useCallback(
-    async (character: PersistedCharacter, projectPath: string): Promise<void> => {
+    async (character: PersistedCharacter, projectId: string): Promise<void> => {
       try {
         // Validate schema before saving (Requirement: 8.3)
         const validation = validateCharacterSchema(character);
@@ -351,32 +357,14 @@ export function useCharacterPersistence() {
           );
         }
 
-        // Check if we're running in Electron environment
-        if (window.electronAPI?.fs?.writeFile) {
-          const charactersDir = `${projectPath}/characters`;
-          const fileName = `character_${character.character_id}.json`;
-          const filePath = `${charactersDir}/${fileName}`;
-
-          // Ensure the characters directory exists
-          if (window.electronAPI.fs.mkdir) {
-            await window.electronAPI.fs.mkdir(charactersDir, { recursive: true });
-          }
-
-          const jsonData = JSON.stringify(character, null, 2);
-
-          // Convert string to Uint8Array for browser compatibility
-          const encoder = new TextEncoder();
-          const dataBuffer = encoder.encode(jsonData);
-
-          // Convert Uint8Array to string for writeFile (Node.js style)
-          const dataString = new TextDecoder().decode(dataBuffer);
-          await window.electronAPI.fs.writeFile(filePath, dataString);
-          console.log(`[useCharacterPersistence] Character saved to: ${filePath}`);
-        } else {
-          // Fallback: use the file picker method
-          console.warn('[useCharacterPersistence] Electron API not available, falling back to file picker');
-          await saveToFile(character);
+        // Use the new characterStorage utility
+        const result = await saveCharacterToProject(projectId, character.character_id, character);
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Failed to save character');
         }
+        
+        console.log(`[useCharacterPersistence] Character saved to: ${result.filePath}`);
       } catch (error) {
         console.error('[useCharacterPersistence] Failed to save character to project directory:', error);
         handleFileSystemError(error as Error, 'save');
@@ -395,44 +383,29 @@ export function useCharacterPersistence() {
    * Requirements: 8.2, 8.4
    */
   const loadCharactersFromProjectDirectory = useCallback(
-    async (projectPath: string): Promise<PersistedCharacter[]> => {
+    async (projectId: string): Promise<PersistedCharacter[]> => {
       const characters: PersistedCharacter[] = [];
 
       try {
-        // Check if we're running in Electron environment
-        if (window.electronAPI?.fs?.readdir) {
-          const charactersDir = `${projectPath}/characters`;
+        // Use the new characterStorage utility
+        const characterIds = await listCharactersInProject(projectId);
 
-          // Check if directory exists
+        for (const characterId of characterIds) {
           try {
-            const files = await window.electronAPI.fs.readdir(charactersDir);
-
-            for (const file of files) {
-              if (file.endsWith('.json') && file.startsWith('character_')) {
-                try {
-                  const filePath = `${charactersDir}/${file}`;
-                  const buffer = await window.electronAPI.fs.readFile(filePath);
-                  const content = new TextDecoder().decode(buffer);
-                  const character = JSON.parse(content);
-
-                  // Validate loaded data
-                  const validation = validateCharacterSchema(character);
-                  if (validation.valid) {
-                    characters.push(character);
-                  } else {
-                    console.warn(`[useCharacterPersistence] Invalid character file: ${file}`, validation.errors);
-                  }
-                } catch (fileError) {
-                  console.warn(`[useCharacterPersistence] Failed to load character file: ${file}`, fileError);
-                }
+            const character = await loadCharacterFromProject(projectId, characterId);
+            
+            if (character) {
+              // Validate loaded data
+              const validation = validateCharacterSchema(character);
+              if (validation.valid) {
+                characters.push(character as PersistedCharacter);
+              } else {
+                console.warn(`[useCharacterPersistence] Invalid character file: ${characterId}`, validation.errors);
               }
             }
-          } catch (_dirError) {
-            // Directory doesn't exist yet, return empty array
-            console.log('[useCharacterPersistence] Characters directory does not exist yet');
+          } catch (fileError) {
+            console.warn(`[useCharacterPersistence] Failed to load character: ${characterId}`, fileError);
           }
-        } else {
-          console.warn('[useCharacterPersistence] Electron API not available for loading characters from directory');
         }
       } catch (error) {
         console.error('[useCharacterPersistence] Failed to load characters from project directory:', error);
@@ -539,8 +512,9 @@ export function useCharacterPersistence() {
    */
   const saveCharacter = useCallback(
     async (characterData: Partial<Character>): Promise<Character> => {
-      // Get project path from editor store
-      const projectPath = useEditorStore.getState().projectPath;
+      // Get project ID/path from app store
+      const project = useAppStore.getState().project;
+      const projectId = project?.path || project?.id;
 
       // Generate UUID if not provided
       const character_id = characterData.character_id || generateUUID();
@@ -567,7 +541,7 @@ export function useCharacterPersistence() {
           facial_structure: characterData.visual_identity?.facial_structure || '',
           distinctive_features: characterData.visual_identity?.distinctive_features || [],
           age_range: characterData.visual_identity?.age_range || '',
-          gender: characterData.visual_identity?.gender || 'neutral',
+          gender: characterData.visual_identity?.gender || 'unspecified',
           height: characterData.visual_identity?.height || '',
           build: characterData.visual_identity?.build || '',
           posture: characterData.visual_identity?.posture || '',
@@ -633,11 +607,16 @@ export function useCharacterPersistence() {
         }
       }
 
-      // Save to project directory if projectPath is available (Requirement: 8.2)
-      if (projectPath) {
+      // Save to project directory if projectId is available (Requirement: 8.2)
+      if (projectId) {
         try {
-          await saveToProjectDirectory(character, projectPath);
-          console.log(`[useCharacterPersistence] Character saved to project directory: ${projectPath}`);
+          await saveToProjectDirectory(character, projectId);
+          console.log(`[useCharacterPersistence] Character saved to project directory: ${projectId}`);
+          toast.success(
+            'Character Saved',
+            `Character "${character.name}" saved to project`,
+            3000
+          );
         } catch (error) {
           console.warn('[useCharacterPersistence] Project directory save failed, falling back to file picker:', error);
           // Fallback to file picker if project directory save fails
@@ -648,8 +627,8 @@ export function useCharacterPersistence() {
           }
         }
       } else {
-        // No project path, use file picker
-        console.log('[useCharacterPersistence] No project path available, using file picker');
+        // No project ID, use file picker
+        console.log('[useCharacterPersistence] No project ID available, using file picker');
         try {
           await saveToFile(character);
         } catch (_error) {
@@ -744,10 +723,11 @@ export function useCharacterPersistence() {
    * Requirements: 8.2, 8.4
    */
   const loadAndSyncCharacters = useCallback(async (): Promise<{ loaded: number; errors: number }> => {
-    const projectPath = useEditorStore.getState().projectPath;
+    const project = useAppStore.getState().project;
+    const projectId = project?.path || project?.id;
 
-    if (!projectPath) {
-      console.log('[useCharacterPersistence] No project path available for loading characters');
+    if (!projectId) {
+      console.log('[useCharacterPersistence] No project ID available for loading characters');
       return { loaded: 0, errors: 0 };
     }
 
@@ -756,7 +736,7 @@ export function useCharacterPersistence() {
 
     try {
       // First, load characters from project directory
-      const projectCharacters = await loadCharactersFromProjectDirectory(projectPath);
+      const projectCharacters = await loadCharactersFromProjectDirectory(projectId);
 
       if (projectCharacters.length > 0) {
         // Use setCharacters to bulk set all characters at once (more efficient)
@@ -832,7 +812,7 @@ export function useCharacterPersistence() {
       console.error('[useCharacterPersistence] Failed to load and sync characters:', error);
       return { loaded, errors };
     }
-  }, [loadCharactersFromProjectDirectory, getAllCharacters, setCharacters, saveToLocalStorage, addCharacter, updateCharacter, loadFromLocalStorage]);
+  }, [loadCharactersFromProjectDirectory, getAllCharacters, setCharacters, saveToLocalStorage]);
 
   /**
    * Delete a character from localStorage, file system, and store
@@ -841,8 +821,9 @@ export function useCharacterPersistence() {
   const removeCharacter = useCallback(
     async (character_id: string): Promise<void> => {
       try {
-        // Get project path from editor store
-        const projectPath = useEditorStore.getState().projectPath;
+        // Get project ID from app store
+        const project = useAppStore.getState().project;
+        const projectId = project?.id;
 
         // Remove from Zustand store
         deleteCharacter(character_id);
@@ -863,11 +844,11 @@ export function useCharacterPersistence() {
         }
 
         // Remove from project directory if available
-        if (projectPath && window.electronAPI?.fs?.unlink) {
+        if (projectId) {
           try {
-            const filePath = `${projectPath}/characters/character_${character_id}.json`;
-            await window.electronAPI.fs.unlink(filePath);
-            console.log(`[useCharacterPersistence] Deleted character file: ${filePath}`);
+            const { deleteCharacterFromProject } = await import('../utils/characterStorage');
+            await deleteCharacterFromProject(projectId, character_id);
+            console.log(`[useCharacterPersistence] Deleted character file from project: ${projectId}`);
           } catch (error) {
             console.warn('[useCharacterPersistence] Failed to delete character from project directory:', error);
           }
@@ -892,10 +873,11 @@ export function useCharacterPersistence() {
    */
   const syncCharactersFromProject = useCallback(
     async (): Promise<{ loaded: number; errors: number }> => {
-      const projectPath = useEditorStore.getState().projectPath;
+      const project = useAppStore.getState().project;
+      const projectId = project?.id;
 
-      if (!projectPath) {
-        console.log('[useCharacterPersistence] No project path available for sync');
+      if (!projectId) {
+        console.log('[useCharacterPersistence] No project ID available for sync');
         return { loaded: 0, errors: 0 };
       }
 
@@ -903,7 +885,7 @@ export function useCharacterPersistence() {
       let errors = 0;
 
       try {
-        const characters = await loadCharactersFromProjectDirectory(projectPath);
+        const characters = await loadCharactersFromProjectDirectory(projectId);
 
         for (const character of characters) {
           try {
@@ -948,7 +930,7 @@ export function useCharacterPersistence() {
     [addCharacter, updateCharacter, getAllCharacters, loadCharactersFromProjectDirectory, saveToLocalStorage]
   );
 
-  return {
+  const persistence = {
     saveCharacter,
     loadCharacter,
     loadAllCharacters,
@@ -958,4 +940,15 @@ export function useCharacterPersistence() {
     saveToProjectDirectory,
     loadCharactersFromProjectDirectory,
   };
+
+  // Auto-sync from project directory when projectPath changes
+  useEffect(() => {
+    const projectPath = useEditorStore.getState().projectPath;
+    if (projectPath) {
+      console.log('[useCharacterPersistence] Project path detected, syncing characters...');
+      syncCharactersFromProject();
+    }
+  }, [syncCharactersFromProject]);
+
+  return persistence;
 }

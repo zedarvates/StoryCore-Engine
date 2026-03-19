@@ -3,8 +3,11 @@ import { Send, Sparkles, Loader2, AlertCircle, Download, Zap, Undo2 } from 'luci
 import { useAppStore } from '@/stores/useAppStore';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
 import { promptOptimizer } from '@/services/ai/PromptOptimizationService';
+import { llmService, type LLMProvider } from '@/services/llmService';
 import type { ChatMessage, Shot } from '@/types';
 import { SpeechBubble } from './ui/SpeechBubble';
+import { Badge } from './ui/badge';
+import { cn } from '@/lib/utils';
 
 interface ChatBoxProps {
   className?: string;
@@ -16,6 +19,8 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [undoValue, setUndoValue] = useState<string | null>(null);
   const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
+  const [selectedProvider] = useState<LLMProvider>('openrouter');
+  const [selectedModel, setSelectedModel] = useState<string>('meta-llama/llama-3.1-8b-instruct');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -57,33 +62,60 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
     setInputValue('');
     setIsProcessing(true);
 
-    // Simulate AI processing (in production, this would call an LLM API)
-    setTimeout(() => {
-      const response = generateAIResponse(userMessage.content, shots);
+    try {
+      const prompt = `Project State: ${shots.length} shots.
+Context: ${text}
+Please provide a narrative response and any JSON actions for shot management.
+Format actions like: ACTION: {"type": "addShot", "shot": {...}} or ACTION: {"type": "updateShot", "shotId": "...", "updates": {...}}`;
+
+      const responseText = await llmService.generate(prompt, {
+        provider: selectedProvider as any,
+        model: selectedModel
+      });
+
+      // Extract JSON actions if present
+      const actionMatch = responseText.match(/ACTION: (\{.*?\})/);
+      const actions: any[] = [];
+      const cleanMessage = responseText.replace(/ACTION: \{.*?\}/g, '').trim();
+
+      if (actionMatch) {
+        try {
+          const action = JSON.parse(actionMatch[1]);
+          actions.push(action);
+        } catch (e) {
+          console.error("Failed to parse action JSON", e);
+        }
+      }
+
       const assistantMessage: ChatMessage = {
         id: `msg-${Date.now()}-assistant`,
         role: 'assistant',
-        content: response.message,
+        content: cleanMessage,
         timestamp: new Date(),
-        suggestions: response.suggestions,
       };
 
       addChatMessage(assistantMessage);
 
       // Execute any actions from the AI response
-      if (response.actions) {
-        response.actions.forEach((action) => {
-          if (action.type === 'addShot' && action.shot) {
-            addShot(action.shot as Shot);
-          } else if (action.type === 'updateShot' && action.shotId) {
-            updateShot(action.shotId, action.updates as Partial<Shot>);
-          }
-        });
-      }
-
+      actions.forEach((action) => {
+        if (action.type === 'addShot' && action.shot) {
+          addShot(action.shot as Shot);
+        } else if (action.type === 'updateShot' && action.shotId) {
+          updateShot(action.shotId, action.updates as Partial<Shot>);
+        }
+      });
+    } catch (error) {
+      console.error("LLM Generation failed", error);
+      addChatMessage({
+        id: `msg-${Date.now()}-error`,
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${(error as Error).message}`,
+        timestamp: new Date(),
+      });
+    } finally {
       setIsProcessing(false);
-    }, 1000);
-  }, [isProcessing, shots, addChatMessage, addShot, updateShot]);
+    }
+  }, [isProcessing, shots, addChatMessage, addShot, updateShot, selectedProvider, selectedModel]);
 
   // Listen for voice input events and auto-send
   useEffect(() => {
@@ -106,48 +138,11 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isProcessing) return;
-
-    const userMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      role: 'user',
-      content: inputValue.trim(),
-      timestamp: new Date(),
-    };
-
-    addChatMessage(userMessage);
-    setInputValue('');
-    setIsProcessing(true);
-
-    // Simulate AI processing (in production, this would call an LLM API)
-    setTimeout(() => {
-      const response = generateAIResponse(userMessage.content, shots);
-      const assistantMessage: ChatMessage = {
-        id: `msg-${Date.now()}-assistant`,
-        role: 'assistant',
-        content: response.message,
-        timestamp: new Date(),
-        suggestions: response.suggestions,
-      };
-
-      addChatMessage(assistantMessage);
-
-      // Execute any actions from the AI response
-      if (response.actions) {
-        response.actions.forEach((action) => {
-          if (action.type === 'addShot' && action.shot) {
-            addShot(action.shot as Shot);
-          } else if (action.type === 'updateShot' && action.shotId) {
-            updateShot(action.shotId, action.updates as Partial<Shot>);
-          }
-        });
-      }
-
-      setIsProcessing(false);
-    }, 1000);
+    await handleSendMessageWithText(inputValue.trim());
   };
 
   const handleOptimizePrompt = async () => {
-    if (!inputValue.trim() || isOptimizing) return;
+    if (!inputValue.trim() || isProcessing || isOptimizing) return;
     
     setUndoValue(inputValue);
     setIsOptimizing(true);
@@ -193,9 +188,28 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
   return (
     <div className={`flex flex-col h-full rounded-[28px] overflow-hidden backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70 border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] ${className}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-white/40 dark:bg-slate-800/40 border-b border-white/20 dark:border-slate-700/30">
-        <Sparkles className="w-5 h-5 text-purple-400" />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-white">StoryCore AI Assistant</h2>
+      <div className="flex flex-col border-b border-white/20 dark:border-slate-700/30 bg-white/40 dark:bg-slate-800/40">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-400" />
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-white">StoryCore Assistant</h2>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {['meta-llama/llama-3.1-8b-instruct', 'openai/gpt-4o'].map(m => (
+              <Badge 
+                key={m}
+                onClick={() => setSelectedModel(m)}
+                className={cn(
+                  "cursor-pointer text-[8px] py-0 px-2 border-primary/20 hover:bg-primary/20 transition-all",
+                  selectedModel === m ? "bg-primary/30 border-primary text-primary" : "text-white/40"
+                )}
+              >
+                {m.split('/').pop()?.split('-')[0]}
+              </Badge>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Messages */}
@@ -346,140 +360,3 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ className = '' }) => {
     </div>
   );
 };
-
-// Helper function to generate AI responses (mock implementation)
-function generateAIResponse(
-  userInput: string,
-  currentShots: unknown[]
-): {
-  message: string;
-  suggestions?: string[];
-  actions?: Array<{ type: string; shot?: unknown; shotId?: string; updates?: unknown }>;
-} {
-  const input = userInput.toLowerCase();
-
-  // Project creation request
-  if (
-    // cspell:disable-next-line
-    (input.includes('créer') || input.includes('creer') || input.includes('create') || input.includes('nouveau') || input.includes('new')) &&
-    (input.includes('projet') || input.includes('project'))
-  ) {
-    return {
-      message:
-        "Pour créer un nouveau projet, utilisez le bouton 'New Project' sur la page d'accueil (Landing Page). Je peux vous aider à créer des shots, ajouter des transitions, et configurer l'audio une fois que votre projet est ouvert.",
-      suggestions: [
-        'Créer une séquence de 3 shots',
-        'Ajouter des transitions entre les shots',
-        'Suggérer de l\'audio pour mes scènes',
-      ],
-    };
-  }
-
-  // Project opening request
-  if (
-    (input.includes('ouvrir') || input.includes('open') || input.includes('charger') || input.includes('load')) &&
-    (input.includes('projet') || input.includes('project'))
-  ) {
-    return {
-      message:
-        "Pour ouvrir un projet existant, utilisez le bouton 'Open Project' sur la page d'accueil ou sélectionnez un projet récent. Je suis là pour vous aider avec l'édition une fois le projet ouvert!",
-      suggestions: [
-        'Créer une séquence de shots',
-        'Ajouter des effets visuels',
-        'Configurer l\'audio',
-      ],
-    };
-  }
-
-  // Create shot sequence
-  if (input.includes('create') || input.includes('add') || input.includes('shot')) {
-    const shotCount = extractNumber(input) || 3;
-    const theme = extractTheme(input);
-
-    const newShots = [];
-    for (let i = 0; i < shotCount; i++) {
-      newShots.push({
-        id: `shot-${Date.now()}-${i}`,
-        title: `${theme} - Shot ${i + 1}`,
-        description: `A ${theme} scene`,
-        duration: 5,
-        position: currentShots.length + i,
-        audioTracks: [],
-        effects: [],
-        textLayers: [],
-        animations: [],
-      });
-    }
-
-    return {
-      message: `I've created ${shotCount} shots for your ${theme} sequence. You can now edit each shot's properties in the canvas.`,
-      suggestions: [
-        'Add transitions between these shots',
-        'Suggest audio for this sequence',
-        'Add text overlays to the shots',
-      ],
-      actions: newShots.map((shot) => ({ type: 'addShot', shot })),
-    };
-  }
-
-  // Transition suggestions
-  if (input.includes('transition')) {
-    return {
-      message:
-        "I recommend using a 'fade' transition for smooth scene changes, or a 'wipe' for more dramatic cuts. You can adjust the transition duration in the Properties Panel.",
-      suggestions: [
-        'Apply fade transitions to all shots',
-        'Use dramatic wipes for action scenes',
-      ],
-    };
-  }
-
-  // Audio suggestions
-  if (input.includes('audio') || input.includes('sound') || input.includes('music')) {
-    const sceneType = input.includes('action')
-      ? 'action'
-      : input.includes('dialogue')
-        ? 'dialogue'
-        : 'ambient';
-
-    return {
-      message: `For ${sceneType} scenes, I suggest using ${sceneType === 'action'
-        ? 'intense orchestral music with surround sound positioning'
-        : sceneType === 'dialogue'
-          ? 'clear center-channel audio with voice clarity enhancement'
-          : 'subtle ambient sounds with wide stereo imaging'
-        }. You can configure this in the Audio Panel.`,
-      suggestions: [
-        'Add background music',
-        'Generate voiceover narration',
-        'Configure surround sound',
-      ],
-    };
-  }
-
-  // Default response
-  return {
-    message:
-      "I can help you create shots, add transitions, suggest audio settings, and more. What would you like to do?",
-    suggestions: [
-      'Create a new shot sequence',
-      'Add transitions between shots',
-      'Suggest audio for my scenes',
-    ],
-  };
-}
-
-function extractNumber(text: string): number | null {
-  const match = text.match(/\d+/);
-  return match ? parseInt(match[0], 10) : null;
-}
-
-function extractTheme(text: string): string {
-  const themes = ['sunrise', 'sunset', 'action', 'dialogue', 'landscape', 'portrait'];
-  for (const theme of themes) {
-    if (text.includes(theme)) return theme;
-  }
-  return 'scene';
-}
-
-

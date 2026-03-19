@@ -6,11 +6,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { globalErrorHandler, type ErrorContext } from '../globalErrorHandler';
+import { globalErrorHandler } from '../globalErrorHandler';
 import type { FeedbackInitialContext } from '@/components/feedback/types';
 
 describe('GlobalErrorHandler', () => {
-  let mockOpenFeedbackPanel: ReturnType<typeof vi.fn>;
+  let mockOpenFeedbackPanel: any;
   let originalConsoleError: typeof console.error;
   let originalConsoleLog: typeof console.log;
   let originalConsoleWarn: typeof console.warn;
@@ -150,8 +150,9 @@ describe('GlobalErrorHandler', () => {
       const error = new Error('Test promise rejection');
       error.stack = 'Error: Test promise rejection\n    at async.js:10:5';
       
+      const promise = Promise.reject(error).catch(() => {});
       const rejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
-        promise: Promise.reject(error),
+        promise,
         reason: error,
       });
       
@@ -168,8 +169,9 @@ describe('GlobalErrorHandler', () => {
     it('should handle non-Error promise rejections', () => {
       globalErrorHandler.initialize(mockOpenFeedbackPanel);
       
+      const promise = Promise.reject('String rejection').catch(() => {});
       const rejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
-        promise: Promise.reject('String rejection'),
+        promise,
         reason: 'String rejection',
       });
       

@@ -22,6 +22,8 @@ import type { Story, StoryVersion } from './story';
 import type { AssetMetadata } from './asset';
 // Import StoryObject types
 import type { StoryObject } from './object';
+// Import Location types
+import type { Location as ProductionLocation, LocationType } from './location';
 // Import Shot and Production types
 import type { ShotType, TransitionType, ComfyUIParameters } from './shot';
 import type { SequencePlan } from './sequencePlan';
@@ -55,7 +57,7 @@ export interface Shot {
   start_time?: number;
   prompt?: string;
   generated_image_url?: string;
-  status?: string;
+  status?: ShotStatus;
   progress?: number;
   promoted_panel_path?: string;
 
@@ -71,29 +73,11 @@ export interface Shot {
   // Wizard / Production specific
   number?: number; // Alias for position
   type?: ShotType;
-  category?: 'establishing' | 'action' | 'dialogue' | 'reaction' | 'insert' | 'transition' | 'custom';
-  timing?: {
-    duration: number;
-    inPoint: number;
-    outPoint: number;
-    transition: TransitionType;
-    transitionDuration: number;
-    trimStart?: number;
-    trimEnd?: number;
-  };
+  category?: ShotCategory;
+  timing?: ShotTiming;
 
   // Generation metadata
-  generation?: {
-    aiProvider: string;
-    model: string;
-    prompt: string;
-    negativePrompt: string;
-    comfyuiPreset: string;
-    parameters: ComfyUIParameters;
-    styleReferences: string[];
-    seed?: number;
-    referenceImage?: string;
-  };
+  generation?: ShotGeneration;
 
   // Audio tracks
   audioTracks?: AudioTrack[];
@@ -110,25 +94,61 @@ export interface Shot {
   // Transition to next shot
   transitionOut?: Transition;
 
-  metadata?: Record<string, unknown>;
+  metadata?: ShotMetadata;
   referenceImage?: string; // Legacy/AI
   result_url?: string;
 
   // Dashboard compatibility
-  promptValidation?: {
-    isValid: boolean;
-    errors: Array<{
-      type: 'empty' | 'too_short' | 'too_long' | 'invalid_characters';
-      message: string;
-      field: string;
-    }>;
-    warnings: Array<{
-      type: 'inconsistent' | 'vague' | 'missing_detail';
-      message: string;
-      suggestion?: string;
-    }>;
-    suggestions: string[];
-  };
+  promptValidation?: PromptValidation;
+}
+
+// Type definitions for Shot properties
+export type ShotStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'draft';
+export type ShotCategory = 'establishing' | 'action' | 'dialogue' | 'reaction' | 'insert' | 'transition' | 'custom';
+
+export interface ShotTiming {
+  duration: number;
+  inPoint: number;
+  outPoint: number;
+  transition: TransitionType;
+  transitionDuration: number;
+  trimStart?: number;
+  trimEnd?: number;
+}
+
+export interface ShotGeneration {
+  aiProvider: string;
+  model: string;
+  prompt: string;
+  negativePrompt: string;
+  comfyuiPreset: string;
+  parameters: ComfyUIParameters;
+  styleReferences: string[];
+  seed?: number;
+  referenceImage?: string;
+}
+
+export interface ShotMetadata {
+  [key: string]: unknown;
+}
+
+export interface PromptValidation {
+  isValid: boolean;
+  errors: PromptValidationError[];
+  warnings: PromptValidationWarning[];
+  suggestions: string[];
+}
+
+export interface PromptValidationError {
+  type: 'empty' | 'too_short' | 'too_long' | 'invalid_characters';
+  message: string;
+  field: string;
+}
+
+export interface PromptValidationWarning {
+  type: 'inconsistent' | 'vague' | 'missing_detail';
+  message: string;
+  suggestion?: string;
 }
 
 // ============================================================================
@@ -399,6 +419,7 @@ export interface Project {
   stories?: Story[];
   storyVersions?: StoryVersion[];
   objects?: StoryObject[];
+  locations?: ProductionLocation[];
   sequencePlans?: SequencePlan[];
   projectSetup?: ProjectSetupData;
   moodboard?: MoodboardData;
@@ -443,10 +464,14 @@ export interface Project {
   };
   metadata?: Record<string, unknown>;
   global_resume?: string;
+  locations_count?: number; // Optional count for UI
 }
 
 // Import World type from world.ts
-export type { World, Location, WorldRule, CulturalElements } from './world';
+export type { World, Location as WorldLocation, WorldRule, CulturalElements } from './world';
+
+// Import Production Location types from location.ts
+export type { Location, LocationType, CubeFace, TextureDirection } from './location';
 
 // Import Character types from character.ts
 export type { Character, CharacterRelationship, VisualIdentity, Personality, Background, Role } from './character';
@@ -702,8 +727,8 @@ export type {
   Shot as DashboardShot,
   DialoguePhrase,
   VoiceParameters,
-  PromptValidation,
-  ValidationError as PromptValidationError,
+  PromptValidation as DashboardPromptValidation,
+  ValidationError as DashboardValidationError,
   ValidationWarning,
   GenerationResults,
   GeneratedShot,
@@ -878,6 +903,7 @@ export interface AppState {
   storyVersions: StoryVersion[]; // Version history for stories
   objects: StoryObject[]; // Story objects, props, and artifacts
   sequencePlans: SequencePlan[]; // Structured sequence plans
+  locations: ProductionLocation[]; // Project locations and sets
 
   // UI state
   selectedShotId: string | null;
@@ -992,6 +1018,9 @@ export interface ChatMessage {
   timestamp: Date;
   attachments?: ChatAttachment[];
   suggestions?: string[]; // Suggested follow-up actions
+  isStreaming?: boolean;
+  streamComplete?: boolean;
+  error?: any; // LLM error details for recovery
 }
 
 export interface ChatSuggestion {

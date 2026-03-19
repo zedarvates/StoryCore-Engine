@@ -1,53 +1,19 @@
-/// <reference path="../types/electron.d.ts" />
-
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { RecentProject } from '@/components/launcher/RecentProjectsList';
 import { useAppStore } from '@/stores/useAppStore';
 import { useEditorStore } from '@/stores/editorStore';
 import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
 import { useWorldPersistence } from '@/hooks/useWorldPersistence';
+import { useLocationPersistence } from '@/hooks/useLocationPersistence';
+import { useSequencePersistence } from '@/hooks/useSequencePersistence';
 import type { Project as StoreProject } from '@/types';
 import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
+import { projectCreationService, convertElectronProjectToStore } from '@/services/ProjectCreationService';
+import type { Project as ElectronProject } from '@/types/electron';
 
-// Helper function to convert Electron project to Store project format
-function convertElectronProjectToStore(electronProject: unknown): StoreProject {
-  // Extract config from Electron project
-  const config = electronProject.config || {};
-  
-  return {
-    schema_version: config.schema_version || '1.0',
-    project_name: electronProject.name || config.project_name || 'Untitled Project',
-    shots: config.shots || [],
-    assets: config.assets || [],
-    worlds: config.worlds,
-    selectedWorldId: config.selectedWorldId,
-    characters: config.characters,
-    capabilities: config.capabilities || {
-      grid_generation: true,
-      promotion_engine: true,
-      qa_engine: true,
-      autofix_engine: true,
-    },
-    generation_status: config.generation_status || {
-      grid: 'pending',
-      promotion: 'pending',
-    },
-    casting: config.casting,
-    metadata: {
-      id: electronProject.id,
-      path: electronProject.path,
-      version: electronProject.version,
-      created_at: electronProject.createdAt instanceof Date 
-        ? electronProject.createdAt.toISOString() 
-        : electronProject.createdAt || config.created_at || new Date().toISOString(),
-      updated_at: electronProject.modifiedAt instanceof Date 
-        ? electronProject.modifiedAt.toISOString() 
-        : electronProject.modifiedAt || config.modified_at || new Date().toISOString(),
-      ...config.metadata,
-    },
-  };
-}
+// interfaces and helpers removed - using centralized service
 
 // ============================================================================
 // Types
@@ -64,7 +30,7 @@ interface UseLandingPageReturn {
   // Actions
   handleCreateProject: () => void;
   handleOpenProject: () => void;
-  handleCreateProjectSubmit: (projectName: string, projectPath: string, format: unknown) => Promise<void>;
+  handleCreateProjectSubmit: (projectName: string, projectPath: string, format: SerializableProjectFormat) => Promise<void>;
   handleOpenProjectSubmit: (projectPath: string) => Promise<void>;
   handleRecentProjectClick: (project: RecentProject) => void;
   handleRemoveRecentProject: (projectPath: string) => Promise<void>;
@@ -83,6 +49,7 @@ export function useLandingPage(): UseLandingPageReturn {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showOpenDialog, setShowOpenDialog] = useState(false);
   const [recentProjects, setRecentProjects] = useState<RecentProject[]>([]);
+  const navigate = useNavigate();
 
   // Get store actions
   const setProject = useAppStore((state) => state.setProject);
@@ -91,15 +58,22 @@ export function useLandingPage(): UseLandingPageReturn {
   // Get persistence functions at top level (hooks can only be called at top level)
   const { loadAndSyncCharacters } = useCharacterPersistence();
   const { syncWorldsFromProject } = useWorldPersistence();
+  const { loadAndSyncLocations } = useLocationPersistence();
+  const { loadAndSyncSequences } = useSequencePersistence();
 
   // Load recent projects on mount
   const loadRecentProjects = useCallback(async () => {
-    try {
-      if (window.electronAPI) {
-        const projects = await window.electronAPI.recentProjects.get();
-        setRecentProjects(projects);
-      }
-    } catch (err) {
+      try {
+        if (window.electronAPI) {
+          const projects = await window.electronAPI.recentProjects.get();
+          // Convert numeric lastAccessed to Date if needed
+          const normalizedProjects: RecentProject[] = projects.map((p) => ({
+            ...p,
+            lastAccessed: typeof p.lastAccessed === 'number' ? new Date(p.lastAccessed) : p.lastAccessed
+          }));
+          setRecentProjects(normalizedProjects);
+        }
+      } catch (err) {
       console.error('Failed to load recent projects:', err);
       // Don't show error to user for this - just log it
     }
@@ -131,36 +105,36 @@ export function useLandingPage(): UseLandingPageReturn {
         if (window.electronAPI) {
           // Create project via Electron API with format (returns Project directly, throws on error)
           // If projectPath is empty, the backend will use the default Documents directory
-          const createData: unknown = {
+          const createData = {
             name: projectName,
-            format: format,
+            format: {
+              aspectRatio: '16:9',
+              resolution: '1920x1080',
+              frameRate: 24,
+              colorSpace: 'sRGB',
+            },
             initialShots: initialShots,
+            location: (projectPath && projectPath.trim() !== '') ? projectPath : undefined
           };
           
-          // Only include location if it's not empty - this ensures default path is used
-          if (projectPath && projectPath.trim() !== '') {
-            createData.location = projectPath;
+          if (createData.location) {
             console.log('[useLandingPage] Using custom location:', projectPath);
           } else {
             console.log('[useLandingPage] No location specified, backend will use default path');
           }
           
           console.log('[useLandingPage] Creating project with data:', createData);
-          const electronProject = await window.electronAPI.project.create(createData);
+          const electronProject = await window.electronAPI.project.create(createData as any);
 
           console.log('Project created successfully:', electronProject);
 
           // Convert Electron project to Store project format
-          const storeProject = convertElectronProjectToStore(electronProject);
+          const storeProject = convertElectronProjectToStore(electronProject as any);
           // Get the actual project path from the electron project
           const actualProjectPath = electronProject.path || `${projectPath}/${projectName}`;
 
-          // Load the created project into the store
-          setProject(storeProject);
-          setShots(storeProject.shots || initialShots);
-
-          // Set project path in editor store so persistence hooks can use it
-          useEditorStore.getState().setProjectPath(actualProjectPath);
+          // Load the created project into the store using the centralized service
+          await projectCreationService.loadProjectIntoStores(storeProject, actualProjectPath, template.sequences);
 
           // Reload recent projects
           await loadRecentProjects();
@@ -168,12 +142,18 @@ export function useLandingPage(): UseLandingPageReturn {
           // Close dialog
           setShowCreateDialog(false);
 
+          // Navigate to project dashboard
+          if (actualProjectPath) {
+            navigate(`/project/${encodeURIComponent(actualProjectPath)}`);
+          }
+
         } else {
           // Demo mode - simulate creation
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // Create a demo project in Store format with format info and initial shots
           const demoProject: StoreProject = {
+            id: Date.now().toString(),
             schema_version: '1.0',
             project_name: projectName,
             shots: initialShots,
@@ -215,6 +195,9 @@ export function useLandingPage(): UseLandingPageReturn {
 
           setRecentProjects((prev) => [newProject, ...prev].slice(0, 10));
           setShowCreateDialog(false);
+          
+          // Navigate to project dashboard
+          navigate(`/project/${encodeURIComponent(newProject.path)}`);
 
         }
       } catch (err) {
@@ -225,7 +208,7 @@ export function useLandingPage(): UseLandingPageReturn {
         setIsLoading(false);
       }
     },
-    [loadRecentProjects, setProject, setShots]
+    [loadRecentProjects, setProject, setShots, navigate]
   );
 
 // Handle open project submission
@@ -240,14 +223,10 @@ export function useLandingPage(): UseLandingPageReturn {
           const electronProject = await window.electronAPI.project.open(projectPath);
 
           // Convert Electron project to Store project format
-          const storeProject = convertElectronProjectToStore(electronProject);
+          const storeProject = convertElectronProjectToStore(electronProject as any);
 
-          // Load the opened project into the store
-          setProject(storeProject);
-          setShots(storeProject.shots || []);
-
-          // Set project path in editor store so persistence hooks can use it
-          useEditorStore.getState().setProjectPath(projectPath);
+          // Load the opened project into the store using the centralized service
+          await projectCreationService.loadProjectIntoStores(storeProject, projectPath);
 
           // Sync characters from project directory to store
           await loadAndSyncCharacters();
@@ -255,11 +234,20 @@ export function useLandingPage(): UseLandingPageReturn {
           // Sync worlds from project directory to store
           await syncWorldsFromProject();
 
+          // Sync locations from project directory to store
+          await loadAndSyncLocations();
+
+          // Sync sequences from project directory to store
+          await loadAndSyncSequences();
+
           // Reload recent projects
           await loadRecentProjects();
 
           // Close dialog
           setShowOpenDialog(false);
+
+          // Navigate to project dashboard
+          navigate(`/project/${encodeURIComponent(projectPath)}`);
 
         } else {
           // Demo mode - simulate opening
@@ -267,6 +255,7 @@ export function useLandingPage(): UseLandingPageReturn {
 
           // Create a demo project in Store format
           const demoProject: StoreProject = {
+            id: Date.now().toString(),
             schema_version: '1.0',
             project_name: 'Demo Project',
             shots: [],
@@ -302,7 +291,16 @@ export function useLandingPage(): UseLandingPageReturn {
           // Sync worlds from project directory to store
           await syncWorldsFromProject();
 
+          // Sync locations from project directory to store
+          await loadAndSyncLocations();
+
+          // Sync sequences from project directory to store
+          await loadAndSyncSequences();
+
           setShowOpenDialog(false);
+          
+          // Navigate to project dashboard
+          navigate(`/project/${encodeURIComponent(projectPath)}`);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to open project';
@@ -312,7 +310,7 @@ export function useLandingPage(): UseLandingPageReturn {
         setIsLoading(false);
       }
     },
-    [loadRecentProjects, setProject, setShots, loadAndSyncCharacters, syncWorldsFromProject]
+    [loadRecentProjects, setProject, setShots, loadAndSyncCharacters, syncWorldsFromProject, loadAndSyncLocations, loadAndSyncSequences, navigate]
   );
 
 
@@ -404,14 +402,10 @@ export function useLandingPage(): UseLandingPageReturn {
           const electronProject = await window.electronAPI.project.open(project.path);
 
           // Convert Electron project to Store project format
-          const storeProject = convertElectronProjectToStore(electronProject);
+          const storeProject = convertElectronProjectToStore(electronProject as any);
 
-          // Load the opened project into the store
-          setProject(storeProject);
-          setShots(storeProject.shots || []);
-
-          // Set project path in editor store so persistence hooks can use it
-          useEditorStore.getState().setProjectPath(project.path);
+          // Load the opened project into the store using the centralized service
+          await projectCreationService.loadProjectIntoStores(storeProject, project.path);
 
           // Sync characters from project directory to store
           await loadAndSyncCharacters();
@@ -419,8 +413,17 @@ export function useLandingPage(): UseLandingPageReturn {
           // Sync worlds from project directory to store
           await syncWorldsFromProject();
 
+          // Sync locations from project directory to store
+          await loadAndSyncLocations();
+
+          // Sync sequences from project directory to store
+          await loadAndSyncSequences();
+
           // Reload recent projects to update last accessed time
           await loadRecentProjects();
+
+          // Navigate to project dashboard
+          navigate(`/project/${encodeURIComponent(project.path)}`);
 
         } else {
           // Demo mode - simulate opening
@@ -428,6 +431,7 @@ export function useLandingPage(): UseLandingPageReturn {
 
           // Create a demo project in Store format
           const demoProject: StoreProject = {
+            id: project.id,
             schema_version: '1.0',
             project_name: project.name,
             shots: [],
@@ -463,12 +467,21 @@ export function useLandingPage(): UseLandingPageReturn {
           // Sync worlds from project directory to store
           await syncWorldsFromProject();
 
+          // Sync locations from project directory to store
+          await loadAndSyncLocations();
+
+          // Sync sequences from project directory to store
+          await loadAndSyncSequences();
+
           // Update last accessed time
           setRecentProjects((prev) =>
             prev.map((p) =>
               p.id === project.id ? { ...p, lastAccessed: new Date() } : p
             )
           );
+
+          // Navigate to project dashboard
+          navigate(`/project/${encodeURIComponent(project.path)}`);
 
         }
       } catch (err) {
@@ -478,7 +491,7 @@ export function useLandingPage(): UseLandingPageReturn {
         setIsLoading(false);
       }
     },
-    [loadRecentProjects, setProject, setShots, loadAndSyncCharacters, syncWorldsFromProject]
+    [loadRecentProjects, setProject, setShots, loadAndSyncCharacters, syncWorldsFromProject, loadAndSyncLocations, loadAndSyncSequences, navigate]
   );
 
 

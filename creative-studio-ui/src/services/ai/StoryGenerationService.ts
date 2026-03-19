@@ -101,6 +101,21 @@ export interface StoryRefinementRequest {
   };
 }
 
+export interface StoryResponse {
+  id: string;
+  title: string;
+  synopsis: string;
+  genre: string;
+  arcs?: ArcData[];
+  scenes?: SceneData[];
+  characters?: CharacterData[];
+  created_at?: string;
+  updated_at?: string;
+  structure?: string;
+  estimated_duration?: number;
+  pacing_score?: number;
+}
+
 class StoryGenerationService {
   private baseUrl: string = '/api';
   private apiVersion: string = 'v1';
@@ -182,8 +197,8 @@ class StoryGenerationService {
       
       const result = await response.json();
       return {
-        stories: result.map((s: any) => this.transformStoryResult(s)),
-        total: result.total,
+        stories: (Array.isArray(result.stories) ? result.stories : (Array.isArray(result) ? result : [])).map((s: StoryResponse) => this.transformStoryResult(s)),
+        total: result.total ?? (Array.isArray(result) ? result.length : 0),
       };
     } catch (error) {
       logger.error('Failed to list stories', error);
@@ -315,7 +330,7 @@ class StoryGenerationService {
     }
   }
   
-  private transformStoryResult(data: any): StoryResult {
+  private transformStoryResult(data: StoryResponse): StoryResult {
     return {
       id: data.id,
       title: data.title,

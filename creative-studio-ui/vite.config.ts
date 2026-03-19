@@ -72,41 +72,92 @@ export default defineConfig({
     // Bundle size warning threshold (500KB target)
     chunkSizeWarningLimit: 500,
     // CSS code splitting for better caching
-    cssCodeSplit: false,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         // Optimize chunk naming for better caching
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
-        // Manual chunks for code splitting
-        manualChunks: {
-          // Vendor chunks - React core
-          'react-vendor': ['react', 'react-dom', 'react-router', 'react-router-dom'],
-          // Radix UI components
-          'radix-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-alert-dialog',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-progress',
-            '@radix-ui/react-separator',
-            '@radix-ui/react-slider',
-            '@radix-ui/react-switch',
-            '@radix-ui/react-toggle',
-            '@radix-ui/react-toggle-group',
-          ],
-          // PDF and export libraries
-          'pdf-export': ['jspdf', 'html2canvas'],
-          // UI libraries
-          'ui-libs': ['@mui/material', '@emotion/react', '@emotion/styled'],
-          // State management
-          'zustand-store': ['zustand'],
+        // Manual chunks for code splitting - optimized for smaller chunks
+        manualChunks: (id) => {
+          // Vendor chunks - React core (separate chunk)
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
+            return 'react-vendor';
+          }
+          
+          // Animation library
+          if (id.includes('framer-motion')) {
+            return 'animation-libs';
+          }
+
+          // Icons
+          if (id.includes('lucide-react')) {
+            return 'icons';
+          }
+
+          // Radix UI components (separate chunk)
+          if (id.includes('@radix-ui')) {
+            return 'radix-ui';
+          }
+          
+          // PDF and export libraries (separate chunk)
+          if (id.includes('jspdf') || id.includes('html2canvas')) {
+            return 'pdf-export';
+          }
+          
+          // UI libraries - MUI (separate chunk)
+          if (id.includes('@mui') || id.includes('@emotion')) {
+            return 'ui-libs';
+          }
+          
+          // State management (separate chunk)
+          if (id.includes('zustand')) {
+            return 'zustand-store';
+          }
+          
+          // Three.js and 3D libraries (separate chunk)
+          if (id.includes('three') || id.includes('@react-three')) {
+            return 'three-3d';
+          }
+          
+          // LLM services - split into smaller chunks
+          if (id.includes('ollama')) {
+            return 'ollama-client';
+          }
+          if (id.includes('llm') && !id.includes('ollama')) {
+            return 'llm-core';
+          }
+          
+          // Large AI libraries (likely the cause of large ai-core)
+          if (id.includes('@ai-sdk') || id.includes('openai') || id.includes('anthropic') || id.includes('langchain')) {
+            return 'ai-providers';
+          }
+
+          // AI services - split into smaller chunks
+          if (id.includes('ai') && !id.includes('llm') && !id.includes('ollama') && !id.includes('node_modules')) {
+             return 'ai-internal';
+          }
+
+          // External AI dependencies
+          if (id.includes('node_modules') && id.includes('ai')) {
+            return 'ai-vendor';
+          }
+          
+          // ComfyUI and image generation (separate chunk)
+          if (id.includes('comfyui') || id.includes('image') || id.includes('generation')) {
+            return 'image-generation';
+          }
+          
+          // Audio and video processing (separate chunk)
+          if (id.includes('audio') || id.includes('video') || id.includes('ffmpeg')) {
+            return 'media-processing';
+          }
+          
+          // Default chunk for other dependencies
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         },
       },
     },

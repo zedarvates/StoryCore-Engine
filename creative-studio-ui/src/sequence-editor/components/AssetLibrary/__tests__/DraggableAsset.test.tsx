@@ -10,30 +10,33 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DraggableAsset, DND_ITEM_TYPES } from '../DraggableAsset';
-import type { Asset } from '../../../types';
+import type { ServiceAsset } from '../../../types';
+
+// Mock the thumbnail cache to avoid IndexedDB dependencies
+vi.mock('../../../utils/thumbnailCache', () => ({
+  fetchAndCacheThumbnail: vi.fn((url: string) => Promise.resolve(url)),
+  getCachedThumbnail: vi.fn(() => Promise.resolve(null)),
+  cacheThumbnail: vi.fn(() => Promise.resolve()),
+}));
 
 // ============================================================================
 // Test Utilities
 // ============================================================================
 
-const mockAsset: Asset = {
+const mockAsset: ServiceAsset = {
   id: 'test-asset-1',
   name: 'Test Character',
-  type: 'character',
+  type: 'image',
   category: 'characters',
   thumbnailUrl: 'https://example.com/thumbnail.jpg',
   metadata: {
     description: 'A test character asset for unit testing',
-    characterMetadata: {
-      age: '25',
-      gender: 'neutral',
-      appearance: 'Test appearance',
-      personality: 'Test personality',
-    },
+    category: 'character',
+    tags: ['test', 'character', 'hero'],
   },
   tags: ['test', 'character', 'hero'],
   source: 'builtin',
-  createdAt: new Date('2024-01-01'),
+  createdAt: new Date('2024-01-01').getTime(),
 };
 
 const renderWithDnd = (component: React.ReactElement) => {
@@ -49,9 +52,9 @@ const renderWithDnd = (component: React.ReactElement) => {
 // ============================================================================
 
 describe('DraggableAsset', () => {
-  let onPreview: ReturnType<typeof vi.fn>;
-  let onEdit: ReturnType<typeof vi.fn>;
-  let onDelete: ReturnType<typeof vi.fn>;
+  let onPreview: any;
+  let onEdit: any;
+  let onDelete: any;
 
   beforeEach(() => {
     onPreview = vi.fn();
@@ -60,7 +63,7 @@ describe('DraggableAsset', () => {
   });
 
   describe('Rendering', () => {
-    it('should render asset with thumbnail and name', () => {
+    it('should render asset with thumbnail and name', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -72,10 +75,10 @@ describe('DraggableAsset', () => {
       );
 
       expect(screen.getByText('Test Character')).toBeInTheDocument();
-      expect(screen.getByAltText('Test Character')).toBeInTheDocument();
+      expect(await screen.findByAltText('Test Character')).toBeInTheDocument();
     });
 
-    it('should render asset description', () => {
+    it('should render asset description', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -89,7 +92,7 @@ describe('DraggableAsset', () => {
       expect(screen.getByText(/A test character asset/)).toBeInTheDocument();
     });
 
-    it('should render asset tags', () => {
+    it('should render asset tags', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -105,7 +108,7 @@ describe('DraggableAsset', () => {
       expect(screen.getByText('hero')).toBeInTheDocument();
     });
 
-    it('should render source indicator for builtin assets', () => {
+    it('should render source indicator for builtin assets', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -120,7 +123,7 @@ describe('DraggableAsset', () => {
       expect(sourceIndicator).toBeInTheDocument();
     });
 
-    it('should render source indicator for AI-generated assets', () => {
+    it('should render source indicator for AI-generated assets', async () => {
       const aiAsset = { ...mockAsset, source: 'ai-generated' as const };
       
       renderWithDnd(
@@ -137,7 +140,7 @@ describe('DraggableAsset', () => {
       expect(sourceIndicator).toBeInTheDocument();
     });
 
-    it('should render action buttons in overlay', () => {
+    it('should render action buttons in overlay', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -155,7 +158,7 @@ describe('DraggableAsset', () => {
   });
 
   describe('Interactions', () => {
-    it('should call onClick when asset is clicked', () => {
+    it('should call onClick when asset is clicked', async () => {
       const { container } = renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -175,7 +178,7 @@ describe('DraggableAsset', () => {
       }
     });
 
-    it('should call onEdit when asset is double-clicked', () => {
+    it('should call onEdit when asset is double-clicked', async () => {
       const { container } = renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -195,7 +198,7 @@ describe('DraggableAsset', () => {
       }
     });
 
-    it('should call onPreview when preview button is clicked', () => {
+    it('should call onPreview when preview button is clicked', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -212,7 +215,7 @@ describe('DraggableAsset', () => {
       expect(onPreview).toHaveBeenCalledWith(mockAsset);
     });
 
-    it('should call onEdit when edit button is clicked', () => {
+    it('should call onEdit when edit button is clicked', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -229,7 +232,7 @@ describe('DraggableAsset', () => {
       expect(onEdit).toHaveBeenCalledWith(mockAsset);
     });
 
-    it('should call onDelete when delete button is clicked', () => {
+    it('should call onDelete when delete button is clicked', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -248,7 +251,7 @@ describe('DraggableAsset', () => {
   });
 
   describe('Drag and Drop', () => {
-    it('should have correct data attributes for drag operations', () => {
+    it('should have correct data attributes for drag operations', async () => {
       const { container } = renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -264,7 +267,7 @@ describe('DraggableAsset', () => {
       expect(assetCard).toHaveAttribute('data-asset-type', mockAsset.type);
     });
 
-    it('should have grab cursor by default', () => {
+    it('should have grab cursor by default', async () => {
       const { container } = renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -290,7 +293,7 @@ describe('DraggableAsset', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have accessible labels for action buttons', () => {
+    it('should have accessible labels for action buttons', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -306,7 +309,7 @@ describe('DraggableAsset', () => {
       expect(screen.getByLabelText(`Delete ${mockAsset.name}`)).toBeInTheDocument();
     });
 
-    it('should have alt text for thumbnail image', () => {
+    it('should have alt text for thumbnail image', async () => {
       renderWithDnd(
         <DraggableAsset
           asset={mockAsset}
@@ -317,13 +320,13 @@ describe('DraggableAsset', () => {
         />
       );
 
-      const image = screen.getByAltText('Test Character');
+      const image = await screen.findByAltText('Test Character');
       expect(image).toBeInTheDocument();
     });
   });
 
   describe('Edge Cases', () => {
-    it('should handle long asset names with ellipsis', () => {
+    it('should handle long asset names with ellipsis', async () => {
       const longNameAsset = {
         ...mockAsset,
         name: 'This is a very long asset name that should be truncated with ellipsis',
@@ -343,7 +346,7 @@ describe('DraggableAsset', () => {
       expect(nameElement).toHaveClass('asset-name');
     });
 
-    it('should handle long descriptions with truncation', () => {
+    it('should handle long descriptions with truncation', async () => {
       const longDescAsset = {
         ...mockAsset,
         metadata: {
@@ -366,7 +369,7 @@ describe('DraggableAsset', () => {
       expect(descElement).toBeInTheDocument();
     });
 
-    it('should handle assets with many tags', () => {
+    it('should handle assets with many tags', async () => {
       const manyTagsAsset = {
         ...mockAsset,
         tags: ['tag1', 'tag2', 'tag3', 'tag4', 'tag5', 'tag6'],
@@ -391,7 +394,7 @@ describe('DraggableAsset', () => {
       expect(screen.getByText('+3')).toBeInTheDocument();
     });
 
-    it('should handle missing callbacks gracefully', () => {
+    it('should handle missing callbacks gracefully', async () => {
       const { container } = renderWithDnd(
         <DraggableAsset
           asset={mockAsset}

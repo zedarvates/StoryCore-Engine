@@ -19,8 +19,7 @@ import type {
   Transform3D,
   SceneLocation
 } from '@/types/location';
-import { listLocationsInProject, loadLocationFromProject } from '@/utils/locationStorage';
-import { API_BASE_URL } from '../config/apiConfig';
+import { listLocationsInProject, loadLocationFromProject, loadAllLocationsInProject } from '@/utils/locationStorage';
 
 // ============================================================================
 // Internal Types
@@ -42,13 +41,15 @@ interface BackendLocation extends Partial<Location> {
 // API Configuration
 // ============================================================================
 
-// API_BASE_URL is now imported from central config
-
 /**
- * Fetch wrapper with error handling
+ * Fetch wrapper using relative URLs so requests go through Vite's proxy.
+ * This avoids CORS issues and "connection refused" errors in browser mode.
+ * The Vite proxy forwards /api/* to http://localhost:8080.
  */
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Use relative URL — goes through Vite proxy to backend
+  // endpoint should start with /api/...
+  const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
   try {
     const response = await fetch(url, {
@@ -64,11 +65,11 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
     }
 
     return response.json();
-    } catch {
-      // Don't log error in offline mode (Electron without backend)
-      // This is expected behavior
-      throw new Error('API request failed');
-    }
+  } catch {
+    // Don't log error in offline mode (Electron without backend)
+    // This is expected behavior
+    throw new Error('API request failed');
+  }
 }
 
 // ============================================================================
@@ -182,8 +183,22 @@ export const useLocationStore = create<LocationState>()(
         setLocations: (locations) => set({ locations }),
 
         fetchLocations: async () => {
+          // Prevent concurrent fetches
+          if (get().isLoading) {
+            console.log('LocationStore: Fetch already in progress, skipping fetchLocations');
+            return;
+          }
+
+          // In Electron mode, we primarily use project-local locations.
+          // Centrally stored locations are usually via the backend API.
+          if (window.electronAPI && !import.meta.env.VITE_USE_BACKEND_IN_ELECTRON) {
+            console.log('LocationStore: Skipping central API fetch in Electron mode');
+            return;
+          }
+
           set({ isLoading: true, error: null });
           try {
+            console.log('LocationStore: Fetching central locations...');
             // Try to fetch from API, but don't fail if offline (Electron mode)
             const response = await fetchApi<unknown>('/api/locations');
             
@@ -210,17 +225,14 @@ export const useLocationStore = create<LocationState>()(
               }
             } as Location));
 
+            console.log(`LocationStore: Successfully fetched ${mappedLocations.length} central locations`);
             set({ locations: mappedLocations });
           } catch (error) {
-            // Handle 404 Not Found gracefully - it just means no locations exist yet
-            if (error instanceof Error && error.message.includes('404')) {
-              console.warn('No locations found on server, using local locations');
-              set({ locations: [] });
-            } else {
-              // In Electron mode without backend, just use existing locations from store
-              console.warn('API not available, using local locations:', error);
-              // Don't set error in offline mode - just silently use local data
+            // Log warning only in development mode to avoid noise
+            if (import.meta.env.DEV) {
+              console.warn('API fetch locations failed (likely offline/no backend):', error);
             }
+            // Ensure error state is cleared so UI doesn't show permanent error
             set({ error: null });
           } finally {
             set({ isLoading: false });
@@ -228,22 +240,60 @@ export const useLocationStore = create<LocationState>()(
         },
 
         fetchProjectLocations: async (projectId: string) => {
+          // Skip if missing projectId or already loading
+          if (!projectId || projectId === 'unknown') return;
+          
+          // Use a separate project loading flag if possible, but for now we'll check if project data is already present
+          // to avoid repeated disk reads on every re-render
+          const state = get();
+          if (state.isLoading) {
+             console.log('LocationStore: Fetch already in progress, skipping fetchProjectLocations');
+             return;
+          }
+
           set({ isLoading: true, error: null });
           try {
-            // List all location files in the project's locations folder
-            const locationIds = await listLocationsInProject(projectId);
-            set({ projectLocationIds: locationIds });
+            // Extrait l'ID du projet s'il s'agit d'un chemin complet
+            const projectSlug = projectId.split(/[\\/]/).pop() || projectId;
+            
+            let projectLocations: Location[] = [];
 
-            // Load each location
-            const projectLocations: Location[] = [];
-            for (const locationId of locationIds) {
-              const location = await loadLocationFromProject(projectId, locationId);
-              if (location) {
-                projectLocations.push(location);
+            // 1. Try Electron API if available
+            if (window.electronAPI?.fs) {
+              projectLocations = await loadAllLocationsInProject(projectId);
+              set({ projectLocationIds: projectLocations.map(l => l.location_id) });
+            } else {
+              // 2. Try Backend API (Browser mode)
+              try {
+                // Get project ID (slug) from path if necessary
+                const response = await fetchApi<BackendLocation[]>(`/api/locations/project/${projectSlug}`);
+                
+                if (Array.isArray(response)) {
+                  projectLocations = response.map((loc: BackendLocation) => ({
+                    ...loc,
+                    location_id: loc.location_id || loc.id || '',
+                    cube_textures: (loc.cube_textures || loc.cube_faces || {}) as Location['cube_textures'],
+                    metadata: loc.metadata || {
+                      description: loc.description || '',
+                      atmosphere: loc.atmosphere || '',
+                      genre_tags: loc.genre_tags || [],
+                    }
+                  } as Location));
+                }
+              } catch (apiError) {
+                console.warn('Backend API locations fetch failed, falling back to localStorage:', apiError);
+                // 3. Fallback to LocalStorage (via listLocationsInProject's fallback)
+                const locationIds = await listLocationsInProject(projectId);
+                for (const locationId of locationIds) {
+                  const location = await loadLocationFromProject(projectId, locationId);
+                  if (location) {
+                    projectLocations.push(location);
+                  }
+                }
               }
             }
 
-            // Merge with existing locations, avoiding duplicates by location_id
+            // Sync with store
             set((state) => {
               const existingIds = new Set(state.locations.map(l => l.location_id));
               const newLocations = [...state.locations];
@@ -254,7 +304,10 @@ export const useLocationStore = create<LocationState>()(
                 }
               }
 
-              return { locations: newLocations };
+              return { 
+                locations: newLocations,
+                projectLocationIds: projectLocations.map(l => l.location_id)
+              };
             });
           } catch (error) {
             console.warn('Failed to fetch project locations:', error);
@@ -301,6 +354,19 @@ export const useLocationStore = create<LocationState>()(
             } catch {
               // Offline mode - add locally
               console.warn('API not available, adding location locally');
+              
+              // Electron Persistence
+              if (window.electronAPI?.fs) {
+                const { useAppStore } = await import('@/stores/useAppStore');
+                const project = useAppStore.getState().project;
+                const projectPath = project?.metadata?.path || project?.path;
+                
+                if (projectPath) {
+                  const { saveLocationToProject } = await import('@/utils/locationStorage');
+                  await saveLocationToProject(projectPath as string, location.location_id, location);
+                }
+              }
+
               set((state) => ({
                 locations: [...state.locations, location],
               }));
@@ -340,6 +406,20 @@ export const useLocationStore = create<LocationState>()(
             } catch {
               // Offline mode - update locally
               console.warn('API not available, updating location locally');
+              
+              const existingLoc = get().locations.find(l => l.location_id === id);
+              if (existingLoc && window.electronAPI?.fs) {
+                const { useAppStore } = await import('@/stores/useAppStore');
+                const project = useAppStore.getState().project;
+                const projectPath = project?.metadata?.path || project?.path;
+                
+                if (projectPath) {
+                  const updatedData = { ...existingLoc, ...updates };
+                  const { saveLocationToProject } = await import('@/utils/locationStorage');
+                  await saveLocationToProject(projectPath as string, id, updatedData);
+                }
+              }
+
               set((state) => ({
                 locations: state.locations.map((loc) =>
                   loc.location_id === id ? { ...loc, ...updates } : loc
@@ -366,6 +446,17 @@ export const useLocationStore = create<LocationState>()(
             } catch {
               // Offline mode - delete locally
               console.warn('API not available, deleting location locally');
+              
+              if (window.electronAPI?.fs) {
+                const { useAppStore } = await import('@/stores/useAppStore');
+                const project = useAppStore.getState().project;
+                const projectPath = project?.metadata?.path || project?.path;
+                
+                if (projectPath) {
+                  const { deleteLocationFromProject } = await import('@/utils/locationStorage');
+                  await deleteLocationFromProject(projectPath as string, id);
+                }
+              }
             }
             // Always update local state
             set((state) => ({
@@ -611,6 +702,7 @@ export function getSceneLocationsByShotId(state: LocationState, shotId: string):
  * Check if a location has all cube faces generated
  */
 export function isLocationFullyTextured(location: Location): boolean {
+  if (!location || !location.cube_textures) return false;
   const requiredFaces: CubeFace[] = ['front', 'back', 'left', 'right', 'top', 'bottom'];
   return requiredFaces.every((face) => location.cube_textures[face]?.image_path);
 }
@@ -619,6 +711,7 @@ export function isLocationFullyTextured(location: Location): boolean {
  * Get completion percentage for a location's cube textures
  */
 export function getLocationCompletionPercentage(location: Location): number {
+  if (!location || !location.cube_textures) return 0;
   const requiredFaces: CubeFace[] = ['front', 'back', 'left', 'right', 'top', 'bottom'];
   const completedFaces = requiredFaces.filter((face) => location.cube_textures[face]?.image_path);
   return Math.round((completedFaces.length / requiredFaces.length) * 100);

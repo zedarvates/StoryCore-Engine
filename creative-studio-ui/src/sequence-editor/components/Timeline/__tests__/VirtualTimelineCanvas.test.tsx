@@ -11,17 +11,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import { VirtualTimelineCanvas, getTrackShots, TRACK_CONFIG } from '../VirtualTimelineCanvas';
 import type { Track, Shot, LayerType, MediaLayerData } from '../../../types';
 
-class MockObserver {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-
-// Mock ResizeObserver
-global.ResizeObserver = MockObserver as unknown as typeof ResizeObserver;
-
-// Mock IntersectionObserver
-global.IntersectionObserver = MockObserver as unknown as typeof IntersectionObserver;
+// Redundant mocks removed - now handled by src/test/setup.ts
 
 // Mock HTMLCanvasElement.getContext
 HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
@@ -391,7 +381,8 @@ describe('VirtualTimelineCanvas Component', () => {
 
       const canvas = container.querySelector('.track-canvas');
       if (canvas) {
-        fireEvent.click(canvas, { clientX: 100, clientY: 30 });
+        fireEvent.mouseDown(canvas, { clientX: 100, clientY: 12 });
+        fireEvent.mouseUp(canvas, { clientX: 100, clientY: 12 });
         
         await waitFor(() => {
           expect(mockOnShotSelect).toHaveBeenCalled();
@@ -417,7 +408,8 @@ describe('VirtualTimelineCanvas Component', () => {
 
       const canvas = container.querySelector('.track-canvas');
       if (canvas) {
-        fireEvent.click(canvas, { clientX: 100, clientY: 30, ctrlKey: true });
+        fireEvent.mouseDown(canvas, { clientX: 100, clientY: 12, ctrlKey: true });
+        fireEvent.mouseUp(canvas, { clientX: 100, clientY: 12, ctrlKey: true });
         
         await waitFor(() => {
           expect(mockOnShotSelect).toHaveBeenCalledWith(
@@ -469,7 +461,8 @@ describe('VirtualTimelineCanvas Component', () => {
 
       const canvas = container.querySelector('.track-canvas');
       if (canvas) {
-        fireEvent.click(canvas, { clientX: 100, clientY: 30 });
+        fireEvent.mouseDown(canvas, { clientX: 100, clientY: 12 });
+        fireEvent.mouseUp(canvas, { clientX: 100, clientY: 12 });
         
         await waitFor(() => {
           expect(mockOnLayerSelect).toHaveBeenCalled();

@@ -362,6 +362,26 @@ try:
 except ImportError as e:
     logger.warning(f"Could not load director_api: {e}")
 
+# Include n8n Management API router
+try:
+    from backend.n8n_api import router as n8n_router
+    app.include_router(n8n_router, prefix="/api")
+    logger.info("n8n Management API registered at /api/n8n")
+except ImportError as e:
+    logger.warning(f"Could not load n8n_api: {e}")
+except Exception as e:
+    logger.error(f"Failed to register n8n_api: {e}")
+
+# Include Messaging API router (Telegram/Discord)
+try:
+    from backend.messaging_api import router as messaging_router
+    app.include_router(messaging_router, prefix="/api")
+    logger.info("Messaging API (Telegram/Discord) registered at /api/messaging")
+except ImportError as e:
+    logger.warning(f"Could not load messaging_api: {e}")
+except Exception as e:
+    logger.error(f"Failed to register messaging_api: {e}")
+
 # Include Comic Generator addon router
 try:
     from addons.official.comic_generator.src.main import router as comic_generator_router

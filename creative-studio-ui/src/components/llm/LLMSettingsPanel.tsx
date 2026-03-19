@@ -1,3 +1,4 @@
+/* cspell:ignore confucian qwen gemini */
 /**
  * LLM Settings Panel Component
  * 
@@ -34,10 +35,10 @@ const DEFAULT_SETTINGS: LLMSettings = {
     confucianPrinciples: ['ren', 'li', 'yi', 'zhi'],
   },
   availableModels: {
-    vision: ['qwen3-vl:8b'],
-    storytelling: ['llama3.1:8b', 'mistral:7b'],
-    quick: ['gemma3:4b', 'gemma3:1b'],
-    default: 'gemma3:4b',
+    vision: ['qwen3-vl:8b', 'anthropic/claude-3.5-sonnet'],
+    storytelling: ['llama3.1:8b', 'meta-llama/llama-3.1-70b-instruct', 'openai/gpt-4o'],
+    quick: ['gemma3:4b', 'meta-llama/llama-3.1-8b-instruct'],
+    default: 'llama3.1:8b',
   },
 };
 
@@ -181,17 +182,9 @@ export const LLMSettingsPanel: React.FC<LLMSettingsPanelProps> = ({
             const isSelected = settings.reasoningMode.confucianPrinciples.includes(key);
 
             return (
-              <div
+              <label
                 key={key}
                 className={`principle-card ${isSelected ? 'selected' : ''}`}
-                onClick={() => handlePrincipleToggle(key)}
-                role="button"
-                tabIndex={0}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handlePrincipleToggle(key);
-                  }
-                }}
               >
                 <div className="principle-header">
                   <input
@@ -199,12 +192,12 @@ export const LLMSettingsPanel: React.FC<LLMSettingsPanelProps> = ({
                     checked={isSelected}
                     onChange={() => handlePrincipleToggle(key)}
                     className="principle-checkbox"
-                    onClick={(e) => e.stopPropagation()}
+                    title={`Toggle ${principle.label}`}
                   />
                   <span className="principle-label">{principle.label}</span>
                 </div>
                 <p className="principle-description">{principle.description}</p>
-              </div>
+              </label>
             );
           })}
         </div>
@@ -212,35 +205,40 @@ export const LLMSettingsPanel: React.FC<LLMSettingsPanelProps> = ({
 
       {/* Available Models Section */}
       <section className="settings-section">
-        <h4 className="section-title">Available Models</h4>
+        <h4 className="section-title">Production Models</h4>
         <p className="section-description">
-          Configure which models are available for different tasks
+          Select priority models for each production lane.
         </p>
 
-        <div className="models-info">
-          <div className="model-category">
-            <span className="category-label">Vision:</span>
-            <span className="category-models">
-              {settings.availableModels.vision.join(', ')}
-            </span>
+        <div className="models-info space-y-4">
+          <div className="model-lane">
+            <span className="lane-label">Master Narrator (Storytelling)</span>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {['meta-llama/llama-3.1-70b-instruct', 'anthropic/claude-3.5-sonnet', 'openai/gpt-4o', 'llama3.1:8b'].map(m => (
+                <button 
+                  key={m}
+                  onClick={() => setSettings({...settings, availableModels: {...settings.availableModels, default: m}})}
+                  className={`px-3 py-1.5 text-xs rounded-full border transition-all ${settings.availableModels.default === m ? 'bg-purple-600 text-white border-purple-400' : 'bg-white/5 border-white/10 text-white/60 hover:border-white/30'}`}
+                >
+                  {m.split('/').pop()}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="model-category">
-            <span className="category-label">Storytelling:</span>
-            <span className="category-models">
-              {settings.availableModels.storytelling.join(', ')}
-            </span>
-          </div>
-          <div className="model-category">
-            <span className="category-label">Quick:</span>
-            <span className="category-models">
-              {settings.availableModels.quick.join(', ')}
-            </span>
-          </div>
-          <div className="model-category">
-            <span className="category-label">Default:</span>
-            <span className="category-models">
-              {settings.availableModels.default}
-            </span>
+          
+          <div className="model-lane">
+            <span className="lane-label">Visual Synthesis (Vision)</span>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {['qwen3-vl:8b', 'anthropic/claude-3.5-sonnet', 'google/gemini-pro-1.5'].map(m => (
+                <button 
+                  key={m}
+                  onClick={() => {}}
+                  className="px-3 py-1.5 text-xs rounded-full border bg-white/5 border-white/10 text-white/40 cursor-not-allowed"
+                >
+                  {m.split('/').pop()}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </section>

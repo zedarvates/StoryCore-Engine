@@ -79,9 +79,10 @@ export const SpeechBubble: React.FC<SpeechBubbleProps> = ({
   const isAssistant = role === 'assistant' || role === 'system' || role === 'error';
   const isError = role === 'error';
 
-  const formatTime = (date?: Date) => {
+  const formatTime = (date?: Date | string) => {
     if (!date) return null;
-    return date.toLocaleTimeString([], {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
     });

@@ -8,6 +8,11 @@
 import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
 import { useAppStore } from '@/stores/useAppStore';
 import { ProjectProvider } from '@/contexts/ProjectContext';
+import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
+import { useLocationPersistence } from '@/hooks/useLocationPersistence';
+import { useWorldPersistence } from '@/hooks/useWorldPersistence';
+import { useObjectStore } from '@/stores/objectStore';
+import { useEffect } from 'react';
 
 interface ProjectDashboardPageProps {
   onOpenEditor?: (sequenceId?: string) => void;
@@ -15,6 +20,24 @@ interface ProjectDashboardPageProps {
 
 export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps) {
   const { project } = useAppStore();
+  const { loadAndSyncCharacters } = useCharacterPersistence();
+  const { loadAndSyncLocations } = useLocationPersistence();
+  const { syncWorldsFromProject } = useWorldPersistence();
+  const fetchProjectObjects = useObjectStore((state) => state.fetchProjectObjects);
+
+  const projectPath = (project?.metadata?.path as string) || (project as unknown as Record<string, unknown>)?.path as string || '';
+
+  useEffect(() => {
+    if (projectPath) {
+      // Automatically sync all entities from the project directory when the dashboard opens
+      // We use the path/ID as dependencies to avoid infinite loops when the project object itself is updated during sync
+      console.log(`[ProjectDashboardPage] Project changed: ${projectPath}. Triggering sync.`);
+      loadAndSyncCharacters().catch(console.error);
+      loadAndSyncLocations().catch(console.error);
+      syncWorldsFromProject().catch(console.error);
+      fetchProjectObjects(projectPath).catch(console.error);
+    }
+  }, [projectPath, loadAndSyncCharacters, loadAndSyncLocations, syncWorldsFromProject, fetchProjectObjects]);
 
   // If no project is loaded, show error
   if (!project) {
@@ -46,7 +69,7 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
         {/* Main Content - New Dashboard */}
         <div className="flex-1 overflow-hidden">
           <ProjectDashboardNew
-            onOpenEditor={onOpenEditor}
+            onOpenEditor={onOpenEditor || (() => {})}
           />
         </div>
       </div>

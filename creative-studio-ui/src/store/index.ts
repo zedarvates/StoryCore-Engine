@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { StorageManager } from '../utils/storageManager';
 import { logger as Logger } from '../utils/logger';
 import type {
@@ -17,6 +17,7 @@ import type {
   Transition,
   World,
   SequencePlan,
+  Location as ProductionLocation,
 } from '../types';
 import type { Character } from '../types/character';
 import type { Story, StoryVersion } from '../types/story';
@@ -59,8 +60,16 @@ interface StoreActions {
   addWorld: (world: World) => void;
   updateWorld: (id: string, updates: Partial<World>) => void;
   deleteWorld: (id: string) => void;
-  selectWorld: (id: string | null) => void;
   getWorldById: (id: string) => World | undefined;
+  setWorlds: (worlds: World[]) => void;
+  selectWorld: (id: string | null) => void;
+
+  // Location actions
+  addLocation: (location: ProductionLocation) => void;
+  updateLocation: (id: string, updates: Partial<ProductionLocation>) => void;
+  deleteLocation: (id: string) => void;
+  getLocationById: (id: string) => ProductionLocation | undefined;
+  setLocations: (locations: ProductionLocation[]) => void;
 
   // Character actions
   addCharacter: (character: Character) => void;
@@ -69,6 +78,13 @@ interface StoreActions {
   getCharacterById: (id: string) => Character | undefined;
   getAllCharacters: () => Character[];
   setCharacters: (characters: Character[]) => void; // Bulk set for project loading
+
+  // Sequence Plan actions
+  addSequencePlan: (plan: SequencePlan) => void;
+  updateSequencePlan: (id: string, updates: Partial<SequencePlan>) => void;
+  deleteSequencePlan: (id: string) => void;
+  getSequencePlanById: (id: string) => SequencePlan | undefined;
+  setSequencePlans: (plans: SequencePlan[]) => void;
 
   // Object actions
   addObject: (object: StoryObject) => void;
@@ -210,17 +226,23 @@ export const useStore = create<Store>()(
         selectedTextLayerId: null,
         selectedKeyframeId: null,
         sequencePlans: [],
+        locations: [],
 
         // ====================================================================
         // Project Actions
         // ====================================================================
-        setProject: (project) => set((state) => {
+        setProject: (project) => set((_state) => {
+          // Optimized: skip update if nothing changed to prevent render loops
+          if (_state.project === project) {
+            return _state;
+          }
+
           // Sync all arrays from project to store states 
           const characters = project?.characters || [];
           const stories = project?.stories || [];
           const worlds = project?.worlds || [];
           const objects = project?.objects || [];
-          const sequencePlans = project?.sequencePlans || (project?.metadata?.sequences as any) || [];
+          const sequencePlans = project?.sequencePlans || project?.metadata?.sequences as SequencePlan[] || [];
 
           Logger.info(`📦 [Store] Setting project with ${characters.length} chars, ${stories.length} stories, ${worlds.length} worlds, ${objects.length} objects, ${sequencePlans.length} plans`);
 
@@ -230,9 +252,14 @@ export const useStore = create<Store>()(
             stories: stories as Story[],
             worlds: worlds as World[],
             objects: objects as StoryObject[],
-            sequencePlans: sequencePlans as SequencePlan[]
+            sequencePlans: sequencePlans as SequencePlan[],
+            locations: project?.locations || []
           };
         }),
+
+        setLocations: (locations) => set({ locations }),
+        setSequencePlans: (sequencePlans) => set({ sequencePlans }),
+        setWorlds: (worlds) => set({ worlds }),
 
         updateProject: (updates: Partial<Project>) =>
           set((state) => {
@@ -263,13 +290,18 @@ export const useStore = create<Store>()(
             // Si les plans ont changé
             if (updates.sequencePlans) {
               newState.sequencePlans = updates.sequencePlans as SequencePlan[];
-            } else if (updates.metadata && (updates.metadata as any).sequences) {
-              newState.sequencePlans = (updates.metadata as any).sequences as SequencePlan[];
+            } else if (updates.metadata && updates.metadata.sequences) {
+              newState.sequencePlans = updates.metadata.sequences as SequencePlan[];
             }
 
             // Sync objects
             if (updates.objects) {
-              newState.objects = updates.objects as any[];
+              newState.objects = updates.objects as StoryObject[];
+            }
+
+            // Sync locations
+            if (updates.locations) {
+              newState.locations = updates.locations as ProductionLocation[];
             }
 
             return newState;
@@ -405,7 +437,7 @@ export const useStore = create<Store>()(
             };
           }),
 
-        deleteWorld: (id) =>
+        deleteWorld: (id: string) =>
           set((state) => {
             const deletedWorld = state.worlds.find((w) => w.id === id);
             const filteredWorlds = state.worlds.filter((world) => world.id !== id);
@@ -454,7 +486,7 @@ export const useStore = create<Store>()(
             };
           }),
 
-        selectWorld: (id) =>
+        selectWorld: (id: string | null) =>
           set((state) => {
             const selectedWorld = id ? state.worlds.find((w) => w.id === id) : null;
 
@@ -660,6 +692,112 @@ export const useStore = create<Store>()(
               project: updatedProject,
             };
           }),
+
+        // ====================================================================
+        // Location Actions
+        // ====================================================================
+        addLocation: (location: ProductionLocation) =>
+          set((state) => {
+            const newLocations = [...state.locations, location];
+            const updatedProject = state.project ? {
+              ...state.project,
+              locations: newLocations
+            } : null;
+
+            // Persist
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-locations`,
+                  JSON.stringify(newLocations)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist locations:', error);
+              }
+            }
+
+            return {
+              locations: newLocations,
+              project: updatedProject
+            };
+          }),
+
+        updateLocation: (id, updates) =>
+          set((state) => {
+            const updatedLocations = state.locations.map((loc) =>
+              (loc.location_id === id || (loc as any).id === id)
+                ? { ...loc, ...updates }
+                : loc
+            );
+
+            const updatedProject = state.project ? {
+              ...state.project,
+              locations: updatedLocations
+            } : null;
+
+            return {
+              locations: updatedLocations,
+              project: updatedProject
+            };
+          }),
+
+        deleteLocation: (id) =>
+          set((state) => ({
+            locations: state.locations.filter((loc) => loc.location_id !== id && (loc as any).id !== id),
+          })),
+
+        getLocationById: (id: string) => {
+          return get().locations.find((loc: ProductionLocation) => loc.location_id === id || (loc as any).id === id);
+        },
+
+        // ====================================================================
+        // Sequence Plan Actions
+        // ====================================================================
+        addSequencePlan: (plan) =>
+          set((state) => {
+            const newPlans = [...state.sequencePlans, plan];
+            const updatedProject = state.project ? {
+              ...state.project,
+              sequencePlans: newPlans
+            } : null;
+
+            // Persist
+            if (state.project) {
+              try {
+                StorageManager.setItem(
+                  `project-${state.project.project_name}-sequences`,
+                  JSON.stringify(newPlans)
+                );
+              } catch (error) {
+                Logger.error('Failed to persist sequences:', error);
+              }
+            }
+
+            return {
+              sequencePlans: newPlans,
+              project: updatedProject
+            };
+          }),
+
+        updateSequencePlan: (id, updates) =>
+          set((state) => {
+            const updatedPlans = state.sequencePlans.map((plan) =>
+              plan.id === id ? { ...plan, ...updates } : plan
+            );
+
+            return {
+              sequencePlans: updatedPlans,
+            };
+          }),
+
+        deleteSequencePlan: (id) =>
+          set((state) => ({
+            sequencePlans: state.sequencePlans.filter((plan) => plan.id !== id),
+          })),
+
+        getSequencePlanById: (id) => {
+          return get().sequencePlans.find((plan) => plan.id === id);
+        },
 
         // ====================================================================
         // Object Actions
@@ -1647,6 +1785,11 @@ export const useStore = create<Store>()(
       }),
       {
         name: 'creative-studio-storage',
+        storage: createJSONStorage(() => ({
+          getItem: (name) => StorageManager.getItem(name) as any,
+          setItem: (name, value) => StorageManager.setItem(name, value) as any,
+          removeItem: (name) => StorageManager.removeItem(name),
+        })),
         partialize: (state) => ({
           // Only persist UI preferences, not project data
           panelSizes: state.panelSizes,

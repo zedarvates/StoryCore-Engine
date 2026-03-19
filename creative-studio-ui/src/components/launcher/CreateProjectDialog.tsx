@@ -14,6 +14,15 @@ import { Label } from '@/components/ui/label';
 import { Alert } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { validateProjectName, validateProjectPath, checkDuplicateProject } from '@/utils/projectValidation';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Music, Zap, Type, Target, Sparkles } from 'lucide-react';
 
 // ============================================================================
 // Types
@@ -22,7 +31,7 @@ import { validateProjectName, validateProjectPath, checkDuplicateProject } from 
 interface CreateProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateProject: (projectName: string, projectPath: string, format: SerializableProjectFormat) => Promise<void>;
+  onCreateProject: (projectName: string, projectPath: string, format: SerializableProjectFormat, options?: Record<string, any>) => Promise<void>;
 }
 
 interface FormErrors {
@@ -136,6 +145,16 @@ const PROJECT_FORMATS: ProjectFormat[] = [
     iconType: 'clock',
     description: '11 sequences of 2 minutes each',
   },
+  {
+    id: 'music-album',
+    name: 'Album de Musique (13 titres)',
+    duration: '40-60 min',
+    durationMinutes: 60,
+    sequences: 13,
+    shotDuration: 300,
+    iconType: 'video',
+    description: '13 titres (tracks) avec une ambiance cohérente',
+  },
 ];
 
 // Helper function to convert format to serializable format
@@ -174,6 +193,14 @@ export function CreateProjectDialog({
     format: SerializableProjectFormat;
   } | null>(null);
   const [existingProjects, setExistingProjects] = useState<string[]>([]);
+  
+  // Music Project Features
+  const [musicFeatures, setMusicFeatures] = useState({
+    visualOdyssey: true,
+    vibeSync: true,
+    lyricsMotion: true,
+    autoPromo: false
+  });
 
   // Load existing projects when dialog opens
   useEffect(() => {
@@ -276,6 +303,11 @@ export function CreateProjectDialog({
       if (trailerFormat) {
         setSelectedFormat(trailerFormat);
       }
+    } else if (lowerValue.includes('album') || lowerValue.includes('disque') || lowerValue.includes('tracklist')) {
+      const musicFormat = PROJECT_FORMATS.find(f => f.id === 'music-album');
+      if (musicFormat) {
+        setSelectedFormat(musicFormat);
+      }
     }
     
     // Clear errors and perform real-time validation
@@ -366,7 +398,12 @@ export function CreateProjectDialog({
         format: serializableFormat,
       });
 
-      await onCreateProject(projectName, projectPath, serializableFormat);
+      await onCreateProject(
+        projectName, 
+        projectPath, 
+        serializableFormat, 
+        selectedFormat.id === 'music-album' ? musicFeatures : undefined
+      );
       
       // Show success toast
       toast({
@@ -592,6 +629,100 @@ export function CreateProjectDialog({
                 <p className="text-sm text-red-400">{errors.projectPath}</p>
               )}
             </div>
+
+            {/* Project Format Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="project-format" className="text-gray-200">
+                Project Format
+              </Label>
+              <Select
+                value={selectedFormat.id}
+                onValueChange={(value) => {
+                  const format = PROJECT_FORMATS.find(f => f.id === value);
+                  if (format) setSelectedFormat(format);
+                }}
+                disabled={isCreating}
+              >
+                <SelectTrigger id="project-format" className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue placeholder="Select a format" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                  {PROJECT_FORMATS.map((format) => (
+                    <SelectItem key={format.id} value={format.id} className="focus:bg-gray-700 focus:text-white">
+                      {format.name} ({format.duration})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Specialized Music Features (Conditional) */}
+            {selectedFormat.id === 'music-album' && (
+              <div className="space-y-4 p-4 rounded-lg bg-purple-500/5 border border-purple-500/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-2 mb-2">
+                  <Music className="w-4 h-4 text-purple-400" />
+                  <h4 className="text-sm font-bold text-purple-300">Advanced Music Features</h4>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-start space-x-3">
+                    <Checkbox 
+                      id="visual-odyssey" 
+                      checked={musicFeatures.visualOdyssey}
+                      onCheckedChange={(checked) => setMusicFeatures(prev => ({ ...prev, visualOdyssey: !!checked }))}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label htmlFor="visual-odyssey" className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 cursor-pointer">
+                        <Target className="w-3 h-3 text-blue-400" /> Visual Odyssey (Totem)
+                      </Label>
+                      <p className="text-[10px] text-gray-500">Track an evolving character/object across all tracks.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <Checkbox 
+                      id="vibe-sync" 
+                      checked={musicFeatures.vibeSync}
+                      onCheckedChange={(checked) => setMusicFeatures(prev => ({ ...prev, vibeSync: !!checked }))}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label htmlFor="vibe-sync" className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 cursor-pointer">
+                        <Zap className="w-3 h-3 text-yellow-400" /> Synesthésie (Vibe-Sync)
+                      </Label>
+                      <p className="text-[10px] text-gray-500">Auto-align editing pace and colors to the music mood.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <Checkbox 
+                      id="lyrics-motion" 
+                      checked={musicFeatures.lyricsMotion}
+                      onCheckedChange={(checked) => setMusicFeatures(prev => ({ ...prev, lyricsMotion: !!checked }))}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label htmlFor="lyrics-motion" className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 cursor-pointer">
+                        <Type className="w-3 h-3 text-green-400" /> Lyrics Motion Designer
+                      </Label>
+                      <p className="text-[10px] text-gray-500">Generate audio-reactive typography for lyrics.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <Checkbox 
+                      id="auto-promo" 
+                      checked={musicFeatures.autoPromo}
+                      onCheckedChange={(checked) => setMusicFeatures(prev => ({ ...prev, autoPromo: !!checked }))}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label htmlFor="auto-promo" className="text-xs font-semibold text-gray-200 flex items-center gap-1.5 cursor-pointer">
+                        <Sparkles className="w-3 h-3 text-orange-400" /> Auto-Promo (EPK)
+                      </Label>
+                      <p className="text-[10px] text-gray-500">Auto-generate 60s teaser and Spotify Canvases.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Project Structure Info */}
             <div className="rounded-lg bg-gray-800/50 border border-gray-700 p-4">

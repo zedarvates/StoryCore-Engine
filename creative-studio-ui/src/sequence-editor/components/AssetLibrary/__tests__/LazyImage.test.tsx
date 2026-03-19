@@ -73,7 +73,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="test.jpg" alt="Test" />);
       
       await waitFor(() => {
-        const img = screen.getByAlt('Test');
+        const img = screen.getByAltText('Test');
         expect(img).toBeInTheDocument();
       });
     });
@@ -103,7 +103,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="test.jpg" alt="Test" />);
       
       await waitFor(() => {
-        const img = screen.getByAlt('Test') as HTMLImageElement;
+        const img = screen.getByAltText('Test') as HTMLImageElement;
         expect(img.src).toContain('cached-url');
       });
     });
@@ -118,7 +118,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="test.jpg" alt="Test" />);
       
       await waitFor(() => {
-        const img = screen.queryByAlt('Test');
+        const img = screen.queryByAltText('Test');
         // Should still attempt to display image with fallback
         expect(img).toBeInTheDocument();
       });
@@ -130,7 +130,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="test.jpg" alt="Test" onError={onError} />);
       
       await waitFor(() => {
-        const img = screen.getByAlt('Test');
+        const img = screen.getByAltText('Test');
         // Trigger error event
         img.dispatchEvent(new Event('error'));
       });
@@ -142,7 +142,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="invalid.jpg" alt="Test" />);
       
       await waitFor(() => {
-        const img = screen.getByAlt('Test') as HTMLImageElement;
+        const img = screen.getByAltText('Test') as HTMLImageElement;
         img.dispatchEvent(new Event('error'));
         
         // Should have fallback SVG
@@ -185,7 +185,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="test.jpg" alt="Test" />);
       
       await waitFor(() => {
-        const img = screen.queryByAlt('Test');
+        const img = screen.queryByAltText('Test');
         if (img) {
           expect(img).toHaveClass('loading');
         }
@@ -196,7 +196,7 @@ describe('LazyImage Component', () => {
       render(<LazyImage src="test.jpg" alt="Test" />);
       
       await waitFor(() => {
-        const img = screen.getByAlt('Test');
+        const img = screen.getByAltText('Test');
         img.dispatchEvent(new Event('load'));
         
         expect(img).toHaveClass('loaded');

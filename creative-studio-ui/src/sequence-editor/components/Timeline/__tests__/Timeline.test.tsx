@@ -16,13 +16,7 @@ import previewReducer from '../../../store/slices/previewSlice';
 import projectReducer from '../../../store/slices/projectSlice';
 import type { Track, Shot, LayerType, MediaLayerData } from '../../../types';
 
-// Mock ResizeObserver
-class MockObserver {
-  observe = vi.fn();
-  unobserve = vi.fn();
-  disconnect = vi.fn();
-}
-global.ResizeObserver = MockObserver as unknown as typeof ResizeObserver;
+// Redundant mocks removed - now handled by src/test/setup.ts
 
 // Mock HTMLCanvasElement.getContext
 HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({

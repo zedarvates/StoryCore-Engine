@@ -12,7 +12,11 @@
 
 import { World } from '@/types/world';
 import { Character } from '@/types/character';
+import { SequencePlan } from '@/types/sequencePlan';
+import { Shot } from '@/types';
 import { logger } from '@/utils/logger';
+import { useStore } from '@/store';
+import { useAppStore } from '@/stores/useAppStore';
 
 export interface PersistenceResult {
   success: boolean;
@@ -32,7 +36,7 @@ export interface ValidationResult {
  */
 export class PersistenceService {
   private static instance: PersistenceService;
-  private retryQueue: Map<string, { operation: () => Promise<any>, retries: number }> = new Map();
+  private retryQueue: Map<string, { operation: () => Promise<unknown>, retries: number }> = new Map();
   // FIX: Track last save time to prevent rapid duplicate saves
   private lastSaveTimes: Map<string, number> = new Map();
   private readonly MIN_SAVE_INTERVAL = 1000; // 1 second minimum between saves
@@ -110,7 +114,7 @@ export class PersistenceService {
     }
 
     // FIX: Clean up any existing duplicates before saving
-    const projectName = projectPath ? projectPath.split(/[/\\]/).pop() || 'unknown' : 'default';
+    const projectName = projectPath ? (projectPath.split(/[/\\]/).pop() || 'unknown') : 'default';
     this.cleanupDuplicates(`project-${projectName}-characters`);
 
     // Layer 1: Store Zustand (si disponible)
@@ -228,6 +232,260 @@ export class PersistenceService {
   }
 
   /**
+   * Sauvegarde un plan de séquence avec multi-layer persistance
+   */
+  async saveSequencePlan(sequence: SequencePlan, projectPath?: string): Promise<PersistenceResult[]> {
+    const results: PersistenceResult[] = [];
+
+    // Layer 1: Store Zustand
+    try {
+      results.push(await this.saveSequenceToStore(sequence));
+    } catch (error) {
+      logger.warn('[PersistenceService] Sequence store save failed:', error);
+      results.push({ success: false, layer: 'store' as const, error: String(error) });
+    }
+
+    // Layer 2: localStorage
+    try {
+      results.push(await this.saveSequenceToLocalStorage(sequence, projectPath));
+    } catch (error) {
+      logger.warn('[PersistenceService] Sequence localStorage save failed:', error);
+      results.push({ success: false, layer: 'localStorage' as const, error: String(error) });
+    }
+
+    // Layer 3: Fichier JSON
+    if (projectPath) {
+      try {
+        results.push(await this.saveSequenceToFile(sequence, projectPath));
+      } catch (error) {
+        logger.warn('[PersistenceService] Sequence file save failed:', error);
+        results.push({ success: false, layer: 'file' as const, error: String(error) });
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * FIX: Check if shot was saved recently to prevent duplicates
+   */
+  private canSaveShot(shotId: string): boolean {
+    const lastSave = this.lastSaveTimes.get(shotId) || 0;
+    const now = Date.now();
+    if (now - lastSave < 500) return false;
+    this.lastSaveTimes.set(shotId, now);
+    return true;
+  }
+
+  /**
+   * Save a shot with multi-layer persistence
+   */
+  async saveShot(shot: Shot & { sequence_id?: string }, projectPath?: string): Promise<PersistenceResult[]> {
+    const results: PersistenceResult[] = [];
+    if (!this.canSaveShot(shot.id)) return [{ success: true, layer: 'store' }];
+
+    try {
+      const store = useStore.getState();
+      const appStore = useAppStore.getState();
+      appStore.updateShot(shot.id, shot);
+      store.reorderShots(appStore.shots.map(s => s.id === shot.id ? shot : s));
+      results.push({ success: true, layer: 'store' });
+    } catch (e) { logger.warn('Store save failed', e); }
+
+    try {
+      const projectName = projectPath ? (projectPath.split(/[/\\]/).pop() || 'unknown') : 'default';
+      const key = `project-${projectName}-shots`;
+      const shots: Shot[] = JSON.parse(localStorage.getItem(key) || '[]');
+      const idx = shots.findIndex(s => s.id === shot.id);
+      if (idx >= 0) shots[idx] = shot; else shots.push(shot);
+      localStorage.setItem(key, JSON.stringify(shots));
+      results.push({ success: true, layer: 'localStorage' });
+    } catch (e) { logger.warn('localStorage save failed', e); }
+
+    if (projectPath && window.electronAPI?.fs) {
+      try {
+        const shotsDir = `${projectPath}/shots`;
+        await window.electronAPI.fs.mkdir(shotsDir, { recursive: true });
+        await window.electronAPI.fs.writeFile(`${shotsDir}/shot_${shot.id}.json`, JSON.stringify(shot, null, 2));
+        results.push({ success: true, layer: 'file' });
+      } catch (e) { logger.warn('File save failed', e); }
+    }
+
+    return results;
+  }
+
+  /**
+   * Charge un personnage avec multi-layer persistance
+   */
+  async loadCharacter(characterIdOrFolder: string, projectPath?: string): Promise<Character | null> {
+    // Layer 1: Fichier JSON du projet (priorité maximale en Electron)
+    if (projectPath && typeof window.electronAPI?.fs?.readFile === 'function') {
+      try {
+        const fileChar = await this.loadCharacterFromFile(characterIdOrFolder, projectPath);
+        if (fileChar) return fileChar;
+      } catch (_error) {
+        logger.debug(`[PersistenceService] Character not found in file: ${characterIdOrFolder}`);
+      }
+    }
+
+    // Layer 2: localStorage
+    try {
+      return await this.loadCharacterFromLocalStorage(characterIdOrFolder, projectPath);
+    } catch (_error) {
+      logger.debug(`[PersistenceService] Character not found in localStorage: ${characterIdOrFolder}`);
+    }
+
+    return null;
+  }
+
+  /**
+   * Charge une séquence avec multi-layer persistance
+   */
+  async loadSequencePlan(planId: string, projectPath?: string): Promise<SequencePlan | null> {
+    // Layer 1: Fichier JSON du projet (priorité maximale en Electron)
+    if (projectPath && typeof window.electronAPI?.fs?.readFile === 'function') {
+      try {
+        const filePlan = await this.loadSequencePlanFromFile(planId, projectPath);
+        if (filePlan) return filePlan;
+      } catch (_error) {
+        logger.debug(`[PersistenceService] Sequence plan not found in file: ${planId}`);
+      }
+    }
+
+    // Layer 2: localStorage
+    try {
+      return await this.loadSequencePlanFromLocalStorage(planId, projectPath);
+    } catch (_error) {
+      logger.debug(`[PersistenceService] Sequence plan not found in localStorage: ${planId}`);
+    }
+
+    return null;
+  }
+
+  /**
+   * Charge une séquence depuis un fichier JSON
+   */
+  private async loadSequencePlanFromFile(planId: string, projectPath: string): Promise<SequencePlan | null> {
+    if (window.electronAPI?.fs?.readFile) {
+      const sequencesDir = `${projectPath}/sequences`;
+      // Check both exact filename and pattern-based ones
+      const fileName = `sequence_${planId.substring(0, 8)}.json`;
+      const filePath = `${sequencesDir}/${fileName}`;
+
+      try {
+        if (window.electronAPI.fs.exists && await window.electronAPI.fs.exists(filePath)) {
+          const buffer = await window.electronAPI.fs.readFile(filePath);
+          if (buffer) {
+            const jsonString = new TextDecoder().decode(buffer);
+            return JSON.parse(jsonString) as SequencePlan;
+          }
+        }
+        
+        // Alternative: browse the directory to find the file with the matching internal ID
+        if (window.electronAPI.fs.readdir) {
+          const files = await window.electronAPI.fs.readdir(sequencesDir);
+          for (const file of files) {
+            if (file.endsWith('.json')) {
+              const buffer = await window.electronAPI.fs.readFile(`${sequencesDir}/${file}`);
+              if (buffer) {
+                try {
+                  const jsonString = new TextDecoder().decode(buffer);
+                  const plan = JSON.parse(jsonString) as SequencePlan;
+                  if (plan && plan.id === planId) {
+                    return plan;
+                  }
+                } catch (_e) {
+                  // Skip invalid JSON
+                }
+              }
+            }
+          }
+        }
+      } catch (_error) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Charge une séquence depuis localStorage
+   */
+  private async loadSequencePlanFromLocalStorage(planId: string, projectPath?: string): Promise<SequencePlan | null> {
+    const projectName = projectPath ?
+      projectPath.split(/[/\\]/).pop() || 'unknown' :
+      'default';
+
+    const key = `project-${projectName}-sequences`;
+    const sequencesData = localStorage.getItem(key);
+
+    if (sequencesData) {
+      try {
+        const sequences: SequencePlan[] = JSON.parse(sequencesData);
+        return sequences.find(s => s.id === planId) || null;
+      } catch (_error) {
+        return null;
+      }
+    }
+    
+    // Fallback: try direct key if stored individually
+    const individualKey = `sequence-plan-${planId}`;
+    const individualData = localStorage.getItem(individualKey);
+    if (individualData) {
+        try {
+            return JSON.parse(individualData) as SequencePlan;
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    return null;
+  }
+
+
+  /**
+   * Sauvegarde une séquence dans le store
+   */
+  private async saveSequenceToStore(sequence: SequencePlan): Promise<PersistenceResult> {
+    const { useStore } = await import('@/store');
+    const store = useStore.getState();
+    store.updateSequencePlan(sequence.id, sequence);
+    return { success: true, layer: 'store' as const };
+  }
+
+  /**
+   * Sauvegarde une séquence dans localStorage
+   */
+  private async saveSequenceToLocalStorage(sequence: SequencePlan, projectPath?: string): Promise<PersistenceResult> {
+    const projectName = projectPath ? (projectPath.split(/[/\\]/).pop() || 'unknown') : 'default';
+    const key = `project-${projectName}-sequences`;
+    const existing = JSON.parse(localStorage.getItem(key) || '[]');
+    const updated = existing.filter((s: { id: string }) => s.id !== sequence.id);
+    updated.push(sequence);
+    localStorage.setItem(key, JSON.stringify(updated));
+    return { success: true, layer: 'localStorage' as const };
+  }
+
+  /**
+   * Sauvegarde une séquence dans un fichier
+   */
+  private async saveSequenceToFile(sequence: SequencePlan, projectPath: string): Promise<PersistenceResult> {
+    if (window.electronAPI?.fs?.writeFile) {
+      const sequencesDir = `${projectPath}/sequences`;
+      const fileName = `sequence_${sequence.id.substring(0, 8)}.json`;
+      const filePath = `${sequencesDir}/${fileName}`;
+
+      if (window.electronAPI.fs.mkdir) {
+        await window.electronAPI.fs.mkdir(sequencesDir, { recursive: true });
+      }
+
+      await window.electronAPI.fs.writeFile(filePath, JSON.stringify(sequence, null, 2));
+      return { success: true, layer: 'file' as const };
+    }
+    return { success: false, layer: 'file' as const, error: 'Electron FS not available' };
+  }
+
+  /**
    * Charge un monde depuis les différentes couches
    */
   async loadWorld(worldId: string, projectPath?: string): Promise<World | null> {
@@ -245,8 +503,8 @@ export class PersistenceService {
     try {
       const world = await this.loadFromLocalStorage(worldId, projectPath);
       if (world) return world;
-    } catch (error) {
-      logger.warn('[PersistenceService] localStorage load failed:', error);
+    } catch (_error) {
+      logger.warn('[PersistenceService] localStorage load failed:', _error);
     }
 
     // Enfin le store
@@ -343,6 +601,41 @@ export class PersistenceService {
 
       return { success: true, layer: 'fallback' as const };
     }, 3);
+  }
+
+  /**
+   * Charge un personnage depuis un fichier JSON
+   */
+  private async loadCharacterFromFile(characterIdOrFolder: string, projectPath: string): Promise<Character | null> {
+    if (window.electronAPI?.fs?.readFile) {
+      const charactersDir = `${projectPath}/characters`;
+      // Character is either in characters/ID/character.json or characters/Folder/character.json
+      const filePath = `${charactersDir}/${characterIdOrFolder}/character.json`;
+
+      try {
+        const buffer = await window.electronAPI.fs.readFile(filePath);
+        const jsonString = new TextDecoder().decode(buffer);
+        const character = JSON.parse(jsonString);
+        return character;
+      } catch (_error) {
+        // Fallback: maybe the ID is different from the folder name
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Charge un personnage depuis localStorage
+   */
+  private async loadCharacterFromLocalStorage(characterId: string, projectPath?: string): Promise<Character | null> {
+    const projectName = projectPath ?
+      projectPath.split(/[/\\]/).pop() || 'unknown' :
+      'default';
+
+    const key = `project-${projectName}-characters`;
+    const existingCharacters = JSON.parse(localStorage.getItem(key) || '[]');
+    return existingCharacters.find((c: Character) => c.character_id === characterId) || null;
   }
 
   /**
@@ -718,7 +1011,7 @@ export class PersistenceService {
           try {
             await operation();
             this.retryQueue.delete(id);
-          } catch (error) {
+          } catch (_error) {
             this.retryQueue.set(id, { operation, retries: retries + 1 });
             logger.warn(`[PersistenceService] Queued operation ${id} failed again (${retries + 1}/3)`);
           }

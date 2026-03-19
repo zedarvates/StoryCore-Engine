@@ -153,3 +153,8 @@ input[type="text"].border-gray-300::placeholder,
 input[type="number"].border-gray-300::placeholder {
   color: #6b7280;
 }
+
+/* Ensure modal overlay has highest z-index */
+.llm-configuration-window .modal-overlay {
+  z-index: 100000;
+}

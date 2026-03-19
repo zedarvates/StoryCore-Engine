@@ -292,7 +292,20 @@ export class ComfyUIService {
       };
     }
 
-    // Quick health check
+    // Use Electron IPC if available to avoid browser console noise
+    if (window.electronAPI?.comfyui?.getServiceStatus) {
+      try {
+        const electronStatus = await window.electronAPI.comfyui.getServiceStatus();
+        return { 
+          available: electronStatus.running, 
+          message: electronStatus.running ? 'ComfyUI is ready' : 'ComfyUI server is not reachable.' 
+        };
+      } catch (_err) {
+        return { available: false, message: 'ComfyUI connection error.' };
+      }
+    }
+
+    // Fallback to fetch (will log red error in browser console if connection refused)
     try {
       const response = await fetch(`${endpoint}/system_stats`, {
         method: 'GET',
@@ -1025,6 +1038,19 @@ export async function testComfyUIConnection(
     // This is the primary health check endpoint
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout (reduced for faster feedback)
+
+    // Use Electron IPC as a pre-check if available to avoid red logs in browser console
+    if (window.electronAPI?.comfyui?.getServiceStatus) {
+      try {
+        const status = await window.electronAPI.comfyui.getServiceStatus();
+        if (!status.running) {
+           clearTimeout(timeoutId);
+           return { success: false, message: 'ComfyUI server is not running', isOffline: true };
+        }
+      } catch (_err) {
+        // Fall through to fetch if IPC fails
+      }
+    }
 
     try {
       const response = await fetch(`${config.serverUrl}/system_stats`, {

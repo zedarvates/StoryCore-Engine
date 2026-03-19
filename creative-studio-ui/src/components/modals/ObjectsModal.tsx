@@ -22,7 +22,6 @@ import {
   PlusIcon,
   EditIcon,
   TrashIcon,
-  SaveIcon,
   XIcon,
   SearchIcon,
   SparklesIcon,
@@ -307,8 +306,8 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
                           <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">
                             {obj.name}
                           </h3>
-                          <Badge variant="outline" className={`text-[10px] mt-1 ${getRarityColor(obj.rarity)}`}>
-                            {obj.rarity.toUpperCase()}
+                          <Badge variant="outline" className={`text-[10px] mt-1 ${getRarityColor(obj.rarity || 'common')}`}>
+                            {(obj.rarity || 'common').toUpperCase()}
                           </Badge>
                         </div>
                       </div>
@@ -397,22 +396,18 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
 // === INTERNAL COMPONENTS ===
 
 function ObjectEditModal({ object, onSave, onCancel }: { object: StoryObject, onSave: (obj: StoryObject) => void, onCancel: () => void }) {
-  const [edited, setEdited] = useState<StoryObject>({ ...object });
-  const [newAbility, setNewAbility] = useState('');
-
-  // Auto-populate base visual prompt if empty
-  useEffect(() => {
-    if (edited.prompts && edited.prompts.length === 0) {
-      const basePrompt = buildVisualPromptForObject(edited);
+  // Auto-populate base visual prompt if empty at init time (avoids useEffect+setState cascade)
+  const [edited, setEdited] = useState<StoryObject>(() => {
+    const base = { ...object };
+    if (!base.prompts || base.prompts.length === 0) {
+      const basePrompt = buildVisualPromptForObject(base);
       if (basePrompt) {
-        setEdited(prev => ({
-          ...prev,
-          prompts: [basePrompt]
-        }));
+        base.prompts = [basePrompt];
       }
     }
-  }, []); // Only run on mount or when object changes? 
-  // Actually, if we just created it, edited.prompts will be empty.
+    return base;
+  });
+  const [newAbility, setNewAbility] = useState('');
 
 
   const handleAddAbility = () => {
@@ -698,7 +693,7 @@ function ObjectAnalysisModal({ object, analysis, onClose }: { object: StoryObjec
               <div>
                 <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Narrative Role</h3>
                 <Badge className="bg-purple-100 text-purple-800 border-purple-200">
-                  {analysis.narrativeRole.replace('_', ' ').toUpperCase()}
+                  {(analysis.narrativeRole || '').replace('_', ' ').toUpperCase()}
                 </Badge>
               </div>
               <div>
@@ -714,7 +709,7 @@ function ObjectAnalysisModal({ object, analysis, onClose }: { object: StoryObjec
               <div>
                 <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Conflict Potential</h3>
                 <Badge variant={analysis.conflictPotential === 'high' ? 'destructive' : 'secondary' as any}>
-                  {analysis.conflictPotential.toUpperCase()}
+                  {(analysis.conflictPotential || '').toUpperCase()}
                 </Badge>
               </div>
               <div>

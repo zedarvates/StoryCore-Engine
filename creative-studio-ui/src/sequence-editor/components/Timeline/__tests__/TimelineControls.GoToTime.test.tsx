@@ -14,6 +14,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { TimelineControls } from '../TimelineControls';
 import timelineReducer from '../../../store/slices/timelineSlice';
 import previewReducer from '../../../store/slices/previewSlice';
+import projectReducer from '../../../store/slices/projectSlice';
 
 // Create a mock store
 const createMockStore = () => {
@@ -21,6 +22,7 @@ const createMockStore = () => {
     reducer: {
       timeline: timelineReducer,
       preview: previewReducer,
+      project: projectReducer,
     },
   });
 };

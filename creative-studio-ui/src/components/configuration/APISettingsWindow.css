@@ -126,3 +126,8 @@
   color: var(--text-secondary, #999);
   font-style: italic;
 }
+
+/* Ensure modal overlay has highest z-index */
+.api-settings-window .modal-overlay {
+  z-index: 100000;
+}

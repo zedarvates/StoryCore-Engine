@@ -184,8 +184,8 @@ export function ObjectWizard({
           imageUrl: data.imageUrl,
           imagePrompt: data.imagePrompt,
           generatedBy: data.generatedBy || 'user',
-          createdAt: data.createdAt || new Date(),
-          updatedAt: new Date(),
+          createdAt: data.createdAt || Date.now(),
+          updatedAt: Date.now(),
           tags: data.tags || [],
         };
 

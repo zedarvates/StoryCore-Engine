@@ -153,6 +153,85 @@ async def list_locations() -> List[LocationResponse]:
                 
     return locations
 
+# NOTE: /project/{project_id} routes MUST be declared BEFORE /{location_id}
+# to prevent FastAPI treating 'project' as a location_id.
+
+@router.get("/project/{project_id}", response_model=List[LocationResponse])
+async def list_project_locations(project_id: str) -> List[LocationResponse]:
+    """
+    List all locations in a project's locations folder.
+    Supports both direct JSON files and subfolder structure (name/location.json).
+    """
+    # Validate project_id to prevent path traversal
+    if not project_id or '/' in project_id or '\\' in project_id:
+        logger.warning(f"Invalid project_id in path traversal attempt: {project_id}")
+        return []
+    
+    locations_dir = Path("./projects") / project_id / "locations"
+    if not locations_dir.exists():
+        return []
+    
+    locations = []
+    
+    # 1. Check for legacy/direct JSON files (*.json)
+    for filename in locations_dir.iterdir():
+        if filename.is_file() and filename.suffix == '.json':
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    loc = json.load(f)
+                    # Mapping id vs location_id
+                    if 'id' not in loc and 'location_id' in loc:
+                        loc['id'] = loc['location_id']
+                    elif 'location_id' not in loc and 'id' in loc:
+                        loc['location_id'] = loc['id']
+                    locations.append(LocationResponse(**loc))
+            except Exception as e:
+                logger.error(f"Error loading location file {filename}: {e}")
+                continue
+
+    # 2. Check for subfolder structure (name/location.json)
+    for subdir in locations_dir.iterdir():
+        if subdir.is_dir():
+            location_file = subdir / "location.json"
+            if location_file.exists():
+                try:
+                    with open(location_file, 'r', encoding='utf-8') as f:
+                        loc = json.load(f)
+                        # Mapping id vs location_id
+                        if 'id' not in loc and 'location_id' in loc:
+                            loc['id'] = loc['location_id']
+                        elif 'location_id' not in loc and 'id' in loc:
+                            loc['location_id'] = loc['id']
+                        locations.append(LocationResponse(**loc))
+                except Exception as e:
+                    logger.error(f"Error loading location from subfolder {subdir}: {e}")
+                    continue
+                    
+    return locations
+
+@router.get("/project/{project_id}/{location_id}", response_model=LocationResponse)
+async def get_project_location(project_id: str, location_id: str) -> LocationResponse:
+    """
+    Get a specific location from a project's locations folder.
+    """
+    # Validate IDs to prevent path traversal
+    if '/' in project_id or '\\' in project_id:
+        raise HTTPException(status_code=400, detail="Invalid project_id")
+    if '/' in location_id or '\\' in location_id:
+        raise HTTPException(status_code=400, detail="Invalid location_id")
+    
+    filepath = Path("./projects") / project_id / "locations" / f"{location_id}.json"
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Location not found in project")
+    
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            loc = json.load(f)
+            return LocationResponse(**loc)
+    except (json.JSONDecodeError, IOError, UnicodeDecodeError) as e:
+        logger.error(f"Error loading location {project_id}/{location_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error loading location: {str(e)}")
+
 @router.get("/{location_id}", response_model=LocationResponse)
 async def get_location(location_id: str) -> LocationResponse:
     loc = load_location(location_id)
@@ -195,58 +274,7 @@ async def delete_location(location_id: str):
         os.remove(path)
 
 # =============================================================================
-# Project-Local Locations Endpoints
-# =============================================================================
-
-@router.get("/project/{project_id}", response_model=List[LocationResponse])
-async def list_project_locations(project_id: str) -> List[LocationResponse]:
-    """
-    List all locations in a project's locations folder.
-    """
-    # Validate project_id to prevent path traversal
-    if '/' in project_id or '\\' in project_id:
-        logger.warning(f"Invalid project_id in path traversal attempt: {project_id}")
-        return []
-    
-    locations_dir = Path("./projects") / project_id / "locations"
-    if not locations_dir.exists():
-        return []
-    
-    locations = []
-    for filename in locations_dir.iterdir():
-        if filename.suffix == '.json':
-            filepath = locations_dir / filename
-            try:
-                with open(filepath, 'r', encoding='utf-8') as f:
-                    loc = json.load(f)
-                    locations.append(LocationResponse(**loc))
-            except (json.JSONDecodeError, IOError, UnicodeDecodeError) as e:
-                logger.error(f"Error loading location {filename}: {e}")
-                continue
-    return locations
-
-@router.get("/project/{project_id}/{location_id}", response_model=LocationResponse)
-async def get_project_location(project_id: str, location_id: str) -> LocationResponse:
-    """
-    Get a specific location from a project's locations folder.
-    """
-    # Validate IDs to prevent path traversal
-    if '/' in project_id or '\\' in project_id:
-        raise HTTPException(status_code=400, detail="Invalid project_id")
-    if '/' in location_id or '\\' in location_id:
-        raise HTTPException(status_code=400, detail="Invalid location_id")
-    
-    filepath = Path("./projects") / project_id / "locations" / f"{location_id}.json"
-    if not filepath.exists():
-        raise HTTPException(status_code=404, detail="Location not found in project")
-    
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            loc = json.load(f)
-            return LocationResponse(**loc)
-    except (json.JSONDecodeError, IOError, UnicodeDecodeError) as e:
-        logger.error(f"Error loading location {project_id}/{location_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error loading location: {str(e)}")
+# Cube Texture Endpoints (below project routes to avoid route conflicts)
 
 @router.post("/{location_id}/cube-textures", response_model=LocationResponse)
 async def update_cube_texture(location_id: str, data: dict) -> LocationResponse:

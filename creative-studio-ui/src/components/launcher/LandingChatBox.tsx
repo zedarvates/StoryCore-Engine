@@ -63,7 +63,7 @@ import {
 import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ChatService, type ProjectCreationRequest } from '@/services/chatService';
+import { type ProjectCreationRequest } from '@/services/chatService';
 import { projectCreationService } from '@/services/ProjectCreationService';
 
 // ============================================================================
@@ -1221,9 +1221,17 @@ export function LandingChatBox({
 
               // Check if the response contains project creation actions
               const assistantMessage = response.data.content;
-              if (assistantMessage.includes('[TOOL:createProject]') || 
+              const isProjectCreationRequest = 
+                (userInput.toLowerCase().match(/create|make|start|new|cr[ée]|nouveau|faire/i)) &&
+                (userInput.toLowerCase().match(/project|video|trailer|projet|vid[ée]o|court-m[ée]trage|film|album/i));
+
+              if (assistantMessage.includes('[TOOL:createProject') || 
                   assistantMessage.toLowerCase().includes('create project') ||
-                  assistantMessage.toLowerCase().includes('créer un projet')) {
+                  assistantMessage.toLowerCase().includes('créer un projet') ||
+                  assistantMessage.toLowerCase().includes('créer le projet') ||
+                  assistantMessage.toLowerCase().includes('créer projet') ||
+                  assistantMessage.toLowerCase().includes('nom du projet') ||
+                  isProjectCreationRequest) {
                 
                 // Parse project creation request from the response
                 const projectRequest = parseProjectCreationFromResponse(assistantMessage, userInput);
@@ -1291,9 +1299,17 @@ export function LandingChatBox({
 
             // Check if the response contains project creation actions
             const assistantMessageContent = response.data.content;
-            if (assistantMessageContent.includes('[TOOL:createProject]') || 
+            const isProjectCreationRequest = 
+              (userInput.toLowerCase().match(/create|make|start|new|cr[ée]|nouveau|faire/i)) &&
+              (userInput.toLowerCase().match(/project|video|trailer|projet|vid[ée]o|court-m[ée]trage|film|album/i));
+
+            if (assistantMessageContent.includes('[TOOL:createProject') || 
                 assistantMessageContent.toLowerCase().includes('create project') ||
-                assistantMessageContent.toLowerCase().includes('créer un projet')) {
+                assistantMessageContent.toLowerCase().includes('créer un projet') ||
+                assistantMessageContent.toLowerCase().includes('créer le projet') ||
+                assistantMessageContent.toLowerCase().includes('créer projet') ||
+                assistantMessageContent.toLowerCase().includes('nom du projet') ||
+                isProjectCreationRequest) {
               
               // Parse project creation request from the response
               const projectRequest = parseProjectCreationFromResponse(assistantMessageContent, userInput);
@@ -1357,25 +1373,97 @@ export function LandingChatBox({
 
   // Helper function to parse project creation request from assistant response
   const parseProjectCreationFromResponse = (assistantMessage: string, userInput: string): ProjectCreationRequest | null => {
-    // Extract project name from various patterns
-    const nameMatch = assistantMessage.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
-      || assistantMessage.match(/["']([^"']+)["']/)
-      || userInput.match(/(?:appelé|nommé|named|called)\s+["']?([^"',;.]+)["']?/i)
-      || userInput.match(/["']([^"']+)["']/);
-    
-    const name = nameMatch ? nameMatch[1].trim() : undefined;
+    const namePatternMatch = assistantMessage.match(/\[TOOL:createProject:([^:\]]+)(?::([^\]]+))?\]/i);
+    let name = namePatternMatch ? namePatternMatch[1].trim() : undefined;
+    let formatId = namePatternMatch && namePatternMatch[2] ? namePatternMatch[2].trim() : undefined;
+
+    if (!name) {
+      // Extract project name from various patterns
+      const nameMatch = assistantMessage.match(/(?:appelé|nommé|named|called|s'appeler)\s*[.:]?\s*["']?([^"',;\n]+)["']?/i)
+        || assistantMessage.match(/["']([^"']+)["']/)
+        || userInput.match(/(?:appelé|nommé|named|called|s'appeler)\s*[.:]?\s*["']?([^"',;\n]+)["']?/i)
+        || userInput.match(/["']([^"']+)["']/);
+      
+      name = nameMatch ? nameMatch[1].trim() : undefined;
+    }
 
     // Extract theme/universe/genre
     const theme = extractThemeFromInput(userInput);
     const universe = extractUniverseFromInput(userInput);
     const genre = extractGenreFromInput(userInput);
 
+    // Deduce music-album format if not explicitly provided but mentioned in input
+    if (!formatId) {
+      const lowerInput = userInput.toLowerCase();
+      if (lowerInput.includes('album') || lowerInput.includes('collection de titres') || lowerInput.includes('disque')) {
+        formatId = 'music-album';
+      }
+    }
+
+    // Parse characters
+    const characters: Record<string, unknown>[] = [];
+    const charRegex = /\[TOOL:createCharacter:([^:\]]+)(?::([^\]]+))?\]/gi;
+    let charMatch;
+    while ((charMatch = charRegex.exec(assistantMessage)) !== null) {
+      characters.push({
+        id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name: charMatch[1].trim(),
+        role: charMatch[2] ? charMatch[2].trim() : 'Protagonist',
+        description: 'Auto-generated character from assistant',
+      });
+    }
+
+    // Parse locations
+    const locations: Record<string, unknown>[] = [];
+    const locRegex = /\[TOOL:createLocation:([^:\]]+)(?::([^\]]+))?\]/gi;
+    let locMatch;
+    while ((locMatch = locRegex.exec(assistantMessage)) !== null) {
+      locations.push({
+        id: `loc_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name: locMatch[1].trim(),
+        type: locMatch[2] ? locMatch[2].trim() : 'exterior',
+        description: 'Auto-generated location from assistant',
+      });
+    }
+
+    // Parse sequences
+    const sequences: Record<string, unknown>[] = [];
+    const seqRegex = /\[TOOL:createSequence:([^:\]]+)\]/gi;
+    let seqMatch;
+    while ((seqMatch = seqRegex.exec(assistantMessage)) !== null) {
+      sequences.push({
+        id: `seq_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name: seqMatch[1].trim(),
+        description: 'Auto-generated sequence from assistant',
+      });
+    }
+
+    // Parse objects
+    const objects: Record<string, unknown>[] = [];
+    const objRegex = /\[TOOL:createObject:([^:\]]+)(?::([^\]]+))?\]/gi;
+    let objMatch;
+    while ((objMatch = objRegex.exec(assistantMessage)) !== null) {
+      objects.push({
+        id: `obj_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name: objMatch[1].trim(),
+        type: objMatch[2] ? objMatch[2].trim() : 'prop',
+        description: 'Auto-generated object from assistant',
+      });
+    }
+
     return {
       name: name || `Project ${new Date().toISOString().split('T')[0]}`,
       theme,
       universe,
       genre,
+      formatId,
       description: userInput,
+      initialEntities: {
+        characters: characters.length > 0 ? characters : undefined,
+        locations: locations.length > 0 ? locations : undefined,
+        sequences: sequences.length > 0 ? sequences : undefined,
+        objects: objects.length > 0 ? objects : undefined,
+      },
       settings: {
         created_by: 'llm-assistant',
         creation_timestamp: new Date().toISOString(),

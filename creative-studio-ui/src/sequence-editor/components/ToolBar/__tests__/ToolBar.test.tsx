@@ -10,6 +10,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import { ToolBar } from '../ToolBar';
 import toolsReducer from '../../../store/slices/toolsSlice';
 import projectReducer from '../../../store/slices/projectSlice';
+import panelsReducer from '../../../store/slices/panelsSlice';
+import historyReducer from '../../../store/slices/historySlice';
+import timelineReducer from '../../../store/slices/timelineSlice';
 import type { ToolType } from '../../../types';
 
 // Helper to create test store
@@ -18,6 +21,9 @@ const createTestStore = (initialState = {}) => {
     reducer: {
       tools: toolsReducer,
       project: projectReducer,
+      panels: panelsReducer,
+      history: historyReducer,
+      timeline: timelineReducer,
     },
     preloadedState: initialState,
   });
@@ -361,7 +367,7 @@ describe('ToolBar Component', () => {
       const settingsButton = screen.getByLabelText('Project Settings');
       fireEvent.click(settingsButton);
       
-      expect(consoleSpy).toHaveBeenCalledWith('Open project settings');
+      expect(consoleSpy).toHaveBeenCalledWith('Opening project settings...');
       
       consoleSpy.mockRestore();
     });
@@ -374,7 +380,7 @@ describe('ToolBar Component', () => {
       const exportButton = screen.getByLabelText('Export Project');
       fireEvent.click(exportButton);
       
-      expect(consoleSpy).toHaveBeenCalledWith('Export project');
+      expect(consoleSpy).toHaveBeenCalledWith('Project "untitled" exported successfully!');
       
       consoleSpy.mockRestore();
     });
@@ -500,7 +506,7 @@ describe('ToolBar Component', () => {
       
       const projectGroup = container.querySelector('.project-tools');
       expect(projectGroup).toBeInTheDocument();
-      expect(projectGroup?.querySelectorAll('.tool-btn').length).toBe(3);
+      expect(projectGroup?.querySelectorAll('.tool-btn').length).toBe(5);
     });
   });
 

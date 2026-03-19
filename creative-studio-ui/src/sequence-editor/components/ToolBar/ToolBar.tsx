@@ -379,6 +379,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
             onClick={() => handleToolSelect(tool.id)}
             title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
             aria-label={tool.name}
+            aria-pressed={activeTool === tool.id}
           >
             <span className="tool-icon">{tool.icon}</span>
             <span className="tool-label">{tool.name}</span>
@@ -398,6 +399,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
             onClick={() => handleToolSelect(tool.id)}
             title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
             aria-label={tool.name}
+            aria-pressed={activeTool === tool.id}
           >
             <span className="tool-icon">{tool.icon}</span>
             <span className="tool-label">{tool.name}</span>
@@ -417,6 +419,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
             onClick={() => handleToolSelect(tool.id)}
             title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
             aria-label={tool.name}
+            aria-pressed={activeTool === tool.id}
           >
             <span className="tool-icon">{tool.icon}</span>
             <span className="tool-label">{tool.name}</span>
@@ -436,6 +439,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
             onClick={() => handleToolSelect(tool.id)}
             title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
             aria-label={tool.name}
+            aria-pressed={activeTool === tool.id}
           >
             <span className="tool-icon">{tool.icon}</span>
             <span className="tool-label">{tool.name}</span>

@@ -8,6 +8,8 @@
 import { persistenceService } from './PersistenceService';
 import { logger } from '@/utils/logger';
 import type { World } from '@/types/world';
+import type { Shot } from '@/types';
+import type { Character } from '@/types/character';
 
 export interface SyncConflict {
   entityType: string;
@@ -72,6 +74,7 @@ export class SyncManager {
         this.syncSequences(projectPath),
         this.syncScenes(projectPath),
         this.syncShots(projectPath),
+        this.syncMeta(projectPath),
       ]);
 
       const synced = results.reduce((acc, result) => {
@@ -108,9 +111,9 @@ export class SyncManager {
   }
 
   /**
-   * Synchronisation des mondes
+   * Synchronisation   * @param _projectPath 
    */
-  private async syncWorlds(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
+  private async syncWorlds(_projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
     try {
       // Importer dynamiquement pour éviter les dépendances circulaires
       const { useStore } = await import('@/store');
@@ -123,11 +126,12 @@ export class SyncManager {
       for (const world of storeWorlds) {
         try {
           // Essayer de charger depuis le fichier
-          const fileWorld = await persistenceService.loadWorld(world.id, projectPath);
+          const fileWorld = await persistenceService.loadWorld(world.id, _projectPath);
 
           if (!fileWorld) {
             // Monde existe dans store mais pas dans fichier - sauvegarder
-            await persistenceService.saveWorld(world, projectPath);
+            await persistenceService.saveWorld(world, _projectPath);
+            logger.debug(`[SyncManager] World synced to file: ${world.id}`);
             synced++;
           } else {
             // Les deux existent - vérifier les conflits
@@ -135,7 +139,7 @@ export class SyncManager {
             if (conflict) {
               conflicts.push(conflict);
               // Résoudre automatiquement : store wins (plus récent)
-              await persistenceService.saveWorld(world, projectPath);
+              await persistenceService.saveWorld(world, _projectPath);
             }
           }
         } catch (error) {
@@ -143,8 +147,36 @@ export class SyncManager {
         }
       }
 
-      // Vérifier les mondes qui existent dans les fichiers mais pas dans le store
-      // Cette logique serait plus complexe et nécessiterait de scanner les fichiers
+      // FIX: Check for worlds that exist in files but not in the store
+      if (_projectPath && window.electronAPI?.fs?.readdir) {
+          const { persistenceService } = await import('./PersistenceService');
+          const worldsDir = `${_projectPath}/worlds`;
+          try {
+              if (await window.electronAPI.fs.exists(worldsDir)) {
+                  const files = await window.electronAPI.fs.readdir(worldsDir);
+                  const worldFiles = files.filter((f: string) => f.startsWith('world_') && f.endsWith('.json'));
+                  
+                  const currentStoreWorlds = useStore.getState().worlds || [];
+                  const worldPromises = worldFiles.map(async (file) => {
+                    const worldId = file.replace('world_', '').replace('.json', '');
+                    if (!currentStoreWorlds.some(w => w.id === worldId)) {
+                        return await persistenceService.loadWorld(worldId, _projectPath);
+                    }
+                    return null;
+                  });
+
+                  const loadedWorlds = (await Promise.all(worldPromises)).filter((w): w is World => !!w);
+                  loadedWorlds.forEach(world => {
+                      if (world) {
+                          store.addWorld(world);
+                          synced++;
+                      }
+                  });
+              }
+          } catch (err) {
+              logger.warn('[SyncManager] Failed to scan worlds directory:', err);
+          }
+      }
 
       return { synced, conflicts };
     } catch (error) {
@@ -154,9 +186,9 @@ export class SyncManager {
   }
 
   /**
-   * Synchronisation des personnages
+   * Synchronisation   * @param _projectPath 
    */
-  private async syncCharacters(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
+  private async syncCharacters(_projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
     try {
       const { useStore } = await import('@/store');
       const store = useStore.getState();
@@ -169,11 +201,40 @@ export class SyncManager {
       for (const character of storeCharacters) {
         try {
           // Utiliser saveCharacter au lieu de saveWorld
-          await persistenceService.saveCharacter(character, projectPath);
+          await persistenceService.saveCharacter(character, _projectPath);
+          logger.debug(`[SyncManager] Character synced: ${character.character_id}`);
           synced++;
         } catch (error) {
           logger.error(`[SyncManager] Error syncing character ${character.character_id}:`, error);
         }
+      }
+
+      // FIX: Check for characters that exist in files but not in the store
+      if (_projectPath && window.electronAPI?.fs?.readdir) {
+          const { persistenceService } = await import('./PersistenceService');
+          const charactersDir = `${_projectPath}/characters`;
+          try {
+              if (await window.electronAPI.fs.exists(charactersDir)) {
+                  const items = await window.electronAPI.fs.readdir(charactersDir);
+                  const currentStoreChars = useStore.getState().characters;
+                  const charPromises = items.map(async (folder) => {
+                      if (!currentStoreChars.some((c: Character) => c.character_id === folder || c.name === folder)) {
+                          return await persistenceService.loadCharacter(folder, _projectPath);
+                      }
+                      return null;
+                  });
+
+                  const loadedChars = (await Promise.all(charPromises)).filter((c): c is Character => !!c);
+                  loadedChars.forEach(char => {
+                      if (char) {
+                          store.addCharacter(char);
+                          synced++;
+                      }
+                  });
+              }
+          } catch (err) {
+              logger.warn('[SyncManager] Failed to scan characters directory:', err);
+          }
       }
 
       return { synced, conflicts };
@@ -184,27 +245,188 @@ export class SyncManager {
   }
 
   /**
-   * Synchronisation des séquences
+   * Synchronisation   * @param _projectPath 
    */
-  private async syncSequences(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
-    // Logique similaire pour les séquences
-    return { synced: 0, conflicts: [] };
+  private async syncSequences(_projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
+    try {
+      const { useStore } = await import('@/store');
+      const store = useStore.getState();
+
+      const storeSequences = store.sequencePlans || [];
+      let synced = 0;
+      const conflicts: SyncConflict[] = [];
+
+      // Synchroniser chaque séquence
+      await Promise.all(storeSequences.map(async (sequence) => {
+        try {
+          await persistenceService.saveSequencePlan(sequence, _projectPath);
+        } catch (error) {
+          logger.error(`[SyncManager] Error syncing sequence ${sequence.id}:`, error);
+        }
+      }));
+
+      // FIX: Check for sequences that exist in files but not in the store
+      if (_projectPath && window.electronAPI?.fs?.readdir) {
+          const sequencesDir = `${_projectPath}/sequences`;
+          try {
+              if (await window.electronAPI.fs.exists(sequencesDir)) {
+                  const files = await window.electronAPI.fs.readdir(sequencesDir);
+                  const sequenceFiles = files.filter((f: string) => f.startsWith('sequence_') && f.endsWith('.json'));
+                  
+                  const { useSequencePlanStore } = await import('@/stores/sequencePlanStore');
+
+                  for (const file of sequenceFiles) {
+                      const content = await window.electronAPI.fs.readFile(`${sequencesDir}/${file}`);
+                      if (content) {
+                          const plan = JSON.parse(new TextDecoder().decode(content)) as import('@/types/sequencePlan').SequencePlan;
+                          // REFRESH: Get latest store state inside loop to avoid duplicates
+                          const currentStoreSequences = useStore.getState().sequencePlans || [];
+                          if (plan && !currentStoreSequences.some(s => s.id === plan.id)) {
+                              // Add to main store
+                              store.addSequencePlan(plan);
+                              
+                              // REFRESH: Also check sequence plan store
+                              const currentSeqPlanStore = useSequencePlanStore.getState();
+                              if (!currentSeqPlanStore.plans.some(p => p.id === plan.id)) {
+                                  // We can use setState to push to useSequencePlanStore
+                                  useSequencePlanStore.setState({
+                                      plans: [...currentSeqPlanStore.plans, plan]
+                                  });
+                              }
+                              
+                              synced++;
+                          }
+                      }
+                  }
+              }
+          } catch (err) {
+              logger.warn('[SyncManager] Failed to scan sequences directory:', err);
+          }
+      }
+
+      return { synced, conflicts };
+    } catch (error) {
+      logger.error('[SyncManager] Error syncing sequences:', error);
+      return { synced: 0, conflicts: [] };
+    }
   }
 
   /**
-   * Synchronisation des scènes
+   * Synchronisation   * @param _projectPath 
    */
-  private async syncScenes(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
+  private async syncScenes(_projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
     // Logique similaire pour les scènes
     return { synced: 0, conflicts: [] };
   }
 
-  /**
-   * Synchronisation des plans
-   */
   private async syncShots(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
-    // Logique similaire pour les plans
-    return { synced: 0, conflicts: [] };
+    if (!projectPath || !window.electronAPI?.fs?.readdir) return { synced: 0, conflicts: [] };
+
+    try {
+      const shotsDir = `${projectPath}/shots`;
+      const exists = await window.electronAPI.fs.exists(shotsDir);
+      if (!exists) return { synced: 0, conflicts: [] };
+
+      const files = await window.electronAPI.fs.readdir(shotsDir);
+      const shotFiles = files.filter((f: string) => f.startsWith('shot_') && f.endsWith('.json'));
+
+      const shotPromises = shotFiles.map(async (file) => {
+        try {
+          const content = await window.electronAPI.fs.readFile(`${shotsDir}/${file}`);
+          return JSON.parse(new TextDecoder().decode(content));
+        } catch (err) {
+          logger.error(`[SyncManager] Failed to read shot file ${file}:`, err);
+          return null;
+        }
+      });
+      const allShotData = (await Promise.all(shotPromises)).filter((s): s is Shot => !!s && typeof s.id === 'string');
+
+      let synced = 0;
+      const conflicts: SyncConflict[] = [];
+
+      const { useAppStore } = await import('@/stores/useAppStore');
+      const { useStore } = await import('@/store');
+
+      const appStore = useAppStore.getState();
+      const legacyStore = useStore.getState();
+      
+      const currentAppShots = appStore.shots;
+      const currentLegacyShots = legacyStore.shots;
+      
+      const shotsToAddInApp: Shot[] = [];
+      const shotsToUpdateInApp: Array<{id: string, updates: Partial<Shot>}> = [];
+      const shotsToUpdateInLegacy: Shot[] = [...currentLegacyShots];
+      let legacyChanged = false;
+
+      for (const shotData of allShotData) {
+        const existingInApp = currentAppShots.find((s: Shot) => s.id === shotData.id);
+        const existingInLegacy = currentLegacyShots.find((s: Shot) => s.id === shotData.id);
+
+        if (!existingInApp && !existingInLegacy) {
+          logger.debug(`[SyncManager] New shot found in file: ${shotData.id}`);
+          shotsToAddInApp.push(shotData);
+          shotsToUpdateInLegacy.push(shotData);
+          legacyChanged = true;
+          synced++;
+        } else {
+          const conflict = this.detectConflict(existingInApp || existingInLegacy, shotData, 'shot');
+          if (conflict) {
+            conflicts.push(conflict);
+          } else if (existingInApp && JSON.stringify(existingInApp) !== JSON.stringify(shotData)) {
+            shotsToUpdateInApp.push({ id: shotData.id, updates: shotData });
+            const legacyIdx = shotsToUpdateInLegacy.findIndex(s => s.id === shotData.id);
+            if (legacyIdx !== -1) {
+              shotsToUpdateInLegacy[legacyIdx] = shotData;
+              legacyChanged = true;
+            }
+            synced++;
+          }
+        }
+      }
+
+      // Batch updates
+      if (shotsToAddInApp.length > 0) {
+        appStore.setShots([...currentAppShots, ...shotsToAddInApp]);
+      }
+      
+      for (const update of shotsToUpdateInApp) {
+        appStore.updateShot(update.id, update.updates);
+      }
+      
+      if (legacyChanged) {
+        legacyStore.reorderShots(shotsToUpdateInLegacy);
+      }
+
+      return { synced, conflicts };
+    } catch (error) {
+      logger.error(`[SyncManager] Error in syncShots:`, error);
+      return { synced: 0, conflicts: [] };
+    }
+  }
+
+  private async syncMeta(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
+    if (!projectPath || !window.electronAPI?.fs?.readFile) return { synced: 0, conflicts: [] };
+    
+    try {
+      const metaPath = `${projectPath}/project_metadata.json`;
+      if (!(await window.electronAPI.fs.exists(metaPath))) return { synced: 0, conflicts: [] };
+      
+      const content = await window.electronAPI.fs.readFile(metaPath);
+      const metaData = JSON.parse(new TextDecoder().decode(content));
+      
+      const { useAppStore } = await import('@/stores/useAppStore');
+      const store = useAppStore.getState();
+      
+      if (store.project?.id === metaData.id && JSON.stringify(store.project) !== JSON.stringify(metaData)) {
+        logger.debug('[SyncManager] Project metadata differs from file - potentially needs update');
+        // Note: Project metadata sync is usually handled by ProjectService/AppStore load
+      }
+      
+      return { synced: 1, conflicts: [] };
+    } catch (error) {
+      logger.error('[SyncManager] Error syncing metadata:', error);
+      return { synced: 0, conflicts: [] };
+    }
   }
 
   /**
@@ -269,8 +491,13 @@ export class SyncManager {
       // Sauvegarder la version résolue
       if (conflict.entityType === 'world' && isObject(finalData)) {
         await persistenceService.saveWorld(finalData as unknown as World);
+      } else if (conflict.entityType === 'character' && isObject(finalData)) {
+        await persistenceService.saveCharacter(finalData as unknown as import('@/types/character').Character);
+      } else if (conflict.entityType === 'sequencePlan' && isObject(finalData)) {
+        await persistenceService.saveSequencePlan(finalData as unknown as import('@/types/sequencePlan').SequencePlan);
+      } else if (conflict.entityType === 'shot' && isObject(finalData)) {
+        await persistenceService.saveShot(finalData as unknown as import('@/types').Shot);
       }
-      // Ajouter d'autres types d'entités selon les besoins
 
       // Marquer le conflit comme résolu
       this.conflicts = this.conflicts.filter(c => c !== conflict);
@@ -336,7 +563,7 @@ export class SyncManager {
   /**
    * Créer un backup automatique
    */
-  async createBackup(projectPath?: string): Promise<string> {
+  async createBackup(_projectPath?: string): Promise<string> {
     try {
       const timestamp = new Date().toISOString().replaceAll(':', '-').replaceAll('.', '-');
       const backupId = `backup-${timestamp}`;

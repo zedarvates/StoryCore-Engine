@@ -35,17 +35,20 @@ export function ObjectsSection({
   style = {},
 }: ObjectsSectionProps) {
   const project = useAppStore((state) => state.project);
-  const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id || 'default';
+  
+  // Resolve project path/ID for storage
+  // Prefer project.path (absolute) if available, otherwise fallback to project.id (UUID)
+  const resolvedProjectId = project?.path || project?.id || 'default';
+  
   const { objects, fetchProjectObjects, isLoading, addObject } = useObjectStore();
   const [showImageCreator, setShowImageCreator] = React.useState(false);
 
   // Load objects on mount
   useEffect(() => {
     if (project) {
-      const projectId = project?.path ? project.path.split(/[/\\]/).pop() || project.id : project.id;
-      fetchProjectObjects(projectId);
+      fetchProjectObjects(resolvedProjectId);
     }
-  }, [project, fetchProjectObjects]);
+  }, [project, fetchProjectObjects, resolvedProjectId]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -174,7 +177,7 @@ export function ObjectsSection({
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
               <ImageObjectCreator
                 onObjectCreated={(objData) => {
-                  if (addObject && projectId) {
+                  if (addObject && resolvedProjectId) {
                      const storyObject: StoryObject = {
                        id: objData.object_id || crypto.randomUUID(),
                        name: objData.name || 'New Object',
@@ -192,7 +195,7 @@ export function ObjectsSection({
                        updatedAt: Date.now(),
                        tags: objData.suggested_tags || [],
                      };
-                     addObject(projectId, storyObject);
+                     addObject(resolvedProjectId, storyObject);
                   }
                   setShowImageCreator(false);
                 }}

@@ -186,6 +186,35 @@ class Settings(BaseSettings):
     )
 
     # =======================
+    # n8n Configuration
+    # =======================
+    N8N_BASE_URL: str = Field(
+        default="http://192.168.1.47:5678",
+        description="n8n service base URL"
+    )
+    N8N_API_KEY: Optional[str] = Field(
+        default=None,
+        description="n8n API key"
+    )
+    N8N_WEBHOOK_URL: str = Field(
+        default="http://192.168.1.47:5678/webhook",
+        description="n8n webhook base URL"
+    )
+
+    # =======================
+    # Telegram Configuration
+    # =======================
+    TELEGRAM_BOT_TOKEN: Optional[str] = Field(default=None, description="Telegram Bot API Token")
+    TELEGRAM_CHAT_ID: Optional[str] = Field(default=None, description="Default Telegram Chat ID for notifications")
+
+    # =======================
+    # Discord Configuration
+    # =======================
+    DISCORD_BOT_TOKEN: Optional[str] = Field(default=None, description="Discord Bot Token")
+    DISCORD_WEBHOOK_URL: Optional[str] = Field(default=None, description="Default Discord Webhook URL")
+    DISCORD_CLIENT_ID: Optional[str] = Field(default=None, description="Discord Client ID")
+
+    # =======================
     # Feature Flags
     # =======================
     USE_MOCK_LLM: bool = Field(

@@ -681,6 +681,16 @@ const toolsMenuConfig: MenuConfig = {
       action: toolsActions.llmAssistant,
     },
     {
+      id: 'automation-studio',
+      label: 'tools.automationStudio',
+      type: 'action',
+      enabled: true,
+      visible: true,
+      icon: 'zap',
+      description: 'Automation Studio & n8n Integration',
+      action: toolsActions.automationStudio,
+    },
+    {
       id: 'comfyui-server',
       label: 'tools.comfyUIServer',
       type: 'action',

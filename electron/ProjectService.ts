@@ -20,6 +20,9 @@ export interface NewProjectData {
   template?: string;
   format?: any; // Project format configuration
   initialShots?: any[]; // Initial shots to create
+  initialCharacters?: any[]; 
+  initialLocations?: any[];
+  initialObjects?: any[];
 }
 
 /**
@@ -214,13 +217,14 @@ export class ProjectService {
           console.log('Created sequences directory');
         }
 
-        // Group shots by sequence_id
+        // Group shots by sequence_id (check top level or metadata)
         const sequenceMap = new Map<string, any[]>();
         data.initialShots.forEach(shot => {
-          if (!sequenceMap.has(shot.sequence_id)) {
-            sequenceMap.set(shot.sequence_id, []);
+          const seqId = shot.sequence_id || shot.sequenceId || shot.metadata?.sequence_id || shot.metadata?.sequenceId || 'default';
+          if (!sequenceMap.has(seqId)) {
+            sequenceMap.set(seqId, []);
           }
-          sequenceMap.get(shot.sequence_id)!.push(shot);
+          sequenceMap.get(seqId)!.push(shot);
         });
 
         console.log(`Grouped into ${sequenceMap.size} sequences`);
@@ -258,6 +262,74 @@ export class ProjectService {
         console.log(`Successfully created ${sequenceNumber - 1} sequence files`);
       } else {
         console.log('No initial shots provided, skipping sequence file creation');
+      }
+
+      // Create character files
+      if (data.initialCharacters && data.initialCharacters.length > 0) {
+        const charsDir = path.join(projectPath, 'characters');
+        data.initialCharacters.forEach(char => {
+          const charId = char.character_id || char.id || 'uuid_fallback';
+          const sanitizedName = (char.name || charId)
+            .replace(/[^a-z0-9]/gi, '_')
+            .toLowerCase()
+            .substring(0, 50);
+          
+          const charDirName = `${sanitizedName}_${charId.substring(0, 8)}`;
+          const charDirPath = path.join(charsDir, charDirName);
+          
+          fs.mkdirSync(charDirPath, { recursive: true });
+          fs.writeFileSync(path.join(charDirPath, 'character.json'), JSON.stringify(char, null, 2), 'utf-8');
+          
+          fs.mkdirSync(path.join(charDirPath, 'images'), { recursive: true });
+          fs.mkdirSync(path.join(charDirPath, 'reference_sheets'), { recursive: true });
+          
+          const readmeContent = `# ${char.name || 'Character'}\n\nCharacter ID: ${charId}\n\n## Folder Structure\n- character.json: Main character data\n- images/: Character reference images\n- reference_sheets/: Character reference sheets\n`;
+          fs.writeFileSync(path.join(charDirPath, 'README.md'), readmeContent, 'utf-8');
+        });
+        console.log(`Created ${data.initialCharacters.length} character folders`);
+      }
+
+      // Create location files
+      if (data.initialLocations && data.initialLocations.length > 0) {
+        const locsDir = path.join(projectPath, 'locations');
+        data.initialLocations.forEach(loc => {
+          const locName = loc.name || loc.location_id || loc.id || 'Unknown Location';
+          const sanitizedName = locName
+            .trim()
+            .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+            .replace(/\\s+/g, '_')
+            .substring(0, 100);
+            
+          const locDirPath = path.join(locsDir, sanitizedName);
+          fs.mkdirSync(locDirPath, { recursive: true });
+          fs.writeFileSync(path.join(locDirPath, 'location.json'), JSON.stringify(loc, null, 2), 'utf-8');
+          
+          fs.mkdirSync(path.join(locDirPath, 'images'), { recursive: true });
+          fs.mkdirSync(path.join(locDirPath, 'cube_textures'), { recursive: true });
+          fs.mkdirSync(path.join(locDirPath, 'assets'), { recursive: true });
+        });
+        console.log(`Created ${data.initialLocations.length} location folders`);
+      }
+
+      // Create object files
+      if (data.initialObjects && data.initialObjects.length > 0) {
+        const objsDir = path.join(projectPath, 'objects');
+        data.initialObjects.forEach(obj => {
+          const objName = obj.name || obj.id || 'Unknown Object';
+          const sanitizedName = objName
+            .trim()
+            .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+            .replace(/\\s+/g, '_')
+            .substring(0, 100);
+            
+          const objDirPath = path.join(objsDir, sanitizedName);
+          fs.mkdirSync(objDirPath, { recursive: true });
+          fs.writeFileSync(path.join(objDirPath, 'object.json'), JSON.stringify(obj, null, 2), 'utf-8');
+          
+          fs.mkdirSync(path.join(objDirPath, 'images'), { recursive: true });
+          fs.mkdirSync(path.join(objDirPath, 'models'), { recursive: true });
+        });
+        console.log(`Created ${data.initialObjects.length} object folders`);
       }
 
       // Create template files

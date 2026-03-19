@@ -45,6 +45,8 @@ from src.automation.character_grid import (
     create_character_grid_automation
 )
 
+from backend.n8n_service import n8n_service
+
 
 # Création des instances d'automation
 dialogue_automation = create_dialogue_automation(storage_dir="data/dialogues")
@@ -878,7 +880,6 @@ async def adapt_for_social_media(request: SocialMediaAdaptRequest):
         posts=posts,
         viral_score=0.85
     )
-
 
 # ==================== HEALTH CHECK ====================
 

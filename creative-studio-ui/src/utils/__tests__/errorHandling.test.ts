@@ -6,7 +6,7 @@
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   categorizeError,
   retryWithBackoff,
@@ -111,6 +111,10 @@ describe('Error Handling Utilities', () => {
       vi.useFakeTimers();
     });
 
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should succeed on first attempt', async () => {
       const operation = vi.fn().mockResolvedValue('success');
       
@@ -153,13 +157,15 @@ describe('Error Handling Utilities', () => {
 
     it('should throw after max attempts', async () => {
       const error = new Error('Persistent failure');
-      const operation = vi.fn().mockRejectedValue(error);
+      const operation = vi.fn().mockImplementation(() => Promise.reject(error));
       
       const promise = retryWithBackoff(operation, 3, 1000);
+      const expectation = expect(promise).rejects.toThrow('Persistent failure');
       
+      // Fast-forward through retry delays
       await vi.runAllTimersAsync();
       
-      await expect(promise).rejects.toThrow('Persistent failure');
+      await expectation;
       expect(operation).toHaveBeenCalledTimes(3);
     });
 

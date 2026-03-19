@@ -1,22 +1,37 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import SecretServicesMenu from './SecretServicesMenu';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { SecretServicesMenu } from './SecretServicesMenu';
+import { SecretModeProvider } from '@/contexts/SecretModeContext';
+import { expect, test } from 'vitest';
 
-// Mock heavy dependencies if any
-jest.mock('../someHeavyDependency', () => ({
-  HeavyComponent: () => <div data-testid="heavy-mock">Mocked</div>,
-}));
+test('renders SecretServicesMenu and toggles dropdown when secret mode is active', async () => {
+  render(
+    <SecretModeProvider>
+      <SecretServicesMenu />
+    </SecretModeProvider>
+  );
 
-test('renders SecretServicesMenu without crashing and displays key element', () => {
-  render(<SecretServicesMenu />);
-  const menu = screen.getByTestId('secret-services-menu');
-  expect(menu).toBeInTheDocument();
-});
+  // Activate secret mode via keyboard shortcut (Ctrl+Shift+Alt)
+  // We need to dispatch an event that has ALL three flags set
+  await act(async () => {
+    const event = new KeyboardEvent('keydown', {
+      key: 'Alt', // The last key pressed
+      ctrlKey: true,
+      shiftKey: true,
+      altKey: true,
+      bubbles: true 
+    });
+    window.dispatchEvent(event);
+  });
 
-test('handles click interaction', () => {
-  const onToggle = jest.fn();
-  render(<SecretServicesMenu onToggle={onToggle} />);
-  const button = screen.getByRole('button');
-  fireEvent.click(button);
-  expect(onToggle).toHaveBeenCalled();
+  // Small delay to ensure state update
+  await new Promise(r => setTimeout(r, 50));
+
+  const trigger = screen.getByLabelText(/Secret Services/i);
+  expect(trigger).toBeInTheDocument();
+
+  // Click to open dropdown
+  fireEvent.click(trigger);
+
+  // Expect title to appear
+  expect(screen.getByText(/Experimental Features/i)).toBeInTheDocument();
 });

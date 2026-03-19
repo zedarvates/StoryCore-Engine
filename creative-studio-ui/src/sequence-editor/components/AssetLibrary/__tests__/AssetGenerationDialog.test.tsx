@@ -11,12 +11,16 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { AssetGenerationDialog } from '../AssetGenerationDialog';
 import assetsReducer from '../../../store/slices/assetsSlice';
+import timelineReducer from '../../../store/slices/timelineSlice';
+import historyReducer from '../../../store/slices/historySlice';
 
 // Helper to create a test store
 function createTestStore() {
   return configureStore({
     reducer: {
       assets: assetsReducer,
+      timeline: timelineReducer,
+      history: historyReducer,
     },
   });
 }
@@ -52,7 +56,7 @@ describe('AssetGenerationDialog Component', () => {
         <AssetGenerationDialog onClose={mockOnClose} />
       );
       
-      const closeButton = screen.getByTitle('Close') || 
+      const closeButton = screen.queryByTitle('Close') || 
                           document.querySelector('.dialog-close-btn');
       expect(closeButton).toBeInTheDocument();
     });
@@ -163,16 +167,7 @@ describe('AssetGenerationDialog Component', () => {
       expect(textarea.value).toBe('A fantasy character');
     });
 
-    it('should show error when generating without prompt', () => {
-      renderWithProviders(
-        <AssetGenerationDialog onClose={mockOnClose} />
-      );
-      
-      const generateButton = screen.getByText(/generate/i);
-      fireEvent.click(generateButton);
-      
-      expect(screen.getByText(/please enter a prompt/i)).toBeInTheDocument();
-    });
+    // Removed duplicate test
   });
 
   describe('Requirement 14.4-14.7: Generation Parameters', () => {
@@ -248,13 +243,15 @@ describe('AssetGenerationDialog Component', () => {
   });
 
   describe('Generation Process', () => {
-    it('should disable generate button without prompt', () => {
+    it('should show error when generating without prompt', () => {
       renderWithProviders(
         <AssetGenerationDialog onClose={mockOnClose} />
       );
       
-      const generateButton = screen.getByText(/generate/i).closest('button');
-      expect(generateButton).toBeDisabled();
+      const generateButton = screen.getByRole('button', { name: /generate/i });
+      fireEvent.click(generateButton);
+      
+      expect(screen.getByText(/please enter a prompt/i)).toBeInTheDocument();
     });
 
     it('should enable generate button with prompt', () => {
@@ -265,7 +262,7 @@ describe('AssetGenerationDialog Component', () => {
       const textarea = screen.getByLabelText(/describe your asset/i);
       fireEvent.change(textarea, { target: { value: 'Test prompt' } });
       
-      const generateButton = screen.getByText(/generate/i).closest('button');
+      const generateButton = screen.getByRole('button', { name: /generate/i });
       expect(generateButton).not.toBeDisabled();
     });
 
@@ -277,7 +274,7 @@ describe('AssetGenerationDialog Component', () => {
       const textarea = screen.getByLabelText(/describe your asset/i);
       fireEvent.change(textarea, { target: { value: 'Test prompt' } });
       
-      const generateButton = screen.getByText(/generate/i);
+      const generateButton = screen.getByRole('button', { name: /generate/i });
       fireEvent.click(generateButton);
       
       await waitFor(() => {
@@ -293,7 +290,7 @@ describe('AssetGenerationDialog Component', () => {
       const textarea = screen.getByLabelText(/describe your asset/i);
       fireEvent.change(textarea, { target: { value: 'Test prompt' } });
       
-      const generateButton = screen.getByText(/generate/i);
+      const generateButton = screen.getByRole('button', { name: /generate/i });
       fireEvent.click(generateButton);
       
       await waitFor(() => {
@@ -310,7 +307,7 @@ describe('AssetGenerationDialog Component', () => {
       const textarea = screen.getByLabelText(/describe your asset/i);
       fireEvent.change(textarea, { target: { value: 'Test prompt' } });
       
-      const generateButton = screen.getByText(/generate/i);
+      const generateButton = screen.getByRole('button', { name: /generate/i });
       fireEvent.click(generateButton);
       
       await waitFor(() => {
@@ -327,7 +324,7 @@ describe('AssetGenerationDialog Component', () => {
       const textarea = screen.getByLabelText(/describe your asset/i);
       fireEvent.change(textarea, { target: { value: 'Test prompt' } });
       
-      const generateButton = screen.getByText(/generate/i);
+      const generateButton = screen.getByRole('button', { name: /generate/i });
       fireEvent.click(generateButton);
       
       // Wait for generation to complete (simulated)

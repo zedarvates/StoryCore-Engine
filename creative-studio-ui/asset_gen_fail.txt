@@ -1,0 +1,329 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/storycore-engine/creative-studio-ui[39m
+
+ [31mÔØ»[39m src/sequence-editor/components/AssetLibrary/__tests__/AssetGenerationDialog.test.tsx [2m([22m[2m27 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 2154[2mms[22m[39m
+       [32mÔ£ô[39m should display dialog title[32m 31[2mms[22m[39m
+       [32mÔ£ô[39m should display close button[32m 10[2mms[22m[39m
+       [32mÔ£ô[39m should call onClose when close button clicked[32m 8[2mms[22m[39m
+       [32mÔ£ô[39m should close on backdrop click[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should display 7 asset type options[32m 11[2mms[22m[39m
+       [32mÔ£ô[39m should have icons for each asset type[32m 6[2mms[22m[39m
+       [32mÔ£ô[39m should select asset type on click[32m 9[2mms[22m[39m
+[31m       [31m├ù[31m should default to category-based type[39m[32m 9[2mms[22m[39m
+       [32mÔ£ô[39m should display prompt textarea[32m 11[2mms[22m[39m
+       [32mÔ£ô[39m should mark prompt as required[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should update prompt on input[32m 8[2mms[22m[39m
+[31m       [31m├ù[31m should show error when generating without prompt[39m[32m 133[2mms[22m[39m
+       [32mÔ£ô[39m should display seed parameter[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should display guidance parameter[32m 4[2mms[22m[39m
+       [32mÔ£ô[39m should display steps parameter[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should allow seed input[32m 6[2mms[22m[39m
+       [32mÔ£ô[39m should have random seed button[32m 3[2mms[22m[39m
+       [32mÔ£ô[39m should randomize seed on button click[32m 6[2mms[22m[39m
+       [32mÔ£ô[39m should allow guidance adjustment[32m 5[2mms[22m[39m
+       [32mÔ£ô[39m should disable generate button without prompt[32m 36[2mms[22m[39m
+       [32mÔ£ô[39m should enable generate button with prompt[32m 38[2mms[22m[39m
+       [32mÔ£ô[39m should show progress during generation[32m 43[2mms[22m[39m
+       [32mÔ£ô[39m should show progress bar during generation[32m 45[2mms[22m[39m
+       [32mÔ£ô[39m should disable close during generation[32m 33[2mms[22m[39m
+       [33m[2mÔ£ô[22m[39m should close dialog after successful generation [33m 1663[2mms[22m[39m
+       [32mÔ£ô[39m should have proper labels for inputs[32m 7[2mms[22m[39m
+       [32mÔ£ô[39m should support keyboard navigation[32m 7[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/sequence-editor/components/AssetLibrary/__tests__/AssetGenerationDialog.test.tsx > AssetGenerationDialog Component > Requirement 14.2: Asset Type Selection > should default to category-based type
+Error: expect(element).toHaveClass("selected")
+
+Expected the element to have class:
+  selected
+Received:
+  asset-type-btn
+ ÔØ» src/sequence-editor/components/AssetLibrary/__tests__/AssetGenerationDialog.test.tsx:136:33
+    134|       
+    135|       const environmentButton = screen.getByText('Environment').closesÔÇª
+    136|       expect(environmentButton).toHaveClass('selected');
+       |                                 ^
+    137|     });
+    138|   });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/2]ÔÄ»
+
+ FAIL  src/sequence-editor/components/AssetLibrary/__tests__/AssetGenerationDialog.test.tsx > AssetGenerationDialog Component > Requirement 14.3: Prompt Input > should show error when generating without prompt
+TestingLibraryElementError: Unable to find an element with the text: /please enter a prompt/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="dialog-backdrop"
+    >
+      <div
+        class="dialog asset-generation-dialog"
+      >
+        <div
+          class="dialog-header"
+        >
+          <h2>
+            Ô£¿ Generate New Asset
+          </h2>
+          <button
+            class="dialog-close-btn"
+          >
+            Ô£ò
+          </button>
+        </div>
+        <div
+          class="dialog-content"
+        >
+          <div
+            class="form-group"
+          >
+            <label>
+              Asset Type
+            </label>
+            <div
+              class="asset-type-grid"
+            >
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒæñ
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Character
+                </span>
+              </button>
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒÅö´©Å
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Environment
+                </span>
+              </button>
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒôª
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Prop
+                </span>
+              </button>
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒÄ¿
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Visual Style
+                </span>
+              </button>
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒôï
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Template
+                </span>
+              </button>
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒôÀ
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Camera Preset
+                </span>
+              </button>
+              <button
+                class="asset-type-btn "
+              >
+                <span
+                  class="type-icon"
+                >
+                  ­ƒÆí
+                </span>
+                <span
+                  class="type-label"
+                >
+                  Lighting Rig
+                </span>
+              </button>
+            </div>
+          </div>
+          <div
+            class="form-group"
+          >
+            <label
+              for="asset-prompt"
+            >
+              Describe your asset
+              <span
+                class="required"
+              >
+                *
+              </span>
+            </label>
+            <textarea
+              class=""
+              id="asset-prompt"
+              placeholder="Describe the undefined you want to generate..."
+              rows="4"
+            />
+          </div>
+          <div
+            class="form-group parameters-group"
+          >
+            <label>
+              Generation Parameters
+            </label>
+            <div
+              class="parameter-row"
+            >
+              <div
+                class="parameter"
+              >
+                <label
+                  for="seed-input"
+                >
+                  Seed
+                  <span
+                    class="value"
+                  >
+                    825376
+                  </span>
+                </label>
+                <input
+                  id="seed-input"
+                  max="999999"
+                  min="0"
+                  type="number"
+                  value="825376"
+                />
+                <button
+                  class="random-seed-btn"
+                  title="Random seed"
+                >
+                  ­ƒÄ▓
+                </button>
+              </div>
+              <div
+                class="parameter"
+              >
+                <label
+                  for="guidance-input"
+                >
+                  Guidance
+                  <span
+                    class="value"
+                  >
+                    7.5
+                  </span>
+                </label>
+                <input
+                  id="guidance-input"
+                  max="20"
+                  min="1"
+                  step="0.5"
+                  type="range"
+                  value="7.5"
+                />
+              </div>
+              <div
+                class="parameter"
+              >
+                <label
+                  for="steps-input"
+                >
+                  Steps
+                  <span
+                    class="value"
+                  >
+                    30
+                  </span>
+                </label>
+                <input
+                  id="steps-input"
+                  max="100"
+                  min="10"
+                  step="5"
+                  type="range"
+                  value="30"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="dialog-footer"
+        >
+          <button
+            class="btn btn-secondary"
+          >
+            Cancel
+          </button>
+          <button
+            class="btn btn-primary generate-btn"
+            disabled=""
+          >
+            Ô£¿ Generate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+ ÔØ» Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ÔØ» node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ÔØ» src/sequence-editor/components/AssetLibrary/__tests__/AssetGenerationDialog.test.tsx:178:21
+    176|       fireEvent.click(generateButton);
+    177|       
+    178|       expect(screen.getByText(/please enter a prompt/i)).toBeInTheDocuÔÇª
+       |                     ^
+    179|     });
+    180|   });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/2]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m25 passed[39m[22m[90m (27)[39m
+[2m   Start at [22m 06:58:09
+[2m   Duration [22m 3.66s[2m (transform 322ms, setup 131ms, import 441ms, tests 2.15s, environment 762ms)[22m
+

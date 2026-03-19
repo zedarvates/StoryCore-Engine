@@ -93,14 +93,41 @@ function generateSequence(
 /**
  * Generate project template based on format
  */
-export function generateProjectTemplate(format: SerializableProjectFormat): ProjectTemplate {
+export function generateProjectTemplate(
+  format: SerializableProjectFormat, 
+  options?: { visualOdyssey?: boolean; vibeSync?: boolean; trackTitles?: string[] }
+): ProjectTemplate {
   const sequences: GeneratedSequence[] = [];
   let totalShots = 0;
   let totalDuration = 0;
 
+  const isMusicAlbum = format.id === 'music-album';
+
   // Generate sequences based on format
   for (let i = 1; i <= format.sequences; i++) {
     const sequence = generateSequence(i, format.shotDuration);
+    
+    // Customize for music album
+    if (isMusicAlbum) {
+      // Use provided track title if available, otherwise generic
+      const trackTitle = options?.trackTitles?.[i - 1];
+      sequence.name = trackTitle ? `${trackTitle}` : `Titre ${i}`;
+      sequence.description = trackTitle
+        ? `Plan s\u00e9quence pour le titre "${trackTitle}"`
+        : `Plan s\u00e9quence pour la piste ${i} de l'album`;
+      // Update the default shot title to match the track
+      if (sequence.shots[0]) {
+        sequence.shots[0].title = `${sequence.name} - Plan 1`;
+        sequence.shots[0].description = sequence.description;
+      }
+      if (options?.visualOdyssey) {
+        sequence.description += ` - Partie du Visual Odyssey (totem évolutif)`;
+      }
+      if (options?.vibeSync) {
+        sequence.description += ` [Vibe-Sync Activé]`;
+      }
+    }
+
     sequences.push(sequence);
     totalShots += sequence.shots.length;
     totalDuration += sequence.duration;

@@ -4,10 +4,10 @@ import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizar
 import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
-import { logger } from '@/utils/logger';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { StorageManager } from '@/utils/storageManager';
 
-// Wizard type for generic wizard forms (simple forms in GenericWizardModal)
-// Multi-step wizards (world, character) are handled separately via their own modals
+// Wizard types
 export type WizardType =
   | 'dialogue-writer'
   | 'scene-generator'
@@ -30,8 +30,6 @@ export type WizardType =
   | 'credits-screen'
   | 'video-publisher';
 
-// Character filter types for character integration system
-// Requirements: 9.3
 export interface CharacterFilters {
   archetype?: string[];
   ageRange?: string[];
@@ -74,15 +72,13 @@ interface AppState {
   // Chat state
   chatMessages: ChatMessage[];
 
-  // Installation wizard state
+  // Modals state
   showInstallationWizard: boolean;
   installationComplete: boolean;
-
-  // Configuration wizards state
   showWorldWizard: boolean;
   showCharacterWizard: boolean;
-  showProjectSetupWizard: boolean;
   showCreateProjectDialog: boolean;
+  showProjectSetupWizard: boolean;
   showStorytellerWizard: boolean;
   showLLMSettings: boolean;
   showComfyUISettings: boolean;
@@ -100,19 +96,15 @@ interface AppState {
   showPendingReportsList: boolean;
   showFactCheckModal: boolean;
   showMoodboardModal: boolean;
-  settingsAddonId: string | null; // ID of the addon to show settings for
+  showAboutModal: boolean;
+  showDocumentationModal: boolean;
+  showKeyboardShortcutsDialog: boolean;
   showRogerWizard: boolean;
   showGhostTrackerWizard: boolean;
   showLipSyncWizard: boolean;
-  lipSyncContext: {
-    audioFile?: string;
-    characterImage?: string;
-    shotId?: string;
-  } | null;
   showScenarioBuilder: boolean;
   showDialogueBuilder: boolean;
   showAudioProductionWizard: boolean;
-  audioProductionWizardContext: { audioId?: string; audioUrl?: string } | null;
   showVideoEditorWizard: boolean;
   showComicToSequenceWizard: boolean;
   showMarketingWizard: boolean;
@@ -120,64 +112,48 @@ interface AppState {
   showProjectTranslator: boolean;
   showTTTLRMModal: boolean;
   showCreditsScreen: boolean;
-  marketingWizardContext: {
-    projectId: string;
-    projectName: string;
-    storySummary?: string;
-    characters?: string[];
-    scenes?: string[];
-    themes?: string[];
-    conflict?: string;
-    stakes?: string;
-  } | null;
-  characterWizardContext: { imageFile?: File; imageData?: string; name?: string; role?: string } | null;
-  objectWizardContext: { imageFile?: File; imageData?: string; name?: string } | null;
-  locationWizardContext: { imageFile?: File; imageData?: string; name?: string } | null;
-
-  // Production wizards state
-  showSequencePlanWizard: boolean;
-  sequencePlanWizardContext: SequencePlanWizardContext | null;
-  showShotWizard: boolean;
-  shotWizardContext: ShotWizardContext | null;
-
-  // Generic wizard forms state (simple forms in GenericWizardModal)
-  // Multi-step wizards (world, character) use separate state (showWorldWizard, showCharacterWizard)
-  showDialogueWriter: boolean;
-  showSceneGenerator: boolean;
-  showStoryboardCreator: boolean;
-  showStyleTransfer: boolean;
-  showAboutModal: boolean;
-  showDocumentationModal: boolean;
-  showKeyboardShortcutsDialog: boolean;
   showVideoPublisher: boolean;
   showLocationWizard: boolean;
   showComputeDashboard: boolean;
+  showAutomationPanel: boolean;
+  
+  settingsAddonId: string | null;
+  lipSyncContext: { audioFile?: File; characterId?: string } | null;
+  audioProductionWizardContext: { sequenceId?: string; mode?: string } | null;
+  marketingWizardContext: { projectId?: string; targetChannel?: string } | null;
+  characterWizardContext: { imageFile?: File; name?: string; role?: string } | null;
+  objectWizardContext: { imageFile?: File; name?: string } | null;
+  locationWizardContext: { sceneId?: string } | null;
+  sequencePlanWizardContext: SequencePlanWizardContext | null;
+  shotWizardContext: ShotWizardContext | null;
+  showSequencePlanWizard: boolean;
+  showShotWizard: boolean;
   activeWizardType: WizardType | null;
 
-  // Character integration system UI state
-  // Requirements: 4.2, 9.1, 9.2, 9.3
+  // Character integration
   selectedCharacterIds: string[];
   characterSearchQuery: string;
   characterFilters: CharacterFilters;
   isCharacterEditorOpen: boolean;
   editingCharacterId: string | null;
 
-  // Reference sheet state (Continuous Creation feature)
+  // Reference sheet state
   masterReferenceSheet: MasterReferenceSheet | null;
   sequenceReferenceSheets: SequenceReferenceSheet[];
   activeSequenceSheetId: string | null;
   shotReferences: Record<string, ShotReference>;
 
-  // Continuous Creation dialogs state
+  // Continuous Creation dialogs
   showReferenceSheetManager: boolean;
   showVideoReplicationDialog: boolean;
   showCrossShotReferencePicker: boolean;
   showProjectBranchingDialog: boolean;
   showEpisodeReferenceDialog: boolean;
 
-  // Undo/Redo
-  history: AppState[];
-  historyIndex: number;
+  // Navigation and Loading
+  currentView: 'dashboard' | 'editor' | 'experimental-ai';
+  selectedSequenceId: string | undefined;
+  isInitialLoading: boolean;
 
   // Actions
   setProject: (project: Project | null) => void;
@@ -199,12 +175,16 @@ interface AppState {
   addTask: (task: GenerationTask) => void;
   removeTask: (taskId: string) => void;
   reorderTasks: (tasks: GenerationTask[]) => void;
-  addChatMessage: (message: ChatMessage) => void;
+  addChatMessage: (message: ChatMessage | ChatMessage[]) => void;
+  updateChatMessage: (id: string, updates: Partial<ChatMessage> | ((msg: ChatMessage) => Partial<ChatMessage>)) => void;
+  setChatMessages: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
   clearChatMessages: () => void;
+  
+  // Modal actions
   setShowInstallationWizard: (show: boolean) => void;
   setInstallationComplete: (complete: boolean) => void;
   setShowWorldWizard: (show: boolean) => void;
-  setShowCharacterWizard: (show: boolean, context?: AppState['characterWizardContext']) => void;
+  setShowCharacterWizard: (show: boolean, context?: { imageFile?: File; name?: string; role?: string }) => void;
   setShowProjectSetupWizard: (show: boolean) => void;
   setShowCreateProjectDialog: (show: boolean) => void;
   setShowStorytellerWizard: (show: boolean) => void;
@@ -216,7 +196,7 @@ interface AppState {
   setShowWorldModal: (show: boolean) => void;
   setShowLocationsModal: (show: boolean) => void;
   setShowObjectsModal: (show: boolean) => void;
-  setShowObjectWizard: (show: boolean, context?: AppState['objectWizardContext']) => void;
+  setShowObjectWizard: (show: boolean, context?: { imageFile?: File; name?: string }) => void;
   setShowImageGalleryModal: (show: boolean) => void;
   setShowVaultModal: (show: boolean) => void;
   setShowDialogueEditor: (show: boolean) => void;
@@ -229,16 +209,16 @@ interface AppState {
   setShowKeyboardShortcutsDialog: (show: boolean) => void;
   setShowRogerWizard: (show: boolean) => void;
   setShowGhostTrackerWizard: (show: boolean) => void;
-  setShowLipSyncWizard: (show: boolean, context?: AppState['lipSyncContext']) => void;
+  setShowLipSyncWizard: (show: boolean, context?: { audioFile?: File; characterId?: string }) => void;
   setShowScenarioBuilder: (show: boolean) => void;
   setShowDialogueBuilder: (show: boolean) => void;
-  setShowAudioProductionWizard: (show: boolean, context?: { audioId?: string; audioUrl?: string }) => void;
+  setShowAudioProductionWizard: (show: boolean, context?: { sequenceId?: string; mode?: string }) => void;
   closeAudioProductionWizard: () => void;
   setShowVideoEditorWizard: (show: boolean) => void;
   closeVideoEditorWizard: () => void;
   setShowComicToSequenceWizard: (show: boolean) => void;
   closeComicToSequenceWizard: () => void;
-  setShowMarketingWizard: (show: boolean, context?: AppState['marketingWizardContext']) => void;
+  setShowMarketingWizard: (show: boolean, context?: { projectId?: string; targetChannel?: string }) => void;
   closeMarketingWizard: () => void;
   setShowDiscoveryLab: (show: boolean) => void;
   setShowProjectTranslator: (show: boolean) => void;
@@ -249,19 +229,13 @@ interface AppState {
   openShotWizard: (context?: ShotWizardContext) => void;
   closeShotWizard: () => void;
   setShowVideoPublisher: (show: boolean) => void;
-  setShowLocationWizard: (show: boolean, context?: AppState['locationWizardContext']) => void;
+  setShowLocationWizard: (show: boolean, context?: { sceneId?: string }) => void;
   setShowComputeDashboard: (show: boolean) => void;
-
-  // Generic wizard form actions (simple forms in GenericWizardModal)
-  setShowDialogueWriter: (show: boolean) => void;
-  setShowSceneGenerator: (show: boolean) => void;
-  setShowStoryboardCreator: (show: boolean) => void;
-  setShowStyleTransfer: (show: boolean) => void;
+  setShowAutomationPanel: (show: boolean) => void;
   openWizard: (wizardType: WizardType) => void;
   closeActiveWizard: () => void;
-
-  // Character integration system actions
-  // Requirements: 4.2, 9.2, 9.4
+  
+  // Character integration
   setSelectedCharacterIds: (ids: string[]) => void;
   setCharacterSearchQuery: (query: string) => void;
   setCharacterFilters: (filters: CharacterFilters) => void;
@@ -270,10 +244,10 @@ interface AppState {
   setOllamaStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
   setComfyUIStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
 
-  // Reference sheet actions (Continuous Creation feature)
+  // Reference sheet actions
   setMasterReferenceSheet: (sheet: MasterReferenceSheet | null) => void;
   addSequenceReferenceSheet: (sheet: SequenceReferenceSheet) => void;
-  updateSequenceReferenceSheet: (id: string, sheet: Partial<SequenceReferenceSheet>) => void;
+  updateSequenceReferenceSheet: (id: string, updates: Partial<SequenceReferenceSheet>) => void;
   removeSequenceReferenceSheet: (id: string) => void;
   setActiveSequenceSheetId: (id: string | null) => void;
   addShotReference: (reference: ShotReference) => void;
@@ -287,13 +261,16 @@ interface AppState {
   setShowProjectBranchingDialog: (show: boolean) => void;
   setShowEpisodeReferenceDialog: (show: boolean) => void;
 
-  // Addon Settings
+  // Navigation and Loading actions
+  setCurrentView: (view: 'dashboard' | 'editor' | 'experimental-ai') => void;
+  setSelectedSequenceId: (id: string | undefined) => void;
+  setIsInitialLoading: (loading: boolean) => void;
+  
   openAddonSettings: (addonId: string) => void;
   closeAddonSettings: () => void;
 }
 
-export const useAppStore = create<AppState>((set, get) => ({
-  // Initial state
+const initialState = {
   project: null,
   shots: [],
   assets: [],
@@ -301,17 +278,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   currentTime: 0,
   showChat: false,
   showTaskQueue: false,
-  panelSizes: {
-    assetLibrary: 20,
-    canvas: 50,
-    propertiesOrChat: 30,
-  },
+  panelSizes: { assetLibrary: 20, canvas: 50, propertiesOrChat: 30 },
   chatPanelPosition: { x: 100, y: 100 },
   chatPanelSize: { width: 384, height: 500 },
   chatPanelMinimized: false,
   taskQueue: [],
-  ollamaStatus: 'disconnected',
-  comfyuiStatus: 'disconnected',
+  ollamaStatus: 'disconnected' as const,
+  comfyuiStatus: 'disconnected' as const,
   worlds: [],
   characters: [],
   currentShot: null,
@@ -319,8 +292,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   isPlaying: false,
   playbackSpeed: 1,
   chatMessages: [],
-  history: [],
-  historyIndex: -1,
   showInstallationWizard: false,
   installationComplete: false,
   showWorldWizard: false,
@@ -371,330 +342,192 @@ export const useAppStore = create<AppState>((set, get) => ({
   showVideoPublisher: false,
   showLocationWizard: false,
   showComputeDashboard: false,
+  showAutomationPanel: false,
   characterWizardContext: null,
   objectWizardContext: null,
   locationWizardContext: null,
-
-  // Generic wizard forms initial state (simple forms in GenericWizardModal)
-  showDialogueWriter: false,
-  showSceneGenerator: false,
-  showStoryboardCreator: false,
-  showStyleTransfer: false,
   activeWizardType: null,
-
-  // Character integration system initial state
-  // Requirements: 4.2, 9.1, 9.2, 9.3
   selectedCharacterIds: [],
   characterSearchQuery: '',
   characterFilters: {},
   isCharacterEditorOpen: false,
   editingCharacterId: null,
-
-  // Reference sheet initial state (Continuous Creation feature)
   masterReferenceSheet: null,
   sequenceReferenceSheets: [],
   activeSequenceSheetId: null,
   shotReferences: {},
-
-  // Continuous Creation dialogs initial state
   showReferenceSheetManager: false,
   showVideoReplicationDialog: false,
   showCrossShotReferencePicker: false,
   showProjectBranchingDialog: false,
   showEpisodeReferenceDialog: false,
+  currentView: 'dashboard' as const,
+  selectedSequenceId: undefined,
+  isInitialLoading: false,
+};
 
-  // Actions
-  setProject: (project) => set({ project }),
-  setShots: (shots) => set({ shots }),
-  addShot: (shot) => set((state) => ({ shots: [...state.shots, shot] })),
-  updateShot: (id, updates) =>
-    set((state) => ({
-      shots: state.shots.map((shot) => (shot.id === id ? { ...shot, ...updates } : shot)),
-    })),
-  deleteShot: (id) =>
-    set((state) => ({
-      shots: state.shots.filter((shot) => shot.id !== id),
-      selectedShotId: state.selectedShotId === id ? null : state.selectedShotId,
-    })),
-  setSelectedShotId: (id) => set({ selectedShotId: id }),
-  setCurrentTime: (time) => set({ currentTime: time }),
-  setShowChat: (show) => set({ showChat: show }),
-  setShowTaskQueue: (show) => set({ showTaskQueue: show }),
-  setPanelSizes: (sizes) => set({ panelSizes: sizes }),
-  setChatPanelPosition: (position) => set({ chatPanelPosition: position }),
-  setChatPanelSize: (size) => set({ chatPanelSize: size }),
-  setChatPanelMinimized: (minimized) => set({ chatPanelMinimized: minimized }),
-  setIsPlaying: (playing) => set({ isPlaying: playing }),
-  setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
-  addAsset: (asset) => set((state) => ({ assets: [...state.assets, asset] })),
-  addTask: (task) => set((state) => ({ taskQueue: [...state.taskQueue, task] })),
-  removeTask: (taskId) =>
-    set((state) => ({
-      taskQueue: state.taskQueue.filter((task) => task.id !== taskId),
-    })),
-  reorderTasks: (tasks) => set({ taskQueue: tasks }),
-  addChatMessage: (message) =>
-    set((state) => ({ chatMessages: [...state.chatMessages, message] })),
-  clearChatMessages: () => set({ chatMessages: [] }),
-  setShowInstallationWizard: (show) => set({ showInstallationWizard: show }),
-  setInstallationComplete: (complete) => set({ installationComplete: complete }),
-  setShowWorldWizard: (show) => set({ showWorldWizard: show }),
-  setShowCharacterWizard: (show, context) => {
-    logger.debug('[useAppStore] setShowCharacterWizard called with:', show, context);
-    set({ 
-      showCharacterWizard: show,
-      characterWizardContext: context || null
-    });
-  },
-  setShowProjectSetupWizard: (show) => set({ showProjectSetupWizard: show }),
-  setShowCreateProjectDialog: (show) => set({ showCreateProjectDialog: show }),
-  setShowStorytellerWizard: (show) => {
-    logger.debug('[useAppStore] setShowStorytellerWizard called with:', show);
-    set({ showStorytellerWizard: show });
-  },
-  setShowLLMSettings: (show) => set({ showLLMSettings: show }),
-  setShowComfyUISettings: (show) => set({ showComfyUISettings: show }),
-  setShowGeneralSettings: (show) => set({ showGeneralSettings: show }),
-  setShowAddonsModal: (show) => set({ showAddonsModal: show }),
-  setShowCharactersModal: (show) => set({ showCharactersModal: show }),
-  setShowWorldModal: (show) => set({ showWorldModal: show }),
-  setShowLocationsModal: (show) => set({ showLocationsModal: show }),
-  setShowObjectsModal: (show) => set({ showObjectsModal: show }),
-  setShowObjectWizard: (show, context) => {
-    logger.debug('[useAppStore] setShowObjectWizard called with:', show, context);
-    set({ 
-      showObjectWizard: show,
-      objectWizardContext: context || null
-    });
-  },
-  setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
-  setShowVaultModal: (show) => set({ showVaultModal: show }),
-  setShowFactCheckModal: (show) => set({ showFactCheckModal: show }),
-  setShowMoodboardModal: (show) => set({ showMoodboardModal: show }),
-  setShowAboutModal: (show) => set({ showAboutModal: show }),
-  setShowDocumentationModal: (show) => set({ showDocumentationModal: show }),
-  setShowKeyboardShortcutsDialog: (show) => set({ showKeyboardShortcutsDialog: show }),
-  setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
-  setShowFeedbackPanel: (show) => set({ showFeedbackPanel: show }),
-  setShowPendingReportsList: (show) => set({ showPendingReportsList: show }),
-  setShowRogerWizard: (show) => set({ showRogerWizard: show }),
-  setShowGhostTrackerWizard: (show) => set({ showGhostTrackerWizard: show }),
-  setShowLipSyncWizard: (show, context) => set({
-    showLipSyncWizard: show,
-    lipSyncContext: context || null
-  }),
-  setShowScenarioBuilder: (show) => set({ showScenarioBuilder: show }),
-  setShowDialogueBuilder: (show) => set({ showDialogueBuilder: show }),
-  setShowAudioProductionWizard: (show, context) => set({
-    showAudioProductionWizard: show,
-    audioProductionWizardContext: context || null,
-  }),
-  closeAudioProductionWizard: () => set({
-    showAudioProductionWizard: false,
-    audioProductionWizardContext: null,
-  }),
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, _get) => ({
+      ...initialState,
+      setProject: (project) => set({ project }),
+      setShots: (shots) => set({ shots }),
+      addShot: (shot) => set((state) => ({ shots: [...state.shots, shot] })),
+      updateShot: (id, updates) => set((state) => ({
+        shots: state.shots.map((shot) => (shot.id === id ? { ...shot, ...updates } : shot)),
+      })),
+      deleteShot: (id) => set((state) => ({
+        shots: state.shots.filter((shot) => shot.id !== id),
+        selectedShotId: state.selectedShotId === id ? null : state.selectedShotId,
+      })),
+      setSelectedShotId: (id) => set({ selectedShotId: id }),
+      setCurrentTime: (time) => set({ currentTime: time }),
+      setShowChat: (show) => set({ showChat: show }),
+      setShowTaskQueue: (show) => set({ showTaskQueue: show }),
+      setPanelSizes: (sizes) => set({ panelSizes: sizes }),
+      setChatPanelPosition: (position) => set({ chatPanelPosition: position }),
+      setChatPanelSize: (size) => set({ chatPanelSize: size }),
+      setChatPanelMinimized: (minimized) => set({ chatPanelMinimized: minimized }),
+      setIsPlaying: (playing) => set({ isPlaying: playing }),
+      setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+      addAsset: (asset) => set((state) => ({ 
+        assets: [...state.assets, asset].slice(-1000) 
+      })),
+      addTask: (task) => set((state) => ({ 
+        taskQueue: [...state.taskQueue, task].slice(-100) 
+      })),
+      removeTask: (taskId) => set((state) => ({
+        taskQueue: state.taskQueue.filter((t) => t.id !== taskId),
+      })),
+      reorderTasks: (tasks) => set({ taskQueue: tasks }),
+      addChatMessage: (message) => set((state) => {
+        const messagesToAdd = Array.isArray(message) ? message : [message];
+        
+        // Filter out messages that already exist by ID to prevent duplication
+        const uniqueNewMessages = messagesToAdd.filter(
+          (newMsg) => !state.chatMessages.some((m) => m.id === newMsg.id)
+        );
 
-  setShowVideoEditorWizard: (show) => {
-    if (show) get().closeActiveWizard();
-    set({ showVideoEditorWizard: show });
-  },
-  closeVideoEditorWizard: () => set({ showVideoEditorWizard: false }),
+        if (uniqueNewMessages.length === 0) return state;
 
-  setShowComicToSequenceWizard: (show) => {
-    if (show) get().closeActiveWizard();
-    set({ showComicToSequenceWizard: show });
-  },
-  closeComicToSequenceWizard: () => set({ showComicToSequenceWizard: false }),
-
-  setShowMarketingWizard: (show, context) => {
-    if (show) get().closeActiveWizard();
-    set({
-      showMarketingWizard: show,
-      marketingWizardContext: context || null
-    });
-  },
-  closeMarketingWizard: () => set({
-    showMarketingWizard: false,
-    marketingWizardContext: null
-  }),
-  setShowDiscoveryLab: (show) => {
-    if (show) get().closeActiveWizard();
-    set({ showDiscoveryLab: show });
-  },
-  setShowProjectTranslator: (show) => {
-    if (show) get().closeActiveWizard();
-    set({ showProjectTranslator: show });
-  },
-  setShowTTTLRMModal: (show) => {
-    if (show) get().closeActiveWizard();
-    set({ showTTTLRMModal: show });
-  },
-  setShowCreditsScreen: (show) => {
-    if (show) get().closeActiveWizard();
-    set({ showCreditsScreen: show });
-  },
-  openSequencePlanWizard: (context) => {
-    set({
-      showSequencePlanWizard: true,
-      sequencePlanWizardContext: context || { mode: 'create' },
-    });
-  },
-  closeSequencePlanWizard: () =>
-    set({
-      showSequencePlanWizard: false,
-      sequencePlanWizardContext: null,
+        const updatedMessages = [...state.chatMessages, ...uniqueNewMessages];
+        return { chatMessages: updatedMessages.slice(-100) };
+      }),
+      updateChatMessage: (id, updates) => set((state) => ({
+        chatMessages: state.chatMessages.map((msg) =>
+          msg.id === id ? { ...msg, ...(typeof updates === 'function' ? updates(msg) : updates) } : msg
+        ),
+      })),
+      setChatMessages: (messages) => set((state) => ({
+        chatMessages: typeof messages === 'function' ? messages(state.chatMessages) : messages,
+      })),
+      clearChatMessages: () => set({ chatMessages: [] }),
+      setShowInstallationWizard: (show) => set({ showInstallationWizard: show }),
+      setInstallationComplete: (complete) => set({ installationComplete: complete }),
+      setShowWorldWizard: (show) => set({ showWorldWizard: show }),
+      setShowCharacterWizard: (show, context) => set({ showCharacterWizard: show, characterWizardContext: context || null }),
+      setShowProjectSetupWizard: (show) => set({ showProjectSetupWizard: show }),
+      setShowCreateProjectDialog: (show) => set({ showCreateProjectDialog: show }),
+      setShowStorytellerWizard: (show) => set({ showStorytellerWizard: show }),
+      setShowLLMSettings: (show) => set({ showLLMSettings: show }),
+      setShowComfyUISettings: (show) => set({ showComfyUISettings: show }),
+      setShowGeneralSettings: (show) => set({ showGeneralSettings: show }),
+      setShowAddonsModal: (show) => set({ showAddonsModal: show }),
+      setShowCharactersModal: (show) => set({ showCharactersModal: show }),
+      setShowWorldModal: (show) => set({ showWorldModal: show }),
+      setShowLocationsModal: (show) => set({ showLocationsModal: show }),
+      setShowObjectsModal: (show) => set({ showObjectsModal: show }),
+      setShowObjectWizard: (show, context) => set({ showObjectWizard: show, objectWizardContext: context || null }),
+      setShowImageGalleryModal: (show) => set({ showImageGalleryModal: show }),
+      setShowVaultModal: (show) => set({ showVaultModal: show }),
+      setShowDialogueEditor: (show) => set({ showDialogueEditor: show }),
+      setShowFeedbackPanel: (show) => set({ showFeedbackPanel: show }),
+      setShowPendingReportsList: (show) => set({ showPendingReportsList: show }),
+      setShowFactCheckModal: (show) => set({ showFactCheckModal: show }),
+      setShowMoodboardModal: (show) => set({ showMoodboardModal: show }),
+      setShowAboutModal: (show) => set({ showAboutModal: show }),
+      setShowDocumentationModal: (show) => set({ showDocumentationModal: show }),
+      setShowKeyboardShortcutsDialog: (show) => set({ showKeyboardShortcutsDialog: show }),
+      setShowRogerWizard: (show) => set({ showRogerWizard: show }),
+      setShowGhostTrackerWizard: (show) => set({ showGhostTrackerWizard: show }),
+      setShowLipSyncWizard: (show, context) => set({ showLipSyncWizard: show, lipSyncContext: context || null }),
+      setShowScenarioBuilder: (show) => set({ showScenarioBuilder: show }),
+      setShowDialogueBuilder: (show) => set({ showDialogueBuilder: show }),
+      setShowAudioProductionWizard: (show, context) => set({
+        showAudioProductionWizard: show,
+        audioProductionWizardContext: context || null,
+      }),
+      closeAudioProductionWizard: () => set({ showAudioProductionWizard: false, audioProductionWizardContext: null }),
+      setShowVideoEditorWizard: (show) => set({ showVideoEditorWizard: show }),
+      closeVideoEditorWizard: () => set({ showVideoEditorWizard: false }),
+      setShowComicToSequenceWizard: (show) => set({ showComicToSequenceWizard: show }),
+      closeComicToSequenceWizard: () => set({ showComicToSequenceWizard: false }),
+      setShowMarketingWizard: (show, context) => set({ showMarketingWizard: show, marketingWizardContext: context || null }),
+      closeMarketingWizard: () => set({ showMarketingWizard: false, marketingWizardContext: null }),
+      setShowDiscoveryLab: (show) => set({ showDiscoveryLab: show }),
+      setShowProjectTranslator: (show) => set({ showProjectTranslator: show }),
+      setShowTTTLRMModal: (show) => set({ showTTTLRMModal: show }),
+      setShowCreditsScreen: (show) => set({ showCreditsScreen: show }),
+      openSequencePlanWizard: (context) => set({ showSequencePlanWizard: true, sequencePlanWizardContext: context || { mode: 'create' } }),
+      closeSequencePlanWizard: () => set({ showSequencePlanWizard: false, sequencePlanWizardContext: null }),
+      openShotWizard: (context) => set({ showShotWizard: true, shotWizardContext: context || { mode: 'create' } }),
+      closeShotWizard: () => set({ showShotWizard: false, shotWizardContext: null }),
+      setShowVideoPublisher: (show) => set({ showVideoPublisher: show }),
+      setShowLocationWizard: (show, context) => set({ showLocationWizard: show, locationWizardContext: context || null }),
+      setShowComputeDashboard: (show) => set({ showComputeDashboard: show }),
+      setShowAutomationPanel: (show) => set({ showAutomationPanel: show }),
+      openWizard: (wizardType) => set({ activeWizardType: wizardType }),
+      closeActiveWizard: () => set({ activeWizardType: null }),
+      setSelectedCharacterIds: (ids) => set({ selectedCharacterIds: ids }),
+      setCharacterSearchQuery: (query) => set({ characterSearchQuery: query }),
+      setCharacterFilters: (filters) => set({ characterFilters: filters }),
+      openCharacterEditor: (id) => set({ isCharacterEditorOpen: true, editingCharacterId: id }),
+      closeCharacterEditor: () => set({ isCharacterEditorOpen: false, editingCharacterId: null }),
+      setOllamaStatus: (status) => set({ ollamaStatus: status }),
+      setComfyUIStatus: (status) => set({ comfyuiStatus: status }),
+      setMasterReferenceSheet: (sheet) => set({ masterReferenceSheet: sheet }),
+      addSequenceReferenceSheet: (sheet) => set((state) => ({ sequenceReferenceSheets: [...state.sequenceReferenceSheets, sheet] })),
+      updateSequenceReferenceSheet: (id, updates) => set((state) => ({
+        sequenceReferenceSheets: state.sequenceReferenceSheets.map((s) => (s.id === id ? { ...s, ...updates } : s)),
+      })),
+      removeSequenceReferenceSheet: (id) => set((state) => ({
+        sequenceReferenceSheets: state.sequenceReferenceSheets.filter((s) => s.id !== id),
+      })),
+      setActiveSequenceSheetId: (id) => set({ activeSequenceSheetId: id }),
+      addShotReference: (ref) => set((state) => ({ shotReferences: { ...state.shotReferences, [ref.id]: ref } })),
+      updateShotReference: (id, updates) => set((state) => {
+        const existing = state.shotReferences[id];
+        return existing ? { shotReferences: { ...state.shotReferences, [id]: { ...existing, ...updates } } } : state;
+      }),
+      removeShotReference: (id) => set((state) => {
+        const rest = { ...state.shotReferences };
+        delete rest[id];
+        return { shotReferences: rest };
+      }),
+      setShowReferenceSheetManager: (show) => set({ showReferenceSheetManager: show }),
+      setShowVideoReplicationDialog: (show) => set({ showVideoReplicationDialog: show }),
+      setShowCrossShotReferencePicker: (show) => set({ showCrossShotReferencePicker: show }),
+      setShowProjectBranchingDialog: (show) => set({ showProjectBranchingDialog: show }),
+      setShowEpisodeReferenceDialog: (show) => set({ showEpisodeReferenceDialog: show }),
+      setCurrentView: (view) => set({ currentView: view }),
+      setSelectedSequenceId: (id) => set({ selectedSequenceId: id }),
+      setIsInitialLoading: (loading) => set({ isInitialLoading: loading }),
+      openAddonSettings: (addonId) => set({ settingsAddonId: addonId }),
+      closeAddonSettings: () => set({ settingsAddonId: null }),
     }),
-  openShotWizard: (context) =>
-    set({
-      showShotWizard: true,
-      shotWizardContext: context || { mode: 'create' },
-    }),
-  closeShotWizard: () =>
-    set({
-      showShotWizard: false,
-      shotWizardContext: null,
-    }),
-  setShowVideoPublisher: (show) => set({ showVideoPublisher: show }),
-  setShowLocationWizard: (show, context) => set({
-    showLocationWizard: show,
-    locationWizardContext: context || null
-  }),
-  setShowComputeDashboard: (show) => set({ showComputeDashboard: show }),
-
-  // Generic wizard form actions (simple forms in GenericWizardModal)
-  setShowDialogueWriter: (show) => set({ showDialogueWriter: show }),
-  setShowSceneGenerator: (show) => set({ showSceneGenerator: show }),
-  setShowStoryboardCreator: (show) => set({ showStoryboardCreator: show }),
-  setShowStyleTransfer: (show) => set({ showStyleTransfer: show }),
-
-  // Open wizard with mutual exclusion (Requirement 3.4)
-  openWizard: (wizardType) =>
-    set({
-      // Close ALL wizards first (mutual exclusion) - including multi-step wizards
-      showWorldWizard: false,
-      showCharacterWizard: false,
-      showProjectSetupWizard: false,
-      showStorytellerWizard: false,
-      showDialogueWriter: false,
-      showSceneGenerator: false,
-      showStoryboardCreator: false,
-      showStyleTransfer: false,
-      showAboutModal: false,
-      showDocumentationModal: false,
-      showRogerWizard: false,
-      showGhostTrackerWizard: false,
-      showLipSyncWizard: false,
-      showScenarioBuilder: false,
-      showDialogueBuilder: false,
-      showAudioProductionWizard: false,
-      // Set active wizard type
-      activeWizardType: wizardType,
-      // Open the requested wizard
-      ...(wizardType === 'dialogue-writer' && { showDialogueWriter: true }),
-      ...(wizardType === 'scene-generator' && { showSceneGenerator: true }),
-      ...(wizardType === 'storyboard-creator' && { showStoryboardCreator: true }),
-      ...(wizardType === 'style-transfer' && { showStyleTransfer: true }),
-      ...(wizardType === 'roger-wizard' && { showRogerWizard: true }),
-      ...(wizardType === 'ghost-tracker-wizard' && { showGhostTrackerWizard: true }),
-      ...(wizardType === 'lip-sync' && { showLipSyncWizard: true }),
-      ...(wizardType === 'scenario-builder' && { showScenarioBuilder: true }),
-      ...(wizardType === 'dialogue-builder' && { showDialogueBuilder: true }),
-      ...(wizardType === 'audio-production-wizard' && { showAudioProductionWizard: true }),
-      ...(wizardType === 'discovery-lab' && { showDiscoveryLab: true }),
-      ...(wizardType === 'project-translator' && { showProjectTranslator: true }),
-      ...(wizardType === 'ttt-lrm' && { showTTTLRMModal: true }),
-      ...(wizardType === 'credits-screen' && { showCreditsScreen: true }),
-      ...(wizardType === 'video-publisher' && { showVideoPublisher: true }),
-    }),
-
-  // Close active wizard (Requirement 3.3)
-  closeActiveWizard: () =>
-    set({
-      showWorldWizard: false,
-      showCharacterWizard: false,
-      showProjectSetupWizard: false,
-      showStorytellerWizard: false,
-      showDialogueWriter: false,
-      showSceneGenerator: false,
-      showStoryboardCreator: false,
-      showStyleTransfer: false,
-      showRogerWizard: false,
-      showGhostTrackerWizard: false,
-      showLipSyncWizard: false,
-      showScenarioBuilder: false,
-      showDialogueBuilder: false,
-      showAudioProductionWizard: false,
-      showDiscoveryLab: false,
-      showProjectTranslator: false,
-      showTTTLRMModal: false,
-      showCreditsScreen: false,
-      showVideoPublisher: false,
-      activeWizardType: null,
-    }),
-
-  // Character integration system actions
-  // Requirements: 4.2, 9.2, 9.4
-  setSelectedCharacterIds: (ids) => set({ selectedCharacterIds: ids }),
-  setCharacterSearchQuery: (query) => set({ characterSearchQuery: query }),
-  setCharacterFilters: (filters) => set({ characterFilters: filters }),
-  openCharacterEditor: (characterId) =>
-    set({
-      isCharacterEditorOpen: true,
-      editingCharacterId: characterId,
-    }),
-  closeCharacterEditor: () =>
-    set({
-      isCharacterEditorOpen: false,
-      editingCharacterId: null,
-    }),
-  setOllamaStatus: (status) => set({ ollamaStatus: status }),
-  setComfyUIStatus: (status) => set({ comfyuiStatus: status }),
-
-  // Reference sheet actions (Continuous Creation feature)
-  setMasterReferenceSheet: (sheet) => set({ masterReferenceSheet: sheet }),
-  addSequenceReferenceSheet: (sheet) =>
-    set((state) => ({
-      sequenceReferenceSheets: [...state.sequenceReferenceSheets, sheet],
-    })),
-  updateSequenceReferenceSheet: (id, updates) =>
-    set((state) => ({
-      sequenceReferenceSheets: state.sequenceReferenceSheets.map((s) =>
-        s.id === id ? { ...s, ...updates } : s
-      ),
-    })),
-  removeSequenceReferenceSheet: (id) =>
-    set((state) => ({
-      sequenceReferenceSheets: state.sequenceReferenceSheets.filter((s) => s.id !== id),
-      activeSequenceSheetId: state.activeSequenceSheetId === id ? null : state.activeSequenceSheetId,
-    })),
-  setActiveSequenceSheetId: (id) => set({ activeSequenceSheetId: id }),
-  addShotReference: (reference) =>
-    set((state) => ({
-      shotReferences: { ...state.shotReferences, [reference.id]: reference },
-    })),
-  updateShotReference: (id, updates) =>
-    set((state) => {
-      const existing = state.shotReferences[id];
-      if (!existing) return state;
-      return {
-        shotReferences: { ...state.shotReferences, [id]: { ...existing, ...updates } },
-      };
-    }),
-  removeShotReference: (id) =>
-    set((state) => {
-      const rest = { ...state.shotReferences };
-      delete rest[id];
-      return { shotReferences: rest };
-    }),
-
-  // Continuous Creation dialog actions
-  setShowReferenceSheetManager: (show) => set({ showReferenceSheetManager: show }),
-  setShowVideoReplicationDialog: (show) => set({ showVideoReplicationDialog: show }),
-  setShowCrossShotReferencePicker: (show) => set({ showCrossShotReferencePicker: show }),
-  setShowProjectBranchingDialog: (show) => set({ showProjectBranchingDialog: show }),
-  setShowEpisodeReferenceDialog: (show) => set({ showEpisodeReferenceDialog: show }),
-
-  // Addon Settings
-  openAddonSettings: (addonId) => set({ settingsAddonId: addonId }),
-  closeAddonSettings: () => set({ settingsAddonId: null }),
-}));
+    {
+      name: 'storycore-app-storage',
+      storage: createJSONStorage(() => ({
+        getItem: (name) => StorageManager.getItem(name),
+        setItem: async (name, value) => { await StorageManager.setItem(name, value); },
+        removeItem: async (name) => StorageManager.removeItem(name),
+      })),
+      partialize: (state) => ({
+        chatMessages: state.chatMessages,
+        chatPanelPosition: state.chatPanelPosition,
+        chatPanelSize: state.chatPanelSize,
+        chatPanelMinimized: state.chatPanelMinimized,
+      }),
+    }
+  )
+);

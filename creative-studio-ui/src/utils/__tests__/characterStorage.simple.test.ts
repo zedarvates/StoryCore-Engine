@@ -42,6 +42,9 @@ describe('characterStorage - mapWizardDataToCharacter', () => {
         posture: 'upright',
         clothing_style: 'casual',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
     };
 
@@ -102,6 +105,9 @@ describe('characterStorage - validateCharacter', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
     };
 
@@ -147,6 +153,9 @@ describe('characterStorage - validateCharacter', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       relationships: [
         {
@@ -183,7 +192,7 @@ describe('characterStorage - file operations', () => {
       character_id: 'test-uuid',
       name: 'Test',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
       version: '1.0',
       role: {
         archetype: 'Protagonist',
@@ -205,6 +214,9 @@ describe('characterStorage - file operations', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],
@@ -239,7 +251,7 @@ describe('characterStorage - file operations', () => {
       character_id: 'test-uuid',
       name: 'Test',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
       version: '1.0',
       role: { archetype: 'Protagonist', narrative_function: '', character_arc: '' },
       visual_identity: {
@@ -257,6 +269,9 @@ describe('characterStorage - file operations', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],
@@ -301,7 +316,7 @@ describe('characterStorage - character summary', () => {
       character_id: 'test-uuid',
       name: 'Test Hero',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
       version: '1.0',
       role: {
         archetype: 'Protagonist',
@@ -323,6 +338,9 @@ describe('characterStorage - character summary', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],
@@ -355,7 +373,7 @@ describe('characterStorage - character summary', () => {
       character_id: 'test-uuid',
       name: 'Test Hero',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
       version: '1.0',
       role: {
         archetype: '',
@@ -377,6 +395,9 @@ describe('characterStorage - character summary', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],
@@ -411,7 +432,7 @@ describe('characterStorage - filtering and sorting', () => {
       character_id: 'uuid-1',
       name: 'Charlie',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-03T00:00:00Z',
+      creation_timestamp: new Date('2024-01-03T00:00:00Z').getTime(),
       version: '1.0',
       role: { archetype: 'Protagonist', narrative_function: '', character_arc: '' },
       visual_identity: {
@@ -429,6 +450,9 @@ describe('characterStorage - filtering and sorting', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],
@@ -454,7 +478,7 @@ describe('characterStorage - filtering and sorting', () => {
       character_id: 'uuid-2',
       name: 'Alice',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: new Date('2024-01-01T00:00:00Z').getTime(),
       version: '1.0',
       role: { archetype: 'Antagonist', narrative_function: '', character_arc: '' },
       visual_identity: {
@@ -472,6 +496,9 @@ describe('characterStorage - filtering and sorting', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],
@@ -497,7 +524,7 @@ describe('characterStorage - filtering and sorting', () => {
       character_id: 'uuid-3',
       name: 'Bob',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-02T00:00:00Z',
+      creation_timestamp: new Date('2024-01-02T00:00:00Z').getTime(),
       version: '1.0',
       role: { archetype: 'Protagonist', narrative_function: '', character_arc: '' },
       visual_identity: {
@@ -515,6 +542,9 @@ describe('characterStorage - filtering and sorting', () => {
         posture: '',
         clothing_style: '',
         color_palette: [],
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
       },
       personality: {
         traits: [],

@@ -5,9 +5,9 @@
 export interface World {
   id: string;
   name: string;
-  genre: string[];
+  genre: Genre[];
   timePeriod: string;
-  tone: string[];
+  tone: Tone[];
   locations: Location[];
   rules: WorldRule[];
   atmosphere: string;
@@ -21,12 +21,20 @@ export interface World {
   createdAt: number; // timestamp
   updatedAt: number; // timestamp
   creation_timestamp?: string; // ISO string for legacy compatibility
-  visualIntent?: {
-    colors: string[];
-    vibe: string;
-    style: string;
-    lighting?: string;
-  };
+  visualIntent?: VisualIntent;
+}
+
+// Type definitions for World properties
+export type Genre = 'fantasy' | 'sci-fi' | 'historical' | 'contemporary' | 'horror' | 'mystery' | 'romance' | 'thriller' | 'western' | 'cyberpunk' | 'steampunk' | 'post-apocalyptic';
+export type Tone = 'dark' | 'light' | 'gritty' | 'whimsical' | 'serious' | 'humorous' | 'epic' | 'intimate' | 'mysterious' | 'hopeful' | 'melancholic' | 'adventurous';
+export type ProductionMode = 'fiction' | 'documentary' | 'interview' | 'music_video' | 'social_media' | 'cinematic' | 'audiodrama' | 'recap' | 'influencer' | 'maker' | 'scientific_review' | 'historical_review' | 'top_tier_list' | 'faith_spirituality' | 'game_review' | 'tech_review' | 'finance_review' | 'masterclass' | 'real_estate' | 'product_hype' | 'legal_recon' | 'asmr' | 'meditation' | 'experimental' | 'true_crime' | 'sports_highlight' | 'gardening' | 'renovation';
+export type RuleCategory = 'physical' | 'social' | 'magical' | 'technological';
+
+export interface VisualIntent {
+  colors: string[];
+  vibe: string;
+  style: string;
+  lighting?: string;
 }
 
 /** Location type for interior/exterior classification */

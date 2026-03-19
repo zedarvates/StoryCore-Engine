@@ -9,7 +9,7 @@
 // Updated: Added pagination support for large character lists
 // ============================================================================
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { CharacterCard } from './CharacterCard';
 import { CharacterSearchBar } from './CharacterSearchBar';
@@ -19,7 +19,6 @@ import { usePagination } from '@/hooks/usePagination';
 import { Pagination } from '@/components/ui/pagination';
 import type { Character } from '@/types/character';
 import type { CharacterFilters } from '@/stores/useAppStore';
-import { eventEmitter, WizardEventType } from '@/services/eventEmitter';
 import { useStore } from '@/store';
 import { deduplicateCharacters, logDuplicateInfo } from '@/utils/deduplicateCharacters';
 import './CharacterList.css';
@@ -107,8 +106,7 @@ export function CharacterList({
   const setCharacterFilters = useAppStore((state) => state.setCharacterFilters);
 
   // Local state
-  const [loading, setLoading] = useState(false);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  // No local state needed for refresh triggers, as useStore handles reactivity
 
   // Log component mount/unmount
   useEffect(() => {
@@ -202,7 +200,7 @@ export function CharacterList({
     allCharactersFromStore,
     characterSearchQuery,
     characterFilters,
-    refreshTrigger, // Trigger re-computation on events
+    characterManager,
   ]);
 
   /**
@@ -227,61 +225,7 @@ export function CharacterList({
    * Subscribe to character events for real-time updates
    * Requirements: 5.1, 5.2, 5.3
    */
-  useEffect(() => {
-    let updateTimeout: NodeJS.Timeout | null = null;
-
-    // Debounced update function to prevent multiple rapid re-renders
-    const scheduleUpdate = () => {
-      if (updateTimeout) {
-        clearTimeout(updateTimeout);
-      }
-      updateTimeout = setTimeout(() => {
-        setRefreshTrigger(prev => prev + 1);
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 [CharacterList] Refreshing character list');
-        }
-      }, 100); // 100ms debounce
-    };
-
-    // Handler for character-created event (Requirement: 5.1)
-    const handleCharacterCreated = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('➕ [CharacterList] Character created event received');
-      }
-      scheduleUpdate();
-    };
-
-    // Handler for character-updated event (Requirement: 5.2)
-    const handleCharacterUpdated = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✏️ [CharacterList] Character updated event received');
-      }
-      scheduleUpdate();
-    };
-
-    // Handler for character-deleted event (Requirement: 5.3)
-    const handleCharacterDeleted = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🗑️ [CharacterList] Character deleted event received');
-      }
-      scheduleUpdate();
-    };
-
-    // Subscribe to events
-    const sub1 = eventEmitter.on(WizardEventType.CHARACTER_CREATED, handleCharacterCreated);
-    const sub2 = eventEmitter.on(WizardEventType.CHARACTER_UPDATED, handleCharacterUpdated);
-    const sub3 = eventEmitter.on(WizardEventType.CHARACTER_DELETED, handleCharacterDeleted);
-
-    // Cleanup subscriptions on unmount
-    return () => {
-      if (updateTimeout) {
-        clearTimeout(updateTimeout);
-      }
-      sub1.unsubscribe();
-      sub2.unsubscribe();
-      sub3.unsubscribe();
-    };
-  }, []); // Empty deps - only subscribe once on mount
+  // Subscriptions removed - useStore handles reactivity automatically
 
   // ============================================================================
   // Event Handlers
@@ -427,23 +371,6 @@ export function CharacterList({
   };
 
   /**
-   * Render loading state
-   */
-  const renderLoadingState = () => {
-    return (
-      <div className="character-list__grid">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <CharacterCard
-            key={`loading-${index}`}
-            character={{} as Character}
-            loading={true}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  /**
    * Render character grid
    * Requirements: 1.2, 4.2
    */
@@ -451,9 +378,9 @@ export function CharacterList({
     return (
       <>
         <div className="character-list__grid">
-          {paginatedItems.map((character) => (
+          {paginatedItems.map((character, index) => (
             <CharacterCard
-              key={character.character_id}
+              key={character.character_id || `char-${index}`}
               character={character}
               onClick={() => handleCharacterClick(character)}
               selectable={selectable}
@@ -495,9 +422,7 @@ export function CharacterList({
 
       {/* Character grid or empty state */}
       <div className="character-list__content">
-        {loading ? (
-          renderLoadingState()
-        ) : characters.length === 0 ? (
+        {characters.length === 0 ? (
           renderEmptyState()
         ) : (
           renderCharacterGrid()

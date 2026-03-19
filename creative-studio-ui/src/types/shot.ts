@@ -21,11 +21,15 @@ export interface ComfyUIParameters {
   seed?: number;
   steps: number;
   cfgScale: number;
-  sampler: string;
-  scheduler: string;
+  sampler: SamplerType;
+  scheduler: SchedulerType;
   denoisingStrength?: number;
   [key: string]: unknown;
 }
+
+// Type definitions for ComfyUI parameters
+export type SamplerType = 'euler' | 'euler_ancestral' | 'heun' | 'dpm_2' | 'dpm_2_ancestral' | 'lms' | 'dpm_fast' | 'dpm_adaptive' | 'dpmpp_2s_ancestral' | 'dpmpp_sde' | 'dpmpp_2m' | 'dpmpp_2m_sde' | 'ddim' | 'uni_pc' | 'uni_pc_bh2';
+export type SchedulerType = 'normal' | 'karras' | 'exponential' | 'sgm_uniform' | 'simple' | 'ddim_uniform';
 
 export interface CameraMovement {
   type: 'static' | 'pan' | 'tilt' | 'dolly' | 'tracking' | 'crane' | 'handheld' | 'zoom';

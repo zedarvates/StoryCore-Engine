@@ -779,6 +779,17 @@ async def get_project(project_id: str, authorization: str = None):
     )
 
 
+@VIDEO_EDITOR_ROUTER.get("/projects/{project_id}/vault/assets")
+async def list_project_assets(project_id: str, authorization: str = None):
+    """
+    List assets stored in the project vault.
+    
+    This endpoint is used by the dashboard to show recent exports and generations.
+    """
+    # For now, return an empty list or try to look into the project folder
+    return {"assets": []}
+
+
 @VIDEO_EDITOR_ROUTER.put("/projects/{project_id}", response_model=ProjectResponse)
 async def update_project(
     project_id: str,

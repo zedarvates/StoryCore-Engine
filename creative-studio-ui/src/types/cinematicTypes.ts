@@ -274,7 +274,7 @@ export interface CameraMovementConfig {
   requiresSubjectMotion?: boolean;
   typicalDuration?: string;
   bestFor?: string[];
-  icon?: any; // Added for UI compatibility
+  icon?: React.ReactNode; // Added for UI compatibility
 }
 
 export interface BeatConfig {
@@ -903,19 +903,24 @@ export const toneColors: Record<Tone, { bg: string; border: string; text?: strin
 export const pacingConfig = PACING_CONFIGS;
 export const beatConfig = BEAT_CONFIGS;
 
-export function generateBeatSuggestions(shots: any[]): any[] {
+export function generateBeatSuggestions(shots: Shot[]): Beat[] {
   // Simple heuristic implementation
-  const beats: any[] = [];
+  const beats: Beat[] = [];
 
   if (shots.length > 0) {
     beats.push({
       id: `beat-opening-${Date.now()}`,
+      name: 'Opening',
       type: 'opening',
-      position: 1,
+      order: 1,
       description: 'Opening sequence',
-      duration: Math.min(30, shots[0].duration || 5),
-      suggestedShots: 1,
-      importance: 'high'
+      suggestedDuration: Math.min(30, shots[0].duration || 5),
+      importance: 'high',
+      pacing: 'medium',
+      mood: 'neutral',
+      tone: 'neutral',
+      characters: [],
+      directorNotes: []
     });
   }
 
@@ -923,24 +928,34 @@ export function generateBeatSuggestions(shots: any[]): any[] {
     const midPoint = Math.floor(shots.length / 2);
     beats.push({
       id: `beat-mid-${Date.now()}`,
+      name: 'Midpoint Confrontation',
       type: 'confrontation',
-      position: midPoint + 1,
+      order: midPoint + 1,
       description: 'Midpoint confrontation',
-      duration: 60,
-      suggestedShots: 2,
-      importance: 'high'
+      suggestedDuration: 60,
+      importance: 'high',
+      pacing: 'fast',
+      mood: 'tense',
+      tone: 'dramatic',
+      characters: [],
+      directorNotes: []
     });
   }
 
   if (shots.length > 2) {
     beats.push({
       id: `beat-closing-${Date.now()}`,
+      name: 'Resolution',
       type: 'resolution',
-      position: shots.length,
+      order: shots.length,
       description: 'Resolution',
-      duration: Math.min(30, (shots[shots.length - 1]?.duration || 5)),
-      suggestedShots: 1,
-      importance: 'medium'
+      suggestedDuration: Math.min(30, (shots[shots.length - 1]?.duration || 5)),
+      importance: 'medium',
+      pacing: 'slow',
+      mood: 'peaceful',
+      tone: 'neutral',
+      characters: [],
+      directorNotes: []
     });
   }
 

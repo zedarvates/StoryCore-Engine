@@ -1,4 +1,4 @@
-/* cspell:ignore ollama Agentic Methode Bartelemi euler */
+/* cspell:ignore ollama Agentic Methode Bartelemi euler openrouter mistralai gemini */
 import React, { useState, useCallback, useEffect } from 'react';
 import {
     Sparkles,
@@ -99,6 +99,18 @@ export function NeuralProductionAssistant() {
     }, [project, characters]);
     const [isDistilling, setIsDistilling] = useState(false);
     const [ledgerFilter, setLedgerFilter] = useState<'ALL' | 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET'>('ALL');
+
+    const [llmProvider, setLlmProvider] = useState<string>('openrouter');
+    const [llmModel, setLlmModel] = useState<string>('meta-llama/llama-3.1-8b-instruct');
+
+    const popularOpenRouterModels = [
+        { id: 'meta-llama/llama-3.1-8b-instruct', label: 'Llama 3.1 8B' },
+        { id: 'meta-llama/llama-3.1-70b-instruct', label: 'Llama 3.1 70B' },
+        { id: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5' },
+        { id: 'openai/gpt-4o', label: 'GPT-4o' },
+        { id: 'google/gemini-pro-1.5', label: 'Gemini 1.5 Pro' },
+        { id: 'mistralai/mistral-large', label: 'Mistral Large' },
+    ];
 
     const { insights, workingContext, promoteInsight, removeInsight, addInsight } = useMemoryStore();
     const { lastTrajectory } = useProductionStore();
@@ -269,16 +281,31 @@ export function NeuralProductionAssistant() {
             Analyze possible lighting transitions, lens geometry continuity, and technical rig alignment.
             Format: Markdown bullet points with bold keywords.`;
 
-            // Use the general generation method with a dynamic model
-            const modelToUse = await ollamaClient.getBestAvailableModel('storytelling');
-
             let responseText = '';
             if (useRecursiveReasoning) {
-                setGenerationStep('Engaging RLM Recursive Chain...');
-                const { response, trajectory } = await rlmService.executeTask(prompt, modelToUse);
-                responseText = response;
-                useProductionStore.getState().setLastTrajectory(trajectory);
+                setGenerationStep('Engaging Neural Substrate Manager (NSM)...');
+                // Call the advanced backend engine
+                const { final_answer, steps } = await rlmService.generateRLM(
+                    prompt, 
+                    '', 
+                    llmProvider, 
+                    llmModel
+                );
+                responseText = final_answer;
+                // Steps from backend are NSMStep objects {type, message, timestamp}
+                // We map them to the UI trajectory format
+                const mappedTrajectory: RLMTrajectoryStep[] = steps.map((s: { type: string; message: string; timestamp?: string }, _idx: number) => ({
+                    depth: 0,
+                    task: prompt,
+                    thought: s.type === 'thinking' ? s.message : undefined,
+                    action: s.type === 'action' ? s.message : undefined,
+                    result: s.type === 'observation' || s.type === 'critique' ? s.message : undefined,
+                    timestamp: s.timestamp ? new Date(s.timestamp).getTime() : Date.now()
+                }));
+                useProductionStore.getState().setLastTrajectory(mappedTrajectory);
             } else {
+                setGenerationStep('Engaging Standard LLM...');
+                const modelToUse = await ollamaClient.getBestAvailableModel('storytelling');
                 responseText = await ollamaClient.generate(modelToUse, prompt, { temperature: 0.7 });
                 useProductionStore.getState().setLastTrajectory([]); // Clear trajectory for standard calls
             }
@@ -291,11 +318,12 @@ export function NeuralProductionAssistant() {
             console.error('Failed to get directorial advice:', err);
             toast({
                 title: "NEURAL LINK ERROR",
-                description: "Failed to communicate with LLM for directorial advice.",
+                description: "Failed to communicate with the Neural Engine.",
                 variant: "destructive"
             });
         } finally {
             setIsThinking(false);
+            setGenerationStep('');
         }
     };
 
@@ -459,8 +487,8 @@ export function NeuralProductionAssistant() {
 
                     {projectAdvice.length > 0 ? (
                         <div className="space-y-2">
-                            {projectAdvice.map(adv => (
-                                <div key={adv.id} className={cn(
+                            {projectAdvice.map((adv, idx) => (
+                                <div key={adv.id || `adv-${idx}`} className={cn(
                                     "p-2 rounded-xs border-l-2 text-[9px] leading-tight",
                                     adv.level === 'warning' ? "bg-red-500/10 border-red-500/50 text-red-200" :
                                     adv.level === 'success' ? "bg-green-500/10 border-green-500/50 text-green-200" :
@@ -501,13 +529,16 @@ export function NeuralProductionAssistant() {
                             <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-primary transition-all duration-1000"
-                                    style={{
-                                        width: (() => {
+                                    ref={(el) => {
+                                        if (el) {
                                             const planChars = new Set(currentPlan.shots.flatMap((s) => (s as unknown as ProductionShot).composition?.characterIds || []));
-                                            if (planChars.size === 0) return '0%';
-                                            const manifested = Array.from(planChars).filter(cid => manifestedAssets.some(a => a.characterId === cid)).length;
-                                            return `${(manifested / planChars.size) * 100}%`;
-                                        })()
+                                            if (planChars.size === 0) {
+                                                el.style.width = '0%';
+                                            } else {
+                                                const manifested = Array.from(planChars).filter(cid => manifestedAssets.some(a => a.characterId === cid)).length;
+                                                el.style.width = `${(manifested / planChars.size) * 100}%`;
+                                            }
+                                        }
                                     }}
                                 />
                             </div>
@@ -523,15 +554,15 @@ export function NeuralProductionAssistant() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-1">
-                        {characters.slice(0, 3).map((char) => (
+                        {characters.slice(0, 3).map((char, idx) => (
                             <div
-                                key={char.character_id}
+                                key={char.character_id || `char-neural-${idx}`}
                                 className="flex items-center justify-between p-1.5 bg-white/5 border border-white/5 hover:border-primary/20 transition-all rounded-sm group overflow-hidden"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
                                     <div className="w-6 h-6 rounded-sm bg-primary/10 border border-primary/20 overflow-hidden relative flex-shrink-0">
                                         {char.visual_identity?.generated_portrait ? (
-                                            <img src={char.visual_identity.generated_portrait} className="w-full h-full object-cover" />
+                                            <img src={char.visual_identity.generated_portrait} alt={`${char.name} portrait`} className="w-full h-full object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center opacity-40">
                                                 <Layers className="w-3 h-3 text-primary" />
@@ -574,9 +605,9 @@ export function NeuralProductionAssistant() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-1">
-                        {currentWorld?.locations?.slice(0, 3).map((loc) => (
+                        {currentWorld?.locations?.slice(0, 3).map((loc, idx) => (
                             <div
-                                key={loc.id}
+                                key={loc.id || `loc-neural-${idx}`}
                                 className="flex items-center justify-between p-1.5 bg-white/5 border border-white/5 hover:border-primary/20 transition-all rounded-sm group overflow-hidden"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
@@ -619,9 +650,9 @@ export function NeuralProductionAssistant() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-1">
-                        {currentWorld?.keyObjects?.slice(0, 3).map((obj) => (
+                        {currentWorld?.keyObjects?.slice(0, 3).map((obj, idx) => (
                             <div
-                                key={obj.id}
+                                key={obj.id || `obj-neural-${idx}`}
                                 className="flex items-center justify-between p-1.5 bg-white/5 border border-white/5 hover:border-primary/20 transition-all rounded-sm group overflow-hidden"
                             >
                                 <div className="flex items-center gap-2 min-w-0">
@@ -665,8 +696,8 @@ export function NeuralProductionAssistant() {
 
                     <div className="space-y-2">
                         <div className="flex flex-wrap gap-2">
-                            {currentWorld?.visualIntent?.vibe?.split(',').map((tag, i) => (
-                                <Badge key={i} variant="secondary" className="bg-primary/10 text-primary/60 text-[9px] border-primary/10">
+                            {currentWorld?.visualIntent?.vibe?.split(',').map((tag, idx) => (
+                                <Badge key={`vibe-${tag.trim()}-${idx}`} variant="secondary" className="bg-primary/10 text-primary/60 text-[9px] border-primary/10">
                                     {tag.trim().toUpperCase()}
                                 </Badge>
                             )) || (
@@ -675,11 +706,11 @@ export function NeuralProductionAssistant() {
                         </div>
 
                         <div className="flex gap-1 mt-2">
-                            {currentWorld?.visualIntent?.colors?.map((color, i) => (
+                            {currentWorld?.visualIntent?.colors?.map((color, idx) => (
                                 <div
-                                    key={i}
+                                    key={`color-${color}-${idx}`}
                                     className="w-12 h-2 rounded-full border border-white/10"
-                                    style={{ backgroundColor: color }}
+                                    ref={(el) => { if (el) el.style.backgroundColor = color; }}
                                     title={color}
                                 />
                             )) || null}
@@ -705,12 +736,61 @@ export function NeuralProductionAssistant() {
                         </DialogHeader>
 
                         <div className="space-y-6 mt-4">
-                            <div className="space-y-2">
-                                <p className="text-[10px] uppercase font-bold text-white/60">Selected Neural Workflow</p>
+                            <div className="space-y-4">
+                                <p className="text-[10px] uppercase font-bold text-white/60">LLM Provider (Brain)</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {(['mock', 'openai', 'anthropic', 'openrouter'] as const).map(p => (
+                                        <Button
+                                            key={p}
+                                            variant={llmProvider === p ? 'default' : 'outline'}
+                                            size="sm"
+                                            className="text-[10px] uppercase font-black h-8"
+                                            onClick={() => setLlmProvider(p)}
+                                        >
+                                            {p}
+                                        </Button>
+                                    ))}
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <p className="text-[9px] uppercase font-bold text-white/40">Model ID / Version</p>
+                                    
+                                    {llmProvider === 'openrouter' && (
+                                        <div className="flex flex-wrap gap-1 mb-2">
+                                            {popularOpenRouterModels.map(m => (
+                                                <Badge
+                                                    key={m.id}
+                                                    variant="outline"
+                                                    onClick={() => setLlmModel(m.id)}
+                                                    className={cn(
+                                                        "cursor-pointer text-[7px] py-0 px-1.5 border-primary/20 hover:bg-primary/20 transition-all",
+                                                        llmModel === m.id ? "bg-primary/30 border-primary text-primary" : "text-white/40"
+                                                    )}
+                                                >
+                                                    {m.label}
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <Input 
+                                        value={llmModel}
+                                        onChange={(e) => setLlmModel(e.target.value)}
+                                        placeholder={llmProvider === 'openrouter' ? "e.g. meta-llama/llama-3-70b-instruct" : "Default model"}
+                                        className="bg-white/5 border-white/10 h-8 text-[11px]"
+                                    />
+                                    <p className="text-[8px] text-white/20 italic">
+                                        {llmProvider === 'openrouter' ? "Select or enter model ID manually." : "Leave empty for provider default."}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2 pt-4 border-t border-white/5">
+                                <p className="text-[10px] uppercase font-bold text-white/60">Selected Neural Workflow (Visuals)</p>
                                 <div className="grid grid-cols-1 gap-2">
-                                    {WORKFLOW_OPTIONS.map((opt) => (
+                                    {WORKFLOW_OPTIONS.map((opt, idx) => (
                                         <button
-                                            key={opt.id}
+                                            key={opt.id || `workflow-${idx}`}
                                             onClick={() => setSelectedModel(opt.id)}
                                             className={cn(
                                                 "flex items-center justify-between p-3 border rounded-sm transition-all text-left",
@@ -816,9 +896,9 @@ export function NeuralProductionAssistant() {
                                             <p className="text-[9px] text-white/20 uppercase">No project insights captured yet.</p>
                                         </div>
                                     ) : (
-                                        insights.map((insight) => (
+                                        insights.map((insight, idx) => (
                                             <div
-                                                key={insight.id}
+                                                key={insight.id || `insight-${idx}`}
                                                 className={cn(
                                                     "p-3 rounded-sm border transition-all group",
                                                     insight.isPermanent ? "bg-primary/10 border-primary/30" : "bg-white/5 border-white/10"
@@ -931,7 +1011,7 @@ export function NeuralProductionAssistant() {
                                         .map(asset => (
                                             <div key={asset.id} className="group relative bg-card/60 border border-white/10 hover:border-primary/40 rounded-sm overflow-hidden transition-all shadow-xl backdrop-blur-sm">
                                                 <div className="aspect-[4/5] bg-black overflow-hidden relative">
-                                                    <img src={asset.url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    <img src={asset.url} alt={asset.characterName || asset.type} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
 
                                                     <div className="absolute top-2 left-2 flex flex-col gap-1">
@@ -946,6 +1026,7 @@ export function NeuralProductionAssistant() {
                                                             toast({ title: "RECORD PURGED", description: "The neural artifact has been scrubbed from the ledger." });
                                                         }}
                                                         className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-red-500/80 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0"
+                                                        title="Purge record"
                                                     >
                                                         <Trash2 className="w-3 h-3" />
                                                     </button>
@@ -1010,8 +1091,8 @@ export function NeuralProductionAssistant() {
                                     <p className="text-[10px] text-primary/40 uppercase tracking-widest">No advice generated in this session</p>
                                 </div>
                             ) : (
-                                adviceHistory.map(item => (
-                                    <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-sm">
+                                adviceHistory.map((item, idx) => (
+                                    <div key={item.id || `advice-hist-${idx}`} className="p-4 bg-white/5 border border-white/10 rounded-sm">
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="text-[8px] text-primary/40 uppercase tracking-widest">{new Date(item.timestamp).toLocaleString()}</span>
                                             <Badge variant="outline" className="text-[8px] border-primary/20 text-primary/60">Log #{item.id.slice(0, 8)}</Badge>

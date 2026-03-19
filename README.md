@@ -583,15 +583,9 @@ graph TD
 | **Q1 2026** | Lore Graph Visualization (Force-Directed Canvas)                       | ✅ Completed   |
 | **Q1 2026** | RLM Critique-Correction Loop (12 Consistency Patterns)                 | ✅ Completed   |
 | **Q1 2026** | Location & Object Reference Sheets                                     | ✅ Completed   |
-| **Q1 2026** | **Creative Studio v3.2: Voice & Style Synergy**                        | ✅ Completed   |
-| **Q1 2026** | Project Translator Add-on (Local AI / Jina Embeddings v5)              | ✅ Completed   |
-| **Q1 2026** | Voice-Directed Lighting & Camera Controls (VDC)                        | ✅ Completed   |
-| **Q1 2026** | Automated Credits & Sequence Planning                                  | ✅ Completed   |
-
-| **Q1 2026** | Advanced AI Chat Assistant (v4) with Pro-active UI                    | ✅ Completed   |
-| **Q1 2026** | UI Glitch Fixes & Icon Coherence                                       | ✅ Completed   |
+| **Q1 2026** | **Creative Studio v3.5: Bidirectional Sync**                           | ✅ Completed   |
 | **Q1 2026** | **"Bout en Bout" Production Bible Methodology**                        | ✅ Completed   |
-| **Q1 2026** | **Multi-Mode Generation (Social, Music, Doc, Cinema)** | ✅ Completed   |
+| **Q1 2026** | **Multi-Mode Generation (Social, Music, Doc, Cinema)**                 | ✅ Completed   |
 | **Q2 2026** | Audio Mastering (Auto-Ducking/Isolation)                               | ✅ Completed   |
 | **Q2 2026** | Multi-Angle & Character Consistency                                    | ✅ Completed   |
 | **Q2 2026** | Procedural 3D Scene Generation (Trees, Props, Skyboxes)                | 🔄 In Progress |

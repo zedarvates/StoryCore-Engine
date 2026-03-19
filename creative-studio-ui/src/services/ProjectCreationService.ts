@@ -1,50 +1,67 @@
 /* cspell:ignore ProjectCreationService projectCreationService createProjectAndNavigate */
 import { type ProjectCreationRequest } from './chatService';
 import { useAppStore } from '@/stores/useAppStore';
+import { useStore } from '@/store';
 import { useEditorStore } from '@/stores/editorStore';
-import { useCharacterPersistence } from '@/hooks/useCharacterPersistence';
-import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import type { Project as StoreProject } from '@/types';
 import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 import { useToast } from '@/hooks/use-toast';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
+import type { Shot, SequencePlan, Character, StoryObject } from '@/types';
+import type { World } from '@/types/world';
+import type { Location as ProductionLocation } from '@/types/location';
+import type { GeneratedSequence } from '@/utils/projectTemplateGenerator';
 
 // Helper function to convert Electron project to Store project format
-function convertElectronProjectToStore(electronProject: any): StoreProject {
+export function convertElectronProjectToStore(electronProject: {
+  id?: string;
+  name?: string;
+  path?: string;
+  version?: string;
+  createdAt?: Date | string | number;
+  modifiedAt?: Date | string | number;
+  config?: Record<string, unknown>;
+}): StoreProject {
   // Extract config from Electron project
   const config = electronProject.config || {};
   
   return {
-    schema_version: config.schema_version || '1.0',
-    project_name: electronProject.name || config.project_name || 'Untitled Project',
-    shots: config.shots || [],
-    assets: config.assets || [],
-    worlds: config.worlds,
-    selectedWorldId: config.selectedWorldId,
-    characters: config.characters,
-    capabilities: config.capabilities || {
+    id: electronProject.id || Date.now().toString(),
+    schema_version: (config.schema_version as string) || '1.0',
+    project_name: electronProject.name || (config.project_name as string) || 'Untitled Project',
+    path: electronProject.path || '',
+    shots: (config.shots as Shot[]) || [],
+    assets: (config.assets as StoreProject['assets']) || [],
+    worlds: (config.worlds as World[]) || undefined,
+    selectedWorldId: config.selectedWorldId as string | undefined,
+    characters: (config.characters as Character[]) || undefined,
+    capabilities: (config.capabilities as StoreProject['capabilities']) || {
       grid_generation: true,
       promotion_engine: true,
       qa_engine: true,
       autofix_engine: true,
     },
-    generation_status: config.generation_status || {
+    generation_status: (config.generation_status as StoreProject['generation_status']) || {
       grid: 'pending',
       promotion: 'pending',
     },
-    casting: config.casting,
+    casting: config.casting as StoreProject['casting'],
     metadata: {
       id: electronProject.id || Date.now().toString(),
       path: electronProject.path || '',
       version: electronProject.version || '1.0',
       created_at: electronProject.createdAt instanceof Date 
         ? electronProject.createdAt.toISOString() 
-        : electronProject.createdAt || config.created_at || new Date().toISOString(),
+        : typeof electronProject.createdAt === 'number' 
+          ? new Date(electronProject.createdAt).toISOString()
+          : electronProject.createdAt || (config.created_at as string) || new Date().toISOString(),
       updated_at: electronProject.modifiedAt instanceof Date 
         ? electronProject.modifiedAt.toISOString() 
-        : electronProject.modifiedAt || config.modified_at || new Date().toISOString(),
-      ...config.metadata,
+        : typeof electronProject.modifiedAt === 'number'
+          ? new Date(electronProject.modifiedAt).toISOString()
+          : electronProject.modifiedAt || (config.modified_at as string) || new Date().toISOString(),
+      ...(config.metadata as Record<string, unknown>),
     },
   };
 }
@@ -90,22 +107,96 @@ export class ProjectCreationService {
     const language = getInitialLanguagePreference();
     
     try {
-      // Generate project template if format is provided
-      let initialShots: any[] = [];
-      if (format) {
-        const template = generateProjectTemplate(format);
+      // Resolve format if formatId is provided in request
+      let effectiveFormat = format;
+      if (!effectiveFormat && request.formatId) {
+        const availableFormats = this.getAvailableFormats();
+        effectiveFormat = availableFormats.find(f => f.id === request.formatId);
+        console.log(`ProjectCreationService: Resolved format ${request.formatId} to`, effectiveFormat);
+      }
+
+      // Generate project template if format is available
+      let initialShots: Shot[] = [];
+      let initialSequences: GeneratedSequence[] = [];
+      if (effectiveFormat) {
+        // Extract track titles from user description if music-album
+        const trackTitles: string[] = [];
+        if (effectiveFormat.id === 'music-album' && request.description) {
+          // 1. First try quoted titles (Requirement: 4.5)
+          const titlePattern = /"(.+?)"|'(.+?)'|\u00ab(.+?)\u00bb/g;
+          let m: RegExpExecArray | null;
+          while ((m = titlePattern.exec(request.description)) !== null) {
+            const t = (m[1] || m[2] || m[3]).trim();
+            if (t.length > 0 && t.length < 80) trackTitles.push(t);
+          }
+
+          // 2. If no quoted titles found, try to look for comma separated list after a colon (e.g. "Titres: A, B, C")
+          if (trackTitles.length === 0) {
+            const colonListPattern = /(?:titres|tracks|songs|titles|tracklist|liste)\s*:\s*([^.!?\n]+)/i;
+            const match = colonListPattern.exec(request.description);
+            if (match && match[1]) {
+              const items = match[1].split(',').map(s => s.trim()).filter(s => s.length > 0 && s.length < 80);
+              trackTitles.push(...items);
+            }
+          }
+
+          // 3. Fallback for album: if still empty, ensure we have at least generic tracks if none were found
+          if (trackTitles.length === 0) {
+            for (let i = 1; i <= 13; i++) trackTitles.push(`Track ${i}`);
+          }
+        }
+        const template = generateProjectTemplate(effectiveFormat, { trackTitles });
+        initialSequences = template.sequences;
         initialShots = sequencesToShots(template.sequences);
       }
 
       // Prepare project data with theme/universe metadata
       const projectData = {
         name: request.name,
-        format: format,
+        format: format ? {
+          aspectRatio: '16:9',
+          resolution: '1920x1080',
+          frameRate: 24,
+          colorSpace: 'sRGB'
+        } : undefined,
         theme: request.theme,
         universe: request.universe,
         genre: request.genre,
         description: request.description,
         initialShots: initialShots,
+        initialSequences: request.initialEntities?.sequences || initialSequences,
+        initialCharacters: request.initialEntities?.characters || (effectiveFormat?.id === 'music-album' ? [{
+          character_id: 'char_main_artist_001',
+          name: 'Main Artist / DJ',
+          role: 'protagonist',
+          description: 'The primary artist of this album project.',
+          visual_identity: {
+            appearance: 'Professional artist with a futuristic vibe.',
+            traits: ['creative', 'focused'],
+            colors: ['#00ffff', '#ff00ff'],
+          },
+          metadata: { created_by: 'smart-starter' }
+        } as unknown as Character] : []),
+        initialLocations: request.initialEntities?.locations || (effectiveFormat?.id === 'music-album' ? [{
+          location_id: 'loc_studio_001',
+          name: 'Recording Studio (Interior)',
+          location_type: 'interior' as const,
+          description: 'A high-tech recording studio with neon lighting and acoustic treatment.',
+          metadata: { atmosphere: 'creative, focused', genre_tags: ['tech', 'music'] }
+        }, {
+          location_id: 'loc_exterior_001',
+          name: 'Champs de Mars / Tour Eiffel (Exterior)',
+          location_type: 'exterior' as const,
+          description: 'An iconic exterior location in Paris, perfectly suited for a futuristic music video.',
+          metadata: { atmosphere: 'grand, iconic', genre_tags: ['paris', 'futuristic'] }
+        }] as unknown as ProductionLocation[] : []),
+        initialObjects: request.initialEntities?.objects || (effectiveFormat?.id === 'music-album' ? [{
+          id: 'obj_dj_rig_001',
+          name: 'Pro DJ Rig',
+          type: 'equipment',
+          description: 'State-of-the-art DJ turntable and mixing console.',
+          metadata: { usage: 'performance', importance: 'high' }
+        } as unknown as StoryObject] : []),
         settings: {
           created_by: 'llm-assistant',
           creation_timestamp: new Date().toISOString(),
@@ -114,14 +205,19 @@ export class ProjectCreationService {
       };
 
       // Create project via Electron API
-      if (window.electronAPI?.project?.create) {
-        const electronProject = await window.electronAPI.project.create(projectData);
+      console.log('ProjectCreationService: Requesting project creation via Electron IPC...', projectData);
+      
+      const api = window.electronAPI;
+      if (api?.project?.create) {
+        try {
+          const electronProject = await api.project.create(projectData);
+          console.log('ProjectCreationService: Electron project created successfully:', electronProject);
+          
+          // Convert to Store format - use data from Electron project
+          const storeProject = convertElectronProjectToStore(electronProject);
         
-        // Convert to Store format
-        const storeProject = convertElectronProjectToStore(electronProject);
-        
-        // Load into stores
-        await this.loadProjectIntoStores(storeProject, electronProject.path);
+        // Load into stores (pass sequences for proper structure)
+        await this.loadProjectIntoStores(storeProject, electronProject.path, initialSequences);
         
         // Show success message
         this.showSuccessMessage(request.name, language);
@@ -131,11 +227,19 @@ export class ProjectCreationService {
           projectPath: electronProject.path,
           project: storeProject,
         };
-      } else {
-        // Demo mode - simulate creation
-        const demoProject: StoreProject = {
+      } catch (error) {
+        console.error('ProjectCreationService: Electron project creation failed:', error);
+        throw error;
+      }
+    } else {
+      // Demo mode - simulate creation
+      const demoProjectId = Date.now().toString();
+      const demoProjectPath = `demo-projects/${request.name}`;
+      const demoProject: StoreProject = {
+          id: demoProjectId,
           schema_version: '1.0',
           project_name: request.name,
+          path: demoProjectPath,
           shots: initialShots,
           assets: [],
           capabilities: {
@@ -148,31 +252,62 @@ export class ProjectCreationService {
             grid: 'pending',
             promotion: 'pending',
           },
+          characters: request.initialEntities?.characters || [],
+          worlds: (request.initialEntities?.locations && request.initialEntities.locations.length > 0) ? [{ 
+            id: 'world_default', 
+            name: 'Default World', 
+            locations: request.initialEntities.locations,
+            genre: [request.genre || 'Various'],
+            timePeriod: 'Present',
+            tone: ['Neutral'],
+            rules: [],
+            lore: '',
+            atmosphere: 'Neutral',
+            culturalElements: {
+              languages: [],
+              religions: [],
+              traditions: [],
+              historicalEvents: [],
+              culturalConflicts: [],
+            },
+            technology: '',
+            magic: '',
+            conflicts: [],
+            keyObjects: [],
+            visualIntent: {
+              colors: [],
+              vibe: '',
+              style: '',
+            },
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+          } as unknown as World] : [],
+          objects: request.initialEntities?.objects || [],
           metadata: {
-            id: Date.now().toString(),
-            path: `demo-projects/${request.name}`,
+            id: demoProjectId,
+            path: demoProjectPath,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             theme: request.theme,
             universe: request.universe,
             genre: request.genre,
             description: request.description,
-            format: format,
+            format: effectiveFormat,
             created_by: 'llm-assistant',
             creation_timestamp: new Date().toISOString(),
             ...request.settings,
           },
         };
 
-        // Load into stores
-        await this.loadProjectIntoStores(demoProject, demoProject.metadata.path);
+        // Load into stores (pass sequences for proper structure)
+        await this.loadProjectIntoStores(demoProject, demoProjectPath, initialSequences);
         
         // Show success message
         this.showSuccessMessage(request.name, language);
         
         return {
           success: true,
-          projectPath: demoProject.metadata.path,
+          projectPath: demoProjectPath,
           project: demoProject,
         };
       }
@@ -187,33 +322,34 @@ export class ProjectCreationService {
     }
   }
 
-  /**
-   * Load a project into the application stores
-   */
-  private async loadProjectIntoStores(project: StoreProject, projectPath: string): Promise<void> {
+  public async loadProjectIntoStores(project: StoreProject, projectPath: string, sequences?: (GeneratedSequence | SequencePlan)[]): Promise<void> {
     // Get store actions
     const setProject = useAppStore.getState().setProject;
     const setShots = useAppStore.getState().setShots;
-    
-    // Load the project into the store
+
+    // Load the project into useAppStore
     setProject(project);
     setShots(project.shots || []);
+
+    // Also load into the main useStore to ensure all entities are synced
+    // useStore.setProject handles characters, stories, worlds, etc.
+    const mainStore = useStore.getState();
+    const projectWithPlans = {
+      ...project,
+      sequencePlans: sequences || project.sequencePlans || []
+    } as StoreProject & { sequencePlans: SequencePlan[] };
     
+    mainStore.setProject(projectWithPlans);
+
+    console.log('ProjectCreationService: Loaded project into both AppStore and main Store');
+
     // Set project path in editor store so persistence hooks can use it
     useEditorStore.getState().setProjectPath(projectPath);
-    
-    // Sync characters from project directory to store
-    const { loadAndSyncCharacters } = useCharacterPersistence();
-    await loadAndSyncCharacters();
-    
-    // Sync worlds from project directory to store
-    const { syncWorldsFromProject } = useWorldPersistence();
-    await syncWorldsFromProject();
-    
+
     // Reload recent projects
     if (window.electronAPI?.recentProjects?.get) {
       try {
-        const recentProjects = await window.electronAPI.recentProjects.get();
+        const _recentProjects = await window.electronAPI.recentProjects.get();
         // Update recent projects list if needed
       } catch (error) {
         console.error('Failed to reload recent projects:', error);
@@ -278,7 +414,7 @@ export class ProjectCreationService {
       ? `Projet "${projectName}" créé avec succès !`
       : `Project "${projectName}" created successfully!`;
 
-    this.toast({
+    this.toast.toast({
       title: language === 'fr' ? "Création réussie" : "Creation Successful",
       description: message,
     });
@@ -294,7 +430,7 @@ export class ProjectCreationService {
       ? `Impossible de créer le projet "${projectName}". ${error}`
       : `Failed to create project "${projectName}". ${error}`;
 
-    this.toast({
+    this.toast.toast({
       variant: "destructive",
       title: language === 'fr' ? "Erreur de création" : "Creation Error",
       description: message,
@@ -397,13 +533,23 @@ export class ProjectCreationService {
         iconType: 'video',
         description: 'A music video with 4-6 sequences',
       },
+      {
+        id: 'music-album',
+        name: 'Music Album',
+        duration: '40-60 min',
+        durationMinutes: 60,
+        sequences: 13,
+        shotDuration: 300,
+        iconType: 'video',
+        description: 'A music album with 13 tracks and cohesive ambience',
+      },
     ];
   }
 
   /**
    * Get recommended format based on project characteristics
    */
-  getRecommendedFormat(theme?: string, genre?: string, universe?: string): SerializableProjectFormat | null {
+  getRecommendedFormat(_theme?: string, genre?: string, _universe?: string): SerializableProjectFormat | null {
     const formats = this.getAvailableFormats();
     
     // Simple recommendation logic based on genre
@@ -413,6 +559,8 @@ export class ProjectCreationService {
         return formats.find(f => f.id === 'trailer') || formats[0];
       } else if (lowerGenre.includes('music') || lowerGenre.includes('song')) {
         return formats.find(f => f.id === 'music-video') || formats[0];
+      } else if (lowerGenre.includes('album') || lowerGenre.includes('collection')) {
+        return formats.find(f => f.id === 'music-album') || formats[0];
       }
     }
     

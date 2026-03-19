@@ -96,6 +96,47 @@ class AnthropicClient(LLMClient):
         return response.content[0].text
 
 
+class OpenRouterClient(LLMClient):
+    """OpenRouter LLM client (OpenAI-compatible API)."""
+    
+    def __init__(self, api_key: Optional[str] = None, model: str = "meta-llama/llama-3-70b-instruct"):
+        """
+        Initialize OpenRouter client.
+        
+        Args:
+            api_key: OpenRouter API key (if None, uses OPENROUTER_API_KEY env var)
+            model: Model to use (default: meta-llama/llama-3-70b-instruct)
+        """
+        try:
+            import openai
+            import os
+            self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+            self.client = openai.OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=self.api_key,
+            )
+            self.model = model
+        except ImportError:
+            raise ImportError("openai package not installed. Install with: pip install openai")
+    
+    def complete(self, prompt: str, **kwargs) -> str:
+        """Complete a prompt using OpenRouter."""
+        response = self.client.chat.completions.create(
+            model=kwargs.get("model", self.model),
+            messages=[
+                {"role": "system", "content": "You are a creative assistant that extracts structured information from creative prompts."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=kwargs.get("temperature", 0.7),
+            max_tokens=kwargs.get("max_tokens", 2000),
+            extra_headers={
+                "HTTP-Referer": "https://storycore.ai", # Optional
+                "X-Title": "StoryCore Engine", # Optional
+            }
+        )
+        return response.choices[0].message.content
+
+
 class MockLLMClient(LLMClient):
     """Mock LLM client for testing."""
     
@@ -355,6 +396,8 @@ class PromptParser:
             return OpenAIClient(**kwargs)
         elif provider == "anthropic":
             return AnthropicClient(**kwargs)
+        elif provider == "openrouter":
+            return OpenRouterClient(**kwargs)
         elif provider == "mock":
             return MockLLMClient()
         else:

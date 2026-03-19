@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Clapperboard,
     Mic2,
@@ -11,7 +11,9 @@ import {
     Zap,
     Info,
     Package,
-    Brain
+    Brain,
+    ChevronDown,
+    ChevronRight,
 } from 'lucide-react';
 import { useSequencePlanStore } from '@/stores/sequencePlanStore';
 import { useAppStore } from '@/stores/useAppStore';
@@ -107,13 +109,81 @@ interface ProductionGuideProps {
 export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
     const currentPlan = useSequencePlanStore((state) => state.currentPlanData);
     const updateShotInPlan = useSequencePlanStore((state) => state.updateShotInPlan);
+    const selectPlan = useSequencePlanStore((state) => state.selectPlan);
+    const storePlans = useSequencePlanStore((state) => state.plans);
     const characters = useStore((state) => state.characters);
     const project = useAppStore((state) => state.project);
     const worlds = useStore((state) => state.worlds);
+    const storeSequencePlans = useStore((state) => state.sequencePlans);
+    const storeShots = useAppStore((state) => state.shots);
     const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
     const [isSyncing, setIsSyncing] = useState(false);
     const [previewAsset, setPreviewAsset] = useState<ManifestedAsset | null>(null);
     const manifestedAssets = useProductionStore((state) => state.manifestedAssets);
+    const memoryAnalysisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    // Auto-select first available plan if none is active
+    useEffect(() => {
+        if (currentPlan) return; // Already have a plan
+
+        // Try to select via sequencePlanStore (from localStorage plans)
+        if (storePlans.length > 0) {
+            selectPlan(storePlans[0].id).catch(() => {
+                // ignore errors - plan might not be fully loaded yet
+            });
+            return;
+        }
+
+        // Load plans list and auto-select first one
+        useSequencePlanStore.getState().loadPlans().then(() => {
+            const updated = useSequencePlanStore.getState().plans;
+            if (updated.length > 0) {
+                useSequencePlanStore.getState().selectPlan(updated[0].id).catch(() => {});
+            }
+        }).catch(() => {});
+    }, [currentPlan, storePlans, selectPlan]);
+
+    // Build a synthetic "effective plan" from store sequences + shots when no formal plan is active
+    const effectivePlan = currentPlan ?? (() => {
+        // Try store sequence plans first
+        if (storeSequencePlans && storeSequencePlans.length > 0) {
+            // Cast via unknown to safely convert ProductionShot[] -> Shot[] for display
+            const firstPlan = storeSequencePlans[0] as unknown as {
+                id: string;
+                name: string;
+                description?: string;
+                shots?: import('@/types').Shot[];
+            };
+            if (firstPlan.shots && firstPlan.shots.length > 0) {
+                return {
+                    id: firstPlan.id,
+                    name: firstPlan.name,
+                    description: firstPlan.description || '',
+                    shots: firstPlan.shots,
+                    totalDuration: firstPlan.shots.reduce((s: number, sh: import('@/types').Shot) => s + (sh.duration || 0), 0),
+                    frameRate: 30,
+                    resolution: { width: 1920, height: 1080 },
+                    createdAt: Date.now(),
+                    modifiedAt: Date.now(),
+                };
+            }
+        }
+        // Fallback: use shots from the main store directly
+        if (storeShots && storeShots.length > 0) {
+            return {
+                id: 'synthetic',
+                name: project?.project_name || 'Current Project',
+                description: 'Auto-assembled from project shots',
+                shots: storeShots as import('@/types').Shot[],
+                totalDuration: storeShots.reduce((s, sh) => s + (sh.duration || 0), 0),
+                frameRate: 30,
+                resolution: { width: 1920, height: 1080 },
+                createdAt: Date.now(),
+                modifiedAt: Date.now(),
+            };
+        }
+        return null;
+    })();
 
     // Listen for LLM-driven shot updates
     useEffect(() => {
@@ -202,10 +272,17 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
 
     const handleNoteChange = (shotId: string, note: string) => {
         updateShotInPlan(shotId, { notes: note } as Record<string, unknown>);
+        
+        // DEBOUNCED Analyze for memory (Write Gate) - Only for significant notes
+        // Prevents hitting Ollama on every keystroke
+        if (memoryAnalysisTimeoutRef.current) {
+            clearTimeout(memoryAnalysisTimeoutRef.current);
+        }
 
-        // Analyze for memory (Write Gate) - Only for significant notes
         if (note.length > 20) {
-            projectMemory.analyzeForMemory(note, `Production Note (Shot ${shotId})`);
+            memoryAnalysisTimeoutRef.current = setTimeout(() => {
+                projectMemory.analyzeForMemory(note, `Production Note (Shot ${shotId})`);
+            }, 2000); // Wait for 2 seconds of inactivity
         }
     };
 
@@ -214,13 +291,13 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
         return text.length > length ? text.substring(0, length) + '...' : text;
     };
 
-    if (!currentPlan || !currentPlan.shots || currentPlan.shots.length === 0) {
+    if (!effectivePlan || !effectivePlan.shots || effectivePlan.shots.length === 0) {
         return (
             <div className="production-guide-empty">
                 <Clapperboard className="w-12 h-12 opacity-20 mb-4 mx-auto" aria-hidden="true" />
                 <h4 className="text-gray-400 font-bold mb-2 uppercase tracking-widest text-xs">// Production Linkage Offline</h4>
                 <p className="text-sm text-gray-500 max-w-xs mx-auto">
-                    No sequence plan active. Please initialize a plan in the "Shot Planning" section or via the "Plan sequences" section.
+                    No sequence plan active. Please initialize a plan in the &quot;Shot Planning&quot; section or via the &quot;Plan sequences&quot; section.
                 </p>
             </div>
         );
@@ -242,14 +319,14 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                         <Film className="w-4 h-4 text-purple-400" />
                         <div>
                             <span className="stat-label">Active Plan</span>
-                            <span className="stat-value">{currentPlan.name}</span>
+                            <span className="stat-value">{effectivePlan.name}</span>
                         </div>
                     </div>
                     <div className="info-stat">
                         <Zap className="w-4 h-4 text-yellow-400" />
                         <div>
                             <span className="stat-label">Shots count</span>
-                            <span className="stat-value">{currentPlan.shots.length} Fragments</span>
+                            <span className="stat-value">{effectivePlan.shots.length} Fragments</span>
                         </div>
                     </div>
 
@@ -289,7 +366,7 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                 </div>
 
                 <div className="production-guide__rows">
-                    {currentPlan.shots.map((s, index) => {
+                    {effectivePlan.shots.map((s, index) => {
                         const shot = s as ProductionGuideShot;
                         const isExpanded = !!expandedRows[shot.id];
 
@@ -297,12 +374,22 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                             <div key={shot.id} className="production-guide__row-wrapper">
                                 <div
                                     className={`production-guide__row ${isExpanded ? 'is-expanded' : ''}`}
-                                    onClick={(e) => toggleRow(shot.id, e)}
-                                    role="button"
-                                    aria-expanded={isExpanded}
                                 >
                                     {/* Number & Timing */}
                                     <div className="col-id">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="row-toggle-btn p-0 h-6 w-6 mr-1"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleRow(shot.id, e);
+                                            }}
+                                            aria-expanded={isExpanded}
+                                            aria-label={isExpanded ? "Collapse row" : "Expand row"}
+                                        >
+                                            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                        </Button>
                                         <div className="shot-num-circle">
                                             <span className="shot-number">{(shot.number || index + 1).toString().padStart(2, '0')}</span>
                                         </div>

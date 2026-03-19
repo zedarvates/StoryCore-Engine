@@ -37,7 +37,7 @@ export async function persistData(
   // Try to persist to storage with retries
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const success = StorageManager.setItem(key, jsonData);
+      const success = await StorageManager.setItem(key, jsonData);
       if (success) {
         Logger.info(`✅ Persisted "${key}" to storage (attempt ${attempt}/${maxRetries})`);
         return true;
@@ -80,10 +80,10 @@ export async function persistData(
 /**
  * Retrieve data from storage with fallback to memory
  */
-export function retrieveData<T>(key: string, defaultValue?: T): T | null {
+export async function retrieveData<T>(key: string, defaultValue?: T): Promise<T | null> {
   try {
-    // Try to get from localStorage first
-    const stored = StorageManager.getItem(key);
+    // Try to get from localStorage/IndexedDB
+    const stored = await StorageManager.getItem(key);
     if (stored) {
       return JSON.parse(stored) as T;
     }
@@ -155,7 +155,7 @@ export async function migrateMemoryToStorage(): Promise<number> {
 
   for (const [key, value] of memoryStorage.entries()) {
     try {
-      const success = StorageManager.setItem(key, value);
+      const success = await StorageManager.setItem(key, value);
       if (success) {
         memoryStorage.delete(key);
         migrated++;

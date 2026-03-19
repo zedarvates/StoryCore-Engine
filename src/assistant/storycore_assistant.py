@@ -27,17 +27,20 @@ from .exceptions import (
 )
 from .logging_config import get_logger
 from .rlm_engine import RLMEngine, RLMAgentCore, RLMSubtask
+from .nsm_engine import NSMEngine
 from .knowledge_graph import StoryGraph, GraphRAG
+from backend.n8n_service import n8n_service
 
 logger = get_logger(__name__)
 
 
-def create_llm_client(provider: str = "mock"):
+def create_llm_client(provider: str = "mock", model: Optional[str] = None):
     """
     Create an LLM client based on provider.
     
     Args:
-        provider: Provider name ("mock", "openai", "anthropic")
+        provider: Provider name ("mock", "openai", "anthropic", "openrouter")
+        model: Specific model ID to use
         
     Returns:
         LLM client instance
@@ -47,16 +50,26 @@ def create_llm_client(provider: str = "mock"):
     elif provider == "openai":
         try:
             from .prompt_parser import OpenAIClient
-            return OpenAIClient()
+            kwargs = {"model": model} if model else {}
+            return OpenAIClient(**kwargs)
         except ImportError:
             logger.warning("OpenAI package not installed, using mock client")
             return MockLLMClient()
     elif provider == "anthropic":
         try:
             from .prompt_parser import AnthropicClient
-            return AnthropicClient()
+            kwargs = {"model": model} if model else {}
+            return AnthropicClient(**kwargs)
         except ImportError:
             logger.warning("Anthropic package not installed, using mock client")
+            return MockLLMClient()
+    elif provider == "openrouter":
+        try:
+            from .prompt_parser import OpenRouterClient
+            kwargs = {"model": model} if model else {}
+            return OpenRouterClient(**kwargs)
+        except ImportError:
+            logger.warning("OpenAI package (required for OpenRouter) not installed, using mock client")
             return MockLLMClient()
     else:
         logger.warning(f"Unknown provider {provider}, using mock client")
@@ -99,7 +112,8 @@ class StoryCoreAssistant:
         project_directory: Path,
         storage_limit_gb: int = 50,
         file_limit: int = 248,
-        llm_provider: str = "mock"
+        llm_provider: str = "mock",
+        llm_model: Optional[str] = None
     ):
         """
         Initialize the StoryCore AI Assistant.
@@ -108,7 +122,8 @@ class StoryCoreAssistant:
             project_directory: Root directory for all projects
             storage_limit_gb: Maximum storage in GB (default: 50)
             file_limit: Maximum number of files (default: 248)
-            llm_provider: LLM provider for prompt parsing ("mock", "openai", "anthropic")
+            llm_provider: LLM provider for prompt parsing ("mock", "openai", "anthropic", "openrouter")
+            llm_model: Specific model ID to use
         """
         logger.info(f"Initializing StoryCoreAssistant with project_directory={project_directory}")
         
@@ -118,7 +133,9 @@ class StoryCoreAssistant:
         self.validator = DataContractValidator()
         
         # Initialize LLM client and generators
-        self.llm_client = create_llm_client(llm_provider)
+        self.llm_provider = llm_provider
+        self.llm_model = llm_model
+        self.llm_client = create_llm_client(llm_provider, llm_model)
         self.prompt_parser = PromptParser(self.llm_client)
         self.project_generator = ProjectGenerator(self.llm_client)
         self.comfyui_generator = ComfyUIConfigGenerator()
@@ -142,21 +159,19 @@ class StoryCoreAssistant:
         self,
         prompt: str,
         language: str = "en",
-        preferences: Optional[Dict] = None
+        preferences: Optional[Dict] = None,
+        llm_provider: Optional[str] = None,
+        llm_model: Optional[str] = None
     ) -> ProjectPreview:
         """
         Generate a complete project from a natural language prompt.
-        
-        This creates a preview that can be reviewed and modified before
-        finalizing. The preview includes:
-        - Generated project structure (scenes, characters, sequences)
-        - ComfyUI configuration for AI generation
-        - Validation results
         
         Args:
             prompt: Natural language description of the project
             language: Language code (default: "en")
             preferences: Optional preferences (sceneCount, duration, style)
+            llm_provider: Optional override for LLM provider
+            llm_model: Optional override for LLM model
             
         Returns:
             ProjectPreview object for review
@@ -167,6 +182,11 @@ class StoryCoreAssistant:
         """
         logger.info(f"Generating project from prompt (language={language})")
         
+        # Use provided client or global default
+        client = self.llm_client
+        if llm_provider:
+            client = create_llm_client(llm_provider, llm_model)
+
         # Check storage limits before generation
         # Estimate: ~10 MB per project, ~50 files
         estimated_bytes = 10 * 1024 * 1024
@@ -189,11 +209,17 @@ class StoryCoreAssistant:
                 )
         
         # Generate project structure
-        generated_project = self.project_generator.generate_project(
-            prompt=prompt,
-            language=language,
-            preferences=preferences
-        )
+        # Temporarily use the overridden client if provided
+        old_client = self.project_generator.llm
+        self.project_generator.llm = client
+        try:
+            generated_project = self.project_generator.generate_project(
+                prompt=prompt,
+                language=language,
+                preferences=preferences
+            )
+        finally:
+            self.project_generator.llm = old_client
         
         # Create temporary project object for validation
         temp_project = Project(
@@ -238,18 +264,30 @@ class StoryCoreAssistant:
         logger.info(f"Project preview created: {preview_id}")
         return preview
 
-    async def generate_complex_scenario_rlm(self, main_prompt: str, massive_context: str) -> Tuple[str, List[str]]:
+    async def generate_complex_scenario_rlm(
+        self, 
+        main_prompt: str, 
+        massive_context: str,
+        llm_provider: Optional[str] = None,
+        llm_model: Optional[str] = None
+    ) -> Tuple[str, List[Dict]]:
         """
-        Generates a complex scenario or story by using the Recursive Language Model (RLM) engine.
+        Generates a complex scenario or story by using the Neural Substrate Manager (NSM) engine.
         This handles extremely long contexts by actively exploring and decomposing the task.
         
+        Args:
+            main_prompt: The request
+            massive_context: Reference text
+            llm_provider: Optional override for LLM provider
+            llm_model: Optional override for LLM model
+            
         Returns:
             Tuple of (final_answer, list_of_step_messages)
         """
         class StoryCoreRLMAgent(RLMAgentCore):
-            def __init__(self, assistant_ref: 'StoryCoreAssistant'):
+            def __init__(self, assistant_ref: 'StoryCoreAssistant', client_override: Optional[any] = None):
                 self.assistant = assistant_ref
-                self.client = assistant_ref.llm_client
+                self.client = client_override or assistant_ref.llm_client
                 self.graph_rag = assistant_ref.graph_rag
                 
             async def call_llm(self, prompt: str, system_prompt: Optional[str] = None) -> str:
@@ -277,14 +315,45 @@ class StoryCoreAssistant:
                     return "Knowledge Graph not initialized."
                 return self.graph_rag.query(entities, max_depth=max_depth)
                 
-        agent = StoryCoreRLMAgent(self)
+            async def trigger_n8n(self, webhook_id: str, payload: Dict) -> Dict:
+                # Call the n8n service
+                return await n8n_service.trigger_workflow(webhook_id, payload)
+                
+            async def list_n8n(self) -> List[Dict]:
+                # List n8n workflows
+                return await n8n_service.list_workflows()
+                
+            async def create_n8n(self, name: str, nodes: List[Dict], connections: Dict) -> Dict:
+                # Create n8n workflow
+                return await n8n_service.create_workflow(name, nodes, connections)
+                
+        # Prepare the agent with optional client override
+        client_override = None
+        if llm_provider:
+            client_override = create_llm_client(llm_provider, llm_model)
+
+        agent = StoryCoreRLMAgent(self, client_override)
+        
+        # Determine rules path
+        rules_path = str(Path(self.file_ops.project_directory).parent / "substrate.rules")
         
         # We can pass an optional step event callback to stream the process back to the UI
         def on_step(msg: str):
-            logger.info(f"[RLM Engine Update]: {msg}")
+            logger.info(f"[NSM Substrate Update]: {msg}")
             
-        engine = RLMEngine(agent, graph_rag=self.graph_rag, on_step_event=on_step)
-        return await engine.process_with_steps(main_prompt, massive_context)
+        # Use the new Neural Substrate Manager (NSM) Engine
+        # This provides Cline-inspired Plan-Act-Observe loops
+        engine = NSMEngine(agent, graph_rag=self.graph_rag, rules_path=rules_path)
+        engine.on_step_callback = on_step
+        
+        # Determine project root for secure tool access
+        active_project = self.get_active_project()
+        project_root = str(active_project.path) if active_project else str(self.file_ops.project_directory)
+        
+        final_answer = await engine.process(main_prompt, massive_context, project_root=project_root)
+        
+        # Return the rich NSM trajectory
+        return final_answer, engine.state.trajectory
     
     def finalize_project(self, preview_id: str) -> Project:
         """

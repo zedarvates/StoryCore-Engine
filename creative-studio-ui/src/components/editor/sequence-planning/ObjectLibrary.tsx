@@ -1,10 +1,11 @@
 import React from 'react';
 import { Package, Search, Plus, Box } from 'lucide-react';
 import { useStore } from '../../../store';
+import { StoryObject } from '@/types/object';
 import './Library.css';
 
 export interface ObjectLibraryProps {
-  onElementSelect: (element: unknown) => void;
+  onElementSelect: (element: StoryObject) => void;
   className?: string;
 }
 
@@ -15,7 +16,7 @@ export const ObjectLibrary: React.FC<ObjectLibraryProps> = ({
   // Load objects from store
   const objects = useStore((state) => state.objects || []);
 
-  const handleDragStart = (object: unknown) => (e: React.DragEvent) => {
+  const handleDragStart = (object: StoryObject) => (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'prop',
       assetId: object.id,
@@ -49,7 +50,7 @@ export const ObjectLibrary: React.FC<ObjectLibraryProps> = ({
             <p className="empty-hint">Créez des objets dans le dashboard</p>
           </div>
         ) : (
-          objects.map((object: unknown) => (
+          objects.map((object: StoryObject) => (
             <div
               key={object.id}
               className="library-item object-item"
