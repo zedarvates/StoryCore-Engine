@@ -165,12 +165,6 @@ export function SequencePlanWizard({
   // Initialization Effects
   // ============================================================================
 
-  useEffect(() => {
-    if (isOpen) {
-      initializeWizard();
-    }
-  }, [isOpen, initializeWizard, initialTemplateId, existingSequencePlan]);
-
   const initializeWizard = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -220,7 +214,13 @@ export function SequencePlanWizard({
     } finally {
       setIsLoading(false);
     }
-  }, [isOpen, initialTemplateId, existingSequencePlan, templateManager, dispatch]);
+  }, [initialTemplateId, existingSequencePlan, loadResult?.isValid, loadResult?.state?.formData]);
+
+  useEffect(() => {
+    if (isOpen) {
+      initializeWizard();
+    }
+  }, [isOpen, initializeWizard]);
 
   // ============================================================================
   // Auto-save Effect

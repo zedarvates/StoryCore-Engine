@@ -111,25 +111,38 @@ This plan addresses R&D (Research & Development) for enhancing the Sequence Edit
 - [ ] Test loading states
 - [ ] Test error handling
 
-## Implementation Order
+## Phase 6: Stability & Persistence Fixes (Priority: URUGENT) - COMPLETED ✅
 
-1. **Week 1**: Phase 1 - Redux State Enhancement ✅
-2. **Week 2**: Phase 2 - Interconnection Architecture ✅
-3. **Week 3**: Phase 3 - Backend API Integration ✅
-4. **Week 4**: Phase 4 - UI/UX Improvements ✅
-5. **Week 5**: Phase 5 - Testing & Validation ✅
+### 6.1 Project Creative Resume Persistence ✅
+- [x] Fixed `ProjectResumeSection.tsx` to call `projectPersistence.saveProject` on save
+- [x] Ensured `global_resume` is correctly mapped to Redux metadata
 
-## Dependencies
-- @reduxjs/toolkit
-- react-redux
-- TypeScript types
+### 6.2 Structural Constraints & Data Integrity ✅
+- [x] Enforced **4s minimum duration** for sequence plans in wizard
+- [x] Enforced **4s minimum duration** for shots during mapping in `SequenceEditor.tsx`
+- [x] Renamed sample shots in `Timeline.tsx` to avoid key collisions
 
-## Files Created/Modified
-- ✅ `store/slices/effectsSlice.ts` (new)
-- ✅ `store/slices/audioSlice.ts` (new)
-- ✅ `store/slices/timelineSlice.ts` (updated)
-- ✅ `types/index.ts` (updated)
-- ✅ `store/index.ts` (updated)
-- ✅ `store/middleware/historyMiddleware.ts` (updated)
-- ✅ `RD_PLAN_SEQUENCE_EDITOR.md` (this file)
+### 6.3 UX & Navigation ✅
+- [x] Fixed **Ctrl+H** keyboard shortcut for dashboard navigation
+- [x] Fixed "Back to Dashboard" button functionality in the Editor ToolBar
+- [x] Resolved "Duplicate Key" errors in React rendering for the timeline
 
+## Implementation Timeline (Updated)
+
+1. **Week 1-3**: Phases 1-3 (Core Architecture & Backend) ✅
+2. **Week 4**: Phase 4 (UI/UX) ✅
+3. **Week 5**: Phase 5 (Testing & R&D) ✅
+4. **March 22, 2026**: Phase 6 (Critical Stability Fixes) ✅
+
+## Dependencies (Updated)
+- @reduxjs/toolkit / react-redux
+- Lucide React (Icons)
+- StoryCore AI Persistence Layer
+
+## Files Modified
+- `creative-studio-ui/src/sequence-editor/SequenceEditor.tsx`
+- `creative-studio-ui/src/sequence-editor/components/Timeline/Timeline.tsx`
+- `creative-studio-ui/src/components/workspace/ProjectResumeSection.tsx`
+- `creative-studio-ui/src/components/wizard/sequence-plan/Step2BasicInformation.tsx`
+- `creative-studio-ui/src/components/wizard/sequence-plan/SequencePlanWizard.tsx`
+- `PROJECT_STATUS_LATEST.md`
