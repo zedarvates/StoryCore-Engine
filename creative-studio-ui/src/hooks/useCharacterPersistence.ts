@@ -209,8 +209,8 @@ function validateCharacterSchema(data: unknown): { valid: boolean; errors: strin
   if (!d.name || typeof d.name !== 'string') {
     errors.push('name is required and must be a string');
   }
-  if (!d.creation_method || !['wizard', 'auto_generated', 'manual'].includes(d.creation_method as string)) {
-    errors.push('creation_method must be one of: wizard, auto_generated, manual');
+  if (!d.creation_method || !['wizard', 'auto_generated', 'manual', 'ai_vision'].includes(d.creation_method as string)) {
+    errors.push('creation_method must be one of: wizard, auto_generated, manual, ai_vision');
   }
   if (!d.creation_timestamp || (typeof d.creation_timestamp !== 'string' && typeof d.creation_timestamp !== 'number')) {
     errors.push('creation_timestamp is required and must be a string or number');
@@ -549,6 +549,7 @@ export function useCharacterPersistence() {
           color_palette: characterData.visual_identity?.color_palette || [],
           reference_images: characterData.visual_identity?.reference_images || [],
           reference_sheet_images: characterData.visual_identity?.reference_sheet_images || [],
+          generated_portrait: characterData.visual_identity?.generated_portrait,
         },
         personality: {
           traits: characterData.personality?.traits || [],

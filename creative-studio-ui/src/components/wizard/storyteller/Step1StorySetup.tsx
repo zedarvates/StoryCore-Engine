@@ -18,6 +18,7 @@ import { loadStylePreferences, saveStylePreferences } from '@/services/globalTem
 const GENRE_OPTIONS = [
   { value: 'fantasy', label: 'Fantasy' },
   { value: 'sci-fi', label: 'Science Fiction' },
+  { value: 'contemporary', label: 'Contemporain' },
   { value: 'mystery', label: 'Mystery' },
   { value: 'romance', label: 'Romance' },
   { value: 'horror', label: 'Horror' },
@@ -28,6 +29,10 @@ const GENRE_OPTIONS = [
   { value: 'historical', label: 'Historical' },
   { value: 'western', label: 'Western' },
   { value: 'dystopian', label: 'Dystopian' },
+  { value: 'cyberpunk', label: 'Cyberpunk' },
+  { value: 'steampunk', label: 'Steampunk' },
+  { value: 'post-apocalyptic', label: 'Post-Apocalyptic' },
+  { value: 'documentary', label: 'Documentary' },
 ];
 
 const TONE_OPTIONS = [
@@ -43,6 +48,7 @@ const TONE_OPTIONS = [
   { value: 'suspenseful', label: 'Suspenseful' },
   { value: 'whimsical', label: 'Whimsical' },
   { value: 'gritty', label: 'Gritty' },
+  { value: 'adventurous', label: 'Adventurous' },
 ];
 
 const LENGTH_OPTIONS = [
@@ -56,17 +62,17 @@ const LENGTH_OPTIONS = [
 ];
 
 const PRODUCTION_MODE_OPTIONS = [
-  { value: 'FICTION', label: 'Fiction Standard' },
-  { value: 'CINEMATIC', label: 'Cinématique Pro' },
-  { value: 'INFLUENCER', label: 'Influenceur / Vlog' },
-  { value: 'SCIENTIFIC_REVIEW', label: 'Revue Scientifique' },
-  { value: 'TECH_REVIEW', label: 'Tech Review / Unboxing' },
-  { value: 'DOCUMENTARY', label: 'Documentaire' },
-  { value: 'RECAP', label: 'Recap / Résumé' },
-  { value: 'RENOVATION', label: 'Rénovation (Avant/Après)' },
-  { value: 'GARDENING', label: 'Jardinage' },
-  { value: 'FINANCE_REVIEW', label: 'Finance / Marché' },
-  { value: 'TOP_TIER_LIST', label: 'Top / Tier List' },
+  { value: 'fiction', label: 'Fiction Standard' },
+  { value: 'cinematic', label: 'Cinématique Pro' },
+  { value: 'influencer', label: 'Influenceur / Vlog' },
+  { value: 'scientific_review', label: 'Revue Scientifique' },
+  { value: 'tech_review', label: 'Tech Review / Unboxing' },
+  { value: 'documentary', label: 'Documentaire' },
+  { value: 'recap', label: 'Recap / Résumé' },
+  { value: 'renovation', label: 'Rénovation (Avant/Après)' },
+  { value: 'gardening', label: 'Jardinage' },
+  { value: 'finance_review', label: 'Finance / Marché' },
+  { value: 'top_tier_list', label: 'Top / Tier List' },
 ];
 
 // ============================================================================
@@ -228,7 +234,6 @@ export function Step1StorySetup() {
           className="grid grid-cols-2 md:grid-cols-3 gap-3"
           role="group"
           aria-labelledby="genre-label"
-          aria-required="true"
         >
           {GENRE_OPTIONS.map((option) => (
             <div key={option.value} className="flex items-center space-x-2">
@@ -265,7 +270,6 @@ export function Step1StorySetup() {
           className="grid grid-cols-2 md:grid-cols-3 gap-3"
           role="group"
           aria-labelledby="tone-label"
-          aria-required="true"
         >
           {TONE_OPTIONS.map((option) => (
             <div key={option.value} className="flex items-center space-x-2">

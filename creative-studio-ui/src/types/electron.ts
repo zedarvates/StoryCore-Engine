@@ -182,11 +182,42 @@ export interface StoryCoreElectronAPI {
     updateMetadata: (path: string, metadata: Record<string, unknown>) => Promise<Project>;
   };
 
+  // Character management
+  character: {
+    list: (projectPath: string) => Promise<any[]>;
+    get: (projectPath: string, characterId: string) => Promise<any>;
+    create: (projectPath: string, data: any) => Promise<any>;
+    update: (projectPath: string, characterId: string, data: any) => Promise<any>;
+    delete: (projectPath: string, characterId: string) => Promise<void>;
+  };
+
+  // World management
+  world: {
+    list: (projectPath: string) => Promise<any[]>;
+    get: (projectPath: string, worldId: string) => Promise<any>;
+    update: (projectPath: string, worldId: string, data: any) => Promise<any>;
+  };
+
+  // Location management
+  location: {
+    list: (projectPath: string) => Promise<any[]>;
+    get: (projectPath: string, locationId: string) => Promise<any>;
+    update: (projectPath: string, locationId: string, data: any) => Promise<any>;
+  };
+
+  // Story management
+  story: {
+    list: (projectPath: string) => Promise<any[]>;
+    get: (projectPath: string, storyId: string) => Promise<any>;
+    update: (projectPath: string, storyId: string, data: any) => Promise<any>;
+  };
+
   // Sequence management
   sequence: {
     updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<void>;
     getShots: (projectPath: string, sequenceId: string) => Promise<ShotData[]>;
-    getAll: (projectPath: string) => Promise<unknown[]>;
+    getAll: (projectPath: string) => Promise<any[]>;
+    list: (projectPath: string) => Promise<any[]>;
   };
 
   // Recent projects management
@@ -256,7 +287,7 @@ export interface StoryCoreElectronAPI {
     getConfig: () => Promise<ComfyUIConfig>;
     updateConfig: (config: Partial<ComfyUIConfig>) => Promise<ComfyUIConfig>;
     testConnection: () => Promise<{ success: boolean; message: string }>;
-    getServiceStatus: () => Promise<{ running: boolean; pid?: number }>;
+    getServiceStatus: (url?: string) => Promise<{ running: boolean; pid?: number }>;
     startService: () => Promise<void>;
     stopService: () => Promise<void>;
     executeWorkflow: (workflow: ComfyUIWorkflow) => Promise<{ prompt_id: string }>;

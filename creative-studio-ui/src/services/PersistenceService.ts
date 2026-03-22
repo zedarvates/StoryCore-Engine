@@ -609,11 +609,26 @@ export class PersistenceService {
   private async loadCharacterFromFile(characterIdOrFolder: string, projectPath: string): Promise<Character | null> {
     if (window.electronAPI?.fs?.readFile) {
       const charactersDir = `${projectPath}/characters`;
-      // Character is either in characters/ID/character.json or characters/Folder/character.json
+      // FIX: Standardize path to characters/ID/character.json
       const filePath = `${charactersDir}/${characterIdOrFolder}/character.json`;
+      
+      // Fallback check for legacy character_ID.json format
+      const legacyFilePath = `${charactersDir}/character_${characterIdOrFolder}.json`;
+      
+      let finalPath = filePath;
+      const fileExists = await window.electronAPI.fs.exists(filePath);
+      
+      if (!fileExists) {
+        const legacyExists = await window.electronAPI.fs.exists(legacyFilePath);
+        if (legacyExists) {
+          finalPath = legacyFilePath;
+        } else {
+          return null;
+        }
+      }
 
       try {
-        const buffer = await window.electronAPI.fs.readFile(filePath);
+        const buffer = await window.electronAPI.fs.readFile(finalPath);
         const jsonString = new TextDecoder().decode(buffer);
         const character = JSON.parse(jsonString);
         return character;
@@ -731,8 +746,11 @@ export class PersistenceService {
       // Utiliser l'API Electron pour sauvegarder
       if (window.electronAPI?.fs?.writeFile) {
         const charactersDir = `${projectPath}/characters`;
-        const fileName = `character_${character.character_id}.json`;
-        const filePath = `${charactersDir}/${fileName}`;
+        // Standardize: Use a subdirectory per character to match the loader
+        const charDir = `${charactersDir}/${character.character_id}`;
+        await window.electronAPI.fs.mkdir(charDir, { recursive: true });
+        
+        const filePath = `${charDir}/character.json`;
 
         // S'assurer que le dossier existe
         if (window.electronAPI.fs.mkdir) {

@@ -295,7 +295,7 @@ export class ComfyUIService {
     // Use Electron IPC if available to avoid browser console noise
     if (window.electronAPI?.comfyui?.getServiceStatus) {
       try {
-        const electronStatus = await window.electronAPI.comfyui.getServiceStatus();
+        const electronStatus = await window.electronAPI.comfyui.getServiceStatus(endpoint);
         return { 
           available: electronStatus.running, 
           message: electronStatus.running ? 'ComfyUI is ready' : 'ComfyUI server is not reachable.' 
@@ -307,23 +307,28 @@ export class ComfyUIService {
 
     // Fallback to fetch (will log red error in browser console if connection refused)
     try {
+      logger.debug(`🔍 [ComfyUIService] Testing availability at: ${endpoint}/system_stats`);
       const response = await fetch(`${endpoint}/system_stats`, {
         method: 'GET',
         signal: AbortSignal.timeout(2000), // 2 second timeout
       });
 
       if (response.ok) {
+        logger.debug(`✅ [ComfyUIService] Server reachable at ${endpoint}`);
         return { available: true, message: 'ComfyUI is ready' };
-      } else {
-        return {
-          available: false,
-          message: `ComfyUI server responded with error: ${response.status}`
-        };
       }
-    } catch {
-      return {
-        available: false,
-        message: 'ComfyUI server is not reachable. Please start ComfyUI and check the URL in settings.'
+      
+      logger.warn(`⚠️ [ComfyUIService] Server at ${endpoint} returned status: ${response.status}`);
+      return { 
+        available: false, 
+        message: `ComfyUI server returned status ${response.status}` 
+      };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      logger.debug(`❌ [ComfyUIService] Connection failed at ${endpoint}: ${errorMsg}`);
+      return { 
+        available: false, 
+        message: 'ComfyUI server is not reachable.' 
       };
     }
   }
@@ -357,7 +362,8 @@ export class ComfyUIService {
     }
 
     // 3. Ultimate Fallback to default port 8000
-    return 'http://localhost:8000';
+    // We use 127.0.0.1 instead of localhost for better predictability across OSes
+    return 'http://127.0.0.1:8000';
   }
 
   /**
@@ -425,17 +431,14 @@ export class ComfyUIService {
       cfgScale: (inputParams.cfgScale as number) || 1.0,
     };
 
-    const workflow = type === 'image'
-      ? this.buildFluxTurboWorkflow(effectiveParams as {
-          prompt: string;
-          negativePrompt?: string;
-          width: number;
-          height: number;
-          steps: number;
-          cfgScale: number;
-          seed?: number;
-        })
-      : this.buildVideoWorkflow(effectiveParams);
+     const workflowType = inputParams.workflowType as string || 'flux-turbo';
+     const workflow = type === 'image'
+       ? (workflowType === 'flux-turbo' 
+           ? this.buildFluxTurboWorkflow(effectiveParams as Parameters<typeof ComfyUIService.prototype.buildFluxTurboWorkflow>[0]) 
+           : this.buildSimpleWorkflow(effectiveParams as Parameters<typeof ComfyUIService.prototype.buildSimpleWorkflow>[0]))
+       : this.buildVideoWorkflow(effectiveParams);
+ 
+     logger.debug(`🏗️ [ComfyUIService] Built ${workflowType} workflow for ${type}`);
 
     const response = await fetch(`${endpoint}/prompt`, {
       method: 'POST',
@@ -875,6 +878,11 @@ export class ComfyUIService {
         // Wait before checking again
         await new Promise(resolve => setTimeout(resolve, 1000));
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        if (errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError') || errorMsg.includes('ERR_CONNECTION_REFUSED')) {
+          logger.error('❌ [ComfyUIService] Connection lost during image polling:', error);
+          throw new Error('Connection to ComfyUI lost. The server may have crashed or was closed.');
+        }
         logger.error('[ComfyUIService] Error checking image status:', error);
       }
     }
@@ -1045,7 +1053,7 @@ export async function testComfyUIConnection(
         const status = await window.electronAPI.comfyui.getServiceStatus();
         if (!status.running) {
            clearTimeout(timeoutId);
-           return { success: false, message: 'ComfyUI server is not running', isOffline: true };
+           return { success: false, message: `ComfyUI server is not running`, isOffline: true };
         }
       } catch (_err) {
         // Fall through to fetch if IPC fails

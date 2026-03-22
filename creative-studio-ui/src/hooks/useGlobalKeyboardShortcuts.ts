@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { voiceTextService } from '@/services/VoiceTextService';
@@ -25,7 +25,7 @@ export function useGlobalKeyboardShortcuts() {
   const { toast } = useToast();
 
   // Voice activation handler for Ctrl+Alt
-  const handleVoiceActivation = () => {
+  const handleVoiceActivation = useCallback(() => {
     const status = voiceTextService.getStatus();
 
     if (status.isListening) {
@@ -99,7 +99,7 @@ export function useGlobalKeyboardShortcuts() {
         }));
       }
     });
-  };
+  }, [showChat, setShowChat, toast]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -164,14 +164,26 @@ export function useGlobalKeyboardShortcuts() {
         handleVoiceActivation();
         return;
       }
+
+      // Ctrl + H or Ctrl + Shift + H: Return to Dashboard
+      if (isModifierPressed && event.key.toLowerCase() === 'h') {
+        event.preventDefault();
+        window.dispatchEvent(new CustomEvent('storycore:navigate-to-dashboard'));
+        toast({
+          title: 'Returning to Dashboard',
+          description: 'Navigating to project dashboard...',
+          duration: 2000,
+        });
+        return;
+      }
     };
 
     // Add event listener
     window.addEventListener('keydown', handleKeyDown);
 
     // Cleanup on unmount
-  return () => {
+    return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [openSequencePlanWizard, openShotWizard, setShowChat, showChat, toast]);
+  }, [openSequencePlanWizard, openShotWizard, setShowChat, showChat, toast, handleVoiceActivation]);
 }

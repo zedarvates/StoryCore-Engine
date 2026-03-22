@@ -1,15 +1,14 @@
-import { panels, selectedPanel, setSelectedPanel } from './state.js';
-
 // DOM helper
-export const $ = id => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
 // Generate the master grid
-export function generateMasterGrid() {
+function generateMasterGrid() {
     const grid = $('masterGrid');
     if (!grid) return;
     
     grid.innerHTML = '';
     
+    const { panels, selectedPanel } = require('./state.js');
     panels.forEach(panel => {
         const panelDiv = document.createElement('div');
         panelDiv.className = `aspect-square bg-gray-700 rounded border-2 cursor-pointer transition-all duration-200 flex flex-col items-center justify-center text-center p-2 ${
@@ -41,16 +40,17 @@ export function generateMasterGrid() {
 
 // Select a panel
 function selectPanel(panelId) {
+    const { setSelectedPanel } = require('./state.js');
     setSelectedPanel(panelId);
     generateMasterGrid();
     updatePanelDetails();
 }
 
 // Update panel details in sidebar
-export function updatePanelDetails() {
-    const panel = panels.find(p => p.id === selectedPanel);
+function updatePanelDetails() {
+    const { panels } = require('./state.js');
+    const panel = panels.find(p => p.id === require('./state.js').selectedPanel);
     if (!panel) return;
-    
     const selectedPanelEl = $('selectedPanelId');
     const panelStatusEl = $('panelStatus');
     const panelSharpnessEl = $('panelSharpness');
@@ -73,7 +73,7 @@ export function updatePanelDetails() {
 }
 
 // Show/hide modals
-export function showModal(modalId) {
+function showModal(modalId) {
     const modal = $(modalId);
     if (modal) {
         modal.classList.add('show');
@@ -81,7 +81,7 @@ export function showModal(modalId) {
     }
 }
 
-export function hideModal(modalId) {
+function hideModal(modalId) {
     const modal = $(modalId);
     if (modal) {
         modal.classList.remove('show');
@@ -90,11 +90,10 @@ export function hideModal(modalId) {
 }
 
 // Show notifications
-export function showNotification(message, type = 'info') {
+function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
-        type === 'success' ? 'bg-green-600' : 
-        type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+        type === 'success' ? 'bg-green-600' :         type === 'error' ? 'bg-red-600' : 'bg-blue-600'
     }`;
     notification.textContent = message;
     
@@ -107,7 +106,7 @@ export function showNotification(message, type = 'info') {
 }
 
 // Update slider values
-export function updateSliderValue(sliderId, valueId) {
+function updateSliderValue(sliderId, valueId) {
     const slider = $(sliderId);
     const valueEl = $(valueId);
     if (slider && valueEl) {
@@ -116,10 +115,9 @@ export function updateSliderValue(sliderId, valueId) {
 }
 
 // Handle image upload
-export function handleImageUpload(file, targetElementId) {
+function handleImageUpload(file, targetElementId) {
     if (!file || !file.type.startsWith('image/')) return;
-    
-    const reader = new FileReader();
+        const reader = new FileReader();
     reader.onload = function(e) {
         const targetEl = $(targetElementId);
         if (targetEl) {
@@ -136,7 +134,7 @@ export function handleImageUpload(file, targetElementId) {
 }
 
 // Populate models list
-export function populateModelsList(models) {
+function populateModelsList(models) {
     const modelsList = $('modelsList');
     if (!modelsList) return;
     
@@ -154,3 +152,16 @@ export function populateModelsList(models) {
         modelsList.appendChild(modelDiv);
     });
 }
+
+// Export functions for use in other modules
+module.exports = {
+    $,
+    generateMasterGrid,
+    selectPanel,
+    updatePanelDetails,
+    showModal,
+    hideModal,
+    showNotification,
+    updateSliderValue,
+    handleImageUpload,
+    populateModelsList};

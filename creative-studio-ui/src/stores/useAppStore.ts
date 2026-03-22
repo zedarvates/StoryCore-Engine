@@ -4,6 +4,7 @@ import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizar
 import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
+import type { MoodboardReference } from '@/types/moodboard';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { StorageManager } from '@/utils/storageManager';
 
@@ -33,7 +34,7 @@ export type WizardType =
 export interface CharacterFilters {
   archetype?: string[];
   ageRange?: string[];
-  creationMethod?: ('wizard' | 'auto_generated' | 'manual')[];
+  creationMethod?: ('wizard' | 'auto_generated' | 'manual' | 'ai_vision')[];
 }
 
 interface AppState {
@@ -123,7 +124,7 @@ interface AppState {
   marketingWizardContext: { projectId?: string; targetChannel?: string } | null;
   characterWizardContext: { imageFile?: File; name?: string; role?: string } | null;
   objectWizardContext: { imageFile?: File; name?: string } | null;
-  locationWizardContext: { sceneId?: string } | null;
+  locationWizardContext: { sceneId?: string; imageFile?: File } | null;
   sequencePlanWizardContext: SequencePlanWizardContext | null;
   shotWizardContext: ShotWizardContext | null;
   showSequencePlanWizard: boolean;
@@ -157,6 +158,7 @@ interface AppState {
 
   // Actions
   setProject: (project: Project | null) => void;
+  updateProject: (updates: Partial<Project>) => void;
   setShots: (shots: Shot[]) => void;
   addShot: (shot: Shot) => void;
   updateShot: (id: string, updates: Partial<Shot>) => void;
@@ -229,7 +231,7 @@ interface AppState {
   openShotWizard: (context?: ShotWizardContext) => void;
   closeShotWizard: () => void;
   setShowVideoPublisher: (show: boolean) => void;
-  setShowLocationWizard: (show: boolean, context?: { sceneId?: string }) => void;
+  setShowLocationWizard: (show: boolean, context?: { sceneId?: string; imageFile?: File }) => void;
   setShowComputeDashboard: (show: boolean) => void;
   setShowAutomationPanel: (show: boolean) => void;
   openWizard: (wizardType: WizardType) => void;
@@ -268,6 +270,7 @@ interface AppState {
   
   openAddonSettings: (addonId: string) => void;
   closeAddonSettings: () => void;
+  addMoodboardReference: (reference: Partial<MoodboardReference>) => void;
 }
 
 const initialState = {
@@ -371,6 +374,9 @@ export const useAppStore = create<AppState>()(
     (set, _get) => ({
       ...initialState,
       setProject: (project) => set({ project }),
+      updateProject: (updates) => set((state) => ({
+        project: state.project ? { ...state.project, ...updates } : null
+      })),
       setShots: (shots) => set({ shots }),
       addShot: (shot) => set((state) => ({ shots: [...state.shots, shot] })),
       updateShot: (id, updates) => set((state) => ({
@@ -514,6 +520,45 @@ export const useAppStore = create<AppState>()(
       setIsInitialLoading: (loading) => set({ isInitialLoading: loading }),
       openAddonSettings: (addonId) => set({ settingsAddonId: addonId }),
       closeAddonSettings: () => set({ settingsAddonId: null }),
+      addMoodboardReference: (reference) => set((state) => {
+        if (!state.project) return state;
+
+        const newReference: MoodboardReference = {
+          id: `mb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          url: reference.url || '',
+          type: reference.type || 'image',
+          source: reference.source || 'upload',
+          createdAt: Date.now(),
+          ...reference,
+        } as MoodboardReference;
+
+        const currentMoodboard = state.project.moodboard || {
+          id: `mood_${Date.now()}`,
+          projectId: state.project.id,
+          vision: { description: '', keywords: [] },
+          visualStyle: { 
+            artStyle: '', 
+            colorPalette: [], 
+            typography: { headers: '', body: '' } 
+          },
+          references: [],
+          inspirationNotes: [],
+          updatedAt: Date.now(),
+        };
+
+        const updatedMoodboard = {
+          ...currentMoodboard,
+          references: [...currentMoodboard.references, newReference],
+          updatedAt: Date.now(),
+        };
+
+        return {
+          project: {
+            ...state.project,
+            moodboard: updatedMoodboard
+          }
+        };
+      }),
     }),
     {
       name: 'storycore-app-storage',

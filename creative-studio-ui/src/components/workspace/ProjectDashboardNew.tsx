@@ -49,7 +49,6 @@ import {
   Film,
   Map,
   Users,
-  Puzzle,
   Globe,
   CheckCircle2,
   Trash2,
@@ -63,19 +62,25 @@ import {
   Sparkles,
   Plus,
   GripVertical,
+  Layers,
+  Palette,
+  Layout,
+  Table,
 } from 'lucide-react';
 import { SequenceEditModal } from './SequenceEditModal';
-import { DashboardAddonsSection } from './DashboardAddonsSection';
 import { CollapsibleSection } from '@/components/ui';
 import { ProductionGuide } from './ProductionGuide';
+import { MoodboardSection } from './MoodboardSection';
+import { StoryboardSection } from './StoryboardSection';
 import { NeuralProductionAssistant } from './NeuralProductionAssistant';
+import { ProjectResourcesCard } from './ProjectResourcesCard';
 import { WizardLauncher } from '../wizard/WizardLauncher';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { cn } from '@/lib/utils';
 import { ShotData } from '@/types/electron';
-import { Story } from '@/types/story';
+import { SeriesManagerSection } from './SeriesManagerSection';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
@@ -165,8 +170,11 @@ export interface SequenceData {
   shots: number;
   resume: string;
   order: number;
+  description?: string; // Narrative description
+  status?: string;      // Current workflow status
+  createdAt?: string;   // Creation timestamp
   shots_count?: number; // Dashboard compatibility
-  isFormal?: boolean; // Track if this is a formal sequence plan
+  isFormal?: boolean;   // Track if this is a formal sequence plan
 }
 
 // Helper type for sequence plan from store
@@ -191,12 +199,18 @@ interface ShotWithSequenceId {
   metadata?: Record<string, unknown>;
 }
 
-// Helper type for mutable shot (allows setting sequence_id dynamically)
 // Used when updating shot metadata dynamically
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface MutableShot extends Shot {
-  sequence_id?: string;
-  metadata?: Record<string, unknown>;
+interface ShotComposition {
+  characterIds: string[];
+  subjects: string[];
+  locationId: string;
+  framing: string;
+}
+
+interface ShotGenerationParams {
+  prompt: string;
+  negativePrompt: string;
+  seed: number;
 }
 
 // Asset type from API
@@ -233,6 +247,8 @@ export function ProjectDashboardNew({
   const setShowVideoEditorWizard = useAppStore((state) => state.setShowVideoEditorWizard);
   const setShowComicToSequenceWizard = useAppStore((state) => state.setShowComicToSequenceWizard);
   const setShowMarketingWizard = useAppStore((state) => state.setShowMarketingWizard);
+  const addChatMessage = useAppStore((state) => state.addChatMessage);
+
 
   // Character editor state
   const isCharacterEditorOpen = useAppStore((state) => state.isCharacterEditorOpen);
@@ -247,8 +263,8 @@ export function ProjectDashboardNew({
   // Character management from Zustand store
   
 
-  // Sequence Plans from Zustand store
   const sequencePlans = useStore((state) => state.sequencePlans || []);
+  const setSequencePlans = useStore((state) => state.setSequencePlans);
   
   // Add shot function from Zustand store
   const addShot = useStore((state) => state.addShot);
@@ -333,6 +349,7 @@ export function ProjectDashboardNew({
   
   const [orderedSequences, setOrderedSequences] = useState<SequenceData[]>([]);
   const reorderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const wasExpansionManuallyClosedRef = useRef<boolean>(false);
 
   // Get enabled wizards for dynamic display
   const enabledWizards = useMemo(() => getEnabledWizards(), []);
@@ -566,9 +583,6 @@ export function ProjectDashboardNew({
     showWarning
   ]);
 
-  const handleAddonLaunchWizard = useCallback((wizardType: string) => {
-    handleLaunchWizard(wizardType);
-  }, [handleLaunchWizard]);
 
   // Listen for wizard launch events from chat
   useEffect(() => {
@@ -644,6 +658,8 @@ export function ProjectDashboardNew({
   useEffect(() => {
     fetchRecentAssets();
   }, [fetchRecentAssets]);
+
+  // No longer auto-expanding the first story by default to avoid crowding the dashboard on load
 
   // Real recent activity based on project events and assets
   const recentActivity = useMemo(() => {
@@ -1183,11 +1199,6 @@ export function ProjectDashboardNew({
    * Updates shot descriptions, image prompts, and audio/TTS prompts
    */
   const handleSyncSequences = useCallback(async () => {
-    if (sequences.length === 0) {
-      showWarning('No sequences to synchronize. Please create sequences first.');
-      return;
-    }
-
     if (stories.length === 0) {
       showWarning('No stories found. Please create a story first to synchronize sequences.');
       return;
@@ -1196,19 +1207,78 @@ export function ProjectDashboardNew({
     setIsSyncing(true);
     logger.info('[ProjectDashboard] Starting sequence synchronization...');
 
+    // Get the main story (first one or selected)
+    const mainStory = stories[0];
+    const storyContent = mainStory.content || '';
+    const storySummary = mainStory.summary || '';
+    const storyGenre = mainStory.genre?.join(', ') || '';
+    const storyTone = mainStory.tone?.join(', ') || '';
+
+    // Handle case where NO sequences exist yet
+    let activeSequences = [...sequences];
+    if (activeSequences.length === 0) {
+      logger.info('[ProjectDashboard] No sequences found. Attempting auto-generation from story...');
+      try {
+        // Derive sequence count from story parts (acts/chapters) or default to 5
+        const partCount = mainStory.parts?.length || 5;
+        const newSequences: SequenceData[] = [];
+        const projectPathStr = (project?.metadata?.path as string) || '';
+        const sequencesDir = `${projectPathStr}/sequences`;
+
+        for (let i = 0; i < partCount; i++) {
+          const partTitle = mainStory.parts?.[i]?.title || `Fragment ${i + 1}`;
+          const seq: SequenceData = {
+            id: `seq-${crypto.randomUUID()}`,
+            name: partTitle,
+            description: mainStory.parts?.[i]?.summary || `Auto-generated sequence from ${mainStory.title}`,
+            order: i + 1,
+            resume: mainStory.parts?.[i]?.summary || '',
+            status: 'draft',
+            createdAt: new Date().toISOString(),
+            duration: 0,
+            shots: 0,
+          };
+          newSequences.push(seq);
+        }
+
+        // Save new sequences to disk and store
+        if (projectPathStr) {
+          await Promise.all(newSequences.map(seq => saveSequenceToFile(seq, sequencesDir)));
+        }
+        // Map to SequencePlan and set in store
+        const formalPlans: import('@/types/sequencePlan').SequencePlan[] = newSequences.map(ns => ({
+          id: ns.id,
+          name: ns.name,
+          description: ns.description || '',
+          worldId: '',
+          targetDuration: 0,
+          frameRate: 30,
+          resolution: { width: 1920, height: 1080 },
+          acts: [],
+          scenes: [],
+          shots: [],
+          createdAt: Date.now(),
+          modifiedAt: Date.now(),
+          status: 'draft',
+          tags: []
+        }));
+
+        setSequencePlans(formalPlans);
+        activeSequences = newSequences;
+
+        logger.info(`[ProjectDashboard] Auto-generated ${newSequences.length} sequences.`);
+      } catch (err) {
+        logger.error('[ProjectDashboard] Failed to auto-generate sequences:', err);
+        showError('Auto-generation failed', 'Could not create initial sequences from story.');
+        setIsSyncing(false);
+        return;
+      }
+    }
+
     // Use a small delay to allow UI to show syncing state
     await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
-      // Get the main story (first one or selected)
-      const mainStory = stories[0];
-
-      // Extract story content for analysis
-      const storyContent = mainStory.content || '';
-      const storySummary = mainStory.summary || '';
-      const storyGenre = mainStory.genre?.join(', ') || '';
-      const storyTone = mainStory.tone?.join(', ') || '';
-
       // Get characters for the story
       const characters = useStore.getState().characters;
       const characterNames = characters.map(c => c.name).join(', ');
@@ -1222,39 +1292,94 @@ export function ProjectDashboardNew({
       const sequencesToSave: SequenceData[] = [];
 
       // Process each sequence and its associated shots
-      for (const sequence of sequences) {
+      for (const sequence of activeSequences) {
         // Calculate content segment for this sequence based on its order
-        const contentSegment = distributeStoryContent(storyContent, sequence.order, sequences.length);
+        const contentSegment = distributeStoryContent(storyContent, sequence.order, activeSequences.length);
 
         // Generate prompts for this segment
         const imagePrompt = generateImagePrompt(contentSegment, storyGenre, storyTone, characterNames);
         const ttsPrompt = extractDialogueContent(contentSegment);
 
-        // Update shots in the local array
-        for (let i = 0; i < updatedShots.length; i++) {
-          const shot = updatedShots[i];
-          if ('sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id) {
-            updatedShots[i] = {
-              ...shot,
-              description: contentSegment || (shot as Shot).description,
-              metadata: {
-                ...(shot.metadata || {}),
-                imagePrompt,
-                ttsPrompt,
-                syncedFromStory: true,
-                lastSyncedAt: new Date().toISOString(),
-                storyId: mainStory.id,
-                sequenceOrder: sequence.order,
+        // Check if this sequence has any shots
+        const sequenceShots = updatedShots.filter(s => 
+          'sequence_id' in s && (s as ShotWithSequenceId).sequence_id === sequence.id
+        );
+
+        if (sequenceShots.length === 0) {
+          // Create a default shot for this new/empty sequence
+          const newShotId = `shot-${crypto.randomUUID()}`;
+          const newShot: Shot & { sequence_id: string } = {
+            id: newShotId,
+            title: `Shot 1`,
+            description: contentSegment || `Scene ${sequence.order} initial shot`,
+            duration: 5,
+            position: 1,
+            audioTracks: [],
+            effects: [],
+            textLayers: [],
+            animations: [],
+            sequence_id: sequence.id,
+            metadata: {
+              imagePrompt,
+              ttsPrompt,
+              syncedFromStory: true,
+              lastSyncedAt: new Date().toISOString(),
+              storyId: mainStory.id,
+              sequenceOrder: sequence.order,
+              composition: {
+                characterIds: [],
+                subjects: [],
+                locationId: '',
+                framing: 'Medium Shot'
               },
-            };
-            updatedShotsCount++;
+              generation: {
+                prompt: imagePrompt,
+                negativePrompt: '',
+                seed: -1
+              }
+            },
+          };
+          updatedShots.push(newShot);
+          updatedShotsCount++;
+        } else {
+          // Update existing shots in the local array
+          for (let i = 0; i < updatedShots.length; i++) {
+            const shot = updatedShots[i];
+            if ('sequence_id' in shot && (shot as ShotWithSequenceId).sequence_id === sequence.id) {
+              updatedShots[i] = {
+                ...shot,
+                description: contentSegment || (shot as Shot).description,
+                metadata: {
+                  ...(shot.metadata || {}),
+                  imagePrompt,
+                  ttsPrompt,
+                  syncedFromStory: true,
+                  lastSyncedAt: new Date().toISOString(),
+                  storyId: mainStory.id,
+                  sequenceOrder: sequence.order,
+                  // Ensure Production Guide metadata exists
+                  composition: (shot.metadata as { composition?: ShotComposition })?.composition || {
+                    characterIds: [],
+                    subjects: [],
+                    locationId: '',
+                    framing: 'Medium Shot'
+                  },
+                  generation: (shot.metadata as { generation?: ShotGenerationParams })?.generation || {
+                    prompt: imagePrompt,
+                    negativePrompt: '',
+                    seed: -1
+                  }
+                },
+              };
+              updatedShotsCount++;
+            }
           }
         }
 
         updatedSequencesCount++;
         
         // Prepare sequence for saving
-        const sequenceResume = generateSequenceResume(storySummary, sequence.order, sequences.length);
+        const sequenceResume = generateSequenceResume(storySummary, sequence.order, activeSequences.length);
         if (project?.metadata?.path) {
           sequencesToSave.push({
             ...sequence,
@@ -1311,7 +1436,7 @@ export function ProjectDashboardNew({
     } finally {
       setIsSyncing(false);
     }
-  }, [sequences, stories, shots, project, saveSequenceToFile, showWarning, showError, showSuccess, setIsSyncing, setForceUpdate, saveShotToFile, setShots]);
+  }, [sequences, stories, shots, project, saveSequenceToFile, showWarning, showError, showSuccess, setIsSyncing, setForceUpdate, saveShotToFile, setShots, setSequencePlans]);
 
 
   // Handle editing sequence
@@ -1360,33 +1485,23 @@ export function ProjectDashboardNew({
   const handleStoryClick = (storyId: string) => {
     if (expandedStoryId === storyId) {
       setExpandedStoryId(null);
+      wasExpansionManuallyClosedRef.current = true;
     } else {
       setExpandedStoryId(storyId);
-      setSelectedStoryId(storyId);
+      wasExpansionManuallyClosedRef.current = false;
     }
   };
 
   // Handle close story detail view
   const handleCloseStoryDetail = () => {
     setSelectedStoryId(null);
-    setExpandedStoryId(null);
   };
 
-  // Handle story parts update (from inline editing)
-  const handleUpdateStoryParts = (storyId: string, updatedParts: unknown[]) => {
-    const story = getStoryById(storyId);
-    if (story) {
-      const updatedStory = {
-        ...story,
-        parts: updatedParts as unknown[],
-        updatedAt: new Date(),
-        version: story.version + 1,
-      };
-      // Update in store
-      useStore.getState().updateStory(storyId, updatedStory as unknown as Partial<Story>);
-      console.log('[ProjectDashboard] Story parts updated:', updatedStory);
-    }
+  const handleCloseStoryParts = () => {
+    setExpandedStoryId(null);
+    wasExpansionManuallyClosedRef.current = true;
   };
+
 
   // Handle edit story - opens wizard with existing story data
   const handleEditStory = () => {
@@ -1479,7 +1594,57 @@ export function ProjectDashboardNew({
     // and integrated into the project
   };
 
-  // wizards are now handled globally in App.tsx
+  const [isRestartingComfyUI, setIsRestartingComfyUI] = useState(false);
+
+  /**
+   * Handle ComfyUI Restart
+   */
+  const handleRestartComfyUI = async () => {
+    if (isRestartingComfyUI) return;
+    
+    setIsRestartingComfyUI(true);
+    addChatMessage({
+      id: `sys-${Date.now()}`,
+      role: 'system',
+      content: 'Initiating Visual Engine (ComfyUI) restart protocol...',
+      timestamp: new Date()
+    });
+
+    try {
+      if (window.electronAPI?.comfyui?.startService) {
+        await window.electronAPI.comfyui.startService();
+        addChatMessage({
+          id: `sys-${Date.now()}-ok`,
+          role: 'system',
+          content: 'Visual Engine successfully restarted. Systems are back online.',
+          timestamp: new Date()
+        });
+      } else {
+        throw new Error('Electron API not available');
+      }
+    } catch (error) {
+       logger.error('[ProjectDashboard] Failed to restart ComfyUI:', error);
+       const errorMessage = error instanceof Error ? error.message : 'Unknown failure';
+       addChatMessage({
+        id: `sys-${Date.now()}-err`,
+        role: 'system',
+        content: `Error during restart: ${errorMessage}. Manual intervention may be required.`,
+        timestamp: new Date()
+      });
+    } finally {
+      setIsRestartingComfyUI(false);
+    }
+  };
+
+  /**
+   * Scroll to a specific section on the dashboard
+   */
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(`dash-section-${sectionId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   /**
    * Open Sequence Plan Wizard Modal
@@ -1641,6 +1806,19 @@ export function ProjectDashboardNew({
                 <div className="flex items-center gap-2">
                   <div className={cn("status-indicator", comfyuiStatus === 'connected' ? 'connected' : 'disconnected')} />
                   <span className="text-[10px] font-bold tracking-widest uppercase text-white/60">Visuals</span>
+                  {comfyuiStatus !== 'connected' && (
+                    <button 
+                      onClick={handleRestartComfyUI}
+                      className={cn(
+                        "p-1.5 rounded-full bg-rose-500/10 text-rose-400 hover:text-white hover:bg-rose-500/20 transition-all border border-rose-500/20 ml-1.5",
+                        isRestartingComfyUI && "animate-pulse"
+                      )}
+                      disabled={isRestartingComfyUI}
+                      title="Request System Reboot (Force Start ComfyUI)"
+                    >
+                      <RefreshCw className={cn("w-3 h-3", isRestartingComfyUI && "animate-spin")} />
+                    </button>
+                  )}
                 </div>
              </div>
           </div>
@@ -1671,7 +1849,7 @@ export function ProjectDashboardNew({
               <p className="tips-intro text-sm italic opacity-80 mb-4 px-2">
                 4 Steps to Manifest Your Vision:
               </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-2">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 px-2">
                  <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
                     <Globe className="w-5 h-5 text-indigo-400 mb-2" />
                     <span className="text-[10px] font-black uppercase tracking-widest">World</span>
@@ -1683,11 +1861,15 @@ export function ProjectDashboardNew({
                  <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
                     <BookOpen className="w-5 h-5 text-amber-400 mb-2" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Lore</span>
-                 </div>
-                 <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-                    <Film className="w-5 h-5 text-emerald-400 mb-2" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Studio</span>
-                 </div>
+                  </div>
+                  <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group" onClick={() => scrollToSection('film')}>
+                    <Film className="w-5 h-5 text-emerald-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400/80">Studio</span>
+                  </div>
+                  <div className="flex flex-col items-center text-center p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group" onClick={() => scrollToSection('production-guide')}>
+                    <Table className="w-5 h-5 text-sky-400 mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-sky-400/80">Manifest</span>
+                  </div>
               </div>
             </div>
           </div>
@@ -1698,7 +1880,7 @@ export function ProjectDashboardNew({
             icon={<Sparkles className="w-5 h-5" />}
             defaultExpanded={false}
           >
-            <div className="creative-wizards-section" style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}>
+            <div className="creative-wizards-section dash-section-clean">
               <WizardLauncher
                 availableWizards={enabledWizards}
                 onLaunchWizard={handleLaunchWizard}
@@ -1706,17 +1888,13 @@ export function ProjectDashboardNew({
             </div>
           </CollapsibleSection>
 
-          {/* Active Add-ons Section */}
+          {/* Series Manager Section */}
           <CollapsibleSection
-            title="Active Add-ons"
-            icon={<Puzzle className="w-5 h-5" />}
-            defaultExpanded={false}
+            title="Saga Evolution (Serial Episodes)"
+            icon={<Layers className="w-5 h-5 text-indigo-400" />}
+            defaultExpanded={true}
           >
-            <DashboardAddonsSection
-              onLaunchWizard={handleAddonLaunchWizard}
-              hideHeader={true}
-              style={{ padding: 0, border: 'none', background: 'transparent', margin: 0 }}
-            />
+            <SeriesManagerSection hideHeader={true} />
           </CollapsibleSection>
 
           {/* Stories Section */}
@@ -1729,23 +1907,18 @@ export function ProjectDashboardNew({
                 className="btn-create-story"
                 onClick={handleCreateNewStory}
                 title="Create a new story"
-                style={{ padding: '4px 12px', height: '32px' }}
               >
                 <BookOpen className="w-4 h-4" />
-                <span style={{ fontSize: '0.8rem' }}>Create New Story</span>
+                <span>Create New Story</span>
               </button>
             }
           >
-            <div className="stories-section" style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}>
+            <div className="stories-section dash-section-clean">
               {/* Expanded Story Parts View */}
               {expandedStoryId && (
                 <StoryPartsSection
-                  story={getStoryById(expandedStoryId)!}
-                  onPartsUpdated={(parts) => handleUpdateStoryParts(expandedStoryId, parts)}
-                  onClose={() => {
-                    setExpandedStoryId(null);
-                    setSelectedStoryId(null);
-                  }}
+                  storyId={expandedStoryId}
+                  onClose={handleCloseStoryParts}
                 />
               )}
 
@@ -1782,14 +1955,13 @@ export function ProjectDashboardNew({
                   onClick={handleSyncSequences}
                   disabled={isSyncing || sequences.length === 0}
                   title="Synchronize sequence plans with story and dialogues"
-                  style={{ padding: '4px 10px', height: '28px' }}
                 >
                   {isSyncing ? (
                     <InlineLoading message="Sync..." />
                   ) : (
                     <>
                       <Sparkles className="w-3 h-3" />
-                      <span style={{ fontSize: '0.75rem' }}>Sync</span>
+                      <span>Sync</span>
                     </>
                   )}
                 </button>
@@ -1798,14 +1970,13 @@ export function ProjectDashboardNew({
                   onClick={handleForceUpdateSequences}
                   disabled={isLoadingSequences}
                   title="Refresh sequences from JSON files"
-                  style={{ padding: '4px 10px', height: '28px' }}
                 >
                   {isLoadingSequences ? (
                     <InlineLoading message="Loading..." />
                   ) : (
                     <>
                       <RefreshCw className="w-3 h-3" />
-                      <span style={{ fontSize: '0.75rem' }}>Refresh</span>
+                      <span>Refresh</span>
                     </>
                   )}
                 </button>
@@ -1813,17 +1984,15 @@ export function ProjectDashboardNew({
                   className="btn-sequence-control new-plan"
                   onClick={handleNewPlan}
                   title="Create a new sequence plan"
-                  style={{ padding: '4px 10px', height: '28px' }}
                 >
                   <FileText className="w-3 h-3" />
-                  <span style={{ fontSize: '0.75rem' }}>New Plan</span>
+                  <span className="new-plan-text">New Plan</span>
                 </button>
                 <button
                   className="btn-sequence-control add"
                   onClick={handleAddSequence}
                   disabled={isAddingSequence}
                   title="Add a new sequence"
-                  style={{ width: '28px', height: '28px' }}
                 >
                   {isAddingSequence ? (
                     <InlineLoading message="..." />
@@ -1856,6 +2025,8 @@ export function ProjectDashboardNew({
                           <Reorder.Item
                             key={seq.id}
                             value={seq}
+                            onDoubleClick={() => onOpenEditor(seq.id)}
+                            style={{ cursor: 'pointer' }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95 }}
@@ -1879,6 +2050,7 @@ export function ProjectDashboardNew({
                                 seqWithFlag.isFormal ? 'ring-1 ring-primary/20 bg-primary/5' : ''
                               )}
                               onClick={() => handleSequenceClick(seq.id)}
+                              onDoubleClick={() => handleSequenceClick(seq.id)}
                             >
                               <div className="flex justify-between items-start mb-4">
                                 <div className="flex flex-col gap-1.5">
@@ -1941,18 +2113,40 @@ export function ProjectDashboardNew({
                               </div>
                             </GlassCard>
                           </Reorder.Item>
-                        )})
-                      }
+                        );
+                      })}
                     </AnimatePresence>
                   </Reorder.Group>
                 )}
             </div>
           </CollapsibleSection>
 
+          {/* Visual Identity (Moodboard) */}
+          <CollapsibleSection
+            id="dash-section-moodboard"
+            title="Visual Essence & Moodboard"
+            icon={<Palette className="w-5 h-5 text-pink-400" />}
+            defaultExpanded={false}
+          >
+            <MoodboardSection />
+          </CollapsibleSection>
+
+          {/* Sequential Continuity (Storyboard) */}
+          <CollapsibleSection
+            id="dash-section-storyboard"
+            title="Narrative Sequencing (Continuous Storyboard)"
+            icon={<Layout className="w-5 h-5 text-cyan-400" />}
+            defaultExpanded={false}
+          >
+            <StoryboardSection />
+          </CollapsibleSection>
+
+
           {/* Production Guide (Cine Mode) */}
           <CollapsibleSection
-            title="Production Guide"
-            icon={<Clapperboard className="w-5 h-5 text-primary" />}
+            id="dash-section-production-guide"
+            title="Production Guide (Technical Manifest)"
+            icon={<Table className="w-5 h-5 text-sky-400" />}
             defaultExpanded={true}
             className="production-guide-section-wrapper"
           >
@@ -1967,7 +2161,7 @@ export function ProjectDashboardNew({
           >
             <LocationSection
               hideHeader={true}
-              style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
+              className="dash-section-clean"
             />
           </CollapsibleSection>
 
@@ -1988,7 +2182,7 @@ export function ProjectDashboardNew({
               }}
               showActions={true}
               hideHeader={true}
-              style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
+              className="dash-section-clean"
             />
           </CollapsibleSection>
 
@@ -2009,7 +2203,7 @@ export function ProjectDashboardNew({
                 setShowObjectsModal(true);
               }}
               hideHeader={true}
-              style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
+              className="dash-section-clean"
             />
           </CollapsibleSection>
         </div>
@@ -2019,6 +2213,10 @@ export function ProjectDashboardNew({
           {/* Neural Production Assistant */}
           <div className="mb-6">
             <NeuralProductionAssistant />
+          </div>
+
+          <div className="mb-6">
+            <ProjectResourcesCard />
           </div>
 
           {/* Recent Assets Quick View */}

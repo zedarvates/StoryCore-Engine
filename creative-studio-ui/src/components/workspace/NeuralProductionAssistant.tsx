@@ -27,7 +27,7 @@ import {
     Package,
     Settings
 } from 'lucide-react';
-import { generateImage, WORKFLOW_OPTIONS } from '@/services/imageGenerationService';
+import { generateImage } from '@/services/imageGenerationService';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
 import { useSequencePlanStore } from '@/stores/sequencePlanStore';
@@ -53,6 +53,9 @@ import { projectMemory } from '@/services/ProjectMemoryService';
 import { type WorkflowType } from '@/services/comfyuiService';
 import { type ProductionShot } from '@/types/shot';
 import { CinematicAdviceService, type CinematicAdvice } from '@/services/cinematic/CinematicAdviceService';
+import { metadataEnrichmentService } from '@/services/wizard/MetadataEnrichmentService';
+import { metadataPersistenceService } from '@/services/MetadataPersistenceService';
+import { promptPersistenceService } from '@/services/PromptPersistenceService';
 
 
 /**
@@ -81,8 +84,7 @@ export function NeuralProductionAssistant() {
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [isThinking, setIsThinking] = useState(false);
     const [generationStep, setGenerationStep] = useState<string>('');
-    const [selectedModel, setSelectedModel] = useState<string>('z_image_turbo');
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [selectedModel] = useState<string>('z_image_turbo');
     const [ledgerSearch, setLedgerSearch] = useState('');
     const [useRecursiveReasoning, setUseRecursiveReasoning] = useState(true);
     const [isMemoryOpen, setIsMemoryOpen] = useState(false);
@@ -98,19 +100,11 @@ export function NeuralProductionAssistant() {
         setProjectAdvice(advice);
     }, [project, characters]);
     const [isDistilling, setIsDistilling] = useState(false);
+    const [isSavingMetadata, setIsSavingMetadata] = useState(false);
+    const [isSavingPrompt, setIsSavingPrompt] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [metadataReport, setMetadataReport] = useState<any>(null);
     const [ledgerFilter, setLedgerFilter] = useState<'ALL' | 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET'>('ALL');
-
-    const [llmProvider, setLlmProvider] = useState<string>('openrouter');
-    const [llmModel, setLlmModel] = useState<string>('meta-llama/llama-3.1-8b-instruct');
-
-    const popularOpenRouterModels = [
-        { id: 'meta-llama/llama-3.1-8b-instruct', label: 'Llama 3.1 8B' },
-        { id: 'meta-llama/llama-3.1-70b-instruct', label: 'Llama 3.1 70B' },
-        { id: 'anthropic/claude-3.5-sonnet', label: 'Claude 3.5' },
-        { id: 'openai/gpt-4o', label: 'GPT-4o' },
-        { id: 'google/gemini-pro-1.5', label: 'Gemini 1.5 Pro' },
-        { id: 'mistralai/mistral-large', label: 'Mistral Large' },
-    ];
 
     const { insights, workingContext, promoteInsight, removeInsight, addInsight } = useMemoryStore();
     const { lastTrajectory } = useProductionStore();
@@ -119,7 +113,7 @@ export function NeuralProductionAssistant() {
 
     const advice = adviceHistory[0]?.text || null;
 
-    const handleManifestAsset = useCallback(async (id: string, type: 'CHARACTER' | 'LOCATION' | 'OBJECT') => {
+    const handleManifestAsset = useCallback(async (id: string, type: 'CHARACTER' | 'LOCATION' | 'OBJECT' | 'STORY_PART', promptOverride?: string) => {
         let name = 'Unknown';
         let baseDescription = '';
         let targetType: ManifestedAsset['type'] = 'CHARACTER_REFERENCE_SHEET';
@@ -142,6 +136,10 @@ export function NeuralProductionAssistant() {
             name = obj.name;
             baseDescription = `cinematic product shot of ${obj.name}, ${obj.description}`;
             targetType = 'OBJECT_REFERENCE_SHEET';
+        } else if (type === 'STORY_PART') {
+            name = `Story Part`;
+            baseDescription = promptOverride || 'cinematic story concept';
+            targetType = 'STORY_PART_IMAGE';
         }
 
         setIsGeneratingSheet(id);
@@ -186,6 +184,7 @@ export function NeuralProductionAssistant() {
                 characterId: type === 'CHARACTER' ? id : undefined,
                 locationId: type === 'LOCATION' ? id : undefined,
                 objectId: type === 'OBJECT' ? id : undefined,
+                storyPartId: type === 'STORY_PART' ? id : undefined,
                 characterName: name,
                 generatedAt: new Date().toISOString(),
                 type: targetType,
@@ -203,17 +202,34 @@ export function NeuralProductionAssistant() {
 
             toast({
                 title: "MANIFESTATION COMPLETE",
-                description: `${name} reference has been added to the Production Ledger.`,
+                description: `${name} visualization has been added to the Ledger.`,
             });
         } catch (error) {
             const err = error as Error;
             console.error('Manifestation failed:', err);
             setIsGeneratingSheet(null);
             setGenerationStep('');
+            const isConnectionError = err.message.includes('Connection to ComfyUI lost');
             toast({
                 variant: "destructive",
-                title: "MANIFESTATION FAILED",
+                title: isConnectionError ? "VISUAL ENGINE DISCONNECTED" : "MANIFESTATION FAILED",
                 description: err.message || "Failed to engage neural synthesis engine.",
+                action: isConnectionError ? {
+                    label: "RESTART ENGINE",
+                    onClick: async () => {
+                        try {
+                            if (window.electronAPI?.comfyui?.startService) {
+                                await window.electronAPI.comfyui.startService();
+                                toast({
+                                    title: "RESTARTING...",
+                                    description: "Attempting to re-ignite the visual engine. Check progress in Dashboard.",
+                                });
+                            }
+                        } catch (reErr) {
+                            console.error('Manual restart triggered from toast failed:', reErr);
+                        }
+                    }
+                } : undefined
             });
         }
     }, [characters, currentWorld, selectedModel, addManifestedAsset, toast]);
@@ -223,6 +239,12 @@ export function NeuralProductionAssistant() {
             const detail = (e as CustomEvent).detail;
             if (detail?.characterId) {
                 handleManifestAsset(detail.characterId, 'CHARACTER');
+            } else if (detail?.locationId) {
+                handleManifestAsset(detail.locationId, 'LOCATION');
+            } else if (detail?.objectId) {
+                handleManifestAsset(detail.objectId, 'OBJECT');
+            } else if (detail?.storyPartId) {
+                handleManifestAsset(detail.storyPartId, 'STORY_PART', detail.prompt);
             }
         };
         window.addEventListener('storycore:gen-char-sheet', handleGenEvent);
@@ -287,9 +309,7 @@ export function NeuralProductionAssistant() {
                 // Call the advanced backend engine
                 const { final_answer, steps } = await rlmService.generateRLM(
                     prompt, 
-                    '', 
-                    llmProvider, 
-                    llmModel
+                    ''
                 );
                 responseText = final_answer;
                 // Steps from backend are NSMStep objects {type, message, timestamp}
@@ -367,6 +387,83 @@ export function NeuralProductionAssistant() {
             setIsDistilling(false);
         }
     };
+
+    const handleGenerateMetadataReport = useCallback(async () => {
+        if (!project) return;
+        
+        setIsSavingMetadata(true);
+        try {
+            // 1. Calculate completeness
+            const report = metadataEnrichmentService.checkCompleteness(
+                [], // TODO: Pass actual enhanced scenes
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (currentPlan?.shots || []) as any[]
+            );
+            
+            setMetadataReport(report);
+
+            // 2. Save to project folder if in Electron
+            if (window.electronAPI && project.path) {
+                await metadataPersistenceService.saveMetadata({
+                    projectId: project.id,
+                    report,
+                    scenes: [],
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    shots: (currentPlan?.shots || []) as any[],
+                    lastUpdated: Date.now()
+                }, project.path);
+                
+                toast({
+                    title: "INTELLIGENCE REPORT SAVED",
+                    description: "Project metadata has been synchronized to the /metadata folder.",
+                });
+            }
+        } catch (error) {
+            console.error('Failed to generate metadata report:', error);
+            toast({
+                variant: "destructive",
+                title: "REPORT FAILED",
+                description: "Failed to generate or save project intelligence report.",
+            });
+        } finally {
+            setIsSavingMetadata(false);
+        }
+    }, [project, currentPlan, toast]);
+
+    const handleSavePrompt = useCallback(async () => {
+        if (!project || !advice) return;
+
+        setIsSavingPrompt(true);
+        try {
+            const promptId = crypto.randomUUID();
+            const projectPrompt = {
+                id: promptId,
+                name: `Directorial Advice ${new Date().toLocaleDateString()}`,
+                category: 'DIRECTORIAL',
+                subcategory: 'AI_ADVICE',
+                content: advice,
+                tags: ['ai', 'advice', 'directorial'],
+                createdAt: Date.now()
+            };
+
+            if (project.path) {
+                await promptPersistenceService.saveProjectPrompt(projectPrompt, project.path);
+                toast({
+                    title: "PROMPT SAVED",
+                    description: " Directorial advice stored in project /prompts folder.",
+                });
+            }
+        } catch (error) {
+            console.error('Failed to save prompt:', error);
+            toast({
+                variant: "destructive",
+                title: "SAVE FAILED",
+                description: "Could not save prompt to disk.",
+            });
+        } finally {
+            setIsSavingPrompt(false);
+        }
+    }, [project, advice, toast]);
 
     const handleAddManualInsight = () => {
         if (!manualInsightText.trim()) return;
@@ -454,6 +551,16 @@ export function NeuralProductionAssistant() {
                                         Trace
                                     </Button>
                                 )}
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={handleSavePrompt}
+                                        disabled={isSavingPrompt}
+                                        className="h-6 px-2 bg-background border border-primary/20 text-[8px] uppercase font-black hover:bg-primary hover:text-black"
+                                    >
+                                        {isSavingPrompt ? <RefreshCw className="w-2.5 h-2.5 animate-spin mr-1" /> : <Bookmark size={10} className="mr-1" />}
+                                        Save Prompt
+                                    </Button>
                                     <Button
                                         size="sm"
                                         variant="ghost"
@@ -687,6 +794,52 @@ export function NeuralProductionAssistant() {
                     </div>
                 </div>
 
+                {/* Intelligence Metadata Section */}
+                <div className="pt-4 border-t border-primary/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-primary/60">
+                            <Brain className="w-3.5 h-3.5" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest">Metadata & Intelligence</span>
+                        </div>
+                        <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-5 text-[7px] uppercase font-black hover:bg-primary/20"
+                            onClick={handleGenerateMetadataReport}
+                            disabled={isSavingMetadata}
+                        >
+                            {isSavingMetadata ? <RefreshCw className="w-2.5 h-2.5 animate-spin mr-1" /> : <Download className="w-2.5 h-2.5 mr-1" />}
+                            Sync Metadata
+                        </Button>
+                    </div>
+
+                    {metadataReport ? (
+                        <div className="space-y-2 animate-in fade-in slide-in-from-bottom-2">
+                            <div className="flex justify-between items-center bg-primary/5 p-2 rounded-sm border border-primary/10">
+                                <span className="text-[9px] uppercase font-medium text-white/60">Completeness Score</span>
+                                <span className={cn(
+                                    "text-xs font-black",
+                                    metadataReport.overallScore >= 90 ? "text-emerald-400" : 
+                                    metadataReport.overallScore >= 70 ? "text-amber-400" : "text-rose-400"
+                                )}>
+                                    {Math.round(metadataReport.overallScore)}%
+                                </span>
+                            </div>
+                            
+                            {metadataReport.recommendations.slice(0, 2).map((rec: string, i: number) => (
+                                <div key={i} className="flex gap-2 p-1.5 bg-white/5 rounded-xs text-[8px] text-white/50 border border-white/5">
+                                    <Info className="w-3 h-3 text-primary flex-shrink-0" />
+                                    <p className="leading-tight">{rec}</p>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-3 border border-dashed border-white/10 rounded-sm text-center opacity-40">
+                             <p className="text-[8px] uppercase tracking-tighter">No intelligence report cached</p>
+                        </div>
+                    )}
+                </div>
+
                 {/* Aesthetic Registry */}
                 <div className="pt-4 border-t border-primary/10">
                     <div className="flex items-center gap-2 mb-3 text-primary/60">
@@ -720,109 +873,13 @@ export function NeuralProductionAssistant() {
             </div>
 
             <div className="p-3 bg-primary/5 flex items-center justify-center gap-4">
-                <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                    <DialogTrigger asChild>
-                        <button className="text-[9px] font-black text-primary/40 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1">
-                            <Settings className="w-3 h-3" />
-                            Settings
-                        </button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-md bg-card border-primary/20 text-white font-mono backdrop-blur-2xl">
-                        <DialogHeader>
-                            <DialogTitle className="text-primary uppercase tracking-[0.3em] font-black text-xs flex items-center gap-2">
-                                <Settings className="w-4 h-4" />
-                                Model Orchestration
-                            </DialogTitle>
-                        </DialogHeader>
-
-                        <div className="space-y-6 mt-4">
-                            <div className="space-y-4">
-                                <p className="text-[10px] uppercase font-bold text-white/60">LLM Provider (Brain)</p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {(['mock', 'openai', 'anthropic', 'openrouter'] as const).map(p => (
-                                        <Button
-                                            key={p}
-                                            variant={llmProvider === p ? 'default' : 'outline'}
-                                            size="sm"
-                                            className="text-[10px] uppercase font-black h-8"
-                                            onClick={() => setLlmProvider(p)}
-                                        >
-                                            {p}
-                                        </Button>
-                                    ))}
-                                </div>
-                                
-                                <div className="space-y-2">
-                                    <p className="text-[9px] uppercase font-bold text-white/40">Model ID / Version</p>
-                                    
-                                    {llmProvider === 'openrouter' && (
-                                        <div className="flex flex-wrap gap-1 mb-2">
-                                            {popularOpenRouterModels.map(m => (
-                                                <Badge
-                                                    key={m.id}
-                                                    variant="outline"
-                                                    onClick={() => setLlmModel(m.id)}
-                                                    className={cn(
-                                                        "cursor-pointer text-[7px] py-0 px-1.5 border-primary/20 hover:bg-primary/20 transition-all",
-                                                        llmModel === m.id ? "bg-primary/30 border-primary text-primary" : "text-white/40"
-                                                    )}
-                                                >
-                                                    {m.label}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    <Input 
-                                        value={llmModel}
-                                        onChange={(e) => setLlmModel(e.target.value)}
-                                        placeholder={llmProvider === 'openrouter' ? "e.g. meta-llama/llama-3-70b-instruct" : "Default model"}
-                                        className="bg-white/5 border-white/10 h-8 text-[11px]"
-                                    />
-                                    <p className="text-[8px] text-white/20 italic">
-                                        {llmProvider === 'openrouter' ? "Select or enter model ID manually." : "Leave empty for provider default."}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2 pt-4 border-t border-white/5">
-                                <p className="text-[10px] uppercase font-bold text-white/60">Selected Neural Workflow (Visuals)</p>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {WORKFLOW_OPTIONS.map((opt, idx) => (
-                                        <button
-                                            key={opt.id || `workflow-${idx}`}
-                                            onClick={() => setSelectedModel(opt.id)}
-                                            className={cn(
-                                                "flex items-center justify-between p-3 border rounded-sm transition-all text-left",
-                                                selectedModel === opt.id
-                                                    ? "bg-primary/20 border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]"
-                                                    : "bg-white/5 border-white/10 hover:border-white/20"
-                                            )}
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-lg">{opt.icon}</span>
-                                                <div>
-                                                    <p className="text-[11px] font-black text-white uppercase">{opt.name}</p>
-                                                    <p className="text-[9px] text-white/40">{opt.description}</p>
-                                                </div>
-                                            </div>
-                                            {selectedModel === opt.id && <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <DialogFooter className="mt-6 border-t border-white/5 pt-4">
-                            <Button
-                                onClick={() => setIsSettingsOpen(false)}
-                                className="bg-primary text-black font-black uppercase text-[10px] w-full"
-                            >
-                                Apply Configuration
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <button 
+                    className="text-[9px] font-black text-primary/40 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1"
+                    onClick={() => useAppStore.getState().setShowLLMSettings(true)}
+                >
+                    <Settings className="w-3 h-3" />
+                    Settings
+                </button>
 
                 <Dialog open={isMemoryOpen} onOpenChange={setIsMemoryOpen}>
                     <DialogTrigger asChild>

@@ -36,6 +36,7 @@ from backend.scenario_api import router as scenario_router
 from backend.lip_sync_api import router as lip_sync_router
 from backend.ttt_lrm_api import router as ttt_lrm_router
 from backend.story_generation_api import router as story_router
+from backend.storycore_series_api import router as series_router
 
 # Configure logging
 logging.basicConfig(
@@ -220,6 +221,7 @@ app.include_router(mvp_router, prefix="/api/mvp")
 app.include_router(scenario_router, prefix="/api")
 app.include_router(lip_sync_router, prefix="/api")
 app.include_router(story_router)
+app.include_router(series_router)
 # Include rigging API router
 from backend.rigging_api import router as rigging_router
 app.include_router(rigging_router, prefix="/api")
@@ -504,7 +506,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "backend.main_api:app",
         host="0.0.0.0",
-        port=8080,
+        port=int(os.environ.get("PORT", 8080)),
         reload=True,
         reload_dirs=["backend", "src"],
         log_level="info"

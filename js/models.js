@@ -1,9 +1,7 @@
-import { modelDownloadState, missingModelsState, updateMissingModelsState } from './state.js';
-import { $, showNotification, hideModal, populateModelsList } from './ui.js';
-
 // Check for missing models
-export function checkMissingModels() {
+function checkMissingModels() {
     // DEMO: simulate missing models detection (30% chance)
+    const { modelDownloadState, missingModelsState, updateMissingModelsState } = require('./state.js');
     const requiredModels = modelDownloadState.models;
     const missingModels = requiredModels.filter(() => Math.random() > 0.7);
     
@@ -14,37 +12,39 @@ export function checkMissingModels() {
 }
 
 function showMissingModelsBanner(missingModels) {
+    const { $ } = require('./ui.js');
     const banner = $('missingModelsBanner');
     const modelsList = $('missingModelsList');
     
     if (!banner || !modelsList) return;
-    
     modelsList.innerHTML = missingModels.map(model => 
         `<div class="flex justify-between items-center py-1">
             <span>❌ ${model.name}</span>
             <span class="text-xs text-yellow-300">${model.size}</span>
         </div>`
     ).join('');
-    
     banner.classList.remove('hidden');
 }
 
-export function dismissMissingModelsBanner() {
+function dismissMissingModelsBanner() {
+    const { $ } = require('./ui.js');
     const banner = $('missingModelsBanner');
     if (banner) banner.classList.add('hidden');
 }
 
-export function toggleModelInfo() {
+function toggleModelInfo() {
+    const { $ } = require('./ui.js');
     const panel = $('modelInfoPanel');
     if (panel) panel.classList.toggle('hidden');
 }
 
 // Set download mode
-export function setDownloadMode(mode) {
+function setDownloadMode(mode) {
+    const { modelDownloadState } = require('./state.js');
     modelDownloadState.mode = mode;
+    const { $ } = require('./ui.js');
     const manualSection = $('manualPathSection');
     const automaticPath = $('automaticPath');
-    
     if (mode === 'manual') {
         if (manualSection) manualSection.classList.remove('hidden');
         if (automaticPath) automaticPath.classList.add('hidden');
@@ -55,28 +55,32 @@ export function setDownloadMode(mode) {
 }
 
 // Select manual path
-export async function selectManualPath() {
+async function selectManualPath() {
     try {
         // @ts-ignore - File System Access API
         const dirHandle = await window.showDirectoryPicker();
+        const { modelDownloadState } = require('./state.js');
         modelDownloadState.targetPath = dirHandle.name;
+        const { $ } = require('./ui.js');
         const selectedPath = $('selectedPath');
         if (selectedPath) selectedPath.textContent = dirHandle.name;
     } catch (error) {
         if (error.name !== 'AbortError') {
+            const { showNotification } = require('./ui.js');
             showNotification('Folder selection not supported. Please use automatic mode or update your browser.', 'error');
         }
     }
 }
 
 // Start model download
-export async function startModelDownload() {
+async function startModelDownload() {
+    const { modelDownloadState } = require('./state.js');
     if (modelDownloadState.isDownloading) return;
     
     modelDownloadState.isDownloading = true;
+    const { $ } = require('./ui.js');
     const progressSection = $('downloadProgressMain');
     const startBtn = $('startDownloadBtnMain');
-    
     if (progressSection) progressSection.classList.remove('hidden');
     if (startBtn) {
         startBtn.disabled = true;
@@ -93,10 +97,10 @@ export async function startModelDownload() {
             showDownloadComplete();
             enableModelDependentFeatures();
         } else {
-            // Trigger automatic fallback
-            await triggerAutomaticFallback(validationResult.missingModels);
+            // Trigger automatic fallback            await triggerAutomaticFallback(validationResult.missingModels);
         }
     } catch (error) {
+        const { showNotification } = require('./ui.js');
         showDownloadError(error.message);
     } finally {
         modelDownloadState.isDownloading = false;
@@ -108,6 +112,7 @@ export async function startModelDownload() {
 }
 
 async function downloadModelsSequentially() {
+    const { modelDownloadState } = require('./state.js');
     const totalModels = modelDownloadState.models.length;
     
     for (let i = 0; i < totalModels; i++) {
@@ -126,8 +131,7 @@ async function downloadModelsSequentially() {
         
         // DEMO: simulate download - replace with real implementation
         await simulateModelDownload(model);
-        
-        // Update progress to show completion of current model
+                // Update progress to show completion of current model
         modelDownloadState.progress = ((i + 1) / totalModels) * 100;
         updateProgressUI();
     }
@@ -138,7 +142,7 @@ async function checkUNCPermissions() {
     const hasPermission = Math.random() > 0.2; // 80% success rate for demo
     
     if (!hasPermission) {
-        throw new Error(`UNC Path Access Denied: Cannot write to ${modelDownloadState.targetPath}. Please run as administrator or use manual mode.`);
+        throw new Error(`UNC Path Access Denied: Cannot write to ${require('./state.js').modelDownloadState.targetPath}. Please run as administrator or use manual mode.`);
     }
 }
 
@@ -157,17 +161,19 @@ async function simulateModelDownload(model) {
 }
 
 function updateProgressUI() {
+    const { $ } = require('./ui.js');
     const progressBar = $('progressBarMain');
     const progressText = $('progressTextMain');
     const currentModelText = $('currentModelMain');
     
-    if (progressBar) progressBar.style.width = `${modelDownloadState.progress}%`;
-    if (progressText) progressText.textContent = `${Math.round(modelDownloadState.progress)}%`;
-    if (currentModelText) currentModelText.textContent = `Downloading: ${modelDownloadState.currentModel}`;
+    if (progressBar) progressBar.style.width = `${require('./state.js').modelDownloadState.progress}%`;
+    if (progressText) progressText.textContent = `${Math.round(require('./state.js').modelDownloadState.progress)}%`;
+    if (currentModelText) currentModelText.textContent = `Downloading: ${require('./state.js').modelDownloadState.currentModel}`;
 }
 
 async function validateDownloadedModels() {
     // DEMO: simulate model validation (20% chance of missing models)
+    const { modelDownloadState } = require('./state.js');
     const missingModels = Math.random() < 0.2 ? [modelDownloadState.models[0]] : [];
     
     return {
@@ -177,6 +183,7 @@ async function validateDownloadedModels() {
 }
 
 async function triggerAutomaticFallback(missingModels) {
+    const { $ } = require('./ui.js');
     const downloadStatus = $('downloadStatusMain');
     if (!downloadStatus) return;
     
@@ -195,23 +202,24 @@ async function triggerAutomaticFallback(missingModels) {
             </button>
             <button onclick="window.skipFallback()" 
                     class="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm">
-                Skip
-            </button>
+                Skip            </button>
         </div>
     `;
 }
 
 function showDownloadComplete() {
+    const { $ } = require('./ui.js');
     const downloadStatus = $('downloadStatusMain');
     if (downloadStatus) {
         downloadStatus.innerHTML = `
             <div class="text-green-400 font-semibold">✅ Download Complete!</div>
-            <div class="text-xs mt-1">All models downloaded successfully to ${modelDownloadState.mode} location.</div>
+            <div class="text-xs mt-1">All models downloaded successfully to ${require('./state.js').modelDownloadState.mode} location.</div>
         `;
     }
 }
 
 function showDownloadError(errorMessage) {
+    const { $ } = require('./ui.js');
     const downloadStatus = $('downloadStatusMain');
     if (downloadStatus) {
         downloadStatus.innerHTML = `
@@ -226,6 +234,7 @@ function showDownloadError(errorMessage) {
 
 function enableModelDependentFeatures() {
     // Enable features that depend on models being available
+    const { $ } = require('./ui.js');
     const modelsBtn = $('openModelDownloadBtn');
     if (modelsBtn) {
         modelsBtn.innerHTML = `
@@ -240,12 +249,13 @@ function enableModelDependentFeatures() {
 }
 
 // Auto-fix missing models
-export async function autoFixModels() {
+async function autoFixModels() {
     try {
         // Launch ComfyUI Manager
         const managerUrl = 'http://127.0.0.1:8188/?tab=manager&action=install_models';
         window.open(managerUrl, '_blank');
         
+        const { showNotification } = require('./ui.js');
         showNotification('🔧 ComfyUI Manager opened. Follow the auto-fix workflow.', 'info');
         
         // Set up refresh callback
@@ -259,9 +269,9 @@ export async function autoFixModels() {
         }, 10000);
 
         setTimeout(() => clearInterval(interval), 300000);
-        
     } catch (error) {
         console.error('Auto-fix failed:', error);
+        const { showNotification } = require('./ui.js');
         showNotification('Auto-fix failed. Please try manual installation.', 'error');
     }
 }
@@ -270,19 +280,25 @@ async function checkModelsAvailable() {
     try {
         // DEMO: simulate model availability check
         return Math.random() > 0.7; // 30% chance of completion per check
-    } catch {
+    } catch (error) {
         return false;
     }
 }
 
 // Global functions for fallback (temporary until full modularization)
 window.launchFallbackSolution = async function() {
-    showNotification('🔧 Launching ComfyUI Manager fallback...', 'info');
-    const managerUrl = 'http://127.0.0.1:8188/?workflow=storycore_flux2&auto_download=true';
-    window.open(managerUrl, '_blank', 'width=1200,height=800');
+    try {
+        const { showNotification } = require('./ui.js');
+        showNotification('🔧 Launching ComfyUI Manager fallback...', 'info');
+        const managerUrl = 'http://127.0.0.1:8188/?workflow=storycore_flux2&auto_download=true';
+        window.open(managerUrl, '_blank', 'width=1200,height=800');
+    } catch (error) {
+        console.error('Launch fallback failed:', error);
+    }
 };
 
 window.skipFallback = function() {
+    const { $ } = require('./ui.js');
     const downloadStatus = $('downloadStatusMain');
     if (downloadStatus) {
         downloadStatus.innerHTML = `
@@ -293,9 +309,23 @@ window.skipFallback = function() {
 };
 
 window.retryDownload = function() {
+    const { modelDownloadState } = require('./state.js');
     modelDownloadState.progress = 0;
     modelDownloadState.currentModel = '';
+    const { $ } = require('./ui.js');
     const downloadStatus = $('downloadStatusMain');
     if (downloadStatus) downloadStatus.innerHTML = '';
     startModelDownload();
+};
+
+// Export functions for use in other modules
+module.exports = {
+    checkMissingModels,
+    setDownloadMode,
+    selectManualPath,
+    startModelDownload,
+    autoFixModels,
+    dismissMissingModelsBanner,
+    toggleModelInfo,
+    enableModelDependentFeatures
 };

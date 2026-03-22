@@ -366,10 +366,11 @@ export interface ElectronAPI {
 
     /**
      * Get ComfyUI service status
+     * @param url Optional URL to check (defaults to configured URL)
      * @returns Service status information
      * @throws Error if retrieval fails
      */
-    getServiceStatus: () => Promise<any>;
+    getServiceStatus: (url?: string) => Promise<any>;
 
     /**
      * Start ComfyUI service

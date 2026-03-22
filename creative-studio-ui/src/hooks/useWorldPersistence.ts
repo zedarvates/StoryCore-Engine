@@ -290,14 +290,46 @@ export function useWorldPersistence() {
       if (storedWorlds) {
         const parsedWorlds: World[] = JSON.parse(storedWorlds);
 
+        // Requirement 7.5: Deduplicate by world ID to fix massive bloat issue
+        // This is a one-time automatic cleanup for the user's 4000+ worlds.
+        const uniqueWorldsMap = new Map<string, World>();
+        parsedWorlds.forEach((world) => {
+          if (world && world.id) {
+            const existing = uniqueWorldsMap.get(world.id);
+            const currentUpdatedAt = typeof world.updatedAt === 'number' 
+              ? world.updatedAt 
+              : (world.updatedAt ? new Date(world.updatedAt).getTime() : 0);
+              
+            if (!existing) {
+              uniqueWorldsMap.set(world.id, world);
+            } else {
+              const previousUpdatedAt = typeof existing.updatedAt === 'number'
+                ? existing.updatedAt
+                : (existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0);
+                
+              if (currentUpdatedAt > previousUpdatedAt) {
+                uniqueWorldsMap.set(world.id, world);
+              }
+            }
+          }
+        });
+
+        const uniqueWorlds = Array.from(uniqueWorldsMap.values());
+
+        // Shrink localStorage if we found duplicates
+        if (uniqueWorlds.length < parsedWorlds.length) {
+          console.warn(`[useWorldPersistence] Massive bloat detected! Deduplicated worlds from ${parsedWorlds.length} down to ${uniqueWorlds.length}`);
+          localStorage.setItem(storageKey, JSON.stringify(uniqueWorlds));
+        }
+
         // Ensure timestamps are numbers
-        const worldsWithDates = parsedWorlds.map((world) => ({
+        const worldsWithDates = uniqueWorlds.map((world) => ({
           ...world,
-          createdAt: typeof world.createdAt === 'number' ? world.createdAt : new Date(world.createdAt).getTime(),
-          updatedAt: typeof world.updatedAt === 'number' ? world.updatedAt : new Date(world.updatedAt).getTime(),
+          createdAt: typeof world.createdAt === 'number' ? world.createdAt : (world.createdAt ? new Date(world.createdAt).getTime() : Date.now()),
+          updatedAt: typeof world.updatedAt === 'number' ? world.updatedAt : (world.updatedAt ? new Date(world.updatedAt).getTime() : Date.now()),
         }));
 
-        console.log(`[useWorldPersistence] Loaded ${worldsWithDates.length} worlds from localStorage`);
+        console.log(`[useWorldPersistence] Loaded ${worldsWithDates.length} unique worlds (shrunk from ${parsedWorlds.length})`);
 
         // Only load if store doesn't already have these worlds
         if (worlds.length === 0) {

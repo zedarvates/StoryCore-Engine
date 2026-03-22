@@ -21,6 +21,10 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
+from src.models.character_ccd import (
+    CharacterCoreData, VisualProfile, NarrativeProfile, VoiceProfile,
+    ArtStyle, CreationMethod, ArtisticLock, LockingStrength
+)
 
 import numpy as np
 
@@ -79,6 +83,10 @@ class CharacterCreationConfig:
     genre: Optional[str] = None
     visual_style: Optional[str] = None
     apply_genre_adaptations: bool = True
+    
+    # User hints
+    target_gender: Optional[str] = None
+    target_age: Optional[str] = None
     
     # Output settings
     save_extracted_face: bool = True
@@ -154,7 +162,9 @@ class ImageToCharacterService:
         image: Union[np.ndarray, str, Path, "Image.Image"],
         name: Optional[str] = None,
         role: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
+        target_gender: Optional[str] = None,
+        target_age: Optional[str] = None
     ) -> ImageCharacterResult:
         """
         Create a character from an image.
@@ -164,6 +174,8 @@ class ImageToCharacterService:
             name: Optional character name (overrides suggestion)
             role: Optional character role (overrides suggestion)
             additional_context: Additional context for analysis
+            target_gender: Optional gender hint (user-provided)
+            target_age: Optional age range hint (user-provided)
             
         Returns:
             ImageCharacterResult with all extracted/generated data
@@ -188,7 +200,9 @@ class ImageToCharacterService:
             if self.config.analyze_image:
                 tasks.append(self._analyze_image_task(
                     image_array, 
-                    additional_context
+                    additional_context,
+                    target_gender or self.config.target_gender,
+                    target_age or self.config.target_age
                 ))
             
             # Execute tasks
@@ -285,14 +299,18 @@ class ImageToCharacterService:
     async def _analyze_image_task(
         self, 
         image: np.ndarray,
-        additional_context: Optional[str]
+        additional_context: Optional[str],
+        target_gender: Optional[str] = None,
+        target_age: Optional[str] = None
     ) -> CharacterAnalysisResult:
         """Async task for vision analysis"""
         return await self._vision_analyzer.analyze_image(
             image,
             genre=self.config.genre,
             style=self.config.visual_style,
-            additional_context=additional_context
+            additional_context=additional_context,
+            target_gender=target_gender,
+            target_age=target_age
         )
     
     def _to_numpy_array(
@@ -540,6 +558,56 @@ class ImageToCharacterService:
             "face_expression": result.face_expression.value,
             "style_adaptations": result.style_adaptations
         }
+
+    def generate_ccd_v2(self, result: ImageCharacterResult, name: Optional[str] = None) -> CharacterCoreData:
+        """
+        Génère un objet CharacterCoreData (CCD v2) à partir du résultat d'analyse d'image.
+        """
+        if not result.success:
+            raise ValueError(f"Cannot generate CCD from failed image result: {result.error_message}")
+
+        # Mapping des styles
+        art_style = ArtStyle.REALISTIC
+        if self.config.visual_style == "anime":
+            art_style = ArtStyle.ANIME
+        elif self.config.visual_style == "stylized":
+            art_style = ArtStyle.STYLIZED
+            
+        # Mapping des attributs physiques
+        visual = VisualProfile(
+            art_style=art_style,
+            physical_description=result.short_description or result.description or "",
+            main_colors=result.physical_attributes.clothing_colors if result.physical_attributes else []
+        )
+        
+        # Mapping narratif
+        narrative = NarrativeProfile(
+            personality_traits=result.suggested_personality,
+            role=result.suggested_role or "Protagonist"
+        )
+        
+        # Création du CCD
+        ccd = CharacterCoreData(
+            name=name or result.suggested_name or "New Character",
+            creation_method=CreationMethod.VISION_FIRST,
+            visual=visual,
+            narrative=narrative,
+            voice=VoiceProfile() # Default voice
+        )
+        
+        # Génération automatique des Artistic Locks à partir de l'image
+        if result.physical_attributes:
+            attrs = result.physical_attributes
+            if attrs.hair_color:
+                ccd.artistic_locks.append(ArtisticLock(
+                    category="facial", attribute="hair_color", value=attrs.hair_color, strength=LockingStrength.FIRM
+                ))
+            if attrs.eye_color:
+                ccd.artistic_locks.append(ArtisticLock(
+                    category="facial", attribute="eye_color", value=attrs.eye_color, strength=LockingStrength.FIRM
+                ))
+                
+        return ccd
 
 
 # Singleton instance

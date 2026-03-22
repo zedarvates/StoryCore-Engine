@@ -1,10 +1,10 @@
-import * as UI from './ui.js';
-import * as Models from './models.js';
-import * as Backend from './backend.js';
-import { modelDownloadState, setProcessing } from './state.js';
+const UI = require('./ui.js');
+const Models = require('./models.js');
+const Backend = require('./backend.js');
+const { modelDownloadState, setProcessing } = require('./state.js');
 
 // Main initialization function
-export function init() {
+function init() {
     // Initialize UI components
     UI.generateMasterGrid();
     UI.updatePanelDetails();

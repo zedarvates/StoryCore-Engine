@@ -31,7 +31,7 @@ class StoryGenerateResponse(BaseModel):
     critique: Optional[str] = None
 
 @router.post("/generate", response_model=StoryGenerateResponse)
-async def generate_story_endpoint(req: StoryGenerateRequest, user_id: str = Depends(verify_jwt_token)):
+async def generate_story_endpoint(req: StoryGenerateRequest):
     try:
         # Convert strings to Enums
         genre = getattr(StoryGenre, req.genre.upper(), StoryGenre.DRAMA)
@@ -65,7 +65,7 @@ async def generate_story_endpoint(req: StoryGenerateRequest, user_id: str = Depe
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{story_id}", response_model=Dict[str, Any])
-async def get_story(story_id: str, user_id: str = Depends(verify_jwt_token)):
+async def get_story(story_id: str):
     if story_id not in story_service.stories:
         raise HTTPException(status_code=404, detail="Story not found")
     
@@ -85,7 +85,7 @@ async def get_story(story_id: str, user_id: str = Depends(verify_jwt_token)):
         "scenes": [vars(s) for s in story.scenes]
     }
 @router.post("/{story_id}/refine", response_model=StoryGenerateResponse)
-async def refine_story_endpoint(story_id: str, feedback: Dict[str, str], user_id: str = Depends(verify_jwt_token)):
+async def refine_story_endpoint(story_id: str, feedback: Dict[str, str]):
     try:
         if story_id not in story_service.stories:
             raise HTTPException(status_code=404, detail="Story not found")
@@ -109,7 +109,7 @@ async def refine_story_endpoint(story_id: str, feedback: Dict[str, str], user_id
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{story_id}/storyboard", response_model=List[Dict[str, Any]])
-async def generate_storyboard_endpoint(story_id: str, user_id: str = Depends(verify_jwt_token)):
+async def generate_storyboard_endpoint(story_id: str):
     try:
         from backend.storyboard_generator import storyboard_generator
         

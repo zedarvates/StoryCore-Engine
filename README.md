@@ -186,7 +186,11 @@ python scripts/run_e2e_demo.py --canonical --mock
   - **Enhanced Neural Assistant (v4)**: Floating AI companion with contextual pro-active buttons (Storyteller, Style, Logic), account management shortcuts, and dynamic layout adaptation.
   - **tttLRM 3D Reconstruction (CVPR 2026)**: Transform single images or 360 videos into high-fidelity 3D Gaussian Splats at 1024 resolution. Features Test-Time Training (TTT) adaptation for superior geometry.
   - **Native Gaussian Splat Viewer**: Premium 3D viewer integrated into the UI with OrbitControls, real-time rendering, and glassmorphism interface.
-  - **GS-to-Mesh Export**: One-click conversion from Gaussian Splats to standard GLB/OBJ meshes (SuGaR-inspired) for immediate use in Blender or game engines.
+  - **Automated 3D Set Builder**: Automatically drafts 3D blocking layouts (primitives) from script breakdowns. Generates native manifests for **PrimitiveAnything** and **Playbook-nodes** in ComfyUI.
+  - **Pro-Grade Lip-Sync Hub**: End-to-end phoneme-to-viseme pipeline. Generates precise animation data for Blender to sync character mouth movements with AI-generated audio instantly.
+  - **Make-It-Animatable (PuppeT)**: Native support for rigging 3D puppets directly in ComfyUI, allowing AI-driven animation and posing of character meshes.
+  - **Blender-in-ComfyUI Link**: Bidirectional synchronization between Blender's 3D viewport and ComfyUI's generative nodes for real-time AI-enhanced 3D rendering.
+  - **Material Modifier Sync**: Link StoryCore’s aesthetic palettes to ComfyUI material nodes (Roughness, Metallic, Emissive) for consistent look-and-feel across 3D and 2D assets.
 
 </details>
 
@@ -588,7 +592,11 @@ graph TD
 | **Q1 2026** | **Multi-Mode Generation (Social, Music, Doc, Cinema)**                 | ✅ Completed   |
 | **Q2 2026** | Audio Mastering (Auto-Ducking/Isolation)                               | ✅ Completed   |
 | **Q2 2026** | Multi-Angle & Character Consistency                                    | ✅ Completed   |
-| **Q2 2026** | Procedural 3D Scene Generation (Trees, Props, Skyboxes)                | 🔄 In Progress |
+| **Q2 2026** | **Automated 3D Set Builder (Primitives & Blocking)**    | ✅ Completed   |
+| **Q2 2026** | **Lip-Sync Hub (IA Voice to Viseme Animation)**        | ✅ Completed   |
+| **Q2 2026** | **Blender-in-ComfyUI Bidirectional Sync**              | ✅ Completed   |
+| **Q2 2026** | **PuppeT/Make-It-Animatable Node Integration**         | ✅ Completed   |
+| **Q2 2026** | Procedural 3D Environment (Trees, Skyboxes)            | 🔄 In Progress |
 | **Q2 2026** | Addon Marketplace (nexrealm.shop — Auto-update & One-click Install)    | 🔄 In Progress |
 | **Q2 2026** | Image Generation Dialog Enhancement                                    | 🔄 In Progress |
 | **Q2 2026** | AI 3D Reconstruction from Images (tttLRM / 3DGS)                       | ✅ Completed   |

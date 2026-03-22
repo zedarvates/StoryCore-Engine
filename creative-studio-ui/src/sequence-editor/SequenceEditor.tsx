@@ -115,7 +115,8 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
           id: s.id,
           name: s.title || s.name || 'Untitled Shot',
           startTime: Math.round((s.start_time || 0) * FPS),
-          duration: Math.round((s.duration || 1) * FPS),
+          // Enforce 4s minimum duration (Data Contract v1 Requirement)
+          duration: Math.max(4 * FPS, Math.round((s.duration || 1) * FPS)),
           layers: s.layers || [],
           referenceImages: s.referenceImages || [],
           prompt: s.description || s.prompt || '',
@@ -131,14 +132,20 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
           outputPath: s.generated_image_url || s.image || '',
         }));
 
-        // 4. Dispatch to Redux
-        dispatch(reorderShots(mappedShots));
+        // 4. Deduplicate shots (Requirement: Fix duplicate key shot-1)
+        const uniqueShots = mappedShots.filter((shot: Shot, index: number, self: Shot[]) =>
+          index === self.findIndex((s: Shot) => s.id === shot.id)
+        );
 
-        // 5. Update Project Metadata in Redux
+        // 5. Dispatch to Redux
+        dispatch(reorderShots(uniqueShots));
+
+        // 6. Update Project Metadata in Redux
         dispatch(updateMetadata({
           id: sequenceId,
           name: sequenceShots[0]?.name || `Sequence ${sequenceId}`,
           path: globalProject?.path || '',
+          description: globalProject?.global_resume || '', // Map global_resume to description
           modified: Date.now()
         }));
       }
@@ -200,6 +207,10 @@ const SequenceEditorContent: React.FC<SequenceEditorProps> = ({ sequenceId, onBa
       // Save
       { key: 's', ctrlKey: true, action: handleSave, description: 'Save' },
       
+      // Navigation
+      { key: 'h', ctrlKey: true, action: () => onBack?.(), description: 'Back to Dashboard' },
+      { key: 'h', ctrlKey: true, shiftKey: true, action: () => onBack?.(), description: 'Back to Dashboard' },
+
       // Panel Switching (Right Panel)
       { key: '1', action: () => setActiveRightPanel('shotConfig'), description: 'Switch to Shot Config' },
       { key: '2', action: () => setActiveRightPanel('transitions'), description: 'Switch to Transitions' },

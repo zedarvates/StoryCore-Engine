@@ -54,6 +54,9 @@ export interface LocationListProps {
   
   /** Handler for selection changes */
   onSelectionChange?: (ids: string[]) => void;
+
+  /** Handler for when an image is generated */
+  onImageGenerated?: (location: Location, imageUrl: string, prompt?: string) => void;
 }
 
 // ============================================================================
@@ -71,6 +74,7 @@ export function LocationList({
   selectable = false,
   selectedIds = [],
   onSelectionChange,
+  onImageGenerated,
 }: LocationListProps) {
   const {
     locations,
@@ -231,6 +235,7 @@ export function LocationList({
                 showActions={showActions}
                 onEdit={() => onEditLocation(location)}
                 onDelete={() => onDeleteLocation(location)}
+                onImageGenerated={(url, prompt) => onImageGenerated?.(location, url, prompt)}
               />
             ))}
           </div>

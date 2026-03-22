@@ -19,7 +19,8 @@ import {
   Image as ImageIcon,
   Sparkles,
   RefreshCw,
-  Copy
+  Copy,
+  ArrowRight
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Character } from '@/types/character';
@@ -94,13 +95,15 @@ interface ImageCharacterCreatorProps {
   genre?: string;
   visualStyle?: string;
   initialImage?: File;
+  productionMode?: string;
 }
 
 export function ImageCharacterCreator({
   onCharacterCreated,
   genre,
   visualStyle,
-  initialImage
+  initialImage,
+  productionMode
 }: ImageCharacterCreatorProps) {
   // State
   const [image, setImage] = useState<string | null>(null);
@@ -110,6 +113,14 @@ export function ImageCharacterCreator({
   const [result, setResult] = useState<CharacterFromImageResponse | null>(null);
   const [activeTab, setActiveTab] = useState<'upload' | 'result' | 'prompts'>('upload');
   const [providers, setProviders] = useState<ProvidersResponse | null>(null);
+
+  // Result override state
+  const [editableResult, setEditableResult] = useState<{
+    name: string;
+    role: string;
+    gender: string;
+    ageRange: string;
+  }>({ name: '', role: '', gender: '', ageRange: '' });
   
   // Form state
   const [characterName, setCharacterName] = useState('');
@@ -118,6 +129,9 @@ export function ImageCharacterCreator({
   const [extractFace, setExtractFace] = useState(true);
   const [analyzeImage, setAnalyzeImage] = useState(true);
   const [applyGenreAdaptations, setApplyGenreAdaptations] = useState(true);
+  const [targetGender, setTargetGender] = useState<string>('');
+  const [targetAge, setTargetAge] = useState<string>('');
+  const [targetArchetype, setTargetArchetype] = useState<string>('Protagonist');
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -125,8 +139,9 @@ export function ImageCharacterCreator({
   // Store
   const project = useAppStore((state) => state.project);
   const projectData = project as unknown as Record<string, unknown>;
-  const projectGenre = genre || (projectData?.genre as string) || 'fantasy';
+  const projectGenre = genre || (projectData?.genre as string) || 'contemporary';
   const projectStyle = visualStyle || (projectData?.visualStyle as string) || 'cinematic';
+  const projectProductionMode = productionMode || (projectData?.productionMode as string) || 'fiction';
   
   // Fetch providers and handle initial image on mount
   React.useEffect(() => {
@@ -222,10 +237,13 @@ export function ImageCharacterCreator({
       if (characterRole) formData.append('role', characterRole);
       formData.append('genre', projectGenre);
       formData.append('visual_style', projectStyle);
+      formData.append('production_mode', projectProductionMode);
       if (additionalContext) formData.append('additional_context', additionalContext);
       formData.append('extract_face', String(extractFace));
       formData.append('analyze_image', String(analyzeImage));
       formData.append('apply_genre_adaptations', String(applyGenreAdaptations));
+      if (targetGender) formData.append('target_gender', targetGender);
+      if (targetAge) formData.append('target_age', targetAge);
       
       // Call API
       const response = await fetch('/api/character/from-image', {
@@ -242,14 +260,24 @@ export function ImageCharacterCreator({
       setResult(data);
       setActiveTab('result');
       
-      // Update form with suggested values
+      // Update form and editable result with suggested values
       if (data.suggested_name) setCharacterName(data.suggested_name);
       if (data.suggested_role) setCharacterRole(data.suggested_role);
+
+      // Initialize editable result
+      const converted = convertToCharacter(data);
+      setEditableResult({
+        name: converted.name || data.suggested_name || '',
+        role: converted.role?.archetype || 'Protagonist',
+        gender: converted.visual_identity?.gender || 'Other',
+        ageRange: converted.visual_identity?.age_range || 'Adult (30-49)'
+      });
       
       // Callback
-      if (data.success && onCharacterCreated) {
-        onCharacterCreated(convertToCharacter(data));
-      }
+      // Do NOT call callback immediately, let user review result in the tab
+      // if (data.success && onCharacterCreated) {
+      //   onCharacterCreated(convertToCharacter(data));
+      // }
       
     } catch (err) {
       console.error('Failed to create character:', err);
@@ -259,23 +287,127 @@ export function ImageCharacterCreator({
     }
   };
   
+  const handleConfirmResult = () => {
+    if (result && onCharacterCreated) {
+      const finalCharacter = convertToCharacter(result);
+      // Apply overrides from manual edits
+      if (finalCharacter.name) finalCharacter.name = editableResult.name;
+      if (finalCharacter.role) finalCharacter.role.archetype = editableResult.role;
+      if (finalCharacter.visual_identity) {
+        finalCharacter.visual_identity.gender = editableResult.gender as import('@/types/character').Gender;
+        finalCharacter.visual_identity.age_range = editableResult.ageRange;
+      }
+      
+      onCharacterCreated(finalCharacter);
+    }
+  };
+
   const convertToCharacter = (data: CharacterFromImageResponse): Partial<Character> => {
+    // Mapping to CHARACTER_ARCHETYPES from constants/characterOptions.ts
+    const archetypeMapping: Record<string, string> = {
+      'protagonist': 'Protagonist',
+      'hero': 'Protagonist',
+      'antagonist': 'Antagonist',
+      'villain': 'Antagonist',
+      'mentor': 'Mentor',
+      'sidekick': 'Sidekick',
+      'love_interest': 'Love Interest',
+      'comic_relief': 'Trickster'
+    };
+
+    // Use user-provided archetype hint if available, otherwise map from AI role
+    let archetype = targetArchetype || 'Protagonist';
+    if (!targetArchetype || targetArchetype === '') {
+      const roleString = (data.role || data.suggested_role || 'Protagonist').toLowerCase();
+      archetype = archetypeMapping[roleString] || 'Protagonist';
+    }
+
+    // Map gender to GENDER_OPTIONS, respecting user hint if provided
+    let gender = (targetGender && targetGender !== '') ? 
+      (targetGender.charAt(0).toUpperCase() + targetGender.slice(1)) : 
+      'Other';
+    
+    if (!targetGender || targetGender === '') {
+      const genderInput = (data.physical_attributes?.gender || '').toLowerCase();
+      if (genderInput.includes('female')) gender = 'Female';
+      else if (genderInput.includes('male')) gender = 'Male';
+      else if (genderInput.includes('non-binary')) gender = 'Non-binary';
+    }
+
+    // Map age to AGE_RANGES, respecting user hint if provided
+    let ageRange = 'Adult (30-49)';
+    const ageMap: Record<string, string> = {
+      'child': 'Child (0-12)',
+      'teen': 'Teenager (13-19)',
+      'young_adult': 'Young Adult (20-29)',
+      'adult': 'Adult (30-49)',
+      'middle_aged': 'Middle-Aged (50-64)',
+      'senior': 'Senior (65+)'
+    };
+
+    if (targetAge && ageMap[targetAge]) {
+      ageRange = ageMap[targetAge];
+    } else {
+      const ageInput = (data.physical_attributes?.age_range || '').toLowerCase();
+      if (ageInput.includes('child')) ageRange = 'Child (0-12)';
+      else if (ageInput.includes('teen')) ageRange = 'Teenager (13-19)';
+      else if (ageInput.includes('young')) ageRange = 'Young Adult (20-29)';
+      else if (ageInput.includes('middle')) ageRange = 'Middle-Aged (50-64)';
+      else if (ageInput.includes('senior') || ageInput.includes('old')) ageRange = 'Senior (65+)';
+      else if (ageInput.includes('adult')) ageRange = 'Adult (30-49)';
+    }
+
     return {
-      character_id: data.character_id,
-      name: data.name || 'Unnamed Character',
-      role: data.role || 'character',
-      description: data.description || '',
-      visual_description: data.short_description || '',
-      personality_traits: data.personality_traits || [],
-      visual_identity: data.physical_attributes as unknown as Character['visual_identity'],
-      prompts: {
-        portrait: data.portrait_prompt,
-        full_body: data.full_body_prompt
+      character_id: data.character_id || crypto.randomUUID(),
+      name: data.name || data.suggested_name || 'Unnamed Character',
+      creation_method: 'ai_vision', 
+      creation_timestamp: Date.now(),
+      role: {
+        archetype: archetype,
+        narrative_function: data.role || 'Supporting Character',
+        character_arc: 'positive'
       },
-      face_extracted: data.face_extracted,
-      face_image_base64: data.face_image_base64,
-      style_adaptations: data.style_adaptations
-    } as unknown as Partial<Character>;
+      description: data.description || '',
+      visual_identity: {
+        hair_color: data.physical_attributes?.hair_color || '',
+        hair_style: data.physical_attributes?.hair_style || '',
+        hair_length: data.physical_attributes?.hair_length || '',
+        eye_color: data.physical_attributes?.eye_color || '',
+        eye_shape: data.physical_attributes?.eye_shape || '',
+        skin_tone: data.physical_attributes?.skin_tone || '',
+        facial_structure: data.physical_attributes?.face_shape || '',
+        distinctive_features: data.physical_attributes?.distinctive_features || [],
+        age_range: ageRange,
+        gender: gender as any,
+        height: '',
+        build: data.physical_attributes?.body_type || '',
+        posture: '',
+        clothing_style: data.physical_attributes?.clothing_style || '',
+        color_palette: data.physical_attributes?.clothing_colors || [],
+        reference_images: [],
+        reference_sheet_images: []
+      },
+      personality: {
+        traits: data.personality_traits || [],
+        values: [],
+        fears: [],
+        desires: [],
+        flaws: [],
+        strengths: [],
+        temperament: '',
+        communication_style: ''
+      },
+      background: {
+        origin: '',
+        occupation: data.role || '',
+        education: '',
+        family: '',
+        significant_events: [],
+        current_situation: ''
+      },
+      relationships: [],
+      prompts: [data.portrait_prompt || '', data.full_body_prompt || ''].filter(Boolean)
+    } as Partial<Character>;
   };
   
   const copyToClipboard = (text: string) => {
@@ -379,18 +511,21 @@ export function ImageCharacterCreator({
             )}
             <input
               ref={fileInputRef}
+              id="character-image-upload"
               type="file"
               accept="image/*"
               onChange={handleFileSelect}
               className="image-character-creator__file-input"
+              title="Upload character image"
             />
           </div>
           
           {/* Form Fields */}
           <div className="image-character-creator__form">
             <div className="image-character-creator__field">
-              <label>Character Name (optional)</label>
+              <label htmlFor="character-name">Character Name (optional)</label>
               <input
+                id="character-name"
                 type="text"
                 value={characterName}
                 onChange={(e) => setCharacterName(e.target.value)}
@@ -399,10 +534,12 @@ export function ImageCharacterCreator({
             </div>
             
             <div className="image-character-creator__field">
-              <label>Character Role (optional)</label>
+              <label htmlFor="character-role">Character Role (optional)</label>
               <select
+                id="character-role"
                 value={characterRole}
                 onChange={(e) => setCharacterRole(e.target.value)}
+                title="Select suggested character role"
               >
                 <option value="">Auto-detected</option>
                 <option value="protagonist">Protagonist</option>
@@ -413,10 +550,71 @@ export function ImageCharacterCreator({
                 <option value="comic_relief">Comic Relief</option>
               </select>
             </div>
+
+            <div className="image-character-creator__field">
+              <label htmlFor="character-archetype">Character Archetype (optional hint)</label>
+              <select
+                id="character-archetype"
+                value={targetArchetype}
+                onChange={(e) => setTargetArchetype(e.target.value)}
+                title="Select character archetype"
+              >
+                <option value="">Auto-detected</option>
+                <option value="Protagonist">Protagonist</option>
+                <option value="Antagonist">Antagonist</option>
+                <option value="Mentor">Mentor</option>
+                <option value="Sidekick">Sidekick</option>
+                <option value="Love Interest">Love Interest</option>
+                <option value="Trickster">Trickster</option>
+                <option value="Guardian">Guardian</option>
+                <option value="Herald">Herald</option>
+                <option value="Shapeshifter">Shapeshifter</option>
+              </select>
+            </div>
+
+            <div className="image-character-creator__fields-row">
+              <div className="image-character-creator__field">
+                <label htmlFor="character-gender">Gender (optional hint)</label>
+                <select
+                  id="character-gender"
+                  value={targetGender}
+                  onChange={(e) => setTargetGender(e.target.value)}
+                  title="Select character gender"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="">Auto-detected</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="non-binary">Non-binary</option>
+                </select>
+              </div>
+
+              <div className="image-character-creator__field">
+                <label htmlFor="character-age">Age Range (optional hint)</label>
+                <select
+                  id="character-age"
+                  value={targetAge}
+                  onChange={(e) => setTargetAge(e.target.value)}
+                  title="Select character age range"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="">Auto-detected</option>
+                  <option value="child">Child</option>
+                  <option value="teen">Teen</option>
+                  <option value="young_adult">Young Adult</option>
+                  <option value="adult">Adult</option>
+                  <option value="middle_aged">Middle Aged</option>
+                  <option value="senior">Senior</option>
+                </select>
+              </div>
+            </div>
             
             <div className="image-character-creator__field">
-              <label>Additional Context</label>
+              <label htmlFor="character-context">Additional Context</label>
               <textarea
+                id="character-context"
                 value={additionalContext}
                 onChange={(e) => setAdditionalContext(e.target.value)}
                 placeholder="Any additional context for character creation..."
@@ -514,6 +712,31 @@ export function ImageCharacterCreator({
             </div>
           )}
           
+          {/* Selection Actions */}
+          <div className="flex gap-4 mb-6">
+            <button
+              className="px-6 py-2.5 rounded-xl border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all font-semibold text-sm"
+              onClick={() => {
+                setResult(null);
+                setActiveTab('upload');
+              }}
+            >
+              Start Over
+            </button>
+            <button
+              className="flex-1 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 transition-all font-bold text-sm flex items-center justify-center"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleConfirmResult();
+              }}
+            >
+              Confirm and Edit Character
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </button>
+          </div>
+
+          <div className="h-px bg-gray-100 dark:bg-gray-800 mb-6" />
+          
           {/* Face Preview */}
           {result.face_extracted && result.face_image_base64 && (
             <div className="image-character-creator__face-preview">
@@ -532,20 +755,77 @@ export function ImageCharacterCreator({
           {/* Character Info */}
           {result.success && (
             <div className="image-character-creator__character-info">
-              <div className="image-character-creator__info-row">
-                <label>Name:</label>
-                <span>{result.name || 'Not specified'}</span>
-              </div>
-              
-              <div className="image-character-creator__info-row">
-                <label>Role:</label>
-                <span>{result.role || 'Not specified'}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="image-character-creator__field">
+                  <label>Name:</label>
+                  <input
+                    type="text"
+                    value={editableResult.name}
+                    onChange={(e) => setEditableResult({ ...editableResult, name: e.target.value })}
+                    placeholder="Character Name"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                  />
+                </div>
+                
+                <div className="image-character-creator__field">
+                  <label>Archetype:</label>
+                  <select
+                    value={editableResult.role}
+                    onChange={(e) => setEditableResult({ ...editableResult, role: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                    title="Edit character archetype"
+                  >
+                    <option value="Protagonist">Protagonist</option>
+                    <option value="Antagonist">Antagonist</option>
+                    <option value="Mentor">Mentor</option>
+                    <option value="Sidekick">Sidekick</option>
+                    <option value="Love Interest">Love Interest</option>
+                    <option value="Trickster">Trickster</option>
+                    <option value="Guardian">Guardian</option>
+                    <option value="Herald">Herald</option>
+                    <option value="Shapeshifter">Shapeshifter</option>
+                  </select>
+                </div>
+
+                <div className="image-character-creator__field">
+                  <label>Gender:</label>
+                  <select
+                    value={editableResult.gender}
+                    onChange={(e) => setEditableResult({ ...editableResult, gender: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                    title="Edit character gender"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Non-binary">Non-binary</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="image-character-creator__field">
+                  <label>Age Range:</label>
+                  <select
+                    value={editableResult.ageRange}
+                    onChange={(e) => setEditableResult({ ...editableResult, ageRange: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                    title="Edit character age range"
+                  >
+                    <option value="Child (0-12)">Child (0-12)</option>
+                    <option value="Teenager (13-19)">Teenager (13-19)</option>
+                    <option value="Young Adult (20-29)">Young Adult (20-29)</option>
+                    <option value="Adult (30-49)">Adult (30-49)</option>
+                    <option value="Middle-Aged (50-64)">Middle-Aged (50-64)</option>
+                    <option value="Senior (65+)">Senior (65+)</option>
+                  </select>
+                </div>
               </div>
               
               {result.short_description && (
-                <div className="image-character-creator__info-row">
-                  <label>Description:</label>
-                  <p>{result.short_description}</p>
+                <div className="image-character-creator__info-row mb-6">
+                  <label>Initial Analysis:</label>
+                  <p className="text-sm text-gray-500 italic p-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700">
+                    {result.short_description}
+                  </p>
                 </div>
               )}
               

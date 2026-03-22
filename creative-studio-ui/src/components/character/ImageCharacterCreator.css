@@ -178,6 +178,12 @@
   gap: 12px;
 }
 
+.image-character-creator__fields-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
 .image-character-creator__field {
   display: flex;
   flex-direction: column;

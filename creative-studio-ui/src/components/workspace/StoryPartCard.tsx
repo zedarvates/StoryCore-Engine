@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Edit3, ChevronDown, ChevronUp, Trash2, Eye, Copy, Check } from 'lucide-react';
+import { FileText, Edit3, ChevronDown, ChevronUp, Trash2, Eye, Copy, Check, Sparkles } from 'lucide-react';
 import type { StoryPart, StoryPartType } from '@/types/story';
 import { cn } from '@/lib/utils';
 import './StoryPartCard.css';
@@ -70,9 +70,10 @@ export function StoryPartCard({
     : part.content;
 
   // Tronquer le résumé pour l'affichage
-  const truncatedSummary = part.summary.length > 100 
-    ? part.summary.substring(0, 100) + '...' 
-    : part.summary;
+  const summary = part.summary || '';
+  const truncatedSummary = summary.length > 100 
+    ? summary.substring(0, 100) + '...' 
+    : summary;
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(part.content);
@@ -100,7 +101,6 @@ export function StoryPartCard({
         isExpanded && 'story-part-card--expanded',
         className
       )}
-      style={{ '--part-color': config.color, '--part-bg': config.colorBg } as React.CSSProperties}
     >
       {/* Header */}
       <div className="story-part-card__header" onClick={() => setIsExpanded(!isExpanded)}>
@@ -127,32 +127,41 @@ export function StoryPartCard({
         
         <div className="story-part-card__header-right">
           {/* Actions rapides */}
-          <div className="story-part-card__quick-actions" onClick={(e) => e.stopPropagation()}>
-            {onPreview && (
-              <button
-                className="story-part-card__action-btn"
-                onClick={() => onPreview(part)}
-                title="Aperçu"
-              >
-                <Eye className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              className="story-part-card__action-btn"
-              onClick={handleCopy}
-              title="Copier le contenu"
-            >
-              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-            </button>
-            {onEdit && (
+            <div className="story-part-card__quick-actions" onClick={(e) => e.stopPropagation()}>
               <button
                 className="story-part-card__action-btn story-part-card__action-btn--primary"
-                onClick={() => onEdit(part)}
+                onClick={() => {
+                   window.dispatchEvent(new CustomEvent('storycore:gen-char-sheet', { 
+                       detail: { storyPartId: part.id, type: 'STORY_PART', prompt: part.content } 
+                   }));
+                }}
+                title="Generer Image"
+              >
+                <Sparkles className="w-4 h-4" />
+              </button>
+              {onPreview && (
+                <button
+                  className="story-part-card__action-btn"
+                  onClick={() => onPreview(part)}
+                  title="Aperçu"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                className="story-part-card__action-btn"
+                onClick={handleCopy}
+                title="Copier le contenu"
+              >
+                {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+              </button>
+              <button
+                className="story-part-card__action-btn story-part-card__action-btn--primary"
+                onClick={() => setIsEditing(!isEditing)}
                 title="Éditer"
               >
                 <Edit3 className="w-4 h-4" />
               </button>
-            )}
             {onDelete && (
               <button
                 className="story-part-card__action-btn story-part-card__action-btn--danger"
@@ -235,7 +244,7 @@ export function StoryPartCard({
                 <div className="story-part-card__score-bar">
                   <div 
                     className="story-part-card__score-fill" 
-                    style={{ width: `${part.reviewScore.tension}%` }}
+                    data-progress={part.reviewScore.tension}
                   />
                 </div>
                 <span className="story-part-card__score-value">{part.reviewScore.tension}</span>
@@ -245,7 +254,7 @@ export function StoryPartCard({
                 <div className="story-part-card__score-bar">
                   <div 
                     className="story-part-card__score-fill story-part-card__score-fill--drama" 
-                    style={{ width: `${part.reviewScore.drama}%` }}
+                    data-progress={part.reviewScore.drama}
                   />
                 </div>
                 <span className="story-part-card__score-value">{part.reviewScore.drama}</span>
@@ -255,7 +264,7 @@ export function StoryPartCard({
                 <div className="story-part-card__score-bar">
                   <div 
                     className="story-part-card__score-fill story-part-card__score-fill--sense" 
-                    style={{ width: `${part.reviewScore.sense}%` }}
+                    data-progress={part.reviewScore.sense}
                   />
                 </div>
                 <span className="story-part-card__score-value">{part.reviewScore.sense}</span>
@@ -265,7 +274,7 @@ export function StoryPartCard({
                 <div className="story-part-card__score-bar">
                   <div 
                     className="story-part-card__score-fill story-part-card__score-fill--emotion" 
-                    style={{ width: `${part.reviewScore.emotion}%` }}
+                    data-progress={part.reviewScore.emotion}
                   />
                 </div>
                 <span className="story-part-card__score-value">{part.reviewScore.emotion}</span>
@@ -275,7 +284,7 @@ export function StoryPartCard({
                 <div className="story-part-card__score-bar story-part-card__score-bar--overall">
                   <div 
                     className="story-part-card__score-fill story-part-card__score-fill--overall" 
-                    style={{ width: `${part.reviewScore.overall * 10}%` }}
+                    data-progress={part.reviewScore.overall * 10}
                   />
                 </div>
                 <span className="story-part-card__score-value">{part.reviewScore.overall}/10</span>
@@ -300,7 +309,7 @@ export function StoryPartCard({
               <button 
                 className="story-part-card__confirm-btn story-part-card__confirm-btn--delete"
                 onClick={() => {
-                  onDelete && onDelete(part.id);
+                  if (onDelete) onDelete(part.id);
                   setShowConfirmDelete(false);
                 }}
               >

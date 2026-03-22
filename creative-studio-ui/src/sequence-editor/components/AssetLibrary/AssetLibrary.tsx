@@ -37,6 +37,8 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
   { id: 'transitions', name: 'Transitions', icon: '↔️' },
   { id: 'effects', name: 'Effects', icon: '✨' },
   { id: 'audio-sound', name: 'Audio & Sound', icon: '🔊' },
+  { id: 'video-footage', name: 'Videos', icon: '📽️' },
+  { id: '3d-models', name: '3D Models', icon: '📦' },
   { id: 'custom-presets', name: 'My Presets', icon: '💾' },
 ];
 
@@ -154,6 +156,23 @@ function getAssetsForCategory(categoryId: string, sources: AssetSource[]): Servi
         // Audio & sound: audio type assets
         allAssets.push(...sourceAssets.filter(a =>
           a.type === 'audio' || source.id === 'sound'
+        ));
+        break;
+
+      case 'video-footage':
+        // Videos: video type assets from project or library
+        allAssets.push(...sourceAssets.filter(a =>
+          a.type === 'video' || (typeof a.metadata?.type === 'string' && a.metadata.type === 'video')
+        ));
+        break;
+
+      case '3d-models':
+        // 3D models: glb, gltf, obj files
+        allAssets.push(...sourceAssets.filter(a =>
+          (a.type as string) === '3d' || 
+          (Array.isArray(a.metadata?.tags) && a.metadata?.tags.includes('3d')) ||
+          (typeof a.metadata?.filename === 'string' && 
+           ['glb', 'gltf', 'obj', 'fbx'].some(ext => a.metadata?.filename?.toLowerCase().endsWith(ext)))
         ));
         break;
     }

@@ -2,8 +2,7 @@ import React, { useCallback, useState, useEffect, useContext } from 'react';
 import { WizardProvider, useWizard } from '@/contexts/WizardContext';
 import { ProductionWizardContainer as WizardContainer } from '../production-wizards/ProductionWizardContainer';
 import type { WizardStep } from '@/types';
-import type { Story } from '@/types/story';
-import { createEmptyStory } from '@/types/story';
+import { createEmptyStory, type Story, type ProductionMode } from '@/types/story';
 import { useStore } from '@/store';
 import { Step1StorySetup } from './Step1StorySetup';
 import { Step2CharacterSelection } from './Step2CharacterSelection';
@@ -199,12 +198,23 @@ export function StorytellerWizard({ onComplete, onCancel, initialData }: Storyte
   const getInitialStoryData = useCallback((): Partial<Story> => {
     const baseData = initialData || createEmptyStory();
 
+    if (currentProject?.projectSetup) {
+      const setup = currentProject.projectSetup;
+      return {
+        ...baseData,
+        genre: (setup.genre as string[])?.map(g => g.toLowerCase()) || baseData.genre,
+        tone: (setup.tone as string[])?.map(t => t.toLowerCase()) || baseData.tone,
+        productionMode: setup.productionMode as ProductionMode || baseData.productionMode,
+      };
+    }
+
     if (currentProject?.metadata) {
       const projectMeta = currentProject.metadata;
       return {
         ...baseData,
-        genre: (projectMeta.genre as string[]) || baseData.genre,
-        tone: (projectMeta.tone as string[]) || baseData.tone,
+        genre: (projectMeta.genre as string[])?.map(g => g.toLowerCase()) || baseData.genre,
+        tone: (projectMeta.tone as string[])?.map(t => t.toLowerCase()) || baseData.tone,
+        productionMode: projectMeta.productionMode as ProductionMode || baseData.productionMode,
         length: projectMeta.projectType === 'court-metrage' ? 'scene' :
           projectMeta.projectType === 'moyen-metrage' ? 'short_story' :
             projectMeta.projectType === 'long-metrage-standard' ? 'novella' :

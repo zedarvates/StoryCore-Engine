@@ -132,8 +132,28 @@ export class OllamaClient {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => 'Unable to read error response');
-        logger.error(`[OllamaClient] ❌ Generation failed with status ${response.status}: ${errorText}`);
-        throw new Error(`Generation failed: ${response.statusText}`);
+        let errorMessage = response.statusText;
+        
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error) {
+            errorMessage = errorJson.error;
+          }
+        } catch (_) {
+          // If not JSON, use the raw text if short
+          if (errorText.length > 0 && errorText.length < 200) {
+            errorMessage = errorText;
+          }
+        }
+
+        logger.error(`[OllamaClient] ❌ Generation failed with status ${response.status}: ${errorMessage}`);
+        
+        // Specialize the error for memory issues
+        if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('capacity')) {
+          throw new Error(`LLM Memory Error: ${errorMessage}. Try selecting a smaller model (e.g. 4B or 8B versions).`);
+        }
+        
+        throw new Error(`Generation failed: ${errorMessage}`);
       }
 
       const data: OllamaGenerateResponse = await response.json();
@@ -393,17 +413,23 @@ export class OllamaClient {
       }
 
       // 2. Global preferences if category match fails
-      const preferredNames = ['llama3', 'llama3.1', 'llama3.2', 'mistral', 'gemma', 'phi3', 'llama2'];
+      // Prioritize smaller models (4b, 8b, mini) over massive ones (70b, expert)
+      const preferredNames = [
+        'gemma3:4b', 'gemma3:8b', 'llama3.2:3b', 'llama3.1:8b', 
+        'gemma3', 'llama3.2', 'llama3.1', 'llama3:8b', 'mistral', 'gemma', 'phi3', 'phi'
+      ];
+      
       for (const pref of preferredNames) {
-        const found = models.find(m => m.name.toLowerCase().includes(pref));
+        const found = models.find(m => m.name.toLowerCase().includes(pref) && !m.name.includes('70b'));
         if (found) return found.name;
       }
-
-      // 3. Last resort: use the first available model
-      return models[0].name;
+      
+      // 3. Fallback to any small model or just the first available
+      const smallish = models.find(m => !m.name.includes('70b'));
+      return smallish ? smallish.name : models[0].name;
     } catch (error) {
-      logger.error('[OllamaClient] Error detecting best model, falling back to llama3:', error);
-      return 'llama3'; // Default fallback
+      logger.error('[OllamaClient] Error detecting best model, falling back to gemma3:4b:', error);
+      return 'gemma3:4b'; // Default fallback
     }
   }
 

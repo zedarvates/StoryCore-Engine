@@ -20,7 +20,8 @@ class KittenTTSConfig:
     default_voice: str = "natural_1"
     sample_rate: int = 24000
     speed: float = 1.0
-    pitch: float = 1.0
+    pitch_offset: float = 0.0 # Semitones (-12 to +12)
+    intonation: str = "stable" # stable, emotional, volatile, whisper, shout
     emotion_control: bool = True
     multi_speaker: bool = True
 
@@ -70,15 +71,19 @@ class KittenTTSIntegration:
 
     async def synthesize(self, text: str, voice_id: Optional[str] = None, 
                         emotion: Optional[str] = None, 
-                        speed: Optional[float] = None) -> TTSResult:
+                        speed: Optional[float] = None,
+                        pitch_offset: Optional[float] = None,
+                        intonation: Optional[str] = None) -> TTSResult:
         """
         Synthesizes speech from text with advanced controls.
         """
         start_time = time.time()
         v_id = voice_id or self.config.default_voice
         spd = speed or self.config.speed
+        p_offset = pitch_offset if pitch_offset is not None else self.config.pitch_offset
+        intn = intonation or self.config.intonation
         
-        self.logger.info(f"Synthesizing text: '{text[:30]}...' with voice {v_id}, emotion={emotion}")
+        self.logger.info(f"Synthesizing text: '{text[:30]}...' with voice {v_id}, emotion={emotion}, pitch={p_offset}, intonation={intn}")
 
         try:
             # 1. Model Inference (Mocked)
@@ -103,11 +108,24 @@ class KittenTTSIntegration:
                 word_ts.append({"word": w, "start": current_t, "end": current_t + dur})
                 current_t += dur
 
+            # Reset timer for phoneme simulation (approximate)
+            current_t = 0.0
+            phonemes = []
+            for i, word in enumerate(words):
+                if not word: continue
+                dur = 0.3 / (speed or 1.0)
+                # First letter as viseme
+                phonemes.append({"phoneme": word[0].upper(), "start_time": current_t + (i * dur), "duration": dur/2})
+                # If word has > 3 chars, add a second phoneme halfway
+                if len(word) > 3:
+                     phonemes.append({"phoneme": word[2].upper(), "start_time": current_t + (i * dur) + dur/2, "duration": dur/2})
+
             return TTSResult(
                 success=True,
                 audio_path=str(output_path),
-                duration=current_t,
+                duration=current_t + (len(words) * 0.3),
                 word_timestamps=word_ts,
+                phoneme_alignment=phonemes,
                 voice_used=v_id,
                 processing_time=processing_time
             )

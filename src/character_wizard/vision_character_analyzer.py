@@ -213,7 +213,9 @@ class VisionCharacterAnalyzer:
         image: Union[np.ndarray, str, Path, Image.Image],
         genre: Optional[str] = None,
         style: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
+        target_gender: Optional[str] = None,
+        target_age: Optional[str] = None
     ) -> CharacterAnalysisResult:
         """
         Analyze an image and extract character information.
@@ -223,6 +225,8 @@ class VisionCharacterAnalyzer:
             genre: Project genre for style adaptation
             style: Visual style for description adaptation
             additional_context: Additional context for analysis
+            target_gender: Optional gender hint (user-provided)
+            target_age: Optional age range hint (user-provided)
             
         Returns:
             CharacterAnalysisResult with extracted information
@@ -243,7 +247,13 @@ class VisionCharacterAnalyzer:
                 )
             
             # Build the analysis prompt
-            prompt = self._build_analysis_prompt(genre, style, additional_context)
+            prompt = self._build_analysis_prompt(
+                genre, 
+                style, 
+                additional_context, 
+                target_gender, 
+                target_age
+            )
             
             # Call the appropriate vision provider
             if self.config.provider == VisionProvider.OLLAMA:
@@ -313,10 +323,13 @@ class VisionCharacterAnalyzer:
         self,
         genre: Optional[str] = None,
         style: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
+        target_gender: Optional[str] = None,
+        target_age: Optional[str] = None
     ) -> str:
         """Build the analysis prompt for the vision model"""
         prompt = """Analyze this image and extract detailed character information for character creation. 
+Your description and suggestions MUST strictly adhere to the specified narrative genre.
 
 Provide your response as a JSON object with the following structure:
 
@@ -343,15 +356,23 @@ Provide your response as a JSON object with the following structure:
         "expression": "neutral/smiling/serious/surprised/etc.",
         "mood_hint": "confident/shy/mysterious/friendly/etc."
     },
-    "suggested_name": "A name suggestion based on appearance",
+    "suggested_name": "A name suggestion based on appearance and genre",
     "suggested_personality": ["trait1", "trait2", "trait3"],
     "suggested_role": "protagonist/antagonist/mentor/sidekick/love interest/etc."
 }
 """
         
         if genre:
-            prompt += f"\nConsider that this character will be used in a {genre} story. "
-            prompt += f"Adapt the personality suggestions and role to fit the {genre} genre.\n"
+            prompt += f"\nCRITICAL: This character is for a {genre.upper()} story. "
+            prompt += f"STRICT ADHERENCE REQUIRED: DO NOT use fantasy tropes (like medieval armor, swords, magic orcs) if the genre is contemporary or sci-fi. "
+            prompt += f"All clothing, accessories, and descriptions MUST be consistent with a {genre} setting.\n"
+            prompt += f"Ensure the description, suggested personality, and role are perfectly matched to the {genre} world.\n"
+        
+        if target_gender:
+            prompt += f"\nHINT: The user identifies this character as {target_gender.upper()}. Prioritize this in your analysis.\n"
+        
+        if target_age:
+            prompt += f"\nHINT: The character's age range is estimated as {target_age.upper()}. Use this as a reference.\n"
         
         if style:
             prompt += f"\nThe visual style is {style}. Adapt the description accordingly.\n"

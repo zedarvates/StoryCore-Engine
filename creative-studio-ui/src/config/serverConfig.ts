@@ -230,7 +230,7 @@ export const createConfig = (): AppConfig => {
     },
     ollama: {
       baseUrl: getEnvString('VITE_OLLAMA_URL', 'http://localhost:11434') || 'http://localhost:11434',
-      model: getEnvString('VITE_OLLAMA_MODEL', 'qwen3:8b') || 'qwen3:8b',
+      model: getEnvString('VITE_OLLAMA_MODEL', 'gemma3:4b') || 'gemma3:4b',
       timeout: getEnvNumber('VITE_OLLAMA_TIMEOUT', 300000),
       embeddingModel: getEnvString('VITE_OLLAMA_EMBEDDING_MODEL', 'nomic-embed-text') || 'nomic-embed-text',
     },

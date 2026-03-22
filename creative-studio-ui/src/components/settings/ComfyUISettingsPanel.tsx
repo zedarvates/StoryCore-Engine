@@ -129,6 +129,9 @@ export function ComfyUISettingsPanel({
   const [inpaintWorkflow, setInpaintWorkflow] = useState(
     currentConfig?.workflows?.inpainting || ''
   );
+  const [characterWorkflow, setCharacterWorkflow] = useState(
+    currentConfig?.workflows?.characterGeneration || ''
+  );
 
   const [checkpoint, setCheckpoint] = useState(
     currentConfig?.models?.preferredCheckpoint || ''
@@ -301,6 +304,7 @@ export function ComfyUISettingsPanel({
           videoGeneration: videoWorkflow,
           upscaling: upscaleWorkflow,
           inpainting: inpaintWorkflow,
+          characterGeneration: characterWorkflow,
         },
         models: {
           preferredCheckpoint: checkpoint,
@@ -383,7 +387,7 @@ export function ComfyUISettingsPanel({
                   setConnectionStatus({ state: 'idle' });
                 }
               }}
-              placeholder="http://localhost:8188"
+              placeholder="http://127.0.0.1:8000"
               className={cn(
                 serverUrl && validateServerUrl(serverUrl) && 'border-red-500 focus-visible:ring-red-500'
               )}
@@ -391,7 +395,7 @@ export function ComfyUISettingsPanel({
               aria-describedby={serverUrl && validateServerUrl(serverUrl) ? 'serverUrl-error' : undefined}
             />
             <p className="text-xs text-muted-foreground">
-              The URL where your ComfyUI server is running (default: http://localhost:8188)
+              The URL where your ComfyUI server is running (default: http://127.0.0.1:8000)
             </p>
             {serverUrl && validateServerUrl(serverUrl) && (
               <p id="serverUrl-error" className="text-xs text-red-600 dark:text-red-400" role="alert">
@@ -797,7 +801,24 @@ export function ComfyUISettingsPanel({
               )}
             </div>
 
-            {/* Upscaling Workflow */}
+            {/* Character Generation Workflow */}
+            <div className="space-y-2">
+              <label htmlFor="characterWorkflow" className="text-sm font-medium">Character Generation</label>
+              <Select value={characterWorkflow} onValueChange={setCharacterWorkflow}>
+                <SelectTrigger id="characterWorkflow">
+                  <SelectValue placeholder="Select workflow" />
+                </SelectTrigger>
+                <SelectContent>
+                  {connectionStatus.serverInfo.availableWorkflows
+                    .filter(w => w.type === 'image')
+                    .map((workflow) => (
+                      <SelectItem key={workflow.id} value={workflow.id}>
+                        {workflow.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="upscaleWorkflow">Upscaling</Label>
               <Select value={upscaleWorkflow} onValueChange={setUpscaleWorkflow}>
@@ -927,7 +948,7 @@ export function ComfyUISettingsPanel({
             <div className="space-y-2">
               <Label htmlFor="clipModel">CLIP Model</Label>
               <Select value={clipModel} onValueChange={setClipModel}>
-                <SelectTrigger id="clipModel">
+                <SelectTrigger id="clipModel" title="Select CLIP model">
                   <SelectValue placeholder="Select CLIP model" />
                 </SelectTrigger>
                 <SelectContent>
@@ -965,6 +986,7 @@ export function ComfyUISettingsPanel({
                       <input
                         type="checkbox"
                         id={`lora-${model.id}`}
+                        title={model.name}
                         checked={loras.includes(model.id)}
                         onChange={(e) => {
                           if (e.target.checked) {

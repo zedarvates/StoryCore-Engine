@@ -206,3 +206,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+.service-retry-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  border-radius: 4px;
+  padding: 2px 6px;
+  margin-left: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 20px;
+  width: 24px;
+}
+
+.service-retry-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  transform: scale(1.1);
+}
+
+.service-retry-btn:active {
+  transform: scale(0.95);
+}

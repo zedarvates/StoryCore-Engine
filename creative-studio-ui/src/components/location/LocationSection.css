@@ -62,14 +62,17 @@
   background: var(--card-bg, #1e1e1e);
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-width: 700px; /* Increased slightly */
+  max-height: calc(100vh - 60px); /* Slightly smaller to provide 30px margin top/bottom */
+  margin: auto;
+  overflow: hidden; /* Hide scrollbar here, use child's scrollbar */
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
 }
 
 .location-section__modal--full {
-  max-width: 1200px;
+  max-width: 1400px;
   width: 95vw;
 }
 

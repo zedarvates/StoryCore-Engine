@@ -90,7 +90,6 @@ export function LocationSection({
   onCreateFromWorld,
   hideHeader = false,
   className = '',
-  style = {},
 }: LocationSectionProps) {
   // Use individual selectors for stability
   const locations = useLocationStore(state => state.locations);
@@ -113,15 +112,24 @@ export function LocationSection({
   const [showImageCreator, setShowImageCreator] = useState(false);
 
   // Fetch locations on mount (both central and project-local)
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
+
   useEffect(() => {
-    // Eviter les appels redondants si déjà en cours de chargement
-    if (autoFetch && !isLoading) {
+    // Eviter les appels redondants si déjà en cours de chargement ou déjà fait pour ce projet
+    if (autoFetch && !isLoading && !initialFetchDone) {
+      console.log(`[LocationSection] Triggering initial fetch for project: ${projectId}`);
       fetchLocations();
       if (projectId && projectId !== 'unknown') {
         fetchProjectLocations(projectId);
       }
+      setInitialFetchDone(true);
     }
-  }, [autoFetch, fetchLocations, fetchProjectLocations, projectId, isLoading]);
+  }, [autoFetch, fetchLocations, fetchProjectLocations, projectId]); // Removed isLoading and added initialFetchDone guard
+
+  // Reset fetch state if project changes
+  useEffect(() => {
+    setInitialFetchDone(false);
+  }, [projectId]);
 
 
   const handleCreateLocation = useCallback(() => {
@@ -233,8 +241,26 @@ export function LocationSection({
     }
   }, [fetchLocations, fetchProjectLocations, projectId]);
 
+  const handleImageGenerated = useCallback((location: Location, imageUrl: string, prompt?: string) => {
+    const updates: Partial<Location> = {
+      metadata: {
+        ...location.metadata,
+        thumbnail_path: imageUrl,
+      }
+    };
+    if (prompt) {
+      if (typeof prompt === 'string') {
+        const existingPrompts = Array.isArray(location.prompts) ? location.prompts : [];
+          if (!existingPrompts.includes(prompt)) {
+             updates.prompts = [...existingPrompts, prompt];
+          }
+      }
+    }
+    updateLocation(location.location_id, updates);
+  }, [updateLocation]);
+
   return (
-    <div className={`location-section ${className}`} style={style}>
+    <div className={`location-section ${className}`}>
       {/* Section Header */}
       {!hideHeader && (
         <div className="location-section__header">
@@ -308,6 +334,7 @@ export function LocationSection({
         onLocationClick={handleLocationClick}
         onEditLocation={handleEditLocation}
         onDeleteLocation={handleDeleteLocation}
+        onImageGenerated={handleImageGenerated}
         showFilters={true}
         showCreateButton={true}
         showActions={showActions}

@@ -44,7 +44,8 @@ export const useObjectStore = create<ObjectState>()(
                 try {
                     await saveObjectToProject(projectId, object.id, object);
                     set((state) => ({
-                        objects: [...state.objects, object]
+                        // Remove existing object with same ID if it exists to prevent duplicates
+                        objects: [...state.objects.filter(obj => obj.id !== object.id), object]
                     }));
                 } catch (error) {
                     console.error('Failed to add object:', error);

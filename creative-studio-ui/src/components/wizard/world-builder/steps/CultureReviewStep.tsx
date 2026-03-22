@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Languages, HandMetal, CheckCircle, Wand2, Info } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Languages, HandMetal, CheckCircle, Wand2, Info, ScrollText, History, Swords } from 'lucide-react';
 import type { World, CulturalElements } from '@/types/world';
 
 interface CultureReviewStepProps {
@@ -9,6 +9,9 @@ interface CultureReviewStepProps {
 
 export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [addingField, setAddingField] = useState<keyof CulturalElements | null>(null);
+  const [newItemValue, setNewItemValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const elements = data.culturalElements || {
     languages: [],
     religions: [],
@@ -24,11 +27,23 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
   };
 
   const addItem = (field: keyof CulturalElements) => {
-    const newItem = prompt(`Add new ${field}:`, '');
-    if (newItem) {
-      updateElements({ [field]: [...elements[field], newItem] });
-    }
+    setAddingField(field);
+    setNewItemValue('');
   };
+
+  const confirmAddItem = (field: keyof CulturalElements) => {
+    if (newItemValue.trim()) {
+      updateElements({ [field]: [...elements[field], newItemValue.trim()] });
+    }
+    setAddingField(null);
+    setNewItemValue('');
+  };
+
+  useEffect(() => {
+    if (addingField && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [addingField]);
 
   const removeItem = (field: keyof CulturalElements, index: number) => {
     const newList = [...elements[field]];
@@ -49,74 +64,165 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
       religions: {
         fantasy: ['The Order of Light', 'Ancient Mother worship', 'Void Sect'],
         cyberpunk: ['The Silicon Singularity', 'Techno-Animism', 'Data Cults'],
+      },
+      traditions: {
+        fantasy: ['The Festival of Stars', 'The Trial of Valor', 'Moon-Cycle Fasting'],
+        cyberpunk: ['Neon Burial', 'Data-Wiping Rites', 'Corporate Loyalty Oaths'],
+      },
+      historicalEvents: {
+        fantasy: ['The God-Fall', 'The Breaking of the Crown', 'The Hundred-Year Drought'],
+        cyberpunk: ['The Great Blackout', 'The AI Uprising', 'The First Neural Link'],
+      },
+      culturalConflicts: {
+        fantasy: ['Mage vs. Mundane', 'Forest Dwellers vs. Forge Masters', 'Old Faith vs. New'],
+        cyberpunk: ['Organic vs. Synthetic', 'Uptown vs. The Slums', 'Corporate vs. Freelance'],
       }
     };
 
-    const newItems = suggestions[field]?.[genre] || ['Ancient Tongue', 'Old Faith'];
+    const newItems = suggestions[field]?.[genre] || ['Ancient Custom', 'Historic Epoch'];
     updateElements({ [field]: Array.from(new Set([...elements[field], ...newItems])) });
     setIsGenerating(null);
+  };
+
+  const fieldConfig: Record<keyof CulturalElements, { icon: React.ReactNode, title: string, color: string, placeholder: string }> = {
+    languages: { 
+      icon: <Languages className="w-6 h-6 text-purple-600 dark:text-purple-400" />, 
+      title: 'Languages', 
+      color: 'purple',
+      placeholder: 'Name...'
+    },
+    religions: { 
+      icon: <HandMetal className="w-6 h-6 text-amber-600 dark:text-amber-400" />, 
+      title: 'Belief Systems', 
+      color: 'amber',
+      placeholder: 'Faith/Belief...'
+    },
+    traditions: { 
+      icon: <ScrollText className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />, 
+      title: 'Traditions', 
+      color: 'emerald',
+      placeholder: 'Custom/Rite...'
+    },
+    historicalEvents: { 
+      icon: <History className="w-6 h-6 text-blue-600 dark:text-blue-400" />, 
+      title: 'History', 
+      color: 'blue',
+      placeholder: 'Event...'
+    },
+    culturalConflicts: { 
+      icon: <Swords className="w-6 h-6 text-red-600 dark:text-red-400" />, 
+      title: 'Social Tension', 
+      color: 'red',
+      placeholder: 'Conflict...'
+    }
+  };
+
+  const renderSection = (field: keyof CulturalElements) => {
+    const config = fieldConfig[field];
+    const colorClasses: Record<string, string> = {
+      purple: 'bg-purple-100/50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200/30',
+      amber: 'bg-amber-100/50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 border-amber-200/30',
+      emerald: 'bg-emerald-100/50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200/30',
+      blue: 'bg-blue-100/50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200/30',
+      red: 'bg-red-100/50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200/30',
+    };
+    
+    const tagClasses: Record<string, string> = {
+      purple: 'bg-purple-100/50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border-purple-200/30',
+      amber: 'bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200/30',
+      emerald: 'bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-emerald-200/30',
+      blue: 'bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200/30',
+      red: 'bg-red-100/50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200/30',
+    };
+
+    const buttonClasses: Record<string, string> = {
+      purple: 'text-purple-500 border-purple-300/50 dark:border-purple-700/50 hover:bg-purple-500/5',
+      amber: 'text-amber-500 border-amber-300/50 dark:border-amber-700/50 hover:bg-amber-500/5',
+      emerald: 'text-emerald-500 border-emerald-300/50 dark:border-emerald-700/50 hover:bg-emerald-500/5',
+      blue: 'text-blue-500 border-blue-300/50 dark:border-blue-700/50 hover:bg-blue-500/5',
+      red: 'text-red-500 border-red-300/50 dark:border-red-700/50 hover:bg-red-500/5',
+    };
+
+    const genButtonClasses: Record<string, string> = {
+      purple: 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-600',
+      amber: 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-600',
+      emerald: 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600',
+      blue: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-600',
+      red: 'bg-red-500/10 hover:bg-red-500/20 text-red-600',
+    };
+
+    const inputBorderClasses: Record<string, string> = {
+      purple: 'border-purple-500 ring-purple-500/20',
+      amber: 'border-amber-500 ring-amber-500/20',
+      emerald: 'border-emerald-500 ring-emerald-500/20',
+      blue: 'border-blue-500 ring-blue-500/20',
+      red: 'border-red-500 ring-red-500/20',
+    };
+
+    return (
+      <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-xl space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`p-3 rounded-2xl ${colorClasses[config.color].split(' ').slice(0, 2).join(' ')}`}>
+              {config.icon}
+            </div>
+            <h4 className="text-xl font-black text-gray-800 dark:text-white tracking-tight">{config.title}</h4>
+          </div>
+          <button
+            onClick={() => generateCulture(field)}
+            title={`Generate ${config.title}`}
+            className={`p-2 rounded-xl transition-all ${genButtonClasses[config.color]} ${isGenerating === field ? 'animate-spin' : ''}`}
+          >
+            <Wand2 className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2 min-h-[40px]">
+          {elements[field].map((item, i) => (
+            <span key={i} className={`px-4 py-2 rounded-xl text-xs font-bold border flex items-center gap-2 group ${tagClasses[config.color]}`}>
+              {item}
+              <button 
+                onClick={() => removeItem(field, i)} 
+                aria-label={`Remove ${item}`}
+                className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          {addingField === field ? (
+            <input
+              ref={inputRef}
+              type="text"
+              value={newItemValue}
+              onChange={(e) => setNewItemValue(e.target.value)}
+              onBlur={() => confirmAddItem(field)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') confirmAddItem(field);
+                if (e.key === 'Escape') setAddingField(null);
+              }}
+              className={`px-4 py-2 border-2 bg-white dark:bg-gray-800 rounded-xl text-xs font-bold outline-none ring-2 ${inputBorderClasses[config.color]}`}
+              placeholder={config.placeholder}
+            />
+          ) : (
+            <button onClick={() => addItem(field)} className={`px-4 py-2 border-2 border-dashed rounded-xl text-xs font-bold transition-all ${buttonClasses[config.color]}`}>
+              + Add
+            </button>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-10">
       {/* Cultural Fabric Section */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Languages */}
-        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-xl space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-purple-100/50 dark:bg-purple-900/20 rounded-2xl">
-                <Languages className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h4 className="text-xl font-black text-gray-800 dark:text-white tracking-tight">Languages</h4>
-            </div>
-            <button
-               onClick={() => generateCulture('languages')}
-               className={`p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 rounded-xl transition-all ${isGenerating === 'languages' ? 'animate-spin' : ''}`}
-            >
-               <Wand2 className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 min-h-[40px]">
-            {elements.languages.map((lang, i) => (
-              <span key={i} className="px-4 py-2 bg-purple-100/50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold border border-purple-200/30 flex items-center gap-2 group">
-                {lang}
-                <button onClick={() => removeItem('languages', i)} className="opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-              </span>
-            ))}
-            <button onClick={() => addItem('languages')} className="px-4 py-2 border-2 border-dashed border-purple-300/50 dark:border-purple-700/50 text-purple-500 rounded-xl text-xs font-bold hover:bg-purple-500/5 transition-all">
-              + Add
-            </button>
-          </div>
-        </div>
-
-        {/* Religions */}
-        <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 dark:border-white/5 shadow-xl space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-2xl">
-                <HandMetal className="w-6 h-6 text-amber-600 dark:text-amber-400" />
-              </div>
-              <h4 className="text-xl font-black text-gray-800 dark:text-white tracking-tight">Belief Systems</h4>
-            </div>
-             <button
-               onClick={() => generateCulture('religions')}
-               className={`p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 rounded-xl transition-all ${isGenerating === 'religions' ? 'animate-spin' : ''}`}
-            >
-               <Wand2 className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2 min-h-[40px]">
-             {elements.religions.map((rel, i) => (
-              <span key={i} className="px-4 py-2 bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-xl text-xs font-bold border border-amber-200/30 flex items-center gap-2 group">
-                {rel}
-                <button onClick={() => removeItem('religions', i)} className="opacity-0 group-hover:opacity-100 transition-opacity">×</button>
-              </span>
-            ))}
-            <button onClick={() => addItem('religions')} className="px-4 py-2 border-2 border-dashed border-amber-300/50 dark:border-amber-700/50 text-amber-500 rounded-xl text-xs font-bold hover:bg-amber-500/5 transition-all">
-              + Add
-            </button>
-          </div>
+        {renderSection('languages')}
+        {renderSection('religions')}
+        {renderSection('traditions')}
+        {renderSection('historicalEvents')}
+        <div className="md:col-span-2">
+          {renderSection('culturalConflicts')}
         </div>
       </section>
 
@@ -132,16 +238,16 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
            <div className="space-y-2">
-              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Structure</span>
-              <p className="text-lg font-black text-gray-700 dark:text-gray-200">{(data.locations?.length || 0)} Recorded Sites</p>
-           </div>
-           <div className="space-y-2">
-              <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Logic</span>
-              <p className="text-lg font-black text-gray-700 dark:text-gray-200">{(data.rules?.length || 0)} Physical Laws</p>
-           </div>
-           <div className="space-y-2">
-              <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Legacy</span>
-              <p className="text-lg font-black text-gray-700 dark:text-gray-200">{(data.keyObjects?.length || 0)} Prime Artifacts</p>
+              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-widest">Communication</span>
+              <p className="text-lg font-black text-gray-700 dark:text-gray-200">{(elements.languages?.length || 0)} Languages Recorded</p>
+            </div>
+            <div className="space-y-2">
+               <span className="text-[10px] font-black text-purple-500 uppercase tracking-widest">Growth</span>
+               <p className="text-lg font-black text-gray-700 dark:text-gray-200">{(elements.historicalEvents?.length || 0)} Eras Defined</p>
+            </div>
+            <div className="space-y-2">
+               <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Legacy</span>
+               <p className="text-lg font-black text-gray-700 dark:text-gray-200">{(elements.religions?.length || 0)} Faiths Established</p>
            </div>
         </div>
 

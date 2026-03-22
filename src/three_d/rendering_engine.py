@@ -8,7 +8,7 @@ Supports scene management, camera control, and real-time rendering.
 
 import logging
 from typing import List, Dict, Any, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 import numpy as np
 
@@ -94,7 +94,7 @@ class SceneObject:
     position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
     rotation: Tuple[float, float, float] = (0.0, 0.0, 0.0)
     scale: Tuple[float, float, float] = (1.0, 1.0, 1.0)
-    material: Material = Material()
+    material: Material = field(default_factory=Material)
     visible: bool = True
     cast_shadow: bool = True
     receive_shadow: bool = True

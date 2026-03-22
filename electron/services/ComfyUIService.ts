@@ -8,9 +8,9 @@ import type { ComfyUIConfiguration } from '../configurationTypes';
 // Simple in-memory configuration store for ComfyUI
 const comfyuiConfigStore: Record<string, any> = {
   comfyui: {
-    serverUrl: 'http://localhost:8188',
+    serverUrl: 'http://127.0.0.1:8000',
     defaultWorkflows: {},
-    timeout: 30000,
+    timeout: 300000,
     enableQueueMonitoring: true,
   },
 };
@@ -33,9 +33,9 @@ export class ComfyUIService {
    */
   async getConfiguration(): Promise<ComfyUIConfiguration> {
     return comfyuiConfigStore.comfyui || {
-      serverUrl: 'http://localhost:8188',
+      serverUrl: 'http://127.0.0.1:8000',
       defaultWorkflows: {},
-      timeout: 30000,
+      timeout: 300000,
       enableQueueMonitoring: true,
     };
   }
@@ -53,10 +53,12 @@ export class ComfyUIService {
   /**
    * Get ComfyUI service status
    */
-  async getServiceStatus(): Promise<ComfyUIStatus> {
+  async getServiceStatus(url?: string): Promise<ComfyUIStatus> {
     const config = await this.getConfiguration();
+    const targetUrl = url || config.serverUrl;
+    
     try {
-      const response = await this.fetchWithTimeout(`${config.serverUrl}/system_stats`, {
+      const response = await this.fetchWithTimeout(`${targetUrl}/system_stats`, {
         method: 'GET',
       });
 
@@ -69,12 +71,12 @@ export class ComfyUIService {
       }
 
       const data = (await response.json()) as any;
-      const url = new URL(config.serverUrl);
+      const parsedUrl = new URL(targetUrl);
 
       return {
         running: true,
-        url: config.serverUrl,
-        port: parseInt(url.port || '8188'),
+        url: targetUrl,
+        port: parseInt(parsedUrl.port || '8000'),
         version: data.version || 'unknown',
       };
     } catch (error) {

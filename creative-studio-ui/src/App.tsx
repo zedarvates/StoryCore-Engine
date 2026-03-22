@@ -15,6 +15,8 @@ import { MenuBar } from '@/components/menuBar/MenuBar';
 import { FloatingAIAssistant } from '@/components/FloatingAIAssistant';
 import { ToggleButton } from '@/components/ToggleButton';
 import { I18nProvider } from '@/utils/i18n';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 const DetachedChatPage = lazy(() => import('@/pages/DetachedChatPage').then(m => ({ default: m.DetachedChatPage })));
 const LandingPageWithHooks = lazy(() => import('@/pages/LandingPageWithHooks').then(m => ({ default: m.LandingPageWithHooks })));
 const AdvancedGridEditorPage = lazy(() => import('@/pages/experimental/AdvancedGridEditorPage').then(m => ({ default: m.AdvancedGridEditorPage })));
@@ -46,7 +48,6 @@ const ProjectTranslatorModal = lazy(() => import('@/components/wizard/ProjectTra
 const TTTLRMModal = lazy(() => import('@/components/wizard/TTTLRMModal').then(m => ({ default: m.TTTLRMModal })));
 const VideoPublisherEditor = lazy(() => import('@/components/addons/video_publisher/VideoPublisherEditor').then(m => ({ default: m.VideoPublisherEditor })));
 const CreditsScreenModal = lazy(() => import('@/components/addons/credits_screen/CreditsScreenModal').then(m => ({ default: m.CreditsScreenModal })));
-const LLMSettingsModal = lazy(() => import('@/components/settings/LLMSettingsModal').then(m => ({ default: m.LLMSettingsModal })));
 const ComfyUISettingsModal = lazy(() => import('@/components/settings/ComfyUISettingsModal').then(m => ({ default: m.ComfyUISettingsModal })));
 const GeneralSettingsWindow = lazy(() => import('@/components/configuration/GeneralSettingsWindow').then(m => ({ default: m.GeneralSettingsWindow })));
 const AddonsModal = lazy(() => import('@/components/settings/AddonsModal').then(m => ({ default: m.AddonsModal })));
@@ -62,6 +63,7 @@ const AboutModal = lazy(() => import('@/components/modals/AboutModal').then(m =>
 const DocumentationModal = lazy(() => import('@/components/modals/menuBar/DocumentationModal').then(m => ({ default: m.DocumentationModal })));
 const KeyboardShortcutsDialog = lazy(() => import('@/components/KeyboardShortcutsDialog').then(m => ({ default: m.KeyboardShortcutsDialog })));
 const MoodboardModal = lazy(() => import('@/components/modals/MoodboardModal').then(m => ({ default: m.MoodboardModal })));
+const LLMConfigDialog = lazy(() => import('@/components/launcher/LLMConfigDialog').then(m => ({ default: m.LLMConfigDialog }))); // NEW: Unified LLM Config Dialog
 const ComputeDashboard = lazy(() => import('@/components/feedback/ComputeDashboard').then(m => ({ default: m.ComputeDashboard })));
 const ReferenceSheetManager = lazy(() => import('@/components/reference/ReferenceSheetManager').then(m => ({ default: m.ReferenceSheetManager })));
 const VideoReplicationDialog = lazy(() => import('@/components/reference/VideoReplicationDialog').then(m => ({ default: m.VideoReplicationDialog })));
@@ -76,7 +78,7 @@ import { useGlobalKeyboardShortcuts } from '@/hooks/useGlobalKeyboardShortcuts';
 import { useVoiceHotkey } from '@/hooks/useVoiceHotkey';
 import { useSystemVoiceCommands } from '@/hooks/useSystemVoiceCommands';
 import { useNeuralAssistant } from '@/hooks/useNeuralAssistant';
-import { initializeLLMConfigService } from '@/services/llmConfigService'; // NEW: Initialize unified LLM service
+import { initializeLLMConfigService, useLLMConfig } from '@/services/llmConfigService'; // NEW: Initialize and use unified LLM service
 import { initializeLLMConfig } from '@/utils/migrateLLMConfig'; // NEW: Migrate legacy configs
 import { globalErrorHandler } from '@/utils/globalErrorHandler'; // NEW: Global error handler
 import { validateFeatureRegistry } from '@/config/experimentalFeatures'; // NEW: Validate experimental features registry
@@ -260,11 +262,9 @@ function AppContent() {
     setShowScenarioBuilder: state.setShowScenarioBuilder,
     showDialogueBuilder: state.showDialogueBuilder,
     setShowDialogueBuilder: state.setShowDialogueBuilder,
-    // Generic wizard state (simple forms in GenericWizardModal)
     closeActiveWizard: state.closeActiveWizard,
     settingsAddonId: state.settingsAddonId,
     closeAddonSettings: state.closeAddonSettings,
-    // Continuous Creation state mappings
     showReferenceSheetManager: state.showReferenceSheetManager,
     setShowReferenceSheetManager: state.setShowReferenceSheetManager,
     showVideoReplicationDialog: state.showVideoReplicationDialog,
@@ -292,12 +292,23 @@ function AppContent() {
     selectedShotId: state.selectedShotId,
   })));
 
+  // Hook for unified LLM configuration
+  const { 
+    config: llmConfig, 
+    updateConfig, 
+    validateConnection: validateLLMConnection 
+  } = useLLMConfig();
+
   // MenuBar state management
   // Requirements: 1.1-15.6
-  // NOTE: isProcessing and hasUnsavedChanges are currently static (not yet wired to actual state)
-  // TODO: Wire these to actual processing/unsaved changes state when implemented
-  const isProcessing = false;
+  
+  // Track actual processing state from potential sources (e.g. generation queue)
+  const isGenerating = useStore((state) => state.generationStatus?.isGenerating ?? false);
+  const isProcessing = isGenerating; 
+  
+  // TODO: Implement real unsaved changes tracking
   const hasUnsavedChanges = false;
+  
   const [viewState, setViewState] = useState<ViewState>(DEFAULT_VIEW_STATE);
 
   // Local state for Continuous Creation modals moved to store
@@ -359,18 +370,18 @@ function AppContent() {
     }
   }, [setProject, setShots]);
 
-  // Undo/Redo stack (stub implementation)
+  // Undo/Redo stack integration with main store
   // Requirements: 2.1-2.4
-  // TODO: Integrate with actual undo/redo system when available
+  const storeUndo = useStore((state) => state.undo);
+  const storeRedo = useStore((state) => state.redo);
+  const historyIndex = useStore((state) => state.historyIndex);
+  const historyLength = useStore((state) => state.history.length);
+
   const undoStack: UndoStack = {
-    canUndo: false,
-    canRedo: false,
-    undo: () => {
-      console.log('Undo operation not yet implemented');
-    },
-    redo: () => {
-      console.log('Redo operation not yet implemented');
-    },
+    canUndo: historyIndex >= 0,
+    canRedo: historyIndex < historyLength - 1,
+    undo: storeUndo,
+    redo: storeRedo,
   };
 
   // Clipboard state (stub implementation)
@@ -575,19 +586,25 @@ function AppContent() {
         // Detailed logging for debugging loops
         console.log(`[App] Sync check: URL="${normalizedUrlPath}", Store="${normalizedStorePath}", storeHasProject=${!!project}, needsLoading=${needsLoading}`);
         
-        if (needsLoading) {
+        // Detect if the path is likely just a UUID (not a real path)
+        // UUIDs are typically 36 chars: 8-4-4-4-12 hex chars
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const isUuid = uuidRegex.test(projectPath);
+        const isLikelyPath = !isUuid && (projectPath.includes('/') || projectPath.includes('\\') || projectPath.includes(':'));
+
+        if (needsLoading && isLikelyPath) {
           console.log(`[App] Triggering project load for: "${projectPath}"`);
           
           isSyncingRef.current = true;
           if (setIsInitialLoading) setIsInitialLoading(true);
           
           try {
-            const api = window.electronAPI as any;
+            const api = (window as unknown as { electronAPI: import('./types').ElectronAPI }).electronAPI;
             if (api.project && api.project.open) {
               const electronProject = await api.project.open(projectPath);
               
               if (electronProject) {
-                const storeProject = convertElectronProjectToStore(electronProject);
+                const storeProject = convertElectronProjectToStore(electronProject) as import('./types').Project;
                 
                 // Ensure the path in the store matches the path we used to open it 
                 // to prevent mismatch on next effect run
@@ -597,31 +614,87 @@ function AppContent() {
                 }
                 
                 // Load additional entities
-                let characters = [];
-                let worlds = [];
-                let locations = [];
-                let sequences = [];
+                let characters: import('./types/character').Character[] = [];
+                let worlds: import('./types').World[] = [];
+                let locations: import('./types').Location[] = [];
+                let stories: import('./types/story').Story[] = [];
+                let sequences: import('./types').SequencePlan[] = [];
                 
                 try {
-                  if (api.character) characters = await api.character.list(projectPath);
-                  if (api.world) worlds = await api.world.list(projectPath);
-                  if (api.location) locations = await api.location.list(projectPath);
-                  if (api.sequence) sequences = await api.sequence.list(projectPath);
+                  // Fallback to fs scanning if specialized API is missing or fails
+                  const scanDir = async (dirName: string, subFile?: string) => {
+                    const dirPath = `${projectPath}/${dirName}`;
+                    const items = [];
+                    try {
+                      if (api.fs && await api.fs.exists(dirPath)) {
+                        const files = await api.fs.readdir(dirPath);
+                        for (const file of files) {
+                          try {
+                            const itemPath = subFile ? `${dirPath}/${file}/${subFile}` : `${dirPath}/${file}`;
+                            if (await api.fs.exists(itemPath)) {
+                              const buffer = await api.fs.readFile(itemPath);
+                              const json = JSON.parse(new TextDecoder().decode(buffer));
+                              items.push(json);
+                            } else if (file.endsWith('.json') || file.endsWith('.md')) {
+                              // Direct file
+                              const buffer = await api.fs.readFile(`${dirPath}/${file}`);
+                              const content = new TextDecoder().decode(buffer);
+                              if (file.endsWith('.json')) {
+                                items.push(JSON.parse(content));
+                              } else {
+                                // For markdown, we might need a parser, but for now just basic meta
+                                items.push({ id: file, title: file, type: 'markdown' });
+                              }
+                            }
+                          } catch (e) {
+                            console.warn(`[App] Failed to load item ${file} in ${dirName}:`, e);
+                          }
+                        }
+                      }
+                    } catch (e) {
+                      console.warn(`[App] Directory scan failed for ${dirName}:`, e);
+                    }
+                    return items;
+                  };
+
+                  if (api.character?.list) characters = await api.character.list(projectPath);
+                  else characters = await scanDir('characters', 'character.json');
+
+                  if (api.world?.list) worlds = await api.world.list(projectPath);
+                  else worlds = await scanDir('worlds');
+
+                  if (api.location?.list) locations = await api.location.list(projectPath);
+                  else locations = await scanDir('locations');
+
+                  if (api.story?.list) stories = await api.story.list(projectPath);
+                  else stories = await scanDir('stories');
+                  
+                  // If stories empty, check 'story' (singular) for legacy
+                  if (stories.length === 0) {
+                     const legacyStories = await scanDir('story');
+                     if (legacyStories.length > 0) stories = legacyStories;
+                  }
+
+                  if (api.sequence?.getAll) sequences = await api.sequence.getAll(projectPath);
+                  else if (api.sequence?.list) sequences = await api.sequence.list(projectPath);
+                  else sequences = await scanDir('sequences');
+
                 } catch (e) {
                   console.warn('[App] Failed to load some project entities:', e);
                 }
 
                 const finalProject = {
                   ...storeProject,
-                  characters: characters || [],
-                  worlds: worlds || [],
-                  locations: locations || [],
-                  stories: [],
-                  sequencePlans: sequences || []
+                  characters: characters?.length > 0 ? characters : storeProject.characters || [],
+                  worlds: worlds?.length > 0 ? worlds : storeProject.worlds || [],
+                  locations: locations?.length > 0 ? locations : storeProject.locations || [],
+                  objects: storeProject.objects || [],
+                  stories: stories?.length > 0 ? stories : storeProject.stories || [],
+                  sequencePlans: (sequences?.length > 0 ? sequences : storeProject.sequencePlans) || []
                 };
 
                 // Use the service to load into stores
-                await projectCreationService.loadProjectIntoStores(finalProject as any, projectPath, sequences);
+                await projectCreationService.loadProjectIntoStores(finalProject as import('./types').Project, projectPath, finalProject.sequencePlans);
                 console.log('[App] Project successfully loaded into stores');
               } else {
                 console.error('[App] Failed to open project: electronProject is null');
@@ -1177,7 +1250,8 @@ function AppContent() {
         onComplete={handleCharacterComplete}
         isOpen={showCharacterWizard}
         onClose={() => setShowCharacterWizard(false)}
-        worldContext={project?.worlds?.[0]}
+        worldContext={project?.worlds?.find(w => w.id === project.selectedWorldId) || project?.worlds?.[0]}
+        productionMode={project?.projectSetup?.productionMode}
         initialData={{
           // Pre-fill genre and tone from project setup to aid AI
           role: {
@@ -1323,11 +1397,16 @@ function AppContent() {
         onComplete={handleWizardComplete}
       />
 
-      {/* LLM Settings Modal */}
-      <LLMSettingsModal
-        isOpen={showLLMSettings}
-        onClose={() => setShowLLMSettings(false)}
-      />
+      {/* Unified LLM Config Dialog (used by both Menu Bar and Chatbot) */}
+      <Suspense fallback={null}>
+        <LLMConfigDialog
+          open={showLLMSettings}
+          onOpenChange={setShowLLMSettings}
+          currentConfig={llmConfig}
+          onSave={updateConfig}
+          onValidateConnection={validateLLMConnection}
+        />
+      </Suspense>
 
       {/* ComfyUI Settings Modal */}
       <ComfyUISettingsModal
@@ -1605,6 +1684,7 @@ function AppContent() {
             undoStack={undoStack}
             clipboard={clipboard}
             isProcessing={false}
+            selectedShotId={selectedShotId}
           />
           <ExperimentalPage />
           {/* Single instance of all modals - accessible from experimental pages */}
@@ -1641,6 +1721,7 @@ function AppContent() {
           undoStack={undoStack}
           clipboard={clipboard}
           isProcessing={false}
+          selectedShotId={null}
         />
         <main className="flex-1 overflow-hidden">
           <LandingPageWithHooks />
@@ -1662,6 +1743,7 @@ function AppContent() {
         undoStack={undoStack}
         clipboard={clipboard}
         isProcessing={isProcessing}
+        selectedShotId={selectedShotId}
       />
       <main className="flex-1 overflow-hidden relative">
         <Outlet />
@@ -1677,27 +1759,29 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <I18nProvider defaultLanguage="en" enableAutoDetect={false}>
-        <LanguageProvider>
-          <NavigationProvider>
-            <SecretModeProvider>
-              <LLMProvider>
-                <ScreenReaderAnnouncerProvider>
-                  <div className="relative min-h-screen">
-                    <AppContent />
+      <DndProvider backend={HTML5Backend}>
+        <I18nProvider defaultLanguage="en" enableAutoDetect={false}>
+          <LanguageProvider>
+            <NavigationProvider>
+              <SecretModeProvider>
+                <LLMProvider>
+                  <ScreenReaderAnnouncerProvider>
+                    <div className="relative min-h-screen">
+                      <AppContent />
 
-                    {/* Floating AI Assistant */}
-                    <FloatingAIAssistant />
+                      {/* Floating AI Assistant */}
+                      <FloatingAIAssistant />
 
-                    {/* Toggle Button */}
-                    <ToggleButton position="bottom-right" />
-                  </div>
-                </ScreenReaderAnnouncerProvider>
-              </LLMProvider>
-            </SecretModeProvider>
-          </NavigationProvider>
-        </LanguageProvider>
-      </I18nProvider>
+                      {/* Toggle Button */}
+                      <ToggleButton position="bottom-right" />
+                    </div>
+                  </ScreenReaderAnnouncerProvider>
+                </LLMProvider>
+              </SecretModeProvider>
+            </NavigationProvider>
+          </LanguageProvider>
+        </I18nProvider>
+      </DndProvider>
     </ErrorBoundary>
   );
 }

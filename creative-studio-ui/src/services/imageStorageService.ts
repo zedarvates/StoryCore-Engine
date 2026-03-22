@@ -11,60 +11,96 @@ import { logger } from '../utils/logger';
 // Types
 // ============================================================================
 
-export interface SaveImageResult {
+export interface SaveFileResult {
   success: boolean;
   localPath?: string;
   error?: string;
 }
+
+// Keep SaveImageResult for backwards compatibility
+export type SaveImageResult = SaveFileResult;
+
+const MIME_TYPES: Record<string, string> = {
+  'png': 'image/png',
+  'jpg': 'image/jpeg',
+  'jpeg': 'image/jpeg',
+  'webp': 'image/webp',
+  'gif': 'image/gif',
+  'mp4': 'video/mp4',
+  'webm': 'video/webm',
+  'mp3': 'audio/mpeg',
+  'wav': 'audio/wav',
+  'ogg': 'video/ogg',
+  'obj': 'model/obj',
+  'glb': 'model/gltf-binary',
+  'gltf': 'model/gltf+json',
+  'stl': 'model/stl',
+  'fbx': 'application/octet-stream',
+  'txt': 'text/plain',
+  'pdf': 'application/pdf',
+  'json': 'application/json',
+  'md': 'text/markdown',
+};
 
 // ============================================================================
 // Electron Mode - File System Storage
 // ============================================================================
 
 /**
- * Downloads an image from ComfyUI and saves it to the project folder
- * @param imageUrl - The ComfyUI image URL (http://localhost:8000/view?...)
+ * Downloads a file from a URL and saves it to the project folder
+ * @param fileUrl - The URL to download
  * @param projectPath - The project folder path
- * @param characterId - The character ID for filename
+ * @param id - The ID for filename
+ * @param subDir - The subdirectory within the project
+ * @param preferredExtension - Optional preferred extension
  * @returns The local file path relative to project
  */
-export async function downloadAndSaveImageElectron(
-  imageUrl: string,
+export async function downloadAndSaveFileElectron(
+  fileUrl: string,
   projectPath: string,
-  characterId: string
-): Promise<SaveImageResult> {
+  id: string,
+  subDir: string,
+  preferredExtension?: string
+): Promise<SaveFileResult> {
   try {
     // Check if Electron API is available
     if (!window.electronAPI?.fs?.mkdir || !window.electronAPI?.fs?.writeFile) {
       logger.warn('[ImageStorage] Electron API not available, falling back to web mode');
-      return downloadAndSaveImageWeb(imageUrl, characterId);
+      return downloadAndSaveImageWeb(fileUrl, id);
     }
     
-    logger.debug('📥 [ImageStorage] Downloading image from ComfyUI:', imageUrl);
+    logger.debug('📥 [ImageStorage] Downloading file:', fileUrl);
     
-    // 1. Download image from ComfyUI
-    const response = await fetch(imageUrl);
+    // 1. Download file
+    const response = await fetch(fileUrl);
     if (!response.ok) {
-      throw new Error(`Failed to download image: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to download file: ${response.status} ${response.statusText}`);
     }
     
     const blob = await response.blob();
-    logger.debug('✅ [ImageStorage] Image downloaded, size:', blob.size, 'bytes');
+    logger.debug('✅ [ImageStorage] File downloaded, size:', blob.size, 'bytes');
     
     // 2. Convert to buffer (Uint8Array for browser compatibility)
     const arrayBuffer = await blob.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
     
-    // 3. Create characters/portraits directory
-    const portraitsDir = `${projectPath}/characters/portraits`;
-    logger.debug('📁 [ImageStorage] Creating directory:', portraitsDir);
+    // 3. Create target directory
+    const targetDir = `${projectPath}/${subDir}`;
+    logger.debug('📁 [ImageStorage] Creating directory:', targetDir);
     
-    await window.electronAPI.fs.mkdir(portraitsDir, { recursive: true });
+    await window.electronAPI.fs.mkdir(targetDir, { recursive: true });
     
     // 4. Generate filename with timestamp
+    // Try to detect extension from URL if not provided
+    let extension = preferredExtension;
+    if (!extension) {
+      const urlMatches = fileUrl.match(/\.([a-z0-9]+)(?:$|\?)/i);
+      extension = urlMatches ? urlMatches[1].toLowerCase() : 'png';
+    }
+    
     const timestamp = Date.now();
-    const filename = `${characterId}_${timestamp}.png`;
-    const filePath = `${portraitsDir}/${filename}`;
+    const filename = `${id}_${timestamp}.${extension}`;
+    const filePath = `${targetDir}/${filename}`;
     
     logger.debug('💾 [ImageStorage] Saving to:', filePath);
     
@@ -72,21 +108,63 @@ export async function downloadAndSaveImageElectron(
     await window.electronAPI.fs.writeFile(filePath, buffer as unknown as Buffer);
     
     // 6. Return relative path
-    const relativePath = `characters/portraits/${filename}`;
-    logger.debug('✅ [ImageStorage] Image saved successfully:', relativePath);
+    const relativePath = `${subDir}/${filename}`;
+    logger.debug('✅ [ImageStorage] File saved successfully:', relativePath);
     
     return {
       success: true,
       localPath: relativePath,
     };
   } catch (error) {
-    logger.error('[ImageStorage] Failed to save image:', error);
+    logger.error('[ImageStorage] Failed to save file:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
+
+/**
+ * Saves a Blob or File to the project folder
+ */
+export async function saveFileToProject(
+  file: Blob | File | Uint8Array,
+  projectPath: string,
+  id: string,
+  subDir: string,
+  extension: string
+): Promise<SaveFileResult> {
+  try {
+    if (!window.electronAPI?.fs?.mkdir || !window.electronAPI?.fs?.writeFile) {
+      throw new Error('Electron API not available');
+    }
+
+    const buffer = file instanceof Uint8Array ? file : new Uint8Array(await file.arrayBuffer());
+    
+    const targetDir = `${projectPath}/${subDir}`;
+    await window.electronAPI.fs.mkdir(targetDir, { recursive: true });
+    
+    const timestamp = Date.now();
+    const filename = `${id}_${timestamp}.${extension}`;
+    const filePath = `${targetDir}/${filename}`;
+    
+    await window.electronAPI.fs.writeFile(filePath, buffer as unknown as Buffer);
+    
+    return {
+      success: true,
+      localPath: `${subDir}/${filename}`,
+    };
+  } catch (error) {
+    logger.error('[ImageStorage] Failed to save file to project:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+// Keep the old name for compatibility
+export const downloadAndSaveImageElectron = downloadAndSaveFileElectron;
 
 // ============================================================================
 // Web Mode - IndexedDB Storage
@@ -217,23 +295,27 @@ export async function getImageFromIndexedDB(key: string): Promise<string | null>
 
 /**
  * Downloads and saves an image, automatically detecting Electron vs Web mode
- * @param imageUrl - The ComfyUI image URL
- * @param characterId - The character ID
+ * @param imageUrl - The image URL
+ * @param id - The ID for filename
  * @param projectPath - The project folder path (Electron only)
+ * @param subDir - The subdirectory
+ * @param preferredExtension - Optional preferred extension
  * @returns Save result with local path
  */
 export async function downloadAndSaveImage(
   imageUrl: string,
-  characterId: string,
-  projectPath?: string
+  id: string,
+  projectPath?: string,
+  subDir?: string,
+  preferredExtension?: string
 ): Promise<SaveImageResult> {
   // Check if running in Electron mode
   const isElectron = !!window.electronAPI?.fs?.writeFile;
   
   if (isElectron && projectPath) {
-    return downloadAndSaveImageElectron(imageUrl, projectPath, characterId);
+    return downloadAndSaveFileElectron(imageUrl, projectPath, id, subDir || 'images', preferredExtension);
   } else {
-    return downloadAndSaveImageWeb(imageUrl, characterId);
+    return downloadAndSaveImageWeb(imageUrl, id);
   }
 }
 
@@ -257,7 +339,14 @@ export async function getImageDisplayUrl(
   }
   
   // Relative file path (Electron mode)
-  if (imagePath.startsWith('characters/') && projectPath) {
+  // Check if it's a relative path within the project (doesn't start with protocol or /)
+  const isRelativeFilePath = !imagePath.startsWith('http') && 
+                             !imagePath.startsWith('indexeddb://') && 
+                             !imagePath.startsWith('data:') &&
+                             !imagePath.match(/^[a-zA-Z]:[\\/]/) &&
+                             !imagePath.startsWith('/');
+
+  if (isRelativeFilePath && projectPath) {
     // Check if Electron API is available
     const isElectron = !!window.electronAPI?.fs?.readFile;
     
@@ -280,11 +369,15 @@ export async function getImageDisplayUrl(
         
         const buffer = await window.electronAPI!.fs.readFile(fullPath);
         
+        // Detect MIME type based on extension
+        const extension = imagePath.split('.').pop()?.toLowerCase() || 'png';
+        const mimeType = MIME_TYPES[extension] || 'image/png';
+        
         // Convert buffer to blob (handle both Buffer and Uint8Array)
-        const blob = new Blob([new Uint8Array(buffer)], { type: 'image/png' });
+        const blob = new Blob([new Uint8Array(buffer)], { type: mimeType });
         const objectUrl = URL.createObjectURL(blob);
         
-        logger.debug('✅ [ImageStorage] Image loaded from Electron:', objectUrl);
+        logger.debug(`✅ [ImageStorage] File loaded from Electron (${mimeType}):`, objectUrl);
         return objectUrl;
       } catch (error) {
         // Check if it's a "file not found" error - don't spam console with expected errors
@@ -361,7 +454,13 @@ export async function deleteImage(
     }
     
     // File path (Electron mode)
-    if (imagePath.startsWith('characters/') && projectPath) {
+    const isRelativeFilePath = !imagePath.startsWith('http') && 
+                               !imagePath.startsWith('indexeddb://') && 
+                               !imagePath.startsWith('data:') &&
+                               !imagePath.match(/^[a-zA-Z]:[\\/]/) &&
+                               !imagePath.startsWith('/');
+
+    if (isRelativeFilePath && projectPath) {
       const fullPath = `${projectPath}/${imagePath}`;
       
       if (window.electronAPI?.fs && 'unlink' in window.electronAPI.fs) {

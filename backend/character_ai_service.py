@@ -63,7 +63,8 @@ class CharacterBackground:
     fear: str = ""
     secret: str = ""
     values: List[str] = field(default_factory=list)
-    habits: List[str] = field(default_factory=list)
+    daily_habits: List[str] = field(default_factory=list)
+    dietary_info: str = ""
 
 @dataclass
 class CharacterAppearance:
@@ -102,6 +103,10 @@ class Character:
     id: str
     name: str
     role: CharacterRole
+    archetype: Optional[str] = None
+    goal: Optional[str] = None
+    flaw_sympathy: Optional[str] = None
+    daily_details: Dict[str, Any] = field(default_factory=dict)
     personality: List[PersonalityTrait] = field(default_factory=list)
     background: CharacterBackground = field(default_factory=CharacterBackground)
     appearance: CharacterAppearance = field(default_factory=CharacterAppearance)
@@ -110,6 +115,8 @@ class Character:
     dialogue_style: str = ""
     relationships: Dict[str, str] = field(default_factory=dict)
     tags: List[str] = field(default_factory=list)
+    ai_coherence_data: Dict[str, Any] = field(default_factory=dict)
+    reference_images: List[str] = field(default_factory=list)
 
 class CharacterAIService:
     """Service de gestion des personnages avec IA conversationnelle"""

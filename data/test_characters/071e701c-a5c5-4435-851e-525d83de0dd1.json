@@ -1,0 +1,47 @@
+{
+  "character_id": "071e701c-a5c5-4435-851e-525d83de0dd1",
+  "name": "Elena Thorne",
+  "created_at": "2026-03-19 13:20:19.408188",
+  "updated_at": "2026-03-19 13:20:19.408347",
+  "version": "2.0.0",
+  "creation_method": "2d_first",
+  "visual": {
+    "art_style": "anime",
+    "physical_description": "A brave warrior with glowing blue eyes and silver armor.",
+    "morphology": {},
+    "palette": [],
+    "reference_image_path": null,
+    "character_sheet_path": null,
+    "lora_weights_path": null,
+    "method_data": {}
+  },
+  "narrative": {
+    "era": "contemporary",
+    "role": "Protagonist",
+    "personality_traits": [
+      "brave",
+      "loyal"
+    ],
+    "backstory": "",
+    "tone": "neutral",
+    "dialogue_style": "standard"
+  },
+  "voice": {
+    "provider": "kitten-tts",
+    "gender": "neutral",
+    "pitch_offset": -2.0,
+    "intonation": "emotional",
+    "speed": 1.0,
+    "accent": "neutral",
+    "reference_audio_path": null,
+    "rvc_model_id": null,
+    "kitten_voice_id": null,
+    "emotion_map": {
+      "happy": "cheerful",
+      "sad": "melancholic",
+      "angry": "aggressive"
+    }
+  },
+  "metadata": {},
+  "tags": []
+}

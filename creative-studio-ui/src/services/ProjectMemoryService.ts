@@ -42,11 +42,23 @@ export class ProjectMemoryService {
         try {
             const model = await ollamaClient.getBestAvailableModel('general');
             const response = await ollamaClient.generate(model, `${systemPrompt}\n\nText to analyze: ${text}`, { temperature: 0.1 });
-            const jsonStr = response.match(/\[.*\]/s)?.[0];
-
-            if (jsonStr) {
-                const results = JSON.parse(jsonStr);
-                results.forEach((res: { text: string; category: MemoryInsight['category']; confidence: number }) => {
+            
+            // More robust JSON extraction: try to find any valid JSON array
+            const jsonMatch = response.match(/\[[\s\S]*\]/);
+            if (!jsonMatch) return;
+            
+            let results: { text: string; category: MemoryInsight['category']; confidence: number }[];
+            try {
+                results = JSON.parse(jsonMatch[0]);
+            } catch (_parseErr) {
+                // LLM returned invalid JSON - ignore silently
+                return;
+            }
+            
+            if (!Array.isArray(results)) return;
+            
+            results.forEach((res) => {
+                if (res && typeof res.text === 'string' && res.confidence > 0.6) {
                     store.addInsight({
                         text: res.text,
                         category: res.category,
@@ -54,8 +66,8 @@ export class ProjectMemoryService {
                         isPermanent: false,
                         source
                     });
-                });
-            }
+                }
+            });
         } catch (e) {
             console.error('[MemoryService] Failed to analyze text for memory:', e);
         }

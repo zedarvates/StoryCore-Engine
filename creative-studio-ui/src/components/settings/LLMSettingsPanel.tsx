@@ -172,7 +172,7 @@ export function LLMSettingsPanel({
   const [topP, setTopP] = useState(currentConfig?.parameters?.topP ?? 1.0);
   const [frequencyPenalty, setFrequencyPenalty] = useState(currentConfig?.parameters?.frequencyPenalty ?? 0);
   const [presencePenalty, setPresencePenalty] = useState(currentConfig?.parameters?.presencePenalty ?? 0);
-  const [timeout, setTimeout] = useState(currentConfig?.timeout ?? 30000);
+  const [requestTimeout, setRequestTimeout] = useState(currentConfig?.timeout ?? 30000);
   const [retryAttempts, setRetryAttempts] = useState(currentConfig?.retryAttempts ?? 3);
   const [streamingEnabled, setStreamingEnabled] = useState(currentConfig?.streamingEnabled ?? true);
 
@@ -241,15 +241,15 @@ export function LLMSettingsPanel({
           setApiEndpoint(endpoint);
           
           setModel(storedConfig.model);
-          setTemperature(storedConfig.parameters.temperature);
-          setMaxTokens(storedConfig.parameters.maxTokens);
-          setTopP(storedConfig.parameters.topP);
-          setFrequencyPenalty(storedConfig.parameters.frequencyPenalty);
-          setPresencePenalty(storedConfig.parameters.presencePenalty);
-          setTimeout(storedConfig.timeout);
-          setRetryAttempts(storedConfig.retryAttempts);
-          setStreamingEnabled(storedConfig.streamingEnabled);
-          setDraftMode(storedConfig.parameters.draftMode || false);
+          setTemperature(storedConfig.parameters?.temperature ?? 0.7);
+          setMaxTokens(storedConfig.parameters?.maxTokens ?? 2000);
+          setTopP(storedConfig.parameters?.topP ?? 1.0);
+          setFrequencyPenalty(storedConfig.parameters?.frequencyPenalty ?? 0);
+          setPresencePenalty(storedConfig.parameters?.presencePenalty ?? 0);
+          setRequestTimeout(storedConfig.timeout ?? 30000);
+          setRetryAttempts(storedConfig.retryAttempts ?? 3);
+          setStreamingEnabled(storedConfig.streamingEnabled ?? true);
+          setDraftMode(storedConfig.parameters?.draftMode || false);
           
           // Safely access systemPrompts with fallback to defaults
           if (storedConfig.systemPrompts) {
@@ -351,7 +351,7 @@ export function LLMSettingsPanel({
       return 'Presence penalty must be between -2 and 2';
     }
 
-    if (timeout < 1000) {
+    if (requestTimeout < 1000) {
       return 'Timeout must be at least 1000ms (1 second)';
     }
 
@@ -455,7 +455,7 @@ export function LLMSettingsPanel({
           characterGeneration: characterPrompt,
           dialogueGeneration: dialoguePrompt,
         },
-        timeout,
+        timeout: requestTimeout,
         retryAttempts,
         streamingEnabled,
       };
@@ -540,9 +540,9 @@ export function LLMSettingsPanel({
             setTemperature(storedConfig.parameters.temperature);
             setMaxTokens(storedConfig.parameters.maxTokens);
             setTopP(storedConfig.parameters.topP);
-            setFrequencyPenalty(storedConfig.parameters.frequencyPenalty);
-            setPresencePenalty(storedConfig.parameters.presencePenalty);
-            setTimeout(storedConfig.timeout);
+            setFrequencyPenalty(storedConfig.parameters?.frequencyPenalty ?? 0);
+            setPresencePenalty(storedConfig.parameters?.presencePenalty ?? 0);
+            setRequestTimeout(storedConfig.timeout ?? 30000);
             setRetryAttempts(storedConfig.retryAttempts);
             setStreamingEnabled(storedConfig.streamingEnabled);
             setDraftMode(storedConfig.parameters.draftMode || false);
@@ -597,7 +597,7 @@ export function LLMSettingsPanel({
       setTopP(1.0);
       setFrequencyPenalty(0);
       setPresencePenalty(0);
-      setTimeout(30000);
+      setRequestTimeout(30000);
       setRetryAttempts(3);
       setStreamingEnabled(true);
       setWorldPrompt(defaults.worldGeneration);
@@ -1243,8 +1243,8 @@ export function LLMSettingsPanel({
               min={5000}
               max={120000}
               step={1000}
-              value={timeout}
-              onChange={(e) => setTimeout(parseInt(e.target.value) || 30000)}
+              value={requestTimeout}
+              onChange={(e) => setRequestTimeout(parseInt(e.target.value) || 30000)}
             />
           </div>
 

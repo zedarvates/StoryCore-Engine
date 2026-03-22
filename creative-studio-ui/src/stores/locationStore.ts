@@ -51,6 +51,12 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
   // endpoint should start with /api/...
   const url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
+  // Requirement 7.6: In Electron mode, skip API calls if backend not enabled
+  // This will trigger the catch block in addLocation/updateLocation/etc.
+  if (window.electronAPI && !import.meta.env.VITE_USE_BACKEND_IN_ELECTRON) {
+    throw new Error('API not available in Electron offline mode');
+  }
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -65,10 +71,9 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
     }
 
     return response.json();
-  } catch {
-    // Don't log error in offline mode (Electron without backend)
-    // This is expected behavior
-    throw new Error('API request failed');
+  } catch (error) {
+    // Re-throw to be caught by the action's try/catch block
+    throw error instanceof Error ? error : new Error('API request failed');
   }
 }
 
@@ -180,7 +185,20 @@ export const useLocationStore = create<LocationState>()(
         error: null,
 
         // Actions - Locations CRUD
-        setLocations: (locations) => set({ locations }),
+        setLocations: (locations) => set((_state) => {
+           // Requirement 7.5: Deduplicate by ID
+           const uniqueMap = new Map<string, Location>();
+           locations.forEach(loc => {
+             if (loc) uniqueMap.set(loc.location_id, loc);
+           });
+           const deduplicated = Array.from(uniqueMap.values());
+           
+           if (deduplicated.length < locations.length) {
+              console.warn(`[LocationStore] Deduplicated locations: ${locations.length} -> ${deduplicated.length}`);
+           }
+           
+           return { locations: deduplicated };
+        }),
 
         fetchLocations: async () => {
           // Prevent concurrent fetches
@@ -326,6 +344,11 @@ export const useLocationStore = create<LocationState>()(
           try {
             // Try API first, fallback to local storage in offline mode
             try {
+              // Get current project ID to help backend save to project folder
+              const { useAppStore } = await import('@/stores/useAppStore');
+              const project = useAppStore.getState().project;
+              const projectId = (project?.metadata?.path as string) || (project?.path as string) || (project?.id as string);
+
               const response = await fetchApi<unknown>('/api/locations', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -337,6 +360,7 @@ export const useLocationStore = create<LocationState>()(
                   world_id: location.world_id,
                   world_location_id: location.world_location_id,
                   prompts: location.prompts,
+                  project_id: projectId, // Pass project_id for persistent storage
                 }),
               });
               
@@ -348,9 +372,24 @@ export const useLocationStore = create<LocationState>()(
                 cube_textures: (newLoc.cube_textures || newLoc.cube_faces || {}) as Location['cube_textures'],
               } as Location;
 
-              set((state) => ({
-                locations: [...state.locations, mappedLoc],
-              }));
+              set((state) => {
+                // Requirement 7.5: Prevent duplicate locations by checking ID
+                const existingIndex = state.locations.findIndex(
+                  (l) => l.location_id === mappedLoc.location_id
+                );
+
+                if (existingIndex >= 0) {
+                  return {
+                    locations: state.locations.map((loc, idx) => 
+                      idx === existingIndex ? mappedLoc : loc
+                    ),
+                  };
+                }
+
+                return {
+                  locations: [...state.locations, mappedLoc],
+                };
+              });
             } catch {
               // Offline mode - add locally
               console.warn('API not available, adding location locally');
@@ -367,9 +406,24 @@ export const useLocationStore = create<LocationState>()(
                 }
               }
 
-              set((state) => ({
-                locations: [...state.locations, location],
-              }));
+              set((state) => {
+                // Requirement 7.5: Deduplicate locally too
+                const existingIndex = state.locations.findIndex(
+                  (l) => l.location_id === location.location_id
+                );
+
+                if (existingIndex >= 0) {
+                  return {
+                    locations: state.locations.map((loc, idx) => 
+                      idx === existingIndex ? { ...loc, ...location } : loc
+                    ),
+                  };
+                }
+
+                return {
+                  locations: [...state.locations, location],
+                };
+              });
             }
           } catch (error) {
             set({ error: 'Failed to create location' });
@@ -385,7 +439,13 @@ export const useLocationStore = create<LocationState>()(
           try {
             // Try API first, fallback to local update in offline mode
             try {
-              const response = await fetchApi<unknown>(`/api/locations/${id}`, {
+              // Get current project ID to help backend find project-specific locations
+              const { useAppStore } = await import('@/stores/useAppStore');
+              const project = useAppStore.getState().project;
+              const projectId = (project?.metadata?.path as string) || (project?.path as string) || (project?.id as string);
+              
+              const queryParams = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+              const response = await fetchApi<unknown>(`/api/locations/${id}${queryParams}`, {
                 method: 'PUT',
                 body: JSON.stringify(updates),
               });
@@ -440,7 +500,13 @@ export const useLocationStore = create<LocationState>()(
           try {
             // Try API first, fallback to local delete in offline mode
             try {
-              await fetchApi(`/api/locations/${id}`, {
+              // Get current project ID to help backend find project-specific locations
+              const { useAppStore } = await import('@/stores/useAppStore');
+              const project = useAppStore.getState().project;
+              const projectId = (project?.metadata?.path as string) || (project?.path as string) || (project?.id as string);
+              
+              const queryParams = projectId ? `?project_id=${encodeURIComponent(projectId)}` : '';
+              await fetchApi<void>(`/api/locations/${id}${queryParams}`, {
                 method: 'DELETE',
               });
             } catch {

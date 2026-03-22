@@ -23,6 +23,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+import aiohttp
+from src.comfyui_executor import comfyui_executor
+from backend.config import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -407,7 +410,7 @@ class CharacterVariationGenerator:
         
         logger.info(f"Character variation generator initialized with output dir: {self.output_dir}")
     
-    def generate_variations(
+    async def generate_variations(
         self,
         character_description: str,
         character_id: str,
@@ -461,7 +464,7 @@ class CharacterVariationGenerator:
                             if total_variations >= max_variations:
                                 break
                             
-                            variation = self._generate_single_variation(
+                            variation = await self._generate_single_variation(
                                 character_description=character_description,
                                 character_id=character_id,
                                 style=style,
@@ -499,7 +502,7 @@ class CharacterVariationGenerator:
                 error_message=str(e)
             )
     
-    def _generate_single_variation(
+    async def _generate_single_variation(
         self,
         character_description: str,
         character_id: str,
@@ -556,7 +559,7 @@ class CharacterVariationGenerator:
             # - DALL-E API
             # - Midjourney API
             
-            generated_image = self._placeholder_generation(
+            generated_image = await self._placeholder_generation(
                 positive_prompt,
                 negative_prompt,
                 base_image_base64
@@ -592,23 +595,85 @@ class CharacterVariationGenerator:
             logger.error(f"Failed to generate variation: {e}")
             return None
     
-    def _placeholder_generation(
+    async def _placeholder_generation(
         self,
         positive_prompt: str,
         negative_prompt: str,
         base_image_base64: Optional[str]
     ) -> Optional[str]:
         """
-        Placeholder for actual generation.
-        
-        In production, this would:
-        1. Call ComfyUI API with workflow
-        2. Use Stable Diffusion
-        3. Call cloud API (DALL-E, etc.)
+        Generation using ComfyUI.
         """
-        # Return None to indicate no actual generation
-        # The prompt system is fully functional
-        return None
+        # Build simple workflow
+        workflow = {
+            "3": {
+                "class_type": "KSampler",
+                "inputs": {
+                    "seed": random.randint(1, 1000000),
+                    "steps": 20,
+                    "cfg": 7.0,
+                    "sampler_name": "euler",
+                    "scheduler": "normal",
+                    "denoise": 0.8,
+                    "model": ["4", 0],
+                    "positive": ["6", 0],
+                    "negative": ["7", 0],
+                    "latent_image": ["5", 0]
+                }
+            },
+            "4": {
+                "class_type": "CheckpointLoaderSimple",
+                "inputs": {
+                    "ckpt_name": "v1-5-pruned-emaonly.safetensors"
+                }
+            },
+            "5": {
+                "class_type": "EmptyLatentImage",
+                "inputs": {
+                    "width": 512,
+                    "height": 512,
+                    "batch_size": 1
+                }
+            },
+            "6": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {
+                    "text": positive_prompt,
+                    "clip": ["4", 1]
+                }
+            },
+            "7": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {
+                    "text": negative_prompt,
+                    "clip": ["4", 1]
+                }
+            },
+            "8": {
+                "class_type": "VAEDecode",
+                "inputs": {
+                    "samples": ["3", 0],
+                    "vae": ["4", 2]
+                }
+            },
+            "9": {
+                "class_type": "SaveImage",
+                "inputs": {
+                    "filename_prefix": "variation",
+                    "images": ["8", 0]
+                }
+            }
+        }
+        
+        try:
+            result = await comfyui_executor.execute_workflow(workflow)
+            if result.get("success") and result.get("outputs"):
+                # Get URL of the first output image
+                return result["outputs"][0].get("url")
+            return None
+        except Exception as e:
+            logger.error(f"ComfyUI generation failed: {e}")
+            return None
     
     def _get_cache_key(
         self,

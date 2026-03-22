@@ -130,6 +130,9 @@ class Project(Base, TimestampMixin):
     # Relationships
     user = relationship("User", back_populates="projects")
     media = relationship("Media", back_populates="project", cascade="all, delete-orphan")
+    episodes = relationship("Episode", back_populates="project", cascade="all, delete-orphan")
+    characters = relationship("Character", back_populates="project", cascade="all, delete-orphan")
+    moodboards = relationship("Moodboard", back_populates="project", cascade="all, delete-orphan")
     export_jobs = relationship("ExportJob", back_populates="project", cascade="all, delete-orphan")
     
     # Indexes
@@ -372,8 +375,87 @@ class Template(Base, TimestampMixin):
     # Visibility
     is_public = Column(Boolean, default=True)
     
-    def __repr__(self):
+  def __repr__(self):
         return f"<Template(id={self.id}, name={self.name}, category={self.category})>"
+
+
+class Episode(Base, TimestampMixin):
+    """Episode model for serial productions."""
+    
+    __tablename__ = "video_editor_episodes"
+    
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
+    
+    number = Column(Integer, default=1)
+    title = Column(String(255), nullable=False)
+    synopsis = Column(Text, nullable=True)
+    status = Column(String(50), default="draft")  # draft, storyboard, production, final
+    
+    storyboard_data = Column(JSON, nullable=True)
+    settings = Column(JSON, nullable=True)
+    
+    # Relationships
+    project = relationship("Project", back_populates="episodes")
+    
+    def __repr__(self):
+        return f"<Episode(id={self.id}, number={self.number}, title={self.title})>"
+
+
+class Character(Base, TimestampMixin):
+    """Character model for advanced profiling and consistency."""
+    
+    __tablename__ = "video_editor_characters"
+    
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
+    
+    name = Column(String(255), nullable=False)
+    role = Column(String(50), default="supporting")  # protagonist, antagonist, supporting, etc.
+    archetype = Column(String(100), nullable=True)  # rival, mentor, etc.
+    
+    # Narrative depth
+    goal = Column(Text, nullable=True)
+    flaw_sympathy = Column(Text, nullable=True)
+    daily_details = Column(JSON, nullable=True)  # habits, diet, etc.
+    
+    # Profile data
+    personality = Column(JSON, nullable=True)
+    appearance = Column(JSON, nullable=True)
+    voice_profile = Column(JSON, nullable=True)
+    
+    # AI/Consistency tracking
+    ai_coherence_data = Column(JSON, nullable=True)
+    reference_images = Column(JSON, nullable=True)  # List of image paths
+    
+    # Relationships
+    project = relationship("Project", back_populates="characters")
+    
+    def __repr__(self):
+        return f"<Character(id={self.id}, name={self.name}, role={self.role})>"
+
+
+class Moodboard(Base, TimestampMixin):
+    """Moodboard model for visual consistency."""
+    
+    __tablename__ = "video_editor_moodboards"
+    
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
+    
+    name = Column(String(255), default="Vibe Board")
+    vision_description = Column(Text, nullable=True)
+    references = Column(JSON, nullable=True)  # List of references {url, type, note}
+    
+    # Style metadata
+    art_style = Column(String(255), nullable=True)
+    color_palette = Column(JSON, nullable=True)
+    
+    # Relationships
+    project = relationship("Project", back_populates="moodboards")
+    
+    def __repr__(self):
+        return f"<Moodboard(id={self.id}, project_id={self.project_id})>"
 
 
 # =============================================================================

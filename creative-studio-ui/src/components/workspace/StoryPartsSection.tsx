@@ -1,298 +1,218 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { BookOpen, Plus, RefreshCw, Edit3, Trash2, ChevronDown, ChevronRight, FileText, X } from 'lucide-react';
+import { BookOpen, Plus, RefreshCw, FileText, X } from 'lucide-react';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
 import { StoryPartCard } from './StoryPartCard';
-import type { Story, StoryPart } from '@/types/story';
 import { saveStoryToDisk } from '@/utils/storyFileIO';
-import { toast } from '@/utils/toast';
-import { logger } from '@/utils/logging';
+import type { StoryPart } from '@/types/story';
 import './StoryPartsSection.css';
 
 interface StoryPartsSectionProps {
-  story?: Story | null;
-  onPartsUpdated?: (parts: StoryPart[]) => void;
+  storyId: string;
   onClose?: () => void;
-  className?: string;
 }
 
-export function StoryPartsSection({ story, onPartsUpdated, onClose, className }: StoryPartsSectionProps) {
+export function StoryPartsSection({ storyId, onClose }: StoryPartsSectionProps) {
+  const stories = useStore((state) => state.stories);
   const updateStory = useStore((state) => state.updateStory);
   const project = useAppStore((state) => state.project);
   
-  const [isExpanded, setIsExpanded] = useState(true);
+  const story = useMemo(() => stories.find((s) => s.id === storyId), [stories, storyId]);
+  
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [editingPartId, setEditingPartId] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState('');
 
-  // Organiser les parties par type
+  // Séparer les parties par type
   const storyParts = useMemo(() => {
-    if (!story?.parts || story.parts.length === 0) return null;
-
-    const intro = story.parts.find(p => p.type === 'intro');
-    const chapters = story.parts.filter(p => p.type === 'chapter').sort((a, b) => a.order - b.order);
-    const ending = story.parts.find(p => p.type === 'ending');
-    const summary = story.summary;
-
-    return { intro, chapters, ending, summary };
+    if (!story || !story.parts) return { intro: null, chapters: [] as StoryPart[], ending: null };
+    
+    return {
+      intro: story.parts.find((p) => p.type === 'intro') as StoryPart | undefined,
+      chapters: story.parts.filter((p) => p.type === 'chapter').sort((a, b) => (a.order || 0) - (b.order || 0)) as StoryPart[],
+      ending: story.parts.find((p) => p.type === 'ending') as StoryPart | undefined,
+    };
   }, [story]);
 
-  // Sauvegarder les modifications rapides
+  // Handler pour la mise à jour rapide (édition en ligne)
   const handleQuickEdit = useCallback(async (part: StoryPart, newContent: string) => {
     if (!story) return;
 
-    try {
-      const updatedParts = story.parts?.map(p => 
-        p.id === part.id ? { ...p, content: newContent, updatedAt: new Date() } : p
-      ) || [];
+    const updatedParts = (story.parts || []).map((p) => 
+      p.id === part.id ? { ...p, content: newContent } : p
+    );
 
+    try {
       updateStory(story.id, { parts: updatedParts });
 
       // Sauvegarder sur le disque
-      if (project?.metadata?.path && window.electronAPI?.fs) {
-        await saveStoryToDisk(project.metadata.path, {
+      const projectPath = project?.metadata?.path as string | undefined;
+      if (projectPath && window.electronAPI?.fs) {
+        await saveStoryToDisk(projectPath, {
           ...story,
           parts: updatedParts,
         });
       }
-
-      toast.success('Partie sauvegardée', 'Vos modifications ont été enregistrées.');
-      setEditingPartId(null);
-      
-      if (onPartsUpdated) {
-        onPartsUpdated(updatedParts);
-      }
     } catch (error) {
-      logger.error('Failed to save part:', error);
-      toast.error('Erreur', 'Impossible de sauvegarder les modifications.');
+      console.error('Failed to update story part:', error);
     }
-  }, [story, updateStory, project, onPartsUpdated]);
+  }, [story, project, updateStory]);
 
-  // Supprimer une partie
   const handleDeletePart = useCallback(async (partId: string) => {
-    if (!story) return;
+    if (!story || !window.confirm('Êtes-vous sûr de vouloir supprimer cette partie ?')) return;
+
+    const updatedParts = (story.parts || []).filter((p) => p.id !== partId);
 
     try {
-      const updatedParts = story.parts?.filter(p => p.id !== partId) || [];
       updateStory(story.id, { parts: updatedParts });
 
       // Sauvegarder sur le disque
-      if (project?.metadata?.path && window.electronAPI?.fs) {
-        await saveStoryToDisk(project.metadata.path, {
+      const projectPath = project?.metadata?.path as string | undefined;
+      if (projectPath && window.electronAPI?.fs) {
+        await saveStoryToDisk(projectPath, {
           ...story,
           parts: updatedParts,
         });
       }
-
-      toast.success('Partie supprimée', 'La partie a été supprimée.');
-      
-      if (onPartsUpdated) {
-        onPartsUpdated(updatedParts);
-      }
     } catch (error) {
-      logger.error('Failed to delete part:', error);
-      toast.error('Erreur', 'Impossible de supprimer la partie.');
+      console.error('Failed to delete story part:', error);
     }
-  }, [story, updateStory, project, onPartsUpdated]);
+  }, [story, project, updateStory]);
 
-  // Rafraîchir depuis les fichiers
   const handleRefresh = async () => {
     setIsRefreshing(true);
+    // Simuler un rafraîchissement
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsRefreshing(false);
-    toast.info('Actualisé', 'Les parties ont été actualisées.');
   };
 
-  // Calculer les statistiques
   const stats = useMemo(() => {
-    if (!storyParts) return null;
-
-    const totalWords = story.parts?.reduce((sum, part) => 
-      sum + (part.content.split(/\s+/).filter(Boolean).length), 0
+    if (!story) return { totalParts: 0, totalWords: 0, chaptersCount: 0 };
+    
+    const totalWords = story.parts?.reduce(
+      (acc: number, p: StoryPart) => acc + (p.content?.split(/\s+/).length || 0), 
+      0
     ) || 0;
 
     return {
-      totalParts: story.parts?.length || 0,
+      totalParts: story?.parts?.length || 0,
       totalWords,
-      chaptersCount: storyParts.chapters.length,
+      chaptersCount: storyParts?.chapters?.length || 0,
     };
   }, [story, storyParts]);
 
+  if (!storyId) {
+    return (
+      <div className="story-parts-empty">
+        <BookOpen className="w-12 h-12 opacity-20 mb-4" />
+        <div className="flex flex-col items-center">
+          <p>Sélectionnez une histoire pour voir ses parties.</p>
+          {onClose && (
+            <button onClick={onClose} className="mt-4 text-sm text-primary hover:underline">
+              Fermer la vue
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (!story) {
     return (
-      <div className={`story-parts-section story-parts-section--empty ${className || ''}`}>
-        <div className="story-parts-section__empty-state">
-          <BookOpen className="story-parts-section__empty-icon" />
-          <h3>Aucun story créée</h3>
-          <p>Créez d'abord une histoire avec le Storyteller Wizard.</p>
+      <div className="story-parts-empty">
+        <X className="w-12 h-12 text-rose-500 opacity-20 mb-4" />
+        <div className="flex flex-col items-center">
+          <p>Histoire non trouvée.</p>
+          {onClose && (
+            <button onClick={onClose} className="mt-4 text-sm text-primary hover:underline">
+              Retour
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
-  if (!storyParts) {
-    return (
-      <div className={`story-parts-section story-parts-section--loading ${className || ''}`}>
-        <div className="story-parts-section__loading">
-          <FileText className="story-parts-section__loading-icon" />
-          <p>En attente des parties d'histoire...</p>
-          <span className="story-parts-section__loading-hint">
-            Utilisez le Storyteller Wizard pour générer votre histoire.
-          </span>
-        </div>
-      </div>
-    );
-  }
+  // Liste plate de toutes les parties pour l'affichage en tuiles
+  const allParts = [
+    ...(storyParts.intro ? [storyParts.intro] : []),
+    ...storyParts.chapters,
+    ...(storyParts.ending ? [storyParts.ending] : []),
+  ];
 
   return (
-    <div className={`story-parts-section ${isExpanded ? 'story-parts-section--expanded' : ''} ${className || ''}`}>
-      {/* Header */}
-      <div 
-        className="story-parts-section__header"
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
+    <div className="story-parts-section story-parts-section--expanded">
+      <header className="story-parts-section__header">
         <div className="story-parts-section__header-left">
-          <BookOpen className="story-parts-section__icon" />
+          <div className="story-parts-section__icon">
+            <BookOpen className="w-5 h-5" />
+          </div>
           <div className="story-parts-section__info">
-            <h3 className="story-parts-section__title">{story.title}</h3>
+            <h2 className="story-parts-section__title">{story.title}</h2>
             <div className="story-parts-section__meta">
-              {stats && (
-                <>
-                  <span>{stats.totalParts} parties</span>
-                  <span>•</span>
-                  <span>{stats.totalWords.toLocaleString()} mots</span>
-                  <span>•</span>
-                  <span>{stats.chaptersCount} chapitres</span>
-                </>
-              )}
+              <span>
+                <strong>{stats.totalParts}</strong> parties
+              </span>
+              <span>
+                <strong>{stats.chaptersCount}</strong> chapitres
+              </span>
+              <span>
+                <strong>{stats.totalWords.toLocaleString()}</strong> mots
+              </span>
             </div>
           </div>
         </div>
-
+        
         <div className="story-parts-section__header-right">
           <button 
-            className="story-parts-section__action-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRefresh();
-            }}
+            className={`story-parts-section__action-btn ${isRefreshing ? 'animate-spin' : ''}`}
+            onClick={handleRefresh}
             title="Actualiser"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          <button 
+            className="story-parts-section__action-btn story-parts-section__action-btn--primary"
+            title="Nouveau Chapitre"
+          >
+            <Plus className="w-4 h-4" />
           </button>
           {onClose && (
             <button 
-              className="story-parts-section__action-btn story-parts-section__action-btn--close"
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
+              className="story-parts-section__action-btn"
+              onClick={onClose}
               title="Fermer"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <button className="story-parts-section__expand-btn">
-            {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-          </button>
         </div>
-      </div>
+      </header>
 
-      {/* Contenu étendu */}
-      {isExpanded && (
-        <div className="story-parts-section__content">
-          {/* Résumé global */}
-          {storyParts.summary && (
-            <div className="story-parts-section__section">
-              <div className="story-parts-section__section-header">
-                <FileText className="w-4 h-4" />
-                <h4>Résumé Global</h4>
-              </div>
-              <div className="story-parts-section__summary-card">
-                <p>{storyParts.summary}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Introduction */}
-          {storyParts.intro && (
-            <div className="story-parts-section__section">
-              <div className="story-parts-section__section-header">
-                <span className="story-parts-section__section-icon">📖</span>
-                <h4>Introduction</h4>
-              </div>
+      <div className="story-parts-section__content">
+        {allParts.length > 0 ? (
+          <div className="story-parts-section__parts-grid">
+            {allParts.map((part, index) => (
               <StoryPartCard
-                part={storyParts.intro}
+                key={part.id}
+                part={part}
                 storyTitle={story.title}
-                onEdit={(part) => {
-                  setEditingPartId(part.id);
-                  setEditContent(part.content);
-                }}
+                partNumber={part.type === 'chapter' ? storyParts.chapters.indexOf(part) + 1 : undefined}
+                totalParts={storyParts.chapters.length}
                 onDelete={handleDeletePart}
+                onQuickEdit={handleQuickEdit}
+                isExpanded={index === 0} // Étendre la première partie par défaut
               />
-            </div>
-          )}
-
-          {/* Chapitres */}
-          {storyParts.chapters.length > 0 && (
-            <div className="story-parts-section__section">
-              <div className="story-parts-section__section-header">
-                <span className="story-parts-section__section-icon">📑</span>
-                <h4>Chapitres ({storyParts.chapters.length})</h4>
-              </div>
-              <div className="story-parts-section__parts-grid">
-                {storyParts.chapters.map((chapter, index) => (
-                  <StoryPartCard
-                    key={chapter.id}
-                    part={chapter}
-                    storyTitle={story.title}
-                    partNumber={index + 1}
-                    totalParts={storyParts.chapters.length}
-                    onEdit={(part) => {
-                      setEditingPartId(part.id);
-                      setEditContent(part.content);
-                    }}
-                    onDelete={handleDeletePart}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Conclusion */}
-          {storyParts.ending && (
-            <div className="story-parts-section__section">
-              <div className="story-parts-section__section-header">
-                <span className="story-parts-section__section-icon">🎬</span>
-                <h4>Conclusion</h4>
-              </div>
-              <StoryPartCard
-                part={storyParts.ending}
-                storyTitle={story.title}
-                onEdit={(part) => {
-                  setEditingPartId(part.id);
-                  setEditContent(part.content);
-                }}
-                onDelete={handleDeletePart}
-              />
-            </div>
-          )}
-
-          {/* Actions additionnelles */}
-          <div className="story-parts-section__actions">
-            <button 
-              className="story-parts-section__add-btn"
-              onClick={() => {
-                toast.info('Fonction à venir', 'Ajout de parties bientôt disponible.');
-              }}
-            >
-              <Plus className="w-4 h-4" />
-              <span>Ajouter un chapitre</span>
+            ))}
+          </div>
+        ) : (
+          <div className="story-parts-section--empty">
+            <FileText className="story-parts-section__empty-icon mb-4" />
+            <p>Cette histoire n'a pas encore de contenu.</p>
+            <button className="mt-4 px-4 py-2 bg-primary text-white rounded-md text-sm font-medium">
+              Générer l'introduction
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
-

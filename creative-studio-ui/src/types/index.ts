@@ -95,6 +95,7 @@ export interface Shot {
   transitionOut?: Transition;
 
   metadata?: ShotMetadata;
+  cinematography?: Cinematography;
   referenceImage?: string; // Legacy/AI
   result_url?: string;
 
@@ -132,6 +133,17 @@ export interface ShotMetadata {
   [key: string]: unknown;
 }
 
+export interface Cinematography {
+  framing?: 'ECU' | 'CU' | 'MCU' | 'MS' | 'MLS' | 'LS' | 'ELS' | string;
+  cameraAngle?: 'Low' | 'Eye' | 'High' | 'Bird' | 'Worm' | 'Dutch' | string;
+  cameraMovement?: 'Static' | 'Pan' | 'Tilt' | 'Dolly In' | 'Dolly Out' | 'Zoom In' | 'Zoom Out' | 'Tracking' | string;
+  movementSpeed?: 'Slow' | 'Normal' | 'Fast' | 'Slow-Mo' | string;
+  depthOfField?: 'Shallow' | 'Deep' | 'Variable' | string;
+  lighting?: 'Natural' | 'Cinematic' | 'High Key' | 'Low Key' | 'Dramatic' | string;
+  aspectRatio?: '16:9' | '4:3' | '21:9' | '9:16' | string;
+  motionBlur?: boolean;
+}
+
 export interface PromptValidation {
   isValid: boolean;
   errors: PromptValidationError[];
@@ -166,8 +178,12 @@ export interface AudioTrack {
   duration?: number; // seconds
   offset?: number; // trim start of audio file
 
-  // Volume and pan
-  volume: number; // 0-100
+  // 3D/Visualization settings
+  material_color?: [number, number, number]; // RGB 0.0-1.0
+
+  // AI Consistency tracking
+  ai_coherence_data?: any;
+  reference_images?: string[]; // Generic paths or URLs
   fadeIn?: number; // seconds
   fadeOut?: number; // seconds
   pan?: number; // -100 (left) to 100 (right) for stereo
@@ -324,12 +340,12 @@ export interface Transition {
 }
 
 // Re-export Effect types
-export type { 
-  Effect, 
-  EffectParameter, 
-  EffectKeyframe, 
-  AppliedEffect, 
-  EffectStackProps 
+export type {
+  Effect,
+  EffectParameter,
+  EffectKeyframe,
+  AppliedEffect,
+  EffectStackProps
 };
 
 // ============================================================================
@@ -423,6 +439,7 @@ export interface Project {
   sequencePlans?: SequencePlan[];
   projectSetup?: ProjectSetupData;
   moodboard?: MoodboardData;
+  episodes?: Episode[];
 
   // Dashboard / Generation metadata
   audio_phrases?: DialoguePhrase[]; // For DialoguePhrase
@@ -899,6 +916,7 @@ export interface AppState {
   worlds: World[]; // Story worlds for the project
   selectedWorldId: string | null; // Currently active world
   characters: Character[]; // Characters for the project
+  episodes: Episode[]; // Episodes for the project
   stories: Story[]; // Stories for the project
   storyVersions: StoryVersion[]; // Version history for stories
   objects: StoryObject[]; // Story objects, props, and artifacts
@@ -1027,6 +1045,23 @@ export interface ChatSuggestion {
   id: string;
   text: string;
   action?: () => void;
+}
+
+// ============================================================================
+// Episode Type
+// ============================================================================
+
+export interface Episode {
+  id: string;
+  project_id: string;
+  number: number;
+  title: string;
+  synopsis?: string;
+  status: 'draft' | 'storyboard' | 'production' | 'final';
+  storyboard_data?: any;
+  settings?: any;
+  created_at?: string;
+  updated_at?: string;
 }
 
 

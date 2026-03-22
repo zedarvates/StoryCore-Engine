@@ -187,16 +187,20 @@ export class SequencePlanService {
    */
   public async loadSequencePlan(planId: string): Promise<SequencePlanData | null> {
     try {
-      // 1. Try Electron/File Storage if available
+      // Get project info from app store
       const { useAppStore } = await import('@/stores/useAppStore');
       const project = useAppStore.getState().project;
       const projectPath = project?.path || project?.metadata?.path;
       const projectId = project?.id;
 
-      if (window.electronAPI && projectPath) {
-        const { persistenceService } = await import('./PersistenceService');
+      // 1. Try PersistenceService (Unified multi-layer)
+      try {
+        const { PersistenceService } = await import('./PersistenceService');
+        const persistenceService = PersistenceService.getInstance();
         const plan = await persistenceService.loadSequencePlan(planId, projectPath as string);
         if (plan) return plan as unknown as SequencePlanData;
+      } catch (e) {
+        console.warn('[SequencePlanService] PersistenceService load failed:', e);
       }
 
       // 2. Try Backend API if available and project loaded
@@ -212,7 +216,7 @@ export class SequencePlanService {
         }
       }
 
-      // 3. Fallback to localStorage
+      // 3. Fallback to localStorage directly if others fail
       const stored = localStorage.getItem(`sequence-plan-${planId}`);
       if (stored) return JSON.parse(stored) as SequencePlanData;
 
@@ -241,7 +245,12 @@ export class SequencePlanService {
       modifiedAt: Date.now(),
     };
 
-    await this.savePlan(updatedPlan);
+    // Get current project path for saving
+    const { useAppStore } = await import('@/stores/useAppStore');
+    const project = useAppStore.getState().project;
+    const projectPath = project?.path || project?.metadata?.path;
+
+    await this.savePlan(updatedPlan, projectPath as string);
     this.markDirty();
 
     // Notify subscribers
@@ -531,15 +540,9 @@ export class SequencePlanService {
   /**
    * Save a plan to storage
    */
-  private async savePlan(plan: SequencePlanData): Promise<void> {
+  private async savePlan(plan: SequencePlanData, projectPath?: string): Promise<void> {
     try {
-      // Save plan data
-      localStorage.setItem(`sequence-plan-${plan.id}`, JSON.stringify(plan));
-
-      // Update plan list
-      const planList = await this.listSequencePlans();
-      const existingIndex = planList.findIndex((p) => p.id === plan.id);
-
+      // 1. Convert to SequencePlan summary type for list management
       const planSummary: SequencePlan = {
         id: plan.id,
         name: plan.name,
@@ -551,25 +554,41 @@ export class SequencePlanService {
         resolution: plan.resolution,
         acts: [],
         scenes: [],
-        shots: [], // Empty array since we're just creating a summary
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        shots: (plan.shots as any[]) || [], 
         createdAt: plan.createdAt,
         modifiedAt: plan.modifiedAt,
         status: 'draft',
         tags: [],
       };
 
-      if (existingIndex >= 0) {
-        planList[existingIndex] = planSummary;
-      } else {
-        planList.push(planSummary);
+      // 2. Save via PersistenceService (Handles File + LocalStorage + Store)
+      try {
+        const { PersistenceService } = await import('./PersistenceService');
+        const persistenceService = PersistenceService.getInstance();
+        await persistenceService.saveSequencePlan(planSummary, projectPath);
+        console.log(`[SequencePlanService] Plan ${plan.id} saved via PersistenceService`);
+      } catch (persistenceError) {
+        console.warn('[SequencePlanService] PersistenceService save failed, falling back to manual localStorage', persistenceError);
+        
+        // Manual fallback to localStorage if PersistenceService fails
+        localStorage.setItem(`sequence-plan-${plan.id}`, JSON.stringify(plan));
+        
+        const planList = await this.listSequencePlans();
+        const existingIndex = planList.findIndex((p) => p.id === plan.id);
+        
+        if (existingIndex >= 0) {
+          planList[existingIndex] = planSummary;
+        } else {
+          planList.push(planSummary);
+        }
+        localStorage.setItem('sequence-plan-list', JSON.stringify(planList));
       }
-
-      localStorage.setItem('sequence-plan-list', JSON.stringify(planList));
 
       this.lastSaveTime = Date.now();
       this.isDirty = false;
 
-      // Notify subscribers
+      // Notify subscribers for the full data update
       this.notifyPlanUpdate(plan.id, plan);
       await this.notifyPlanListUpdate();
     } catch (error) {

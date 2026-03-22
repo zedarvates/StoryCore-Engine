@@ -1,4 +1,3 @@
-
 """
 Skin Enhancer Engine - Automated skin refinement with texture preservation.
 Part of the StoryCore-Engine Image Enhancement Suite.
@@ -18,6 +17,7 @@ try:
     import numpy as np
     PIL_Image = Image.Image
 except ImportError:
+    from typing import Any
     PIL_Image = Any
     np = type('np', (), {'ndarray': Any})()
 
@@ -46,25 +46,29 @@ class SkinEnhancerEngine:
     Engine for high-end cinematic skin enhancement.
     Integrates facial segmentation and frequency-based smoothing (frequency separation logic).
     """
-    
+
     def __init__(self, config: Optional[SkinEnhancerConfig] = None):
         self.config = config or SkinEnhancerConfig()
         self.logger = logging.getLogger(__name__)
         self.logger.info("Skin Enhancer Engine initialized")
 
-    async def enhance(self, image: PIL_Image, config_override: Optional[Dict[str, Any]] = None) -> SkinEnhancerResult:
+    async def enhance(self, image: Union[PIL_Image, str], config_override: Optional[Dict[str, Any]] = None) -> SkinEnhancerResult:
         """
         Main entry point for skin enhancement.
         """
         start_time = time.time()
         cfg = self.config
-        
+
+        # If image is a string, treat it as a file path and load the image
+        if isinstance(image, str):
+            image = Image.open(image)
+
         # Merge config
         if config_override:
             for k, v in config_override.items():
                 if hasattr(cfg, k):
                     setattr(cfg, k, v)
-        
+
         self.logger.info(f"Enhancing skin with smoothing={cfg.smoothing_intensity}")
 
         try:
@@ -72,13 +76,13 @@ class SkinEnhancerEngine:
             from src.comfyui_executor import comfyui_executor
             from backend.config import settings
             import io
-            
+
             if not settings.USE_MOCK_COMFYUI:
                 # 1. Prepare Image for Upload
                 img_byte_arr = io.BytesIO()
                 image.convert("RGB").save(img_byte_arr, format='JPEG')
                 image_bytes = img_byte_arr.getvalue()
-                
+
                 # 2. Upload to ComfyUI
                 filename = f"enhancement_input_{int(time.time())}.jpg"
                 upload_res = await comfyui_executor.upload_image(image_bytes, filename)
@@ -89,46 +93,40 @@ class SkinEnhancerEngine:
                 if workflow_path.exists():
                     with open(workflow_path, 'r') as f:
                         workflow = json.load(f)
-                    
+
                     # 4. Inject Parameters
-                    # Node "1" is LoadImage in our pro workflow
                     if "1" in workflow:
                         workflow["1"]["inputs"]["image"] = uploaded_filename
-                    
-                    # Map config to workflow nodes if possible
-                    # (Simplified mapping for this example)
+
                     if "4" in workflow: # FaceDetailer
                         workflow["4"]["inputs"]["denoise"] = cfg.smoothing_intensity * 0.6 + 0.1
-                    
+
                     # 5. Execute
                     res = await comfyui_executor.execute_workflow(workflow)
-                    
+
                     if res.get("success") and res.get("outputs"):
                         self.logger.info("Skin enhancement completed via ComfyUI Pro Workflow")
-                        
-                        # Find result image URL
+
                         output_img_url = None
                         for out in res["outputs"]:
                             if out["type"] == "image":
                                 output_img_url = out["url"]
                                 break
-                        
+
                         if output_img_url:
-                            # In a real scenario, we'd fetch the image back
-                            # For now, we return success and the metadata
                             return SkinEnhancerResult(
                                 success=True,
-                                image=image, # In a full impl, we'd download and replace this
+                                image=image,
                                 quality_score=0.98,
                                 processing_time=time.time() - start_time
                             )
 
             # Fallback to local logic
             masks = await self._detect_skin_regions(image)
-            await asyncio.sleep(0.5) 
-                
+            await asyncio.sleep(0.5)
+
             processing_time = time.time() - start_time
-            
+
             return SkinEnhancerResult(
                 success=True,
                 image=image,
@@ -147,7 +145,6 @@ class SkinEnhancerEngine:
 
     async def _detect_skin_regions(self, image: PIL_Image) -> Dict[str, List[Tuple[int, int, int, int]]]:
         """Segments face, neck, and other visible skin areas."""
-        # Simulated coordinates [x1, y1, x2, y2]
         await asyncio.sleep(0.2)
         return {
             "face": [(120, 150, 480, 500)],

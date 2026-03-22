@@ -34,6 +34,7 @@ export interface CharacterWizardProps {
   worldContext?: World;
   initialData?: Partial<Character>;
   initialImage?: File;
+  productionMode?: string;
 }
 
 export function CharacterWizard({
@@ -42,6 +43,7 @@ export function CharacterWizard({
   worldContext,
   initialData,
   initialImage,
+  productionMode,
 }: CharacterWizardProps) {
   // State
   const [currentStep, setCurrentStep] = useState(1);
@@ -89,8 +91,8 @@ export function CharacterWizard({
       } as Character['personality'],
       visual_identity: {
         ...prev.visual_identity,
-        appearance: preset.appearance || '',
-        clothing_style: preset.clothing || '',
+        distinctive_features: preset.appearance ? [preset.appearance] : prev.visual_identity?.distinctive_features || [],
+        clothing_style: preset.clothing || prev.visual_identity?.clothing_style || '',
       } as Character['visual_identity'],
     }));
   }, []);
@@ -130,7 +132,8 @@ export function CharacterWizard({
          <div className="animate-in fade-in duration-500">
            <ImageCharacterCreator 
              onCharacterCreated={handleVisionComplete}
-             genre={(worldContext?.genre?.[0] as string) || 'fantasy'}
+             genre={(worldContext?.genre?.[0] as string) || 'contemporary'}
+             productionMode={productionMode}
            />
            <div className="mt-8 text-center">
              <button 
@@ -191,6 +194,7 @@ export function CharacterWizard({
             data={data} 
             onUpdate={updateData}
             worldContext={worldContext}
+            productionMode={productionMode}
           />
         );
       case 3:
@@ -199,12 +203,13 @@ export function CharacterWizard({
             data={data} 
             onUpdate={updateData} 
             worldContext={worldContext}
+            productionMode={productionMode}
           />
         );
       default:
         return null;
     }
-  }, [currentStep, data, updateData, applyPreset, worldContext, creationMethod, handleVisionComplete]);
+  }, [currentStep, data, updateData, applyPreset, worldContext, creationMethod, handleVisionComplete, productionMode]);
 
   const isStepValid = useMemo(() => {
     if (currentStep === 1) return !!data.name?.trim() && !!data.role?.archetype;

@@ -1496,9 +1496,9 @@ registerHandlers(): void {
     });
 
     // Get service status
-    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS, async () => {
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_GET_SERVICE_STATUS, async (_event, url?: string) => {
       try {
-        const status = await this.comfyuiService.getServiceStatus();
+        const status = await this.comfyuiService.getServiceStatus(url);
         return {
           success: true,
           status,

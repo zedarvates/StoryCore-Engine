@@ -17,6 +17,7 @@ import logging
 from dataclasses import asdict
 from datetime import datetime
 from typing import Any, Dict, List, Optional, TextIO
+from pathlib import Path
 
 import yaml
 
@@ -839,6 +840,87 @@ class CharacterExporter:
         
         return ", ".join(parts)
 
+    def export_3d_deployment(
+        self,
+        character: Any,
+        output_dir: str
+    ) -> Dict[str, Any]:
+        """
+        Prepare a 3D deployment package for Blender/Three.js.
+        Orchestrates manifests for GLB, FBX, and OBJ assets.
+        
+        Args:
+            character: CharacterCoreData (CCD v2) object
+            output_dir: Target directory for the package
+        """
+        pkg_path = Path(output_dir)
+        pkg_path.mkdir(parents=True, exist_ok=True)
+        
+        # Prepare the manifest
+        # We handle both Dict and Pydantic objects for robustness
+        is_dict = isinstance(character, dict)
+        
+        char_id = character.get("character_id") if is_dict else getattr(character, "character_id", "unknown")
+        name = character.get("name") if is_dict else getattr(character, "name", "Unnamed")
+        
+        # Extract 3D assets from VisualProfile
+        visual = character.get("visual") if is_dict else getattr(character, "visual", None)
+        mesh_assets = {}
+        if visual:
+            mesh_assets = visual.get("mesh_assets", {}) if isinstance(visual, dict) else getattr(visual, "mesh_assets", {})
+
+        manifest = {
+            "character_id": char_id,
+            "name": name,
+            "export_type": "3D_Production_Package",
+            "formats_provided": list(mesh_assets.keys()),
+            "assets": mesh_assets,
+            "metadata": {
+                "blender_ready": "fbx" in mesh_assets or "obj" in mesh_assets,
+                "threejs_ready": "glb" in mesh_assets,
+                "exported_at": datetime.now().isoformat()
+            }
+        }
+        
+        # Save character_manifest.json
+        manifest_path = pkg_path / "character_manifest.json"
+        with open(manifest_path, "w", encoding='utf-8') as f:
+            json.dump(manifest, f, indent=2)
+            
+        logger.info(f"3D Deployment Package created at {output_dir} with formats: {list(mesh_assets.keys())}")
+        return manifest
+
+    def export_comfy_puppet_config(
+        self,
+        character: Any,
+        output_dir: str
+    ) -> Path:
+        """
+        Exports a configuration for ComfyUI_Make-It-Animatable (PuppeT).
+        Allows 3D characters to be animatable as puppets in ComfyUI.
+        """
+        pkg_path = Path(output_dir)
+        pkg_path.mkdir(parents=True, exist_ok=True)
+        
+        is_dict = isinstance(character, dict)
+        name = character.get("name") if is_dict else getattr(character, "name", "Unnamed")
+        
+        puppet_config = {
+            "puppet_name": name,
+            "rig_v1": "humanoid_v1", # Standard rig type for Make-It-Animatable
+            "bone_map": "default_blender",
+            "animatable_features": ["limbs", "facial_expressions", "visemes"],
+            "mesh_source": "GLB", # Preferred for ComfyUI
+            "version": "1.0_SC"
+        }
+        
+        path = pkg_path / f"puppet_{name.lower()}_config.json"
+        with open(path, "w", encoding='utf-8') as f:
+            json.dump(puppet_config, f, indent=2)
+            
+        logger.info(f"Make-It-Animatable config exported: {path}")
+        return path
+
 
 # =============================================================================
 # Convenience Functions
@@ -872,6 +954,10 @@ def export_character(
         return exporter.export_to_llm_prompt_file(character, filepath)
     elif format == "comfyui":
         return exporter.export_to_comfyui_prompt_file(character, filepath)
+    elif format == "3d":
+        # For 3D, filepath is treated as the output directory
+        exporter.export_3d_deployment(character, filepath)
+        return True
     else:
         logger.error(f"Unknown format: {format}")
         return False

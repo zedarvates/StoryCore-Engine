@@ -172,6 +172,8 @@ def get_service_config(
     extract_face: bool = True,
     analyze_image: bool = True,
     apply_genre_adaptations: bool = True,
+    target_gender: Optional[str] = None,
+    target_age: Optional[str] = None,
     output_directory: Optional[str] = None
 ) -> 'CharacterCreationConfig':
     """Get service configuration"""
@@ -182,6 +184,8 @@ def get_service_config(
         genre=genre,
         visual_style=visual_style,
         apply_genre_adaptations=apply_genre_adaptations,
+        target_gender=target_gender,
+        target_age=target_age,
         save_extracted_face=True,
         output_directory=output_directory
     )
@@ -229,6 +233,8 @@ async def create_character_from_image(
     extract_face: bool = Form(True, description="Extract face for face swapping"),
     analyze_image: bool = Form(True, description="Analyze image with vision model"),
     apply_genre_adaptations: bool = Form(True, description="Apply genre-specific adaptations"),
+    target_gender: Optional[str] = Form(None, description="Optional gender hint"),
+    target_age: Optional[str] = Form(None, description="Optional age range hint"),
     user_id: str = "anonymous"
 ) -> CharacterFromImageResponse:
     """
@@ -283,6 +289,8 @@ async def create_character_from_image(
             extract_face=extract_face,
             analyze_image=analyze_image,
             apply_genre_adaptations=apply_genre_adaptations,
+            target_gender=target_gender,
+            target_age=target_age,
             output_directory=str(output_dir)
         )
         
@@ -293,7 +301,9 @@ async def create_character_from_image(
             image=image_array,
             name=name,
             role=role,
-            additional_context=additional_context
+            additional_context=additional_context,
+            target_gender=target_gender,
+            target_age=target_age
         )
         
         if not result.success:
@@ -792,7 +802,7 @@ async def generate_character_variations(
         generator = get_variation_generator(config)
         
         # Generate variations
-        result = generator.generate_variations(
+        result = await generator.generate_variations(
             character_description=request.character_description,
             character_id=request.character_id
         )

@@ -58,7 +58,7 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
   // Default config if currentConfig is null
   const defaultConfig: LLMConfig = useMemo(() => ({
     provider: 'local',
-    model: 'gemma2:2b',
+    model: 'qwen3-vl:4b',
     apiKey: '',
     apiEndpoint: 'http://localhost:11434',
     parameters: {
@@ -204,13 +204,13 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
       return;
     }
 
-    const newConfig: LLMConfig = {
-      ...currentConfig,
-      provider,
+      const newConfig: LLMConfig = {
+        ...config,
+        provider,
       model,
       apiKey,
       parameters: {
-        ...currentConfig.parameters,
+        ...config.parameters,
         temperature,
         maxTokens,
       },
@@ -231,12 +231,12 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
     try {
       // Build new config
       const newConfig: LLMConfig = {
-        ...currentConfig,
+        ...config,
         provider,
         model,
         apiKey,
         parameters: {
-          ...currentConfig.parameters,
+          ...config.parameters,
           temperature,
           maxTokens,
           creativityMode,
@@ -294,7 +294,7 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="max-w-[600px] bg-gray-900 text-white border-gray-700"
+        className="max-w-[700px] h-[85vh] flex flex-col bg-gray-900 text-white border-gray-700 p-6 overflow-hidden"
         aria-labelledby="config-dialog-title"
         aria-describedby="config-dialog-description"
         onKeyDown={handleKeyDown}
@@ -314,7 +314,7 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4" role="form" aria-label="LLM configuration form">
+        <div className="space-y-6 py-4 flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0" role="form" aria-label="LLM configuration form">
           {/* Provider Selection */}
           <div className="space-y-2">
             <Label htmlFor="provider" className="text-gray-200">

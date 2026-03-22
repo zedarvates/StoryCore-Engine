@@ -294,8 +294,8 @@ const electronAPI: ElectronAPI = {
         message: result.message,
       };
     },
-    getServiceStatus: async () => {
-      const result = await ipcRenderer.invoke('comfyui:get-service-status');
+    getServiceStatus: async (url?: string) => {
+      const result = await ipcRenderer.invoke('comfyui:get-service-status', url);
       if (!result.success) {
         throw new Error(result.error || 'Failed to get ComfyUI service status');
       }

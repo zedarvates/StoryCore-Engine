@@ -216,7 +216,9 @@ export async function listObjectsInProject(
                 const jsonData = decoder.decode(fileContent);
                 const obj = JSON.parse(jsonData) as StoryObject;
                 
-                objectIds.push(obj.id);
+                if (obj.id && !objectIds.includes(obj.id)) {
+                  objectIds.push(obj.id);
+                }
             } catch (error) {
                 console.warn(`[objectStorage] Failed to read object from ${folder}:`, error);
             }

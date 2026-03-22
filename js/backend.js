@@ -1,5 +1,5 @@
-import { backendUrl, setBackendUrl } from './state.js';
-import { $, showNotification, hideModal } from './ui.js';
+const { backendUrl, setBackendUrl } = require('./state.js');
+const { $, showNotification, hideModal } = require('./ui.js');
 
 // Update backend status
 export function updateBackendStatus() {

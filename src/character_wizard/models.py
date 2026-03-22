@@ -13,9 +13,16 @@ import datetime
 
 
 class CreationMethod(Enum):
-    """Character creation method enumeration"""
-    AUTO_GENERATED = "auto_generated"
-    IMAGE_REFERENCE = "image_reference"
+    """Character creation method enumeration (Sync with CCD v2)"""
+    NARRATIVE_FIRST = "narrative_first"
+    TWO_D_FIRST = "2d_first"
+    THREE_D_ASSETS = "3d_assets"
+    VISION_FIRST = "vision_first"
+    STYLIZED_FIRST = "stylized_first"
+    
+    # Legacy fallbacks
+    AUTO_GENERATED = "narrative_first"
+    IMAGE_REFERENCE = "vision_first"
 
 
 class PuppetCategory(Enum):

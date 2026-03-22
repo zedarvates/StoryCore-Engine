@@ -8,14 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Sparkles, Loader2, Video, Camera, Info, X, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Sparkles, Loader2, Video, Camera, Info, X, ChevronRight } from 'lucide-react';
 import type { DashboardShot } from '@/types';
 import { ollamaClient } from '@/services/llm/OllamaClient';
 import { useAppStore } from '@/stores/useAppStore';
 import { ShotPreview3D } from '../editor/3d/ShotPreview3D';
 import { videoEditorAPI } from '@/services/videoEditorAPI';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { ProductionShot } from '@/types/shot';
 import { ComfyUIService } from '@/services/comfyuiService';
@@ -24,6 +23,7 @@ import { cineProductionAPI } from '@/services/cineProductionAPI';
 import { Switch } from '@/components/ui/switch';
 import { ImageGenerationModal } from '@/components/modals/ImageGenerationModal';
 import { cn } from '@/lib/utils';
+import { downloadAndSaveImage } from '@/services/imageStorageService';
 import { Monitor, CheckCircle2, Zap } from 'lucide-react';
 import './WizardModal.css';
 
@@ -108,18 +108,18 @@ export function ShotWizardModal({
     emotionIntensity: number;
   }>({
     title: initialShot?.title || '',
-    description: (initialShot as any)?.description || '',
-    duration: (initialShot as any)?.duration || 5,
+    description: (initialShot as DashboardShot)?.description || '',
+    duration: (initialShot as DashboardShot)?.duration || 5,
     position: initialShot?.position || 1,
-    cameraType: (initialShot as any)?.metadata?.camera_type || 'Medium Shot',
-    visualStyle: (initialShot as any)?.metadata?.visual_style || 'cinematic',
-    transition: (initialShot as any)?.metadata?.transition || 'Cut',
-    characters: (initialShot as any)?.metadata?.characters || '',
-    referenceImage: (initialShot as any)?.referenceImage || '',
-    lens: (initialShot as any)?.metadata?.lens || '50mm',
-    sensor: (initialShot as any)?.metadata?.sensor || '35mm',
-    emotion: (initialShot as any)?.metadata?.emotion || 'neutral',
-    emotionIntensity: (initialShot as any)?.metadata?.emotionIntensity || 50,
+    cameraType: (initialShot as DashboardShot)?.metadata?.camera_type || 'Medium Shot',
+    visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style || 'cinematic',
+    transition: (initialShot as DashboardShot)?.metadata?.transition || 'Cut',
+    characters: (initialShot as DashboardShot)?.metadata?.characters || '',
+    referenceImage: (initialShot as DashboardShot)?.referenceImage || '',
+    lens: (initialShot as DashboardShot)?.metadata?.lens || '50mm',
+    sensor: (initialShot as DashboardShot)?.metadata?.sensor || '35mm',
+    emotion: (initialShot as DashboardShot)?.metadata?.emotion || 'neutral',
+    emotionIntensity: (initialShot as DashboardShot)?.metadata?.emotionIntensity || 50,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -134,7 +134,7 @@ export function ShotWizardModal({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [useHighFidelity, setUseHighFidelity] = useState(true);
   const [autoAddToTimeline, setAutoAddToTimeline] = useState(true);
-  const [isAddingToTimeline, setIsAddingToTimeline] = useState(false);
+  const [isAddingToTimeline, _setIsAddingToTimeline] = useState(false);
   
   // Image Generation Modal state
   const [isImageGenModalOpen, setIsImageGenModalOpen] = useState(false);
@@ -160,20 +160,20 @@ export function ShotWizardModal({
       if (initialShot) {
         setFormData({
             title: initialShot?.title || '',
-            description: (initialShot as any)?.description || '',
-            duration: (initialShot as any)?.duration || 5,
+            description: (initialShot as DashboardShot)?.description || '',
+            duration: (initialShot as DashboardShot)?.duration || 5,
             position: initialShot?.position || 1,
-            cameraType: (initialShot as any)?.metadata?.camera_type || 'Medium Shot',
-            visualStyle: (initialShot as any)?.metadata?.visual_style || 'cinematic',
-            transition: (initialShot as any)?.metadata?.transition || 'Cut',
-            characters: (initialShot as any)?.metadata?.characters || '',
-            referenceImage: (initialShot as any)?.referenceImage || '',
-            lens: (initialShot as any)?.metadata?.lens || '50mm',
-            sensor: (initialShot as any)?.metadata?.sensor || '35mm',
-            emotion: (initialShot as any)?.metadata?.emotion || 'neutral',
-            emotionIntensity: (initialShot as any)?.metadata?.emotionIntensity || 50,
+            cameraType: (initialShot as DashboardShot)?.metadata?.camera_type || 'Medium Shot',
+            visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style || 'cinematic',
+            transition: (initialShot as DashboardShot)?.metadata?.transition || 'Cut',
+            characters: (initialShot as DashboardShot)?.metadata?.characters || '',
+            referenceImage: (initialShot as DashboardShot)?.referenceImage || '',
+            lens: (initialShot as DashboardShot)?.metadata?.lens || '50mm',
+            sensor: (initialShot as DashboardShot)?.metadata?.sensor || '35mm',
+            emotion: (initialShot as DashboardShot)?.metadata?.emotion || 'neutral',
+            emotionIntensity: (initialShot as DashboardShot)?.metadata?.emotionIntensity || 50,
         });
-        setImagePrompt((initialShot as any)?.description || '');
+        setImagePrompt((initialShot as DashboardShot)?.description || '');
       }
     } else {
       window.removeEventListener('keydown', handleKeyDown);
@@ -258,7 +258,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
           chainType: 'generate_scene',
           sceneDescription: formData.description,
           imagePrompt: imagePrompt,
-          genre: (project as any)?.projectSetup?.genre?.[0],
+          genre: project?.projectSetup?.genre?.[0],
           style: formData.visualStyle,
           overrides: {
             reference_image: formData.referenceImage,
@@ -316,7 +316,25 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
       });
 
       if (url) {
-        setFormData(prev => ({ ...prev, referenceImage: url }));
+        // Save to project folder for persistence
+        if (project?.path) {
+          const sanitizedTitle = formData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'unnamed_shot';
+          const shotId = initialShot?.id || `shot_${Date.now()}`;
+          const subDir = `shots/${sanitizedTitle}_${shotId}/images`;
+          const saveResult = await downloadAndSaveImage(url, shotId, project.path, subDir);
+          
+            if (saveResult.success && saveResult.localPath) {
+              setFormData(prev => ({ ...prev, referenceImage: saveResult.localPath || '' }));
+            toast({
+              title: "Image sauvegardée",
+              description: "L'image a été stockée dans le projet.",
+            });
+          } else {
+            setFormData(prev => ({ ...prev, referenceImage: url }));
+          }
+        } else {
+          setFormData(prev => ({ ...prev, referenceImage: url }));
+        }
       }
     } catch (err) {
       console.error('[ShotWizard] Image generation failed:', err);
@@ -325,13 +343,13 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
     }
   };
 
-  const handleAddToTimeline = async (videoPath: string) => {
+  const handleAddToTimeline = useCallback(async (videoPath: string) => {
     if (!project?.id) return;
-    setIsAddingToTimeline(true);
+    _setIsAddingToTimeline(true);
     try {
       await videoEditorAPI.autoAssemble(project.id, [
         {
-          id: initialShot?.id || `shot_${Date.now()}`,
+          id: (initialShot as DashboardShot)?.id || `shot_${Date.now()}`,
           duration: formData.duration,
           file_path: videoPath,
           title: formData.title
@@ -341,17 +359,17 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
         title: "Montage synchronisé",
         description: "Le plan a été ajouté à la timeline automatiquement.",
       });
-    } catch (err) {
-      console.error('[ShotWizard] Auto-add to timeline failed:', err);
+    } catch (_err) {
+      console.error('[ShotWizard] Auto-add to timeline failed:', _err);
       toast({
         title: "Échec du montage",
         description: "Impossible d'insérer le plan dans la timeline.",
         variant: "destructive"
       });
     } finally {
-      setIsAddingToTimeline(false);
+      _setIsAddingToTimeline(false);
     }
-  };
+  }, [project?.id, initialShot, formData.duration, formData.title, toast]);
 
   const handleProlongVideo = async () => {
     if (!generatedVideoUrl) return;
@@ -424,10 +442,19 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
 
               if (videoResult && (videoResult.output.video_path || videoResult.output.filename)) {
                 const path = videoResult.output.video_path || videoResult.output.filename;
-                setGeneratedVideoUrl(path);
-
                 if (autoAddToTimeline) {
                   handleAddToTimeline(path);
+                }
+                
+                // Save locally if path is remote
+                if (path.startsWith('http') && project?.path) {
+                   const shotId = initialShot?.id || `shot_${Date.now()}`;
+                   const sanitizedTitle = formData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'unnamed_shot';
+                   const subDir = `shots/${sanitizedTitle}_${shotId}/videos`;
+                   const saveResult = await downloadAndSaveImage(path, shotId, project.path, subDir, 'mp4');
+                   if (saveResult.success && saveResult.localPath) {
+                     setGeneratedVideoUrl(saveResult.localPath);
+                   }
                 }
               }
               window.clearInterval(interval);
@@ -441,7 +468,19 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
               setGenerationStatus('completed');
               setGenerationProgress(1.0);
               if (status.resultPath) {
-                setGeneratedVideoUrl(status.resultPath);
+                const path = status.resultPath;
+                setGeneratedVideoUrl(path);
+                
+                // Save locally if path is remote
+                if (path.startsWith('http') && project?.path) {
+                   const shotId = initialShot?.id || `shot_${Date.now()}`;
+                   const sanitizedTitle = formData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'unnamed_shot';
+                   const subDir = `shots/${sanitizedTitle}_${shotId}/videos`;
+                   const saveResult = await downloadAndSaveImage(path, shotId, project.path, subDir, 'mp4');
+                   if (saveResult.success && saveResult.localPath) {
+                     setGeneratedVideoUrl(saveResult.localPath);
+                   }
+                }
               }
               window.clearInterval(interval);
             } else if (status.status === 'failed') {
@@ -458,7 +497,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
     }
 
     return () => window.clearInterval(interval);
-  }, [generationTaskId, generationStatus, project?.id, useHighFidelity, autoAddToTimeline]);
+  }, [generationTaskId, generationStatus, project?.id, project?.path, useHighFidelity, autoAddToTimeline, formData.title, initialShot?.id, handleAddToTimeline, imagePrompt]);
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -510,11 +549,24 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
 
   const handleImageGenerated = (result: { imageUrl: string; params: unknown }) => {
     setFormData(prev => ({ ...prev, referenceImage: result.imageUrl }));
-    setIsImageGenModalOpen(false);
     toast({
       title: "Image générée",
       description: "L'image a été définie comme référence pour ce plan.",
     });
+
+    // Save locally if possible
+    if (project?.path) {
+      const shotId = initialShot?.id || `shot_${Date.now()}`;
+      const sanitizedTitle = formData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'unnamed_shot';
+      const subDir = `shots/${sanitizedTitle}_${shotId}/images`;
+      
+      downloadAndSaveImage(result.imageUrl, shotId, project.path, subDir)
+        .then(saveRes => {
+          if (saveRes.success && saveRes.localPath) {
+             setFormData(prev => ({ ...prev, referenceImage: saveRes.localPath || '' }));
+          }
+        });
+    }
   };
 
   if (!isOpen) return null;
@@ -585,6 +637,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                             value={formData.cameraType}
                             onChange={(e) => handleChange('cameraType', e.target.value)}
                             className="flex h-12 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none"
+                            title="Format de cadrage"
                           >
                             {CAMERA_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                           </select>
@@ -596,6 +649,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                             value={formData.visualStyle}
                             onChange={(e) => handleChange('visualStyle', e.target.value)}
                             className="flex h-12 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200 focus:border-blue-500 outline-none"
+                            title="Style visuel"
                           >
                             {VISUAL_STYLES.map(style => <option key={style.id} value={style.id}>{style.label}</option>)}
                           </select>
@@ -637,6 +691,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                             value={formData.transition}
                             onChange={(e) => handleChange('transition', e.target.value)}
                             className="flex h-12 w-full rounded-md border border-white/10 bg-black/40 px-3 py-2 text-sm text-slate-200 outline-none"
+                            title="Type de transition"
                           >
                             {TRANSITION_TYPES.map(type => <option key={type} value={type}>{type}</option>)}
                           </select>
@@ -757,6 +812,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                           value={formData.emotionIntensity}
                           onChange={(e) => handleChange('emotionIntensity', parseInt(e.target.value))}
                           className="w-full h-1.5 bg-black/60 rounded-full appearance-none cursor-pointer accent-yellow-500 border border-white/5"
+                          title="Intensité de l'émotion"
                         />
                       </div>
                     </div>
@@ -864,7 +920,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                                    <span className="text-[10px] font-mono text-white">{Math.round(generationProgress * 100)}%</span>
                                 </div>
                                 <div className="w-full bg-black/60 h-1.5 rounded-full overflow-hidden border border-white/5">
-                                   <div className="h-full bg-pink-600 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300" style={{ width: `${generationProgress * 100}%` }} />
+                                   <div className="h-full bg-pink-600 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300" style={{ width: `${generationProgress * 100}%` } as React.CSSProperties} />
                                 </div>
                              </div>
                            )}

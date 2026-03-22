@@ -84,19 +84,37 @@ def get_location_path(location_id: str) -> Path:
     
     return target_path
 
-def load_location(location_id: str) -> Optional[Dict[str, Any]]:
-    if location_id in locations_db:
-        return locations_db[location_id]
-    path = get_location_path(location_id)
-    if path.exists():
+def load_location(location_id: str, project_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    # Check cache first (cache key is just location_id for now, might need project_id too)
+    cache_key = f"{project_id}:{location_id}" if project_id else location_id
+    if cache_key in locations_db:
+        return locations_db[cache_key]
+    
+    # Try project-specific path first if project_id is provided
+    if project_id:
         try:
+            # Basic validation to prevent path traversal
+            if '/' not in project_id and '\\' not in project_id:
+                project_path = Path("./projects").resolve() / project_id / "locations" / f"{location_id}.json"
+                if project_path.exists():
+                    with open(project_path, 'r', encoding='utf-8') as f:
+                        loc = json.load(f)
+                        locations_db[cache_key] = loc
+                        return loc
+        except Exception as e:
+            logger.error(f"Error loading project location {project_id}/{location_id}: {e}")
+
+    # Fallback to global locations
+    try:
+        path = get_location_path(location_id)
+        if path.exists():
             with open(path, 'r', encoding='utf-8') as f:
                 loc = json.load(f)
-                locations_db[location_id] = loc
+                locations_db[cache_key] = loc
                 return loc
-        except (json.JSONDecodeError, IOError, UnicodeDecodeError) as e:
-            logger.error(f"Error loading location {location_id}: {e}")
-            return None
+    except Exception as e:
+        logger.error(f"Error loading global location {location_id}: {e}")
+        
     return None
 
 def save_location(location_id: str, data: Dict[str, Any]) -> bool:
@@ -233,8 +251,8 @@ async def get_project_location(project_id: str, location_id: str) -> LocationRes
         raise HTTPException(status_code=500, detail=f"Error loading location: {str(e)}")
 
 @router.get("/{location_id}", response_model=LocationResponse)
-async def get_location(location_id: str) -> LocationResponse:
-    loc = load_location(location_id)
+async def get_location(location_id: str, project_id: Optional[str] = None) -> LocationResponse:
+    loc = load_location(location_id, project_id)
     if not loc:
         raise HTTPException(status_code=404, detail="Location not found")
     return LocationResponse(**loc)
@@ -256,11 +274,19 @@ async def create_location(data: LocationCreate) -> LocationResponse:
     return LocationResponse(**loc)
 
 @router.put("/{location_id}", response_model=LocationResponse)
-async def update_location(location_id: str, update_data: dict) -> LocationResponse:
-    loc = load_location(location_id)
+async def update_location(location_id: str, update_data: dict, project_id: Optional[str] = None) -> LocationResponse:
+    # If project_id not in query, check if it's in the update_data
+    p_id = project_id or update_data.get("project_id")
+    
+    loc = load_location(location_id, p_id)
     if not loc:
-        raise HTTPException(status_code=404, detail="Location not found")
+        raise HTTPException(status_code=404, detail=f"Location {location_id} not found" + (f" in project {p_id}" if p_id else ""))
+    
     loc.update(update_data)
+    # Ensure project_id is preserved/updated in the record
+    if p_id:
+        loc["project_id"] = p_id
+        
     loc["updated_at"] = datetime.utcnow().isoformat()
     save_location(location_id, loc)
     return LocationResponse(**loc)

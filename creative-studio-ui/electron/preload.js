@@ -44,4 +44,18 @@ window.electronAPI = {
 
     /** Run rembg background removal on an image */
     runRembg: (options) => ipcRenderer.invoke('rembg:run', options),
+    // ==========================================================================
+    // ComfyUI integration
+    // ==========================================================================
+
+    comfyui: {
+        getServiceStatus: (url) => ipcRenderer.invoke('comfyui:get-service-status', url),
+        executeWorkflow: (request) => ipcRenderer.invoke('comfyui:execute-workflow', request),
+        getQueueStatus: () => ipcRenderer.invoke('comfyui:get-queue-status'),
+        uploadMedia: (filePath, filename) => ipcRenderer.invoke('comfyui:upload-media', filePath, filename),
+        downloadOutput: (filename, outputPath) => ipcRenderer.invoke('comfyui:download-output', filename, outputPath),
+        getConfig: () => ipcRenderer.invoke('comfyui:get-config'),
+        updateConfig: (config) => ipcRenderer.invoke('comfyui:update-config', config),
+        testConnection: () => ipcRenderer.invoke('comfyui:test-connection'),
+    },
 };

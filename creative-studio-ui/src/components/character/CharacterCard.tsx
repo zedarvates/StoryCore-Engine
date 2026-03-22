@@ -78,7 +78,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
   const project = useAppStore((state) => state.project);
 
   // Get visual style from project
-  const visualStyle = (project as any)?.visualStyle || (project as any)?.visual_style || 'realistic';
+  const visualStyle = project?.projectSetup?.visualStyle || project?.moodboard?.visualStyle?.artStyle || 'realistic';
 
   // Load display URL for saved portrait
   useEffect(() => {
@@ -103,8 +103,9 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
       }
 
       // Priority 3: Legacy thumbnail_url
-      if ((character as any).thumbnail_url) {
-        setDisplayImageUrl((character as any).thumbnail_url);
+      const legacyChar = character as Character & { thumbnail_url?: string };
+      if (legacyChar.thumbnail_url) {
+        setDisplayImageUrl(legacyChar.thumbnail_url);
         return;
       }
 
@@ -115,7 +116,7 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
     loadDisplayUrl();
   }, [character, generatedImageUrl, project?.metadata?.path]);
   // Format creation date
-  const formatDate = (timestamp: string): string => {
+  const formatDate = (timestamp: string | number): string => {
     try {
       const date = new Date(timestamp);
       // Check if date is valid
@@ -309,10 +310,19 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
       const projectPath = project?.metadata?.path as string | undefined;
       if (projectPath) {
         devLog('💾 [CharacterCard] Saving image to project folder...');
+        // Sanitize character name for folder path (must match characterStorage.ts)
+        const sanitizedName = character.name
+          .replace(/[^a-z0-9]/gi, '_')
+          .toLowerCase()
+          .substring(0, 50);
+        
+        const subDir = `characters/${sanitizedName}_${character.character_id.substring(0, 8)}/images`;
+        
         const saveResult = await downloadAndSaveImage(
           imageUrl,
           character.character_id,
-          projectPath
+          projectPath,
+          subDir
         );
 
         if (saveResult.success && saveResult.localPath) {

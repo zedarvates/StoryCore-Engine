@@ -628,7 +628,7 @@ export async function generateStoryFromAdvancedBackend(
         prompt: params.totalTitle || 'Untitled Exploration',
         genre: backendGenre,
         structure: 'THREE_ACT', // Default for now
-        mode: params.productionMode || 'FICTION',
+        mode: (params.productionMode || 'fiction').toUpperCase(),
         length: backendLength,
         with_critique: params.withCritique || false,
       }),

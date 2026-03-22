@@ -21,6 +21,7 @@ export interface CharacterWizardModalProps {
   worldContext?: World;
   initialData?: Partial<Character>;
   initialImage?: File;
+  productionMode?: string;
 }
 
 export function CharacterWizardModal({
@@ -30,6 +31,7 @@ export function CharacterWizardModal({
   worldContext,
   initialData,
   initialImage,
+  productionMode,
 }: CharacterWizardModalProps) {
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
 
@@ -93,6 +95,7 @@ export function CharacterWizardModal({
             worldContext={worldContext}
             initialData={initialData}
             initialImage={initialImage}
+            productionMode={productionMode}
           />
         </div>
       </div>

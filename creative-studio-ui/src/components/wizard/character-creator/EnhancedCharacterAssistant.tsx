@@ -11,13 +11,15 @@ interface EnhancedCharacterAssistantProps {
   characterData: Partial<Character>;
   onSuggestion: (field: string, value: unknown) => void;
   suggestionType: 'name' | 'personality' | 'appearance' | 'backstory' | 'abilities';
+  productionMode?: string;
 }
 
 export const EnhancedCharacterAssistant: React.FC<EnhancedCharacterAssistantProps> = ({
   worldContext,
   characterData,
   onSuggestion,
-  suggestionType
+  suggestionType,
+  productionMode
 }) => {
   const {
     isLoading,
@@ -34,9 +36,36 @@ export const EnhancedCharacterAssistant: React.FC<EnhancedCharacterAssistantProp
   const [showResponse, setShowResponse] = useState(false);
 
   const getGenreString = (genre: unknown): string => {
-    if (!genre) return 'fantastique';
-    if (typeof genre === 'string') return genre;
-    if (Array.isArray(genre)) return genre.join(', ');
+    const genreMap: Record<string, string> = {
+      'fantasy': 'fantastique',
+      'sci-fi': 'science-fiction',
+      'historical': 'historique',
+      'contemporary': 'contemporain',
+      'horror': 'horreur',
+      'mystery': 'mystère',
+      'romance': 'romance',
+      'thriller': 'thriller',
+      'western': 'western',
+      'cyberpunk': 'cyberpunk',
+      'steampunk': 'steampunk',
+      'post-apocalyptic': 'post-apocalyptique',
+    };
+
+    if (!genre) return 'contemporain';
+    
+    if (typeof genre === 'string') {
+      const lowerGenre = genre.toLowerCase();
+      return genreMap[lowerGenre] || genre;
+    }
+    
+    if (Array.isArray(genre)) {
+      if (genre.length === 0) return 'contemporain';
+      return genre.map(g => {
+        const lowerG = String(g).toLowerCase();
+        return genreMap[lowerG] || g;
+      }).join(', ');
+    }
+    
     return String(genre);
   };
 
@@ -45,21 +74,21 @@ export const EnhancedCharacterAssistant: React.FC<EnhancedCharacterAssistantProp
     let systemPrompt = '';
 
     const genreString = getGenreString(worldContext?.genre);
-    const worldDesc = worldContext?.atmosphere || 'monde fantastique';
-    const rulesString = worldContext?.rules && Array.isArray(worldContext.rules)
+    const worldDesc = worldContext?.atmosphere || `un monde ${genreString} réaliste et immersif`;
+    const rulesString = worldContext?.rules && Array.isArray(worldContext.rules) && worldContext.rules.length > 0
       ? worldContext.rules.map((r: WorldRule) => r.rule).join(', ')
-      : 'magie et technologie';
+      : 'les lois de la physique et de la réalité habituelle';
+
+    const contextPrefix = productionMode === 'documentary' 
+      ? "Pour un documentaire réaliste," 
+      : `Dans le contexte d'une histoire de genre ${genreString},`;
 
     switch (suggestionType) {
       case 'name':
-        userQuery = `Génère 5 noms de personnages originaux et immersifs pour un monde ${genreString}.`;
-        systemPrompt = `Tu es un expert en création de personnages pour des histoires ${genreString}. 
-Génère des noms qui sont:
-- Cohérents avec le genre et l'ambiance du monde
-- Faciles à prononcer mais mémorables
-- Culturellement appropriés au contexte
-
-Contexte du monde: ${worldDesc}
+        userQuery = `${contextPrefix} génère 5 noms de personnages originaux et immersifs pour un monde ${genreString}.`;
+        systemPrompt = `Tu es un expert en création de personnages pour des projets de type ${productionMode || 'fiction'}. 
+Le monde est ${genreString}. ${worldDesc}.
+Génère des noms qui sonnent authentiques et mémorables.
 
 Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
 {
@@ -68,12 +97,14 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
         break;
 
       case 'personality':
-        userQuery = `Décris 4 traits de personnalité complexes et intéressants pour un personnage dans un monde ${genreString}.`;
-        systemPrompt = `Tu es un expert en psychologie des personnages pour des histoires ${genreString}.
+        userQuery = `${contextPrefix} quels seraient 4 traits de personnalité complexes et nuancés pour un personnage?`;
+        systemPrompt = `Tu es un expert en psychologie des personnages pour des projets de type ${productionMode || 'fiction'}.
+Le genre est ${genreString}.
 Génère des traits qui sont:
 - Complexes et nuancés (pas juste "bon" ou "méchant")
-- Cohérents avec l'atmosphère du monde (${worldContext?.atmosphere || 'mystérieux'})
-- Créent des opportunités de conflit et de croissance
+- ${productionMode === 'documentary' ? 'Réalistes et authentiques pour un documentaire.' : 'Créent des opportunités de conflit et de croissance.'}
+- Cohérents avec l'atmosphère: ${worldContext?.atmosphere || 'réaliste'}
+- Reflètent le monde: ${worldDesc}
 
 Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
 {
@@ -82,13 +113,15 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
         break;
 
       case 'appearance':
-        userQuery = `Décris l'apparence physique d'un personnage ${characterData.visual_identity?.gender || 'sans genre défini'} nommé ${characterData.name || 'sans nom'} dans un monde ${genreString}.`;
-        systemPrompt = `Tu es un expert en description visuelle pour des histoires ${genreString}.
+        userQuery = `${contextPrefix} décris l'apparence physique d'un personnage ${characterData.visual_identity?.gender || 'sans genre défini'} nommé ${characterData.name || 'sans nom'}.`;
+        systemPrompt = `Tu es un expert en description visuelle pour des projets de type ${productionMode || 'fiction'}.
+Le genre est ${genreString}.
 Crée une description qui:
 - Est visuelle et détaillée
 - Reflète la personnalité: ${characterData.personality?.traits?.join(', ') || 'à définir'}
 - Est cohérente avec le monde: ${worldDesc}
-- Inclut des détails mémorables
+- Respecte les règles: ${rulesString}
+- ${productionMode === 'documentary' ? 'Évite tout élément fantastique ou imaginaire trop prononcé.' : 'Inclut des détails mémorables.'}
 Génère une description en 2-3 phrases. 
 
 Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
@@ -98,14 +131,14 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
         break;
 
       case 'backstory':
-        userQuery = `Écris une histoire personnelle cohérente pour un personnage nommé ${characterData.name || 'sans nom'}, ${characterData.visual_identity?.gender || 'genre non défini'}, âge ${characterData.visual_identity?.age_range || 25}, avec les traits ${characterData.personality?.traits?.join(', ') || 'à définir'}.`;
-        systemPrompt = `Tu es un expert en création de backstories pour des histoires ${genreString}.
+        userQuery = `${contextPrefix} écris une histoire personnelle cohérente pour un personnage nommé ${characterData.name || 'sans nom'}, ${characterData.visual_identity?.gender || 'genre non défini'}, âge ${characterData.visual_identity?.age_range || 25}, avec les traits ${characterData.personality?.traits?.join(', ') || 'à définir'}.`;
+        systemPrompt = `Tu es un expert en création d'histoires pour des projets de type ${productionMode || 'fiction'}.
+Le genre est ${genreString}.
 Crée une histoire qui:
 - Est cohérente avec le monde: ${worldDesc}
 - Explique les traits de personnalité
 - Crée des motivations claires
-- Laisse des mystères à explorer
-Contexte du monde: ${worldDesc}
+- ${productionMode === 'documentary' ? 'Se concentre sur des faits et une trajectoire de vie réaliste.' : 'Laisse des mystères à explorer.'}
 Génère une histoire en 3-4 paragraphes.
 
 Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
@@ -115,13 +148,14 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
         break;
 
       case 'abilities':
-        userQuery = `Quelles seraient 4 capacités ou pouvoirs uniques et équilibrés pour un personnage dans un monde ${genreString}?`;
-        systemPrompt = `Tu es un expert en game design et équilibrage pour des histoires ${genreString}.
-Génère des capacités qui:
+        userQuery = `${contextPrefix} quelles seraient 4 capacités ou compétences uniques pour ce personnage?`;
+        systemPrompt = `Tu es un expert en conception de personnages pour des projets ${productionMode || 'fiction'}.
+Le genre est ${genreString}.
+Génère des ${productionMode === 'documentary' ? 'compétences réelles et concrètes' : 'capacités ou pouvoirs'} qui:
 - Sont cohérentes avec les règles du monde: ${rulesString}
-- Sont équilibrées (ni trop faibles ni trop puissantes)
+- ${productionMode === 'documentary' ? 'Sont basées sur l\'expertise humaine et le talent.' : 'Sont équilibrées et narratives.'}
 - Reflètent la personnalité: ${characterData.personality?.traits?.join(', ') || 'à définir'}
-- Créent des opportunités narratives intéressantes
+- Créent des opportunités narratives intéressantes.
 
 Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
 {

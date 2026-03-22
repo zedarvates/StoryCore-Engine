@@ -8,26 +8,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
+  padding: 0 4px;
 }
 
 .objects-section .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 
 .objects-section .section-icon {
-  width: 20px;
-  height: 20px;
-  color: var(--primary-color, #2563eb);
+  width: 24px;
+  height: 24px;
+  color: #10b981; /* Emerald for objects */
 }
 
 .objects-section h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-primary, #1a1a1a);
+  font-size: 20px;
+  font-weight: 700;
+  color: #e5e5e5;
 }
 
 .objects-section .count-badge {
@@ -37,113 +38,167 @@
   min-width: 24px;
   height: 24px;
   padding: 0 8px;
-  background: var(--primary-light, #eff6ff);
-  color: var(--primary-color, #2563eb);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
   border-radius: 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .objects-section .create-button {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 8px 16px;
-  background: var(--primary-color, #2563eb);
+  background: #10b981;
   color: white;
   border: none;
   border-radius: 8px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .objects-section .create-button:hover {
-  background: var(--primary-dark, #1d4ed8);
+  background: #059669;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .objects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
 }
 
+/* Object Card Inspired by Character Card */
 .object-card {
-  background: white;
-  border: 1px solid var(--border-color, #e0e0e0);
+  background: #1a1a1a;
+  border: 1px solid #333;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
 }
 
 .object-card:hover {
-  border-color: var(--primary-color, #2563eb);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #10b981;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
 }
 
-.object-image {
+.object-card__thumbnail {
   width: 100%;
-  height: 140px;
-  background: var(--background-secondary, #f5f5f5);
+  aspect-ratio: 1;
+  background: #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+  border-bottom: 1px solid #333;
 }
 
-.object-image img {
+.object-card__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-.object-placeholder {
+.object-card:hover .object-card__image {
+  transform: scale(1.1);
+}
+
+.object-card__placeholder {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: var(--text-tertiary, #999);
+  background: linear-gradient(135deg, #111 0%, #222 100%);
+  padding: 20px;
 }
 
-.object-info {
-  padding: 12px;
+.object-header {
+  padding: 12px 12px 4px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.object-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.object-meta {
+  flex: 1;
+  min-width: 0;
 }
 
 .object-name {
   margin: 0 0 4px 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #1a1a1a);
+  font-size: 15px;
+  font-weight: 700;
+  color: #f3f4f6;
 }
 
-.object-type {
-  display: inline-block;
-  padding: 2px 8px;
-  background: var(--primary-light, #eff6ff);
-  color: var(--primary-color, #2563eb);
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
+.object-type-badge {
+  font-size: 9px;
+  font-weight: 800;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #9ca3af;
+  border: 1px solid #374151;
+}
+
+.object-power-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .object-description {
-  margin: 8px 0 0 0;
+  margin: 0;
   font-size: 12px;
-  color: var(--text-secondary, #666);
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: #9ca3af;
+  line-height: 1.5;
 }
+
+.tag-pill {
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #6b7280;
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Rarity Effects */
+.object-card.rarity-legendary { border-color: #f59e0b; }
+.object-card.rarity-mythical { border-color: #ef4444; }
+.object-card.rarity-epic { border-color: #a855f7; }
+.object-card.rarity-rare { border-color: #3b82f6; }
 
 /* Empty State */
 .objects-section .empty-state {
@@ -151,61 +206,118 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 48px 24px;
+  padding: 60px 24px;
   text-align: center;
-  background: var(--background-secondary, #f9f9f9);
-  border: 2px dashed var(--border-color, #e0e0e0);
-  border-radius: 12px;
+  background: #111;
+  border: 2px dashed #333;
+  border-radius: 16px;
 }
 
 .objects-section .empty-icon {
-  color: var(--text-tertiary, #999);
-  margin-bottom: 16px;
+  color: #4b5563;
+  margin-bottom: 20px;
 }
 
 .objects-section .empty-title {
   margin: 0 0 8px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary, #1a1a1a);
+  font-size: 18px;
+  font-weight: 700;
+  color: #f3f4f6;
 }
 
 .objects-section .empty-description {
   margin: 0 0 24px 0;
   font-size: 14px;
-  color: var(--text-secondary, #666);
-  max-width: 300px;
+  color: #9ca3af;
+  max-width: 320px;
 }
 
 .objects-section .empty-action-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 20px;
-  background: var(--primary-color, #2563eb);
+  gap: 8px;
+  padding: 12px 24px;
+  background: #10b981;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .objects-section .empty-action-button:hover {
-  background: var(--primary-dark, #1d4ed8);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .objects-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 12px;
   }
+}
 
-  .object-image {
-    height: 120px;
-  }
+/* Generate/Regenerate Buttons for Object Cards */
+.object-card__generate {
+  padding: 0 12px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.object-card__generate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.object-card__generate-button:hover {
+  background: #10b981;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.object-card__regenerate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #9ca3af;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.object-card__regenerate-button:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.object-card__generating {
+  transition: all 0.3s ease;
+  min-height: 32px;
 }

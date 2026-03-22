@@ -41,14 +41,20 @@
 /* Type-specific styles */
 .story-part-card--intro {
   border-left: 4px solid var(--intro-color);
+  --part-color: var(--intro-color);
+  --part-bg: var(--intro-bg);
 }
 
 .story-part-card--chapter {
   border-left: 4px solid var(--chapter-color);
+  --part-color: var(--chapter-color);
+  --part-bg: var(--chapter-bg);
 }
 
 .story-part-card--ending {
   border-left: 4px solid var(--ending-color);
+  --part-color: var(--ending-color);
+  --part-bg: var(--ending-bg);
 }
 
 /* ============================================================================
@@ -397,6 +403,7 @@
   height: 100%;
   background: var(--part-color, #3b82f6);
   border-radius: 3px;
+  width: var(--progress, 0%);
   transition: width 0.3s ease;
 }
 

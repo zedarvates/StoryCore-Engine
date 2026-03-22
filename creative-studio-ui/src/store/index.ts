@@ -24,6 +24,7 @@ import type { Story, StoryVersion } from '../types/story';
 import type { StoryObject } from '../types/object';
 import type { WizardOutput } from '../services/wizard/types';
 import { getWizardService } from '../services/wizard/WizardService';
+import type { MoodboardReference } from '../types/moodboard';
 import { eventEmitter, WizardEventType } from '../services/eventEmitter';
 import type {
   WorldCreatedPayload,
@@ -100,6 +101,7 @@ interface StoreActions {
   deleteStory: (id: string) => void;
   getStoryById: (id: string) => Story | undefined;
   getAllStories: () => Story[];
+  setStories: (stories: Story[]) => void;
 
   // Story version actions
   createVersion: (storyId: string, changes: string) => void;
@@ -157,6 +159,9 @@ interface StoreActions {
   selectEffect: (id: string | null) => void;
   selectTextLayer: (id: string | null) => void;
   selectKeyframe: (id: string | null) => void;
+
+  // Moodboard actions
+  addMoodboardReference: (reference: Partial<MoodboardReference>) => void;
 
   // Undo/Redo actions (will be implemented in next subtask)
   undo: () => void;
@@ -307,6 +312,8 @@ export const useStore = create<Store>()(
             return newState;
           }),
 
+        setStories: (stories) => set({ stories }),
+
         // ====================================================================
         // Shot Actions
         // ====================================================================
@@ -357,7 +364,20 @@ export const useStore = create<Store>()(
         // ====================================================================
         addWorld: (world) =>
           set((state) => {
-            const newWorlds = [...state.worlds, world];
+            // Requirement 7.5: Prevent duplicate worlds by checking ID
+            const existingIndex = state.worlds.findIndex(
+              (w) => w.id === world.id
+            );
+
+            let newWorlds;
+            if (existingIndex >= 0) {
+              Logger.info(`[Store] World "${world.name}" (${world.id}) already exists, updating instead of duplicating`);
+              newWorlds = state.worlds.map((w, index) =>
+                index === existingIndex ? { ...w, ...world } : w
+              );
+            } else {
+              newWorlds = [...state.worlds, world];
+            }
 
             // Update project with new world
             const updatedProject = state.project
@@ -1717,6 +1737,42 @@ export const useStore = create<Store>()(
         selectTextLayer: (id) => set({ selectedTextLayerId: id }),
 
         selectKeyframe: (id) => set({ selectedKeyframeId: id }),
+
+        addMoodboardReference: (reference) => {
+          const { project } = get();
+          if (!project) return;
+
+          const newReference: MoodboardReference = {
+            id: `mb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            url: reference.url || '',
+            type: reference.type || 'image',
+            source: reference.source || 'upload',
+            createdAt: Date.now(),
+            ...reference,
+          } as MoodboardReference;
+
+          const currentMoodboard = project.moodboard || {
+            id: `mood_${Date.now()}`,
+            projectId: project.id,
+            vision: { description: '', keywords: [] },
+            visualStyle: { 
+              artStyle: '', 
+              colorPalette: [], 
+              typography: { headers: '', body: '' } 
+            },
+            references: [],
+            inspirationNotes: [],
+            updatedAt: Date.now(),
+          };
+
+          const updatedMoodboard = {
+            ...currentMoodboard,
+            references: [...currentMoodboard.references, newReference],
+            updatedAt: Date.now(),
+          };
+
+          get().updateProject({ moodboard: updatedMoodboard });
+        },
 
         // ====================================================================
         // Undo/Redo Actions

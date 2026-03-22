@@ -8,7 +8,7 @@ import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTempla
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 import { useToast } from '@/hooks/use-toast';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
-import type { Shot, SequencePlan, Character, StoryObject } from '@/types';
+import type { Shot, SequencePlan, Character, StoryObject, Story, StoryVersion } from '@/types';
 import type { World } from '@/types/world';
 import type { Location as ProductionLocation } from '@/types/location';
 import type { GeneratedSequence } from '@/utils/projectTemplateGenerator';
@@ -26,16 +26,37 @@ export function convertElectronProjectToStore(electronProject: {
   // Extract config from Electron project
   const config = electronProject.config || {};
   
+  // Cast arrays loaded from disk (via ProjectService.openProject)
+  const characters = (config.characters as Character[]) || [];
+  const locations = (config.locations as ProductionLocation[]) || [];
+  const objects = (config.objects as StoryObject[]) || [];
+  const sequencePlans = (config.sequencePlans as unknown[]) as import('@/types').SequencePlan[] || [];
+  const stories = (config.stories as Story[]) || [];
+  const storyVersions = (config.storyVersions as StoryVersion[]) || [];
+  const worlds = (config.worlds as World[]) || [];
+
+  // Deduplicate helper
+  const deduplicateById = <T extends { id?: string; character_id?: string; location_id?: string }>(arr: T[], idField: keyof T = 'id'): T[] => {
+    return arr.filter((item, index, self) => 
+      index === self.findIndex((t) => t[idField] === item[idField])
+    );
+  };
+
   return {
     id: electronProject.id || Date.now().toString(),
     schema_version: (config.schema_version as string) || '1.0',
     project_name: electronProject.name || (config.project_name as string) || 'Untitled Project',
     path: electronProject.path || '',
-    shots: (config.shots as Shot[]) || [],
+    shots: deduplicateById((config.shots as Shot[]) || []),
     assets: (config.assets as StoreProject['assets']) || [],
-    worlds: (config.worlds as World[]) || undefined,
+    worlds: worlds.length > 0 ? worlds : undefined,
+    stories: stories.length > 0 ? stories : undefined,
+    storyVersions: storyVersions.length > 0 ? storyVersions : undefined,
     selectedWorldId: config.selectedWorldId as string | undefined,
-    characters: (config.characters as Character[]) || undefined,
+    characters: characters.length > 0 ? deduplicateById(characters, 'character_id') : undefined,
+    objects: objects.length > 0 ? deduplicateById(objects) : undefined,
+    locations: locations.length > 0 ? deduplicateById(locations, 'location_id') : undefined,
+    sequencePlans: sequencePlans.length > 0 ? deduplicateById(sequencePlans) : undefined,
     capabilities: (config.capabilities as StoreProject['capabilities']) || {
       grid_generation: true,
       promotion_engine: true,
@@ -62,6 +83,7 @@ export function convertElectronProjectToStore(electronProject: {
           ? new Date(electronProject.modifiedAt).toISOString()
           : electronProject.modifiedAt || (config.modified_at as string) || new Date().toISOString(),
       ...(config.metadata as Record<string, unknown>),
+      sequences: sequencePlans,
     },
   };
 }
@@ -168,27 +190,90 @@ export class ProjectCreationService {
         initialCharacters: request.initialEntities?.characters || (effectiveFormat?.id === 'music-album' ? [{
           character_id: 'char_main_artist_001',
           name: 'Main Artist / DJ',
-          role: 'protagonist',
+          creation_method: 'auto_generated',
+          creation_timestamp: Date.now(),
+          version: '1.0',
+          role: {
+            archetype: 'hero',
+            narrative_function: 'protagonist',
+            character_arc: 'positive'
+          },
           description: 'The primary artist of this album project.',
           visual_identity: {
+            hair_color: 'black',
+            hair_style: 'modern',
+            hair_length: 'short',
+            eye_color: 'brown',
+            eye_shape: 'almond',
+            skin_tone: 'tan',
+            facial_structure: 'defined',
+            distinctive_features: [],
             appearance: 'Professional artist with a futuristic vibe.',
             traits: ['creative', 'focused'],
             colors: ['#00ffff', '#ff00ff'],
+            age_range: 'adult',
+            gender: 'unspecified',
+            height: 'average',
+            build: 'slim',
+            posture: 'upright',
+            clothing_style: 'futuristic',
+            color_palette: ['#00ffff', '#ff00ff'],
+            reference_images: [],
+            reference_sheet_images: [],
           },
+          personality: {
+            traits: ['creative', 'focused'],
+            values: [],
+            fears: [],
+            desires: [],
+            flaws: [],
+            strengths: [],
+            temperament: '',
+            communication_style: '',
+          },
+          background: {
+            origin: '',
+            occupation: 'DJ / Artist',
+            education: '',
+            family: '',
+            significant_events: [],
+            current_situation: '',
+          },
+          relationships: [],
           metadata: { created_by: 'smart-starter' }
         } as unknown as Character] : []),
         initialLocations: request.initialEntities?.locations || (effectiveFormat?.id === 'music-album' ? [{
           location_id: 'loc_studio_001',
           name: 'Recording Studio (Interior)',
           location_type: 'interior' as const,
-          description: 'A high-tech recording studio with neon lighting and acoustic treatment.',
-          metadata: { atmosphere: 'creative, focused', genre_tags: ['tech', 'music'] }
+          creation_method: 'auto_generated',
+          creation_timestamp: Date.now(),
+          version: '1.0',
+          texture_direction: 'inward',
+          metadata: { 
+            description: 'A high-tech recording studio with neon lighting and acoustic treatment.', 
+            atmosphere: 'creative, focused', 
+            genre_tags: ['tech', 'music'] 
+          },
+          cube_textures: {},
+          placed_assets: [],
+          is_world_derived: false
         }, {
           location_id: 'loc_exterior_001',
           name: 'Champs de Mars / Tour Eiffel (Exterior)',
           location_type: 'exterior' as const,
-          description: 'An iconic exterior location in Paris, perfectly suited for a futuristic music video.',
-          metadata: { atmosphere: 'grand, iconic', genre_tags: ['paris', 'futuristic'] }
+          creation_method: 'auto_generated',
+          creation_timestamp: Date.now(),
+          version: '1.0',
+          texture_direction: 'outward',
+          metadata: { 
+            description: 'An iconic exterior location in Paris, perfectly suited for a futuristic music video.', 
+            atmosphere: 'grand, iconic', 
+            genre_tags: ['paris', 'futuristic'] 
+          },
+          cube_textures: {},
+          placed_assets: [],
+          is_world_derived: false
         }] as unknown as ProductionLocation[] : []),
         initialObjects: request.initialEntities?.objects || (effectiveFormat?.id === 'music-album' ? [{
           id: 'obj_dj_rig_001',

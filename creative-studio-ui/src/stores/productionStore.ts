@@ -9,7 +9,8 @@ export interface ManifestedAsset {
     objectId?: string;
     characterName?: string;
     generatedAt: string;
-    type: 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET' | 'GLOBAL_STYLE_GUIDE';
+    type: 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET' | 'GLOBAL_STYLE_GUIDE' | 'STORY_PART_IMAGE';
+    storyPartId?: string;
     url: string;
     metadata?: Record<string, unknown>;
 }

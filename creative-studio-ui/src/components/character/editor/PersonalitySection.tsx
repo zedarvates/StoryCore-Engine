@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Personality } from '@/types/character';
+import { Plus, X, Brain } from 'lucide-react';
 import './EditorSection.css';
 
 interface PersonalitySectionProps {
@@ -14,131 +15,123 @@ export function PersonalitySection({
   errors,
   onChange,
 }: PersonalitySectionProps) {
-  const handleArrayChange = (field: string, value: string) => {
-    const array = value.split(',').map(item => item.trim()).filter(Boolean);
-    onChange(field, array);
+  const [newValues, setNewValues] = useState<Record<string, string>>({
+    traits: '',
+    values: '',
+    fears: '',
+    desires: '',
+    flaws: '',
+    strengths: '',
+  });
+
+  const handleAdd = (field: keyof Personality) => {
+    const val = newValues[field]?.trim();
+    if (!val) return;
+
+    const currentArray = Array.isArray(data[field]) ? (data[field] as string[]) : [];
+    if (!currentArray.includes(val)) {
+      onChange(field, [...currentArray, val]);
+    }
+    setNewValues(prev => ({ ...prev, [field]: '' }));
+  };
+
+  const handleRemove = (field: keyof Personality, item: string) => {
+    const currentArray = Array.isArray(data[field]) ? (data[field] as string[]) : [];
+    onChange(field, currentArray.filter(i => i !== item));
+  };
+
+  const renderArrayField = (field: keyof Personality, label: string, placeholder: string) => {
+    const items = Array.isArray(data[field]) ? (data[field] as string[]) : [];
+    
+    return (
+      <div className="editor-section__field">
+        <label className="editor-section__label">{label}</label>
+        
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            className="editor-section__input flex-1"
+            value={newValues[field] || ''}
+            onChange={(e) => setNewValues(prev => ({ ...prev, [field]: e.target.value }))}
+            onKeyPress={(e) => e.key === 'Enter' && handleAdd(field)}
+            placeholder={placeholder}
+          />
+          <button
+            type="button"
+            className="editor-section__add-button"
+            onClick={() => handleAdd(field)}
+            aria-label={`Add ${label}`}
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+
+        <div className="flex flex-wrap gap-2 min-h-8">
+          {items.map((item, idx) => (
+            <div key={`${item}-${idx}`} className="editor-section__chip">
+              <span>{item}</span>
+              <button
+                type="button"
+                className="editor-section__chip-remove"
+                onClick={() => handleRemove(field, item)}
+                aria-label={`Remove ${item}`}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+          {items.length === 0 && (
+            <span className="text-xs text-zinc-500 italic">None added yet</span>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
     <div className="editor-section">
-      <h3 className="editor-section__title">Personality</h3>
-      
-      <div className="editor-section__field">
-        <label htmlFor="traits" className="editor-section__label">
-          Traits
-        </label>
-        <input
-          id="traits"
-          type="text"
-          className="editor-section__input"
-          value={Array.isArray(data.traits) ? data.traits.join(', ') : ''}
-          onChange={(e) => handleArrayChange('traits', e.target.value)}
-          placeholder="Comma-separated: brave, curious, stubborn"
-        />
-        <p className="editor-section__hint">Separate multiple traits with commas</p>
+      <div className="flex items-center gap-2 mb-6 pb-2 border-b border-zinc-200">
+        <Brain className="w-5 h-5 text-purple-500" />
+        <h3 className="editor-section__title m-0">Personality & Psychology</h3>
       </div>
       
-      <div className="editor-section__field">
-        <label htmlFor="values" className="editor-section__label">
-          Values
-        </label>
-        <input
-          id="values"
-          type="text"
-          className="editor-section__input"
-          value={Array.isArray(data.values) ? data.values.join(', ') : ''}
-          onChange={(e) => handleArrayChange('values', e.target.value)}
-          placeholder="Comma-separated: honesty, loyalty, freedom"
-        />
-        <p className="editor-section__hint">Separate multiple values with commas</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        {renderArrayField('traits', 'Traits', 'Inject trait...')}
+        {renderArrayField('values', 'Values', 'Core values...')}
+        {renderArrayField('fears', 'Fears', 'What do they fear?')}
+        {renderArrayField('desires', 'Desires', 'Goals & motivations...')}
+        {renderArrayField('flaws', 'Flaws', 'Character flaws...')}
+        {renderArrayField('strengths', 'Strengths', 'Skills & strengths...')}
       </div>
       
-      <div className="editor-section__field">
-        <label htmlFor="fears" className="editor-section__label">
-          Fears
-        </label>
-        <input
-          id="fears"
-          type="text"
-          className="editor-section__input"
-          value={Array.isArray(data.fears) ? data.fears.join(', ') : ''}
-          onChange={(e) => handleArrayChange('fears', e.target.value)}
-          placeholder="Comma-separated: failure, abandonment, heights"
-        />
-        <p className="editor-section__hint">Separate multiple fears with commas</p>
-      </div>
-
-      <div className="editor-section__field">
-        <label htmlFor="desires" className="editor-section__label">
-          Desires
-        </label>
-        <input
-          id="desires"
-          type="text"
-          className="editor-section__input"
-          value={Array.isArray(data.desires) ? data.desires.join(', ') : ''}
-          onChange={(e) => handleArrayChange('desires', e.target.value)}
-          placeholder="Comma-separated: adventure, recognition, love"
-        />
-        <p className="editor-section__hint">Separate multiple desires with commas</p>
-      </div>
-      
-      <div className="editor-section__field">
-        <label htmlFor="flaws" className="editor-section__label">
-          Flaws
-        </label>
-        <input
-          id="flaws"
-          type="text"
-          className="editor-section__input"
-          value={Array.isArray(data.flaws) ? data.flaws.join(', ') : ''}
-          onChange={(e) => handleArrayChange('flaws', e.target.value)}
-          placeholder="Comma-separated: impulsive, arrogant, naive"
-        />
-        <p className="editor-section__hint">Separate multiple flaws with commas</p>
-      </div>
-      
-      <div className="editor-section__field">
-        <label htmlFor="strengths" className="editor-section__label">
-          Strengths
-        </label>
-        <input
-          id="strengths"
-          type="text"
-          className="editor-section__input"
-          value={Array.isArray(data.strengths) ? data.strengths.join(', ') : ''}
-          onChange={(e) => handleArrayChange('strengths', e.target.value)}
-          placeholder="Comma-separated: intelligent, compassionate, determined"
-        />
-        <p className="editor-section__hint">Separate multiple strengths with commas</p>
-      </div>
-      
-      <div className="editor-section__field">
-        <label htmlFor="temperament" className="editor-section__label">
-          Temperament
-        </label>
-        <input
-          id="temperament"
-          type="text"
-          className="editor-section__input"
-          value={data.temperament || ''}
-          onChange={(e) => onChange('temperament', e.target.value)}
-          placeholder="e.g., Calm, Fiery, Melancholic"
-        />
-      </div>
-      
-      <div className="editor-section__field">
-        <label htmlFor="communication_style" className="editor-section__label">
-          Communication Style
-        </label>
-        <textarea
-          id="communication_style"
-          className="editor-section__textarea"
-          value={data.communication_style || ''}
-          onChange={(e) => onChange('communication_style', e.target.value)}
-          placeholder="Describe how the character communicates"
-          rows={4}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8 pt-6 border-t border-zinc-100">
+        <div className="editor-section__field">
+          <label htmlFor="temperament" className="editor-section__label">
+            Temperament
+          </label>
+          <input
+            id="temperament"
+            type="text"
+            className="editor-section__input"
+            value={data.temperament || ''}
+            onChange={(e) => onChange('temperament', e.target.value)}
+            placeholder="e.g., Sanguine, Melancholic, Stoic"
+          />
+        </div>
+        
+        <div className="editor-section__field">
+          <label htmlFor="communication_style" className="editor-section__label">
+            Communication Style
+          </label>
+          <input
+            id="communication_style"
+            type="text"
+            className="editor-section__input"
+            value={data.communication_style || ''}
+            onChange={(e) => onChange('communication_style', e.target.value)}
+            placeholder="e.g., Laconic, Formal, Sarcastic"
+          />
+        </div>
       </div>
     </div>
   );

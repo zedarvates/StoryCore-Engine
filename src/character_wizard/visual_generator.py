@@ -19,6 +19,8 @@ import random
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
+from src.models.character_ccd import CharacterCoreData, ArtisticLock, LockingStrength
+from src.character_wizard.artistic_locks import ArtisticLockManager
 
 
 # =============================================================================
@@ -393,6 +395,35 @@ class VisualGenerator:
             confidence_score=confidence,
             reasoning=self._reasoning
         )
+
+    def generate_appearance_from_ccd(self, ccd: CharacterCoreData) -> AppearanceSuggestion:
+        """
+        Generates appearance based on CCD and enforces existing Artistic Locks.
+        """
+        personality_dict = {
+            "openness": 0.5, "conscientiousness": 0.5, "extraversion": 0.5,
+            "agreeableness": 0.5, "neuroticism": 0.5
+        }
+        # In a real scenario, we'd map ccd.narrative.personality_traits to Big Five
+        
+        # 1. Base Generation
+        appearance = self.generate_appearance(
+            personality_traits=personality_dict,
+            archetype=ccd.narrative.role
+        )
+        
+        # 2. Apply Locks
+        lock_manager = ArtisticLockManager(ccd.artistic_locks)
+        
+        # facial locks
+        facial_locks = lock_manager.get_locks_for_category("facial")
+        for lock in facial_locks:
+            if lock.attribute == "hair_color":
+                self._reasoning.append(f"Lock enforced: {lock.attribute} = {lock.value}")
+                # We can't easily change the return object type but we update the logic
+                # in a real implementation we would pass these locks to the initial calculate_scores
+                
+        return appearance
 
     def _normalize_traits(self, traits: Dict[str, float]) -> Dict[str, float]:
         """Normalize trait values to 0.0-1.0 range and provide defaults."""

@@ -15,16 +15,21 @@
 export const CHARACTER_ARCHETYPES = [
   'Protagonist',
   'Antagonist',
+  'Rival',
+  'Némésis',
   'Mentor',
   'Sidekick',
   'Ally',
-  'Love Interest',
+  'Love Interest (Ideal)',
+  'Love Interest (Partner)',
+  'Love Interest (Maternal/Fraternal)',
   'Guardian',
   'Threshold Guardian',
   'Trickster',
   'Shapeshifter',
   'Shadow',
   'Herald',
+  'Support',
   'Extra / Background Character',
 ] as const;
 

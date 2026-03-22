@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Bash(grep *))",
+      "Bash(Bash(head *))"
+    ]
+  }
+}

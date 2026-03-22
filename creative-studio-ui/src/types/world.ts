@@ -25,8 +25,8 @@ export interface World {
 }
 
 // Type definitions for World properties
-export type Genre = 'fantasy' | 'sci-fi' | 'historical' | 'contemporary' | 'horror' | 'mystery' | 'romance' | 'thriller' | 'western' | 'cyberpunk' | 'steampunk' | 'post-apocalyptic';
-export type Tone = 'dark' | 'light' | 'gritty' | 'whimsical' | 'serious' | 'humorous' | 'epic' | 'intimate' | 'mysterious' | 'hopeful' | 'melancholic' | 'adventurous';
+export type Genre = 'fantasy' | 'sci-fi' | 'historical' | 'contemporary' | 'horror' | 'mystery' | 'romance' | 'thriller' | 'western' | 'cyberpunk' | 'steampunk' | 'post-apocalyptic' | 'adventure' | 'drama' | 'comedy' | 'dystopian' | 'documentary';
+export type Tone = 'dark' | 'light' | 'gritty' | 'whimsical' | 'serious' | 'humorous' | 'epic' | 'intimate' | 'mysterious' | 'hopeful' | 'melancholic' | 'adventurous' | 'suspenseful';
 export type ProductionMode = 'fiction' | 'documentary' | 'interview' | 'music_video' | 'social_media' | 'cinematic' | 'audiodrama' | 'recap' | 'influencer' | 'maker' | 'scientific_review' | 'historical_review' | 'top_tier_list' | 'faith_spirituality' | 'game_review' | 'tech_review' | 'finance_review' | 'masterclass' | 'real_estate' | 'product_hype' | 'legal_recon' | 'asmr' | 'meditation' | 'experimental' | 'true_crime' | 'sports_highlight' | 'gardening' | 'renovation';
 export type RuleCategory = 'physical' | 'social' | 'magical' | 'technological';
 
@@ -101,6 +101,11 @@ export const GENRE_OPTIONS = [
   { value: 'cyberpunk', label: 'Cyberpunk' },
   { value: 'steampunk', label: 'Steampunk' },
   { value: 'post-apocalyptic', label: 'Post-Apocalyptic' },
+  { value: 'adventure', label: 'Adventure' },
+  { value: 'drama', label: 'Drama' },
+  { value: 'comedy', label: 'Comedy' },
+  { value: 'dystopian', label: 'Dystopian' },
+  { value: 'documentary', label: 'Documentary' },
 ] as const;
 
 export const TONE_OPTIONS = [
@@ -116,6 +121,7 @@ export const TONE_OPTIONS = [
   { value: 'hopeful', label: 'Hopeful' },
   { value: 'melancholic', label: 'Melancholic' },
   { value: 'adventurous', label: 'Adventurous' },
+  { value: 'suspenseful', label: 'Suspenseful' },
 ] as const;
 
 export const PRODUCTION_MODE_OPTIONS = [

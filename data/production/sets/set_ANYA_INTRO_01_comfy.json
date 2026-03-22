@@ -1,0 +1,84 @@
+{
+  "version": "1.0_SetBuilder",
+  "scene_id": "ANYA_INTRO_01",
+  "render_engine": "blender_eevee",
+  "layout": {
+    "primitives": [
+      {
+        "id": "plane_ANYA_INTRO_01",
+        "type": "plane",
+        "transform": {
+          "pos": [
+            0,
+            0,
+            0
+          ],
+          "rot": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            10.0,
+            10.0,
+            1.0
+          ]
+        },
+        "material": {
+          "color_hex": "#888888",
+          "roughness": 0.5,
+          "metallic": 0.0,
+          "mod_id": null
+        }
+      },
+      {
+        "id": "wall_back_ANYA_INTRO_01",
+        "type": "cube",
+        "transform": {
+          "pos": [
+            0,
+            5,
+            2.5
+          ],
+          "rot": [
+            0,
+            0,
+            0
+          ],
+          "scale": [
+            10.0,
+            0.2,
+            5.0
+          ]
+        },
+        "material": {
+          "color_hex": "#AAAAAA",
+          "roughness": 0.5,
+          "metallic": 0.0,
+          "mod_id": null
+        }
+      }
+    ],
+    "puppets": [
+      {
+        "character_id": "ANYA_V2",
+        "name": "Anya",
+        "rig_type": "humanoid_advanced",
+        "default_pose": "standing_A",
+        "position": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ]
+  },
+  "lighting": {
+    "primary": "warm_morning",
+    "intensity": "medium"
+  },
+  "camera": {
+    "style": "cinematic_portrait",
+    "focal_length": 50
+  }
+}

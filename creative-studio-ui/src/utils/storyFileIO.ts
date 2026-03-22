@@ -82,7 +82,7 @@ function generateYAMLFrontmatter(metadata: FileMetadata): string {
   return lines.join('\n');
 }
 
-function parseYAMLFrontmatter(content: string): { metadata: Partial<FileMetadata>; body: string } {
+export function parseYAMLFrontmatter(content: string): { metadata: Partial<FileMetadata>; body: string } {
   const lines = content.split('\n');
 
   if (lines[0] !== '---') {

@@ -9,82 +9,39 @@
  * Requirements: 1.5
  */
 
-import { useMemo, useEffect, useState } from 'react';
-import type { WizardLauncherProps, WizardDefinition } from '../../types/configuration';
-import { checkWizardRequirements, getWizardDependencies } from '../../data/wizardDefinitions';
-import { WizardService } from '../../services/wizard/WizardService';
-import { useAppStore } from '../../stores/useAppStore';
+import { useMemo } from 'react';
+import type { WizardLauncherProps, WizardDefinition } from '@/types/configuration';
+import { checkWizardRequirements, getWizardDependencies } from '@/data/wizardDefinitions';
+import { useAppStore } from '@/stores/useAppStore';
+import { RefreshCw } from 'lucide-react';
 import './WizardLauncher.css';
-
-interface ConnectionStatus {
-  ollama: boolean;
-  comfyui: boolean;
-  checking: boolean;
-}
 
 export function WizardLauncher({
   availableWizards,
   onLaunchWizard,
 }: WizardLauncherProps) {
-  const project = useAppStore((state) => state.project); // Get project data (Requirement 8.1, 8.2, 8.3)
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
-    ollama: false,
-    comfyui: false,
-    checking: true,
-  });
+  const project = useAppStore((state) => state.project);
+  const ollamaStatus = useAppStore((state) => state.ollamaStatus);
+  const comfyuiStatus = useAppStore((state) => state.comfyuiStatus);
 
-  // Check backend service connections on mount
-  useEffect(() => {
-    const checkConnections = async () => {
-      setConnectionStatus(prev => ({ ...prev, checking: true }));
-      
-      const wizardService = new WizardService();
-      
-      // Silently check connections - errors are expected when services aren't running
-      // ComfyUI is OPTIONAL - connection failures should not spam console
-      const [ollamaStatus, comfyuiStatus] = await Promise.all([
-        wizardService.checkOllamaConnection().catch(() => ({
-          connected: false,
-          service: 'ollama' as const,
-          endpoint: 'http://localhost:11434',
-          error: 'Service not available'
-        })),
-        wizardService.checkComfyUIConnection().catch(() => ({
-          connected: false,
-          service: 'comfyui' as const,
-          endpoint: 'http://localhost:8000',
-          error: 'Service not available'
-        })),
-      ]);
-      
-      setConnectionStatus({
-        ollama: ollamaStatus.connected,
-        comfyui: comfyuiStatus.connected,
-        checking: false,
-      });
-    };
-    
-    checkConnections();
-    
-    // Recheck every 60 seconds (reduced frequency to minimize console noise)
-    const interval = setInterval(checkConnections, 60000);
-    return () => clearInterval(interval);
-  }, []);
+  const isOllamaConnected = ollamaStatus === 'connected';
+  const isComfyUIConnected = comfyuiStatus === 'connected';
+  const isChecking = ollamaStatus === 'connecting' || comfyuiStatus === 'connecting';
 
   // Determine which configurations are available based on connection status
   const availableConfig = useMemo(() => {
     const configs: string[] = [];
     
-    if (connectionStatus.ollama) {
+    if (isOllamaConnected) {
       configs.push('llm');
     }
     
-    if (connectionStatus.comfyui) {
+    if (isComfyUIConnected) {
       configs.push('comfyui');
     }
     
     return configs;
-  }, [connectionStatus]);
+  }, [isOllamaConnected, isComfyUIConnected]);
 
   // Check if wizard can be launched based on config and connection status (Requirement 4.4, 4.5)
   const canLaunchWizard = (wizard: WizardDefinition): boolean => {
@@ -92,8 +49,9 @@ export function WizardLauncher({
       return false;
     }
     
-    // Use the enhanced checkWizardRequirements function that includes project data validation
-    return checkWizardRequirements(wizard, availableConfig, project);
+    // Use the enhanced checkWizardRequirements function with safety check for project
+    // Casting to any to avoid deep type mismatch between Project and ProjectData
+    return checkWizardRequirements(wizard, availableConfig, project as any);
   };
 
   // Get tooltip message for wizard (Requirement 9.2)
@@ -106,9 +64,9 @@ export function WizardLauncher({
     const dependencies = getWizardDependencies(wizard);
     
     // Check configuration dependencies
-    const missingConfig = dependencies.config.filter(
+    const missingConfig = dependencies.config?.filter(
       req => !availableConfig.includes(req)
-    );
+    ) || [];
     
     if (missingConfig.length > 0) {
       return `Missing required configuration: ${missingConfig.join(', ')}. ${wizard.description}`;
@@ -116,10 +74,10 @@ export function WizardLauncher({
     
     // Check connection status
     const connectionIssues: string[] = [];
-    if (dependencies.config.includes('llm') && !connectionStatus.ollama) {
+    if (dependencies.config?.includes('llm') && !isOllamaConnected) {
       connectionIssues.push('Ollama not connected');
     }
-    if (dependencies.config.includes('comfyui') && !connectionStatus.comfyui) {
+    if (dependencies.config?.includes('comfyui') && !isComfyUIConnected) {
       connectionIssues.push('ComfyUI not connected');
     }
     
@@ -130,13 +88,13 @@ export function WizardLauncher({
     // Check data requirements (Requirement 8.4, 9.2)
     const dataIssues: string[] = [];
     if (dependencies.characters) {
-      const hasCharacters = project?.characters && project.characters.length > 0;
+      const hasCharacters = (project as any)?.characters && (project as any).characters.length > 0;
       if (!hasCharacters) {
         dataIssues.push('No characters available. Create characters first using the Character Wizard.');
       }
     }
     if (dependencies.shots) {
-      const hasShots = project?.shots && project.shots.length > 0;
+      const hasShots = (project as any)?.shots && (project as any).shots.length > 0;
       if (!hasShots) {
         dataIssues.push('No shots available. Create shots first.');
       }
@@ -187,18 +145,31 @@ export function WizardLauncher({
         {/* Connection Status Indicators */}
         <div className="connection-status">
           <div 
-            className={`status-indicator ${connectionStatus.checking ? 'checking' : connectionStatus.ollama ? 'connected' : 'disconnected'}`}
+            className={`status-indicator ${isChecking ? 'checking' : isOllamaConnected ? 'connected' : 'disconnected'}`}
             title="Ollama provides AI text generation capabilities"
           >
             <span className="status-dot"></span>
             <span className="status-label">Ollama</span>
           </div>
           <div 
-            className={`status-indicator ${connectionStatus.checking ? 'checking' : connectionStatus.comfyui ? 'connected' : 'disconnected'}`}
+            className={`status-indicator ${isChecking ? 'checking' : isComfyUIConnected ? 'connected' : 'disconnected'}`}
             title="ComfyUI is optional - app works in fallback mode without it"
           >
             <span className="status-dot"></span>
-            <span className="status-label">ComfyUI (Optional)</span>
+            <span className="status-label">ComfyUI</span>
+            {!isComfyUIConnected && !isChecking && (
+              <button 
+                className="service-retry-btn" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Trigger a re-check via the service monitor
+                  import('@/services/ServiceStatusMonitor').then(m => m.serviceStatusMonitor.checkAllServices());
+                }}
+                title="Retry connection"
+              >
+                <RefreshCw className="w-2.5 h-2.5" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -231,8 +202,8 @@ export function WizardLauncher({
                         <span 
                           key={req} 
                           className={`requirement-badge ${
-                            req === 'LLM' && connectionStatus.ollama ? 'connected' :
-                            req === 'ComfyUI' && connectionStatus.comfyui ? 'connected' :
+                            req === 'LLM' && isOllamaConnected ? 'connected' :
+                            req === 'ComfyUI' && isComfyUIConnected ? 'connected' :
                             'disconnected'
                           }`}
                         >

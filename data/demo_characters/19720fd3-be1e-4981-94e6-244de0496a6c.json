@@ -1,0 +1,49 @@
+{
+  "character_id": "19720fd3-be1e-4981-94e6-244de0496a6c",
+  "name": "Anya",
+  "created_at": "2026-03-19 14:11:53.670091",
+  "updated_at": "2026-03-19 14:11:53.843347",
+  "version": "2.0.0",
+  "creation_method": "vision_first",
+  "visual": {
+    "art_style": "anime",
+    "physical_description": "",
+    "morphology": {},
+    "palette": [],
+    "main_colors": [],
+    "reference_image_path": null,
+    "character_sheet_path": null,
+    "lora_weights_path": null,
+    "reference_images": [
+      "demo_sketch.png"
+    ],
+    "method_data": {}
+  },
+  "narrative": {
+    "era": "contemporary",
+    "role": "Heroine",
+    "personality_traits": [],
+    "backstory": "",
+    "tone": "neutral",
+    "dialogue_style": "standard"
+  },
+  "voice": {
+    "provider": "kitten-tts",
+    "gender": "feminine",
+    "pitch_offset": 2.5,
+    "intonation": "emotional",
+    "speed": 1.1,
+    "accent": "neutral",
+    "reference_audio_path": null,
+    "rvc_model_id": null,
+    "kitten_voice_id": null,
+    "emotion_map": {
+      "happy": "cheerful",
+      "sad": "melancholic",
+      "angry": "aggressive"
+    }
+  },
+  "artistic_locks": [],
+  "metadata": {},
+  "tags": []
+}

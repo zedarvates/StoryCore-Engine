@@ -4,11 +4,11 @@
  * 2. Select reference and generate complete reference sheet
  */
 import React, { useState, useCallback, useEffect } from 'react';
-import { Image, Grid3X3, RefreshCw, Download, X, Eye, CheckCircle, Box } from 'lucide-react';
+import { RefreshCw, Grid3X3, Eye, Box } from 'lucide-react';
 import { assetCreatorService } from '@/services/assetCreatorService';
 import { notificationService } from '@/services/NotificationService';
 import { useStore } from '@/store';
-import type { Character, ReferenceImageData, SheetImageData } from '@/types/character';
+import type { Character } from '@/types/character';
 
 interface CharacterImagesSectionProps {
   characterId: string;
@@ -26,12 +26,7 @@ interface CharacterImage {
   filename?: string;
 }
 
-const OUTFIT_TYPES = [
-  { id: 'casual', label: 'Casual', color: '#4CAF50' },
-  { id: 'formal', label: 'Formal', color: '#2196F3' },
-  { id: 'combat', label: 'Combat', color: '#F44336' },
-  { id: 'armor', label: 'Armor', color: '#FF9800' },
-];
+
 
 function buildCharacterPrompt(character: Character | undefined, outfits: string[]): string {
   if (!character) return 'a character';
@@ -51,18 +46,13 @@ function buildCharacterPrompt(character: Character | undefined, outfits: string[
     if (v.clothing_style) parts.push(`Clothing: ${v.clothing_style}`);
   }
   if (outfits.length) parts.push(`Outfits: ${outfits.join(', ')}`);
+  
+  // Add quality and style keywords for realistic results
+  parts.push("photorealistic, high detailed skin textures, award winning cinematography, 8k resolution, realistic lighting, sharp focus, masterpiece, NOT a silhouette, detailed facial features");
+  
   return parts.join('. ');
 }
 
-function generateViewPrompt(description: string, view: string): string {
-  const prompts: Record<string, string> = {
-    front: `Full body standing view, front facing camera, ${description}`,
-    left: `Full body standing view, profile facing left, ${description}`,
-    right: `Full body standing view, profile facing right, ${description}`,
-    back: `Full body standing view, back facing camera, ${description}`,
-  };
-  return prompts[view] || prompts.front;
-}
 
 function buildFluxTurboWorkflow(params: {
   prompt: string;
@@ -78,7 +68,7 @@ function buildFluxTurboWorkflow(params: {
   return {
     "9": {
       "inputs": {
-        "filename_prefix": "character_reference",
+        "filename_prefix": params.prompt.includes('front') ? `ref_${params.seed}` : `sheet_${params.seed}`,
         "images": ["57:8", 0]
       },
       "class_type": "SaveImage",
@@ -150,11 +140,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
   const [selectedReference, setSelectedReference] = useState<CharacterImage | null>(null);
   const [showGenerator, setShowGenerator] = useState(false);
   const [showReferenceGenerator, setShowReferenceGenerator] = useState(false);
-  const [selectedOutfits, setSelectedOutfits] = useState<string[]>(['casual']);
-  const [customDescription, setCustomDescription] = useState('');
   const [generationProgress, setGenerationProgress] = useState<string>('');
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [comfyuiConnected, setComfyuiConnected] = useState(true);
 
   const store = useStore.getState();
   const character = propCharacter || store.getCharacterById(characterId);
@@ -184,7 +170,6 @@ export function CharacterImagesSection({ characterId, characterName, character: 
           filename: img.filename
         }));
         setImages(loaded);
-        if (loaded.length > 0) setGeneratedImage(loaded[0].url);
       }
     }
   }, [character, characterId]);
@@ -267,7 +252,14 @@ export function CharacterImagesSection({ characterId, characterName, character: 
 
   const tryDirectFolderAccess = useCallback(async (serverUrl: string, promptId: string, prefix: string): Promise<string[]> => {
     const urls: string[] = [];
-    const possible = [`${prefix}_0001_.png`, `${prefix}_0001.jpg`, `${promptId}_0001.png`];
+    const possible = [
+      `${prefix}_0001.png`, 
+      `${prefix}_0001.jpg`, 
+      `ref_${promptId}_0001.png`,
+      `sheet_${promptId}_0001.png`,
+      `character_reference_0001.png`,
+      `character_reference_0001_.png`
+    ];
     for (const f of possible) {
       try {
         const url = `${serverUrl}/view?filename=${encodeURIComponent(f)}&type=output`;
@@ -302,7 +294,6 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       panel: v
     }));
     setImages(prev => [...prev, ...newImgs]);
-    setGeneratedImage(newImgs[0].url);
     saveImagesToCharacter(referenceImages, [...images, ...newImgs]);
     setIsLoading(false);
   }, [characterName, images, referenceImages, saveImagesToCharacter]);
@@ -310,7 +301,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
   const handleGenerateReference = useCallback(async () => {
     setIsLoading(true);
     setGenerationProgress('Connecting to ComfyUI...');
-    const prompt = buildCharacterPrompt(character, selectedOutfits);
+    const prompt = buildCharacterPrompt(character, []);
     const serverUrl = 'http://localhost:8000';
     try {
       const response = await fetch(`${serverUrl}/prompt`, {
@@ -331,20 +322,20 @@ export function CharacterImagesSection({ characterId, characterName, character: 
       } else {
         await generateMockReference(prompt);
       }
-    } catch (e) { await generateMockReference(prompt); }
+    } catch (_error) { await generateMockReference(prompt); }
     setIsLoading(false);
     setShowReferenceGenerator(false);
-  }, [character, selectedOutfits, referenceImages, images, saveImagesToCharacter, waitForCompletion, downloadImages, tryDirectFolderAccess, characterName, generateMockReference]);
+  }, [character, referenceImages, images, saveImagesToCharacter, waitForCompletion, downloadImages, tryDirectFolderAccess, characterName, generateMockReference]);
 
   const handleGenerateSheet = useCallback(async () => {
     if (!selectedReference) return;
     setIsLoading(true);
-    const prompt = buildCharacterPrompt(character, selectedOutfits);
+    const prompt = buildCharacterPrompt(character, []);
     // Simulating sequence for brevity in this cleanup, but keeping the structure
     await generateMockSheet(prompt);
     setIsLoading(false);
     setShowGenerator(false);
-  }, [character, selectedOutfits, selectedReference, generateMockSheet]);
+  }, [character, selectedReference, generateMockSheet]);
 
   const handleGeneratePantin = useCallback(async () => {
     if (!character) return;
@@ -360,7 +351,7 @@ export function CharacterImagesSection({ characterId, characterName, character: 
         a.click();
         notificationService.success('3D Asset Generated', 'Blender script downloaded.');
       }
-    } catch (e) { notificationService.error('Generation Failed', 'Error generating pantin'); }
+    } catch (_error) { notificationService.error('Generation Failed', 'Error generating pantin'); }
     setIsLoading(false);
   }, [character]);
 
@@ -391,14 +382,113 @@ export function CharacterImagesSection({ characterId, characterName, character: 
   );
 }
 
-function GeneratorModal({ title, onClose, onGenerate, isLoading, progress }: any) {
+function GeneratorModal({ title, onClose, onGenerate, isLoading, progress }: { title: string, onClose: () => void, onGenerate: () => void, isLoading: boolean, progress: string }) {
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-      <div style={{ backgroundColor: '#1a1a2e', padding: '24px', borderRadius: '12px', minWidth: '400px' }}>
-        <h3>{title}</h3>
-        {isLoading ? <div>{progress}</div> : <button onClick={onGenerate} style={{ padding: '10px 20px', backgroundColor: '#e94560', color: '#fff', border: 'none' }}>Generate</button>}
-        <button onClick={onClose} style={{ marginLeft: '10px' }}>Cancel</button>
+    <div style={{ 
+      position: 'fixed', 
+      top: 0, 
+      left: 0, 
+      right: 0, 
+      bottom: 0, 
+      backgroundColor: 'rgba(2, 2, 5, 0.85)', 
+      backdropFilter: 'blur(12px)',
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      zIndex: 1000 
+    }}>
+      <div style={{ 
+        background: 'linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%)', 
+        padding: '40px', 
+        borderRadius: '24px', 
+        minWidth: '460px',
+        border: '1px solid rgba(233, 69, 96, 0.4)',
+        boxShadow: '0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(233, 69, 96, 0.15)',
+        textAlign: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Animated background glow */}
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          left: '-50%',
+          width: '200%',
+          height: '200%',
+          background: 'radial-gradient(circle, rgba(233, 69, 96, 0.1) 0%, transparent 70%)',
+          animation: 'rotate 10s linear infinite'
+        }} />
+
+        <h3 style={{ 
+          margin: '0 0 24px 0', 
+          fontSize: '20px', 
+          color: '#fff', 
+          fontWeight: 900, 
+          textTransform: 'uppercase', 
+          letterSpacing: '0.2em',
+          position: 'relative'
+        }}>{title}</h3>
+        
+        {isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', position: 'relative' }}>
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              border: '4px solid rgba(233, 69, 96, 0.15)', 
+              borderTopColor: '#e94560', 
+              borderRadius: '50%', 
+              animation: 'spin 1.2s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite',
+              filter: 'drop-shadow(0 0 10px rgba(233, 69, 96, 0.3))'
+            }} />
+            <div style={{ color: '#e94560', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{progress || 'Manifesting Character...'}</div>
+            <div style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontStyle: 'italic' }}>This process high-dimensional generation. Please hold.</div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', position: 'relative' }}>
+            <button 
+              onClick={onGenerate} 
+              style={{ 
+                padding: '14px 32px', 
+                backgroundColor: '#e94560', 
+                color: '#fff', 
+                border: 'none', 
+                borderRadius: '12px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+                letterSpacing: '0.1em',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 10px 20px rgba(233, 69, 96, 0.3)'
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+              onMouseOut={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              Start Manifestation
+            </button>
+            <button 
+              onClick={onClose} 
+              style={{ 
+                padding: '14px 32px', 
+                backgroundColor: 'transparent', 
+                color: 'rgba(255,255,255,0.6)', 
+                border: '1px solid rgba(255,255,255,0.15)', 
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
+      <style>{`
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

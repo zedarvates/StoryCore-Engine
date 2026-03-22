@@ -5,7 +5,7 @@
 export interface MoodboardReference {
   id: string;
   url: string;
-  type: 'image' | 'video' | 'texture' | 'pattern';
+  type: 'image' | 'video' | 'texture' | 'pattern' | 'audio' | '3d' | 'document';
   note?: string;
   source?: 'upload' | 'ai-generated' | 'web';
   tags?: string[];

@@ -96,6 +96,7 @@ export interface StoryObject {
 
   // Generation metadata
   imageUrl?: string;
+  modelUrl?: string;
   imagePrompt?: string;
   generatedBy?: 'user' | 'ai' | 'ai_vision';
 

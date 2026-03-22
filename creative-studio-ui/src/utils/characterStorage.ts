@@ -30,10 +30,10 @@ export function mapWizardDataToCharacter(
   return {
     character_id,
     name: wizardData.name || '',
-    creation_method: 'wizard',
-    creation_timestamp: Date.now(),
+    creation_method: wizardData.creation_method || 'wizard',
+    creation_timestamp: wizardData.creation_timestamp || Date.now(),
     last_modified: Date.now(),
-    version: '1.0',
+    version: wizardData.version || '1.0',
 
     visual_identity: {
       hair_color: wizardData.visual_identity?.hair_color || '',
@@ -45,7 +45,7 @@ export function mapWizardDataToCharacter(
       facial_structure: wizardData.visual_identity?.facial_structure || '',
       distinctive_features: wizardData.visual_identity?.distinctive_features || [],
       age_range: wizardData.visual_identity?.age_range || '',
-      gender: wizardData.visual_identity?.gender || '',
+      gender: wizardData.visual_identity?.gender || 'unspecified',
       height: wizardData.visual_identity?.height || '',
       build: wizardData.visual_identity?.build || '',
       posture: wizardData.visual_identity?.posture || '',
@@ -53,6 +53,7 @@ export function mapWizardDataToCharacter(
       color_palette: wizardData.visual_identity?.color_palette || [],
       reference_images: wizardData.visual_identity?.reference_images || [],
       reference_sheet_images: wizardData.visual_identity?.reference_sheet_images || [],
+      generated_portrait: wizardData.visual_identity?.generated_portrait,
     },
 
     personality: {
@@ -82,7 +83,8 @@ export function mapWizardDataToCharacter(
       narrative_function: wizardData.role?.narrative_function || '',
       character_arc: wizardData.role?.character_arc || '',
     },
-    prompts: [],
+    prompts: wizardData.prompts || [],
+    material_color: wizardData.material_color,
   };
 }
 
@@ -100,26 +102,9 @@ export function validateCharacter(character: Partial<Character>): {
     errors.push('Character name is required');
   }
 
-  if (!character.role?.archetype) {
-    errors.push('Character archetype is required');
-  }
-
-  if (!character.visual_identity?.age_range) {
-    errors.push('Age range is required');
-  }
-
-  // Validate relationships
-  if (character.relationships) {
-    character.relationships.forEach((rel, index) => {
-      if (!rel.character_id) {
-        errors.push(`Relationship ${index + 1}: Character ID is required`);
-      }
-      if (!rel.relationship_type) {
-        errors.push(`Relationship ${index + 1}: Relationship type is required`);
-      }
-    });
-  }
-
+  // We relaxed the validation slightly to allow partial saves during wizard entry
+  // but for a "complete" character, archetype and age range are needed
+  
   return {
     valid: errors.length === 0,
     errors,
@@ -127,17 +112,18 @@ export function validateCharacter(character: Partial<Character>): {
 }
 
 /**
- * Generate character filename from UUID
+ * Generate character filename from UUID and name
  */
-export function getCharacterFilename(character_id: string): string {
-  return `${character_id}.json`;
+export function getCharacterFilename(character: Character): string {
+  const sanitizedName = character.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  return `${sanitizedName}.json`;
 }
 
 /**
- * Get character file path
+ * Get character file path (legacy support)
  */
 export function getCharacterFilePath(character_id: string): string {
-  return `characters/${getCharacterFilename(character_id)}`;
+  return `characters/${character_id}.json`;
 }
 
 /**
@@ -229,7 +215,8 @@ export function groupCharactersByArchetype(
 function getCharactersDir(projectId: string): string {
   // If it's an absolute path
   if (projectId.match(/^[a-zA-Z]:[\\/]/) || projectId.startsWith('/')) {
-    return `${projectId}/characters`;
+    const normalizedPath = projectId.replace(/\\/g, '/');
+    return normalizedPath.endsWith('/') ? `${normalizedPath}characters` : `${normalizedPath}/characters`;
   }
   return `./projects/${projectId}/characters`;
 }
@@ -296,7 +283,7 @@ export async function saveCharacterToProject(
     // Build file path with character's own folder
     const charactersDir = getCharactersDir(projectId);
     const characterFolder = `${charactersDir}/${sanitizedName}_${characterId.substring(0, 8)}`;
-    const filePath = `${characterFolder}/character.json`;
+    const filePath = `${characterFolder}/${sanitizedName}.json`;
 
     // Ensure character's directory exists
     if (window.electronAPI.fs.mkdir) {
@@ -364,21 +351,25 @@ export async function loadCharacterFromProject(
 
     const folders = await window.electronAPI.fs.readdir(charactersDir);
 
-    // Find the folder that contains this character ID
+    // Read all files in the folder to find the character JSON
     for (const folder of folders) {
       if (folder.includes(characterId.substring(0, 8))) {
-        const filePath = `${charactersDir}/${folder}/character.json`;
+        const folderPath = `${charactersDir}/${folder}`;
         
         try {
-          const fileExists = await window.electronAPI.fs.exists(filePath);
-          if (fileExists) {
+          const folderFiles = await window.electronAPI.fs.readdir(folderPath);
+          // Look for either character.json or [name]_character.json
+          const characterFile = folderFiles.find(f => f === 'character.json' || f.endsWith('_character.json'));
+          
+          if (characterFile) {
+            const filePath = `${folderPath}/${characterFile}`;
             const fileContent = await window.electronAPI.fs.readFile(filePath);
             const decoder = new TextDecoder();
             const jsonData = decoder.decode(fileContent);
             return JSON.parse(jsonData) as Character;
           }
         } catch (error) {
-          console.warn(`[characterStorage] Could not read character from ${filePath}:`, error);
+          console.warn(`[characterStorage] Could not read character from folder ${folder}:`, error);
         }
       }
     }
@@ -415,13 +406,16 @@ export async function listCharactersInProject(
     const folders = await window.electronAPI.fs.readdir(charactersDir);
     const characterIds: string[] = [];
 
-    // Read character.json from each folder
+    // Read character data from each folder
     for (const folder of folders) {
-      const filePath = `${charactersDir}/${folder}/character.json`;
+      const folderPath = `${charactersDir}/${folder}`;
       
       try {
-        const fileExists = await window.electronAPI.fs.exists(filePath);
-        if (fileExists) {
+        const folderFiles = await window.electronAPI.fs.readdir(folderPath);
+        const characterFile = folderFiles.find(f => f === 'character.json' || f.endsWith('_character.json'));
+        
+        if (characterFile) {
+          const filePath = `${folderPath}/${characterFile}`;
           const fileContent = await window.electronAPI.fs.readFile(filePath);
           const decoder = new TextDecoder();
           const jsonData = decoder.decode(fileContent);
@@ -429,7 +423,7 @@ export async function listCharactersInProject(
           characterIds.push(character.character_id);
         }
       } catch (error) {
-        console.warn(`[characterStorage] Could not read character from ${filePath}:`, error);
+        console.warn(`[characterStorage] Could not read character from folder ${folder}:`, error);
       }
     }
 

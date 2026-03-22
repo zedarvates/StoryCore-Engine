@@ -41,6 +41,8 @@ export class PromptLibraryService {
   private static instance: PromptLibraryService;
   private index: LibraryIndex | null = null;
   private cache: Map<string, PromptTemplate> = new Map();
+  // Base path for standard public assets
+  // Use root-relative path to ensure it works across all SPA routes
   private basePath = '/assets/library';
 
   private constructor() {}
@@ -78,9 +80,15 @@ export class PromptLibraryService {
         return this.index;
       }
 
-      const responseText = await response.text();
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('application/json')) {
+         console.warn(`[PromptLibraryService] Index at ${response.url} is not JSON (got ${contentType}). Likely a 404 HTML fallback.`);
+         this.index = { version: "1.0.0", lastUpdated: new Date().toISOString(), totalPrompts: 0, categories: {} };
+         return this.index;
+      }
 
-      this.index = JSON.parse(responseText);
+      const responseText = await response.text();
+      this.index = JSON.parse(responseText) as LibraryIndex;
       return this.index;
     } catch (error) {
       console.error(`[PromptLibraryService] Error loading index: ${error instanceof Error ? error.message : String(error)}`);
@@ -138,8 +146,12 @@ export class PromptLibraryService {
         return mockPrompt;
       }
 
-      const responseText = await response.text();
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('application/json')) {
+        throw new Error(`Response is not JSON (got ${contentType}). Likely an HTML error page.`);
+      }
 
+      const responseText = await response.text();
       const template = JSON.parse(responseText);
       this.cache.set(path, template);
       return template;

@@ -24,9 +24,11 @@ interface EssenceStepProps {
   data: Partial<Character>;
   onUpdate: (data: Partial<Character>) => void;
   worldContext?: any;
+  productionMode?: string;
 }
 
-export function EssenceStep({ data, onUpdate, worldContext }: EssenceStepProps) {
+
+export function EssenceStep({ data, onUpdate, worldContext, productionMode }: EssenceStepProps) {
   const [newTrait, setNewTrait] = useState('');
   const [newColor, setNewColor] = useState('');
   const [newFeature, setNewFeature] = useState('');
@@ -92,6 +94,7 @@ export function EssenceStep({ data, onUpdate, worldContext }: EssenceStepProps) 
             suggestionType="personality"
             characterData={data as any}
             worldContext={worldContext}
+            productionMode={productionMode}
             onSuggestion={(field, val) => {
               if (field === 'personality') {
                  const currentTraits = data.personality?.traits || [];
@@ -114,7 +117,12 @@ export function EssenceStep({ data, onUpdate, worldContext }: EssenceStepProps) 
               onKeyPress={(e) => e.key === 'Enter' && handleAddTrait()}
               className="flex-1 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-purple-500 rounded-xl"
             />
-            <Button onClick={handleAddTrait} className="bg-purple-100 text-purple-600 hover:bg-purple-200 border-none rounded-xl px-4">
+            <Button 
+              onClick={handleAddTrait} 
+              className="bg-purple-100 text-purple-600 hover:bg-purple-200 border-none rounded-xl px-4"
+              title="Add trait"
+              aria-label="Add trait"
+            >
               <Plus size={18} />
             </Button>
           </div>
@@ -123,7 +131,12 @@ export function EssenceStep({ data, onUpdate, worldContext }: EssenceStepProps) 
             {data.personality?.traits?.map((trait) => (
               <Badge key={trait} className="bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-300 border-purple-100 dark:border-purple-800/50 px-3 py-1.5 rounded-full flex items-center gap-2 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors">
                 <span className="text-xs font-bold">{trait}</span>
-                <button onClick={() => handleRemoveTrait(trait)} className="hover:text-red-500 transition-colors">
+                <button 
+                  onClick={() => handleRemoveTrait(trait)} 
+                  className="hover:text-red-500 transition-colors"
+                  title="Remove trait"
+                  aria-label="Remove trait"
+                >
                   <X size={14} />
                 </button>
               </Badge>
@@ -134,16 +147,106 @@ export function EssenceStep({ data, onUpdate, worldContext }: EssenceStepProps) 
           </div>
         </div>
 
-        <div className="space-y-2 pt-4">
-           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-500/70 ml-1">
-              Temperament & Values
+        <div className="space-y-4 pt-4 border-t border-white/5">
+           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-purple-400 ml-1">
+              Personality & Core Psychology
            </label>
-           <textarea
-              value={data.personality?.temperament || ''}
-              onChange={(e) => updatePersonality({ temperament: e.target.value })}
-              placeholder="Describe the internal drive and core values..."
-              className="w-full p-4 min-h-[80px] bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-purple-500 focus:bg-white dark:focus:bg-gray-950 rounded-2xl transition-all outline-none resize-none"
-           />
+           
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">TEMPERAMENT</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.temperament || ''}
+                  onChange={(e) => updatePersonality({ temperament: e.target.value })}
+                  placeholder="e.g., Calm, Fiery, Stoic"
+               />
+             </div>
+             
+             <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">COMMUNICATION STYLE</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.communication_style || ''}
+                  onChange={(e) => updatePersonality({ communication_style: e.target.value })}
+                  placeholder="e.g., Laconic, Formal, Sarcastic"
+               />
+             </div>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">VALUES (comma separated)</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.values?.join(', ') || ''}
+                  onChange={(e) => updatePersonality({ values: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="e.g., Loyalty, Honesty, Freedom"
+               />
+             </div>
+
+             <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">FEARS (comma separated)</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.fears?.join(', ') || ''}
+                  onChange={(e) => updatePersonality({ fears: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="e.g., Darkness, Rejection, Loss"
+               />
+             </div>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">DESIRES / GOALS</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.desires?.join(', ') || ''}
+                  onChange={(e) => updatePersonality({ desires: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="e.g., Revenge, Peace, Mastery"
+               />
+             </div>
+
+             <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">FLAWS & WEAKNESSES</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.flaws?.join(', ') || ''}
+                  onChange={(e) => updatePersonality({ flaws: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="e.g., Short-tempered, Naive"
+               />
+             </div>
+           </div>
+
+           <div className="space-y-1">
+               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-red-400 ml-1">
+                  FLAW & SYMPATHY (Humanizing Traits)
+               </label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
+                  value={data.flaw_sympathy || ''}
+                  onChange={(e) => onUpdate({ flaw_sympathy: e.target.value })}
+                  placeholder="What makes them human and attachable despite their flaws?"
+               />
+           </div>
+
+           <div className="space-y-1">
+               <label className="text-[10px] font-bold text-white/50 ml-1">STRENGTHS & SKILLS</label>
+               <input
+                  type="text"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  value={data.personality?.strengths?.join(', ') || ''}
+                  onChange={(e) => updatePersonality({ strengths: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
+                  placeholder="e.g., Strategist, Empathetic, Strong"
+               />
+             </div>
         </div>
       </section>
 
@@ -158,6 +261,7 @@ export function EssenceStep({ data, onUpdate, worldContext }: EssenceStepProps) 
             suggestionType="appearance"
             characterData={data as any}
             worldContext={worldContext}
+            productionMode={productionMode}
             onSuggestion={(field, val) => {
               if (field === 'appearance') {
                 updateVisual({ distinctive_features: Array.isArray(val) ? val : [String(val)] });

@@ -1,42 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    Clapperboard,
-    Mic2,
-    Image as ImageIcon,
-    Film,
-    Edit3,
-    User,
-    Layers,
-    Sparkles,
-    Zap,
-    Info,
-    Package,
-    Brain,
-    ChevronDown,
-    ChevronRight,
+    Clapperboard, Image as ImageIcon, Film,
+    Sparkles, Zap, Package, 
+    Play, Map, Layers, Brain, RefreshCw, Table
 } from 'lucide-react';
 import { useSequencePlanStore } from '@/stores/sequencePlanStore';
 import { useAppStore } from '@/stores/useAppStore';
 import { useStore } from '@/store';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useProductionStore, type ManifestedAsset } from '@/stores/productionStore';
+import { type ManifestedAsset, useProductionStore } from '@/stores/productionStore';
 import { useMemoryStore } from '@/stores/memoryStore';
-import { projectMemory } from '@/services/ProjectMemoryService';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
 import './ProductionGuide.css';
 
 /**
  * Shot type for ProductionGuide with runtime properties
- * This is a simplified view of shot data used in the production guide UI
  */
 interface ProductionGuideShot {
     id: string;
@@ -79,34 +63,38 @@ interface ProductionGuideShot {
         characterId: string;
         text: string;
     }>;
+    locationId?: string;
+    image?: string;
+    generated_image_url?: string;
 }
 
-/** Updates for composition fields */
-interface CompositionUpdates {
-    lightingMood?: string;
-    timeOfDay?: string;
-    [key: string]: unknown;
+/** Specific location type for the production inventory */
+interface ProductionInventoryLocation {
+    id: string;
+    name: string;
+    metadata?: {
+        description?: string;
+    };
+    skybox?: {
+        image_url?: string;
+    };
+    textures?: {
+        top?: string;
+    };
 }
 
-/** Updates for directing/metadata fields */
-interface DirectingUpdates {
-    lens?: string;
-    sensor?: string;
-    emotion?: string;
-    [key: string]: unknown;
+/** Specific object type for the production inventory */
+interface ProductionInventoryObject {
+    id: string;
+    name: string;
+    category?: string;
 }
 
-/**
- * ProductionGuide Component
- * 
- * A comprehensive recap of the project's production shots, 
- * helping users visualize segments, dialogues, and prompts before generation.
- */
 interface ProductionGuideProps {
     onEditCharacter?: (characterId: string) => void;
 }
 
-export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
+export function ProductionGuide({ onEditCharacter: _onEditCharacter }: ProductionGuideProps) {
     const currentPlan = useSequencePlanStore((state) => state.currentPlanData);
     const updateShotInPlan = useSequencePlanStore((state) => state.updateShotInPlan);
     const selectPlan = useSequencePlanStore((state) => state.selectPlan);
@@ -116,25 +104,17 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
     const worlds = useStore((state) => state.worlds);
     const storeSequencePlans = useStore((state) => state.sequencePlans);
     const storeShots = useAppStore((state) => state.shots);
-    const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
-    const [isSyncing, setIsSyncing] = useState(false);
     const [previewAsset, setPreviewAsset] = useState<ManifestedAsset | null>(null);
-    const manifestedAssets = useProductionStore((state) => state.manifestedAssets);
-    const memoryAnalysisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Auto-select first available plan if none is active
     useEffect(() => {
-        if (currentPlan) return; // Already have a plan
+        if (currentPlan) return; 
 
-        // Try to select via sequencePlanStore (from localStorage plans)
         if (storePlans.length > 0) {
-            selectPlan(storePlans[0].id).catch(() => {
-                // ignore errors - plan might not be fully loaded yet
-            });
+            selectPlan(storePlans[0].id).catch(() => {});
             return;
         }
 
-        // Load plans list and auto-select first one
         useSequencePlanStore.getState().loadPlans().then(() => {
             const updated = useSequencePlanStore.getState().plans;
             if (updated.length > 0) {
@@ -143,11 +123,9 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
         }).catch(() => {});
     }, [currentPlan, storePlans, selectPlan]);
 
-    // Build a synthetic "effective plan" from store sequences + shots when no formal plan is active
+    // Build a synthetic "effective plan"
     const effectivePlan = currentPlan ?? (() => {
-        // Try store sequence plans first
         if (storeSequencePlans && storeSequencePlans.length > 0) {
-            // Cast via unknown to safely convert ProductionShot[] -> Shot[] for display
             const firstPlan = storeSequencePlans[0] as unknown as {
                 id: string;
                 name: string;
@@ -168,7 +146,6 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                 };
             }
         }
-        // Fallback: use shots from the main store directly
         if (storeShots && storeShots.length > 0) {
             return {
                 id: 'synthetic',
@@ -198,24 +175,13 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
         };
 
         window.addEventListener('storycore:llm-update-shot', handleLLMShotUpdate as EventListener);
-        
-        return () => {
-            window.removeEventListener('storycore:llm-update-shot', handleLLMShotUpdate as EventListener);
-        };
+        return () => window.removeEventListener('storycore:llm-update-shot', handleLLMShotUpdate as EventListener);
     }, [updateShotInPlan]);
-
-    const toggleRow = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
-    };
 
     const handleSync = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsSyncing(true);
-        // Dispatch custom event to trigger sync in ProjectDashboardNew
         window.dispatchEvent(new CustomEvent('storycore:sync-production-guide'));
-
-        // Mock finishing sync UI-wise after 2s
         setTimeout(() => setIsSyncing(false), 2000);
     };
 
@@ -231,82 +197,117 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
         }
     };
 
-    const handleCompositionChange = (shotId: string, updates: CompositionUpdates) => {
-        const shot = currentPlan?.shots.find(s => s.id === shotId) as ProductionGuideShot | undefined;
-        if (shot) {
-            updateShotInPlan(shotId, {
-                composition: {
-                    ...(shot.composition || {}),
-                    ...updates
-                }
-            } as Record<string, unknown>);
-        }
-    };
-
-    const handleMotionPromptChange = (shotId: string, newPrompt: string) => {
-        const shot = currentPlan?.shots.find(s => s.id === shotId) as ProductionGuideShot | undefined;
-        if (shot) {
-            updateShotInPlan(shotId, {
-                camera: {
-                    ...(shot.camera || {}),
-                    movement: {
-                        ...(shot.camera?.movement || {}),
-                        prompt: newPrompt
-                    }
-                }
-            } as Record<string, unknown>);
-        }
-    };
-
-    const handleDirectingChange = (shotId: string, updates: DirectingUpdates) => {
-        const shot = currentPlan?.shots.find(s => s.id === shotId) as ProductionGuideShot | undefined;
-        if (shot) {
-            updateShotInPlan(shotId, {
-                metadata: {
-                    ...(shot.metadata || {}),
-                    ...updates
-                }
-            } as Record<string, unknown>);
-        }
-    };
-
-    const handleNoteChange = (shotId: string, note: string) => {
-        updateShotInPlan(shotId, { notes: note } as Record<string, unknown>);
-        
-        // DEBOUNCED Analyze for memory (Write Gate) - Only for significant notes
-        // Prevents hitting Ollama on every keystroke
-        if (memoryAnalysisTimeoutRef.current) {
-            clearTimeout(memoryAnalysisTimeoutRef.current);
-        }
-
-        if (note.length > 20) {
-            memoryAnalysisTimeoutRef.current = setTimeout(() => {
-                projectMemory.analyzeForMemory(note, `Production Note (Shot ${shotId})`);
-            }, 2000); // Wait for 2 seconds of inactivity
-        }
-    };
-
     const truncate = (text: string, length: number) => {
         if (!text) return '';
         return text.length > length ? text.substring(0, length) + '...' : text;
     };
 
-    if (!effectivePlan || !effectivePlan.shots || effectivePlan.shots.length === 0) {
+    const hasInventory = characters.length > 0 || worlds.flatMap(w => w.locations || []).length > 0;
+    const hasShots = !!effectivePlan && !!effectivePlan.shots && effectivePlan.shots.length > 0;
+
+    if (!hasShots && !hasInventory) {
         return (
             <div className="production-guide-empty">
-                <Clapperboard className="w-12 h-12 opacity-20 mb-4 mx-auto" aria-hidden="true" />
-                <h4 className="text-gray-400 font-bold mb-2 uppercase tracking-widest text-xs">// Production Linkage Offline</h4>
-                <p className="text-sm text-gray-500 max-w-xs mx-auto">
-                    No sequence plan active. Please initialize a plan in the &quot;Shot Planning&quot; section or via the &quot;Plan sequences&quot; section.
-                </p>
+                <div className="empty-content-wrapper">
+                    <div className="icon-pulse">
+                        <Clapperboard className="w-16 h-16 opacity-30 text-primary mx-auto" aria-hidden="true" />
+                    </div>
+                    <h4 className="text-primary font-black mb-2 uppercase tracking-[0.4em] text-sm mt-4">// Production Linkage Offline</h4>
+                    <p className="text-xs text-gray-500 max-w-sm mx-auto mb-6 leading-relaxed opacity-60">
+                        No sequence plan or character inventory detected for <span className="text-white">{(project?.project_name as string) || 'this project'}</span>. 
+                        Initialize your storyboard or add characters to begin cinematic synchronization.
+                    </p>
+                    <div className="flex flex-col gap-2 max-w-[200px] mx-auto">
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="bg-primary text-black hover:bg-primary/80 font-black uppercase text-[10px] tracking-widest"
+                        onClick={handleSync}
+                      >
+                        <Zap className="w-3 h-3 mr-2" />
+                        Generate from Story
+                      </Button>
+                      <span className="text-[10px] text-gray-700 uppercase font-black">or</span>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-[10px] uppercase font-black tracking-widest border-primary/20"
+                        onClick={() => window.dispatchEvent(new CustomEvent('launch-wizard', { detail: { type: 'sequence-plan' }}))}
+                      >
+                        Manual Planning
+                      </Button>
+                    </div>
+                </div>
             </div>
         );
     }
 
+    const shots = hasShots ? (effectivePlan!.shots as unknown as ProductionGuideShot[]) : [];
+
     return (
-        <div className="production-guide-container">
-            {/* Header Infographic Style */}
-            <div className="production-guide-header-info">
+        <div className="production-guide-container space-y-8">
+            {/* Master Manifest "Excel" Dashboard Tile - Top Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div className="lg:col-span-2 p-6 bg-gradient-to-br from-white/[0.05] to-sky-500/[0.05] border border-sky-500/20 rounded-3xl backdrop-blur-3xl relative overflow-hidden group shadow-2xl">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-sky-500/10 blur-[60px] rounded-full -mr-10 -mt-10 group-hover:bg-sky-500/20 transition-colors pointer-events-none" />
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start md:items-center">
+                        <div className="w-20 h-20 rounded-2xl bg-sky-500/10 flex items-center justify-center border border-sky-500/30 shadow-inner group-hover:scale-110 transition-transform">
+                            <Table className="w-10 h-10 text-sky-400" />
+                        </div>
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-xl font-black text-white uppercase tracking-tighter">Master Production Manifest</h3>
+                                <Badge variant="outline" className="text-[8px] bg-sky-400/10 text-sky-400 border-sky-400/30 font-black">STABLE SYNC</Badge>
+                            </div>
+                            <p className="text-sm text-white/40 leading-relaxed mb-4 max-w-lg font-mono">
+                                Centralized technical database for <span className="text-white italic">{(project?.project_name as string) || 'Active Episode'}</span>.
+                                Cross-referencing narrative fragments with manifestation protocol.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                <Badge variant="outline" className="bg-white/5 border-white/10 text-[9px] uppercase font-bold text-white/60">
+                                    {shots.length} Fragments
+                                </Badge>
+                                <Badge variant="outline" className="bg-white/5 border-white/10 text-[9px] uppercase font-bold text-white/60">
+                                    {characters.length} Actors
+                                </Badge>
+                                <Badge variant="outline" className="bg-white/5 border-white/10 text-[9px] uppercase font-bold text-white/60">
+                                    {worlds.flatMap(w => w.locations || []).length} Sets
+                                </Badge>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-white/[0.03] border border-white/10 rounded-3xl flex flex-col justify-between group hover:border-primary/30 transition-colors">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="text-primary/60 p-2 bg-primary/10 rounded-xl">
+                            <Zap size={20} />
+                        </div>
+                        <div className="text-right">
+                             <div className="text-[8px] font-black text-white/20 uppercase tracking-widest">Protocol V2</div>
+                             <div className="text-[10px] font-mono text-primary">ESTABLISHED</div>
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                         <Button 
+                            className="w-full bg-primary text-black font-black uppercase tracking-widest text-[9px] h-10 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all"
+                            onClick={() => window.dispatchEvent(new CustomEvent('storycore:sync-production-guide'))}
+                         >
+                            <RefreshCw size={14} className="mr-2" /> Full Data Sync
+                         </Button>
+                         <Button 
+                            variant="outline"
+                            className="w-full bg-white/5 border-white/10 text-white font-black uppercase tracking-widest text-[9px] h-10 rounded-xl hover:bg-white/10"
+                            onClick={() => window.dispatchEvent(new CustomEvent('storycore:generate-missing-assets'))}
+                         >
+                            <Sparkles size={14} className="mr-2" /> Generate Assets
+                         </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="production-guide-header-info border border-white/5 bg-white/5 p-4 rounded-xl">
                 <div className="info-stats-group">
                     <div className="info-stat">
                         <Layers className="w-4 h-4 text-primary" />
@@ -319,14 +320,14 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                         <Film className="w-4 h-4 text-purple-400" />
                         <div>
                             <span className="stat-label">Active Plan</span>
-                            <span className="stat-value">{effectivePlan.name}</span>
+                            <span className="stat-value">{effectivePlan?.name || 'No Active Plan'}</span>
                         </div>
                     </div>
                     <div className="info-stat">
                         <Zap className="w-4 h-4 text-yellow-400" />
                         <div>
                             <span className="stat-label">Shots count</span>
-                            <span className="stat-value">{effectivePlan.shots.length} Fragments</span>
+                            <span className="stat-value">{shots.length} Fragments</span>
                         </div>
                     </div>
 
@@ -341,291 +342,319 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
                     </div>
                 </div>
 
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="btn-sync-scenario"
-                    onClick={handleSync}
-                    disabled={isSyncing}
-                >
-                    <Sparkles className={`w-3.5 h-3.5 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                    <span className="text-[10px] uppercase font-black tracking-widest">
-                        {isSyncing ? 'Refining...' : 'Sync with Scenario'}
-                    </span>
-                </Button>
+                <div className="flex gap-2">
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="btn-sync-scenario bg-primary/5 border-primary/20 hover:bg-primary/10"
+                        onClick={() => window.dispatchEvent(new CustomEvent('storycore:sync-production-guide'))}
+                        title="Sync with Script & Stories"
+                    >
+                        <RefreshCw size={14} className="mr-1.5" /> Synchroniser Scenario
+                    </Button>
+                    
+                    <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="btn-master-gen bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+                        onClick={() => window.dispatchEvent(new CustomEvent('storycore:generate-missing-assets'))}
+                    >
+                        <Zap size={14} className="mr-1.5" /> Générer Tout (Master)
+                    </Button>
+                </div>
             </div>
 
-            <div className="production-guide">
-                {/* Real Table-ish Header */}
-                <div className="production-guide__table-header">
-                    <div className="col-id"># Fragment</div>
-                    <div className="col-script">Narrative / Script</div>
-                    <div className="col-visual">Concept / Composition</div>
-                    <div className="col-motion">Motion Dynamics</div>
-                    <div className="col-assets">Production Assets</div>
+            <div className="production-guide__inventory">
+                <div className="section-title uppercase tracking-[0.2em] text-[10px] font-black text-primary/50 mb-3 px-1 flex items-center gap-2">
+                    <Package size={12} /> 
                 </div>
+                
+                <div className="inventory-grids">
+                    <div className="inventory-grid-table">
+                        <div className="grid-table-header">Characters / Personnages</div>
+                        <div className="grid-table-content">
+                            <table className="excel-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Role</th>
+                                        <th>Visual Focus</th>
+                                        <th>Assets</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {characters.length > 0 ? characters.map(char => (
+                                        <tr key={char.character_id}>
+                                            <td className="font-bold text-white">{char.name}</td>
+                                            <td className="text-primary/70">{char.role?.archetype || 'Actor'}</td>
+                                            <td className="text-[9px] opacity-70 italic truncate max-w-[150px]">
+                                                {char.visual_identity?.clothing_style || 'N/A'}
+                                            </td>
+                                            <td>
+                                                {char.visual_identity?.generated_portrait && (
+                                                    <img src={char.visual_identity.generated_portrait} className="w-5 h-5 rounded-sm inline-block shadow-sm" alt="" />
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr><td colSpan={4} className="text-center opacity-30 italic py-4">No actors manifested</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                <div className="production-guide__rows">
-                    {effectivePlan.shots.map((s, index) => {
-                        const shot = s as ProductionGuideShot;
-                        const isExpanded = !!expandedRows[shot.id];
-
-                        return (
-                            <div key={shot.id} className="production-guide__row-wrapper">
-                                <div
-                                    className={`production-guide__row ${isExpanded ? 'is-expanded' : ''}`}
-                                >
-                                    {/* Number & Timing */}
-                                    <div className="col-id">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="row-toggle-btn p-0 h-6 w-6 mr-1"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleRow(shot.id, e);
-                                            }}
-                                            aria-expanded={isExpanded}
-                                            aria-label={isExpanded ? "Collapse row" : "Expand row"}
-                                        >
-                                            {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                        </Button>
-                                        <div className="shot-num-circle">
-                                            <span className="shot-number">{(shot.number || index + 1).toString().padStart(2, '0')}</span>
-                                        </div>
-                                        <span className="shot-duration">
-                                            {shot.timing?.duration || 0}s
-                                            <span className="timestamp">[{shot.timing?.inPoint || 0} - {shot.timing?.outPoint || 0}]</span>
-                                        </span>
-                                    </div>
-
-                                    {/* Script / Dialogue */}
-                                    <div className="col-script">
-                                        {shot.dialogues && shot.dialogues.length > 0 ? (
-                                            <div className="dialogue-group">
-                                                {shot.dialogues.map((d, i) => (
-                                                    <div key={d.id || i} className="dialogue-item">
-                                                        <Mic2 size={10} className="text-secondary opacity-60" />
-                                                        <span className="char-name">
-                                                            {characters.find(c => c.character_id === d.characterId)?.name || 'Narrator'}
-                                                        </span>
-                                                        <p className="dialogue-text">"{truncate(d.text, 80)}"</p>
+                    <div className="inventory-grid-table">
+                        <div className="grid-table-header">Lieux / Locations</div>
+                        <div className="grid-table-content">
+                            <table className="excel-table">
+                                <thead>
+                                        <tr>
+                                            <th>Location name</th>
+                                            <th>Description</th>
+                                            <th>QI / Status</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                    {worlds.flatMap(w => w.locations || []).length > 0 ? worlds.flatMap(w => w.locations || []).map((loc) => {
+                                        const pLoc = loc as unknown as ProductionInventoryLocation;
+                                        return (
+                                            <tr key={pLoc.id}>
+                                                <td className="font-bold text-white flex items-center gap-2">
+                                                    {pLoc.name}
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        className="h-5 w-5 p-0 hover:bg-primary/20 text-primary/40 hover:text-primary"
+                                                        onClick={() => {
+                                                            window.dispatchEvent(new CustomEvent('storycore:gen-char-sheet', { 
+                                                                detail: { locationId: pLoc.id, type: 'LOCATION' } 
+                                                            }));
+                                                        }}
+                                                        title="Generate Reference"
+                                                    >
+                                                        <Sparkles className="w-3 h-3" />
+                                                    </Button>
+                                                </td>
+                                                <td className="text-purple-400/70">{pLoc.metadata?.description || 'N/A'}</td>
+                                                <td>
+                                                    <div className="flex gap-1 items-center">
+                                                        {useProductionStore.getState().manifestedAssets.some(a => a.locationId === pLoc.id) ? (
+                                                            <Badge variant="outline" className="text-[8px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">READY</Badge>
+                                                        ) : (
+                                                            <Badge variant="outline" className="text-[8px] opacity-40">PENDING</Badge>
+                                                        )}
+                                                        {pLoc.skybox?.image_url && <div className="w-2 h-2 bg-blue-500 rounded-full" title="Skybox active"></div>}
+                                                        {pLoc.textures?.top && <div className="w-2 h-2 bg-green-500 rounded-sm" title="Mapping active"></div>}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <div className="narrative-desc">
-                                                <Info size={12} className="opacity-40" />
-                                                <p>{truncate(shot.notes || shot.description || 'Action sequence - No dialogue.', 100)}</p>
-                                            </div>
-                                        )}
-                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    }) : (
+                                        <tr><td colSpan={3} className="text-center opacity-30 italic py-4">No locations mapped</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
 
-                                    {/* Image Prompt & Vis Description */}
-                                    <div className="col-visual">
-                                        <div className="prompt-meta">
-                                            <ImageIcon size={12} className="text-primary/60" />
-                                            <textarea
-                                                className="visual-prompt-inline-edit"
-                                                value={shot.generation?.prompt || ''}
-                                                onChange={(e) => handlePromptChange(shot.id, e.target.value)}
-                                                placeholder="Describe visual composition..."
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
-                                        </div>
-                                        <div className="shorthand-tags">
-                                            <Badge variant="outline" className="tag-micro">{shot.camera?.framing || 'Medium'}</Badge>
-                                            <Badge variant="outline" className="tag-micro">{shot.camera?.angle || 'Eye-level'}</Badge>
-                                            {shot.metadata?.lens && (
-                                                <Badge variant="secondary" className="tag-micro bg-blue-500/10 text-blue-400 border-blue-500/30">
-                                                    {shot.metadata.lens}
-                                                </Badge>
-                                            )}
-                                            {shot.metadata?.emotion && shot.metadata.emotion !== 'neutral' && (
-                                                <Badge variant="secondary" className="tag-micro bg-yellow-500/10 text-yellow-400 border-yellow-500/30">
-                                                    {shot.metadata.emotion} ({shot.metadata.emotionIntensity}%)
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Video Prompt & Motion */}
-                                    <div className="col-motion">
-                                        <div className="motion-meta">
-                                            <Film size={12} className="text-purple-400/60" />
-                                            <textarea
-                                                className="motion-prompt-inline-edit"
-                                                value={shot.camera?.movement?.prompt || ''}
-                                                onChange={(e) => handleMotionPromptChange(shot.id, e.target.value)}
-                                                placeholder="Animation/Physics prompt (e.g. Dolly In, Orbit)..."
-                                                onClick={(e) => e.stopPropagation()}
-                                            />
-                                        </div>
-                                        <div className="motion-status">
-                                            <span className="motion-type">{shot.camera?.movement?.type?.toUpperCase() || 'STATIC'}</span>
-                                            {shot.camera?.movement?.speed && <span className="speed-dot" data-speed={shot.camera.movement.speed} />}
-                                        </div>
-                                    </div>
-
-                                    {/* Actors & Assets */}
-                                    <div className="col-assets">
-                                        <div className="assets-summary-grid">
-                                            <div className="actors-strip">
-                                                {shot.composition?.characterIds?.length ? (
-                                                    shot.composition.characterIds.map(cid => {
-                                                        const char = characters.find(c => c.character_id === cid);
-                                                        const asset = manifestedAssets.find(a => a.characterId === cid);
-                                                        return (
-                                                            <div
-                                                                key={cid}
-                                                                className={cn("actor-ref", asset && "has-sheet")}
-                                                                title={char?.name || 'Unknown Character'}
-                                                                onClick={() => asset && setPreviewAsset(asset)}
-                                                            >
-                                                                {char?.visual_identity?.generated_portrait ? (
-                                                                    <img src={char.visual_identity.generated_portrait} alt={char.name} />
-                                                                ) : (
-                                                                    <User size={10} />
-                                                                )}
-                                                            </div>
-                                                        )
-                                                    })
-                                                ) : null}
-                                            </div>
-                                            <div className="props-strip">
-                                                {shot.composition?.props?.length ? (
-                                                    shot.composition.props.map((pid: string) => {
-                                                        const asset = manifestedAssets.find(a => a.objectId === pid);
-                                                        return (
-                                                            <div
-                                                                key={pid}
-                                                                className={cn("prop-ref", asset && "has-sheet")}
-                                                                title={asset ? "View Manifested Reference" : "Object Asset"}
-                                                                onClick={() => asset && setPreviewAsset(asset)}
-                                                            >
-                                                                <Package size={10} className={asset ? "text-yellow-400" : "text-yellow-400/40"} />
-                                                            </div>
-                                                        );
-                                                    })
-                                                ) : null}
-                                            </div>
-                                        </div>
-                                        <div className="assets-action-row">
-                                            <button
-                                                className="btn-edit-outfit"
-                                                title="Edit Outfit / Props"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (onEditCharacter && shot.composition?.characterIds?.[0]) {
-                                                        onEditCharacter(shot.composition.characterIds[0]);
-                                                    }
-                                                }}
-                                            >
-                                                <Edit3 size={10} />
-                                                <span>Composition</span>
-                                            </button>
-                                            <button
-                                                className={`btn-gen-sheet ${manifestedAssets.some(a => a.characterId === shot.composition?.characterIds?.[0]) ? 'has-sheet' : ''}`}
-                                                title={manifestedAssets.some(a => a.characterId === shot.composition?.characterIds?.[0]) ? 'Reference Sheet Manifested' : 'Generate Reference Sheet'}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    // Trigger event for Neural Production Assistant or direct COM-API
-                                                    window.dispatchEvent(new CustomEvent('storycore:gen-char-sheet', {
-                                                        detail: { characterId: shot.composition?.characterIds?.[0] }
-                                                    }));
-                                                }}
-                                            >
-                                                <Layers size={10} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Expanded Grid Details */}
-                                {isExpanded && (
-                                    <div className="row-expansion-panel">
-                                        <div className="expansion-grid">
-                                            <div className="expansion-col">
-                                                <h5 className="sub-title">// Lighting & Environment</h5>
-                                                <div className="editable-comp-fields">
-                                                    <div className="field-row">
-                                                        <span className="label">Mood:</span>
-                                                        <Input
-                                                            className="comp-input-mini"
-                                                            value={shot.composition?.lightingMood || ''}
-                                                            onChange={(e) => handleCompositionChange(shot.id, { lightingMood: e.target.value })}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                    </div>
-                                                    <div className="field-row">
-                                                        <span className="label">Time:</span>
-                                                        <Input
-                                                            className="comp-input-mini"
-                                                            value={shot.composition?.timeOfDay || ''}
-                                                            onChange={(e) => handleCompositionChange(shot.id, { timeOfDay: e.target.value })}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                    </div>
+                    <div className="inventory-grid-table">
+                        <div className="grid-table-header">Objetcs / Props</div>
+                        <div className="grid-table-content">
+                            <table className="excel-table">
+                                <thead>
+                                        <tr>
+                                            <th>Asset name</th>
+                                            <th>Category</th>
+                                            <th>Usage</th>
+                                            <th>QI / Status</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                    {(useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects?.length > 0 ? (useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects.map((obj: ProductionInventoryObject) => (
+                                        <tr key={obj.id}>
+                                            <td className="font-bold text-white flex items-center gap-2">
+                                                {obj.name}
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="h-5 w-5 p-0 hover:bg-primary/20 text-primary/40 hover:text-primary"
+                                                    onClick={() => {
+                                                        window.dispatchEvent(new CustomEvent('storycore:gen-char-sheet', { 
+                                                            detail: { objectId: obj.id, type: 'OBJECT' } 
+                                                        }));
+                                                    }}
+                                                    title="Generate Reference"
+                                                >
+                                                    <Sparkles className="w-3 h-3" />
+                                                </Button>
+                                            </td>
+                                            <td className="text-yellow-400/70">{obj.category || 'Prop'}</td>
+                                            <td className="text-[9px] opacity-70">
+                                                {shots.filter((sh: ProductionGuideShot) => sh.composition?.props?.includes(obj.id)).length} counts
+                                            </td>
+                                            <td>
+                                                <div className="flex gap-1 items-center">
+                                                    {useProductionStore.getState().manifestedAssets.some(a => a.objectId === obj.id) ? (
+                                                        <Badge variant="outline" className="text-[8px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20">READY</Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="text-[8px] opacity-40">PENDING</Badge>
+                                                    )}
                                                 </div>
-                                                <p className="text-[10px] text-gray-500 mt-2">
-                                                    <strong>Environment:</strong> {
-                                                        worlds.flatMap(w => w.locations).find(l => l.id === shot.composition?.environmentId)?.name ||
-                                                        shot.composition?.environmentId ||
-                                                        'Default Scene'
-                                                    }
-                                                </p>
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr><td colSpan={4} className="text-center opacity-30 italic py-4">No props registered</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="production-guide-master mt-6">
+                <div className="table-container shadow-2xl border border-white/5 rounded-xl overflow-hidden bg-black/40 backdrop-blur-xl">
+                    <table className="production-master-table">
+                        <thead>
+                            <tr>
+                                <th className="w-12">#</th>
+                                <th className="w-40">Narrative / Dialogue</th>
+                                <th className="w-32">Actors / Cast</th>
+                                <th className="w-32">Location / Scene</th>
+                                <th>Visual AI Prompt / Context</th>
+                                <th className="w-24">Composition</th>
+                                <th className="w-24">Preview</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {shots.length > 0 ? shots.map((shot: ProductionGuideShot, index) => {
+                                const location = worlds.flatMap(w => (w.locations || []) as unknown as ProductionInventoryLocation[]).find(l => l.id === shot.locationId || l.id === shot.composition?.environmentId);
+                                const shotProps = (((useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects || []) as ProductionInventoryObject[]);
+                                const activeProps = shotProps.filter((o) => shot.composition?.props?.includes(o.id));
+                                
+                                return (
+                                    <tr key={shot.id} className="master-row group">
+                                        <td className="text-center border-r border-white/5 bg-white/[0.02]">
+                                            <div className="flex flex-col items-center py-2">
+                                                <span className="font-black text-primary text-sm">{(shot.number || index + 1).toString().padStart(2, '0')}</span>
+                                                <span className="text-[8px] opacity-40 font-mono mt-1">{shot.timing?.duration || 0}s</span>
                                             </div>
-                                            <div className="expansion-col">
-                                                <h5 className="sub-title">// Technical Rig & Directing</h5>
-                                                <div className="editable-comp-fields">
-                                                    <div className="field-row">
-                                                        <span className="label text-blue-400">Lens:</span>
-                                                        <Input
-                                                            className="comp-input-mini"
-                                                            value={shot.metadata?.lens || ''}
-                                                            onChange={(e) => handleDirectingChange(shot.id, { lens: e.target.value })}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                    </div>
-                                                    <div className="field-row">
-                                                        <span className="label text-blue-400">Sensor:</span>
-                                                        <Input
-                                                            className="comp-input-mini"
-                                                            value={shot.metadata?.sensor || ''}
-                                                            onChange={(e) => handleDirectingChange(shot.id, { sensor: e.target.value })}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                    </div>
-                                                    <div className="field-row">
-                                                        <span className="label text-yellow-400">Emotion:</span>
-                                                        <Input
-                                                            className="comp-input-mini"
-                                                            value={shot.metadata?.emotion || ''}
-                                                            onChange={(e) => handleDirectingChange(shot.id, { emotion: e.target.value })}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        />
-                                                    </div>
+                                        </td>
+
+                                        <td className="vertical-top py-3 px-4 min-w-[200px]">
+                                            {shot.dialogues && shot.dialogues.length > 0 ? (
+                                                <div className="dialogue-cell space-y-2">
+                                                    {shot.dialogues.map((d, i: number) => (
+                                                        <div key={d.id || i} className="text-[10px] leading-tight flex items-start gap-1.5">
+                                                            <span className="text-secondary font-bold whitespace-nowrap uppercase tracking-tighter text-[8px]">
+                                                                {characters.find(c => c.character_id === d.characterId)?.name || 'Narr'}:
+                                                            </span>
+                                                            <span className="opacity-80 italic font-serif">"{truncate(d.text, 60)}"</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="action-cell opacity-50 italic text-[10px] font-light leading-snug">
+                                                    {truncate(shot.notes || shot.description || 'Action sequence...', 100)}
+                                                </div>
+                                            )}
+                                        </td>
+
+                                        <td className="px-4">
+                                            <div className="flex flex-wrap gap-1 items-center justify-center">
+                                                {shot.composition?.characterIds?.map((cid: string) => {
+                                                    const char = characters.find(c => c.character_id === cid);
+                                                    return (
+                                                        <div key={cid} className="actor-pill shadow-lg" title={char?.name}>
+                                                            {char?.visual_identity?.generated_portrait ? (
+                                                                <img src={char.visual_identity.generated_portrait} className="w-8 h-8 rounded border border-white/10" alt="" />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded bg-white/5 border border-white/5 flex items-center justify-center text-[8px] font-bold text-white/40">
+                                                                    {char?.name?.charAt(0) || '?'}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                                {(!shot.composition?.characterIds || shot.composition.characterIds.length === 0) && (
+                                                    <span className="text-[8px] opacity-10 uppercase tracking-widest">Environment</span>
+                                                )}
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 border-l border-white/5">
+                                            <div className="flex flex-col gap-1.5">
+                                                <div className="location-tag flex items-center gap-1.5 text-[10px] font-bold text-purple-400 truncate max-w-[120px]">
+                                                    <Map size={11} className="opacity-60" /> {location?.name || 'Default Set'}
+                                                </div>
+                                                <div className="props-list flex flex-wrap gap-1">
+                                                    {activeProps.map((p) => (
+                                                        <div key={p.id} className="px-1 py-0.5 rounded-sm bg-yellow-500/10 border border-yellow-500/20 text-[7px] text-yellow-500/80 font-black uppercase tracking-tighter" title={p.name}>
+                                                            {p.name}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                            <div className="expansion-col full-width">
-                                                <h5 className="sub-title">// Production Notes (Shot Recap)</h5>
-                                                <Textarea
-                                                    className="production-notes-edit"
-                                                    value={shot.notes || ''}
-                                                    onChange={(e) => handleNoteChange(shot.id, e.target.value)}
-                                                    placeholder="Add special instructions for this fragment..."
-                                                    onClick={(e) => e.stopPropagation()}
+                                        </td>
+
+                                        <td className="prompt-cell px-4">
+                                            <div className="prompt-editor-wrapper">
+                                                <textarea 
+                                                    className="master-prompt-textarea text-[10px] bg-transparent border-none resize-none w-full text-primary/80 focus:ring-0 leading-tight h-12"
+                                                    value={shot.generation?.prompt || ''}
+                                                    onChange={(e) => handlePromptChange(shot.id, e.target.value)}
+                                                    placeholder="Specify visual details..."
                                                 />
                                             </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                        </td>
+
+                                        <td className="px-4 border-l border-white/5">
+                                            <div className="flex flex-col gap-1 items-center">
+                                                <Badge variant="outline" className="text-[8px] py-0 px-1 border-white/10 bg-white/5 opacity-80 uppercase font-black tracking-tighter">
+                                                    {shot.camera?.framing || 'MS'}
+                                                </Badge>
+                                                <Badge variant="outline" className="text-[8px] py-0 px-1 border-white/10 bg-white/5 opacity-80 uppercase font-black tracking-tighter">
+                                                    {shot.camera?.angle || 'Eye'}
+                                                </Badge>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 border-l border-white/5">
+                                            <div className="relative group/preview w-20 h-12 overflow-hidden rounded border border-white/10 bg-black shadow-inner m-auto">
+                                                {shot.image || shot.generated_image_url ? (
+                                                    <img src={shot.image || shot.generated_image_url} className="w-full h-full object-cover transition-transform group-hover/preview:scale-110" alt="" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center opacity-10">
+                                                        <ImageIcon size={20} />
+                                                    </div>
+                                                )}
+                                                
+                                                {shot.generation?.prompt && (
+                                                    <div className="absolute top-1 right-1">
+                                                        <Badge className="text-[6px] p-0.5 bg-primary/20 text-primary border-primary/40 backdrop-blur-md">NEURAL</Badge>
+                                                    </div>
+                                                )}
+
+                                                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover/preview:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                                    <Play size={12} className="text-white fill-white" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            }) : (
+                                <tr>
+                                    <td colSpan={7} className="text-center py-24 opacity-20 italic font-thin tracking-widest uppercase text-xs">
+                                        Storyboard synchronization required
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            {/* Asset Preview Modal */}
+            
             <Dialog open={!!previewAsset} onOpenChange={(open) => !open && setPreviewAsset(null)}>
                 <DialogContent className="max-w-xl bg-[#0a0a0b] border-primary/20 text-white font-mono">
                     <DialogHeader>
@@ -658,3 +687,5 @@ export function ProductionGuide({ onEditCharacter }: ProductionGuideProps) {
         </div>
     );
 }
+
+export default ProductionGuide;

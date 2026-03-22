@@ -31,6 +31,13 @@ export interface LLMConfig {
     frequencyPenalty: number; // -2 to 2
     presencePenalty: number; // -2 to 2
     draftMode?: boolean;      // Use local diffusion for fast drafting
+    creativityMode?: string;
+    jokesEnabled?: boolean;
+    wordGamesEnabled?: boolean;
+    probabilityFramingEnabled?: boolean;
+    vectorialOptimization?: string;
+    embeddingModel?: string;
+    similarityThreshold?: number;
   };
   systemPrompts: {
     worldGeneration: string;
@@ -304,9 +311,9 @@ export type StreamChunkCallback = (chunk: string) => void;
  * Default LLM configuration
  */
 const DEFAULT_CONFIG: LLMConfig = {
-  provider: 'openai',
+  provider: 'local',
   apiKey: '',
-  model: 'gpt-4o',
+  model: 'qwen3-vl:4b',
   parameters: {
     temperature: 0.7,
     maxTokens: 2000,

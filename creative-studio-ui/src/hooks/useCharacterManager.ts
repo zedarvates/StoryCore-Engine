@@ -12,6 +12,7 @@ import { useStore } from '../store';
 import { useAppStore } from '../stores/useAppStore';
 import type { Character } from '../types/character';
 import type { Story } from '../types/story';
+import { eventEmitter, type EventPayload } from '../services/eventEmitter';
 import {
   addRelationship as addRelationshipToStore,
   updateRelationship as updateRelationshipInStore,
@@ -20,7 +21,6 @@ import {
   type CharacterStore,
   type CharacterEventEmitter,
 } from '../services/RelationshipManager';
-import { eventEmitter } from '../services/eventEmitter';
 import {
   CharacterError,
   CharacterErrorType,
@@ -28,6 +28,7 @@ import {
   showValidationErrors,
   logValidationFailure,
 } from '../utils/characterErrorHandler';
+import { mapWizardDataToCharacter } from '../utils/characterStorage';
 
 // ============================================================================
 // Types
@@ -89,20 +90,25 @@ export function validateCharacter(
     errors.name = ['Character name is required'];
   }
 
-  // Validate archetype (Requirement 11.2)
+  // Validate archetype (Requirement 11.2) - Key matches BasicIdentitySection
   if (!data.role?.archetype || data.role.archetype.trim() === '') {
-    errors.archetype = ['Character archetype is required'];
+    errors['role.archetype'] = ['Character archetype is required'];
   }
 
-  // Validate age range (Requirement 11.3)
+  // Validate age range (Requirement 11.3) - Key matches BasicIdentitySection
   if (!data.visual_identity?.age_range || data.visual_identity.age_range.trim() === '') {
-    errors.age_range = ['Character age range is required'];
+    errors['visual_identity.age_range'] = ['Character age range is required'];
+  }
+
+  // Validate gender - Key matches BasicIdentitySection
+  if (!data.visual_identity?.gender || data.visual_identity.gender === 'unspecified') {
+    errors['visual_identity.gender'] = ['Character gender is required'];
   }
 
   // Validate relationship references (Requirement 11.4)
   if (data.relationships && data.relationships.length > 0 && existingCharacters) {
     const invalidRelationships: string[] = [];
-    const characterIds = new Set(existingCharacters.map(c => c.character_id));
+    const characterIds = new Set(existingCharacters.map((c: Character) => c.character_id));
 
     // Also include the current character's ID if it exists (for updates)
     if (data.character_id) {
@@ -199,60 +205,8 @@ export function useCharacterManager() {
           );
         }
 
-        // Generate character ID if not provided
-        const character_id = data.character_id || crypto.randomUUID();
-
-        // Create complete character object with defaults
-        const character: Character = {
-          character_id,
-          name: data.name || '',
-          creation_method: data.creation_method || 'manual',
-          creation_timestamp: data.creation_timestamp || new Date().toISOString(),
-          version: data.version || '1.0',
-          visual_identity: {
-            hair_color: data.visual_identity?.hair_color || '',
-            hair_style: data.visual_identity?.hair_style || '',
-            hair_length: data.visual_identity?.hair_length || '',
-            eye_color: data.visual_identity?.eye_color || '',
-            eye_shape: data.visual_identity?.eye_shape || '',
-            skin_tone: data.visual_identity?.skin_tone || '',
-            facial_structure: data.visual_identity?.facial_structure || '',
-            distinctive_features: data.visual_identity?.distinctive_features || [],
-            age_range: data.visual_identity?.age_range || '',
-            height: data.visual_identity?.height || '',
-            build: data.visual_identity?.build || '',
-            posture: data.visual_identity?.posture || '',
-            clothing_style: data.visual_identity?.clothing_style || '',
-            color_palette: data.visual_identity?.color_palette || [],
-            gender: data.visual_identity?.gender || 'neutral',
-            reference_images: data.visual_identity?.reference_images || [],
-            reference_sheet_images: data.visual_identity?.reference_sheet_images || [],
-          },
-          personality: {
-            traits: data.personality?.traits || [],
-            values: data.personality?.values || [],
-            fears: data.personality?.fears || [],
-            desires: data.personality?.desires || [],
-            flaws: data.personality?.flaws || [],
-            strengths: data.personality?.strengths || [],
-            temperament: data.personality?.temperament || '',
-            communication_style: data.personality?.communication_style || '',
-          },
-          background: {
-            origin: data.background?.origin || '',
-            occupation: data.background?.occupation || '',
-            education: data.background?.education || '',
-            family: data.background?.family || '',
-            significant_events: data.background?.significant_events || [],
-            current_situation: data.background?.current_situation || '',
-          },
-          relationships: data.relationships || [],
-          role: {
-            archetype: data.role?.archetype || '',
-            narrative_function: data.role?.narrative_function || '',
-            character_arc: data.role?.character_arc || '',
-          },
-        };
+        // Create complete character object using central utility
+        const character = mapWizardDataToCharacter(data);
 
         // Add to store (Requirement: 2.5)
         // Store handles persistence to localStorage and event emission
@@ -304,11 +258,33 @@ export function useCharacterManager() {
           );
         }
 
-        // Merge updates with existing character for validation
-        const updatedData = {
+        // Safety: Perform a deep merge of critical nested objects to prevent clearing them (Requirement: 2.3)
+        // Shallow spread ...updates would otherwise overwrite the entire nested objects
+        const updatedData: Character = {
           ...existingCharacter,
           ...updates,
+          visual_identity: updates.visual_identity
+            ? { ...existingCharacter.visual_identity, ...updates.visual_identity }
+            : existingCharacter.visual_identity,
+          role: updates.role
+            ? { ...existingCharacter.role, ...updates.role }
+            : existingCharacter.role,
+          personality: updates.personality
+            ? { ...existingCharacter.personality, ...updates.personality }
+            : existingCharacter.personality,
+          background: updates.background
+            ? { ...existingCharacter.background, ...updates.background }
+            : existingCharacter.background,
         };
+
+        // Ensure required fields are present (Requirement 11.2, 11.3)
+        if (!updatedData.role.archetype || updatedData.role.archetype.trim() === '') {
+          updatedData.role.archetype = 'hero';
+        }
+
+        if (!updatedData.visual_identity.age_range || updatedData.visual_identity.age_range.trim() === '') {
+          updatedData.visual_identity.age_range = 'adult';
+        }
 
         // Get existing characters for relationship validation
         const existingCharacters = getAllCharactersFromStore();
@@ -335,18 +311,17 @@ export function useCharacterManager() {
 
         // Update in store (Requirement: 2.5)
         // Store handles persistence to localStorage and event emission
-        updateCharacterInStore(id, updates);
+        // Update stores with nested merge
+        updateCharacterInStore(id, updatedData);
 
-        // Also update the project in AppStore to ensure persistence
-        const appStore = useAppStore.getState();
-        const currentProject = appStore.project;
-        if (currentProject) {
-          const projectCharacters = currentProject.characters || [];
-          const updatedCharacters = projectCharacters.map((c) =>
-            c.character_id === id ? { ...c, ...updates } : c
+        const project = useAppStore.getState().project;
+        if (project && project.characters) {
+          const projectCharacters = project.characters || [];
+          const updatedCharacters = projectCharacters.map((c: Character) =>
+            c.character_id === id ? updatedData : c
           );
-          appStore.setProject({
-            ...currentProject,
+          useAppStore.getState().setProject({
+            ...project,
             characters: updatedCharacters
           });
         }
@@ -464,10 +439,6 @@ export function useCharacterManager() {
         if (removeFromStories) {
           const dependencies = checkDependencies(id);
           dependencies.stories.forEach((story) => {
-            // Remove character from story's charactersUsed array
-            const updatedCharactersUsed = (story.charactersUsed || []).filter(
-              (charRef) => charRef.id !== id
-            );
             // Note: This would require a updateStory action in the store
             // For now, we'll just log a warning
             console.warn(
@@ -571,7 +542,7 @@ export function useCharacterManager() {
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
           emit: (eventType: string, payload: unknown) => {
-            eventEmitter.emit(eventType as any, payload as any);
+            eventEmitter.emit(eventType as string, payload as EventPayload);
           },
         };
 
@@ -632,7 +603,7 @@ export function useCharacterManager() {
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
           emit: (eventType: string, payload: unknown) => {
-            eventEmitter.emit(eventType as any, payload as any);
+            eventEmitter.emit(eventType as string, payload as EventPayload);
           },
         };
 
@@ -681,7 +652,7 @@ export function useCharacterManager() {
         // Create event emitter adapter
         const eventEmitterAdapter: CharacterEventEmitter = {
           emit: (eventType: string, payload: unknown) => {
-            eventEmitter.emit(eventType as any, payload as any);
+            eventEmitter.emit(eventType as string, payload as EventPayload);
           },
         };
 
@@ -777,7 +748,7 @@ export function useCharacterManager() {
 
         // Filter by creation method
         if (filters.creationMethod && filters.creationMethod.length > 0) {
-          const matchesCreationMethod = filters.creationMethod.includes(character.creation_method);
+          const matchesCreationMethod = (filters.creationMethod as string[]).includes(character.creation_method);
           if (!matchesCreationMethod) return false;
         }
 
@@ -836,7 +807,7 @@ export function useCharacterManager() {
         }
 
         // Validate character schema (Requirement: 10.4)
-        const validation = validateCharacter(parsedData, getAllCharactersFromStore());
+        const validation = validateCharacter(parsedData as Partial<Character>, getAllCharactersFromStore());
         if (!validation.valid) {
           // Show validation errors to user
           showValidationErrors(validation, 'Character Import');
@@ -852,7 +823,7 @@ export function useCharacterManager() {
         }
 
         // Check for ID conflicts (Requirement: 10.5)
-        const id = (parsedData as any).character_id;
+        const id = (parsedData as Character).character_id;
         const existingCharacter = getCharacterFromStore(id);
         if (existingCharacter) {
           throw new CharacterError(
@@ -864,7 +835,7 @@ export function useCharacterManager() {
         }
 
         // Create character
-        return await createCharacter(parsedData);
+        return await createCharacter(parsedData as Partial<Character>);
       } catch (error) {
         // Handle and display error
         handleCharacterError(error, 'Character Import');

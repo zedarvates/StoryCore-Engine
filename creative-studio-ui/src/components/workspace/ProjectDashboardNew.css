@@ -1,3 +1,4 @@
+/* cspell:ignore plex */
 /* New Project Dashboard Styles */
 
 :root {
@@ -27,6 +28,14 @@
   position: relative;
 }
 
+/* UI Cleanup Utility */
+.dash-section-clean {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 /* Header Section */
 .dashboard-header {
   display: flex;
@@ -34,6 +43,7 @@
   align-items: center;
   padding: 1rem 2rem;
   background: hsla(var(--background) / 0.4);
+  -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid hsla(var(--border) / 0.5);
   flex-shrink: 0;
@@ -731,8 +741,8 @@
   font-size: 12px;
   line-height: 1;
   cursor: ns-resize;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
   transition: color 0.2s;
 }
 
@@ -1288,8 +1298,8 @@
   justify-content: center;
   z-index: 1000;
   padding: 24px;
-  backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 .story-detail-container {
@@ -2294,4 +2304,49 @@
 .addon-action-btn.toggle-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.btn-create-story {
+  padding: 4px 12px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: hsla(var(--primary) / 0.1);
+  border: 1px solid hsla(var(--primary) / 0.2);
+  border-radius: 6px;
+  color: hsl(var(--primary));
+  transition: all 0.2s;
+}
+
+.btn-create-story:hover {
+  background: hsla(var(--primary) / 0.2);
+  border-color: hsla(var(--primary) / 0.4);
+}
+
+.btn-create-story span {
+  font-size: 0.8rem;
+}
+
+.btn-sequence-control {
+  padding: 4px 10px !important;
+  height: 28px !important;
+}
+
+.btn-sequence-control span {
+  font-size: 0.75rem !important;
+}
+
+.btn-sequence-control.new-plan {
+  padding: 4px 10px;
+  height: 28px;
+}
+
+.new-plan-text {
+  font-size: 0.75rem;
+}
+
+.btn-sequence-control.add {
+  width: 28px;
+  height: 28px;
 }

@@ -13,8 +13,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Query
+from fastapi.responses import JSONResponse, FileResponse
 import uuid
 import json
 import hashlib
@@ -68,7 +68,8 @@ REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 REDIS_URL = get_redis_url()
 
 # Storage paths - Using centralized config
-PROJECTS_DIR = Path(settings.UPLOAD_FOLDER) / "projects"
+# MIGRATION: Align with main_api.py which uses ./projects in root
+PROJECTS_DIR = Path("./projects")
 MEDIA_DIR = Path(settings.UPLOAD_FOLDER) / "media"
 EXPORT_DIR = Path(settings.OUTPUT_FOLDER) / "exports"
 
@@ -761,6 +762,23 @@ async def get_project(project_id: str, authorization: str = None):
     
     project = projects_db.get(project_id)
     
+    # If not in memory, try to load from disk
+    if not project:
+        project_path = PROJECTS_DIR / project_id
+        project_file = project_path / "project.json"
+        if project_file.exists():
+            try:
+                with open(project_file, "r") as f:
+                    project = json.load(f)
+                    # Convert strings to datetime if needed
+                    if "created_at" in project and isinstance(project["created_at"], str):
+                        project["created_at"] = datetime.fromisoformat(project["created_at"])
+                    if "modified_at" in project and isinstance(project["modified_at"], str):
+                        project["modified_at"] = datetime.fromisoformat(project["modified_at"])
+                    projects_db[project_id] = project
+            except Exception as e:
+                logger.error(f"Error loading project {project_id} from disk: {e}")
+    
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
@@ -786,8 +804,137 @@ async def list_project_assets(project_id: str, authorization: str = None):
     
     This endpoint is used by the dashboard to show recent exports and generations.
     """
-    # For now, return an empty list or try to look into the project folder
-    return {"assets": []}
+    # 1. Ensure project exists (try loading from disk if needed)
+    project_path = PROJECTS_DIR / project_id
+    if not project_path.exists():
+        # Maybe it's in the subfolder by user_id?
+        # Check if we can find it in any user subfolder
+        found = False
+        for user_dir in PROJECTS_DIR.iterdir():
+            if user_dir.is_dir() and (user_dir / project_id).exists():
+                project_path = user_dir / project_id
+                found = True
+                break
+        
+        if not found:
+            return {"assets": [], "message": "Project folder not found"}
+
+    # 2. Try to read project_assets.json
+    index_path = project_path / "project_assets.json"
+    assets = []
+    
+    if index_path.exists():
+        try:
+            with open(index_path, 'r') as f:
+                assets = json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading project_assets.json: {e}")
+    
+    # 3. If empty or missing, try to scan for generated files
+    if not assets:
+        # Scan exports folder if it exists
+        exports_dir = project_path / "exports"
+        if exports_dir.exists():
+            for f in exports_dir.glob("*.*"):
+                if f.suffix.lower() in [".mp4", ".mov", ".avi", ".gif"]:
+                    assets.append({
+                        "id": f.stem,
+                        "name": f.name,
+                        "type": "video",
+                        "path": f"projects/{project_id}/exports/{f.name}",
+                        "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                    })
+        
+        # Scan media folder
+        media_dir = project_path / "media"
+        if media_dir.exists():
+            for f in media_dir.glob("*.*"):
+                if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
+                    assets.append({
+                        "id": f.stem,
+                        "name": f.name,
+                        "type": "image",
+                        "path": f"projects/{project_id}/media/{f.name}",
+                        "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                    })
+    
+    return {"assets": assets}
+
+
+@VIDEO_EDITOR_ROUTER.get("/projects/{project_id}/media-raw")
+async def get_raw_media(
+    project_id: str,
+    path: str = Query(..., description="Path relative to the projects directory"),
+    authorization: str = None
+):
+    """
+    Serve raw media files from the project directory.
+    This provides direct access to images, videos, and other assets.
+    """
+    # Security note: In a production app, we would strictly validate
+    # that the user has access to this project_id.
+    
+    # Path is expected to be like "projects/{project_id}/media/filename.png"
+    # or "projects/{project_id}/exports/filename.mp4"
+    
+    # Normalize path and check if it's within the PROJECTS_DIR
+    try:
+        # Convert path to a relative path from the projects directory
+        # If the path starts with "projects/", remove it
+        if path.startswith("projects/"):
+            rel_path = path.replace(f"projects/", "", 1)
+        else:
+            rel_path = path
+            
+        # Search for the file in the projects directory
+        # Projects can be in PROJECTS_DIR / PROJECT_ID or PROJECTS_DIR / USER_ID / PROJECT_ID
+        
+        # 1. Try directly in PROJECTS_DIR / rel_path (if rel_path already contains the project_id)
+        full_path = PROJECTS_DIR / rel_path
+        
+        # 2. Try in PROJECTS_DIR / PROJECT_ID / rel_path
+        if not full_path.exists():
+            full_path = PROJECTS_DIR / project_id / rel_path
+            
+        # 3. Try searching one level deep for USER_ID / PROJECT_ID
+        if not full_path.exists():
+            for user_dir in PROJECTS_DIR.iterdir():
+                if user_dir.is_dir():
+                    path_in_user = user_dir / project_id / rel_path
+                    if path_in_user.exists():
+                        full_path = path_in_user
+                        break
+        
+        if not full_path.exists():
+            # Final fallback: search for rel_path in any subdirectory
+            found = False
+            for entry in PROJECTS_DIR.rglob(rel_path.split('/')[-1]):
+                if rel_path in str(entry).replace('\\', '/'):
+                    full_path = entry
+                    found = True
+                    break
+            
+            if not found:
+                raise HTTPException(status_code=404, detail=f"File not found: {path}")
+        
+        # Detect media type
+        suffix = full_path.suffix.lower()
+        if suffix in ['.png', '.jpg', '.jpeg', '.webp']:
+            media_type = f"image/{suffix[1:] if suffix != '.jpg' else 'jpeg'}"
+        elif suffix in ['.mp4', '.webm', '.mov']:
+            media_type = f"video/{suffix[1:] if suffix != '.mov' else 'quicktime'}"
+        elif suffix in ['.glb', '.gltf']:
+            media_type = "model/gltf-binary" if suffix == '.glb' else "model/gltf+json"
+        else:
+            media_type = "application/octet-stream"
+            
+        return FileResponse(path=full_path, media_type=media_type)
+        
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        logger.error(f"Error serving raw media: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @VIDEO_EDITOR_ROUTER.put("/projects/{project_id}", response_model=ProjectResponse)

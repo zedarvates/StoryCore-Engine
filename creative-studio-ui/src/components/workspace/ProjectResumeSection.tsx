@@ -5,6 +5,7 @@ import { ollamaClient } from '@/services/llm/OllamaClient';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Save, Edit3, Loader2, BookOpen } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { projectPersistence } from '@/services/persistence/projectPersistence';
 import './ProjectResumeSection.css';
 
 export interface ProjectResumeSectionProps {
@@ -12,10 +13,10 @@ export interface ProjectResumeSectionProps {
 }
 
 export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ className }) => {
-    const project = useAppStore((state: any) => state.project);
-    const shots = useAppStore((state: any) => state.shots);
-    const ollamaStatus = useAppStore((state: any) => state.ollamaStatus);
-    const characters = useStore((state: any) => state.characters);
+    const project = useAppStore((state) => state.project);
+    const shots = useAppStore((state) => state.shots);
+    const ollamaStatus = useAppStore((state) => state.ollamaStatus);
+    const characters = useStore((state) => state.characters);
     const { showSuccess, showError, showInfo } = useNotifications();
 
     const [resume, setResume] = useState<string>('');
@@ -28,7 +29,7 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
         if (project?.global_resume) {
             setResume(project.global_resume);
         } else if (project?.metadata?.description) {
-            setResume(project.metadata.description);
+            setResume(String(project.metadata.description));
         }
     }, [project]);
 
@@ -36,8 +37,6 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
         if (!project) return;
         setIsSaving(true);
         try {
-            // In a real app, this would call ProjectService.updateGlobalResume
-            // For now, we update the store and simulate persistence
             const updatedProject = {
                 ...project,
                 global_resume: resume,
@@ -47,13 +46,17 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
                 }
             };
 
+            // Update stores
             useAppStore.getState().setProject(updatedProject);
-            // Sync to main store as well to ensure total consistency
             useStore.getState().setProject(updatedProject);
 
-            showSuccess('Resume Saved', 'Project summary has been updated.');
+            // Persist to file system
+            await projectPersistence.saveProject(updatedProject);
+
+            showSuccess('Resume Saved', 'Project summary has been updated and persisted.');
             setIsEditing(false);
         } catch (error) {
+            console.error('Failed to save resume:', error);
             showError('Save Failed', 'Could not save the resume.');
         } finally {
             setIsSaving(false);
@@ -68,15 +71,14 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
 
         setIsGenerating(true);
         try {
-            const models = await ollamaClient.listModels();
-            const model = models.find(m => m.category === 'storytelling' || m.name.includes('llama'))?.name || models[0]?.name;
+            const model = await ollamaClient.getBestAvailableModel('storytelling');
 
             if (!model) throw new Error('No suitable LLM model found');
 
             const context = {
                 name: project?.metadata?.name || 'Untitled',
                 genre: project?.metadata?.genre || 'Not specified',
-                characters: characters?.map((c: any) => `${c.name} (${c.role?.archetype || c.archetype || 'Unnamed Archetype'})`).join(', ') || 'None',
+                characters: characters?.map((c) => `${c.name} (${c.role?.archetype || 'Unnamed Archetype'})`).join(', ') || 'None',
                 sequences: shots?.length || 0,
             };
 

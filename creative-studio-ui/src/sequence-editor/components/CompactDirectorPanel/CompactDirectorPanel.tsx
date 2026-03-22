@@ -4,12 +4,13 @@
  */
 
 import React, { useState } from 'react';
-import { useAppDispatch } from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store';
 import { toggleCompactMode } from '../../store/slices/panelsSlice';
 import './compactDirectorPanel.css';
 
 export const CompactDirectorPanel: React.FC = () => {
   const dispatch = useAppDispatch();
+  const shots = useAppSelector((state) => state.timeline.shots);
   const [activeShot, setActiveShot] = useState(0);
   const [prompt, setPrompt] = useState('');
   
@@ -63,18 +64,21 @@ export const CompactDirectorPanel: React.FC = () => {
 
       {/* Shot Thumbnails Row */}
       <div className="shot-thumbnails-row">
-        {[1, 2, 3, 4, 5, 6].map((num, idx) => (
+        {shots.map((shot, idx) => (
           <div 
-            key={num} 
+            key={shot.id} 
             className={`shot-card ${activeShot === idx ? 'active' : ''}`}
             onClick={() => setActiveShot(idx)}
           >
-            <div className="shot-label">Shot {num}</div>
-            <div className="shot-title">Auto</div>
-            <CurvePreview path={mockPaths[idx]} />
-            <div className="shot-duration-tag">2s</div>
+            <div className="shot-label">Shot {idx + 1}</div>
+            <div className="shot-title">{shot.name || 'Untitled'}</div>
+            <CurvePreview path={mockPaths[idx % mockPaths.length]} />
+            <div className="shot-duration-tag">{Math.round(shot.duration / 24)}s</div>
           </div>
         ))}
+        {shots.length === 0 && (
+          <div className="no-shots-message">No shots in this sequence</div>
+        )}
       </div>
 
       {/* Director Panel Section */}
@@ -97,7 +101,7 @@ export const CompactDirectorPanel: React.FC = () => {
           </div>
         </div>
 
-        <div className="control-group" style={{ flex: 1 }}>
+        <div className="control-group flex-1">
           <div className="control-label">
             Adaptive Motion Path 
             <span className="ai-badge">AI ASSISTED</span>
@@ -142,10 +146,10 @@ export const CompactDirectorPanel: React.FC = () => {
           onChange={(e) => setPrompt(e.target.value)}
         />
         <div className="prompt-actions">
-           <button className="sidebar-btn" style={{ width: 32, height: 32 }} title="Smart Capture (Live Snap)">
+           <button className="sidebar-btn compact-icon-btn" title="Smart Capture (Live Snap)">
              <span>📸</span>
            </button>
-           <button className="sidebar-btn" style={{ width: 32, height: 32 }} title="Add Reference">
+           <button className="sidebar-btn compact-icon-btn" title="Add Reference">
              <span>+</span>
            </button>
         </div>

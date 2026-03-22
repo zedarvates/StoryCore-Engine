@@ -13,6 +13,9 @@ import { useLocationPersistence } from '@/hooks/useLocationPersistence';
 import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import { useObjectStore } from '@/stores/objectStore';
 import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 interface ProjectDashboardPageProps {
   onOpenEditor?: (sequenceId?: string) => void;
@@ -20,6 +23,20 @@ interface ProjectDashboardPageProps {
 
 export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps) {
   const { project } = useAppStore();
+  const navigate = useNavigate();
+  const { projectId: routeProjectId } = useParams();
+  
+  // Use the ID from route if project metadata is not available yet
+  const projectId = project?.metadata?.id || routeProjectId || 'default';
+
+  const handleOpenEditor = (sequenceId?: string) => {
+    if (onOpenEditor) {
+      onOpenEditor(sequenceId);
+    } else if (sequenceId) {
+      // Default navigation logic if no handler provided
+      navigate(`/project/${projectId}/editor/${sequenceId}`);
+    }
+  };
   const { loadAndSyncCharacters } = useCharacterPersistence();
   const { loadAndSyncLocations } = useLocationPersistence();
   const { syncWorldsFromProject } = useWorldPersistence();
@@ -53,26 +70,16 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
 
   return (
     <ProjectProvider projectId={(project.metadata?.id as string) || project.project_name}>
-      <div className="flex flex-col h-screen bg-background text-foreground">
-        {/* Top Navigation Bar */}
-        <div className="h-14 border-b border-border bg-card flex items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg font-semibold">{project.project_name}</h1>
-            <span className="text-sm text-muted-foreground">Project Dashboard</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {/* Nouveau Plan button moved to Plan Sequences section in ProjectDashboardNew */}
-          </div>
-        </div>
-
+      <DndProvider backend={HTML5Backend}>
+      <div className="flex flex-col h-screen bg-background text-foreground relative">
         {/* Main Content - New Dashboard */}
         <div className="flex-1 overflow-hidden">
           <ProjectDashboardNew
-            onOpenEditor={onOpenEditor || (() => {})}
+            onOpenEditor={handleOpenEditor}
           />
         </div>
       </div>
+      </DndProvider>
     </ProjectProvider>
   );
 }

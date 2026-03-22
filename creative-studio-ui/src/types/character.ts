@@ -48,11 +48,25 @@ export interface Character {
   // Role in story
   role: Role;
 
+  // Advanced Manga/Anime fields
+  archetype?: string;
+  goal?: string;
+  flaw_sympathy?: string;
+  daily_details?: {
+    habits?: string[];
+    diet?: string;
+    clothing_style?: string;
+    [key: string]: unknown;
+  };
+  
   // Associated prompts
   prompts?: string[];
 
   // 3D/Visualization settings
   material_color?: [number, number, number]; // RGB 0.0-1.0
+
+  // AI Consistency tracking
+  ai_coherence_data?: unknown;
 }
 
 export interface VisualIdentity {
@@ -83,7 +97,27 @@ export type Gender = 'male' | 'female' | 'non-binary' | 'other' | 'unspecified';
 export type CreationMethod = 'wizard' | 'auto_generated' | 'manual' | 'ai_vision';
 export type RelationshipType = 'friend' | 'enemy' | 'family' | 'romantic' | 'professional' | 'neutral';
 export type Archetype = 'hero' | 'villain' | 'mentor' | 'sidekick' | 'love_interest' | 'comic_relief' | 'anti_hero' | 'neutral';
-export type NarrativeFunction = 'protagonist' | 'antagonist' | 'supporting' | 'minor' | 'background';
+export const NARRATIVE_FUNCTIONS = [
+  'Protagonist',
+  'Antagonist',
+  'Rival',
+  'Némésis',
+  'Mentor',
+  'Sidekick',
+  'Ally',
+  'Love Interest (Ideal)',
+  'Love Interest (Partner)',
+  'Love Interest (Maternal/Fraternal)',
+  'Guardian',
+  'Threshold Guardian',
+  'Trickster',
+  'Shapeshifter',
+  'Shadow',
+  'Herald',
+  'Support',
+  'Extra / Background Character',
+] as const;
+export type NarrativeFunction = typeof NARRATIVE_FUNCTIONS[number];
 export type CharacterArc = 'positive' | 'negative' | 'flat' | 'tragic' | 'redemptive';
 
 export interface Personality {
@@ -95,6 +129,14 @@ export interface Personality {
   strengths: string[];
   temperament: string;
   communication_style: string;
+  goal?: string; // Narrative goal
+  flaw_sympathy?: string; // Humanizing flaws
+  daily_details?: {
+    habits?: string[];
+    diet?: string;
+    clothing_style?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface Background {
@@ -104,6 +146,7 @@ export interface Background {
   family: string;
   significant_events: string[];
   current_situation: string;
+  backstory: string;
 }
 
 export interface CharacterRelationship {
@@ -169,6 +212,7 @@ export function createEmptyCharacter(): Partial<Character> {
       family: '',
       significant_events: [],
       current_situation: '',
+      backstory: '',
     },
     relationships: [],
     role: {

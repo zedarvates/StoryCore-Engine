@@ -75,6 +75,8 @@ export const Timeline: React.FC = () => {
     selectedElements,
     duration,
   } = useAppSelector((state) => state.timeline);
+  
+  const project = useAppSelector((state) => state.project);
 
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
@@ -745,20 +747,21 @@ export const Timeline: React.FC = () => {
 
   // Add sample shots for demonstration
   useEffect(() => {
-    if (shots.length === 0) {
+    // Only add sample shots if there are no shots AND no project is loaded
+    if (shots.length === 0 && !project.metadata?.id) {
       // Check if we already have these specific sample IDs to avoid duplicates in strict mode/HMR
-      const hasSampleShots = shots.some(s => s.id === 'shot-1' || s.id === 'shot-2' || s.id === 'shot-3');
+      const hasSampleShots = shots.some(s => s.id.startsWith('sample-shot-'));
       if (hasSampleShots) return;
 
       const sampleShots: Shot[] = [
         {
-          id: 'shot-1',
+          id: 'sample-shot-1',
           name: 'Opening Scene',
           startTime: 0,
           duration: 120, // 4 seconds at 30fps
           layers: [
             {
-              id: 'layer-1',
+              id: 'layer-sample-1',
               type: 'media',
               startTime: 0,
               duration: 120,
@@ -791,13 +794,13 @@ export const Timeline: React.FC = () => {
           generationStatus: 'pending',
         },
         {
-          id: 'shot-2',
-          name: 'Character Introduction',
+          id: 'sample-shot-2',
+          name: 'Close-up Action',
           startTime: 120,
           duration: 90, // 3 seconds at 30fps
           layers: [
             {
-              id: 'layer-2',
+              id: 'layer-sample-2',
               type: 'media',
               startTime: 0,
               duration: 90,
@@ -818,7 +821,7 @@ export const Timeline: React.FC = () => {
             }
           ],
           referenceImages: [],
-          prompt: 'A person walking through a forest',
+          prompt: 'A character looking surprised',
           parameters: {
             seed: 67890,
             denoising: 0.7,
@@ -830,13 +833,13 @@ export const Timeline: React.FC = () => {
           generationStatus: 'pending',
         },
         {
-          id: 'shot-3',
-          name: 'Action Sequence',
+          id: 'sample-shot-3',
+          name: 'Character Reaction',
           startTime: 210,
           duration: 150, // 5 seconds at 30fps
           layers: [
             {
-              id: 'layer-3',
+              id: 'layer-sample-3',
               type: 'media',
               startTime: 0,
               duration: 150,
@@ -873,9 +876,9 @@ export const Timeline: React.FC = () => {
             }
           ],
           referenceImages: [],
-          prompt: 'Epic battle scene with explosions',
+          prompt: 'Wide shot of a bustling city street at night',
           parameters: {
-            seed: 11111,
+            seed: 54321,
             denoising: 0.7,
             steps: 30,
             guidance: 7.5,
@@ -890,7 +893,7 @@ export const Timeline: React.FC = () => {
         dispatch(addShot(shot));
       });
     }
-  }, [shots, dispatch]);
+  }, [shots.length, dispatch, project.metadata?.id]);
 
   // Render time ruler using TimeRuler component
   const renderTimeRuler = useCallback(() => {

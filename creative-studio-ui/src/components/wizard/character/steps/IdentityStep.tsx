@@ -25,9 +25,11 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
   const context = useContext(I18nContext);
   const t = context?.t || ((key: string) => key);
 
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = (field: string, value: string | number) => {
     if (field === 'archetype') {
       onUpdate({ role: { ...data.role, archetype: value } as Character['role'] });
+    } else if (field === 'narrative_function') {
+      onUpdate({ role: { ...data.role, narrative_function: value } as Character['role'] });
     } else if (field === 'age_range' || field === 'gender') {
       onUpdate({ 
         visual_identity: { 
@@ -203,6 +205,18 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
               onChange={(e) => handleFieldChange('narrative_function', e.target.value)}
               placeholder={t('characterWizard.identity.placeholderPurpose')}
               className="w-full p-4 min-h-[100px] bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-blue-500 focus:bg-white dark:focus:bg-gray-950 rounded-2xl transition-all outline-none resize-none"
+           />
+        </div>
+
+        <div className="space-y-2 pt-4">
+           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500/70 ml-1">
+              CHARACTER GOAL / MOTIVATION
+           </label>
+           <textarea
+              value={data.goal || ''}
+              onChange={(e) => handleFieldChange('goal', e.target.value)}
+              placeholder="What drives this character? (e.g. Find the legendary sword, avenge their village...)"
+              className="w-full p-4 min-h-[100px] bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-amber-500 focus:bg-white dark:focus:bg-gray-950 rounded-2xl transition-all outline-none resize-none"
            />
         </div>
       </section>

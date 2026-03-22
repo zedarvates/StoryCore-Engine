@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, FileText, ClipboardList, Info, Clapperboard, Film, Monitor, CheckSquare } from 'lucide-react';
+import { FileText, ClipboardList, Info, Clapperboard, Film, Monitor, CheckSquare } from 'lucide-react';
 import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import { WizardStep } from '@/types/wizard';
 import { SequencePlanWizardState } from '@/types/wizard';
@@ -42,7 +42,7 @@ function templateToBaseSequencePlan(template: SequenceTemplate): Partial<Sequenc
     description: template.description,
     worldId: '', // To be filled by user
     templateId: template.id,
-    targetDuration: template.defaults.targetDuration,
+    targetDuration: Math.max(4, template.defaults.targetDuration),
     frameRate: template.defaults.frameRate,
     resolution: { ...template.defaults.resolution },
     acts: template.structure.acts.map(act => ({
@@ -169,9 +169,9 @@ export function SequencePlanWizard({
     if (isOpen) {
       initializeWizard();
     }
-  }, [isOpen, initialTemplateId, existingSequencePlan]);
+  }, [isOpen, initializeWizard, initialTemplateId, existingSequencePlan]);
 
-  const initializeWizard = async () => {
+  const initializeWizard = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -220,7 +220,7 @@ export function SequencePlanWizard({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isOpen, initialTemplateId, existingSequencePlan, templateManager, dispatch]);
 
   // ============================================================================
   // Auto-save Effect
@@ -349,7 +349,7 @@ export function SequencePlanWizard({
   // Cancel Handler with Confirmation
   // ============================================================================
 
-  const handleCancel = useCallback(() => {
+  const _handleCancel = useCallback(() => {
     if (wizardState.isDirty) {
       // Show confirmation dialog (would be implemented with a proper dialog)
       const confirmed = window.confirm(

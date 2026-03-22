@@ -9,12 +9,18 @@ interface StoryCardProps {
 
 export function StoryCard({ story, onClick }: StoryCardProps) {
   // Truncate summary to 150 characters
-  const truncatedSummary = story.summary.length > 150
-    ? story.summary.substring(0, 147) + '...'
-    : story.summary;
+  const summary = story.summary || '';
+  const truncatedSummary = summary.length > 150
+    ? summary.substring(0, 147) + '...'
+    : summary;
+  
+  const genre = story.genre || [];
+  const tone = story.tone || [];
+  const charactersUsed = story.charactersUsed || [];
+  const locationsUsed = story.locationsUsed || [];
 
   // Format date
-  const formattedDate = new Date(story.createdAt).toLocaleDateString('en-US', {
+  const formattedDate = new Date(story.createdAt || 0).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -38,32 +44,32 @@ export function StoryCard({ story, onClick }: StoryCardProps) {
           <BookOpen className="w-5 h-5" />
         </div>
         <div className="story-card-title-section">
-          <h4 className="story-card-title">{story.title}</h4>
+          <h4 className="story-card-title">{story.title || 'Untitled Story'}</h4>
           <div className="story-card-meta">
-            <span className="story-card-genre">{story.genre.join(', ')}</span>
+            <span className="story-card-genre">{genre.join(', ')}</span>
             <span className="story-card-separator">•</span>
-            <span className="story-card-tone">{story.tone.join(', ')}</span>
+            <span className="story-card-tone">{tone.join(', ')}</span>
           </div>
         </div>
       </div>
 
-      <p className="story-card-summary">{truncatedSummary}</p>
+      <p className="story-card-summary">{truncatedSummary || 'No summary available.'}</p>
 
       <div className="story-card-footer">
         <div className="story-card-stats">
           <div className="story-card-stat" title="Characters">
             <Users className="w-4 h-4" />
-            <span>{story.charactersUsed.length}</span>
+            <span>{charactersUsed.length}</span>
           </div>
           <div className="story-card-stat" title="Locations">
             <MapPin className="w-4 h-4" />
-            <span>{story.locationsUsed.length}</span>
+            <span>{locationsUsed.length}</span>
           </div>
         </div>
         <div className="story-card-date">
           <Calendar className="w-4 h-4" />
           <span>{formattedDate}</span>
-          <span className="story-card-version">v{story.version}</span>
+          <span className="story-card-version">v{story.version || 1}</span>
         </div>
       </div>
     </div>

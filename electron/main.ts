@@ -2,6 +2,7 @@ import { app, BrowserWindow, Menu, dialog, globalShortcut, ipcMain, protocol, ne
 import * as path from 'path';
 import * as fs from 'fs';
 import { ViteServerManager, LauncherConfig } from './ViteServerManager';
+import { PythonBackendManager, BackendConfig } from './PythonBackendManager';
 import { ProjectService } from './ProjectService';
 import { RecentProjectsManager } from './RecentProjectsManager';
 import { ConfigStorage } from './ConfigStorage';
@@ -23,6 +24,7 @@ protocol.registerSchemesAsPrivileged([
 let mainWindow: BrowserWindow | null = null;
 let chatWindow: BrowserWindow | null = null;
 let serverManager: ViteServerManager | null = null;
+let backendManager: PythonBackendManager | null = null;
 let ipcHandlers: IPCHandlers | null = null;
 // let updateManager: UpdateManager | null = null;
 
@@ -296,6 +298,24 @@ async function checkServerRunning(port: number): Promise<boolean> {
  */
 async function startServer(): Promise<void> {
   const isDevelopment = process.env.NODE_ENV === 'development';
+
+  if (isDevelopment) {
+    // Start Python Backend if needed
+    backendManager = new PythonBackendManager();
+    const backendConfig: BackendConfig = {
+      port: 8080,
+      host: 'localhost',
+      timeout: 30000,
+    };
+
+    try {
+      await backendManager.start(backendConfig);
+      console.log('Python backend connected or started successfully');
+    } catch (error) {
+      console.error('Failed to start Python backend:', error);
+      // We continue anyway, as the user might want to see the UI even if the backend is failing
+    }
+  }
 
   if (isDevelopment) {
     // In development mode, check if Vite server is already running
@@ -585,6 +605,17 @@ initialize().then(() => {
         console.error('Error stopping Vite server:', error);
       }
     }
+
+    // Clean up Python backend process if running
+    if (backendManager) {
+      try {
+        await backendManager.stop();
+        console.log('Python backend stopped gracefully');
+      } catch (error) {
+        console.error('Error stopping Python backend:', error);
+      }
+    }
+
 
     // Unregister all global shortcuts
     globalShortcut.unregisterAll();

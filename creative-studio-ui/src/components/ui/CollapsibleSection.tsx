@@ -10,6 +10,7 @@ interface CollapsibleSectionProps {
     className?: string;
     icon?: React.ReactNode;
     headerActions?: React.ReactNode;
+    id?: string;
 }
 
 export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
@@ -19,11 +20,14 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     className = '',
     icon,
     headerActions,
+    id,
 }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
 
     return (
-        <div className={cn(
+        <div 
+            id={id}
+            className={cn(
             'group mb-6 rounded-2xl overflow-hidden transition-all duration-300',
             isExpanded ? 'glass-panel shadow-2xl' : 'bg-white/5 hover:bg-white/8 border border-white/5',
             className

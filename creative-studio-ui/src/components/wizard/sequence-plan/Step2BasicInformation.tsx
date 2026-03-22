@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Clock, Monitor, Film, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,7 +33,8 @@ export function Step2BasicInformation({
     // Parse duration string (supports both MM:SS and seconds)
     const parsed = parseDurationString(durationStr);
     if (parsed !== null) {
-      handleInputChange('targetDuration', parsed);
+      // Enforce 4s minimum duration
+      handleInputChange('targetDuration', Math.max(4, parsed));
     }
   };
 

@@ -10,11 +10,13 @@
 .location-editor {
   display: flex;
   flex-direction: column;
-  min-height: 400px;
+  flex: 1; /* Take full height of parent */
+  overflow: hidden; /* Important for inner scroll */
+  min-height: 0; /* Override default to allow shrinking */
 }
 
 .location-editor--full {
-  min-height: 600px;
+  height: 100%; /* Fill the whole modal */
 }
 
 /* Tabs */

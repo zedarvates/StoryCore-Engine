@@ -4,6 +4,10 @@ import {
   Palette, 
   Sparkles, 
   Image as ImageIcon, 
+  Video as VideoIcon,
+  FileAudio,
+  Box,
+  FileText,
   Type, 
   Plus, 
   Trash2, 
@@ -14,8 +18,9 @@ import { Modal } from './Modal';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/useAppStore';
 import { moodboardService } from '@/services/moodboardService';
-import type { MoodboardData, MoodboardSuggestion } from '@/types/moodboard';
+import type { MoodboardData, MoodboardSuggestion, MoodboardReference } from '@/types/moodboard';
 import { useToast } from '@/hooks/use-toast';
+import { getImageDisplayUrl } from '@/services/imageStorageService';
 
 interface MoodboardModalProps {
   isOpen: boolean;
@@ -32,6 +37,9 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
   const [suggestions, setSuggestions] = useState<MoodboardSuggestion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'current' | 'suggestions'>('current');
+  const [displayUrls, setDisplayUrls] = useState<Record<string, string>>({});
+
+  const moodboard = project?.moodboard;
 
   // Initialize moodboard if it doesn't exist
   useEffect(() => {
@@ -51,7 +59,7 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
     try {
       // Cast project to any to avoid Asset vs AssetMetadata incompatibility for now
       // MoodboardService only uses a subset of fields
-      const newSuggestions = await moodboardService.generateSuggestions(project as any);
+      const newSuggestions = await moodboardService.generateSuggestions(project as unknown as any);
       setSuggestions(newSuggestions);
       setActiveTab('suggestions');
       toast({
@@ -97,9 +105,116 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
     setActiveTab('current');
   };
 
-  if (!project) return null;
+  const handleDeleteReference = (refId: string) => {
+    if (!project || !project.moodboard) return;
 
-  const moodboard = project.moodboard;
+    const updatedMoodboard: MoodboardData = {
+      ...project.moodboard,
+      references: project.moodboard.references.filter(r => r.id !== refId),
+      updatedAt: Date.now(),
+    };
+
+    setProject({
+      ...project,
+      moodboard: updatedMoodboard,
+    });
+
+    toast({
+      title: "Référence supprimée",
+      description: "L'élément a été retiré de votre moodboard.",
+    });
+  };
+
+
+  const renderReference = (ref: MoodboardReference) => {
+    const url = displayUrls[ref.id] || ref.url;
+    
+    if (ref.type === 'video') {
+       return (
+         <div className="w-full h-full relative bg-black">
+           <video src={url} className="w-full h-full object-cover" muted />
+           <div className="absolute top-2 right-2 p-1 bg-black/50 rounded-md">
+             <VideoIcon className="w-3 h-3 text-white" />
+           </div>
+         </div>
+       );
+    }
+
+    if (ref.type === 'audio') {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-indigo-500/10 gap-2">
+          <FileAudio className="w-8 h-8 text-indigo-400" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-indigo-400/60 truncate px-2 w-full text-center">
+             {ref.note || 'Audio Reference'}
+          </span>
+        </div>
+      );
+    }
+
+    if (ref.type === '3d') {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-amber-500/10 gap-2">
+          <Box className="w-8 h-8 text-amber-400" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-amber-400/60 truncate px-2 w-full text-center">
+             {ref.note || '3D Object'}
+          </span>
+        </div>
+      );
+    }
+
+    if (ref.type === 'document') {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-500/10 gap-2">
+          <FileText className="w-8 h-8 text-slate-400" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400/60 truncate px-2 w-full text-center">
+             {ref.note || 'Document'}
+          </span>
+        </div>
+      );
+    }
+
+    if (ref.type === 'texture' || ref.type === 'pattern') {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-cyan-500/10 gap-2">
+          <Palette className="w-8 h-8 text-cyan-400" />
+          <span className="text-[8px] font-black uppercase tracking-widest text-cyan-400/60 truncate px-2 w-full text-center">
+             {ref.note || (ref.type === 'texture' ? 'Texture' : 'Pattern')}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <img 
+        src={url} 
+        className="w-full h-full object-cover" 
+        alt={ref.note || "Reference"}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Error';
+        }}
+      />
+    );
+  };
+
+  useEffect(() => {
+    if (!moodboard?.references || !project?.path) return;
+    
+    const projectPath = project.path;
+    moodboard.references.forEach(async (ref) => {
+      if (ref.url && !displayUrls[ref.id]) {
+        try {
+          const displayUrl = await getImageDisplayUrl(ref.url, projectPath);
+          if (displayUrl) {
+            setDisplayUrls(prev => ({ ...prev, [ref.id]: displayUrl }));
+          }
+        } catch (err) {
+          console.error('[MoodboardModal] Error getting display URL:', err);
+        }
+      }
+    });
+  }, [moodboard?.references, project?.path, displayUrls]);
+
+  if (!project) return null;
 
   return (
     <Modal
@@ -168,7 +283,7 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                             <div 
                               key={i} 
                               className="w-8 h-8 rounded-full border border-black/10 ring-2 ring-white dark:ring-gray-800 shadow-sm"
-                              style={{ backgroundColor: color }}
+                              style={{ backgroundColor: color } as React.CSSProperties}
                               title={color}
                             />
                           ))}
@@ -186,12 +301,73 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
 
                   {/* Reference Grid */}
                   <section className="space-y-4">
+                    {/* Hidden file input for adding references */}
+                    <input 
+                      type="file" 
+                      id="moodboard-file-input"
+                      className="hidden" 
+                      aria-label="Upload moodboard reference"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !project || !project.moodboard) return;
+                        
+                        try {
+                          // In a real Electron app, we would copy the file to the project assets
+                          // For now, we simulate by creating a blob URL and a reference
+                          const extension = file.name.split('.').pop()?.toLowerCase() || '';
+                          let type: MoodboardReference['type'] = 'image';
+                          
+                          if (['mp4', 'webm', 'mov'].includes(extension)) type = 'video';
+                          else if (['mp3', 'wav', 'ogg'].includes(extension)) type = 'audio';
+                          else if (['obj', 'fbx', 'glb', 'gltf'].includes(extension)) type = '3d';
+                          else if (['pdf', 'doc', 'docx', 'txt'].includes(extension)) type = 'document';
+                          
+                          const newRef: MoodboardReference = {
+                            id: `ref-${Date.now()}`,
+                            url: URL.createObjectURL(file), // Mock URL
+                            type,
+                            note: file.name,
+                            source: 'upload'
+                          };
+                          
+                          const updatedMoodboard: MoodboardData = {
+                            ...project.moodboard,
+                            references: [...project.moodboard.references, newRef],
+                            updatedAt: Date.now()
+                          };
+                          
+                          setProject({
+                            ...project,
+                            moodboard: updatedMoodboard
+                          });
+                          
+                          toast({
+                            title: "Fichier ajouté",
+                            description: `Votre référence "${file.name}" a été ajoutée.`
+                          });
+                        } catch (_err) {
+                           toast({
+                            title: "Erreur d'ajout",
+                            description: "Impossible d'ajouter ce fichier.",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
+                    />
+
                     <div className="flex justify-between items-center">
                       <h3 className="text-lg font-semibold flex items-center space-x-2">
                         <ImageIcon className="w-5 h-5" />
                         <span>Références Visuelles</span>
                       </h3>
-                      <Button size="sm" variant="outline" className="rounded-full">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="rounded-full" 
+                        title="Ajouter une référence"
+                        onClick={() => document.getElementById('moodboard-file-input')?.click()}
+                        aria-label="Ajouter une référence"
+                      >
                         <Plus className="w-4 h-4 mr-2" /> Ajouter
                       </Button>
                     </div>
@@ -203,10 +379,15 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                         </div>
                       ) : (
                         moodboard?.references.map(ref => (
-                          <div key={ref.id} className="group relative aspect-square rounded-xl overflow-hidden shadow-sm">
-                            <img src={ref.url} className="w-full h-full object-cover" />
+                          <div key={ref.id} className="group relative aspect-square rounded-xl overflow-hidden shadow-sm border border-white/5 bg-white/[0.02]">
+                            {renderReference(ref)}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <button className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition-transform">
+                              <button 
+                                className="p-2 bg-red-500 text-white rounded-full hover:scale-110 transition-transform" 
+                                title="Supprimer la référence"
+                                onClick={() => handleDeleteReference(ref.id)}
+                                aria-label="Supprimer la référence"
+                              >
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -249,13 +430,13 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                     <div className="space-y-4">
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Titres</p>
-                        <p className="text-xl font-bold" style={{ fontFamily: moodboard?.visualStyle.typography.headers }}>
+                        <p className="text-xl font-bold" style={{ fontFamily: moodboard?.visualStyle.typography.headers } as React.CSSProperties}>
                           {moodboard?.visualStyle.typography.headers || 'Outfit'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Corps de texte</p>
-                        <p className="text-base" style={{ fontFamily: moodboard?.visualStyle.typography.body }}>
+                        <p className="text-base" style={{ fontFamily: moodboard?.visualStyle.typography.body } as React.CSSProperties}>
                           {moodboard?.visualStyle.typography.body || 'Inter'}
                         </p>
                       </div>
@@ -305,7 +486,8 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                                 <div 
                                   key={i} 
                                   className="w-12 h-12 rounded-2xl shadow-lg ring-4 ring-white dark:ring-gray-900" 
-                                  style={{ backgroundColor: color }}
+                                  style={{ backgroundColor: color } as React.CSSProperties}
+                                  title={color}
                                 />
                               ))}
                             </div>
@@ -326,6 +508,7 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                                 variant="outline" 
                                 size="sm" 
                                 className="rounded-full flex items-center space-x-2 bg-purple-50 dark:bg-purple-900/20 text-purple-600 border-none"
+                                title="Pourquoi ce style ?"
                               >
                                 <Info className="w-3 h-3" />
                                 <span className="text-[10px] font-bold uppercase tracking-wider">Pourquoi ?</span>

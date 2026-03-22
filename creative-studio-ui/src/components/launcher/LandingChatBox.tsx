@@ -24,10 +24,7 @@ import { InlineLLMError } from '@/components/wizard/LLMErrorDisplay';
 import { getInitialLanguagePreference } from '@/utils/languageDetection';
 import { 
   type LanguageCode, 
-  saveConfiguration, 
   saveLanguagePreference,
-  type ChatboxLLMConfig,
-  loadConfiguration 
 } from '@/utils/llmConfigStorage';
 import { 
   autoMigrate, 
@@ -61,10 +58,13 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
+import { saveFileToProject } from '@/services/imageStorageService';
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { type ProjectCreationRequest } from '@/services/chatService';
+import { type Character, type Location as ProductionLocation, type SequencePlan, type StoryObject } from '@/types';
 import { projectCreationService } from '@/services/ProjectCreationService';
+import { useLLMConfig } from '@/services/llmConfigService'; // NEW: Use unified LLM config
 
 // ============================================================================
 // Internal Components
@@ -193,9 +193,8 @@ const AttachmentPreviewItem: React.FC<AttachmentPreviewItemProps> = ({ file, onR
   }, [previewUrl]);
 
   return (
-    <div
+    <li
       className="group flex items-center gap-2 px-3 py-1.5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-xl text-xs text-slate-700 dark:text-slate-300 shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all hover:border-purple-500/50 hover:shadow-md"
-      role="listitem"
     >
       {isImage ? (
         <div className="w-8 h-8 rounded-md overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
@@ -218,7 +217,7 @@ const AttachmentPreviewItem: React.FC<AttachmentPreviewItemProps> = ({ file, onR
       >
         <div className="w-4 h-4 flex items-center justify-center text-sm font-bold">×</div>
       </button>
-    </div>
+    </li>
   );
 };
 
@@ -227,7 +226,7 @@ const AttachmentPreviewItem: React.FC<AttachmentPreviewItemProps> = ({ file, onR
 // ============================================================================
 
 const MESSAGE_HISTORY_LIMIT = 100; // Maximum number of messages to keep in history
-const CONFIG_DEBOUNCE_DELAY = 500; // Debounce delay for configuration changes in milliseconds
+// const CONFIG_DEBOUNCE_DELAY = 500; // Removed as no longer needed with unified config
 
 // ============================================================================
 // Types
@@ -244,6 +243,7 @@ interface Message {
   isStreaming?: boolean;
   streamComplete?: boolean;
   error?: ErrorRecoveryOptions;
+  ai_coherence_data?: unknown;
 }
 
 interface LandingChatBoxProps {
@@ -270,28 +270,9 @@ export function LandingChatBox({
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const [providerName, setProviderName] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
+  const { config: llmConfig, updateConfig, validateConnection: validateLLMConnection } = useLLMConfig();
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState<LanguageCode>(() => getInitialLanguagePreference() as LanguageCode);
-  const [llmConfig, setLlmConfig] = useState<LLMConfig>({
-    provider: 'openai',
-    model: 'gpt-4',
-    apiKey: '',
-    parameters: {
-      temperature: 0.7,
-      maxTokens: 2000,
-      topP: 1,
-      frequencyPenalty: 0,
-      presencePenalty: 0,
-    },
-    systemPrompts: {
-      worldGeneration: '',
-      characterGeneration: '',
-      dialogueGeneration: '',
-    },
-    timeout: 30000,
-    retryAttempts: 3,
-    streamingEnabled: true,
-  });
   const [llmService, setLlmService] = useState<LLMService | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
@@ -360,9 +341,9 @@ export function LandingChatBox({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Check for Ollama migration and load configuration on mount
+  // Configuration initialization is handled by llmConfigService
   useEffect(() => {
-    async function initializeConfiguration() {
+    async function initializeChatbot() {
       setConnectionStatus('connecting');
       
       // Perform automatic migration if needed
@@ -402,107 +383,6 @@ export function LandingChatBox({
         }
       }
       
-      // Load configuration (either migrated or existing)
-      const loadedConfig = await loadConfiguration();
-      
-      // Check Ollama availability first
-      const ollamaAvailable = await checkOllamaStatus();
-      setIsOllamaAvailable(ollamaAvailable);
-      
-      if (loadedConfig) {
-        // If loaded config is OpenAI/Anthropic without API key, prefer Ollama if available
-        const requiresApiKey = loadedConfig.provider === 'openai' || loadedConfig.provider === 'anthropic';
-        const hasApiKey = loadedConfig.apiKey && loadedConfig.apiKey.trim().length > 0;
-        
-        if (requiresApiKey && !hasApiKey && ollamaAvailable) {
-          // Use Ollama instead of invalid OpenAI/Anthropic config
-          setLlmConfig({
-            provider: 'local',
-            model: 'gemma3:1b',
-            apiKey: '',
-            apiEndpoint: 'http://localhost:11434',
-            parameters: {
-              temperature: 0.7,
-              maxTokens: 2000,
-              topP: 1,
-              frequencyPenalty: 0,
-              presencePenalty: 0,
-            },
-            systemPrompts: {
-              worldGeneration: '',
-              characterGeneration: '',
-              dialogueGeneration: '',
-            },
-            timeout: 30000,
-            retryAttempts: 3,
-            streamingEnabled: true,
-          });
-          setProviderName('Ollama');
-          setModelName('gemma3:1b');
-          setConnectionStatus('online');
-          setIsFallbackMode(false);
-        } else {
-          // Use loaded configuration
-          setLlmConfig({
-            provider: loadedConfig.provider,
-            model: loadedConfig.model,
-            apiKey: loadedConfig.apiKey,
-            apiEndpoint: loadedConfig.provider === 'local' ? 'http://localhost:11434' : undefined,
-            parameters: {
-              temperature: loadedConfig.temperature,
-              maxTokens: loadedConfig.maxTokens,
-              topP: 1,
-              frequencyPenalty: 0,
-              presencePenalty: 0,
-            },
-            systemPrompts: {
-              worldGeneration: '',
-              characterGeneration: '',
-              dialogueGeneration: '',
-            },
-            timeout: 30000,
-            retryAttempts: 3,
-            streamingEnabled: loadedConfig.streamingEnabled,
-          });
-          
-          setProviderName(loadedConfig.provider);
-          setModelName(loadedConfig.model);
-          setConnectionStatus('online');
-          setIsFallbackMode(false);
-        }
-      } else if (ollamaAvailable) {
-        // No configuration found, use Ollama as default
-        setLlmConfig({
-          provider: 'local',
-          model: 'gemma3:1b',
-          apiKey: '',
-          apiEndpoint: 'http://localhost:11434',
-          parameters: {
-            temperature: 0.7,
-            maxTokens: 2000,
-            topP: 1,
-            frequencyPenalty: 0,
-            presencePenalty: 0,
-          },
-          systemPrompts: {
-            worldGeneration: '',
-            characterGeneration: '',
-            dialogueGeneration: '',
-          },
-          timeout: 30000,
-          retryAttempts: 3,
-          streamingEnabled: true,
-        });
-        setConnectionStatus('online');
-        setProviderName('Ollama');
-        setModelName('gemma3:1b');
-        setIsFallbackMode(false);
-      } else {
-        // No LLM provider configured, activate fallback mode (Requirement 10.1)
-        setConnectionStatus('fallback');
-        setIsFallbackMode(true);
-      }
-      
       // Check for pending migration notification
       const notification = getMigrationNotification();
       if (notification) {
@@ -515,35 +395,40 @@ export function LandingChatBox({
         addMessage(systemMessage);
         clearMigrationNotification();
       }
+
+      // Update connection status based on llmConfig
+      if (llmConfig) {
+        setProviderName(llmConfig.provider);
+        setModelName(llmConfig.model);
+        setConnectionStatus('online');
+        setIsFallbackMode(false);
+      } else {
+        setConnectionStatus('fallback');
+        setIsFallbackMode(true);
+      }
     }
     
-    initializeConfiguration();
-  }, [addMessage]);
+    initializeChatbot();
+  }, [addMessage, llmConfig]);
 
-  // Initialize LLM Service when configuration changes
+  // Update LLM service when configuration changes
   useEffect(() => {
-    // Only initialize if we have an API key (for providers that require it)
-    const requiresApiKey = llmConfig.provider === 'openai' || llmConfig.provider === 'anthropic';
-    
-    if (requiresApiKey && !llmConfig.apiKey) {
-      // No API key configured, stay in fallback mode (Requirement 10.1)
+    if (!llmConfig) {
       setLlmService(null);
       setConnectionStatus('fallback');
       setIsFallbackMode(true);
       return;
     }
 
-    // Initialize LLM service with current configuration
     const service = new LLMService(llmConfig);
     setLlmService(service);
-    
-    // Update connection status based on provider
-    setProviderName(llmConfig.provider);
-    setModelName(llmConfig.model);
+    if (llmConfig) {
+      setProviderName(llmConfig.provider);
+      setModelName(llmConfig.model);
+    }
     setConnectionStatus('online');
     setIsFallbackMode(false);
 
-    // Cleanup function to cancel all requests on unmount or config change
     return () => {
       if (service) {
         service.cancelAllRequests();
@@ -551,8 +436,8 @@ export function LandingChatBox({
     };
   }, [llmConfig]);
 
-  // Cleanup streaming connections on unmount
   useEffect(() => {
+    const timer = configDebounceTimerRef.current;
     return () => {
       // Cancel any ongoing streaming requests
       if (llmService && currentStreamRequestId) {
@@ -560,8 +445,8 @@ export function LandingChatBox({
       }
       
       // Clear debounce timer
-      if (configDebounceTimerRef.current) {
-        clearTimeout(configDebounceTimerRef.current);
+      if (timer) {
+        clearTimeout(timer);
       }
     };
   }, [llmService, currentStreamRequestId]);
@@ -645,7 +530,7 @@ export function LandingChatBox({
     setMessages(prev => prev.filter(msg => msg.type !== 'error'));
 
     // Resend the message with the same input
-    if (!llmService) {
+    if (!llmService || !llmConfig) { // Added null check for llmConfig
       // Fall back to pre-configured response
       setTimeout(() => {
         const fallbackResponse = generateAssistantResponse(userInput.toLowerCase());
@@ -668,7 +553,9 @@ export function LandingChatBox({
       const request: LLMRequest = {
         prompt: userInput,
         systemPrompt,
-        stream: llmConfig.streamingEnabled,
+        stream: llmConfig.streamingEnabled ?? true,
+        temperature: llmConfig.parameters?.temperature,
+        maxTokens: llmConfig.parameters?.maxTokens,
       };
 
       // Generate unique request ID
@@ -1082,6 +969,8 @@ export function LandingChatBox({
       }
     }
 
+    if (!llmConfig) return;
+
     // Validate API key before sending (Requirement 3.7)
     const requiresApiKey = llmConfig.provider === 'openai' || llmConfig.provider === 'anthropic';
     if (requiresApiKey && !llmConfig.apiKey) {
@@ -1131,6 +1020,38 @@ export function LandingChatBox({
     };
 
     addMessage(newMessage);
+    
+    // Auto-add attachments to moodboard if project is active
+    const appStore = useAppStore.getState();
+    if (appStore.project && attachments.length > 0) {
+      attachments.forEach(async (file, index) => {
+        let finalUrl = processedAttachments[index].url;
+        
+        // If in Electron, save to project folder
+        if (window.electronAPI && appStore.project?.path) {
+          const extension = file.name.split('.').pop() || 'png';
+          const subDir = 'moodboard/references';
+          const id = `ref_${Date.now()}_${index}`;
+          const result = await saveFileToProject(file, appStore.project.path, id, subDir, extension);
+          if (result.success && result.localPath) {
+            finalUrl = result.localPath;
+          }
+        }
+
+        let refType: any = 'image';
+        if (file.type.startsWith('video/')) refType = 'video';
+        else if (file.type.startsWith('audio/')) refType = 'audio';
+        else if (file.name.endsWith('.obj') || file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.stl')) refType = '3d';
+        else if (file.type === 'application/pdf' || file.type.startsWith('text/') || file.type.includes('word') || file.name.endsWith('.pdf')) refType = 'document';
+
+        appStore.addMoodboardReference({
+          url: finalUrl,
+          type: refType,
+          source: 'upload',
+          note: `Added from chat: ${file.name}`
+        });
+      });
+    }
     
     // Call external handler if provided
     if (onSendMessage) {
@@ -1459,10 +1380,10 @@ export function LandingChatBox({
       formatId,
       description: userInput,
       initialEntities: {
-        characters: characters.length > 0 ? characters : undefined,
-        locations: locations.length > 0 ? locations : undefined,
-        sequences: sequences.length > 0 ? sequences : undefined,
-        objects: objects.length > 0 ? objects : undefined,
+        characters: characters.length > 0 ? characters as unknown as Character[] : undefined,
+        locations: locations.length > 0 ? locations as unknown as ProductionLocation[] : undefined,
+        sequences: sequences.length > 0 ? sequences as unknown as SequencePlan[] : undefined,
+        objects: objects.length > 0 ? objects as unknown as StoryObject[] : undefined,
       },
       settings: {
         created_by: 'llm-assistant',
@@ -1552,43 +1473,16 @@ export function LandingChatBox({
     }
   };
 
-  // Handle configuration save with debouncing
-  const handleConfigSave = useCallback(async (config: LLMConfig) => {
-    // Clear any existing debounce timer
-    if (configDebounceTimerRef.current) {
-      clearTimeout(configDebounceTimerRef.current);
-    }
-    
-    // Debounce configuration changes to prevent excessive updates
-    configDebounceTimerRef.current = setTimeout(async () => {
-      // Persist configuration to localStorage (Requirements 1.7, 6.4)
-      try {
-        const chatboxConfig: ChatboxLLMConfig = {
-          provider: config.provider,
-          model: config.model,
-          temperature: config.parameters.temperature,
-          maxTokens: config.parameters.maxTokens,
-          apiKey: config.apiKey,
-          streamingEnabled: config.streamingEnabled,
-        };
-        
-        await saveConfiguration(chatboxConfig);
-        console.log('Configuration persisted to localStorage');
-      } catch (error) {
-        console.error('Failed to persist configuration:', error);
-        // Continue with state update even if persistence fails
-      }
-      
-      // Update UI state after successful save (Requirement 1.7)
-      setLlmConfig(config);
-      setProviderName(config.provider);
-      setModelName(config.model);
+  // Configuration handlers
+  const handleConfigSave = useCallback(async (configValue: LLMConfig) => {
+    try {
+      await updateConfig(configValue);
       
       // Update connection status and check for automatic mode recovery (Requirement 10.5)
-      const requiresApiKey = config.provider === 'openai' || config.provider === 'anthropic';
+      const requiresApiKey = configValue.provider === 'openai' || configValue.provider === 'anthropic';
       const wasInFallbackMode = isFallbackMode;
       
-      if (requiresApiKey && !config.apiKey) {
+      if (requiresApiKey && !configValue.apiKey) {
         setConnectionStatus('fallback');
         setIsFallbackMode(true);
         
@@ -1612,34 +1506,42 @@ export function LandingChatBox({
             anthropic: 'Anthropic',
             local: 'Local',
             custom: 'Custom',
+            local_ollama: 'Ollama',
           };
           
           const systemMessage: Message = {
             id: Date.now().toString(),
             type: 'system',
-            content: `✅ Connection status: Online. Connected to ${providerNames[config.provider] || config.provider} (${config.model}). Live AI responses enabled.`,
+            content: `✅ Connection status: Online. Connected to ${providerNames[configValue.provider] || configValue.provider} (${configValue.model}). Live AI responses enabled.`,
             timestamp: new Date(),
           };
           addMessage(systemMessage);
         }
       }
       
-      // Configuration saved successfully
-      console.log('LLM configuration saved');
-    }, CONFIG_DEBOUNCE_DELAY);
-  }, [isFallbackMode, addMessage]);
+      toast({
+        title: "Configuration sauvegardée",
+        description: "Les nouveaux paramètres LLM ont été appliqués.",
+      });
+    } catch (error) {
+      console.error('Failed to save configuration:', error);
+      toast({
+        title: "Erreur de sauvegarde",
+        description: "Une erreur est survenue lors de la sauvegarde de la configuration.",
+        variant: "destructive",
+      });
+    }
+  }, [isFallbackMode, addMessage, updateConfig, toast]);
 
   // Handle connection validation
-  const handleValidateConnection = async (config: LLMConfig): Promise<boolean> => {
-    // Mock validation for now - in real implementation, this would test the actual connection
-    console.log('Validating connection for provider:', config.provider);
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Simulate successful validation
-        resolve(true);
-      }, 1500);
-    });
-  };
+  const handleValidateConnection = useCallback(async (_configValue: LLMConfig): Promise<boolean> => {
+    try {
+      return await validateLLMConnection();
+    } catch (error) {
+      console.error('Validation failed:', error);
+      return false;
+    }
+  }, [validateLLMConnection]);
 
   // Handle language change
   const handleLanguageChange = useCallback((language: LanguageCode) => {
@@ -1697,7 +1599,8 @@ export function LandingChatBox({
   return (
     <div
       className={`flex flex-col ${height ? '' : 'min-h-[400px] max-h-[70vh]'} ${isDetached ? '' : 'rounded-[28px] border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'} overflow-hidden transition-all duration-300 backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70`}
-      style={height ? { height } : {}}
+      /* eslint-disable-next-line */
+      style={height ? ({ height } as React.CSSProperties) : undefined}
       id="landing-chatbox-container"
     >
       {/* Header */}
@@ -2012,7 +1915,7 @@ export function LandingChatBox({
           role="region"
           aria-label="Attached files"
         >
-          <div className="flex flex-wrap gap-2" role="list">
+          <ul className="flex flex-wrap gap-2" aria-label="Attachments list">
             {attachments.map((file, idx) => (
               <AttachmentPreviewItem 
                 key={`${file.name}-${idx}`} 
@@ -2020,7 +1923,7 @@ export function LandingChatBox({
                 onRemove={() => setAttachments(attachments.filter((_, i) => i !== idx))} 
               />
             ))}
-          </div>
+          </ul>
         </div>
       )}
 
@@ -2254,6 +2157,8 @@ export function LandingChatBox({
             accept="audio/*,image/*,.pdf,.txt,.doc,.docx"
             onChange={handleFileSelect}
             className="hidden"
+            aria-label="Upload files"
+            title="Upload files"
           />
 
           {/* Text Input */}

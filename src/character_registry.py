@@ -1,25 +1,32 @@
 import json
 import os
-from dataclasses import dataclass, field
+import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Union
+from datetime import datetime
+
+from src.models.character_ccd import (
+    CharacterCoreData, 
+    VisualProfile, 
+    NarrativeProfile, 
+    VoiceProfile,
+    ArtStyle,
+    NarrativeEra,
+    Gender,
+    VoiceIntonation,
+    CreationMethod
+)
+
+# LEGACY Support (V1)
+from dataclasses import dataclass, field
 
 @dataclass
-class VoiceProfile:
-    voice_id: str               # Identifiant unique de la voix
-    provider: str = "qwen3-tts" # Fournisseur TTS
-    base_model: str = ""        # Modèle de base (ex: qwen3-tts-1.7b)
-    reference_audio_path: Optional[str] = None  # Pour le clonage
-    parameters: Dict[str, Any] = field(default_factory=lambda: {
-        "pitch": 1.0,
-        "speed": 1.0,
-        "accent": "neutral",
-        "emotion_map": {
-            "happy": "cheerful",
-            "sad": "melancholic",
-            "angry": "aggressive"
-        }
-    })
+class LegacyVoiceProfile:
+    voice_id: str
+    provider: str = "qwen3-tts"
+    base_model: str = ""
+    reference_audio_path: Optional[str] = None
+    parameters: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -30,32 +37,15 @@ class VoiceProfile:
             "parameters": self.parameters
         }
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'VoiceProfile':
-        return cls(**data)
-
 @dataclass
 class CharacterIdentity:
     character_id: str
     name: str
-    
-    # Description physique pour les prompts (LLM-ready)
-    physical_description: str 
-    
-    # Référence visuelle pour IP-Adapter
+    physical_description: str
     reference_image_path: Optional[str] = None
-    
-    # Référence LoRA spécifique (optionnel)
     lora_weights_path: Optional[str] = None
-    
-    # Profil vocal
-    voice_profile: Optional[VoiceProfile] = None
-    
-    # Métadonnées de cohérence
-    consistency_seeds: Dict[str, int] = field(default_factory=lambda: {
-        "appearance": 42,
-        "pose_variation": 123
-    })
+    voice_profile: Optional[LegacyVoiceProfile] = None
+    consistency_seeds: Dict[str, int] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -71,27 +61,45 @@ class CharacterIdentity:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'CharacterIdentity':
         voice_data = data.get("voice_profile")
-        if voice_data:
-            data["voice_profile"] = VoiceProfile.from_dict(voice_data)
+        if voice_data and isinstance(voice_data, dict):
+            data["voice_profile"] = LegacyVoiceProfile(**voice_data)
         return cls(**data)
 
+
 class CharacterRegistry:
-    """Gère le stockage et la récupération des identités de personnages."""
+    """
+    Manages characters persistence. Supports both Legacy (V1) and CCD (V2).
+    Automatically migrates V1 to V2 on write.
+    """
     
     def __init__(self, storage_path: str = "data/characters"):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
-        self._cache: Dict[str, CharacterIdentity] = {}
+        self.logger = logging.getLogger(__name__)
+        self._cache: Dict[str, Union[CharacterCoreData, CharacterIdentity]] = {}
 
-    def register(self, identity: CharacterIdentity) -> None:
-        """Persiste l'identité en JSON."""
-        file_path = self.storage_path / f"{identity.character_id}.json"
+    def register(self, character: Union[CharacterCoreData, CharacterIdentity]) -> None:
+        """Persists a character. If it's V1, it can be saved as is or migrated."""
+        character_id = character.character_id
+        
+        # Auto-migration logic: if we register a V1, we should probably keep it V1 unless requested
+        # but for the Multi-Method feature, we prefer V2.
+        
+        if isinstance(character, CharacterIdentity):
+            data = character.to_dict()
+        else:
+            character.updated_at = datetime.now()
+            data = character.model_dump()
+
+        file_path = self.storage_path / f"{character_id}.json"
         with open(file_path, 'w', encoding='utf-8') as f:
-            json.dump(identity.to_dict(), f, indent=2, ensure_ascii=False)
-        self._cache[identity.character_id] = identity
+            json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+        
+        self._cache[character_id] = character
+        self.logger.info(f"Registered character: {character.name} ({character_id})")
 
-    def get_by_id(self, character_id: str) -> Optional[CharacterIdentity]:
-        """Récupère une identité par son ID."""
+    def get_by_id(self, character_id: str) -> Optional[Union[CharacterCoreData, CharacterIdentity]]:
+        """Retrieves a character by ID, returning V2 if available, else V1."""
         if character_id in self._cache:
             return self._cache[character_id]
         
@@ -102,26 +110,75 @@ class CharacterRegistry:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                identity = CharacterIdentity.from_dict(data)
-                self._cache[character_id] = identity
-                return identity
+                
+                # Identify version
+                if data.get("version") and data.get("version").startswith("2"):
+                    # Handle datetime strings from JSON
+                    character = CharacterCoreData.model_validate(data)
+                else:
+                    character = CharacterIdentity.from_dict(data)
+                
+                self._cache[character_id] = character
+                return character
         except Exception as e:
-            print(f"Erreur lors du chargement du personnage {character_id}: {e}")
+            self.logger.error(f"Error loading character {character_id}: {e}")
             return None
 
-    def resolve_for_prompt(self, character_id: str) -> str:
-        """Génère le fragment de prompt physique."""
-        identity = self.get_by_id(character_id)
-        if identity:
-            return identity.physical_description
-        return ""
+    def migrate_to_v2(self, character_id: str) -> Optional[CharacterCoreData]:
+        """Explicitly migrates a V1 character to V2."""
+        char = self.get_by_id(character_id)
+        if not char:
+            return None
+        
+        if isinstance(char, CharacterCoreData):
+            return char
+            
+        # Perform migration
+        v2 = CharacterCoreData(
+            character_id=char.character_id,
+            name=char.name,
+            creation_method=CreationMethod.NARRATIVE_FIRST,
+            visual=VisualProfile(
+                physical_description=char.physical_description,
+                reference_image_path=char.reference_image_path,
+                lora_weights_path=char.lora_weights_path
+            ),
+            narrative=NarrativeProfile(
+                personality_traits=[]
+            ),
+            voice=VoiceProfile(
+                kitten_voice_id=char.voice_profile.voice_id if char.voice_profile else None,
+                reference_audio_path=char.voice_profile.reference_audio_path if char.voice_profile else None
+            ),
+            metadata=char.consistency_seeds
+        )
+        
+        self.register(v2)
+        return v2
 
-    def get_ip_adapter_config(self, character_id: str) -> Dict[str, Any]:
-        """Prépare la config IP-Adapter pour ComfyUI."""
-        identity = self.get_by_id(character_id)
-        if identity and identity.reference_image_path:
+    def resolve_for_prompt(self, character_id: str) -> str:
+        """Generates the physical prompt fragment for the character."""
+        char = self.get_by_id(character_id)
+        if not char:
+            return ""
+            
+        if isinstance(char, CharacterCoreData):
+            return char.visual.physical_description
+        return char.physical_description
+
+    def get_comfy_config(self, character_id: str) -> Dict[str, Any]:
+        """Prepares ComfyUI / IP-Adapter configuration."""
+        char = self.get_by_id(character_id)
+        if not char:
+            return {}
+            
+        if isinstance(char, CharacterCoreData):
+            return char.to_comfy_params()
+            
+        # Legacy fallback
+        if char.reference_image_path:
             return {
-                "image_path": identity.reference_image_path,
+                "image_path": char.reference_image_path,
                 "weight": 0.7,
                 "noise": 0.0
             }

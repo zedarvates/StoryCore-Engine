@@ -36,6 +36,8 @@ export interface MenuBarProps {
   viewState: ViewState;
   /** Undo/redo stack */
   undoStack: UndoStack;
+  /** Currently selected shot ID */
+  selectedShotId: string | null;
   /** Clipboard state */
   clipboard: ClipboardState;
   /** Whether a long-running operation is in progress */
@@ -142,8 +144,9 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
       undoStack: props.undoStack,
       clipboard: props.clipboard,
       isProcessing: props.isProcessing ?? false, // Ensure boolean type
+      selectedShotId: props.selectedShotId,
     };
-  }, [props.project, props.hasUnsavedChanges, props.viewState, props.undoStack, props.clipboard, props.isProcessing]);
+  }, [props.project, props.hasUnsavedChanges, props.viewState, props.undoStack, props.clipboard, props.isProcessing, props.selectedShotId]);
 
   /**
    * Handle menu open - closes other menus first for mutual exclusivity
@@ -199,8 +202,10 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
    * Determine if a menu should be disabled based on context
    */
   const isMenuDisabled = useCallback((menuId: string): boolean => {
-    // Always disable non-help menus during processing
-    if (props.isProcessing && menuId !== 'help') {
+    // Only disable content-altering menus during processing
+    // Let 'help' and 'project' always be available for navigation/settings
+    // Let 'tools' and 'file' be available for global configuration
+    if (props.isProcessing && (menuId === 'edit')) {
       return true;
     }
 
@@ -312,6 +317,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
         bg-card
         border-b border-border
         shadow-sm
+        relative z-[1001]
         ${props.className || ''}
       `}
       aria-label="Main menu"
@@ -342,5 +348,3 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
 };
 
 export default MenuBar;
-
-
