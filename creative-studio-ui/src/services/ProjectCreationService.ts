@@ -68,6 +68,7 @@ export function convertElectronProjectToStore(electronProject: {
       promotion: 'pending',
     },
     casting: config.casting as StoreProject['casting'],
+    global_resume: config.global_resume as string,
     metadata: {
       id: electronProject.id || Date.now().toString(),
       path: electronProject.path || '',
@@ -169,7 +170,15 @@ export class ProjectCreationService {
         }
         const template = generateProjectTemplate(effectiveFormat, { trackTitles });
         initialSequences = template.sequences;
-        initialShots = sequencesToShots(template.sequences);
+        
+        // Ensure minimum 4s duration per sequence/shot as requested by user
+        initialSequences = initialSequences.map(s => ({
+          ...s,
+          duration: Math.max(s.duration, 4),
+          shots: s.shots.map(sh => ({ ...sh, duration: Math.max(sh.duration, 4) }))
+        }));
+        
+        initialShots = sequencesToShots(initialSequences);
       }
 
       // Prepare project data with theme/universe metadata

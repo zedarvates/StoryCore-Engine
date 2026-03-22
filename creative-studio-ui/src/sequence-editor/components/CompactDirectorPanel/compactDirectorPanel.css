@@ -135,6 +135,10 @@
   stroke-linecap: round;
 }
 
+.ai-curve-path {
+  stroke: #fbbf24;
+}
+
 .shot-duration-tag {
   position: absolute;
   bottom: 8px;

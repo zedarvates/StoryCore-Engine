@@ -18,9 +18,11 @@ import { Modal } from './Modal';
 import { Button } from '@/components/ui/button';
 import { useAppStore } from '@/stores/useAppStore';
 import { moodboardService } from '@/services/moodboardService';
+import type { ProjectData } from '@/types/project';
 import type { MoodboardData, MoodboardSuggestion, MoodboardReference } from '@/types/moodboard';
 import { useToast } from '@/hooks/use-toast';
 import { getImageDisplayUrl } from '@/services/imageStorageService';
+import './MoodboardModal.css';
 
 interface MoodboardModalProps {
   isOpen: boolean;
@@ -59,7 +61,7 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
     try {
       // Cast project to any to avoid Asset vs AssetMetadata incompatibility for now
       // MoodboardService only uses a subset of fields
-      const newSuggestions = await moodboardService.generateSuggestions(project as unknown as any);
+      const newSuggestions = await moodboardService.generateSuggestions(project as unknown as ProjectData);
       setSuggestions(newSuggestions);
       setActiveTab('suggestions');
       toast({
@@ -282,8 +284,8 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                           {moodboard?.visualStyle.colorPalette.map((color, i) => (
                             <div 
                               key={i} 
-                              className="w-8 h-8 rounded-full border border-black/10 ring-2 ring-white dark:ring-gray-800 shadow-sm"
-                              style={{ backgroundColor: color } as React.CSSProperties}
+                              className="moodboard-color-swatch ring-2 ring-white dark:ring-gray-800"
+                              style={{ '--bg-color': color } as React.CSSProperties}
                               title={color}
                             />
                           ))}
@@ -430,13 +432,13 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                     <div className="space-y-4">
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Titres</p>
-                        <p className="text-xl font-bold" style={{ fontFamily: moodboard?.visualStyle.typography.headers } as React.CSSProperties}>
+                        <p className="moodboard-typography-header" style={{ '--font-family': moodboard?.visualStyle.typography.headers } as React.CSSProperties}>
                           {moodboard?.visualStyle.typography.headers || 'Outfit'}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Corps de texte</p>
-                        <p className="text-base" style={{ fontFamily: moodboard?.visualStyle.typography.body } as React.CSSProperties}>
+                        <p className="moodboard-typography-body" style={{ '--font-family': moodboard?.visualStyle.typography.body } as React.CSSProperties}>
                           {moodboard?.visualStyle.typography.body || 'Inter'}
                         </p>
                       </div>
@@ -485,8 +487,8 @@ export const MoodboardModal: React.FC<MoodboardModalProps> = ({ isOpen, onClose 
                               {suggestion.suggestedStyle.colorPalette?.map((color, i) => (
                                 <div 
                                   key={i} 
-                                  className="w-12 h-12 rounded-2xl shadow-lg ring-4 ring-white dark:ring-gray-900" 
-                                  style={{ backgroundColor: color } as React.CSSProperties}
+                                  className="moodboard-suggestion-color-swatch ring-4 ring-white dark:ring-gray-900" 
+                                  style={{ '--bg-color': color } as React.CSSProperties}
                                   title={color}
                                 />
                               ))}

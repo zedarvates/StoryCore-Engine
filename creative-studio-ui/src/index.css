@@ -454,6 +454,10 @@
   width: 25%;
 }
 
+#generation-progress-bar {
+  width: var(--progress-width, 0%);
+}
+
 /* Screen reader only content */
 .sr-only {
   position: absolute;
@@ -477,6 +481,7 @@
   /* Glassmorphism 2.0 & Archival Index 2026 */
   .glass-panel {
     background: hsla(var(--card));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
     backdrop-filter: blur(var(--glass-blur, 12px));
     border: 1px solid hsla(var(--border) / 0.5);
     box-shadow: 
@@ -486,6 +491,7 @@
 
   .glass-card {
     background: hsla(var(--card));
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border: 1px solid hsla(var(--border) / 0.3);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);

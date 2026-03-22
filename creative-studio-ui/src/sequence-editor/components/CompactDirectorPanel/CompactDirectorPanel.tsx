@@ -66,7 +66,7 @@ export const CompactDirectorPanel: React.FC = () => {
       <div className="shot-thumbnails-row">
         {shots.map((shot, idx) => (
           <div 
-            key={shot.id} 
+            key={`${shot.id}-${idx}`} 
             className={`shot-card ${activeShot === idx ? 'active' : ''}`}
             onClick={() => setActiveShot(idx)}
           >
@@ -109,7 +109,7 @@ export const CompactDirectorPanel: React.FC = () => {
           <div className="curve-editor-container">
              <div className="ai-dynamic-label">Speed Mapping: Dynamic Action Sync</div>
              <svg width="100%" height="100%" viewBox="0 0 400 60">
-                <path d="M10,50 Q100,10 200,50 T390,50" className="curve-path" style={{ stroke: '#fbbf24' }} />
+                <path d="M10,50 Q100,10 200,50 T390,50" className="curve-path ai-curve-path" />
                 <circle cx="10" cy="50" r="4" fill="#fbbf24" />
                 <circle cx="105" cy="15" r="4" fill="#fbbf24" />
                 <circle cx="200" cy="50" r="4" fill="#fbbf24" />

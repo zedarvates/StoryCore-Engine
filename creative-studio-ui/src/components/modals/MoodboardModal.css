@@ -1,0 +1,39 @@
+
+.moodboard-color-swatch {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  background-color: var(--bg-color, transparent);
+}
+
+.moodboard-color-swatch:hover {
+  transform: scale(1.1);
+}
+
+.moodboard-typography-preview {
+  margin-bottom: 0.25rem;
+}
+
+.moodboard-typography-header {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  font-family: var(--font-family, inherit);
+}
+
+.moodboard-typography-body {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-family: var(--font-family, inherit);
+}
+
+.moodboard-suggestion-color-swatch {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-color, transparent);
+}

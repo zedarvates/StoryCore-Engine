@@ -16,7 +16,7 @@ import { ShotPreview3D } from '../editor/3d/ShotPreview3D';
 import { videoEditorAPI } from '@/services/videoEditorAPI';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import type { ProductionShot } from '@/types/shot';
+import type { ProductionShot, ShotType } from '@/types/shot';
 import { ComfyUIService } from '@/services/comfyuiService';
 import { useToast } from '@/hooks/use-toast';
 import { cineProductionAPI } from '@/services/cineProductionAPI';
@@ -111,15 +111,15 @@ export function ShotWizardModal({
     description: (initialShot as DashboardShot)?.description || '',
     duration: (initialShot as DashboardShot)?.duration || 5,
     position: initialShot?.position || 1,
-    cameraType: (initialShot as DashboardShot)?.metadata?.camera_type || 'Medium Shot',
-    visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style || 'cinematic',
-    transition: (initialShot as DashboardShot)?.metadata?.transition || 'Cut',
-    characters: (initialShot as DashboardShot)?.metadata?.characters || '',
+    cameraType: (initialShot as DashboardShot)?.metadata?.camera_type as string || 'Medium Shot',
+    visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style as string || 'cinematic',
+    transition: (initialShot as DashboardShot)?.metadata?.transition as string || 'Cut',
+    characters: (initialShot as DashboardShot)?.metadata?.characters as string || '',
     referenceImage: (initialShot as DashboardShot)?.referenceImage || '',
-    lens: (initialShot as DashboardShot)?.metadata?.lens || '50mm',
-    sensor: (initialShot as DashboardShot)?.metadata?.sensor || '35mm',
-    emotion: (initialShot as DashboardShot)?.metadata?.emotion || 'neutral',
-    emotionIntensity: (initialShot as DashboardShot)?.metadata?.emotionIntensity || 50,
+    lens: (initialShot as DashboardShot)?.metadata?.lens as string || '50mm',
+    sensor: (initialShot as DashboardShot)?.metadata?.sensor as string || '35mm',
+    emotion: (initialShot as DashboardShot)?.metadata?.emotion as string || 'neutral',
+    emotionIntensity: (initialShot as DashboardShot)?.metadata?.emotionIntensity as number || 50,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -134,7 +134,7 @@ export function ShotWizardModal({
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [useHighFidelity, setUseHighFidelity] = useState(true);
   const [autoAddToTimeline, setAutoAddToTimeline] = useState(true);
-  const [isAddingToTimeline, _setIsAddingToTimeline] = useState(false);
+  const [, _setIsAddingToTimeline] = useState(false);
   
   // Image Generation Modal state
   const [isImageGenModalOpen, setIsImageGenModalOpen] = useState(false);
@@ -163,15 +163,15 @@ export function ShotWizardModal({
             description: (initialShot as DashboardShot)?.description || '',
             duration: (initialShot as DashboardShot)?.duration || 5,
             position: initialShot?.position || 1,
-            cameraType: (initialShot as DashboardShot)?.metadata?.camera_type || 'Medium Shot',
-            visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style || 'cinematic',
-            transition: (initialShot as DashboardShot)?.metadata?.transition || 'Cut',
-            characters: (initialShot as DashboardShot)?.metadata?.characters || '',
+            cameraType: (initialShot as DashboardShot)?.metadata?.camera_type as string || 'Medium Shot',
+            visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style as string || 'cinematic',
+            transition: (initialShot as DashboardShot)?.metadata?.transition as string || 'Cut',
+            characters: (initialShot as DashboardShot)?.metadata?.characters as string || '',
             referenceImage: (initialShot as DashboardShot)?.referenceImage || '',
-            lens: (initialShot as DashboardShot)?.metadata?.lens || '50mm',
-            sensor: (initialShot as DashboardShot)?.metadata?.sensor || '35mm',
-            emotion: (initialShot as DashboardShot)?.metadata?.emotion || 'neutral',
-            emotionIntensity: (initialShot as DashboardShot)?.metadata?.emotionIntensity || 50,
+            lens: (initialShot as DashboardShot)?.metadata?.lens as string || '50mm',
+            sensor: (initialShot as DashboardShot)?.metadata?.sensor as string || '35mm',
+            emotion: (initialShot as DashboardShot)?.metadata?.emotion as string || 'neutral',
+            emotionIntensity: (initialShot as DashboardShot)?.metadata?.emotionIntensity as number || 50,
         });
         setImagePrompt((initialShot as DashboardShot)?.description || '');
       }
@@ -197,8 +197,8 @@ export function ShotWizardModal({
       newErrors.description = 'La description est requise';
     }
 
-    if (formData.duration < 1) {
-      newErrors.duration = 'La durée doit être d\'au moins 1 seconde';
+    if (formData.duration < 4) {
+      newErrors.duration = 'La durée doit être d\'au moins 4 secondes';
     }
 
     setErrors(newErrors);
@@ -701,7 +701,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                           <Input
                             id="shotDuration"
                             type="number"
-                            min="1"
+                            min="4"
                             max="300"
                             value={formData.duration}
                             onChange={(e) => handleChange('duration', parseInt(e.target.value) || 5)}
@@ -827,33 +827,41 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                              <Monitor size={18} />
                            </div>
                            <h3 className="text-xl font-black uppercase tracking-tight text-white">Spatial Framing</h3>
-                        </div>
-
-                        <div className="aspect-video bg-black rounded-2xl border border-white/5 relative overflow-hidden group">
-                           {(() => {
-                              const productionShot: ProductionShot = {
-                                id: initialShot?.id || 'temp',
-                                sequencePlanId: sequenceId || 'temp',
-                                sceneId: 'temp',
-                                number: formData.position,
-                                type: (formData.cameraType.toLowerCase().replace(' ', '-') as any) || 'medium',
-                                category: 'action',
-                                composition: {
-                                  characterIds: formData.characters ? formData.characters.split(',').map((c: string) => c.trim()) : [],
-                                  characterPositions: [], environmentId: 'default', props: [], lightingMood: 'natural', timeOfDay: 'day'
-                                },
-                                camera: { framing: 'medium', angle: 'eye-level', movement: { type: 'static' } },
-                                timing: { duration: formData.duration * 24, inPoint: 0, outPoint: formData.duration * 24, transition: 'cut', transitionDuration: 0 },
-                                generation: { aiProvider: 'comfyui', model: 'sdxl', prompt: formData.description, negativePrompt: '', comfyuiPreset: 'standard', parameters: { width: 1024, height: 576, steps: 20, cfgScale: 7.5, sampler: 'euler', scheduler: 'normal' }, styleReferences: [] },
-                                dialogues: [],
-                                status: 'pending' as any,
-                              };
-                              return <ShotPreview3D shot={productionShot} width={450} height={253} onCameraCaptured={handleCameraCaptured} />;
-                           })()}
-                           <div className="absolute top-4 left-4 z-10">
-                              <Badge className="bg-indigo-600/80 backdrop-blur-md border-indigo-400/30 text-[9px] uppercase font-black">Live 3D Renderer</Badge>
-                           </div>
-                        </div>
+                         </div>
+ 
+                         <div className="aspect-video bg-black rounded-2xl border border-white/5 relative overflow-hidden group">
+                            {(() => {
+                               const cameraTypeMap: Record<string, string> = {
+                                 'Wide Shot': 'wide',
+                                 'Medium Shot': 'medium',
+                                 'Close-Up': 'close-up',
+                                 'Extreme Close-Up': 'extreme-close-up',
+                                 'Over the Shoulder': 'over-the-shoulder',
+                                 'POV': 'pov'
+                               };
+                               const productionShot: ProductionShot = {
+                                 id: initialShot?.id || 'temp',
+                                 sequencePlanId: sequenceId || 'temp',
+                                 sceneId: 'temp',
+                                 number: formData.position as number, // Explicit casting
+                                 type: (cameraTypeMap[formData.cameraType] || 'medium') as ShotType,
+                                 category: 'action',
+                                 composition: {
+                                   characterIds: formData.characters ? (formData.characters as string).split(',').map((c: string) => c.trim()) : [],
+                                   characterPositions: [], environmentId: 'default', props: [], lightingMood: 'natural', timeOfDay: 'day'
+                                 },
+                                 camera: { framing: 'medium', angle: 'eye-level', movement: { type: 'static' } },
+                                 timing: { duration: (formData.duration as number) * 24, inPoint: 0, outPoint: (formData.duration as number) * 24, transition: 'cut', transitionDuration: 0 }, // Explicit casting
+                                 generation: { aiProvider: 'comfyui', model: 'sdxl', prompt: formData.description as string, negativePrompt: '', comfyuiPreset: 'standard', parameters: { width: 1024, height: 576, steps: 20, cfgScale: 7.5, sampler: 'euler', scheduler: 'normal' }, styleReferences: [] }, // Explicit casting
+                                 dialogues: [],
+                                 status: 'planned',
+                               };
+                               return <ShotPreview3D shot={productionShot} width={450} height={253} onCameraCaptured={handleCameraCaptured} />;
+                            })()}
+                            <div className="absolute top-4 left-4 z-10">
+                               <Badge className="bg-indigo-600/80 backdrop-blur-md border-indigo-400/30 text-[9px] uppercase font-black">Live 3D Renderer</Badge>
+                            </div>
+                         </div>
 
                         {formData.referenceImage && (
                           <div className="space-y-2 animate-in fade-in duration-500">
@@ -919,9 +927,13 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                                    <span className="text-[9px] uppercase font-black text-pink-400 tracking-widest">Synthesis Progress</span>
                                    <span className="text-[10px] font-mono text-white">{Math.round(generationProgress * 100)}%</span>
                                 </div>
-                                <div className="w-full bg-black/60 h-1.5 rounded-full overflow-hidden border border-white/5">
-                                   <div className="h-full bg-pink-600 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300" style={{ width: `${generationProgress * 100}%` } as React.CSSProperties} />
-                                </div>
+                                 <div className="w-full bg-black/60 h-1.5 rounded-full overflow-hidden border border-white/5">
+                                    <div 
+                                      className="h-full bg-pink-600 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300" 
+                                      style={{ '--progress-width': `${generationProgress * 100}%` } as React.CSSProperties} 
+                                      id="generation-progress-bar"
+                                    />
+                                 </div>
                              </div>
                            )}
                         </div>
