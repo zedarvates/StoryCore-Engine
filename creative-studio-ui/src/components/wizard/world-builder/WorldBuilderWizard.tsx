@@ -21,6 +21,7 @@ import { QuickSetupStep } from './steps/QuickSetupStep';
 import { LocationsRulesStep } from './steps/LocationsRulesStep';
 import { CultureReviewStep } from './steps/CultureReviewStep';
 import { WorldPreset } from './presets';
+import { WizardVoiceAssistant } from '../WizardVoiceAssistant';
 
 export interface WorldBuilderWizardProps {
   onComplete: (world: World) => void;
@@ -271,6 +272,32 @@ export function WorldBuilderWizard({
             </div>
             
             <div className="flex items-center gap-4">
+              <WizardVoiceAssistant
+                entityType="location"
+                onFieldChange={(section, field, value) => {
+                  if (section === 'culturalElements') {
+                    updateData({
+                      culturalElements: {
+                        ...(data.culturalElements || {}),
+                        [field]: value
+                      }
+                    } as Partial<World>);
+                  } else {
+                    updateData({ [field]: value } as Partial<World>);
+                  }
+                }}
+                onTabChange={(tabId) => {
+                  const stepMap: Record<string, number> = {
+                    'foundations': 1, 'presets': 1,
+                    'architecture': 2, 'locations': 2, 'rules': 2,
+                    'fabric': 3, 'culture': 3, 'review': 3
+                  };
+                  if (stepMap[tabId.toLowerCase()]) {
+                    setCurrentStep(stepMap[tabId.toLowerCase()]);
+                  }
+                }}
+                onDashboard={onCancel}
+              />
               <button 
                 onClick={onCancel}
                 className="group flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-all rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/50"

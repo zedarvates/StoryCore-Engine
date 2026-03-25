@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Languages, HandMetal, CheckCircle, Wand2, Info, ScrollText, History, Swords } from 'lucide-react';
+import { Languages, HandMetal, CheckCircle, Wand2, Info, ScrollText, History, Swords, Loader2, Sparkles } from 'lucide-react';
 import type { World, CulturalElements } from '@/types/world';
+import { ollamaClient, type ModelMetadata } from '@/services/llm/OllamaClient';
+import { useAppStore } from '@/stores/useAppStore';
+import { useToast } from '@/hooks/use-toast';
 
 interface CultureReviewStepProps {
   data: Partial<World>;
@@ -9,9 +12,14 @@ interface CultureReviewStepProps {
 
 export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
   const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [isBatchRefining, setIsBatchRefining] = useState(false);
   const [addingField, setAddingField] = useState<keyof CulturalElements | null>(null);
   const [newItemValue, setNewItemValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const ollamaStatus = useAppStore(state => state.ollamaStatus);
+  const { toast, dismiss } = useToast();
+
   const elements = data.culturalElements || {
     languages: [],
     religions: [],
@@ -33,7 +41,7 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
 
   const confirmAddItem = (field: keyof CulturalElements) => {
     if (newItemValue.trim()) {
-      updateElements({ [field]: [...elements[field], newItemValue.trim()] });
+      updateElements({ [field]: Array.from(new Set([...elements[field], newItemValue.trim()])) });
     }
     setAddingField(null);
     setNewItemValue('');
@@ -52,36 +60,77 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
   };
 
   const generateCulture = async (field: keyof CulturalElements) => {
-    setIsGenerating(field);
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
-    const genre = data.genre?.[0] || 'fantasy';
-    const suggestions: Record<string, Record<string, string[]>> = {
-      languages: {
-        fantasy: ['High Elven', 'Dwarven Cant', 'Abyssal'],
-        cyberpunk: ['Binary-Spliced English', 'Street Slang V4', 'Corporate Latin'],
-      },
-      religions: {
-        fantasy: ['The Order of Light', 'Ancient Mother worship', 'Void Sect'],
-        cyberpunk: ['The Silicon Singularity', 'Techno-Animism', 'Data Cults'],
-      },
-      traditions: {
-        fantasy: ['The Festival of Stars', 'The Trial of Valor', 'Moon-Cycle Fasting'],
-        cyberpunk: ['Neon Burial', 'Data-Wiping Rites', 'Corporate Loyalty Oaths'],
-      },
-      historicalEvents: {
-        fantasy: ['The God-Fall', 'The Breaking of the Crown', 'The Hundred-Year Drought'],
-        cyberpunk: ['The Great Blackout', 'The AI Uprising', 'The First Neural Link'],
-      },
-      culturalConflicts: {
-        fantasy: ['Mage vs. Mundane', 'Forest Dwellers vs. Forge Masters', 'Old Faith vs. New'],
-        cyberpunk: ['Organic vs. Synthetic', 'Uptown vs. The Slums', 'Corporate vs. Freelance'],
-      }
-    };
+    if (ollamaStatus !== 'connected') {
+        toast({ title: "AI Service not connected", description: "Start Ollama to generate ideas.", variant: "destructive" });
+        return;
+    }
 
-    const newItems = suggestions[field]?.[genre] || ['Ancient Custom', 'Historic Epoch'];
-    updateElements({ [field]: Array.from(new Set([...elements[field], ...newItems])) });
-    setIsGenerating(null);
+    setIsGenerating(field);
+    
+    try {
+        const models = await ollamaClient.listModels();
+        const model = models.find((m: ModelMetadata) => m.name.includes('stable-beluga'))?.name || 
+                      models.find((m: ModelMetadata) => m.name.includes('llama3'))?.name || 
+                      models[0]?.name || 'mistral';
+        
+        const prompt = `You are a world-building expert. Generate 3 unique and creative ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} for a ${data.genre?.join('/') || 'diverse'} world named "${data.name || 'Unnamed'}".
+Context: ${data.atmosphere || 'No specific atmosphere'}.
+Tone: ${data.tone?.join(', ') || 'Neutral'}.
+Current ${field}: ${elements[field].join(', ') || 'None'}.
+Return ONLY a comma-separated list of 3 items. No preamble. No numbers.`;
+
+        const response = await ollamaClient.generate(model, prompt);
+        const newItems = response.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+        
+        updateElements({ [field]: Array.from(new Set([...elements[field], ...newItems])) });
+        toast({ title: `Generated new ${field.replace(/([A-Z])/g, ' $1').toLowerCase()}!`, variant: "success" });
+    } catch (_err) {
+        console.error("AI Generation failed:", _err);
+        toast({ title: "Failed to generate ideas.", variant: "destructive" });
+    } finally {
+        setIsGenerating(null);
+    }
+  };
+
+  const handleRefineAllCulture = async () => {
+    if (ollamaStatus !== 'connected') {
+        toast({ title: "AI Service not connected", variant: "destructive" });
+        return;
+    }
+
+    setIsBatchRefining(true);
+    const toastId = toast({ 
+        title: "AI Synthesis Started", 
+        description: "AI is weaving your world's cultural fabric...", 
+        variant: "info",
+        duration: 0 
+    });
+
+    try {
+        const fields: (keyof CulturalElements)[] = ['languages', 'religions', 'traditions', 'historicalEvents', 'culturalConflicts'];
+        const updatedElements = { ...elements };
+
+        const models = await ollamaClient.listModels();
+        const model = models.find((m: ModelMetadata) => m.name.includes('stable-beluga'))?.name || 
+                      models.find((m: ModelMetadata) => m.name.includes('llama3'))?.name || 
+                      models[0]?.name || 'mistral';
+
+        for (const field of fields) {
+            const prompt = `Generate 2 high-concept ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} for the world "${data.name}". Genre: ${data.genre?.join('/')}. Return comma-separated ONLY.`;
+            const response = await ollamaClient.generate(model, prompt);
+            const newItems = response.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+            updatedElements[field] = Array.from(new Set([...updatedElements[field], ...newItems]));
+        }
+
+        onUpdate({ culturalElements: updatedElements });
+        dismiss(toastId);
+        toast({ title: "Cultural fabric fully enriched!", variant: "success" });
+    } catch (_err) {
+        dismiss(toastId);
+        toast({ title: "Batch refinement failed.", variant: "destructive" });
+    } finally {
+        setIsBatchRefining(false);
+    }
   };
 
   const fieldConfig: Record<keyof CulturalElements, { icon: React.ReactNode, title: string, color: string, placeholder: string }> = {
@@ -171,14 +220,15 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
           <button
             onClick={() => generateCulture(field)}
             title={`Generate ${config.title}`}
-            className={`p-2 rounded-xl transition-all ${genButtonClasses[config.color]} ${isGenerating === field ? 'animate-spin' : ''}`}
+            disabled={isGenerating === field}
+            className={`p-2 rounded-xl transition-all ${genButtonClasses[config.color]} ${isGenerating === field ? 'animate-pulse' : ''}`}
           >
-            <Wand2 className="w-4 h-4" />
+            {isGenerating === field ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
           </button>
         </div>
         <div className="flex flex-wrap gap-2 min-h-[40px]">
           {elements[field].map((item, i) => (
-            <span key={i} className={`px-4 py-2 rounded-xl text-xs font-bold border flex items-center gap-2 group ${tagClasses[config.color]}`}>
+            <span key={i} className={`px-4 py-2 rounded-xl text-[10px] font-bold border flex items-center gap-2 group ${tagClasses[config.color]}`}>
               {item}
               <button 
                 onClick={() => removeItem(field, i)} 
@@ -200,11 +250,11 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
                 if (e.key === 'Enter') confirmAddItem(field);
                 if (e.key === 'Escape') setAddingField(null);
               }}
-              className={`px-4 py-2 border-2 bg-white dark:bg-gray-800 rounded-xl text-xs font-bold outline-none ring-2 ${inputBorderClasses[config.color]}`}
+              className={`px-4 py-2 border-2 bg-white dark:bg-gray-800 rounded-xl text-[10px] font-bold outline-none ring-2 ${inputBorderClasses[config.color]}`}
               placeholder={config.placeholder}
             />
           ) : (
-            <button onClick={() => addItem(field)} className={`px-4 py-2 border-2 border-dashed rounded-xl text-xs font-bold transition-all ${buttonClasses[config.color]}`}>
+            <button onClick={() => addItem(field)} className={`px-4 py-2 border-2 border-dashed rounded-xl text-[10px] font-bold transition-all ${buttonClasses[config.color]}`}>
               + Add
             </button>
           )}
@@ -215,6 +265,21 @@ export function CultureReviewStep({ data, onUpdate }: CultureReviewStepProps) {
 
   return (
     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-700 pb-10">
+      <div className="flex justify-between items-center bg-white/5 dark:bg-gray-950/20 p-4 rounded-[2rem] border border-white/10">
+        <div className="px-4">
+            <h3 className="text-2xl font-black text-gray-800 dark:text-white tracking-tighter uppercase">Cultural Fabric</h3>
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest opacity-60">Society, legacy, and social tensions.</p>
+        </div>
+        <button
+          onClick={handleRefineAllCulture}
+          disabled={isBatchRefining}
+          className="flex items-center gap-2 px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
+        >
+          {isBatchRefining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+          AI Mesh Synthesis
+        </button>
+      </div>
+
       {/* Cultural Fabric Section */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {renderSection('languages')}

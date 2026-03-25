@@ -19,6 +19,10 @@ export interface ProjectConfig {
   modified_at?: string;
   storycore_version?: string;
   
+  // Summary/Header fields for project persistence
+  summary?: string;
+  header?: string;
+  
   capabilities: {
     grid_generation: boolean;
     promotion_engine: boolean;
@@ -39,6 +43,9 @@ export interface ProjectConfig {
     quality_threshold?: number;
     llm_provider?: string;
   };
+  
+  // LLM Configuration for the project
+  llm?: any; // Will store the LLMConfiguration object
   
   metadata?: Record<string, unknown>;
 }

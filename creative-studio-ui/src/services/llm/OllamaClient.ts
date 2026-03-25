@@ -88,7 +88,7 @@ export class OllamaClient {
   }
 
   /**
-   * Generate completion using Ollama
+   * Generate completion using Ollama with automatic retries
    */
   async generate(
     model: string,
@@ -97,80 +97,87 @@ export class OllamaClient {
     signal?: AbortSignal
   ): Promise<string> {
     const startTime = Date.now();
-    logger.info(`[OllamaClient] 🚀 Starting generation for model: ${model}`);
-    logger.debug(`[OllamaClient] 📝 Prompt length: ${prompt.length} chars, maxTokens: ${options?.maxTokens || 2000}`);
+    const maxRetries = 2;
+    let attempt = 0;
 
-    // DIAGNOSTIC: Check if Ollama is reachable before attempting generation
-    const isHealthy = await this.healthCheck();
-    if (!isHealthy) {
-      logger.error(`[OllamaClient] ❌ Ollama service NOT reachable at ${this.baseURL}`);
-      throw new Error(`Ollama service not reachable at ${this.baseURL}. Please ensure Ollama is running.`);
-    }
-    logger.info(`[OllamaClient] ✅ Ollama health check passed`);
+    while (attempt <= maxRetries) {
+      try {
+        logger.info(`[OllamaClient] 🚀 Generation attempt ${attempt + 1}/${maxRetries + 1} for model: ${model}`);
 
-    try {
-      logger.debug(`[OllamaClient] 📤 Sending generate request to ${this.baseURL}/api/generate`);
-
-      const response = await fetch(`${this.baseURL}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model,
-          prompt,
-          options: {
-            temperature: options?.temperature || 0.7,
-            num_predict: options?.maxTokens || 2000,
-          },
-          images: options?.images,
-          stream: false,
-        }),
-        signal,
-      });
-
-      const elapsedMs = Date.now() - startTime;
-      logger.info(`[OllamaClient] ⏱️ Response received after ${elapsedMs}ms (status: ${response.status})`);
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => 'Unable to read error response');
-        let errorMessage = response.statusText;
-        
-        try {
-          const errorJson = JSON.parse(errorText);
-          if (errorJson.error) {
-            errorMessage = errorJson.error;
+        // DIAGNOSTIC: Check if Ollama is reachable
+        const isHealthy = await this.healthCheck();
+        if (!isHealthy) {
+          if (attempt < maxRetries) {
+            logger.warn(`[OllamaClient] ⚠️ Ollama not reachable, retrying in 2s...`);
+            await new Promise(r => setTimeout(r, 2000));
+            attempt++;
+            continue;
           }
-        } catch (_) {
-          // If not JSON, use the raw text if short
-          if (errorText.length > 0 && errorText.length < 200) {
-            errorMessage = errorText;
-          }
+          throw new Error(`Ollama service not reachable at ${this.baseURL}`);
         }
 
-        logger.error(`[OllamaClient] ❌ Generation failed with status ${response.status}: ${errorMessage}`);
-        
-        // Specialize the error for memory issues
-        if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('capacity')) {
-          throw new Error(`LLM Memory Error: ${errorMessage}. Try selecting a smaller model (e.g. 4B or 8B versions).`);
+        const response = await fetch(`${this.baseURL}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model,
+            prompt,
+            options: {
+              temperature: options?.temperature || 0.7,
+              num_predict: options?.maxTokens || 2000,
+            },
+            images: options?.images,
+            stream: false,
+          }),
+          signal,
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unable to read error response');
+          
+          // If it's a 500 and we have retries left, wait and retry
+          if (response.status === 500 && attempt < maxRetries) {
+            logger.warn(`[OllamaClient] ⚠️ Received 500 Error, retrying attempt ${attempt + 2}...`, { errorText });
+            const backoff = Math.pow(2, attempt) * 1000;
+            await new Promise(r => setTimeout(r, backoff));
+            attempt++;
+            continue;
+          }
+
+          let errorMessage = response.statusText;
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.error) errorMessage = errorJson.error;
+          } catch (_) {
+            if (errorText.length > 0 && errorText.length < 200) errorMessage = errorText;
+          }
+
+          if (errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('capacity')) {
+            throw new Error(`LLM Memory Error: ${errorMessage}. Try selecting a smaller model.`);
+          }
+          
+          throw new Error(`Generation failed (${response.status}): ${errorMessage}`);
+        }
+
+        const data: OllamaGenerateResponse = await response.json();
+        const totalMs = Date.now() - startTime;
+        logger.info(`[OllamaClient] ✅ Generation complete in ${totalMs}ms`);
+        return data.response;
+
+      } catch (error) {
+        if (attempt >= maxRetries || (error instanceof Error && error.message.includes('Memory'))) {
+          logger.error(`[OllamaClient] ❌ Generation failed permanently:`, error);
+          throw error;
         }
         
-        throw new Error(`Generation failed: ${errorMessage}`);
+        const backoff = Math.pow(2, attempt) * 1000;
+        logger.warn(`[OllamaClient] ⚠️ Attempt ${attempt + 1} failed: ${error instanceof Error ? error.message : 'Unknown error'}. Retrying in ${backoff}ms...`);
+        await new Promise(r => setTimeout(r, backoff));
+        attempt++;
       }
-
-      const data: OllamaGenerateResponse = await response.json();
-      const totalMs = Date.now() - startTime;
-      logger.info(`[OllamaClient] ✅ Generation complete in ${totalMs}ms, response length: ${data.response?.length || 0} chars`);
-
-      return data.response;
-    } catch (error) {
-      const elapsedMs = Date.now() - startTime;
-      logger.error(`[OllamaClient] ❌ Generation failed after ${elapsedMs}ms:`, error);
-
-      // DIAGNOSTIC: Add more context to the error
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        logger.error(`[OllamaClient] 💡 This appears to be a network error - Ollama may not be running at ${this.baseURL}`);
-      }
-      throw error;
     }
+    
+    throw new Error('Generation failed after maximum retries');
   }
 
   /**
@@ -394,7 +401,7 @@ export class OllamaClient {
       // 0. Check ConfigManager for user preference first
       if (typeof window !== 'undefined') {
         const config = ConfigManager.getLLMConfig();
-        if (config.provider === 'local' && config.model) {
+        if ((config.provider === 'local' || config.provider === 'lmstudio' || config.provider === 'custom') && config.model) {
           const found = models.find(m => m.name === config.model || m.name.split(':')[0] === config.model.split(':')[0]);
           if (found) return found.name;
         }
@@ -415,8 +422,8 @@ export class OllamaClient {
       // 2. Global preferences if category match fails
       // Prioritize smaller models (4b, 8b, mini) over massive ones (70b, expert)
       const preferredNames = [
-        'gemma3:4b', 'gemma3:8b', 'llama3.2:3b', 'llama3.1:8b', 
-        'gemma3', 'llama3.2', 'llama3.1', 'llama3:8b', 'mistral', 'gemma', 'phi3', 'phi'
+        'qwen3-vl:4b', 'gemma3:4b', 'gemma3:8b', 'llama3.2:3b', 'llama3.1:8b', 
+        'gemma3', 'llama3.2', 'llama3.1', 'llama3:8b', 'qwen3', 'mistral', 'gemma', 'phi3', 'phi'
       ];
       
       for (const pref of preferredNames) {

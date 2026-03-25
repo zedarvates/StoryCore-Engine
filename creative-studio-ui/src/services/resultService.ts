@@ -29,6 +29,27 @@ export interface GeneratedResult {
   error?: string;
 }
 
+/**
+ * Raw API response for generated result
+ */
+interface RawGeneratedResult {
+  taskId: string;
+  shotId: string;
+  type: string;
+  status: string;
+  assets?: Array<{
+    id: string;
+    url: string;
+    type: string;
+    [key: string]: unknown;
+  }>;
+  generatedAt: string;
+  processingTime?: number;
+  qualityScore?: number;
+  metrics?: Record<string, number>;
+  error?: string;
+}
+
 export interface GeneratedAsset {
   id: string;
   type: 'image' | 'video' | 'audio' | 'data';
@@ -132,7 +153,7 @@ export class ResultService {
 
     const data = await response.json();
 
-    return data.results.map((result: any) => ({
+    return data.results.map((result: RawGeneratedResult) => ({
       taskId: result.taskId,
       shotId: result.shotId,
       type: result.type,

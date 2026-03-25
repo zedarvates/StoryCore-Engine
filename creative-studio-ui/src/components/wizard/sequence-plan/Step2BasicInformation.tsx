@@ -158,10 +158,10 @@ export function Step2BasicInformation({
               </p>
             </div>
 
-            {/* World Selection */}
+            {/* Location Selection */}
             <div className="space-y-2">
-              <Label htmlFor="world" className="text-sm font-medium">
-                World *
+              <Label htmlFor="location" className="text-sm font-medium">
+                Location *
               </Label>
               <Select
                 value={formData.worldId || ''}
@@ -170,15 +170,15 @@ export function Step2BasicInformation({
                 <SelectTrigger className={cn(
                   validationErrors.worldId && 'border-red-500 focus:ring-red-500'
                 )}>
-                  <SelectValue placeholder="Select a world..." />
+                  <SelectValue placeholder="Select a location..." />
                 </SelectTrigger>
                 <SelectContent className="z-[9999]">
-                  {worlds.map((world) => (
-                    <SelectItem key={world.id} value={world.id}>
+                  {useStore(state => state.locations || []).map((loc: any) => (
+                    <SelectItem key={loc.id} value={loc.id}>
                       <div>
-                        <div className="font-medium">{world.name}</div>
-                        {world.atmosphere && (
-                          <div className="text-xs text-slate-600">{world.atmosphere}</div>
+                        <div className="font-medium">{loc.name}</div>
+                        {loc.type && (
+                          <div className="text-xs text-slate-600">{loc.type}</div>
                         )}
                       </div>
                     </SelectItem>
@@ -189,7 +189,7 @@ export function Step2BasicInformation({
                 <p className="text-sm text-red-600">{validationErrors.worldId}</p>
               )}
               <p className="text-xs text-slate-600">
-                The world provides context, locations, and character data
+                The location provides environmental context for your sequence
               </p>
             </div>
 

@@ -14,7 +14,7 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from backend.config import settings
 
@@ -32,11 +32,10 @@ if database_url.startswith("postgresql://"):
 # Create async engine with connection pooling
 engine = create_async_engine(
     database_url,
+    poolclass=AsyncAdaptedQueuePool,
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    poolclass=QueuePool,
-    echo=settings.DEBUG,
-    future=True
+    echo=settings.DEBUG
 )
 
 # Async session factory
@@ -55,11 +54,6 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     FastAPI dependency that provides a database session.
     Automatically closes the session after the request is finished.
-    
-    Usage:
-        @app.get("/items")
-        async def read_items(db: AsyncSession = Depends(get_db)):
-            ...
     """
     async with AsyncSessionLocal() as session:
         try:
@@ -70,3 +64,22 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
+# =============================================================================
+# Database Initialization
+# =============================================================================
+
+async def init_db():
+    """
+    Initialize the database by creating all tables.
+    Safe to call multiple times (checkfirst=True).
+    """
+    try:
+        from backend.database_models import Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("✅ Database tables initialized successfully")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Failed to initialize database tables: {e}")
+        return False

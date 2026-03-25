@@ -103,12 +103,44 @@ function LocationCard({ location, isSelected, onToggle }: LocationCardProps) {
 export function Step3LocationSelection(): React.ReactElement {
   const { formData, updateFormData, validationErrors } = useWizard<LocationSelectionData>();
   const { worlds, selectedWorldId, selectWorld, updateWorld } = useStore();
-  const currentWorld = worlds?.find((w: World) => w.id === selectedWorldId) || worlds?.[0];
-  const locations = currentWorld?.locations || [];
+    const currentWorld = worlds?.find((w: World) => w.id === selectedWorldId) || worlds?.[0];
+  const wizardLocations = currentWorld?.locations || [];
 
   // Get project path for saving locations
   const { projectPath } = useEditorStore();
   const { fetchProjectLocations } = useLocationStore();
+  const projectStoreLocations = useLocationStore((state) => state.locations);
+
+  // Combine world locations and project locations
+  const uniqueLocationsMap = new Map();
+  type UnifiedLocation = Record<string, unknown> & {
+    id?: string;
+    location_id?: string;
+    name?: string;
+    type?: string;
+    location_type?: string;
+    description?: string;
+    significance?: string;
+    metadata?: { description?: string; [key: string]: unknown };
+  };
+
+  const addLoc = (inputLoc: unknown) => {
+    const loc = inputLoc as UnifiedLocation;
+    const id = loc.id || loc.location_id;
+    if (id && !uniqueLocationsMap.has(id)) {
+      uniqueLocationsMap.set(id, {
+        id,
+        name: loc.name || 'Unnamed',
+        type: loc.type || loc.location_type || 'Location',
+        description: loc.description || loc.metadata?.description || '',
+        significance: loc.significance || loc.metadata?.description || loc.type || 'Location',
+      });
+    }
+  };
+  wizardLocations.forEach(addLoc);
+  projectStoreLocations.forEach(addLoc);
+  
+  const locations = Array.from(uniqueLocationsMap.values());
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -223,7 +255,7 @@ export function Step3LocationSelection(): React.ReactElement {
           createdLocation.id,
           {
             name: createdLocation.name,
-            type: createdLocation.type || 'generic',
+            type: (createdLocation as any).type || newLocation.type || 'generic',
             description: createdLocation.description || newLocation.description || '',
           },
           { projectId, worldId: currentWorld?.id }
@@ -258,7 +290,7 @@ export function Step3LocationSelection(): React.ReactElement {
           {
             id: createdLocation.id,
             name: createdLocation.name,
-            significance: createdLocation.significance || newLocation.type,
+            significance: (createdLocation as any).significance || newLocation.type,
           },
         ],
       });

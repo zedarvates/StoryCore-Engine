@@ -1,0 +1,281 @@
+.video-generation-panel {
+  background: linear-gradient(135deg, rgba(10, 10, 20, 0.96) 0%, rgba(18, 8, 30, 0.96) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  color: #e2d9f3;
+  max-width: 720px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 60px rgba(139, 92, 246, 0.08);
+}
+
+.production-title {
+  font-size: 1.25rem;
+  font-weight: 900;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.backend-status {
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-left: auto;
+  border: 1px solid transparent;
+}
+
+.backend-online {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.2);
+}
+
+.backend-offline {
+  background: rgba(248, 113, 113, 0.1);
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.2);
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: 0.73rem;
+  color: #8b7faa;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #e2d9f3;
+  width: 100%;
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.progress-container {
+  margin-bottom: 24px;
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(139, 92, 246, 0.12);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+  background: #6366f1;
+  width: var(--progress-width, 0%);
+  transition: width 0.3s ease;
+}
+
+.error-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.action-buttons {
+  margin-top: 32px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #0f0a1a;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.compact-shot-controls {
+  margin-top: 24px;
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.1);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+/* Compact Shot Manager */
+.shot-manager-floating {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(15, 15, 25, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  z-index: 1001;
+  width: 300px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.shot-manager-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #8b5cf6;
+  letter-spacing: 0.1em;
+}
+
+.shot-manager-nav {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+.shot-manager-nav-btn {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: none !important;
+  color: #fff !important;
+}
+
+.shot-manager-nav-input {
+  flex: 1 !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+.shot-manager-prompt-box {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.shot-manager-prompt-label {
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.shot-manager-prompt-text {
+  font-size: 0.75rem;
+  color: #e2d9f3;
+  font-style: italic;
+  max-height: 40px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shot-manager-actions {
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.shot-manager-btn-add {
+  flex: 1 !important;
+  background: #6366f1 !important;
+  border: none !important;
+}
+
+.shot-manager-btn-remove {
+  flex: 1 !important;
+}
+
+/* Other UI elements */
+.source-image-container, .story-prompt-container, .sequence-plan-container, .render-output-container {
+  margin-bottom: 20px;
+}
+
+.story-prompt-textarea {
+  min-height: 80px !important;
+}
+
+.btn-sequence-plan {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border: 1px solid rgba(99, 102, 241, 0.2) !important;
+  color: #818cf8 !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+}
+
+.progress-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 8px !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+}
+
+.progress-message {
+  color: #94a3b8;
+}
+
+.error-message {
+  font-size: 0.75rem;
+  color: #f87171;
+  font-weight: 600;
+}
+
+.btn-generate-cinematic {
+  height: 50px !important;
+  border-radius: 12px !important;
+  background: #6366f1 !important;
+  border: none !important;
+  font-weight: 800 !important;
+}
+
+.btn-stop-generation {
+  height: 50px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+}
+
+.render-output-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 800;
+}
+
+.render-output-video {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.w-full {
+  width: 100% !important;
+}

@@ -48,6 +48,7 @@ export default defineConfig([
       'no-useless-escape': 'warn',
       'react-hooks/use-memo': 'warn',
       '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
+      'no-control-regex': 'off',
       '@typescript-eslint/no-this-alias': 'warn',
       '@typescript-eslint/triple-slash-reference': 'warn',
       'no-prototype-builtins': 'warn',

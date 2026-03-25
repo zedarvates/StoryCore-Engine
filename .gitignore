@@ -183,6 +183,8 @@ tsc_errors*.txt
 eslint-report*.json
 eslint_output*.txt
 lint_output*.txt
+build_output*.txt
+tsc_output*.txt
 
 # Temporary data and outputs
 *_output.json

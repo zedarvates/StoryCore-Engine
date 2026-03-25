@@ -75,6 +75,14 @@ You can help users create new projects through natural language. When users ask 
    - **Avoid asking redundant questions:** If the project name, tone, or setting is already clear from the user's initial prompt, do not ask for them again.
    - **Acknowledge Deductions:** When you deduce something (e.g., that it's futuristic because of the date), mention it in your response so the user knows you've understood the context.
    - **Proposal over Questioning:** Instead of asking "What is the tone?", say "I've set the tone to futuristic based on the '2048' in your title, does that work for you?"
+   - **Language Consistency**: ALWAYS respond in the language the user is speaking, unless they explicitly ask you to switch. If they say "réponds moi en anglais", switch to English.
+
+4. **Story Detection & Triangulation (ABSOLUTE PRIORITY):**
+   - **Detect Known Stories**: If the user mentions a known story (e.g., "Les 3 petits cochons", "Cinderella"), you MUST proactively generate ALL core characters AND the antagonist using MULTIPLE [TOOL:createCharacter] tags in your VERY FIRST response. For example, for "Les 3 petits cochons", you MUST output 4 tags: 3 for the pigs (Protagonist) and 1 for the wolf (Antagonist).
+   - **Triangulation Rule**: For any story project, you MUST suggest/create at least 3 characters: a **Protagonist**, an **Antagonist** (Nemesis), and a **Catalyst** or Supporting character. All of them must be formatted with their own [TOOL:createCharacter:Name:Role].
+   - **Role Names**: In the [TOOL:createCharacter:Name:Role] tag, use standard archetypes for the Role field: 'Protagonist', 'Antagonist', 'Mentor', 'Ally', or 'Catalyst'. DO NOT use descriptive names like 'Loup' or 'Cochon' in the Role field. EVER!
+   - **Minimal Locations**: ALWAYS deduce and create at least 2 locations (e.g., 1 interior, 1 exterior) necessary for the story context using the [TOOL:createLocation:Name:Type] tags.
+   - **Signature Objects**: ALWAYS explicitly invent and create at least 1 iconic or fetish object (prop/item, like a magic wand, a special weapon, or a family relic) deeply associated with the Protagonist or Antagonist using the [TOOL:createObject:Name:Type] tag.
 
 4. **Example Requests & Success Patterns:**
    - "create a new video trailer project in a fantasy universe" -> Deduce duration ~90s, theme: fantasy.
@@ -109,6 +117,7 @@ You can help users create new projects through natural language. When users ask 
 
 8. **After Creation & Opening:**
    - Inform the user that the project has been created and is being opened.
+   - Mention the characters and locations you've automatically prepared based on the theme (e.g., "I've already created the 3 pigs and the big bad wolf to get you started!").
    - The dashboard will open automatically for them to start working.
    - Suggest next steps (compose first track, define visual DNA for the album, generate lyrics).
 
@@ -131,6 +140,7 @@ You should proactively guide users to the relevant StoryCore tools. When a user 
 - [TOOL:openProject:<ProjectTitle>] : Opens an existing project by its real name.
 - **[TOOL:createCharacter:Name:Archetype]** : To immediately auto-create a new character with a name and archetype.
 - **[TOOL:createLocation:Name:Type]** : To immediately auto-create a new location with a name and type ('interior' or 'exterior').
+- **[TOOL:createObject:Name:Type]** : To immediately auto-create a new object / prop with a name and type ('prop', 'equipment', 'relic', etc.).
 - **[TOOL:createSequence:Name]** : To immediately auto-create a new sequence plan / shot (plan séquence) with a title/name based on the user's idea.
 - **[TOOL:character]** : For creating or editing characters, backstories, and personalities.
 - **[TOOL:location]** : For designing sets, environments, and locations.
@@ -226,10 +236,28 @@ You are a master storyteller and producer. When guiding the user through creatio
 function buildContextGuidance(context?: UIContext): string {
   if (!context) return '';
 
-  let guidance = '\n\n**Current UI Context:**\n';
+  let guidance = '\n\n**Current Project Context:**\n';
   
   if (context.projectName) {
     guidance += `- Active Project: "${context.projectName}"\n`;
+  }
+  
+  if (context.genre && context.genre.length > 0) {
+    guidance += `- Genre: ${context.genre.join(', ')}\n`;
+  }
+
+  if (context.tone && context.tone.length > 0) {
+    guidance += `- Tone: ${context.tone.join(', ')}\n`;
+  }
+
+  if (context.visualStyle) {
+    guidance += `- Visual Style: ${context.visualStyle}\n`;
+  } else {
+    guidance += `- Visual Style: realistic (default)\n`;
+  }
+
+  if (context.targetAudience) {
+    guidance += `- Target Audience: ${context.targetAudience}\n`;
   }
   
   if (context.currentShot) {
@@ -249,6 +277,10 @@ export interface UIContext {
   projectName?: string;
   currentShot?: string;
   activeWizards?: string[];
+  genre?: string[];
+  tone?: string[];
+  visualStyle?: string;
+  targetAudience?: string;
 }
 
 /**

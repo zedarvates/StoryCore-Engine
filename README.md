@@ -572,7 +572,7 @@ graph TD
 
 ## 🗺️ Roadmap 2026
 
-| Phase       | Feature                                                                | Status         |
+| **Phase**       | Feature                                                                | Status         |
 | :---        | :---                                                                   | :---           |
 | **Q1 2026** | Neural Production Assistant                                            | ✅ Completed   |
 | **Q1 2026** | Total Recall AI Memory (Living Protocol)                               | ✅ Completed   |
@@ -590,13 +590,16 @@ graph TD
 | **Q1 2026** | **Creative Studio v3.5: Bidirectional Sync**                           | ✅ Completed   |
 | **Q1 2026** | **"Bout en Bout" Production Bible Methodology**                        | ✅ Completed   |
 | **Q1 2026** | **Multi-Mode Generation (Social, Music, Doc, Cinema)**                 | ✅ Completed   |
+| **Q1 2026** | **Open Project Folder Tracking**                                       | ✅ Completed   |
 | **Q2 2026** | Audio Mastering (Auto-Ducking/Isolation)                               | ✅ Completed   |
 | **Q2 2026** | Multi-Angle & Character Consistency                                    | ✅ Completed   |
-| **Q2 2026** | **Automated 3D Set Builder (Primitives & Blocking)**    | ✅ Completed   |
-| **Q2 2026** | **Lip-Sync Hub (IA Voice to Viseme Animation)**        | ✅ Completed   |
-| **Q2 2026** | **Blender-in-ComfyUI Bidirectional Sync**              | ✅ Completed   |
-| **Q2 2026** | **PuppeT/Make-It-Animatable Node Integration**         | ✅ Completed   |
-| **Q2 2026** | Procedural 3D Environment (Trees, Skyboxes)            | 🔄 In Progress |
+| **Q2 2026** | **Automated 3D Set Builder (Primitives & Blocking)**                   | ✅ Completed   |
+| **Q2 2026** | **Lip-Sync Hub (IA Voice to Viseme Animation)**                        | ✅ Completed   |
+| **Q2 2026** | **Blender-in-ComfyUI Bidirectional Sync**                              | ✅ Completed   |
+| **Q2 2026** | **PuppeT/Make-It-Animatable Node Integration**                         | ✅ Completed   |
+| **Q2 2026** | **Forge-3D-Asset generation & reconstruction**                         | ✅ Completed   |
+| **Q2 2026** | **IP-Adapter Character Consistency Sheets**                            | ✅ Completed   |
+| **Q2 2026** | Procedural 3D Environment (Trees, Skyboxes)                            | 🔄 In Progress |
 | **Q2 2026** | Addon Marketplace (nexrealm.shop — Auto-update & One-click Install)    | 🔄 In Progress |
 | **Q2 2026** | Image Generation Dialog Enhancement                                    | 🔄 In Progress |
 | **Q2 2026** | AI 3D Reconstruction from Images (tttLRM / 3DGS)                       | ✅ Completed   |
@@ -616,3 +619,9 @@ graph TD
 **Result**: Production-ready system with professional interfaces
 
 *Redefining how creators interact with multimodal AI through guaranteed visual coherence and autonomous quality control.*
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

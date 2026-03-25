@@ -1,16 +1,10 @@
-/**
- * Video Generation Panel Component
- *
- * Interface de génération vidéo LTX2 / Wan 2.1 avec sélection de moteur,
- * modes de qualité (Fast / Pro / Ultra) et suivi de progression en temps réel.
- *
- * Validates: Requirements 14.13, 14.14 + LTX2 R&D Integration
- */
-
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { backendApi } from '@/services/backendApiService';
-import type { TaskStatusResponse, ApiResponse } from '@/services/backendApiService';
-import { Play, Square, Loader2, Film, Cpu, Zap, Star, Crown, AlertCircle } from 'lucide-react';
+import { toast } from '@/utils/toast';
+import { Play, Square, Film, Cpu, Zap, Star, Crown, AlertCircle, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
+import { SequenceEditor } from '@/components/SequenceEditor';
+import type { SequencePlan } from '@/types';
+import { Button, Input, InputNumber, Select, Space } from 'antd';
+import './VideoGenerationPanel.css';
 
 // ==============================================================================
 // TYPES
@@ -53,85 +47,9 @@ const QUALITY_MODES: { id: QualityMode; label: string; steps: number; icon: Reac
   { id: 'ultra',     label: 'Ultra',     steps: 40, icon: <Crown className="h-4 w-4" />,  color: '#ef4444', hint: 'Rendu final client' },
 ];
 
-const FRAME_PRESETS = [
-  { label: '2s', frames: 49 },
-  { label: '3s', frames: 73 },
-  { label: '5s', frames: 121 },
-  { label: '8s', frames: 193 },
-  { label: '10s', frames: 241 },
-  { label: '20s', frames: 481 },
-];
-
-const DIMENSION_PRESETS = [
-  { label: '720p', w: 1280, h: 720 },
-  { label: '1080p', w: 1920, h: 1080 },
-  { label: 'Portrait', w: 768, h: 1280 },
-  { label: 'Carré', w: 1024, h: 1024 },
-];
-
 // ==============================================================================
 // STYLES
 // ==============================================================================
-
-const S = {
-  panel: {
-    background: 'linear-gradient(135deg, rgba(10,10,20,0.96) 0%, rgba(18,8,30,0.96) 100%)',
-    border: '1px solid rgba(139,92,246,0.2)',
-    borderRadius: 16,
-    padding: '24px',
-    fontFamily: "'Inter', 'Segoe UI', sans-serif",
-    color: '#e2d9f3',
-    maxWidth: 720,
-    boxShadow: '0 25px 60px rgba(0,0,0,0.5), 0 0 60px rgba(139,92,246,0.08)',
-  } as React.CSSProperties,
-  sectionTitle: {
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.1em',
-    color: '#c4b5fd',
-    marginBottom: 10,
-  },
-  card: (active: boolean, color = '#8b5cf6') => ({
-    padding: '12px 14px',
-    borderRadius: 10,
-    border: active ? `2px solid ${color}` : '1px solid rgba(139,92,246,0.15)',
-    background: active ? `${color}18` : 'rgba(255,255,255,0.02)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: active ? `0 0 16px ${color}28` : 'none',
-  } as React.CSSProperties),
-  input: {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(139,92,246,0.2)',
-    borderRadius: 8,
-    padding: '8px 12px',
-    color: '#e2d9f3',
-    width: '100%',
-    fontSize: '0.85rem',
-    outline: 'none',
-  } as React.CSSProperties,
-  label: {
-    fontSize: '0.73rem',
-    color: '#8b7faa',
-    marginBottom: 4,
-    display: 'block',
-  } as React.CSSProperties,
-  progressTrack: {
-    height: 6,
-    borderRadius: 99,
-    background: 'rgba(139,92,246,0.12)',
-    overflow: 'hidden',
-  } as React.CSSProperties,
-  progressFill: (pct: number, color = '#8b5cf6') => ({
-    height: '100%',
-    width: `${pct}%`,
-    background: `linear-gradient(90deg, ${color}, #a78bfa)`,
-    borderRadius: 99,
-    transition: 'width 0.4s ease',
-    boxShadow: `0 0 10px ${color}80`,
-  } as React.CSSProperties),
-};
 
 // ==============================================================================
 // COMPONENT
@@ -139,357 +57,378 @@ const S = {
 
 export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
   onGenerateVideo,
-  onCancel,
+  onCancel: _onCancel,
 }) => {
+  // ==============================================================================
+  // STATE VARIABLES
+  // ==============================================================================
+
   const [engine, setEngine] = useState<VideoEngine>('ltx2');
   const [quality, setQuality] = useState<QualityMode>('standard');
   const [inputImage, setInputImage] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [frameCount, setFrameCount] = useState(121);
-  const [frameRate, setFrameRate] = useState(25);
-  const [width, setWidth] = useState(1280);
-  const [height, setHeight] = useState(720);
+  const [frameCount] = useState(121);
+  const [frameRate] = useState(25);
+  const [width] = useState(1280);
+  const [height] = useState(720);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isBackendConnected, setIsBackendConnected] = useState(true);
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [generatedVideoPath, setGeneratedVideoPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const jobIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    return () => { if (pollingRef.current) clearInterval(pollingRef.current); };
+  // Sequence editor state
+  const [showSequenceEditor, setShowSequenceEditor] = useState(false);
+  const [editingSequence, setEditingSequence] = useState<SequencePlan | null>(null);
+  const [currentShotIndex, setCurrentShotIndex] = useState(0);
+   const [projectPath] = useState<string>('/tmp/project'); 
+
+  // ==============================================================================
+  // BACKEND CONNECTIVITY CHECK
+  // ==============================================================================
+
+  const checkBackendConnection = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/health', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(5000),
+      });
+      
+      if (response.ok) {
+        setIsBackendConnected(true);
+        return true;
+      } else {
+        setIsBackendConnected(false);
+        return false;
+      }
+    } catch (_err) {
+      setIsBackendConnected(false);
+      return false;
+    }
   }, []);
 
-  const pollTaskStatus = async (taskId: string): Promise<string | void> =>
-    new Promise((resolve, reject) => {
-      const startTime = Date.now();
-      const MAX_POLLING_TIME = 10 * 60 * 1000; // 10 minutes max
+  useEffect(() => {
+    checkBackendConnection();
+  }, [checkBackendConnection]);
 
-      pollingRef.current = setInterval(async () => {
-        if (Date.now() - startTime > MAX_POLLING_TIME) {
-          if (pollingRef.current) clearInterval(pollingRef.current);
-          pollingRef.current = null;
-          reject(new Error("Délai d'attente dépassé (10 min) pour la génération vidéo."));
-          return;
-        }
+  useEffect(() => { 
+    return () => { 
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current); 
+        pollingRef.current = null;
+      }
+    };
+  }, []);
 
-        try {
-          const response: ApiResponse<TaskStatusResponse> = await backendApi.getTaskStatus(taskId);
-          if (!response.success || !response.data) { reject(new Error(response.error || 'Failed to get status')); return; }
-          const status = response.data;
-          if (status.status === 'completed') {
-            const videoPath = status.result?.videoPath as string | undefined;
-            if (videoPath) {
-              setGeneratedVideoPath(videoPath);
-              resolve(videoPath);
-            } else {
-              resolve(undefined);
-            }
-            clearInterval(pollingRef.current!);
-            pollingRef.current = null;
-          } else if (status.status === 'failed') {
-            clearInterval(pollingRef.current!); pollingRef.current = null;
-            reject(new Error(status.error || 'Task failed'));
-          } else {
-            setProgress({ stage: 'latent', stageProgress: status.progress, overallProgress: status.progress * 0.8, message: status.message || 'Traitement...' });
-          }
-        } catch (err) { clearInterval(pollingRef.current!); pollingRef.current = null; reject(err); }
-      }, 2000);
-    });
+  // Handle sequence editor save
+  const handleSequenceSave = (sequence: SequencePlan) => {
+    setEditingSequence(sequence);
+    setShowSequenceEditor(false);
+    toast.success('Séquence mise à jour', 'Le plan de production a été synchronisé.');
+  };
+
+  const handleOpenSequenceEditor = () => {
+    setShowSequenceEditor(true);
+  };
+
+  // ==============================================================================
+  // HANDLE GENERATION AND CANCELLATION
+  // ==============================================================================
 
   const handleGenerate = useCallback(async () => {
-    if (!inputImage || !prompt) { setError('Veuillez fournir une image source et une description.'); return; }
-    setIsGenerating(true); setError(null);
-    setProgress({ stage: 'latent', stageProgress: 0, overallProgress: 0, message: 'Démarrage de la génération vidéo...' });
+    if (!inputImage || !prompt) { 
+      setError('Veuillez fournir une image source et une description.'); 
+      return; 
+    }
+
+    const connected = await checkBackendConnection();
+    if (!connected) {
+      setError('Impossible de se connecter au backend.');
+      toast.error('Erreur', 'Le backend n\'est pas joignable');
+      return;
+    }
+
+    setIsGenerating(true); 
+    setError(null);
+    setProgress({ stage: 'latent', stageProgress: 0, overallProgress: 0, message: 'Démarrage de la génération...' });
 
     try {
       const genParams: VideoGenerationParams = { inputImagePath: inputImage, prompt, frameCount, frameRate, width, height, engine: engine === 'ltx2' ? 'ltx_video' : 'wan21', quality };
+      
       if (onGenerateVideo) {
         await onGenerateVideo(genParams);
       } else {
-        const payload = {
-          inputImagePath: genParams.inputImagePath,
-          prompt: genParams.prompt,
-          frameCount: genParams.frameCount,
-          frameRate: genParams.frameRate,
-          width: genParams.width,
-          height: genParams.height,
-          engine: genParams.engine,
-          quality: genParams.quality
-        };
-        const response = await backendApi.invokeCliCommand('generate_video_from_image', payload);
-        if (!response.success) throw new Error(response.error || 'Video generation failed');
+        const qualitySteps: Record<string, number> = { draft: 10, standard: 20, cinematic: 30, ultra: 40 };
+        const steps = qualitySteps[quality] || 20;
+        const duration = frameCount / frameRate;
+        const aspectRatio = width > height ? '16:9' : width === height ? '1:1' : '9:16';
         
-        const responseData = response.data as Record<string, unknown> | undefined;
-        if (responseData?.taskId && typeof responseData.taskId === 'string') {
-           const generatedPath = await pollTaskStatus(responseData.taskId);
-           if (!generatedPath) {
-             setGeneratedVideoPath(`/api/video/output_${Date.now()}.mp4`);
-           }
-        } else {
-           setGeneratedVideoPath(`/api/video/output_${Date.now()}.mp4`);
+        const payload = {
+          prompt: genParams.prompt,
+          negative_prompt: "blurry, low quality, distorted",
+          aspect_ratio: aspectRatio,
+          duration: Math.min(duration, 20),
+          audio_enabled: true,
+          steps: steps,
+          image_reference: genParams.inputImagePath
+        };
+        
+        const response = await fetch('/api/ltx/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) throw new Error('API Error');
+        
+        const result = await response.json();
+        
+        if (result.output_path) {
+          setGeneratedVideoPath(result.output_path);
+          setProgress({ stage: 'complete', stageProgress: 100, overallProgress: 100, message: 'Succès !' });
+        } else if (result.job_id) {
+          const jobId = result.job_id;
+          jobIdRef.current = jobId;
+          
+          pollingRef.current = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`/api/ltx/status/${jobId}`);
+              if (!statusRes.ok) return;
+              const statusData = await statusRes.json();
+              if (statusData.status === 'completed') {
+                clearInterval(pollingRef.current!);
+                setGeneratedVideoPath(statusData.output_path);
+                setIsGenerating(false);
+              } else if (statusData.status === 'error') {
+                clearInterval(pollingRef.current!);
+                setError('Erreur serveur');
+                setIsGenerating(false);
+              } else {
+                setProgress({ stage: 'latent', stageProgress: statusData.progress || 50, overallProgress: statusData.progress || 50, message: 'Génération en cours...' });
+              }
+            } catch (pollErr) { console.error(pollErr); }
+          }, 2000);
         }
       }
-      setProgress({ stage: 'complete', stageProgress: 100, overallProgress: 100, message: 'Vidéo générée avec succès !' });
     } catch (err) {
-      console.error('Video generation failed:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-      setProgress(null);
-    } finally { setIsGenerating(false); }
-  }, [inputImage, prompt, frameCount, frameRate, width, height, engine, quality, onGenerateVideo]);
+      setError(err instanceof Error ? err.message : 'Erreur');
+      setIsGenerating(false);
+    }
+  }, [inputImage, prompt, frameCount, frameRate, width, height, engine, quality, onGenerateVideo, checkBackendConnection]);
+  
+  const handleCancel = useCallback(async () => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    setIsGenerating(false);
+    setProgress(null);
+  }, []);
 
-  const handleCancel = useCallback(() => {
-    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
-    onCancel?.();
-    setIsGenerating(false); setProgress(null); setError(null);
-  }, [onCancel]);
+  // ==============================================================================
+  // COMPACT SHOT EDITOR
+  // ==============================================================================
+  
+  const renderCompactShotControls = () => {
+    if (!editingSequence?.shots || editingSequence.shots.length === 0) return null;
+    
+    const activeShot = editingSequence.shots[currentShotIndex] || editingSequence.shots[0];
+    
+    return (
+      <div className="shot-manager-floating">
+        <Space direction="vertical" className="w-full" size="middle">
+          <div className="shot-manager-title">SHOT MANAGER</div>
+          <div className="shot-manager-nav">
+            <Button 
+              size="small" 
+              icon={<ChevronLeft className="h-3 w-3" />} 
+              disabled={currentShotIndex === 0}
+              onClick={() => setCurrentShotIndex(prev => Math.max(0, prev - 1))}
+              className="shot-manager-nav-btn"
+            />
+            <InputNumber
+              className="shot-manager-nav-input"
+              min={1}
+              max={editingSequence.shots.length}
+              value={currentShotIndex + 1}
+              onChange={(val) => {
+                 if (val) setCurrentShotIndex(val - 1);
+              }}
+            />
+            <Button 
+              size="small" 
+              icon={<ChevronRight className="h-3 w-3" />} 
+              disabled={currentShotIndex === editingSequence.shots.length - 1}
+              onClick={() => setCurrentShotIndex(prev => Math.min(editingSequence.shots.length - 1, prev + 1))}
+              className="shot-manager-nav-btn"
+            />
+          </div>
 
-  const currentQuality = QUALITY_MODES.find((q) => q.id === quality)!;
-  const duration = (frameCount / frameRate).toFixed(1);
+          <div className="shot-manager-prompt-box">
+            <div className="shot-manager-prompt-label">CURRENT PROMPT</div>
+            <div className="shot-manager-prompt-text">
+              "{activeShot.description || 'No description'}"
+            </div>
+          </div>
 
-  const calculateGemCost = () => {
-    const baseCosts: Record<string, number> = {
-      'draft': 2.5,
-      'standard': 5.0,
-      'cinematic': 10.0,
-      'ultra': 25.0,
-    };
-    return baseCosts[quality] || 5.0;
+          <div className="shot-manager-actions">
+            <Button size="small" type="primary" className="shot-manager-btn-add" icon={<Plus size={14} />} onClick={() => {
+              const updated = [...editingSequence.shots];
+              const base = updated[currentShotIndex] || updated[0];
+              const newShot = JSON.parse(JSON.stringify(base)); // Deep copy
+              newShot.id = `shot-${Date.now()}`;
+              newShot.number = updated.length + 1;
+              updated.splice(currentShotIndex + 1, 0, newShot);
+              // Re-number
+              const renumbered = updated.map((s, i) => ({ ...s, number: i + 1 }));
+              setEditingSequence({ ...editingSequence, shots: renumbered });
+              setCurrentShotIndex(currentShotIndex + 1);
+              toast.success('Shot ajouté', 'Le nouveau plan a été inséré dans la séquence.');
+            }}>Add</Button>
+            <Button size="small" danger ghost className="shot-manager-btn-remove" icon={<Trash2 size={14} />} onClick={() => {
+               if (editingSequence.shots.length > 1) {
+                 const updated = editingSequence.shots.filter((_, i) => i !== currentShotIndex);
+                 const renumbered = updated.map((s, i) => ({ ...s, number: i + 1 }));
+                 setEditingSequence({ ...editingSequence, shots: renumbered });
+                 setCurrentShotIndex(Math.max(0, currentShotIndex - 1));
+                 toast.info('Shot supprimé', 'Le plan a été retiré de la séquence.');
+               }
+            }}>Remove</Button>
+          </div>
+        </Space>
+      </div>
+    );
   };
 
-  const gemCost = calculateGemCost();
+  // ==============================================================================
+  // RENDER UI
+  // ==============================================================================
 
   return (
-    <div style={S.panel}>
-      {/* TITLE */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Film className="h-5 w-5" style={{ color: '#fff' }} />
+    <div className="video-generation-panel">
+      <h2 className="production-title">
+        <Cpu className="text-indigo-400" /> PRODUCTION STUDIO
+        <div className={`backend-status ${isBackendConnected ? 'backend-online' : 'backend-offline'}`}>
+          {isBackendConnected ? 'BACKEND ONLINE' : 'BACKEND OFFLINE'}
         </div>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#e2d9f3' }}>Génération Vidéo Cinématique</h2>
-          <p style={{ margin: 0, fontSize: '0.72rem', color: '#7c6f9e' }}>Powered by LTX2 · Wan 2.1 · Storycore Engine</p>
+      </h2>
+
+      <div className="controls-grid">
+        <div className="control-group">
+          <label className="label">ENGINE</label>
+          <Select value={engine} onChange={(val) => setEngine(val as VideoEngine)} className="w-full">
+            <Select.Option value="ltx2">LTX-2</Select.Option>
+            <Select.Option value="wan21">Wan 2.1</Select.Option>
+          </Select>
+        </div>
+        <div className="control-group">
+          <label className="label">QUALITY</label>
+          <Select value={quality} onChange={(val) => setQuality(val as QualityMode)} className="w-full">
+            {QUALITY_MODES.map(q => <Select.Option key={q.id} value={q.id}>{q.label}</Select.Option>)}
+          </Select>
         </div>
       </div>
-
-      {/* ENGINE SELECTOR */}
-      <div style={{ marginBottom: 20 }}>
-        <p style={S.sectionTitle}>🎬 Moteur de génération</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {/* Wan 2.1 */}
-          <button onClick={() => setEngine('wan21')} disabled={isGenerating} style={S.card(engine === 'wan21')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Film className="h-4 w-4" style={{ color: engine === 'wan21' ? '#a78bfa' : '#5c5075' }} />
-              <span style={{ fontWeight: 700, color: engine === 'wan21' ? '#e2d9f3' : '#7c6f9e', fontSize: '0.85rem' }}>Wan 2.1</span>
-            </div>
-            <p style={{ margin: 0, fontSize: '0.7rem', color: '#5c5075', lineHeight: 1.4 }}>Haute-fidélité, cohérence personnages</p>
-          </button>
-          {/* LTX2 */}
-          <button onClick={() => setEngine('ltx2')} disabled={isGenerating} style={{ ...S.card(engine === 'ltx2'), position: 'relative' }}>
-            <span style={{ position: 'absolute', top: 8, right: 8, fontSize: '0.58rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.12)', border: '1px solid rgba(52,211,153,0.3)', padding: '2px 5px', borderRadius: 4 }}>OPEN-SOURCE</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Cpu className="h-4 w-4" style={{ color: engine === 'ltx2' ? '#a78bfa' : '#5c5075' }} />
-              <span style={{ fontWeight: 700, color: engine === 'ltx2' ? '#e2d9f3' : '#7c6f9e', fontSize: '0.85rem' }}>LTX2</span>
-            </div>
-            <p style={{ margin: 0, fontSize: '0.7rem', color: '#5c5075', lineHeight: 1.4 }}>Ultra-rapide, sans frais, tu possèdes tout</p>
-          </button>
-        </div>
-      </div>
-
-      {/* QUALITY SELECTOR */}
-      <div style={{ marginBottom: 20 }}>
-        <p style={S.sectionTitle}>⚙️ Mode de qualité</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-          {QUALITY_MODES.map((m) => (
-            <button key={m.id} onClick={() => setQuality(m.id)} disabled={isGenerating}
-              style={{ ...S.card(quality === m.id, m.color), textAlign: 'center', padding: '10px 6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4, color: quality === m.id ? m.color : '#5c5075' }}>
-                {m.icon}
-              </div>
-              <div style={{ fontWeight: 700, fontSize: '0.75rem', color: quality === m.id ? '#e2d9f3' : '#7c6f9e' }}>{m.label}</div>
-              <div style={{ fontSize: '0.6rem', color: '#5c5075', marginTop: 2 }}>{m.hint}</div>
-              <div style={{ fontSize: '0.6rem', color: m.color, marginTop: 3, fontWeight: 600 }}>{m.steps} steps</div>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* INPUT IMAGE */}
-      <div style={{ marginBottom: 18 }}>
-        <label htmlFor="input-image" style={S.sectionTitle}>🖼️ Image source</label>
-        <input
-          id="input-image"
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) setInputImage((file as File & { path?: string }).path || file.name);
-          }}
-          disabled={isGenerating}
-          style={{ ...S.input, cursor: 'pointer' }}
+      
+      <div className="source-image-container">
+        <label className="label">SOURCE IMAGE</label>
+        <Input 
+          placeholder="Path/URL to reference image" 
+          value={inputImage} 
+          onChange={(e) => setInputImage(e.target.value)} 
+          className="input"
         />
-        {inputImage && <p style={{ fontSize: '0.7rem', color: '#8b7faa', marginTop: 4 }}>✓ {inputImage}</p>}
       </div>
 
-      {/* PROMPT */}
-      <div style={{ marginBottom: 18 }}>
-        <label htmlFor="motion-prompt" style={S.sectionTitle}>✍️ Description du mouvement</label>
-        <textarea
-          id="motion-prompt"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder={engine === 'ltx2'
-            ? 'Ex: Une personne en hoodie jaune à un bureau. Lumière de l\'après-midi. La caméra commence statique puis zoome lentement...'
-            : 'Ex: Un plan large et dynamique suit un groupe de VTTistes dans la forêt...'}
-          rows={4}
-          disabled={isGenerating}
-          style={{ ...S.input, resize: 'vertical', lineHeight: 1.5 }}
+      <div className="story-prompt-container">
+        <label className="label">STORY PROMPT</label>
+        <Input.TextArea 
+          placeholder="Describe the cinematic action..." 
+          value={prompt} 
+          onChange={(e) => setPrompt(e.target.value)} 
+          className="input story-prompt-textarea"
+          rows={3}
         />
-        <p style={{ margin: '4px 0 0', fontSize: '0.68rem', color: '#5c5075' }}>
-          {engine === 'ltx2' ? '💡 LTX2 adore les prompts cinématiques précis (lumière, sons, caméra).' : '📽️ Wan 2.1 excelle sur les mouvements de personnages.'}
-        </p>
       </div>
-
-      {/* DURATION / FRAME COUNT */}
-      <div style={{ marginBottom: 18 }}>
-        <p style={S.sectionTitle}>🎞️ Durée — <span style={{ color: '#a78bfa' }}>{duration}s</span> à {frameRate} fps</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, marginBottom: 10 }}>
-          {FRAME_PRESETS.map((p) => (
-            <button key={p.label} onClick={() => setFrameCount(p.frames)} disabled={isGenerating}
-              style={S.card(frameCount === p.frames, '#8b5cf6')}>
-              <span style={{ fontSize: '0.78rem', fontWeight: frameCount === p.frames ? 700 : 400 }}>{p.label}</span>
-            </button>
-          ))}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <div>
-            <label style={S.label}>Frames</label>
-            <input type="number" value={frameCount} onChange={(e) => setFrameCount(parseInt(e.target.value) || 121)} min={25} max={481} step={8} disabled={isGenerating} style={S.input} />
-          </div>
-          <div>
-            <label style={S.label}>Frame Rate (fps)</label>
-            <input type="number" value={frameRate} onChange={(e) => setFrameRate(parseInt(e.target.value) || 25)} min={1} max={60} disabled={isGenerating} style={S.input} />
-          </div>
-        </div>
-      </div>
-
-      {/* DIMENSIONS */}
-      <div style={{ marginBottom: 20 }}>
-        <p style={S.sectionTitle}>📐 Dimensions</p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 10 }}>
-          {DIMENSION_PRESETS.map((d) => (
-            <button key={d.label} onClick={() => { setWidth(d.w); setHeight(d.h); }} disabled={isGenerating} style={S.card(width === d.w && height === d.h)}>
-              <span style={{ fontSize: '0.72rem', fontWeight: width === d.w && height === d.h ? 700 : 400 }}>{d.label}</span>
-            </button>
-          ))}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <div>
-            <label style={S.label}>Largeur</label>
-            <input type="number" value={width} onChange={(e) => setWidth(parseInt(e.target.value) || 1280)} min={256} max={1920} step={8} disabled={isGenerating} style={S.input} />
-          </div>
-          <div>
-            <label style={S.label}>Hauteur</label>
-            <input type="number" value={height} onChange={(e) => setHeight(parseInt(e.target.value) || 720)} min={256} max={1920} step={8} disabled={isGenerating} style={S.input} />
-          </div>
-        </div>
-      </div>
-
-      {/* PROGRESS */}
-      {progress && (
-        <div style={{ marginBottom: 18, padding: 14, borderRadius: 10, background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: '0.75rem' }}>
-            <span style={{ color: '#a78bfa', fontWeight: 600 }}>
-              {progress.stage === 'latent' && '⚙️ Génération latente'}
-              {progress.stage === 'upscaling' && '✨ Upscaling spatial'}
-              {progress.stage === 'complete' && '✅ Terminé !'}
-            </span>
-            <span style={{ color: '#7c6f9e' }}>{progress.overallProgress.toFixed(0)}%</span>
-          </div>
-          <div style={S.progressTrack}>
-            <div style={S.progressFill(progress.overallProgress)} />
-          </div>
-          <p style={{ margin: '8px 0 0', fontSize: '0.7rem', color: '#7c6f9e' }}>{progress.message}</p>
-        </div>
-      )}
-
-      {/* VIDEO PREVIEW */}
-      {generatedVideoPath && (
-        <div style={{ marginBottom: 18 }}>
-          <p style={S.sectionTitle}>🎬 Vidéo générée</p>
-          <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(139,92,246,0.2)' }}>
-            <video src={generatedVideoPath} controls style={{ width: '100%', display: 'block', background: '#000' }}>
-              Ton navigateur ne prend pas en charge la balise vidéo.
-            </video>
-          </div>
-        </div>
-      )}
-
-      {/* ERROR */}
-      {error && (
-        <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-          <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: '#f87171', marginTop: 2 }} />
-          <span style={{ fontSize: '0.78rem', color: '#f87171' }}>{error}</span>
-        </div>
-      )}
-
-      {/* ACTIONS */}
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button
-          onClick={handleGenerate}
-          disabled={isGenerating || !inputImage || !prompt}
-          style={{
-            flex: 1,
-            padding: '12px 20px',
-            borderRadius: 10,
-            border: 'none',
-            background: isGenerating
-              ? 'rgba(139,92,246,0.25)'
-              : `linear-gradient(135deg, ${currentQuality.color} 0%, #7c3aed 100%)`,
-            color: '#fff',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            cursor: isGenerating || !inputImage || !prompt ? 'not-allowed' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            boxShadow: isGenerating ? 'none' : `0 0 20px ${currentQuality.color}40`,
-            transition: 'all 0.2s',
-          }}
+      
+      <div className="sequence-plan-container">
+        <Button 
+          icon={<Film size={14} />} 
+          onClick={handleOpenSequenceEditor}
+          className="btn-sequence-plan"
         >
-          {isGenerating
-            ? <><Loader2 className="h-4 w-4 animate-spin" /> Génération en cours…</>
-            : (
-              <>
-                <Play className="h-4 w-4" /> 
-                Générer · {engine === 'ltx2' ? 'LTX2' : 'Wan 2.1'} · {currentQuality.label}
-                <div style={{
-                  marginLeft: 12,
-                  padding: '2px 8px',
-                  background: 'rgba(0,0,0,0.3)',
-                  borderRadius: 20,
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  border: '1px solid rgba(255,255,255,0.2)'
-                }}>
-                  <span style={{ color: '#fbbf24' }}>💎</span> {gemCost} Gems
-                </div>
-              </>
-            )}
-        </button>
-        {isGenerating && (
-          <button
-            onClick={handleCancel}
-            style={{ padding: '12px 18px', borderRadius: 10, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+          {editingSequence ? 'EDIT SEQUENCE PLAN' : 'ATTACH SEQUENCE PLAN'}
+        </Button>
+      </div>
+
+      {progress && (
+        <div className="progress-container">
+          <div className="progress-header">
+             <span className="progress-message">{progress.message.toUpperCase()}</span>
+             <span>{Math.round(progress.stageProgress)}%</span>
+          </div>
+          <div className="progress-track">
+            <div 
+              className="progress-fill" 
+              style={{ '--progress-width': `${progress.stageProgress}%` } as React.CSSProperties} 
+            />
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-box">
+          <AlertCircle className="h-4 w-4 text-red-400" />
+          <span className="error-message">{error}</span>
+        </div>
+      )}
+      
+      <div className="action-buttons">
+        {!isGenerating ? (
+          <Button 
+            type="primary" 
+            size="large" 
+            block
+            icon={<Play size={16} />}
+            onClick={handleGenerate}
+            className="btn-generate-cinematic"
           >
-            <Square className="h-4 w-4" /> Annuler
-          </button>
+            GENERATE CINEMATIC
+          </Button>
+        ) : (
+          <Button 
+            danger 
+            size="large" 
+            block
+            icon={<Square size={16} />}
+            onClick={handleCancel}
+            className="btn-stop-generation"
+          >
+            STOP GENERATION
+          </Button>
         )}
       </div>
+
+      {generatedVideoPath && (
+        <div className="render-output-container">
+          <div className="render-output-label">RENDER OUTPUT</div>
+          <video src={generatedVideoPath} controls autoPlay className="render-output-video" />
+        </div>
+      )}
+
+      {showSequenceEditor && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <SequenceEditor
+              projectPath={projectPath}
+              currentSequence={editingSequence || undefined}
+              onClose={() => setShowSequenceEditor(false)}
+              onSave={handleSequenceSave}
+            />
+          </div>
+        </div>
+      )}
+
+      {renderCompactShotControls()}
     </div>
   );
 };
-
-export default VideoGenerationPanel;

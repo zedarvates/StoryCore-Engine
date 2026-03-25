@@ -10,31 +10,14 @@
 
 import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type { Track, Shot, Layer, LayerType } from '../../types';
+import { LAYER_ICONS, formatTimecode, getTrackShots, getLayerIndex } from '../../constants/timelineConstants';
+import type { Track, Shot, Layer, LayerType, ReferenceImage } from '../../types';
+import './VirtualTimelineCanvas.css';
 
 // ============================================================================
 // Constants
 // ============================================================================
 
-// Track type configuration with colors and icons
-export const TRACK_CONFIG: Record<LayerType, { color: string; icon: string; height: number; name: string }> = {
-  media: { color: '#4A90E2', icon: '🎬', height: 60, name: 'Media' },
-  audio: { color: '#50C878', icon: '🔊', height: 40, name: 'Audio' },
-  effects: { color: '#9B59B6', icon: '✨', height: 40, name: 'Effects' },
-  transitions: { color: '#E67E22', icon: '↔️', height: 30, name: 'Transitions' },
-  text: { color: '#F39C12', icon: '📝', height: 40, name: 'Text' },
-  keyframes: { color: '#E74C3C', icon: '🔑', height: 30, name: 'Keyframes' },
-};
-
-// Layer type configuration
-export const LAYER_ICONS: Record<LayerType, string> = {
-  media: '🎬',
-  audio: '🔊',
-  effects: '✨',
-  transitions: '↔️',
-  text: '📝',
-  keyframes: '🔑',
-};
 
 // Timeline rendering constants
 const SHOT_CORNER_RADIUS = 4;
@@ -76,46 +59,7 @@ interface VirtualTimelineCanvasProps {
   isPlaying?: boolean;
 }
 
-// ============================================================================
-// Utility Functions
-// ============================================================================
 
-/**
- * Get shots that have layers matching the specified track type
- */
-export function getTrackShots(shots: Shot[], trackType: LayerType): Array<{ shot: Shot; layer: Layer }> {
-  const result: Array<{ shot: Shot; layer: Layer }> = [];
-  
-  shots.forEach((shot) => {
-    shot.layers
-      .filter((layer) => layer.type === trackType)
-      .forEach((layer) => {
-        result.push({ shot, layer });
-      });
-  });
-  
-  return result;
-}
-
-/**
- * Get layer index for stacking within a shot
- */
-function getLayerIndex(shot: Shot, trackType: LayerType, targetLayer: Layer): number {
-  return shot.layers
-    .filter((l) => l.type === trackType)
-    .indexOf(targetLayer);
-}
-
-/**
- * Format timecode from frame number
- */
-function formatTimecode(frame: number, fps: number = 24): string {
-  const totalSeconds = Math.floor(frame / fps);
-  const seconds = totalSeconds % 60;
-  const minutes = Math.floor(totalSeconds / 60);
-  const frames = frame % fps;
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(frames).padStart(2, '0')}`;
-}
 
 /**
  * Draw grid lines on canvas
@@ -213,7 +157,8 @@ function drawLayer(
   isLocked: boolean,
   isHidden: boolean,
   dragOffset: number = 0,
-  sequenceNumber?: number
+  sequenceNumber?: number,
+  hasCoherenceSheet?: { character: boolean; location: boolean }
 ): void {
   const x = shot.startTime * zoomLevel + dragOffset;
   const width = Math.max(shot.duration * zoomLevel, MIN_SHOT_WIDTH);
@@ -315,6 +260,24 @@ function drawLayer(
     ctx.fillText('🔒', x + width - 4, y + height / 2);
     ctx.textAlign = 'left';
   }
+  
+  // Draw coherence indicators (Ghost for character, MapPin for location)
+  if (hasCoherenceSheet && (hasCoherenceSheet.character || hasCoherenceSheet.location)) {
+    ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'right';
+    
+    if (hasCoherenceSheet.character && hasCoherenceSheet.location) {
+      ctx.fillStyle = '#4ade80'; // Green for full coherence
+      ctx.fillText('👤📍', x + width - 4, y + height - 6);
+    } else if (hasCoherenceSheet.character) {
+      ctx.fillStyle = '#60a5fa'; // Blue for character only
+      ctx.fillText('👤', x + width - 4, y + height - 6);
+    } else if (hasCoherenceSheet.location) {
+      ctx.fillStyle = '#fbbf24'; // Amber for location only
+      ctx.fillText('📍', x + width - 4, y + height - 6);
+    }
+    ctx.textAlign = 'left';
+  }
 }
 
 /**
@@ -380,10 +343,11 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRefs = useRef<Map<string, HTMLCanvasElement>>(new Map());
-  const [containerSize, setContainerSize] = useState({ width: 800, height: 400 });
   
   // Drag and Drop state
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizeEdge, setResizeEdge] = useState<'start' | 'end' | null>(null);
   const [draggedShotId, setDraggedShotId] = useState<string | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
   const [currentDragX, setCurrentDragX] = useState(0);
@@ -414,15 +378,10 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         : () => 40,
   });
   
-  // Update container size on resize
+  // Update container size on resize - logically still useful for canvas updates
   useEffect(() => {
     const updateSize = () => {
-      if (containerRef.current) {
-        setContainerSize({
-          width: containerRef.current.clientWidth,
-          height: containerRef.current.clientHeight,
-        });
-      }
+      // Logic for size-dependent re-renders if needed
     };
     
     updateSize();
@@ -463,13 +422,30 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       drawGridLines(ctx, canvas.width, canvas.height, zoomLevel);
       
       // Draw layers
-      trackLayers.forEach(({ shot, layer }) => {
+      trackLayers.forEach(({ shot, layer }: { shot: Shot; layer: Layer }) => {
         const isSelected = selectedElements.includes(shot.id);
         const isDraggingThis = isDragging && draggedShotId === shot.id && dragTrackId === track.id;
+        const isResizingThis = isResizing && draggedShotId === shot.id;
+        
         const dragOffset = isDraggingThis ? currentDragX - dragStartX : 0;
         
+        // Live preview for resizing
+        const previewShot = { ...shot };
+        if (isResizingThis) {
+          const deltaX = currentDragX - dragStartX;
+          const deltaFrames = Math.round(deltaX / zoomLevel);
+          if (resizeEdge === 'start') {
+            const newStart = Math.max(0, shot.startTime + deltaFrames);
+            const actualShift = newStart - shot.startTime;
+            previewShot.startTime = newStart;
+            previewShot.duration = Math.max(1, shot.duration - actualShift);
+          } else {
+            previewShot.duration = Math.max(1, shot.duration + deltaFrames);
+          }
+        }
+        
         ctx.save();
-        if (isDraggingThis) {
+        if (isDraggingThis || isResizingThis) {
           ctx.globalAlpha = 0.6;
           ctx.shadowBlur = 10;
           ctx.shadowColor = 'rgba(0,0,0,0.5)';
@@ -477,7 +453,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
 
         drawLayer(
           ctx,
-          shot,
+          previewShot,
           layer,
           track.type,
           track.height,
@@ -487,7 +463,11 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           layer.locked,
           layer.hidden,
           dragOffset,
-          shotIndices.get(shot.id)
+          shotIndices.get(shot.id),
+          {
+            character: shot.referenceImages?.some((r: ReferenceImage) => r.id.startsWith('sheet-character')) || false,
+            location: shot.referenceImages?.some((r: ReferenceImage) => r.id.startsWith('sheet-location')) || false
+          }
         );
         ctx.restore();
       });
@@ -498,84 +478,169 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         drawPlayhead(ctx, playheadX, canvas.height, isPlaying);
       }
     });
-  }, [visibleTracks, shots, zoomLevel, playheadPosition, selectedElements, isPlaying, isDragging, draggedShotId, currentDragX, dragStartX, dragTrackId]);
+  }, [visibleTracks, shots, zoomLevel, playheadPosition, selectedElements, isPlaying, isDragging, isResizing, resizeEdge, draggedShotId, currentDragX, dragStartX, dragTrackId]);
   
   // Handle canvas click for shot/layer selection
   // Handle canvas mouse down for shot/layer selection and drag start
   const handleMouseDown = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>, track: Track) => {
       const rect = e.currentTarget.getBoundingClientRect();
+      // Mouse position relative to the track container
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       
       const trackLayers = getTrackShots(shots, track.type);
       
-      // Try to find the specific layer clicked
-      for (const { shot, layer } of trackLayers) {
+      // Try to find the specific layer clicked - Iterate in reverse to find top-most layer if stacked
+      for (let i = trackLayers.length - 1; i >= 0; i--) {
+        const { shot, layer } = trackLayers[i];
         const shotStart = shot.startTime * zoomLevel;
         const shotEnd = (shot.startTime + shot.duration) * zoomLevel;
+        
+        // Calculate vertical stack position
         const layerIndex = getLayerIndex(shot, track.type, layer);
         const layerTop = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
         const layerBottom = layerTop + LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
         
+        // Check if mouse is within shot boundaries
         if (x >= shotStart && x <= shotEnd && y >= layerTop && y <= layerBottom) {
-          // Found shot to drag or select
+          // Found shot to interact with
           onShotSelect(shot.id, e.ctrlKey || e.metaKey);
           if (onLayerSelect) {
             onLayerSelect(shot.id, layer.id, e.ctrlKey || e.metaKey);
           }
           
           if (!layer.locked) {
-            setIsDragging(true);
-            setDraggedShotId(shot.id);
-            setDragTrackId(track.id);
-            setDragStartX(x);
-            setCurrentDragX(x);
+            const handleWidth = 8; // width of the resize handle area
+            
+            // Check for resize edge first
+            if (x <= shotStart + handleWidth) {
+              setIsResizing(true);
+              setResizeEdge('start');
+              setDraggedShotId(shot.id);
+              setDragStartX(x);
+              setCurrentDragX(x);
+            } else if (x >= shotEnd - handleWidth) {
+              setIsResizing(true);
+              setResizeEdge('end');
+              setDraggedShotId(shot.id);
+              setDragStartX(x);
+              setCurrentDragX(x);
+            } else {
+              // Regular move dragging
+              setIsDragging(true);
+              setDraggedShotId(shot.id);
+              setDragTrackId(track.id);
+              setDragStartX(x);
+              setCurrentDragX(x);
+            }
           }
           return;
         }
       }
       
-      // If clicking empty area, maybe deselect?
-      // onShotSelect('', false);
+      // Clear selection if clicking on empty track area and NOT multi-selecting
+      if (!e.ctrlKey && !e.metaKey) {
+        onShotSelect('', false);
+      }
     },
     [shots, zoomLevel, onShotSelect, onLayerSelect]
   );
 
-  // Handle canvas mouse move for dragging
+  // Handle canvas mouse move for dragging, resizing, and cursor updates
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (isDragging) {
-        const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+    (e: React.MouseEvent<HTMLCanvasElement>, track?: Track) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (isDragging || isResizing) {
         setCurrentDragX(x);
+        return;
+      }
+
+      // Cursor management
+      if (track) {
+        const trackLayers = getTrackShots(shots, track.type);
+        let cursor = 'default';
+        const handleWidth = 8;
+
+        for (const { shot, layer } of trackLayers) {
+          const shotStart = shot.startTime * zoomLevel;
+          const shotEnd = (shot.startTime + shot.duration) * zoomLevel;
+          
+          const layerIndex = getLayerIndex(shot, track.type, layer);
+          const layerTop = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
+          const layerBottom = layerTop + LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
+
+          if (x >= shotStart && x <= shotEnd && y >= layerTop && y <= layerBottom) {
+            cursor = 'grab';
+            if (!layer.locked) {
+              if (x <= shotStart + handleWidth || x >= shotEnd - handleWidth) {
+                cursor = 'col-resize';
+              }
+            }
+            break;
+          }
+        }
+        e.currentTarget.style.cursor = cursor;
       }
     },
-    [isDragging]
+    [isDragging, isResizing, shots, zoomLevel]
   );
 
   // Handle canvas mouse up to end dragging
   const handleMouseUp = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (isDragging && draggedShotId && onShotMove) {
+    () => {
+      if ((isDragging || isResizing) && draggedShotId) {
         const deltaX = currentDragX - dragStartX;
         const currentShot = shots.find(s => s.id === draggedShotId);
         
         if (currentShot) {
           const deltaFrames = Math.round(deltaX / zoomLevel);
-          const newStartTime = Math.max(0, currentShot.startTime + deltaFrames);
           
-          if (newStartTime !== currentShot.startTime) {
-            onShotMove(draggedShotId, newStartTime);
+          if (isResizing && resizeEdge && onShotResize) {
+            let newDuration = currentShot.duration;
+            let newStartTime = currentShot.startTime;
+            
+            if (resizeEdge === 'start') {
+              // Dragging start edge: shift startTime AND adjust duration conversely
+              newStartTime = Math.max(0, currentShot.startTime + deltaFrames);
+              // Ensure we don't resize past the end
+              const allowedShift = currentShot.duration - Math.max(1, MIN_SHOT_WIDTH / zoomLevel);
+              if (newStartTime > currentShot.startTime + allowedShift) {
+                newStartTime = Math.round(currentShot.startTime + allowedShift);
+              }
+              const actualShift = newStartTime - currentShot.startTime;
+              newDuration = currentShot.duration - actualShift;
+              
+              if (newDuration !== currentShot.duration) {
+                onShotResize(draggedShotId, newDuration, 'start');
+                // Note: we might need to update startTime too in the handler
+              }
+            } else {
+              // Dragging end edge: just adjust duration
+              newDuration = Math.max(Math.round(MIN_SHOT_WIDTH / zoomLevel), currentShot.duration + deltaFrames);
+              if (newDuration !== currentShot.duration) {
+                onShotResize(draggedShotId, newDuration, 'end');
+              }
+            }
+          } else if (isDragging && onShotMove) {
+            const newStartTime = Math.max(0, currentShot.startTime + deltaFrames);
+            if (newStartTime !== currentShot.startTime) {
+              onShotMove(draggedShotId, newStartTime);
+            }
           }
         }
       }
       
       setIsDragging(false);
+      setIsResizing(false);
+      setResizeEdge(null);
       setDraggedShotId(null);
       setDragTrackId(null);
     },
-    [isDragging, draggedShotId, currentDragX, dragStartX, zoomLevel, shots, onShotMove]
+    [isDragging, isResizing, resizeEdge, draggedShotId, currentDragX, dragStartX, zoomLevel, shots, onShotMove, onShotResize]
   );
   
   // Resize canvas observer
@@ -600,16 +665,11 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   return (
     <div ref={containerRef} className="virtual-timeline-canvas">
       {/* Canvas for drawing static elements (grid, playhead, etc.) */}
-      <div
-        className="static-overlay-canvas"
-        style={{
-          width: timelineWidth,
-          height: totalHeight,
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          pointerEvents: 'none',
-          zIndex: 5,
+      <div 
+        className="static-overlay-canvas-wrapper" 
+        style={{ 
+          width: timelineWidth, 
+          height: totalHeight 
         }}
       >
         <canvas
@@ -621,12 +681,8 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       
       {/* Virtual list of tracks */}
       <div
-        className="timeline-track-list"
-        style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
+        className="timeline-track-list-container"
+        style={{ height: rowVirtualizer.getTotalSize() }}
       >
         {/* Render all visible tracks (fallback for test environment) */}
         {rowVirtualizer.getVirtualItems().length === 0 && visibleTracks.map((track, index) => {
@@ -637,18 +693,14 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
               key={track.id}
               className="virtual-track-row"
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${track.height}px`,
+                height: track.height,
                 transform: `translateY(${visibleTracks.slice(0, index).reduce((sum, t) => sum + t.height, 0)}px)`,
               }}
             >
               <div
                 id={`track-container-${track.id}`}
                 className="track-canvas-container"
-                style={{ width: '100%', height: track.height }}
+                style={{ height: track.height }}
               >
                 <canvas
                   ref={(el) => {
@@ -659,7 +711,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
                   width={timelineWidth}
                   height={track.height}
                   onMouseDown={(e) => handleMouseDown(e, track)}
-                  onMouseMove={handleMouseMove}
+                  onMouseMove={(e) => handleMouseMove(e, track)}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                   style={{
@@ -690,18 +742,14 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
               key={track.id}
               className="virtual-track-row"
               style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: `${track.height}px`,
+                height: track.height,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >
               <div
                 id={`track-container-${track.id}`}
                 className="track-canvas-container"
-                style={{ width: '100%', height: track.height }}
+                style={{ height: track.height }}
               >
                 <canvas
                   ref={(el) => {
@@ -712,7 +760,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
                   width={timelineWidth}
                   height={track.height}
                   onMouseDown={(e) => handleMouseDown(e, track)}
-                  onMouseMove={handleMouseMove}
+                  onMouseMove={(e) => handleMouseMove(e, track)}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
                   style={{

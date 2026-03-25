@@ -29,6 +29,7 @@ class LTXRequest(BaseModel):
     seed: Optional[int] = Field(None, description="Random seed for reproducibility")
     steps: int = Field(20, description="Number of sampling steps (10-50)")
     cfg: float = Field(3.5, description="Classifier Free Guidance (1.0-10.0)")
+    image_reference: Optional[str] = Field(None, description="Path to image for Image-to-Video generation")
 
 class LTXResponse(BaseModel):
     """Response for LTX video generation job submission"""
@@ -53,7 +54,9 @@ async def generate_video(request: LTXRequest):
     """
     Submits a video generation job to LTX 2.3.
     """
-    # 1. Map aspect ratio string to Enum
+    job_id = str(uuid.uuid4())
+    
+    # 1. Map aspect ratio
     ar_map = {
         "16:9": LTXAspectRatio.HORIZONTAL,
         "9:16": LTXAspectRatio.VERTICAL,
@@ -72,23 +75,18 @@ async def generate_video(request: LTXRequest):
         audio_prompt=request.audio_prompt,
         seed=request.seed,
         steps=request.steps,
-        cfg=request.cfg
+        cfg=request.cfg,
+        image_reference=request.image_reference
     )
     
-    # 3. Create service and submit
+    # 3. Create service and submit in background
     service = LTXVideoService()
-    
-    # Run in background via service directly (handling its own polling/async)
-    # Note: In a production app, we would use a task queue like Celery or Redis Task Queue.
-    # For now, we utilize the async methods of the service.
-    
-    # Start the job
-    asyncio.create_task(service.generate_video(config))
+    asyncio.create_task(service.generate_video(config, job_id=job_id))
     
     return LTXResponse(
-        job_id=str(uuid.uuid4()), # In a real implementation, the service would return this
+        job_id=job_id,
         status="pending",
-        message="Generation job started. Check status with /api/ltx/status/{job_id}"
+        message="Generation job started."
     )
 
 @LTX_ROUTER.get("/status/{job_id}", response_model=LTXStatusResponse)
@@ -96,12 +94,21 @@ async def get_status(job_id: str):
     """
     Check the status of a generation job.
     """
-    # Implementation placeholder: Retrieve from redis/temp_db
-    # This would normally query the service's state tracker.
+    job_state = LTXVideoService.get_job_status(job_id)
+    if not job_state:
+        # Check if it's a mock or legacy ID
+        return LTXStatusResponse(
+            job_id=job_id,
+            status="not_found",
+            error="Job ID not found in current session"
+        )
+    
     return LTXStatusResponse(
         job_id=job_id,
-        status="processing",
-        message="Job is currently being processed by ComfyUI"
+        status=job_state.get("status", "unknown"),
+        output_path=job_state.get("output_path"),
+        error=job_state.get("error"),
+        config=job_state.get("config")
     )
 
 import asyncio

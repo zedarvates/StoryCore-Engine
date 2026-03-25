@@ -295,10 +295,74 @@
 /* Action Buttons */
 .config-actions {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
   padding-top: 12px;
   border-top: 1px solid var(--border-color, #333333);
   margin-top: auto;
+}
+
+.generation-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-color, #333333);
+  padding-bottom: 16px;
+  width: 100%;
+}
+
+.generation-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  background-color: #252530;
+  border: 1px solid var(--border-color, #333333);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-primary, #ffffff);
+}
+
+.generation-action-btn:hover:not(:disabled) {
+  background-color: var(--hover-bg, #333333);
+  border-color: var(--accent-color, #4A90E2);
+}
+
+.generation-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generation-action-label {
+  font-size: 10px;
+  text-align: center;
+}
+
+.convert-puppet-btn {
+  width: 100%;
+  padding: 10px 20px;
+  background-color: #2a2a3a;
+  border: 1px solid var(--accent-color, #4A90E2);
+  color: var(--accent-color, #4A90E2);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.convert-puppet-btn:hover:not(:disabled) {
+  background-color: var(--accent-color, #4A90E2);
+  color: #ffffff;
+}
+
+.config-actions-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
 }
 
 .revert-btn,

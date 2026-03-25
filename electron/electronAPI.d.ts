@@ -9,6 +9,7 @@ export interface ProjectData {
   template?: string;
   format?: any;
   initialShots?: any[];
+  discussion?: string; // Discussion history to save as markdown
 }
 
 export interface Project {

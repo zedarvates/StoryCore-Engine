@@ -39,6 +39,8 @@ export interface ProjectData {
   capabilities: ProjectCapabilities;
   generation_status: GenerationStatus;
   storyboard?: Shot[];
+  summary?: string;
+  header?: string;
   assets?: AssetMetadata[];
   characters?: CharacterReference[];
   scenes?: SceneReference[];

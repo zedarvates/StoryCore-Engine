@@ -87,6 +87,7 @@ class CharacterCreationConfig:
     # User hints
     target_gender: Optional[str] = None
     target_age: Optional[str] = None
+    target_ethnicity: Optional[str] = None
     
     # Output settings
     save_extracted_face: bool = True
@@ -164,7 +165,8 @@ class ImageToCharacterService:
         role: Optional[str] = None,
         additional_context: Optional[str] = None,
         target_gender: Optional[str] = None,
-        target_age: Optional[str] = None
+        target_age: Optional[str] = None,
+        target_ethnicity: Optional[str] = None
     ) -> ImageCharacterResult:
         """
         Create a character from an image.
@@ -202,7 +204,8 @@ class ImageToCharacterService:
                     image_array, 
                     additional_context,
                     target_gender or self.config.target_gender,
-                    target_age or self.config.target_age
+                    target_age or self.config.target_age,
+                    target_ethnicity or self.config.target_ethnicity
                 ))
             
             # Execute tasks
@@ -301,7 +304,8 @@ class ImageToCharacterService:
         image: np.ndarray,
         additional_context: Optional[str],
         target_gender: Optional[str] = None,
-        target_age: Optional[str] = None
+        target_age: Optional[str] = None,
+        target_ethnicity: Optional[str] = None
     ) -> CharacterAnalysisResult:
         """Async task for vision analysis"""
         return await self._vision_analyzer.analyze_image(
@@ -310,7 +314,8 @@ class ImageToCharacterService:
             style=self.config.visual_style,
             additional_context=additional_context,
             target_gender=target_gender,
-            target_age=target_age
+            target_age=target_age,
+            target_ethnicity=target_ethnicity
         )
     
     def _to_numpy_array(

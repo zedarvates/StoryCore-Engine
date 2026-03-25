@@ -592,14 +592,49 @@
   border-top: 12px solid var(--accent-color, #4a90e2);
 }
 
-.playhead-line {
+/* ============================================================================
+   Virtual Timeline Canvas & Layout
+   ============================================================================ */
+
+.virtual-timeline-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.static-overlay-canvas-wrapper {
   position: absolute;
-  top: 12px;
+  top: 0;
   left: 0;
-  width: 2px;
-  bottom: 0;
-  background-color: var(--accent-color, #4a90e2);
-  box-shadow: 0 0 4px var(--accent-color, #4a90e2);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.timeline-track-list-container {
+  width: 100%;
+  position: relative;
+}
+
+.virtual-track-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+}
+
+.track-canvas-container {
+  position: relative;
+  width: 100%;
+}
+
+.track-canvas {
+  display: block;
+  cursor: pointer;
+}
+
+.track-canvas.grabbing {
+  cursor: grabbing;
 }
 
 .playhead-timecode {

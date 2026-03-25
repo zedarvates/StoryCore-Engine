@@ -37,6 +37,23 @@ export function useChatService() {
   // Update context when project state changes
   useEffect(() => {
     if (chatServiceRef.current) {
+      const previousProjectId = chatServiceRef.current.getProjectId();
+      const newProjectId = project?.id;
+      
+      // DEBUG: Log project changes to diagnose memory mixing
+      console.log(`[useChatService] DEBUG - Project changed:`, {
+        previousProjectId,
+        newProjectId,
+        historyLengthBefore: chatServiceRef.current.getHistory().length,
+        isNewProject: previousProjectId !== newProjectId && previousProjectId !== null,
+      });
+      
+      // If project changed, we should clear the conversation history
+      if (previousProjectId && newProjectId && previousProjectId !== newProjectId) {
+        console.log(`[useChatService] DEBUG - Clearing conversation history due to project change from ${previousProjectId} to ${newProjectId}`);
+        chatServiceRef.current.clearHistory();
+      }
+      
       chatServiceRef.current.updateContext({
         project,
         shots,
@@ -86,14 +103,18 @@ export function useChatService() {
         response.actions.forEach((action) => {
           switch (action.type) {
             case 'addShot':
-              addShot(action.payload);
+              addShot(action.payload as Parameters<typeof addShot>[0]);
               break;
-            case 'updateShot':
-              updateShot(action.payload.id, action.payload.updates);
+            case 'updateShot': {
+              const shotPayload = action.payload as { id: string; updates: Record<string, unknown> };
+              updateShot(shotPayload.id, shotPayload.updates);
               break;
-            case 'deleteShot':
-              deleteShot(action.payload.id);
+            }
+            case 'deleteShot': {
+              const deletePayload = action.payload as { id: string };
+              deleteShot(deletePayload.id);
               break;
+            }
             // Add more action handlers as needed
           }
         });

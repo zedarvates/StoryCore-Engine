@@ -132,6 +132,7 @@ export function ImageCharacterCreator({
   const [targetGender, setTargetGender] = useState<string>('');
   const [targetAge, setTargetAge] = useState<string>('');
   const [targetArchetype, setTargetArchetype] = useState<string>('Protagonist');
+  const [targetEthnicity, setTargetEthnicity] = useState<string>('');
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -244,6 +245,7 @@ export function ImageCharacterCreator({
       formData.append('apply_genre_adaptations', String(applyGenreAdaptations));
       if (targetGender) formData.append('target_gender', targetGender);
       if (targetAge) formData.append('target_age', targetAge);
+      if (targetEthnicity) formData.append('target_ethnicity', targetEthnicity);
       
       // Call API
       const response = await fetch('/api/character/from-image', {
@@ -323,15 +325,18 @@ export function ImageCharacterCreator({
     }
 
     // Map gender to GENDER_OPTIONS, respecting user hint if provided
-    let gender = (targetGender && targetGender !== '') ? 
-      (targetGender.charAt(0).toUpperCase() + targetGender.slice(1)) : 
-      'Other';
+    let gender: import('@/types/character').Gender = 'other';
+    const genderHint = (targetGender || '').toLowerCase();
+    
+    if (genderHint.includes('female')) gender = 'female';
+    else if (genderHint.includes('male')) gender = 'male';
+    else if (genderHint.includes('non-binary')) gender = 'non-binary';
     
     if (!targetGender || targetGender === '') {
       const genderInput = (data.physical_attributes?.gender || '').toLowerCase();
-      if (genderInput.includes('female')) gender = 'Female';
-      else if (genderInput.includes('male')) gender = 'Male';
-      else if (genderInput.includes('non-binary')) gender = 'Non-binary';
+      if (genderInput.includes('female')) gender = 'female';
+      else if (genderInput.includes('male')) gender = 'male';
+      else if (genderInput.includes('non-binary')) gender = 'non-binary';
     }
 
     // Map age to AGE_RANGES, respecting user hint if provided
@@ -378,7 +383,8 @@ export function ImageCharacterCreator({
         facial_structure: data.physical_attributes?.face_shape || '',
         distinctive_features: data.physical_attributes?.distinctive_features || [],
         age_range: ageRange,
-        gender: gender as any,
+        gender: gender,
+        ethnicity: targetEthnicity || '',
         height: '',
         build: data.physical_attributes?.body_type || '',
         posture: '',
@@ -403,7 +409,8 @@ export function ImageCharacterCreator({
         education: '',
         family: '',
         significant_events: [],
-        current_situation: ''
+        current_situation: '',
+        backstory: data.description || ''
       },
       relationships: [],
       prompts: [data.portrait_prompt || '', data.full_body_prompt || ''].filter(Boolean)
@@ -607,6 +614,28 @@ export function ImageCharacterCreator({
                   <option value="adult">Adult</option>
                   <option value="middle_aged">Middle Aged</option>
                   <option value="senior">Senior</option>
+                </select>
+              </div>
+
+              <div className="image-character-creator__field">
+                <label htmlFor="character-ethnicity">Ethnicity (optional hint)</label>
+                <select
+                  id="character-ethnicity"
+                  value={targetEthnicity}
+                  onChange={(e) => setTargetEthnicity(e.target.value)}
+                  title="Select character ethnicity"
+                  className="w-full bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 rounded-xl"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="">Auto-detected</option>
+                  <option value="caucasian">Caucasian / Western</option>
+                  <option value="asian">Asian / Eastern</option>
+                  <option value="african">African / Black</option>
+                  <option value="hispanic">Hispanic / Latino</option>
+                  <option value="middle_eastern">Middle Eastern</option>
+                  <option value="south_asian">South Asian (Indian)</option>
+                  <option value="native_american">Native American</option>
+                  <option value="pacific_islander">Pacific Islander</option>
                 </select>
               </div>
             </div>

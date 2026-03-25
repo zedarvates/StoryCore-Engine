@@ -158,7 +158,7 @@ describe('ShotConfigPanel', () => {
     it('should display shot prompt', () => {
       renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       expect(promptEditor).toHaveValue('A beautiful sunrise over mountains');
     });
 
@@ -184,7 +184,7 @@ describe('ShotConfigPanel', () => {
     it('should allow editing prompt', () => {
       renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'New prompt text' } });
 
       expect(promptEditor).toHaveValue('New prompt text');
@@ -199,7 +199,7 @@ describe('ShotConfigPanel', () => {
     it('should update character count when prompt changes', () => {
       renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'Short' } });
 
       expect(screen.getByText('5 characters')).toBeInTheDocument();
@@ -208,7 +208,7 @@ describe('ShotConfigPanel', () => {
     it('should show modified indicator when prompt changes', () => {
       const { container } = renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'Modified prompt' } });
 
       const modifiedIndicator = container.querySelector('.modified-indicator');
@@ -328,7 +328,7 @@ describe('ShotConfigPanel', () => {
     it('should enable buttons when modifications exist', () => {
       renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'Modified' } });
 
       const applyBtn = screen.getByText('Apply Changes');
@@ -341,7 +341,7 @@ describe('ShotConfigPanel', () => {
     it('should revert changes when revert button is clicked', () => {
       renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       const originalValue = 'A beautiful sunrise over mountains';
 
       // Modify prompt
@@ -361,7 +361,7 @@ describe('ShotConfigPanel', () => {
 
       renderWithStore(<ShotConfigPanel />, store);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'Modified prompt' } });
 
       const applyBtn = screen.getByText('Apply Changes');
@@ -373,7 +373,7 @@ describe('ShotConfigPanel', () => {
     it('should clear modified indicator after apply', () => {
       const { container } = renderWithStore(<ShotConfigPanel />);
 
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'Modified' } });
 
       let modifiedIndicator = container.querySelector('.modified-indicator');
@@ -407,7 +407,7 @@ describe('ShotConfigPanel', () => {
       const { container: container1, unmount } = renderWithStore(<ShotConfigPanel />, store1);
 
       // Modify current shot
-      const promptEditor = screen.getByPlaceholderText('Describe the shot in detail...');
+      const promptEditor = screen.getByPlaceholderText('Describe the image in detail...');
       fireEvent.change(promptEditor, { target: { value: 'Modified' } });
 
       let modifiedIndicator = container1.querySelector('.modified-indicator');

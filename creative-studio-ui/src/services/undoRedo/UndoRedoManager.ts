@@ -11,6 +11,8 @@
  * Requirements: 7.1, 7.2, 7.3, 7.4, 7.7
  */
 
+import { generateId as createUniqueId } from '@/utils/idGenerator';
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
@@ -354,12 +356,11 @@ export class UndoRedoManager<T = any> {
   }
 
   /**
-   * Generate a unique ID for history entries
-   * 
-   * @returns Unique identifier string
+   * Private ID generator used by class methods
+   * @private
    */
   private generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return createUniqueId();
   }
 
   /**

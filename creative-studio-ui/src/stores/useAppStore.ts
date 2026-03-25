@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage, Sequence } from '@/types';
+import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage, Sequence, SequencePlan } from '@/types';
 import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizard';
 import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
 import type { World } from '@/types/world';
@@ -7,8 +7,17 @@ import type { Character } from '@/types/character';
 import type { MoodboardReference } from '@/types/moodboard';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { StorageManager } from '@/utils/storageManager';
+import { generateId } from '@/utils/idGenerator';
 
 // Wizard types
+interface WizardCommandHistoryEntry {
+  id: string;
+  command: string;
+  timestamp: number;
+  wizardType: WizardType;
+  result?: string;
+}
+
 export type WizardType =
   | 'dialogue-writer'
   | 'scene-generator'
@@ -130,6 +139,12 @@ interface AppState {
   showSequencePlanWizard: boolean;
   showShotWizard: boolean;
   activeWizardType: WizardType | null;
+  showSequenceEditor: boolean;
+  sequenceEditorContext: { existingSequencePlan?: SequencePlan } | null;
+
+  // Wizard discussion history (persisted)
+  wizardCommandHistory: WizardCommandHistoryEntry[];
+
 
   // Character integration
   selectedCharacterIds: string[];
@@ -159,6 +174,7 @@ interface AppState {
   // Actions
   setProject: (project: Project | null) => void;
   updateProject: (updates: Partial<Project>) => void;
+  saveProjectToDisk: () => Promise<{ success: boolean; errors: string[]; backupCreated?: boolean; imagesCopied?: number }>;
   setShots: (shots: Shot[]) => void;
   addShot: (shot: Shot) => void;
   updateShot: (id: string, updates: Partial<Shot>) => void;
@@ -236,6 +252,13 @@ interface AppState {
   setShowAutomationPanel: (show: boolean) => void;
   openWizard: (wizardType: WizardType) => void;
   closeActiveWizard: () => void;
+  setShowSequenceEditor: (show: boolean, context?: { existingSequencePlan?: SequencePlan }) => void;
+  closeSequenceEditor: () => void;
+  
+  // Wizard discussion actions
+  addWizardHistory: (entry: Omit<WizardCommandHistoryEntry, 'id' | 'timestamp'>) => void;
+  clearWizardHistory: () => void;
+
   
   // Character integration
   setSelectedCharacterIds: (ids: string[]) => void;
@@ -350,6 +373,10 @@ const initialState = {
   objectWizardContext: null,
   locationWizardContext: null,
   activeWizardType: null,
+  wizardCommandHistory: [],
+  showSequenceEditor: false,
+  sequenceEditorContext: null,
+
   selectedCharacterIds: [],
   characterSearchQuery: '',
   characterFilters: {},
@@ -377,6 +404,31 @@ export const useAppStore = create<AppState>()(
       updateProject: (updates) => set((state) => ({
         project: state.project ? { ...state.project, ...updates } : null
       })),
+      saveProjectToDisk: async () => {
+        const state = _get();
+        if (!state.project?.path) return { success: false, errors: ['No project path'] };
+        
+        try {
+          const { EnhancedProjectStorage } = await import('../utils/EnhancedProjectStorage');
+          const storage = new EnhancedProjectStorage(state.project.path);
+          
+          // Prepare state for persistence
+          const projectState = {
+            selectedShotId: state.selectedShotId,
+            selectedSequenceId: state.selectedSequenceId,
+            currentTime: state.currentTime,
+            currentView: state.currentView,
+            wizardCommandHistory: state.wizardCommandHistory,
+            // Add other state variables as needed
+          };
+          
+          const result = await storage.save(state.project as any, projectState);
+          return result;
+        } catch (error) {
+          console.error('[Store] Failed to save project to disk:', error);
+          return { success: false, errors: [String(error)] };
+        }
+      },
       setShots: (shots) => set({ shots }),
       addShot: (shot) => set((state) => ({ shots: [...state.shots, shot] })),
       updateShot: (id, updates) => set((state) => ({
@@ -484,6 +536,18 @@ export const useAppStore = create<AppState>()(
       setShowAutomationPanel: (show) => set({ showAutomationPanel: show }),
       openWizard: (wizardType) => set({ activeWizardType: wizardType }),
       closeActiveWizard: () => set({ activeWizardType: null }),
+      setShowSequenceEditor: (show, context) => set({ showSequenceEditor: show, sequenceEditorContext: context || null }),
+      closeSequenceEditor: () => set({ showSequenceEditor: false, sequenceEditorContext: null }),
+      
+      addWizardHistory: (entry) => set((state) => ({ 
+        wizardCommandHistory: [{
+          ...entry,
+          id: generateId(),
+          timestamp: Date.now(),
+        }, ...state.wizardCommandHistory].slice(0, 50)
+      })),
+      clearWizardHistory: () => set({ wizardCommandHistory: [] }),
+
       setSelectedCharacterIds: (ids) => set({ selectedCharacterIds: ids }),
       setCharacterSearchQuery: (query) => set({ characterSearchQuery: query }),
       setCharacterFilters: (filters) => set({ characterFilters: filters }),
@@ -568,7 +632,27 @@ export const useAppStore = create<AppState>()(
         removeItem: async (name) => StorageManager.removeItem(name),
       })),
       partialize: (state) => ({
+        // Project metadata and selection
+        project: state.project,
+        selectedShotId: state.selectedShotId,
+        selectedSequenceId: state.selectedSequenceId,
+        currentView: state.currentView,
+        
+        // Playback and UI state
+        currentTime: state.currentTime,
+        playbackSpeed: state.playbackSpeed,
         chatMessages: state.chatMessages,
+        panelSizes: state.panelSizes,
+        
+        // Wizard contexts (to prevent loss of progress)
+        wizardCommandHistory: state.wizardCommandHistory,
+        sequencePlanWizardContext: state.sequencePlanWizardContext,
+        shotWizardContext: state.shotWizardContext,
+        lipSyncContext: state.lipSyncContext,
+        characterWizardContext: state.characterWizardContext,
+        locationWizardContext: state.locationWizardContext,
+        
+        // Floating panels
         chatPanelPosition: state.chatPanelPosition,
         chatPanelSize: state.chatPanelSize,
         chatPanelMinimized: state.chatPanelMinimized,

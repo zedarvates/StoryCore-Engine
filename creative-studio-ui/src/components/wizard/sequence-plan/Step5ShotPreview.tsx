@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Play, Pause, ZoomIn, ZoomOut, Camera, Clock, AlertTriangle, Download, Eye, SkipBack, SkipForward, Sparkles } from 'lucide-react';
+import { Play, Pause, ZoomIn, ZoomOut, Camera, Clock, AlertTriangle, Download, Eye, SkipBack, SkipForward, Sparkles, Wand2, Video, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,8 +9,11 @@ import { cn } from '@/lib/utils';
 import { SequencePlan, Scene } from '@/types/sequencePlan';
 import { ProductionShot, ShotType } from '@/types/shot';
 import type { Character } from '@/types/character';
-import { useStore } from '@/store';
+import { useAppStore } from '@/stores/useAppStore';
 import { ImageGenerationModal } from '@/components/modals/ImageGenerationModal';
+import { ollamaClient, type ModelMetadata } from '@/services/llm/OllamaClient';
+import { videoEditorAPI } from '@/services/videoEditorAPI';
+import { useToast } from '@/hooks/use-toast';
 
 interface Step5ShotPreviewProps {
   sequencePlan: Partial<SequencePlan>;
@@ -139,10 +142,15 @@ export function Step5ShotPreview({
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [viewerZoom, setViewerZoom] = useState(1);
   const [isImageGenModalOpen, setIsImageGenModalOpen] = useState(false);
+  const [isRefiningPrompts, setIsRefiningPrompts] = useState(false);
+  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
+  
   const timelineRef = useRef<HTMLDivElement>(null);
   const prevShotsKeyRef = useRef<string>('');
 
-  const allCharacters = useStore(state => state.characters);
+  const allCharacters = useAppStore(state => state.characters);
+  const ollamaStatus = useAppStore(state => state.ollamaStatus);
+  const { toast, dismiss } = useToast();
 
   // Generate shots when scenes change - using useMemo to derive state
   const generatedShotsFromScenes = useMemo(() => {
@@ -160,7 +168,7 @@ export function Step5ShotPreview({
 
   // Notify parent of changes using a ref to prevent infinite loops
   const notifyParent = useCallback((shots: PreviewShot[]) => {
-    const shotsKey = JSON.stringify(shots.map(s => s.id));
+    const shotsKey = JSON.stringify(shots.map(s => s.id + (s.generation?.prompt || '') + (s.videoUrl || '')));
     if (prevShotsKeyRef.current !== shotsKey && shots.length > 0) {
       prevShotsKeyRef.current = shotsKey;
       // Defer parent notification to next tick to avoid synchronous state updates
@@ -170,6 +178,120 @@ export function Step5ShotPreview({
       return () => clearTimeout(timeoutId);
     }
   }, [onShotsChange]);
+
+  // Refine all shot prompts using AI (the "One-Click" magic button)
+  const handleRefineAllPrompts = async () => {
+    if (!generatedShots.length) return;
+    
+    // Check if Ollama is available
+    if (ollamaStatus !== 'connected') {
+        toast({ title: "AI Service not connected", description: "Start Ollama to use batch refinement.", variant: "destructive" });
+        return;
+    }
+
+    setIsRefiningPrompts(true);
+    toast({ title: "Prompt Refinement Started", description: `Refining ${generatedShots.length} shot prompts with AI...`, variant: "info" });
+
+    try {
+        const refinedShots = [...generatedShots];
+        const models = await ollamaClient.listModels();
+        const model = models.find((m: ModelMetadata) => m.name.includes('stable-beluga'))?.name || 
+                      models.find((m: ModelMetadata) => m.name.includes('llama3'))?.name || 
+                      models[0]?.name || 'mistral';
+
+        for (let i = 0; i < refinedShots.length; i++) {
+            const shot = refinedShots[i];
+            const scene = sequencePlan.scenes?.find(s => s.id === shot.sceneId);
+            const act = sequencePlan.acts?.find(a => a.id === scene?.actId);
+            
+            const contextPrompt = `You are a professional Cinematographer. 
+Create a detailed high-fidelity image generation prompt for this specific shot.
+CONTEXT:
+Project: ${sequencePlan.name}
+Act ${act?.number}: ${act?.title}
+Scene ${scene?.number}: ${scene?.title}
+Scene Goal: ${scene?.description}
+Current Shot Beats: ${shot.description}
+Frame Type: ${shot.type}
+Atmosphere: ${shot.composition.lightingMood}, ${shot.composition.timeOfDay}
+Characters: ${allCharacters.filter(c => shot.composition.characterIds.includes(c.character_id)).map(c => c.name).join(', ')}
+
+Output ONLY the prompt in English, focusing on lighting, lens (e.g. 35mm, anamorphic), texture, and composition details. Be artistic and precise. Maximum 60 words.`;
+
+            try {
+                const newPrompt = await ollamaClient.generate(model, contextPrompt);
+                refinedShots[i] = {
+                    ...shot,
+                    generation: {
+                        ...shot.generation,
+                        prompt: `${newPrompt.trim()}, cinematic, 8k, realistic, masterpieces`
+                    }
+                };
+            } catch (err) {
+                console.error(`Failed to refine prompt for shot ${shot.id}:`, err);
+            }
+        }
+
+        setLocalShots(refinedShots);
+        toast({ title: "All prompts successfully refined by AI!", variant: "success" });
+    } catch (_error) {
+        console.error("Batch refinement failed:", _error);
+        toast({ title: "Failed to refine some prompts.", variant: "destructive" });
+    } finally {
+        setIsRefiningPrompts(false);
+    }
+  };
+
+  // Handle video generation for selected shot
+  const handleGenerateVideo = async () => {
+    if (!selectedShot || (!selectedShot.videoUrl && !selectedShot.generatedAssetUrl)) {
+       toast({ title: "Reference Image Required", description: "Generate a preview image first before creating a video.", variant: "warning" });
+       return;
+    }
+
+    setIsGeneratingVideo(true);
+    const toastId = toast({ title: "Video Generation", description: `Initiating video generation for Shot ${selectedShot.number}...`, variant: "info", duration: 0 });
+
+    try {
+        const result = await videoEditorAPI.generateVideoFromReference(
+            sequencePlan.id!,
+            selectedShot.id,
+            selectedShot.videoUrl || selectedShot.generatedAssetUrl || '',
+            selectedShot.generation.parameters
+        );
+
+        if (result.taskId) {
+            dismiss(toastId);
+            toast({ title: "Generation Started", description: "Video generation task started!", variant: "success" });
+            // Poll for status
+            const pollInterval = setInterval(async () => {
+                const status = await videoEditorAPI.getVideoGenerationStatus(sequencePlan.id!, result.taskId);
+                if (status.status === 'completed' && status.resultPath) {
+                    clearInterval(pollInterval);
+                    const updatedShots = [...generatedShots];
+                    const idx = updatedShots.findIndex(s => s.id === selectedShot.id);
+                    if (idx !== -1) {
+                        updatedShots[idx] = { ...updatedShots[idx], videoUrl: status.resultPath };
+                        setLocalShots(updatedShots);
+                        setSelectedShot(updatedShots[idx]);
+                    }
+                    setIsGeneratingVideo(false);
+                    dismiss(toastId);
+                    toast({ title: "Success!", description: `Video generation completed for Shot ${selectedShot.number}!`, variant: "success" });
+                } else if (status.status === 'failed') {
+                    clearInterval(pollInterval);
+                    setIsGeneratingVideo(false);
+                    dismiss(toastId);
+                    toast({ title: "Failed", description: `Video generation failed: ${status.error}`, variant: "destructive" });
+                }
+            }, 3000);
+        }
+    } catch (_error) {
+        setIsGeneratingVideo(false);
+        dismiss(toastId);
+        toast({ title: "Error", description: "Failed to start video generation.", variant: "destructive" });
+    }
+  };
 
   // Only notify parent when shots actually change
   useEffect(() => {
@@ -339,6 +461,17 @@ export function Step5ShotPreview({
             <SkipForward className="h-4 w-4" />
           </Button>
 
+          <Button
+            onClick={handleRefineAllPrompts}
+            disabled={isRefiningPrompts || !generatedShots.length}
+            variant="secondary"
+            size="sm"
+            className="gap-2 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 border border-indigo-200"
+          >
+            {isRefiningPrompts ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            AI Refine All Prompts
+          </Button>
+
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => handleZoom('out')}>
               <ZoomOut className="h-4 w-4" />
@@ -393,8 +526,7 @@ export function Step5ShotPreview({
       {/* Timeline Visualization */}
       <div
         ref={timelineRef}
-        className="border rounded-lg bg-white overflow-x-auto"
-        style={{ maxHeight: '600px' }}
+        className="border rounded-lg bg-white overflow-x-auto max-h-[600px]"
       >
         <div className="p-4" style={{ width: `${Math.max(100, totalDuration * zoom)}px` }}>
           {/* Act/Scene/Shots Hierarchy */}
@@ -480,7 +612,7 @@ export function Step5ShotPreview({
 
           {/* Video Viewer */}
           <div className="flex flex-col items-center space-y-2">
-            <div className="relative overflow-hidden rounded-lg bg-black" style={{ width: '400px', height: '225px' }}>
+            <div className="relative overflow-hidden rounded-lg bg-black w-[400px] h-[225px]">
               {selectedShot.videoUrl ? (
                 <video
                   src={selectedShot.videoUrl}
@@ -510,7 +642,7 @@ export function Step5ShotPreview({
             <div>
               <label className="text-sm font-medium text-gray-600">Type</label>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">{selectedShot.type}</Badge>
+                <Badge variant="outline" className="bg-white">{selectedShot.type}</Badge>
                 <span className="text-sm text-gray-600">{selectedShot.category}</span>
               </div>
             </div>
@@ -528,19 +660,34 @@ export function Step5ShotPreview({
             </div>
           </div>
           <div className="mt-2">
-            <label className="text-sm font-medium text-gray-600">Description</label>
-            <div className="text-sm text-gray-700">{selectedShot.description}</div>
+            <label className="text-sm font-medium text-gray-600">Scene Beat</label>
+            <div className="text-sm text-gray-700 italic border-l-2 border-gray-200 pl-3 py-1 bg-white/30 rounded">{selectedShot.description}</div>
+          </div>
+          <div className="mt-2">
+            <label className="text-sm font-medium text-gray-600">Visual Prompt (AI)</label>
+            <div className="text-[11px] font-mono text-indigo-700 bg-indigo-50/50 p-2 rounded border border-indigo-100 mt-1 leading-relaxed">
+              {selectedShot.generation?.prompt || 'No prompt generated'}
+            </div>
           </div>
           
-          {/* Generate Image Button */}
-          <div className="flex gap-2 pt-4 border-t">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4 border-t">
             <Button
               onClick={() => setIsImageGenModalOpen(true)}
-              className="flex-1 gap-2"
+              className="flex-1 gap-2 bg-white hover:bg-gray-50 text-gray-900 border"
+              variant="outline"
+            >
+              <Sparkles className="h-4 w-4 text-amber-500" />
+              Generate Preview Image
+            </Button>
+            <Button
+              onClick={handleGenerateVideo}
+              disabled={isGeneratingVideo || (!selectedShot.videoUrl && !selectedShot.generatedAssetUrl)}
+              className="flex-1 gap-2 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200"
               variant="default"
             >
-              <Sparkles className="h-4 w-4" />
-              Generate Preview Image
+              {isGeneratingVideo ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+              Generate AI Video
             </Button>
           </div>
         </div>

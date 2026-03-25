@@ -9,105 +9,33 @@
  * - Chatterbox LLM Assistant
  * - Sequence Plans display with +/- buttons
  * - Click on sequence to open editor
- * 
- * Cinematic methodology support:
- * - Film type detection (short/medium/feature)
- * - Chapter approaches (classic/immersive/extreme)
- * - Shot complexity levels (simple/rich/complex)
- * - Automatic intro/ending long take creation
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
-import type { Shot } from '@/types';
-import { sequencePlanService } from '@/services/sequencePlanService';
-import { migrationService } from '@/services/MigrationService';
-import { syncManager } from '@/services/SyncManager';
-import { videoEditorAPI } from '@/services/videoEditorAPI';
-import { useLLMConfig } from '@/services/llmConfigService';
-import { buildSystemPrompt } from '@/utils/systemPromptBuilder';
-import { projectService } from '@/services/project/ProjectService';
-import { getEnabledWizards } from '@/data/wizardDefinitions';
-import { WizardLauncher } from '@/components/wizard/WizardLauncher';
-import { MarketingWizard, type MarketingPlan } from '@/components/wizard/marketing/MarketingWizard';
-import { CreateProjectWizard } from '@/components/wizard/CreateProjectWizard';
-import { SequencePlanWizardModal, ShotWizardModal } from '@/components/wizard';
-import { sequenceService } from '@/services/sequenceService';
 import { useStore } from '@/store';
-import { logger } from '@/utils/logging';
-import { StoryCard } from './StoryCard';
-import { StoryDetailView } from './StoryDetailView';
-import { StoryPartsSection } from './StoryPartsSection';
-import { CharactersSection } from '../character/CharactersSection';
-import { CharacterEditor } from '../character/CharacterEditor';
-import { LocationSection } from '../location/LocationSection';
-import { ObjectsSection } from '../objects/ObjectsSection';
-import { GenerationButtonToolbar } from '@/components/generation-buttons/GenerationButtonToolbar';
-import { ProjectResumeSection } from './ProjectResumeSection';
-import { useNotifications } from '@/components/NotificationSystem';
-import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { InlineLoading } from '@/components/ui/LoadingFeedback';
-import type { Character } from '@/types/character';
-import type { GeneratedAsset } from '@/types/generation';
 import {
   Film,
-  Map,
   Users,
-  Globe,
-  MessageSquare,
   FileText,
-  Wand2,
   Plus,
   Sparkles,
   CheckCircle2,
   Trash2,
   Edit3,
-  Database,
   RefreshCw,
-  AlertTriangle,
   BookOpen,
   Settings,
-  Play,
   Clapperboard,
-  Layers,
-  Target,
-  Zap,
 } from 'lucide-react';
-import { SequenceEditModal } from './SequenceEditModal';
 import './ProjectDashboardNew.css';
 
 // ============================================================================
-// CINEMATIC TYPES AND CONFIGURATIONS
+// TYPES AND CONFIGURATIONS
 // ============================================================================
 
-/**
- * Film duration categories based on industry standards
- */
 export type FilmType = 'short_film' | 'medium_film' | 'feature_film';
 
-/**
- * Special sequence types for cinematic purposes
- */
-export type SequenceType = 'standard' | 'intro_long_take' | 'ending_long_take' | 'action_sequence' | 'emotional_beat';
-
-/**
- * Chapter structure approach - how long takes are distributed per chapter
- * Based on cinematic best practices:
- * - classic: 1 plan-séquence per chapter (clean, readable)
- * - immersive: 2-3 plans-séquences per chapter (fluid mini-experience)
- * - extreme: 4+ plans-séquences per chapter (hypnotic, continuous)
- */
-export type ChapterApproach = 'classic' | 'immersive' | 'extreme';
-
-/**
- * Internal shot complexity level within a long take
- * Defines how many "internal shots" are choreographed within a single long take
- */
-export type ShotComplexity = 'simple' | 'rich' | 'complex';
-
-/**
- * Film type configuration with chapter support
- */
 interface FilmTypeConfig {
   type: FilmType;
   name: string;
@@ -120,9 +48,6 @@ interface FilmTypeConfig {
   description: string;
 }
 
-/**
- * Film type configurations
- */
 const FILM_TYPE_CONFIGS: FilmTypeConfig[] = [
   {
     type: 'short_film',
@@ -159,113 +84,12 @@ const FILM_TYPE_CONFIGS: FilmTypeConfig[] = [
   },
 ];
 
-/**
- * Chapter approach configurations
- * Defines how many long takes per chapter based on cinematic style
- */
-const CHAPTER_APPROACHES: Record<ChapterApproach, {
-  name: string;
-  description: string;
-  longTakesPerChapter: { min: number; max: number };
-  effect: string;
-  suitableFor: string[];
-}> = {
-  classic: {
-    name: 'Approche Classique',
-    description: '1 plan-séquence par chapitre',
-    longTakesPerChapter: { min: 1, max: 1 },
-    effect: 'Chaque chapitre a une identité forte, un moment immersif',
-    suitableFor: ['films narratifs', 'courts-métrages structurés', 'roman visuel'],
-  },
-  immersive: {
-    name: 'Approche Immersive',
-    description: '2-3 plans-séquences par chapitre',
-    longTakesPerChapter: { min: 2, max: 3 },
-    effect: 'Le chapitre devient une mini-expérience fluide',
-    suitableFor: ['films chorégraphiés', 'films d\'action stylisés', 'contemplatifs'],
-  },
-  extreme: {
-    name: 'Approche Extrême',
-    description: 'Chapitre entier en plans-séquences',
-    longTakesPerChapter: { min: 4, max: 10 },
-    effect: 'Bloc narratif continu, très immersif, presque hypnotique',
-    suitableFor: ['films d\'auteur', 'films expérimentaux', 'tension continue'],
-  },
-};
-
-/**
- * Shot complexity configurations
- * Defines the number of internal shots within a long take
- */
-const SHOT_COMPLEXITY: Record<ShotComplexity, {
-  name: string;
-  internalShots: { min: number; max: number };
-  description: string;
-  examples: string[];
-  effect: string;
-}> = {
-  simple: {
-    name: 'Simple (1-3 shots internes)',
-    internalShots: { min: 1, max: 3 },
-    description: 'Le plus classique - fluide et naturel',
-    examples: ['mouvement d\'épaule', 'travelling léger', 'panoramique'],
-    effect: 'Fluide, lisible, naturel',
-  },
-  rich: {
-    name: 'Riche (4-8 shots internes)',
-    internalShots: { min: 4, max: 8 },
-    description: 'Plusieurs micro-moments dans un seul plan',
-    examples: ['entrée → déplacement → interaction → révélation → sortie'],
-    effect: 'Choragraphié, dynamique, très cinématographique',
-  },
-  complex: {
-    name: 'Complexe (9+ shots internes)',
-    internalShots: { min: 9, max: 50 },
-    description: 'Niveau expert - planification minutieuse requise',
-    examples: ['traversée de plusieurs pièces', 'plusieurs groupes', 'actions simultanées'],
-    effect: 'Spectaculaire, immersif, signature visuelle forte',
-  },
-};
-
-/**
- * Chapter data structure
- */
-export interface ChapterData {
-  id: string;
-  name: string;
-  order: number;
-  approach: ChapterApproach;
-  longTakesCount: number;
-  complexity: ShotComplexity;
-  internalShotsCount: number;
-  description: string;
-  sequences: string[]; // Sequence IDs in this chapter
-  storySegment?: string; // Content segment from the story
-}
-
-/**
- * Enhanced SequenceData with long take metadata
- */
-export interface LongTakeSequenceData extends SequenceData {
-  isLongTake: boolean;
-  complexity: ShotComplexity;
-  internalShotsCount: number;
-  chapterId?: string;
-  purpose?: 'intro' | 'body' | 'outro' | 'action' | 'emotional';
-  cameraMovement?: string;
-  characteristics?: string[];
-}
-
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
-/**
- * Detect film type based on story length and content
- */
-export function detectFilmType(story: unknown): FilmType {
-  const contentLength = story.content?.length || 0;
-  // Estimate duration based on word count (avg 150 words per minute)
+export function detectFilmType(story: any): FilmType {
+  const contentLength = story?.content?.length || 0;
   const estimatedMinutes = contentLength / 150;
   
   if (estimatedMinutes < 20) return 'short_film';
@@ -273,42 +97,8 @@ export function detectFilmType(story: unknown): FilmType {
   return 'feature_film';
 }
 
-/**
- * Get film type configuration
- */
 export function getFilmTypeConfig(filmType: FilmType): FilmTypeConfig {
   return FILM_TYPE_CONFIGS.find(c => c.type === filmType)!;
-}
-
-/**
- * Get chapter approach configuration
- */
-export function getChapterApproachConfig(approach: ChapterApproach) {
-  return CHAPTER_APPROACHES[approach];
-}
-
-/**
- * Get shot complexity configuration
- */
-export function getShotComplexityConfig(complexity: ShotComplexity) {
-  return SHOT_COMPLEXITY[complexity];
-}
-
-/**
- * Calculate recommended number of long takes based on chapter approach
- */
-export function calculateLongTakesForChapter(approach: ChapterApproach): number {
-  const config = CHAPTER_APPROACHES[approach];
-  // Use average
-  return Math.round((config.longTakesPerChapter.min + config.longTakesPerChapter.max) / 2);
-}
-
-/**
- * Generate internal shots count based on complexity
- */
-export function calculateInternalShots(complexity: ShotComplexity): number {
-  const config = SHOT_COMPLEXITY[complexity];
-  return Math.round((config.internalShots.min + config.internalShots.max) / 2);
 }
 
 // ============================================================================
@@ -333,98 +123,22 @@ export function ProjectDashboardNew({
   onOpenEditor,
 }: ProjectDashboardNewProps) {
   // Store hooks
-  const project = useAppStore((state) => state.project);
   const shots = useAppStore((state) => state.shots);
-  const setShots = useAppStore((state) => state.setShots);
-  const setProject = useAppStore((state) => state.setProject);
-  const addShot = useAppStore((state) => state.addShot);
-  const openWizard = useAppStore((state) => state.openWizard);
-  const setShowWorldWizard = useAppStore((state) => state.setShowWorldWizard);
-  const showWorldWizard = useAppStore((state) => state.showWorldWizard);
-  const setShowCharacterWizard = useAppStore((state) => state.setShowCharacterWizard);
-  const showCharacterWizard = useAppStore((state) => state.showCharacterWizard);
-  const showStorytellerWizard = useAppStore((state) => state.showStorytellerWizard);
-  const setShowStorytellerWizard = useAppStore((state) => state.setShowStorytellerWizard);
-  const showProjectSetupWizard = useAppStore((state) => state.showProjectSetupWizard);
-  const setShowProjectSetupWizard = useAppStore((state) => state.setShowProjectSetupWizard);
-  const setShowCharactersModal = useAppStore((state) => state.setShowCharactersModal);
-  const setShowWorldModal = useAppStore((state) => state.setShowWorldModal);
-  const setShowGeneralSettings = useAppStore((state) => state.setShowGeneralSettings);
-  const setShowImageGalleryModal = useAppStore((state) => state.setShowImageGalleryModal);
-  const setShowObjectWizard = useAppStore((state) => state.setShowObjectWizard);
-  const openSequencePlanWizard = useAppStore((state) => state.openSequencePlanWizard);
+  const setShowSequenceEditor = useAppStore((state) => state.setShowSequenceEditor);
 
-  // Character editor state
-  const isCharacterEditorOpen = useAppStore((state) => state.isCharacterEditorOpen);
-  const editingCharacterId = useAppStore((state) => state.editingCharacterId);
-  const openCharacterEditor = useAppStore((state) => state.openCharacterEditor);
-  const closeCharacterEditor = useAppStore((state) => state.closeCharacterEditor);
-
-  // Story management from Zustand store
+  // States
   const stories = useStore((state) => state.stories);
-  const getAllStories = useStore((state) => state.getAllStories);
-  const getStoryById = useStore((state) => state.getStoryById);
-
-  // Character management from Zustand store
   const characters = useStore((state) => state.characters);
+  
+  const [isLoadingSequences] = useState(false);
+  const [isSyncing] = useState(false);
+  const [forceUpdate] = useState(0);
 
-  // LLM Configuration
-  const { config: llmConfig, service: llmService, isConfigured: isLLMConfigured } = useLLMConfig();
-
-  // Notification system
-  const { showSuccess, showError, showWarning, showInfo } = useNotifications();
-
-  // Confirmation modal state
-  const [confirmationModal, setConfirmationModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void | Promise<void>;
-    variant?: 'danger' | 'warning' | 'info';
-    isLoading?: boolean;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => { },
-    variant: 'info',
-    isLoading: false,
-  });
-
-  // Loading states for async operations
-  const [isLoadingSequences, setIsLoadingSequences] = useState(false);
-  const [isAddingSequence, setIsAddingSequence] = useState(false);
-  const [isDeletingSequence, setIsDeletingSequence] = useState<string | null>(null);
-  const [isSavingSequence, setIsSavingSequence] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-
-  const [editingSequence, setEditingSequence] = useState<SequenceData | null>(null);
-  const [forceUpdate, setForceUpdate] = useState(0);
-  const [chatterboxHeight, setChatterboxHeight] = useState<number>(() => {
-    const saved = localStorage.getItem('chatterboxHeight');
-    return saved ? parseInt(saved, 10) : 400;
-  });
-  const showChat = useAppStore((state) => state.showChat);
-  const [selectedStoryId, setSelectedStoryId] = useState<string | null>(null);
-
-  // Story editing state
-  const [editingStoryData, setEditingStoryData] = useState<any>(null);
-  const [expandedStoryId, setExpandedStoryId] = useState<string | null>(null);
-
-  // Marketing Wizard state
-  const [showMarketingWizard, setShowMarketingWizard] = useState(false);
-  const [marketingPlan, setMarketingPlan] = useState<MarketingPlan | null>(null);
-
-  // Wizard Modal states
-  const [showSequencePlanWizardModal, setShowSequencePlanWizardModal] = useState(false);
-  const [showShotWizardModal, setShowShotWizardModal] = useState(false);
-  const [selectedSequenceId, setSelectedSequenceId] = useState<string | undefined>(undefined);
-  const [editingShot, setEditingShot] = useState<Partial<Shot> | undefined>(undefined);
-  const [recentAssets, setRecentAssets] = useState<any[]>([]);
-  const [isLoadingAssets, setIsLoadingAssets] = useState(false);
-
-  // Get enabled wizards for dynamic display
-  const enabledWizards = useMemo(() => getEnabledWizards(), []);
+  const recentActivity = [
+    { id: '1', action: 'Created new long take', time: '2m ago', icon: Sparkles },
+    { id: '2', action: 'Synchronized project', time: '1h ago', icon: RefreshCw },
+    { id: '3', action: 'Added character: Roger', time: '2h ago', icon: Users },
+  ];
 
   // Generate sequences from project shots
   const sequences = useMemo<SequenceData[]>(() => {
@@ -477,24 +191,20 @@ export function ProjectDashboardNew({
     return getFilmTypeConfig(currentFilmType);
   }, [currentFilmType]);
 
-  // ... (rest of the component with handleSyncSequences, etc.)
-  
-  // Simplified version for now - the full implementation continues below
-  
   return (
     <div className="project-dashboard-new">
       {/* Header */}
       <div className="dashboard-header">
         <div className="quick-access-compact">
-          <button className="quick-btn quick-btn-primary">
+          <button className="quick-btn quick-btn-primary" title="Configuration du projet">
             <span>Project Setup</span>
             <Settings className="w-4 h-4" />
           </button>
-          <button className="quick-btn">
+          <button className="quick-btn" title="Voir les scènes">
             <span>Scenes ({shots?.length || 0})</span>
             <Film className="w-4 h-4" />
           </button>
-          <button className="quick-btn">
+          <button className="quick-btn" title="Voir les personnages">
             <span>Characters ({characters?.length || 0})</span>
             <Users className="w-4 h-4" />
           </button>
@@ -535,7 +245,7 @@ export function ProjectDashboardNew({
           <div className="stories-section">
             <div className="section-header">
               <h3>Stories</h3>
-              <button className="btn-create-story">
+              <button className="btn-create-story" title="Créer une nouvelle histoire">
                 <BookOpen className="w-4 h-4" />
                 <span>Create New Story</span>
               </button>
@@ -550,28 +260,24 @@ export function ProjectDashboardNew({
                 <button
                   className="btn-sequence-control sync"
                   disabled={isSyncing || sequences.length === 0}
+                  title="Synchroniser les séquences"
                 >
-                  {isSyncing ? (
-                    <InlineLoading message="Sync..." />
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4" />
-                      <span>Sync</span>
-                    </>
-                  )}
+                  <Sparkles className="w-4 h-4" />
+                  <span>Sync</span>
                 </button>
                 <button
                   className="btn-sequence-control refresh"
                   disabled={isLoadingSequences}
+                  title="Rafraîchir les séquences"
                 >
                   <RefreshCw className="w-4 h-4" />
                   <span>Refresh</span>
                 </button>
-                <button className="btn-sequence-control new-plan">
+                <button className="btn-sequence-control new-plan" title="Créer un nouveau plan">
                   <FileText className="w-4 h-4" />
                   <span>New Plan</span>
                 </button>
-                <button className="btn-sequence-control add">
+                <button className="btn-sequence-control add" title="Ajouter une séquence">
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
@@ -588,7 +294,13 @@ export function ProjectDashboardNew({
                     <div className="sequence-header">
                       <h4>{seq.name}</h4>
                       <div className="sequence-actions">
-                        <button title="Edit">
+                        <button 
+                          title="Edit"
+                          onClick={() => {
+                            setShowSequenceEditor(true);
+                            onOpenEditor(seq.id);
+                          }}
+                        >
                           <Edit3 className="w-4 h-4" />
                         </button>
                         <button title="Delete">
@@ -629,6 +341,3 @@ export function ProjectDashboardNew({
     </div>
   );
 }
-
-
-

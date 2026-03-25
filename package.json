@@ -21,7 +21,7 @@
     "backend:dev": "python -m backend.main_api",
     "dev": "concurrently \"npm run backend:dev\" \"npm run electron:build:watch\" \"npm run ui:dev\" \"wait-on http://localhost:5173 && npm run electron:dev\"",
     "build": "npm run ui:build && npm run electron:build",
-    "icons:generate": "electron-icon-builder --input=./StorycoreIconeV2.png --output=./build --flatten && node -e \"const fs = require('fs'); fs.copyFileSync('build/icons/icon.ico', 'build/icon.ico'); fs.copyFileSync('build/icons/icon.icns', 'build/icon.icns'); console.log('Icons copied to build root');\"",
+    "icons:generate": "echo electron-icon-builder removed - use alternative tool for icons",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
     "package:win:signed": "npm run build && electron-builder --win",
@@ -50,6 +50,8 @@
   "dependencies": {
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
+    "antd": "^6.3.4",
+    "axios": "^1.13.6",
     "commander": "^12.0.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
@@ -69,7 +71,6 @@
     "cross-env": "^7.0.3",
     "electron": "^40.4.1",
     "electron-builder": "^26.5.0",
-    "electron-icon-builder": "^2.0.1",
     "electron-updater": "^6.7.3",
     "esbuild": "^0.27.3",
     "eslint": "^8.57.0",
@@ -78,6 +79,13 @@
     "jsdom": "^29.0.0",
     "ts-jest": "^29.1.1",
     "wait-on": "^8.0.5"
+  },
+  "overrides": {
+    "tough-cookie": ">=4.1.3",
+    "qs": ">=6.11.0",
+    "yargs-parser": ">=18.1.3",
+    "phin": ">=3.7.1",
+    "flatted": ">=3.4.1"
   },
   "jest": {
     "preset": "ts-jest",

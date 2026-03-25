@@ -5,17 +5,19 @@
  * Integrated with the new objectStore for file-based persistence.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useObjectStore } from '@/stores/objectStore';
-import { Loader2, Package, Plus, Image as ImageIcon, Sparkles, RefreshCw, Zap, Shield, Crown, Box, X, CheckCircle2 } from 'lucide-react';
+import { Package, Plus, RefreshCw, X, Sparkles } from 'lucide-react';
 import { ImageObjectCreator } from './ImageObjectCreator';
+import { ObjectCard } from './ObjectCard';
 import './ObjectsSection.css';
 import { StoryObject, ObjectType, ObjectSize } from '@/types/object';
-import { ComfyUIService } from '@/services/comfyuiService';
-import { downloadAndSaveImage } from '@/services/imageStorageService';
-import { logger } from '@/utils/logger';
-import { devLog } from '@/utils/devOnly';
+import { useNotifications } from '@/components/NotificationSystem';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export interface ObjectsSectionProps {
   onCreateObject?: () => void;
@@ -40,137 +42,10 @@ export function ObjectsSection({
   // Prefer project.path (absolute) if available, otherwise fallback to project.id (UUID)
   const resolvedProjectId = project?.path || project?.id || 'default';
   
-  const { objects, fetchProjectObjects, isLoading, addObject, updateObject } = useObjectStore();
-  const [showImageCreator, setShowImageCreator] = React.useState(false);
-  const [generatingIds, setGeneratingIds] = React.useState<Set<string>>(new Set());
-  const comfyuiService = ComfyUIService.getInstance();
-
-  const [generating3DIds, setGenerating3DIds] = useState<Set<string>>(new Set());
-
-  const resolveImageUrl = (path: string | undefined) => {
-    if (!path) return undefined;
-    if (path.startsWith('http') || path.startsWith('data:')) return path;
-    // Local path needs the media-raw API
-    return `/api/video-editor/projects/${project?.id}/media-raw?path=${path}`;
-  };
-
-  const buildObjectPrompt = (object: StoryObject): string => {
-    const visualStyle = project?.projectSetup?.visualStyle || 'realistic';
-    const parts: string[] = [visualStyle];
-    parts.push(`${object.type}: ${object.name}`);
-    if (object.description) parts.push(object.description);
-    if (object.properties?.material) parts.push(`made of ${object.properties.material}`);
-    if (object.properties?.color) parts.push(`color: ${object.properties.color}`);
-    parts.push('high quality', 'detailed', 'studio lighting', 'isolated on white background', 'object shot');
-    return parts.join(', ');
-  };
-
-  const handleGenerateObjectImage = async (e: React.MouseEvent, object: StoryObject) => {
-    e.stopPropagation();
-    if (generatingIds.has(object.id)) return;
-
-    setGeneratingIds(prev => new Set(prev).add(object.id));
-    
-    try {
-      const prompt = buildObjectPrompt(object);
-      const negativePrompt = 'blurry, low quality, distorted, watermark, text, signature, people, person';
-
-      devLog('🎨 [ObjectsSection] Generating image for object:', object.name);
-
-      const imageUrl = await comfyuiService.generateImage({
-        prompt,
-        negativePrompt,
-        width: 1024,
-        height: 1024,
-        steps: 4,
-        cfgScale: 1,
-        seed: Math.floor(Math.random() * 1000000),
-        model: 'z_image_turbo_bf16.safetensors',
-        sampler: 'res_multistep',
-        scheduler: 'simple',
-      });
-
-      // Save locally
-      const projectPath = project?.metadata?.path as string | undefined;
-      let finalUrl = imageUrl;
-
-      if (projectPath) {
-        // Sanitize object name for folder path (must match objectStorage.ts)
-        const sanitizedName = object.name
-          .trim()
-          // eslint-disable-next-line no-control-regex
-          .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_')
-          .replace(/\s+/g, '_')
-          .substring(0, 100);
-        
-        const subDir = `objects/${sanitizedName}/images`;
-        
-        const saveResult = await downloadAndSaveImage(
-          imageUrl,
-          `obj_${object.id}`,
-          projectPath,
-          subDir
-        );
-        if (saveResult.success && saveResult.localPath) {
-          finalUrl = saveResult.localPath;
-        }
-      }
-
-      // Update object in store
-      await updateObject(resolvedProjectId, {
-        ...object,
-        imageUrl: finalUrl,
-        imagePrompt: prompt,
-        updatedAt: Date.now()
-      });
-
-      devLog('✅ [ObjectsSection] Image generated and saved for:', object.name);
-    } catch (err) {
-      logger.error('❌ [ObjectsSection] Image generation failed:', err);
-    } finally {
-      setGeneratingIds(prev => {
-        const next = new Set(prev);
-        next.delete(object.id);
-        return next;
-      });
-    }
-  };
-
-  const handleGenerate3DModel = async (e: React.MouseEvent, object: StoryObject) => {
-    e.stopPropagation();
-    if (generating3DIds.has(object.id)) return;
-
-    setGenerating3DIds(prev => new Set(prev).add(object.id));
-    
-    try {
-      devLog('🧊 [ObjectsSection] Generating 3D model for object:', object.name);
-      
-      // Simulate 3D generation for now - in production this would call a real 3D generation service
-      // that converts the 2D isometry image to a .gbl textured model
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // For now, we simulate success by setting a mock modelUrl
-      // This prepares the UI for the actual 3D pipeline integration
-      const mockModelUrl = `objects/models/obj_${object.id}.glb`;
-      
-      await updateObject(resolvedProjectId, {
-        ...object,
-        modelUrl: mockModelUrl,
-        updatedAt: Date.now()
-      });
-
-      devLog('✅ [ObjectsSection] 3D model forged for:', object.name);
-      // Optional: show a notification instead of alert if possible
-    } catch (err) {
-      logger.error('❌ [ObjectsSection] 3D generation failed:', err);
-    } finally {
-      setGenerating3DIds(prev => {
-        const next = new Set(prev);
-        next.delete(object.id);
-        return next;
-      });
-    }
-  };
+  const { objects, fetchProjectObjects, isLoading, addObject, updateObject, removeObject } = useObjectStore();
+  const [showImageCreator, setShowImageCreator] = useState(false);
+  const [editingObject, setEditingObject] = useState<StoryObject | null>(null);
+  const { showSuccess, showError } = useNotifications();
 
   // Load objects on mount
   useEffect(() => {
@@ -179,26 +54,46 @@ export function ObjectsSection({
     }
   }, [project, fetchProjectObjects, resolvedProjectId]);
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'weapon': return <Zap size={16} />;
-      case 'armor': return <Shield size={16} />;
-      case 'artifact': return <Sparkles size={16} />;
-      case 'treasure': return <Crown size={16} />;
-      default: return <Package size={16} />;
+  const handleEditObject = (object: StoryObject) => {
+    setEditingObject({ ...object });
+  };
+
+  const handleDeleteObject = async (objectId: string) => {
+    if (!resolvedProjectId) return;
+    
+    if (window.confirm('Are you sure you want to delete this object?')) {
+      try {
+        await removeObject(resolvedProjectId, objectId);
+        showSuccess('Object deleted successfully');
+      } catch (_err) {
+        showError('Failed to delete object');
+      }
     }
   };
 
-  const getRarityClass = (rarity: string) => {
-    switch (rarity) {
-      case 'uncommon': return 'rarity-uncommon';
-      case 'rare': return 'rarity-rare';
-      case 'epic': return 'rarity-epic';
-      case 'legendary': return 'rarity-legendary';
-      case 'mythical': return 'rarity-mythical';
-      default: return 'rarity-common';
+  const handleUpdateObject = async (objectId: string, updates: Partial<StoryObject>) => {
+    if (!resolvedProjectId) return;
+    try {
+      const object = objects.find(o => o.id === objectId);
+      if (object) {
+        await updateObject(resolvedProjectId, { ...object, ...updates });
+      }
+    } catch (_err) {
+      showError('Failed to update object');
     }
   };
+
+  const handleSaveEditedObject = async (object: StoryObject) => {
+    if (!resolvedProjectId) return;
+    try {
+      await updateObject(resolvedProjectId, { ...object, updatedAt: Date.now() });
+      setEditingObject(null);
+      showSuccess('Object updated');
+    } catch (_err) {
+      showError('Failed to save object');
+    }
+  };
+
 
   return (
     <div className={`objects-section dashboard-card ${className}`}>
@@ -250,134 +145,132 @@ export function ObjectsSection({
           </div>
         ) : (
           objects.map((object: StoryObject) => (
-            <div
+            <ObjectCard
               key={object.id}
-              className={`object-card ${getRarityClass(object.rarity)}`}
+              object={object}
+              projectId={resolvedProjectId}
               onClick={() => onObjectClick?.(object.id)}
-            >
-              <div className="object-card__thumbnail">
-                {object.imageUrl ? (
-                  <img src={resolveImageUrl(object.imageUrl)} alt={object.name} className="object-card__image" />
-                ) : (
-                  <div className="object-card__placeholder">
-                    {!generatingIds.has(object.id) ? (
-                      <button 
-                        className="object-card__generate-button"
-                        onClick={(e) => handleGenerateObjectImage(e, object)}
-                        title="Generate object image"
-                      >
-                        <ImageIcon size={18} />
-                        <span>Generate Object</span>
-                      </button>
-                    ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <Loader2 className="animate-spin text-emerald-500" size={24} />
-                        <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Forging...</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="object-header">
-                <div className="object-icon-wrapper">
-                  {getTypeIcon(object.type)}
-                </div>
-                <div className="object-meta">
-                  <h4 className="object-name truncate">{object.name}</h4>
-                  <div className="flex items-center gap-1">
-                    <span className="object-type-badge">{object.type}</span>
-                    {object.power && (
-                      <span className="object-power-badge">Pwr {object.power}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3">
-                <p className="object-description line-clamp-2">
-                  {object.description}
-                </p>
-
-                {object.tags && object.tags.length > 0 && (
-                  <div className="object-tags mt-2 flex flex-wrap gap-1 border-b border-white/5 pb-2">
-                    {object.tags.slice(0, 2).map(tag => (
-                      <span key={tag} className="tag-pill text-[9px]">{tag}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Generate image button - consistent with character/location cards */}
-              <div className="object-card__generate px-3 pb-3">
-                {object.imageUrl ? (
-                  <button
-                    className="object-card__regenerate-button"
-                    onClick={(e) => handleGenerateObjectImage(e, object)}
-                    title="Regenerate object image with ComfyUI"
-                    aria-label={`Regenerate image for ${object.name}`}
-                    disabled={generatingIds.has(object.id)}
-                  >
-                    <RefreshCw size={14} className={generatingIds.has(object.id) ? 'animate-spin' : ''} />
-                    {generatingIds.has(object.id) ? <span>Forging...</span> : <span>Reforge Object</span>}
-                  </button>
-                ) : (
-                  !generatingIds.has(object.id) && (
-                    <button
-                      className="object-card__generate-button"
-                      onClick={(e) => handleGenerateObjectImage(e, object)}
-                      title="Generate object image with ComfyUI"
-                      aria-label={`Generate image for ${object.name}`}
-                    >
-                      <ImageIcon size={18} />
-                      <span>Generate Object</span>
-                    </button>
-                  )
-                )}
-                {generatingIds.has(object.id) && !object.imageUrl && (
-                  <div className="object-card__generating flex items-center justify-center gap-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Forging...</span>
-                  </div>
-                )}
-
-                {/* New 3D Forging Button */}
-                {object.imageUrl && !generatingIds.has(object.id) && (
-                  <button
-                    className={`object-card__3d-button mt-2 w-full flex items-center justify-center gap-2 py-2 px-3 rounded text-xs font-bold transition-all ${
-                      generating3DIds.has(object.id) 
-                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
-                        : object.modelUrl
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default'
-                          : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-900/20'
-                    }`}
-                    onClick={(e) => !object.modelUrl && handleGenerate3DModel(e, object)}
-                    disabled={generating3DIds.has(object.id)}
-                  >
-                    {generating3DIds.has(object.id) ? (
-                      <>
-                        <Loader2 size={14} className="animate-spin" />
-                        <span>Forging 3D...</span>
-                      </>
-                    ) : object.modelUrl ? (
-                      <>
-                        <CheckCircle2 size={14} className="text-emerald-400" />
-                        <span>3D Asset Ready (.glb)</span>
-                      </>
-                    ) : (
-                      <>
-                        <Box size={14} />
-                        <span>Forge 3D Asset (.gbl)</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
+              onEdit={() => handleEditObject(object)}
+              onDelete={() => handleDeleteObject(object.id)}
+              onUpdate={(updates) => handleUpdateObject(object.id, updates)}
+            />
           ))
         )}
       </div>
 
+      {/* Object Editor Modal */}
+      {editingObject && (
+        <Dialog open={!!editingObject} onOpenChange={() => setEditingObject(null)}>
+          <DialogContent className="max-w-2xl bg-[#111] border border-[#333] p-0 overflow-hidden text-white">
+            <DialogHeader className="p-6 bg-[#0a0a0a] border-b border-[#222]">
+              <DialogTitle className="text-emerald-500 font-bold flex items-center gap-2">
+                <Package size={20} />
+                Edit Object: {editingObject.name}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-y-auto max-h-[70vh]">
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Name</label>
+                    <Input 
+                      className="bg-black/50 border-[#333] text-white" 
+                      value={editingObject.name} 
+                      onChange={e => setEditingObject({ ...editingObject, name: e.target.value })} 
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Type</label>
+                    <select
+                      className="w-full h-10 px-3 rounded-md border border-[#333] bg-black/50 text-white text-sm"
+                      value={editingObject.type}
+                      onChange={e => setEditingObject({ ...editingObject, type: e.target.value as ObjectType })}
+                      title="Object Category"
+                    >
+                      <option value="prop">Prop</option>
+                      <option value="weapon">Weapon</option>
+                      <option value="armor">Armor</option>
+                      <option value="artifact">Artifact</option>
+                      <option value="consumable">Consumable</option>
+                      <option value="tool">Tool</option>
+                      <option value="treasure">Treasure</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+                  <Textarea 
+                    className="bg-black/50 border-[#333] text-white min-h-[100px]" 
+                    value={editingObject.description} 
+                    onChange={e => setEditingObject({ ...editingObject, description: e.target.value })} 
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Rarity</label>
+                    <select
+                      className="w-full h-10 px-3 rounded-md border border-[#333] bg-black/50 text-white text-sm"
+                      value={editingObject.rarity}
+                      onChange={e => setEditingObject({ ...editingObject, rarity: e.target.value as StoryObject['rarity'] })}
+                      title="Object Rarity"
+                    >
+                      <option value="common">Common</option>
+                      <option value="uncommon">Uncommon</option>
+                      <option value="rare">Rare</option>
+                      <option value="epic">Epic</option>
+                      <option value="legendary">Legendary</option>
+                      <option value="mythical">Mythical</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Power (0-100)</label>
+                    <Input 
+                      type="number" 
+                      className="bg-black/50 border-[#333] text-white" 
+                      value={editingObject.power || 0} 
+                      onChange={e => setEditingObject({ ...editingObject, power: parseInt(e.target.value) || 0 })} 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Properties (Materials, etc.)</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input 
+                      placeholder="Material"
+                      className="bg-black/50 border-[#333] text-white" 
+                      value={editingObject.properties?.material || ''} 
+                      onChange={e => setEditingObject({ 
+                        ...editingObject, 
+                        properties: { ...(editingObject.properties || {}), material: e.target.value }
+                      })} 
+                    />
+                    <Input 
+                      placeholder="Color"
+                      className="bg-black/50 border-[#333] text-white" 
+                      value={editingObject.properties?.color || ''} 
+                      onChange={e => setEditingObject({ 
+                        ...editingObject, 
+                        properties: { ...(editingObject.properties || {}), color: e.target.value }
+                      })} 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-[#222] flex justify-end gap-3 bg-[#0a0a0a]">
+              <Button variant="outline" className="border-[#333] text-gray-400 hover:text-white" onClick={() => setEditingObject(null)}>
+                Cancel
+              </Button>
+              <Button className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8" onClick={() => handleSaveEditedObject(editingObject)}>
+                Save Changes
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
       {/* Image Creator Modal */}
       {showImageCreator && (
         <div className="objects-section__modal-overlay fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -429,4 +322,5 @@ export function ObjectsSection({
     </div>
   );
 }
+
 export default ObjectsSection;

@@ -25,6 +25,7 @@ import { getEnabledWizards } from '@/data/wizardDefinitions';
 import { sequenceService } from '@/services/sequenceService';
 import { useStore } from '@/store';
 import { logger } from '@/utils/logging';
+import { LLMAssistantSidebar } from '@/components/LLMAssistantSidebar';
 import { StoryCard } from './StoryCard';
 import { StoryDetailView } from './StoryDetailView';
 import { StoryPartsSection } from './StoryPartsSection';
@@ -373,7 +374,7 @@ export function ProjectDashboardNew({
     const sequenceArray: (SequenceData & { isFormal?: boolean })[] = [];
 
     // 1. Add formal plans from the store or project (highest priority)
-    const projectPlans = project?.sequencePlans || [];
+    const projectPlans = (project?.sequencePlans || []);
     const storePlans = (Array.isArray(sequencePlans) ? sequencePlans : Object.values(sequencePlans || {})) as SequencePlanFromStore[];
     
     // Create a Set of formal plan IDs for O(1) matching
@@ -390,11 +391,14 @@ export function ProjectDashboardNew({
     });
 
     masterPlans.forEach((plan, index) => {
+      const planShots = sequenceMap[plan.id] || [];
+      const planDuration = planShots.reduce((sum, shot) => sum + (shot.duration || 0), 0) || plan.targetDuration || plan.totalDuration || 0;
+      
       sequenceArray.push({
         id: plan.id,
         name: plan.name,
-        duration: plan.targetDuration || plan.totalDuration || 0,
-        shots: plan.shots?.length || 0,
+        duration: planDuration,
+        shots: planShots.length || (Array.isArray(plan.shots) ? plan.shots.length : 0),
         resume: plan.description || plan.resume || '',
         order: plan.order || (index + 1),
         isFormal: true
@@ -425,8 +429,13 @@ export function ProjectDashboardNew({
       order_counter++;
     }
 
-    // Sort by order
-    return [...sequenceArray].sort((a, b) => a.order - b.order);
+    // Sort by order and ensure minimum 4s per shot for duration display
+    return [...sequenceArray]
+      .map(s => ({
+        ...s,
+        duration: Math.max(s.duration, s.shots * 4) // Ensure dashboard matches editor's minimums
+      }))
+      .sort((a, b) => a.order - b.order);
   }, [shots, sequencePlans, project?.sequencePlans]);
 
   // Sync local sequences with store sequences
@@ -2354,6 +2363,9 @@ export function ProjectDashboardNew({
           onCancel={() => setShowObjectWizard(false)}
         />
       )}
+
+      {/* LLM Assistant Sidebar for Voice Commands */}
+      <LLMAssistantSidebar />
     </motion.div>
   );
 }

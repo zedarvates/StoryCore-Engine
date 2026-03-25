@@ -13,8 +13,8 @@ export interface SaveSequenceResult {
 function sanitizeFolderName(name: string): string {
   return name
     .replace(/\s+/g, '_')
-    // Corrected regex to avoid control character lint error
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '')
     .substring(0, 100);
 }
 

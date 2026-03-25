@@ -7,6 +7,7 @@
 
 import type { WizardState } from '../../types/wizard';
 import { logger } from '@/utils/logger';
+import { generateIdWithPrefix } from '@/utils/idGenerator';
 
 /**
  * Draft metadata for listing and management
@@ -218,7 +219,7 @@ export class DraftPersistence {
    * Generate a unique draft ID
    */
   private generateDraftId(): string {
-    return `draft-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    return generateIdWithPrefix('draft');
   }
 
   /**

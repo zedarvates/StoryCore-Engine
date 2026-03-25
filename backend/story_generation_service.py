@@ -401,18 +401,20 @@ class StoryGenerationService:
     async def _call_llm(self, prompt: str, temperature: float = 0.7) -> str:
         """Appel au LLM avec fallback sur mock si nécessaire"""
         import os
-        api_key = os.environ.get("OPENAI_API_KEY")
+        from backend.llm_api import call_llm_real, LLMRequest, get_available_llm_provider
         
-        # Tentative d'appel réel via llm_api
-        if api_key and not os.environ.get("USE_MOCK_LLM", "false").lower() == "true":
+        # Check if mock mode is explicitly forced
+        use_mock = os.environ.get("USE_MOCK_LLM", "false").lower() == "true"
+        
+        if not use_mock:
             try:
-                from backend.llm_api import call_llm_real, LLMRequest
+                # Use call_llm_real which handles provider selection (OpenAI, Anthropic, Ollama)
                 request = LLMRequest(prompt=prompt, temperature=temperature)
-                response = await call_llm_real(request, user_id="system_internal")
+                response = await call_llm_real(request, user_id="system_story_service")
                 if response and response.text:
                     return response.text
-            except (ImportError, Exception) as e:
-                logger.debug(f"LLM call search or execution failed: {e}. Falling back to internal mock.")
+            except Exception as e:
+                logger.warning(f"Real LLM call failed: {e}. Falling back to internal mock.")
         
         # Fallback sur le mock interne
         return self._generate_mock_llm_response(prompt)

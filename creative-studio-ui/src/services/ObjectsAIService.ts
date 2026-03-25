@@ -32,11 +32,30 @@ export interface ObjectGenerationOptions {
   powerLevel: number;
   objectType: ObjectType;
   rarity: ObjectRarity;
+  style?: 'realistic' | 'fantasy' | 'sci-fi' | 'horror' | 'comedy';
+  includeAbilities?: boolean;
+  includeLore?: boolean;
   connectedTo?: {
     characters?: string[];
     locations?: string[];
     plotElements?: string[];
   };
+}
+
+export interface ObjectImprovementSuggestions {
+  nameSuggestions: string[];
+  abilitySuggestions: string[];
+  loreEnhancements: string[];
+  balanceAdjustments: string[];
+}
+
+export interface ObjectConnection {
+  objectId: string;
+  connections: Array<{
+    targetObjectId: string;
+    type: 'requires' | 'enhances' | 'conflicts' | 'complements';
+    explanation: string;
+  }>;
 }
 
 /**
@@ -330,8 +349,8 @@ Format de réponse JSON:
         },
         tags: [options.theme, options.objectType],
         generatedBy: 'ai',
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
         prompts: generationPrompt ? [generationPrompt] : []
       };
     } catch {
@@ -370,8 +389,8 @@ Format de réponse JSON:
       },
       tags: [options.theme, options.objectType, options.rarity],
       generatedBy: 'ai',
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
       prompts: []
     };
   }
@@ -437,7 +456,7 @@ Réponds en format JSON structuré.`;
     };
   }
 
-  private parseImprovementSuggestions(response: string): any {
+  private parseImprovementSuggestions(response: string): ObjectImprovementSuggestions {
     try {
       const jsonStart = response.indexOf('{');
       const jsonEnd = response.lastIndexOf('}');
@@ -486,7 +505,7 @@ Pour chaque objet, identifie les relations avec les autres:
 Réponds en format JSON structuré.`;
   }
 
-  private parseConnections(response: string, objects: StoryObject[]): any[] {
+  private parseConnections(response: string, objects: StoryObject[]): ObjectConnection[] {
     try {
       const jsonStart = response.indexOf('[');
       const jsonEnd = response.lastIndexOf(']');

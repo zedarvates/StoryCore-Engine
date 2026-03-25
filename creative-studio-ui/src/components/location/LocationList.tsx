@@ -226,7 +226,7 @@ export function LocationList({
           <div className="location-list__grid">
             {paginatedItems.map((location) => (
               <LocationCard
-                key={location.location_id}
+                key={location.location_id || `loc-${location.name}-${Math.random()}`}
                 location={location}
                 onClick={() => handleLocationClick(location)}
                 selectable={selectable}

@@ -32,6 +32,8 @@ interface TimelineControlsProps {
   onToggleRippleEdit?: () => void;
   magneticTimeline?: boolean;
   onToggleMagneticTimeline?: () => void;
+  onAddShot?: (atPlayhead?: boolean) => void;
+  onDeleteShot?: () => void;
   onSplit?: () => void;
   onAutoMix?: () => void;
   viewMode?: 'timeline' | 'storyboard';
@@ -52,6 +54,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   onToggleRippleEdit,
   magneticTimeline = false,
   onToggleMagneticTimeline,
+  onAddShot,
+  onDeleteShot,
   onSplit,
   onAutoMix,
   viewMode = 'timeline',
@@ -382,6 +386,20 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
       <div className="timeline-controls-group">
         <button
           className="timeline-control-btn toggle-btn"
+          onClick={() => onAddShot?.(false)}
+          title="Add new shot at end"
+        >
+          ➕ Shot
+        </button>
+        <button
+          className="timeline-control-btn toggle-btn"
+          onClick={() => onAddShot?.(true)}
+          title="Insert new shot at playhead"
+        >
+          ⬇️ Insert
+        </button>
+        <button
+          className="timeline-control-btn toggle-btn"
           onClick={onSplit}
           title="Split clip at playhead (Ctrl/Cmd + B)"
         >
@@ -397,28 +415,28 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 
         <button
           className="timeline-control-btn toggle-btn"
+          onClick={onDeleteShot}
           title="Delete selected (Delete)"
+          disabled={!onDeleteShot}
         >
           🗑️
         </button>
       </div>
 
-      {/* Virtual mode toggle (for large timelines) */}
-      <div className="timeline-controls-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
-        <div className="view-mode-toggle" style={{ display: 'flex', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', overflow: 'hidden' }}>
+      {/* View mode and Generate buttons */}
+      <div className="timeline-controls-group flex items-center gap-2 ml-auto">
+        <div className="view-mode-toggle flex border border-white/10 rounded-md overflow-hidden bg-white/5">
           <button
-            className={`timeline-control-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+            className={`timeline-control-btn p-1.5 ${viewMode === 'timeline' ? 'bg-primary/20 text-primary' : 'text-white/40 hover:text-white'}`}
             onClick={() => onViewModeChange?.('timeline')}
             title="Timeline View"
-            style={{ borderRadius: 0, padding: '4px 8px' }}
           >
             <MonitorPlay className="w-4 h-4" />
           </button>
           <button
-            className={`timeline-control-btn ${viewMode === 'storyboard' ? 'active' : ''}`}
+            className={`timeline-control-btn p-1.5 ${viewMode === 'storyboard' ? 'bg-primary/20 text-primary' : 'text-white/40 hover:text-white'}`}
             onClick={() => onViewModeChange?.('storyboard')}
             title="Storyboard View (Reorder Shots)"
-            style={{ borderRadius: 0, padding: '4px 8px' }}
           >
             <Layout className="w-4 h-4" />
           </button>

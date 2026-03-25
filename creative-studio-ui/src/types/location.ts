@@ -269,6 +269,12 @@ export interface LocationMetadata {
 
   /** Optional tile image path for grid/tiled display */
   tile_image_path?: string;
+
+  /** Optional history of generated thumbnail paths */
+  thumbnail_history?: string[];
+
+  /** Additional dynamic properties */
+  [key: string]: unknown;
 }
 
 /**

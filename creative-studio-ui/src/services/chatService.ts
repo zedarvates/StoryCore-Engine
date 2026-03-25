@@ -27,7 +27,7 @@ export interface ChatContext {
 }
 
 export interface ChatAction {
-  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo' | 'analyzeImage' | 'changeTheme' | 'updateStyle' | 'updateGenre';
+  type: 'addShot' | 'updateShot' | 'deleteShot' | 'addTransition' | 'addAudio' | 'addText' | 'createProject' | 'createCharacter' | 'createLocation' | 'createObject' | 'createDialogue' | 'createStory' | 'createWorld' | 'createScenario' | 'generateImage' | 'generateAudio' | 'generateVideo' | 'analyzeImage' | 'changeTheme' | 'updateStyle' | 'updateGenre' | 'updateSettings';
   payload: unknown;
 }
 
@@ -51,6 +51,7 @@ export interface ProjectCreationRequest {
   genre?: string;
   description?: string;
   formatId?: string;
+  discussion?: string; // Chat history as markdown
   settings?: Record<string, unknown>;
   initialEntities?: {
     characters?: Character[];
@@ -76,6 +77,13 @@ export class ChatService {
    */
   updateContext(context: Partial<ChatContext>): void {
     this.context = { ...this.context, ...context };
+  }
+
+  /**
+   * Get current project ID from context
+   */
+  getProjectId(): string | null {
+    return this.context.project?.id || null;
   }
 
   /**
@@ -174,6 +182,9 @@ export class ChatService {
       
       case 'update_genre':
         return await this.handleUpdateGenre(userInput, llmService, language);
+
+      case 'update_settings':
+        return await this.handleUpdateSettings(userInput, llmService, language);
 
       default: {
         const response = await this.handleGeneral(userInput, llmService, language);
@@ -465,6 +476,7 @@ export class ChatService {
       // Prepare project data with theme/universe metadata
       const projectData: ElectronProjectData = {
         name: request.name,
+        discussion: request.discussion,
         format: {
           schema_version: '1.0',
           aspectRatio: '16:9',
@@ -811,6 +823,38 @@ export class ChatService {
       return {
         type: 'update_genre',
         confidence: 0.9,
+        params: { rawInput: input },
+      };
+    }
+
+    // Change language (FR + EN)
+    if (
+      (input.match(/r[ée]ponde?s?|parle?|r[ée]pondre|speak|respond|answer|switch/i) &&
+       input.match(/en\s+(?:anglais|fran[çc]ais|espagnol|allemand|italien)|in\s+(?:english|french|spanish|german|italian)/i)) ||
+      input.match(/change\s+(?:de\s+)?langue|switch\s+language/i)
+    ) {
+      let lang = 'en';
+      if (input.match(/fran[çc]ais|french/i)) lang = 'fr';
+      else if (input.match(/espagnol|spanish/i)) lang = 'es';
+      else if (input.match(/allemand|german/i)) lang = 'de';
+      else if (input.match(/italien|italian/i)) lang = 'it';
+
+      return {
+        type: 'change_language',
+        confidence: 0.95,
+        params: { language: lang },
+      };
+    }
+
+    // Update Project Settings (Resolution, Aspect Ratio)
+    if (
+      (input.match(/change|switch|use|set|mets|active|utilise|applique|apply|passe/i) &&
+       input.match(/r[ée]solution|resolution|format|aspect ratio|ratio|dimension|taille|size/i)) ||
+      input.match(/4k|1080p|720p|16:9|9:16|1:1/i)
+    ) {
+      return {
+        type: 'update_settings',
+        confidence: 0.95,
         params: { rawInput: input },
       };
     }
@@ -2427,6 +2471,55 @@ export class ChatService {
       actions: [{
         type: 'updateGenre',
         payload: { genre, rawInput: input }
+      }]
+    };
+  }
+
+  /**
+   * Handle project settings update request (resolution, aspect ratio)
+   */
+  private async handleUpdateSettings(input: string, llmService?: ChatLLMService, language: LanguageCode = 'fr'): Promise<ChatResponse> {
+    let resolution = '';
+    let aspectRatio = '';
+    
+    // Simple extraction for common ratios/resolutions
+    if (input.match(/16:9|seize neuvi[èe]me/i)) aspectRatio = '16:9';
+    else if (input.match(/9:16|neuf seizi[èe]me/i)) aspectRatio = '9:16';
+    else if (input.match(/1:1|carr[ée]/i)) aspectRatio = '1:1';
+    else if (input.match(/21:9|cin[ée]mascope/i)) aspectRatio = '21:9';
+    
+    if (input.match(/4k|ultra hd/i)) resolution = '3840x2160';
+    else if (input.match(/1080p|full hd/i)) resolution = '1920x1080';
+    else if (input.match(/720p|hd/i)) resolution = '1280x720';
+
+    if (llmService && typeof llmService.generateCompletion === 'function' && (!resolution || !aspectRatio)) {
+      const prompt = `Extract project setting changes from this request: "${input}". 
+      Look for resolution (e.g. 1920x1080, 4K) and aspect ratio (e.g. 16:9, 9:16).
+      
+      Return a JSON: { "resolution": "widthxheight", "aspectRatio": "W:H" }
+      If not found, leave fields empty. Current detected: resolution="${resolution}", aspectRatio="${aspectRatio}"`;
+      
+      const res = await llmService.generateCompletion({ prompt, maxTokens: 100 });
+      if (res.success && res.data) {
+        try {
+          const data = JSON.parse(res.data.content.match(/\{[\s\S]*\}/)?.[0] || '{}');
+          if (data.resolution) resolution = data.resolution;
+          if (data.aspectRatio) aspectRatio = data.aspectRatio;
+        } catch {
+          // Fallback to extraction
+        }
+      }
+    }
+
+    const valueStr = [resolution, aspectRatio].filter(Boolean).join(' & ');
+
+    return {
+      message: language === 'fr'
+        ? `Je vais mettre à jour les paramètres du projet : ${valueStr || 'format optimisé'}.`
+        : `I'll update the project settings to: ${valueStr || 'optimized format'}.`,
+      actions: [{
+        type: 'updateSettings',
+        payload: { resolution, aspectRatio, rawInput: input }
       }]
     };
   }

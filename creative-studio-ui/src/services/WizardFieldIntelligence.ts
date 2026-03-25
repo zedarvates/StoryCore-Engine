@@ -43,7 +43,22 @@ export interface FieldPatch {
 
 export interface WizardCommandIntent {
   /** Type d'action demandée */
-  action: 'set_field' | 'generate_section' | 'fill_missing' | 'suggest' | 'navigate_tab' | 'unknown';
+  action: 
+    | 'set_field' 
+    | 'generate_section' 
+    | 'fill_missing' 
+    | 'suggest' 
+    | 'navigate_tab' 
+    | 'navigate_dashboard' 
+    | 'generate_image_tile'
+    | 'generate_3d_object'
+    | 'generate_script'
+    | 'create_entity'
+    | 'upscale'
+    | 'set_resolution'
+    | 'unknown';
+  /** Section cible pour les générations textuelles */
+  targetSection?: string;
   /** Entité ciblée */
   entityType: WizardEntityType;
   /** Liste de patches à appliquer */
@@ -161,27 +176,22 @@ const OBJECT_FIELD_RULES: FieldRule[] = [
 // ── COULEURS — Mapping phonétique ──────────────────────────────────────────
 
 const COLOR_MAPPING: Record<string, string> = {
-  // FR
-  'vert': 'Vert', 'verts': 'Vert', 'verte': 'Vert', 'vertes': 'Vert',
-  'bleu': 'Bleu', 'bleue': 'Bleu', 'bleus': 'Bleu', 'bleues': 'Bleu', 'azur': 'Bleu azur',
-  'rouge': 'Rouge', 'rouges': 'Rouge', 'cramoisi': 'Cramoisi',
-  'noir': 'Noir', 'noire': 'Noir', 'ebene': 'Ébène', 'ébène': 'Ébène',
-  'blanc': 'Blanc', 'blanche': 'Blanc', 'blancs': 'Blanc',
-  'brun': 'Brun', 'brune': 'Brun', 'marron': 'Marron', 'chocolat': 'Marron chocolat',
+  // Common Keys (FR + EN)
+  'vert': 'Vert', 'verts': 'Vert', 'verte': 'Vert', 'vertes': 'Vert', 'green': 'Vert',
+  'bleu': 'Bleu', 'bleue': 'Bleu', 'bleus': 'Bleu', 'bleues': 'Bleu', 'azur': 'Bleu azur', 'blue': 'Bleu',
+  'rouge': 'Rouge', 'rouges': 'Rouge', 'cramoisi': 'Cramoisi', 'red': 'Rouge',
+  'noir': 'Noir', 'noire': 'Noir', 'ebene': 'Ébène', 'ébène': 'Ébène', 'black': 'Noir',
+  'blanc': 'Blanc', 'blanche': 'Blanc', 'blancs': 'Blanc', 'white': 'Blanc',
+  'brun': 'Brun', 'brune': 'Brun', 'marron': 'Marron', 'chocolat': 'Marron chocolat', 'brown': 'Marron',
   'roux': 'Roux', 'rousse': 'Roux', 'auburn': 'Auburn',
   'blond': 'Blond', 'blonde': 'Blond', 'doré': 'Blond doré', 'dore': 'Blond doré',
-  'gris': 'Gris', 'grise': 'Gris', 'argent': 'Argenté', 'argenté': 'Argenté', 'plat': 'Gris platine',
-  'violet': 'Violet', 'violette': 'Violet', 'mauve': 'Mauve', 'pourpre': 'Pourpre',
-  'rose': 'Rose', 'fuschia': 'Fuchsia', 'magenta': 'Magenta',
-  'orange': 'Orange', 'cuivre': 'Cuivré', 'cuivré': 'Cuivré',
-  'jaune': 'Jaune', 'or': 'Or', 'doree': 'Doré', 'dorée': 'Doré',
+  'gris': 'Gris', 'grise': 'Gris', 'argent': 'Argenté', 'argenté': 'Argenté', 'plat': 'Gris platine', 'gray': 'Gris', 'grey': 'Gris', 'silver': 'Argenté',
+  'violet': 'Violet', 'violette': 'Violet', 'mauve': 'Mauve', 'pourpre': 'Pourpre', 'purple': 'Violet',
+  'rose': 'Rose', 'fuschia': 'Fuchsia', 'magenta': 'Magenta', 'pink': 'Rose',
+  'orange': 'Orange', 'cuivre': 'Cuivré',
+  'jaune': 'Jaune', 'or': 'Or', 'doree': 'Doré', 'dorée': 'Doré', 'yellow': 'Jaune', 'gold': 'Doré',
   'turquoise': 'Turquoise', 'cyan': 'Cyan', 'emeraude': 'Émeraude', 'émeraude': 'Émeraude',
-  'ambre': 'Ambre', 'noisette': 'Noisette', 'miel': 'Miel',
-  // EN
-  'green': 'Vert', 'blue': 'Bleu', 'red': 'Rouge', 'black': 'Noir', 'white': 'Blanc',
-  'brown': 'Marron', 'auburn': 'Auburn', 'blonde': 'Blond', 'gray': 'Gris', 'grey': 'Gris',
-  'purple': 'Violet', 'pink': 'Rose', 'orange': 'Orange', 'yellow': 'Jaune',
-  'silver': 'Argenté', 'gold': 'Doré', 'hazel': 'Noisette', 'amber': 'Ambre',
+  'ambre': 'Ambre', 'noisette': 'Noisette', 'miel': 'Miel', 'amber': 'Ambre', 'hazel': 'Noisette',
 };
 
 // ============================================================================
@@ -223,9 +233,18 @@ export class WizardFieldIntelligence {
       };
     }
 
-    // Navigation vers un onglet
+    // Navigation vers un onglet ou dashboard
     const tabNav = this.detectTabNavigation(lower);
     if (tabNav) {
+      if (tabNav === 'dashboard') {
+        return {
+          action: 'navigate_dashboard',
+          entityType,
+          patches: [],
+          confidence: 1.0,
+          rawTranscript: transcript,
+        };
+      }
       return {
         action: 'navigate_tab',
         entityType,
@@ -234,6 +253,72 @@ export class WizardFieldIntelligence {
         confidence: 0.9,
         rawTranscript: transcript,
       };
+    }
+
+    // ── NOUVELLES ACTIONS GÉNÉRATIVES ──
+    
+    // Image de la tuile (Personnage, lieu, objet)
+    if (lower.includes('gent image') || lower.includes('gent l\'image') || lower.includes('genere l\'image') || lower.includes('photo de la tuile')) {
+       return { action: 'generate_image_tile', entityType, patches: [], confidence: 1.0, rawTranscript: transcript };
+    }
+
+    // Objet 3D (Workflow Trellis)
+    if (lower.includes('3d') || lower.includes('trois d') || lower.includes('trellis') || lower.includes('maillage')) {
+       return { action: 'generate_3d_object', entityType, patches: [], confidence: 1.0, rawTranscript: transcript };
+    }
+
+    // Script / Scénario / Histoire / Dialogue
+    if (lower.includes('script') || lower.includes('scenario') || lower.includes('scénario') || lower.includes('histoire') || lower.includes('dialogue') || lower.includes('prompt')) {
+       return { 
+         action: 'generate_script', 
+         entityType, 
+         patches: [], 
+         confidence: 1.0, 
+         rawTranscript: transcript,
+         targetSection: lower.includes('dialogue') ? 'dialogues' : lower.includes('prompt') ? 'prompts' : 'story'
+       };
+    }
+
+    // Création d'entité
+    if (lower.includes('cree') || lower.includes('créer') || lower.includes('ajouter')) {
+       if (lower.includes('personnage') || lower.includes('character')) {
+          return { action: 'create_entity', entityType: 'character', patches: [], confidence: 1.0, rawTranscript: transcript };
+       }
+    }
+
+    // Upscale & Résolution
+    if (lower.includes('upscale') || lower.includes('up scale') || lower.includes('ameliore') || lower.includes('augmenter la qualite')) {
+       // Extraction de la résolution cible si présente
+       let resolution = '2K';
+       if (lower.includes('4k')) resolution = '4K';
+       if (lower.includes('8k')) resolution = '8K';
+       if (lower.includes('1080')) resolution = '1080p';
+       if (lower.includes('720')) resolution = '720p';
+
+       return { 
+         action: 'upscale', 
+         entityType, 
+         patches: [], 
+         confidence: 1.0, 
+         rawTranscript: transcript,
+         targetSection: resolution 
+       };
+    }
+
+    if (lower.includes('format') || lower.includes('ratio')) {
+       let ratio = '16:9';
+       if (lower.includes('9:16')) ratio = '9:16';
+       if (lower.includes('1:1')) ratio = '1:1';
+       if (lower.includes('cinema')) ratio = '2.35:1';
+
+       return { 
+         action: 'set_resolution', 
+         entityType, 
+         patches: [], 
+         confidence: 1.0, 
+         rawTranscript: transcript,
+         targetSection: ratio 
+       };
     }
 
     // ── Extraction des patches ─────────────────────────────────────────────
@@ -463,6 +548,7 @@ export class WizardFieldIntelligence {
       'relationships': ['relations', 'relationship', 'liens', 'onglet relations'],
       'images': ['images', 'photos', 'visuel', 'onglet images'],
       'prompts': ['prompts', 'onglet prompts', 'prompt'],
+      'dashboard': ['dashboard', 'tableau de bord', 'accueil', 'quitter', 'fermer', 'exit', 'close', 'back to dashboard'],
     };
 
     const navPrefixes = ['va sur', 'onglet', 'tab', 'montre', 'affiche', 'go to', 'show', 'open tab'];
@@ -530,7 +616,7 @@ export class WizardFieldIntelligence {
           'Génère une description',
         ];
       default:
-        return [];
+        return ['Retour au dashboard', 'Va sur l\'onglet images', 'Génère tout'];
     }
   }
 }

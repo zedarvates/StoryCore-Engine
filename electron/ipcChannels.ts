@@ -147,6 +147,8 @@ export class IPCHandlers {
   private roverService: RoverService;
   private configurationStore: ConfigurationStore;
 
+  private activeProjectPath: string | null = null;
+
   constructor(
     projectService: ProjectService,
     recentProjectsManager: RecentProjectsManager,
@@ -398,6 +400,9 @@ registerHandlers(): void {
           path: project.path,
         });
 
+        // Track active project path
+        this.activeProjectPath = project.path;
+
         return {
           success: true,
           project,
@@ -429,6 +434,9 @@ registerHandlers(): void {
           name: project.name,
           path: project.path,
         });
+
+        // Track active project path
+        this.activeProjectPath = project.path;
 
         return {
           success: true,
@@ -1653,8 +1661,11 @@ registerHandlers(): void {
           success: true,
           data: buffer,
         };
-      } catch (error) {
-        console.error('Failed to read file:', error);
+      } catch (error: unknown) {
+        const err = error as { code?: string; message?: string };
+        if (err.code !== 'ENOENT') {
+          console.error('Failed to read file:', error);
+        }
         return {
           success: false,
           error: error instanceof Error ? error.message : String(error),
@@ -1907,7 +1918,13 @@ return { success: false, errors, warnings };
     // Save project configuration
     ipcMain.handle(IPC_CHANNELS.CONFIG_SAVE_PROJECT, async (_event, projectId: string, config: any) => {
       try {
-        await this.configurationStore.saveProjectConfig(projectId, config);
+        await this.configurationStore.saveProjectConfig(projectId, config, this.activeProjectPath || undefined);
+        
+        // If LLM config is included, update the LLM service too
+        if (config.llm) {
+          await this.llmService.updateConfiguration(config.llm);
+        }
+        
         return { success: true };
       } catch (error) {
         console.error('Failed to save project config:', error);
@@ -1918,7 +1935,13 @@ return { success: false, errors, warnings };
     // Load project configuration
     ipcMain.handle(IPC_CHANNELS.CONFIG_LOAD_PROJECT, async (_event, projectId: string) => {
       try {
-        const config = await this.configurationStore.loadProjectConfig(projectId);
+        const config = await this.configurationStore.loadProjectConfig(projectId, this.activeProjectPath || undefined);
+        
+        // If configuration has LLM settings, ensure LLM service is updated
+        if (config && config.llm) {
+          await this.llmService.updateConfiguration(config.llm);
+        }
+        
         return { success: true, config };
       } catch (error) {
         console.error('Failed to load project config:', error);

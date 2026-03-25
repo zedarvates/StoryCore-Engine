@@ -22,11 +22,11 @@ import type { Character } from '@/types/character';
 import { createEmptyCharacter } from '@/types/character';
 import type { World } from '@/types/world';
 
-// Subcomponents
 import { IdentityStep } from './steps/IdentityStep';
 import { EssenceStep } from './steps/EssenceStep';
 import { ChroniclesStep } from './steps/ChroniclesStep';
 import { CharacterPreset } from './presets';
+import { WizardVoiceAssistant } from '../WizardVoiceAssistant';
 
 export interface CharacterWizardProps {
   onComplete: (character: Character) => void;
@@ -238,12 +238,59 @@ export function CharacterWizard({
               >
                 Abort Synthesis
               </button>
-              <button 
-                onClick={() => setShowLLMSettings(true)}
-                className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 underline decoration-blue-500/30 underline-offset-4"
-              >
-                LLM Configuration
-              </button>
+              <div className="flex items-center gap-4">
+                <WizardVoiceAssistant
+                  entityType="character"
+                  onFieldChange={(section, field, value) => {
+                    if (section) {
+                      const sectionData = (data[section as keyof Character] || {}) as Record<string, unknown>;
+                      updateData({ [section]: { ...sectionData, [field]: value } });
+                    } else {
+                      updateData({ [field]: value });
+                    }
+                  }}
+                  onTabChange={(tabId) => {
+                    const stepMap: Record<string, number> = {
+                      'foundations': 1, 'identity': 1,
+                      'essence': 2, 'psychology': 2,
+                      'chronicles': 3, 'history': 3
+                    };
+                    if (stepMap[tabId.toLowerCase()]) {
+                      setCurrentStep(stepMap[tabId.toLowerCase()]);
+                    }
+                  }}
+                  onDashboard={onCancel}
+                  onUpscale={async (res) => {
+                    console.info(`[CharacterWizard] Voice command: Upscale to ${res}`);
+                    if (data.visual_identity?.generated_portrait) {
+                      try {
+                        const { comfyuiService: service } = await import('@/services/comfyuiService');
+                        const upscaledUrl = await service.upscaleImage({
+                          imagePath: data.visual_identity.generated_portrait,
+                          upscaleFactor: res.includes('4K') ? 4 : 2
+                        });
+                        updateData({ visual_identity: { ...data.visual_identity, generated_portrait: upscaledUrl } });
+                      } catch (err) {
+                        console.error('Failed to upscale image:', err);
+                      }
+                    } else {
+                      console.warn('[CharacterWizard] No portrait available to upscale.');
+                    }
+                  }}
+                  onSetResolution={(ratio) => {
+                    console.info(`[CharacterWizard] Voice command: Set resolution to ${ratio}`);
+                    if (data.visual_identity) {
+                      updateData({ visual_identity: { ...data.visual_identity, build: ratio } });
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => setShowLLMSettings(true)}
+                  className="text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 underline decoration-blue-500/30 underline-offset-4"
+                >
+                  LLM Configuration
+                </button>
+              </div>
             </div>
           </div>
 

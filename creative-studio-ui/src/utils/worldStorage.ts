@@ -21,8 +21,9 @@ export interface SaveWorldResult {
  */
 function sanitizeFolderName(name: string): string {
   return name
+    // eslint-disable-next-line no-control-regex
     .trim()
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_') // Replace invalid characters
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_') // Replace invalid characters
     .replace(/\s+/g, '_') // Replace spaces with underscores
     .substring(0, 100); // Limit length
 }
@@ -70,7 +71,10 @@ export async function saveWorldToProject(
     }
 
     // Build file path with world name as folder
-    const worldDir = `./projects/${projectId}/worlds/${sanitizedName}`;
+    const baseDir = (projectId.includes(':') || projectId.startsWith('/') || projectId.startsWith('\\'))
+      ? projectId
+      : `./projects/${projectId}`;
+    const worldDir = `${baseDir}/worlds/${sanitizedName}`;
     const filePath = `${worldDir}/world.json`;
 
     // Ensure directory exists
@@ -111,7 +115,9 @@ export async function loadWorldFromProject(
       return existingWorlds[worldId] || null;
     }
 
-    const worldsBaseDir = `./projects/${projectId}/worlds`;
+    const worldsBaseDir = (projectId.includes(':') || projectId.startsWith('/') || projectId.startsWith('\\'))
+      ? `${projectId}/worlds`
+      : `./projects/${projectId}/worlds`;
 
     // List all world folders
     const folders = await window.electronAPI.fs.readdir(worldsBaseDir);
@@ -159,7 +165,9 @@ export async function listWorldsInProject(
       return Object.keys(existingWorlds);
     }
 
-    const worldsDir = `./projects/${projectId}/worlds`;
+    const worldsDir = (projectId.includes(':') || projectId.startsWith('/') || projectId.startsWith('\\'))
+      ? `${projectId}/worlds`
+      : `./projects/${projectId}/worlds`;
 
     const exists = await window.electronAPI.fs.exists(worldsDir);
     if (!exists) {
@@ -247,7 +255,9 @@ export async function deleteWorldFromProject(
       return true;
     }
 
-    const worldsBaseDir = `./projects/${projectId}/worlds`;
+    const worldsBaseDir = (projectId.includes(':') || projectId.startsWith('/') || projectId.startsWith('\\'))
+      ? `${projectId}/worlds`
+      : `./projects/${projectId}/worlds`;
     const folders = await window.electronAPI.fs.readdir(worldsBaseDir);
 
     // Find the folder containing this world

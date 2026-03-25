@@ -31,6 +31,8 @@ import {
   FieldPatch,
 } from '@/services/WizardFieldIntelligence';
 import { useVoiceInput } from './useAddonVoiceCommands';
+import { useAppStore } from '@/stores/useAppStore';
+
 
 // ============================================================================
 // TYPES
@@ -55,6 +57,24 @@ export interface WizardVoiceAssistantOptions {
   /** Callback quand un patch est appliqué (pour feedback) */
   onPatchApplied?: (patch: FieldPatch) => void;
 
+  /** Callback pour générer une image */
+  onGenerateImage?: () => void;
+  
+  /** Callback pour générer un objet 3D */
+  onGenerate3D?: () => void;
+
+  /** Callback pour générer un script/texte complexe */
+  onGenerateScript?: (target: string) => void;
+
+  /** Callback pour upscaler un média */
+  onUpscale?: (resolution: string) => void;
+
+  /** Callback pour changer le format/résolution */
+  onSetResolution?: (ratio: string) => void;
+
+  /** Callback quand on quitte le wizard */
+  onDashboard?: () => void;
+
   /** Callback erreur */
   onError?: (message: string) => void;
 }
@@ -76,16 +96,24 @@ export interface UseWizardVoiceAssistantReturn {
   /** Historique des commandes appliquées */
   commandHistory: WizardCommandFeedback[];
 
-  /** Écoute vocale */
+  /** Statut d'écoute */
   isListening: boolean;
+  /** Supporte le vocal */
   isVoiceSupported: boolean;
+  /** Transcript en cours */
   transcript: string;
+  /** Activer le micro */
   startListening: () => void;
+  /** Désactiver le micro */
   stopListening: () => void;
+  /** Toogle micro */
   toggleListening: () => void;
 
   /** Suggestions contextuelles */
   suggestions: string[];
+
+  /** Trigger manuel du retour dashboard */
+  onDashboard: () => void;
 
   /** Reset le feedback */
   clearFeedback: () => void;
@@ -105,12 +133,22 @@ export function useWizardVoiceAssistant(
     onGenerateSection,
     onFillMissing,
     onPatchApplied,
+    onGenerateImage,
+    onGenerate3D,
+    onGenerateScript,
+    onUpscale,
+    onSetResolution,
+    onDashboard,
     onError,
   } = options;
 
   const [lastFeedback, setLastFeedback] = useState<WizardCommandFeedback | null>(null);
-  const [commandHistory, setCommandHistory] = useState<WizardCommandFeedback[]>([]);
+  const wizardCommandHistory = useAppStore(state => state.wizardCommandHistory);
+  const addWizardHistory = useAppStore(state => state.addWizardHistory);
+  
+  // Local history for this specific session if needed, but we'll use the store for persistence
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
 
   // ── Traitement d'une commande ─────────────────────────────────────────────
 
@@ -205,6 +243,65 @@ export function useWizardVoiceAssistant(
           break;
         }
 
+        // ── Navigation dashboard ─────────────────────────────────────────
+        case 'navigate_dashboard': {
+          onDashboard?.();
+          feedback = {
+            type: 'success',
+            message: `🏡 Retour au dashboard...`,
+            timestamp: Date.now(),
+          };
+          break;
+        }
+
+        // ── Générations spécialisées ──────────────────────────────────────
+        case 'generate_image_tile': {
+          onGenerateImage?.();
+          feedback = { type: 'success', message: '🎨 Génération de l\'image...', timestamp: Date.now() };
+          break;
+        }
+
+        case 'generate_3d_object': {
+          onGenerate3D?.();
+          feedback = { type: 'success', message: '🧊 Génération de l\'objet 3D (Trellis)...', timestamp: Date.now() };
+          break;
+        }
+
+        case 'generate_script': {
+          onGenerateScript?.(intent.targetSection || 'story');
+          feedback = { 
+            type: 'success', 
+            message: `✍️ Génération ${intent.targetSection || 'du récit'}...`, 
+            timestamp: Date.now() 
+          };
+          break;
+        }
+
+        case 'create_entity': {
+          feedback = { type: 'info', message: `🆕 Création d'un nouveau ${intent.entityType}...`, timestamp: Date.now() };
+          break;
+        }
+
+        case 'upscale': {
+          onUpscale?.(intent.targetSection || '2K');
+          feedback = { 
+            type: 'success', 
+            message: `🚀 Upscaling en ${intent.targetSection || '2K'} activé...`, 
+            timestamp: Date.now() 
+          };
+          break;
+        }
+
+        case 'set_resolution': {
+          onSetResolution?.(intent.targetSection || '16:9');
+          feedback = { 
+            type: 'success', 
+            message: `📏 Format réglé sur ${intent.targetSection || '16:9'}`, 
+            timestamp: Date.now() 
+          };
+          break;
+        }
+
         // ── Inconnu ──────────────────────────────────────────────────────
         default: {
           const suggestions = WizardFieldIntelligence.getSuggestionsFor(entityType);
@@ -219,7 +316,8 @@ export function useWizardVoiceAssistant(
       }
 
       setLastFeedback(feedback);
-      setCommandHistory(prev => [feedback, ...prev].slice(0, 20));
+      addWizardHistory(feedback);
+
 
       // Auto-clear feedback après 4s
       if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
@@ -227,14 +325,15 @@ export function useWizardVoiceAssistant(
 
       return intent;
     },
-    [entityType, onFieldChange, onTabChange, onGenerateSection, onFillMissing, onPatchApplied, onError],
+    [entityType, onFieldChange, onTabChange, onGenerateSection, onFillMissing, onPatchApplied, onGenerateImage, onGenerate3D, onGenerateScript, onUpscale, onSetResolution, onDashboard, onError, addWizardHistory],
   );
+
 
   // ── Écoute vocale ─────────────────────────────────────────────────────────
 
   const { isListening, isSupported, transcript, startListening, stopListening, toggleListening } = useVoiceInput({
     onCommand: (result) => {
-      if (result.handled) return; // déjà géré par l'addon router
+      if (result.success) return; // déjà géré par l'addon router
     },
     onTranscriptChange: (t) => {
       if (t && t.length > 3) {
@@ -258,14 +357,23 @@ export function useWizardVoiceAssistant(
   return {
     handleCommand,
     lastFeedback,
-    commandHistory,
+    commandHistory: wizardCommandHistory,
+    transcript,
+
     isListening,
     isVoiceSupported: isSupported,
-    transcript,
     startListening,
     stopListening,
     toggleListening,
     suggestions,
+    onDashboard: () => {
+       onDashboard?.();
+       setLastFeedback({
+         type: 'success',
+         message: `🏡 Retour au dashboard...`,
+         timestamp: Date.now(),
+       });
+    },
     clearFeedback,
   };
 }

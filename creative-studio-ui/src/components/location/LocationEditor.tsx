@@ -189,8 +189,15 @@ export function LocationEditor({
           <div className="location-editor__panel">
             <h3 className="location-editor__panel-title">Basic Information</h3>
             <div className="location-editor__form-group">
-              <label className="location-editor__label">Name</label>
-              <input type="text" value={name} onChange={e => { setName(e.target.value); handleInputChange(); }} className="location-editor__input" />
+              <label className="location-editor__label" htmlFor="location-name">Name</label>
+              <input 
+                id="location-name"
+                type="text" 
+                value={name} 
+                onChange={e => { setName(e.target.value); handleInputChange(); }} 
+                className="location-editor__input" 
+                placeholder="Enter location name"
+              />
             </div>
             <div className="location-editor__form-group">
               <label className="location-editor__label">Type</label>
@@ -200,16 +207,37 @@ export function LocationEditor({
               </div>
             </div>
             <div className="location-editor__form-group">
-              <label className="location-editor__label">Description</label>
-              <textarea value={description} onChange={e => { setDescription(e.target.value); handleInputChange(); }} className="location-editor__textarea" rows={4} />
+              <label className="location-editor__label" htmlFor="location-description">Description</label>
+              <textarea 
+                id="location-description"
+                value={description} 
+                onChange={e => { setDescription(e.target.value); handleInputChange(); }} 
+                className="location-editor__textarea" 
+                rows={4} 
+                placeholder="Describe this location..."
+              />
             </div>
             <div className="location-editor__form-group">
-              <label className="location-editor__label">Atmosphere</label>
-              <input type="text" value={atmosphere} onChange={e => { setAtmosphere(e.target.value); handleInputChange(); }} placeholder="e.g., Dark, Mysterious, Bright" className="location-editor__input" />
+              <label className="location-editor__label" htmlFor="location-atmosphere">Atmosphere</label>
+              <input 
+                id="location-atmosphere"
+                type="text" 
+                value={atmosphere} 
+                onChange={e => { setAtmosphere(e.target.value); handleInputChange(); }} 
+                placeholder="e.g., Dark, Mysterious, Bright" 
+                className="location-editor__input" 
+              />
             </div>
             <div className="location-editor__form-group">
-              <label className="location-editor__label">Genre Tags</label>
-              <input type="text" value={genreTags} onChange={e => { setGenreTags(e.target.value); handleInputChange(); }} placeholder="fantasy, medieval, forest (comma-separated)" className="location-editor__input" />
+              <label className="location-editor__label" htmlFor="location-genre-tags">Genre Tags</label>
+              <input 
+                id="location-genre-tags"
+                type="text" 
+                value={genreTags} 
+                onChange={e => { setGenreTags(e.target.value); handleInputChange(); }} 
+                placeholder="fantasy, medieval, forest (comma-separated)" 
+                className="location-editor__input" 
+              />
             </div>
           </div>
         )}
@@ -230,40 +258,47 @@ export function LocationEditor({
         )}
 
         {activeTab === 'scene' && currentLocation && (
-          <div className="location-editor__scene-panel" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="location-editor__scene-panel-container">
             <div>
               <h3>3D Layout Generation (Old Method)</h3>
-              <button onClick={handleGenerateLayout} disabled={isLoading || isGenerating3DScene} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '10px' }}>
+              <button 
+                onClick={handleGenerateLayout} 
+                disabled={isLoading || isGenerating3DScene} 
+                className="location-editor__scene-generation-btn"
+              >
                 {isLoading ? <RefreshCw size={16} className="spin" /> : <Box size={16} />}
                 Generate Blender Layout
               </button>
             </div>
 
-            <div style={{ padding: '20px', backgroundColor: '#1e1e24', borderRadius: '8px', border: '1px solid #333' }}>
-              <h3 style={{ margin: '0 0 10px 0', color: '#4A90E2', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="location-editor__pipeline-container">
+              <h3 className="location-editor__pipeline-title">
                 <Layers size={20} /> Pipeline Avancé : Génération Scène 3D (Iso)
               </h3>
-              <p style={{ color: '#aaa', fontSize: '13px', marginBottom: '15px' }}>
+              <p className="location-editor__pipeline-desc">
                 Ce pipeline génère un décor top-down avec splat mapping, détecte les bâtiments et arbres, efface les éléments mobiles, et recompose tout en 3D.
               </p>
               
               <button 
                 onClick={handleGenerate3DScene} 
                 disabled={isGenerating3DScene} 
-                style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 16px', backgroundColor: isGenerating3DScene ? '#555' : '#4A90E2', color: '#fff', border: 'none', borderRadius: '4px', cursor: isGenerating3DScene ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+                className={`location-editor__pipeline-main-btn ${isGenerating3DScene ? 'location-editor__pipeline-main-btn--generating' : ''}`}
               >
                 {isGenerating3DScene ? <RefreshCw size={16} className="spin" /> : <Map size={16} />}
                 {isGenerating3DScene ? 'Génération en cours...' : 'Créer la Scène du Lieu'}
               </button>
 
               {pipelineState && (
-                <div style={{ marginTop: '20px', background: '#111', padding: '15px', borderRadius: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '12px', color: '#ddd' }}>
+                <div className="location-editor__pipeline-status">
+                  <div className="location-editor__pipeline-status-header">
                     <span>{pipelineState.message}</span>
                     <span>{pipelineState.progress}%</span>
                   </div>
-                  <div style={{ width: '100%', height: '8px', background: '#333', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${pipelineState.progress}%`, height: '100%', background: pipelineState.status === 'error' ? '#e74c3c' : '#2ecc71', transition: 'width 0.3s ease' }}></div>
+                  <div className="location-editor__progress-track">
+                    <div 
+                      className={`location-editor__progress-fill ${pipelineState.status === 'error' ? 'location-editor__progress-fill--error' : ''}`}
+                      style={{ width: `${pipelineState.progress}%` }} 
+                    ></div>
                   </div>
                 </div>
               )}
@@ -272,11 +307,34 @@ export function LocationEditor({
         )}
 
         {activeTab === 'images' && currentLocation && (
-          <LocationImagesSection location={currentLocation} onImageGenerated={(url, prompt) => {
-            const updates: Partial<Location> = { metadata: { ...currentLocation.metadata, tile_image_path: url } };
-            if (prompt) { const newPrompts = [...prompts, prompt]; setPrompts(newPrompts); updates.prompts = newPrompts; }
-            handleUpdateLocation(updates);
-          }} />
+          <LocationImagesSection 
+            location={currentLocation} 
+            onImageGenerated={(url, prompt) => {
+              const currentHistory = currentLocation.metadata?.thumbnail_history || [];
+              const newHistory = [url, ...currentHistory.filter(h => h !== url)].slice(0, 10);
+              
+              const updates: Partial<Location> = { 
+                metadata: { 
+                  ...currentLocation.metadata, 
+                  tile_image_path: url,
+                  thumbnail_path: url,
+                  thumbnail_history: newHistory
+                } 
+              };
+              if (prompt) { const newPrompts = [...prompts, prompt]; setPrompts(newPrompts); updates.prompts = newPrompts; }
+              handleUpdateLocation(updates);
+            }} 
+            onImageSelect={(url: string) => {
+              const updates: Partial<Location> = {
+                metadata: {
+                  ...currentLocation.metadata,
+                  tile_image_path: url,
+                  thumbnail_path: url
+                }
+              };
+              handleUpdateLocation(updates);
+            }}
+          />
         )}
 
         {activeTab === 'prompts' && (

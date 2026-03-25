@@ -156,12 +156,15 @@ Example format:
       const items = parseLLMArray<unknown>(response, 'parseLLMConstraints');
       
       if (items.length > 0) {
-        const constraints = items.map((item: any) => ({
-          id: crypto.randomUUID(),
-          category: (item.category?.toLowerCase() as ProjectConstraint['category']) || 'technical',
-          constraint: item.constraint || item.name || '',
-          impact: item.impact || item.description || '',
-        }));
+        const constraints = items.map((item: unknown) => {
+          const typedItem = item as { category?: string; constraint?: string; name?: string; impact?: string; description?: string };
+          return {
+            id: crypto.randomUUID(),
+            category: (typedItem.category?.toLowerCase() as ProjectConstraint['category']) || 'technical',
+            constraint: typedItem.constraint || typedItem.name || '',
+            impact: typedItem.impact || typedItem.description || '',
+          };
+        });
 
         const filtered = constraints.filter(c => c.constraint.trim());
         console.log('✨ [parseLLMConstraints] Extracted constraints:', filtered);
@@ -276,6 +279,55 @@ Example format:
           </div>
         )}
       </div>
+
+      {/* Artistic Direction Section */}
+      <FormSection
+        title="Artistic Direction"
+        description="Define the visual and auditory signature of your project"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Visual Style" name="visualStyle">
+            <Select
+              value={formData.visualStyle || 'realistic'}
+              onValueChange={(value) => updateFormData({ visualStyle: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select visual style" />
+              </SelectTrigger>
+              <SelectContent className="z-[9999]">
+                <SelectItem value="realistic">Realistic / Cinematic</SelectItem>
+                <SelectItem value="stylized">Stylized / Artistic</SelectItem>
+                <SelectItem value="anime">Anime / Manga</SelectItem>
+                <SelectItem value="noir">Noir / High Contrast</SelectItem>
+                <SelectItem value="vintage">Vintage / Retro</SelectItem>
+                <SelectItem value="minimalist">Minimalist</SelectItem>
+                <SelectItem value="sci-fi">High-Tech / Sci-Fi</SelectItem>
+                <SelectItem value="fantasy">High Fantasy</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          <FormField label="Audio Style" name="audioStyle">
+            <Select
+              value={formData.audioStyle || 'cinematic'}
+              onValueChange={(value) => updateFormData({ audioStyle: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select audio style" />
+              </SelectTrigger>
+              <SelectContent className="z-[9999]">
+                <SelectItem value="cinematic">Cinematic Orchestral</SelectItem>
+                <SelectItem value="ambient">Ambient / Soundscape</SelectItem>
+                <SelectItem value="electronic">Electronic / Synth</SelectItem>
+                <SelectItem value="rock">Modern Rock / Action</SelectItem>
+                <SelectItem value="jazz">Jazz / Smooth</SelectItem>
+                <SelectItem value="minimalist">Minimalist / Piano</SelectItem>
+                <SelectItem value="horror">Suspense / Horror</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+        </div>
+      </FormSection>
 
       {/* Project Constraints */}
       <FormSection

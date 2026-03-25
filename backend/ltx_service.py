@@ -66,6 +66,10 @@ class LTXVideoService:
     Connects to ComfyUI for heavy lifting.
     """
     
+    # Simple in-memory job tracker
+    # Format: {job_id: {"status": "pending|processing|completed|failed", "output_path": str, "error": str, "progress": int}}
+    _jobs: Dict[str, Dict[str, Any]] = {}
+    
     def __init__(self, comfyui_url: Optional[str] = None):
         self.comfyui_url = (comfyui_url or settings.COMFYUI_BASE_URL).rstrip("/")
         self.output_dir = Path(settings.OUTPUT_FOLDER) / "ltx"
@@ -74,18 +78,26 @@ class LTXVideoService:
     async def generate_video(
         self,
         config: LTXGenerationConfig,
-        output_path: Optional[str] = None
+        output_path: Optional[str] = None,
+        job_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Main entry point for generating a video with LTX 2.3.
         """
-        job_id = str(uuid.uuid4())
+        if not job_id:
+            job_id = str(uuid.uuid4())
+            
+        self._jobs[job_id] = {"status": "pending", "progress": 0, "config": config.__dict__}
         logger.info(f"Preparing LTX 2.3 generation job: {job_id}")
         
         if settings.USE_MOCK_COMFYUI:
             logger.info("Using mock LTX generation")
+            self._jobs[job_id]["status"] = "processing"
+            self._jobs[job_id]["progress"] = 50
             await asyncio.sleep(3)
-            return self._generate_mock_result(job_id, config)
+            result = self._generate_mock_result(job_id, config)
+            self._jobs[job_id].update(result)
+            return result
 
         # 1. Prepare Workflow
         workflow = self._prepare_workflow(config)
@@ -105,22 +117,30 @@ class LTXVideoService:
                 
                 # 3. Wait for result
                 logger.info(f"LTX Job {job_id} submitted. Prompt ID: {prompt_id}. Waiting for completion...")
-                result_data = await self._poll_result(session, prompt_id)
+                self._jobs[job_id]["status"] = "processing"
+                self._jobs[job_id]["prompt_id"] = prompt_id
+                
+                result_data = await self._poll_result(session, prompt_id, job_id)
                 
                 # 4. Save output
+                self._jobs[job_id]["message"] = "Downloading results..."
                 final_path = await self._process_outputs(session, result_data, output_path)
                 
-                return {
+                result = {
                     "job_id": job_id,
                     "prompt_id": prompt_id,
                     "status": "completed",
                     "output_path": final_path,
                     "config": config.__dict__
                 }
+                self._jobs[job_id].update(result)
+                return result
                 
             except Exception as e:
                 logger.error(f"LTX Generation process failed: {e}")
-                return {"job_id": job_id, "status": "failed", "error": str(e)}
+                error_result = {"job_id": job_id, "status": "failed", "error": str(e)}
+                self._jobs[job_id].update(error_result)
+                return error_result
 
     def _prepare_workflow(self, config: LTXGenerationConfig) -> Dict[str, Any]:
         """
@@ -201,10 +221,14 @@ class LTXVideoService:
             
         return workflow
 
-    async def _poll_result(self, session, prompt_id: str) -> Dict[str, Any]:
+    async def _poll_result(self, session, prompt_id: str, job_id: str) -> Dict[str, Any]:
         """Poll ComfyUI until the job is done."""
         max_retries = 300 # 10 minutes at 2s interval
-        for _ in range(max_retries):
+        for i in range(max_retries):
+            # Update progress based on retry count (rough estimate)
+            if job_id in self._jobs:
+                self._jobs[job_id]["progress"] = min(95, 5 + int((i / 50) * 90))
+
             async with session.get(f"{self.comfyui_url}/history/{prompt_id}") as resp:
                 if resp.status == 200:
                     history = await resp.json()
@@ -248,3 +272,7 @@ class LTXVideoService:
             "is_mock": True,
             "config": config.__dict__
         }
+    @classmethod
+    def get_job_status(cls, job_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve the status of a specific job."""
+        return cls._jobs.get(job_id)

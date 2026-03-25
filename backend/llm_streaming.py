@@ -568,7 +568,7 @@ class OllamaStreamAdapter(StreamAdapter):
     - Final: {"response": "", "done": true, "context": [...], ...}
     """
     
-    DEFAULT_MODEL = "llama2"
+    DEFAULT_MODEL = app_settings.OLLAMA_MODEL or "qwen3-vl:4b"
     
     def get_provider_name(self) -> str:
         return "ollama"

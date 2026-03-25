@@ -235,11 +235,11 @@ export class CinematicAdviceService {
         const advice: CinematicAdvice[] = [];
         if (!project) return [];
 
-        if (!project.metadata?.style) {
+        if (!project.metadata?.style && !project.projectSetup?.visualStyle) {
             advice.push({
                 id: 'proj_style_missing',
                 level: 'warning',
-                text: "Style visuel non défini. L'IA risque d'être incohérente entre les plans.",
+                text: "Style visuel non défini. L'IA risque d'être incohérente entre les plans. Définissez-le dans les paramètres du projet.",
             });
         }
 

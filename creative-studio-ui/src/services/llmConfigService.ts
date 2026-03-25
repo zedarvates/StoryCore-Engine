@@ -64,7 +64,7 @@ class LLMConfigService {
       // If no configuration exists, create a default one with auto-detected model
       if (!config) {
         // Try to detect available Ollama models
-        let detectedModel = 'qwen2-vl:latest'; // Use a high-quality vision model as default fallback
+        let detectedModel = 'qwen3-vl:4b'; // Use Qwen 3 VL 4B as default base model fallback
         
         try {
           const { suggestBestModel } = await import('@/utils/ollamaModelDetection');

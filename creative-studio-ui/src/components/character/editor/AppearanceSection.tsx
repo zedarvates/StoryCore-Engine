@@ -13,6 +13,7 @@ import {
   BODY_BUILDS,
   HEIGHT_CATEGORIES,
   POSTURE_OPTIONS,
+  ETHNICITIES,
 } from '@/constants/characterOptions';
 import './EditorSection.css';
 
@@ -30,14 +31,12 @@ interface AppearanceSectionProps {
 
 export function AppearanceSection({
   data,
-  errors,
   onChange,
   characterName,
   archetype,
   ageRange,
   gender,
   worldContext,
-  id,
 }: AppearanceSectionProps) {
   const { llmConfigured, llmChecking } = useServiceStatus();
   const fieldId = useId();
@@ -71,7 +70,7 @@ export function AppearanceSection({
 - Gender: ${gender}
 - World Genre: ${worldContext?.genre?.join(', ') || 'fantasy'}
 
-Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_shape, skin_tone, facial_structure, height, build, posture, clothing_style, distinctive_features (array), color_palette (array)`;
+Format as JSON with keys: ethnicity, hair_color, hair_style, hair_length, eye_color, eye_shape, skin_tone, facial_structure, height, build, posture, clothing_style, distinctive_features (array), color_palette (array)`;
 
     await generate({
       prompt,
@@ -244,6 +243,30 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
               value={data.skin_tone || ''}
               onChange={(e) => onChange('skin_tone', e.target.value)}
               placeholder="Custom skin tone"
+            />
+          )}
+        </div>
+
+        <div className="editor-section__field">
+          <label className="editor-section__label" htmlFor={`${fieldId}-ethnicity`}>Ethnicity / Origin</label>
+          <select
+            id={`${fieldId}-ethnicity`}
+            className="editor-section__select"
+            value={isCustomValue('ethnicity', ETHNICITIES) ? 'Other' : data.ethnicity || ''}
+            onChange={(e) => handleSelectChange('ethnicity', e.target.value)}
+          >
+            <option value="">Select ethnicity</option>
+            {ETHNICITIES.map(eth => <option key={eth} value={eth}>{eth}</option>)}
+            <option value="Other">Other...</option>
+          </select>
+          {isCustomValue('ethnicity', ETHNICITIES) && (
+            <input
+              type="text"
+              id={`${fieldId}-ethnicity-custom`}
+              className="editor-section__input mt-2"
+              value={data.ethnicity || ''}
+              onChange={(e) => onChange('ethnicity', e.target.value)}
+              placeholder="Custom ethnicity"
             />
           )}
         </div>

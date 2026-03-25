@@ -119,7 +119,7 @@ class CineProductionService:
     
     WORKFLOW_PATHS = {
         "storyboard": "workflows/high_fidelity/smart_vision_storyboard.json",
-        "wan_i2v": "workflows/high_fidelity/image_to_video_wan2.1.json",
+        "wan_i2v": "workflows/high_fidelity/image_to_video_wan2.2.json",
         "wan_s2v": "workflows/high_fidelity/generate_one_character_speaking_video.json",
         "ace_step": "workflows/high_fidelity/smart_vision_ace_step_1.5_Professional.json",
         "none_character": "workflows/high_fidelity/generate_none_character_scene.json",

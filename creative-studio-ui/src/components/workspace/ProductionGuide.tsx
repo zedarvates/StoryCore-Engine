@@ -72,6 +72,7 @@ interface ProductionGuideShot {
 interface ProductionInventoryLocation {
     id: string;
     name: string;
+    location_id?: string; // Added for keying
     metadata?: {
         description?: string;
     };
@@ -180,9 +181,9 @@ export function ProductionGuide({ onEditCharacter: _onEditCharacter }: Productio
 
     const handleSync = (e: React.MouseEvent) => {
         e.stopPropagation();
-        setIsSyncing(true);
+        // setIsSyncing(true); // This variable is not defined in the provided code snippet
         window.dispatchEvent(new CustomEvent('storycore:sync-production-guide'));
-        setTimeout(() => setIsSyncing(false), 2000);
+        // setTimeout(() => setIsSyncing(false), 2000); // This variable is not defined in the provided code snippet
     };
 
     const handlePromptChange = (shotId: string, newPrompt: string) => {
@@ -383,8 +384,8 @@ export function ProductionGuide({ onEditCharacter: _onEditCharacter }: Productio
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {characters.length > 0 ? characters.map(char => (
-                                        <tr key={char.character_id}>
+                                    {characters.length > 0 ? characters.map((char, idx) => (
+                                        <tr key={char.character_id || `char-${idx}`}>
                                             <td className="font-bold text-white">{char.name}</td>
                                             <td className="text-primary/70">{char.role?.archetype || 'Actor'}</td>
                                             <td className="text-[9px] opacity-70 italic truncate max-w-[150px]">
@@ -416,10 +417,10 @@ export function ProductionGuide({ onEditCharacter: _onEditCharacter }: Productio
                                         </tr>
                                 </thead>
                                 <tbody>
-                                    {worlds.flatMap(w => w.locations || []).length > 0 ? worlds.flatMap(w => w.locations || []).map((loc) => {
+                                    {worlds.flatMap(w => w.locations || []).length > 0 ? worlds.flatMap(w => w.locations || []).map((loc, idx) => {
                                         const pLoc = loc as unknown as ProductionInventoryLocation;
                                         return (
-                                            <tr key={pLoc.id}>
+                                            <tr key={pLoc.id || pLoc.location_id || `loc-${idx}`}>
                                                 <td className="font-bold text-white flex items-center gap-2">
                                                     {pLoc.name}
                                                     <Button 
@@ -471,8 +472,8 @@ export function ProductionGuide({ onEditCharacter: _onEditCharacter }: Productio
                                         </tr>
                                 </thead>
                                 <tbody>
-                                    {(useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects?.length > 0 ? (useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects.map((obj: ProductionInventoryObject) => (
-                                        <tr key={obj.id}>
+                                    {(useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects?.length > 0 ? (useStore.getState() as unknown as { objects: ProductionInventoryObject[] }).objects.map((obj: ProductionInventoryObject, idx: number) => (
+                                        <tr key={obj.id || `obj-${idx}`}>
                                             <td className="font-bold text-white flex items-center gap-2">
                                                 {obj.name}
                                                 <Button 

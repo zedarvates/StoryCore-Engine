@@ -11,6 +11,10 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 python-dotenv>=1.0.0
 
+# Explicitly require ecdsa>=0.18.0 to fix Minerva timing attack vulnerability
+# (CVE-2024-23342) - transitive dependency from python-jose
+ecdsa>=0.18.0
+
 # Testing
 pytest>=7.4.0
 pytest-asyncio>=0.21.0

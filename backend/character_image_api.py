@@ -174,6 +174,7 @@ def get_service_config(
     apply_genre_adaptations: bool = True,
     target_gender: Optional[str] = None,
     target_age: Optional[str] = None,
+    target_ethnicity: Optional[str] = None,
     output_directory: Optional[str] = None
 ) -> 'CharacterCreationConfig':
     """Get service configuration"""
@@ -186,6 +187,7 @@ def get_service_config(
         apply_genre_adaptations=apply_genre_adaptations,
         target_gender=target_gender,
         target_age=target_age,
+        target_ethnicity=target_ethnicity,
         save_extracted_face=True,
         output_directory=output_directory
     )
@@ -235,6 +237,7 @@ async def create_character_from_image(
     apply_genre_adaptations: bool = Form(True, description="Apply genre-specific adaptations"),
     target_gender: Optional[str] = Form(None, description="Optional gender hint"),
     target_age: Optional[str] = Form(None, description="Optional age range hint"),
+    target_ethnicity: Optional[str] = Form(None, description="Optional ethnicity hint"),
     user_id: str = "anonymous"
 ) -> CharacterFromImageResponse:
     """
@@ -291,6 +294,7 @@ async def create_character_from_image(
             apply_genre_adaptations=apply_genre_adaptations,
             target_gender=target_gender,
             target_age=target_age,
+            target_ethnicity=target_ethnicity,
             output_directory=str(output_dir)
         )
         
@@ -303,7 +307,8 @@ async def create_character_from_image(
             role=role,
             additional_context=additional_context,
             target_gender=target_gender,
-            target_age=target_age
+            target_age=target_age,
+            target_ethnicity=target_ethnicity
         )
         
         if not result.success:

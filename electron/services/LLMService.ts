@@ -1,22 +1,21 @@
-/**
- * LLM Service for Electron Main Process
- * Handles LLM provider configuration and communication
- */
-
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import type { LLMConfiguration } from '../configurationTypes';
 
+// Global configuration path
+const GLOBAL_LLM_CONFIG_PATH = path.join(os.homedir(), '.storycore', 'llm-config.json');
+
 // Simple in-memory configuration store for LLM
-const llmConfigStore: Record<string, any> = {
-  llm: {
-    provider: 'ollama',
-    defaultProvider: 'ollama',
-    enableFallback: true,
-    ollama: {
-      baseUrl: 'http://localhost:11434',
-      model: 'mistral',
-      temperature: 0.7,
-      maxTokens: 2048,
-    },
+let llmConfigStore: LLMConfiguration = {
+  provider: 'ollama',
+  defaultProvider: 'ollama',
+  enableFallback: true,
+  ollama: {
+    baseUrl: 'http://localhost:11434',
+    model: 'qwen3-vl:4b',
+    temperature: 0.7,
+    maxTokens: 2048,
   },
 };
 
@@ -31,31 +30,53 @@ export interface LLMProvider {
 }
 
 export class LLMService {
+  constructor() {
+    this.loadGlobalConfiguration();
+  }
+
+  /**
+   * Load global configuration from home directory
+   */
+  private loadGlobalConfiguration() {
+    try {
+      if (fs.existsSync(GLOBAL_LLM_CONFIG_PATH)) {
+        const data = fs.readFileSync(GLOBAL_LLM_CONFIG_PATH, 'utf8');
+        llmConfigStore = JSON.parse(data);
+        console.log(`[LLMService] Loaded global LLM configuration from ${GLOBAL_LLM_CONFIG_PATH}`);
+      } else {
+        // Ensure directory exists for future saves
+        fs.mkdirSync(path.dirname(GLOBAL_LLM_CONFIG_PATH), { recursive: true });
+      }
+    } catch (error) {
+      console.warn('[LLMService] Failed to load global LLM configuration:', error);
+    }
+  }
+
+  /**
+   * Save global configuration to home directory
+   */
+  private saveGlobalConfiguration() {
+    try {
+      fs.writeFileSync(GLOBAL_LLM_CONFIG_PATH, JSON.stringify(llmConfigStore, null, 2), 'utf8');
+    } catch (error) {
+      console.error('[LLMService] Failed to save global LLM configuration:', error);
+    }
+  }
+
   /**
    * Get current LLM configuration
    */
   async getConfiguration(): Promise<LLMConfiguration> {
-    return llmConfigStore.llm || {
-      provider: 'ollama',
-      defaultProvider: 'ollama',
-      enableFallback: true,
-      ollama: {
-        baseUrl: 'http://localhost:11434',
-        model: 'mistral',
-        temperature: 0.7,
-        maxTokens: 2048,
-      },
-    };
+    return llmConfigStore;
   }
 
   /**
    * Update LLM configuration
    */
   async updateConfiguration(config: Partial<LLMConfiguration>): Promise<LLMConfiguration> {
-    const current = await this.getConfiguration();
-    const updated = { ...current, ...config };
-    llmConfigStore.llm = updated;
-    return updated;
+    llmConfigStore = { ...llmConfigStore, ...config };
+    this.saveGlobalConfiguration();
+    return llmConfigStore;
   }
 
   /**

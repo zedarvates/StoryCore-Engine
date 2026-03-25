@@ -24,7 +24,8 @@ export type AddonId =
   | 'cinematic-editor'
   | 'project-translator'
   | 'credits-screen'
-  | 'video-publisher';
+  | 'video-publisher'
+  | 'image-to-3d';
 
 export type VerbCategory =
   | 'create'
@@ -42,7 +43,11 @@ export type VerbCategory =
   | 'undo'
   | 'redo'
   | 'save'
-  | 'pose';
+  | 'pose'
+  | 'upscale'
+  | 'reconstruct'
+  | 'extract'
+  | 'optimize';
 
 export interface ParsedVoiceIntent {
   addonId: AddonId;
@@ -100,7 +105,7 @@ class VoiceIntentParser {
     export: ['exporter', 'sauvegarder', 'télécharger', 'export', 'save', 'download'],
     cancel: ['annuler', 'arrêter', 'stop', 'quitter', 'cancel', 'stop', 'quit', 'halt'],
     continue: ['continuer', 'prolonger', 'suite', 'prochain', 'continue', 'next', 'keep going'],
-    navigate: ['aller', 'montrer', 'ouvrir', 'naviguer', 'go', 'show', 'open', 'navigate', 'display', 'pov'],
+    navigate: ['aller', 'montrer', 'ouvrir', 'naviguer', 'go', 'show', 'open', 'navigate', 'display', 'pov', 'dashboard', 'tableau de bord', 'accueil', 'home', 'retour'],
     playback: ['jouer', 'lire', 'lecture', 'pause', 'play', 'read', 'listen', 'retour', 'rewind', 'rembobiner'],
     selection: ['sélectionner', 'choisir', 'select', 'choose', 'pick', 'pov'],
     view: ['voir', 'regarder', 'view', 'look', 'watch'],
@@ -109,6 +114,10 @@ class VoiceIntentParser {
     redo: ['rétablir', 'refaire action', 'redo', 'forward'],
     save: ['enregistrer projet', 'sauvegarder projet', 'save project', 'store'],
     pose: ['pose', 'position', 'posture', 'attitude', 'geste', 'pose', 'position', 'stance'],
+    upscale: ['upscale', 'up scale', 'agrandir', 'résolution', 'améloirer', '4k', '8k', 'pixels', 'format', 'ratio'],
+    reconstruct: ['reconstruire', 'modéliser', 'reconstruct', 'model', '3d', 'mesh', 'maillage'],
+    extract: ['extraire', 'détourer', 'fond blanc', 'studio', 'extract', 'isolate', 'remove background'],
+    optimize: ['optimiser', 'booster', 'améliorer prompt', 'optimize', 'boost', 'refine prompt', 'gdpval'],
   };
 
   private static readonly ADDONS: Record<AddonId, string[]> = {
@@ -123,6 +132,7 @@ class VoiceIntentParser {
     'project-translator': ['traducteur', 'traduction', 'translator', 'translate', 'traduire'],
     'credits-screen': ['crédits', 'générique', 'remerciements', 'credits', 'thanks'],
     'video-publisher': ['publisher', 'publication', 'publier', 'video publisher', 'social hub', 'postbot'],
+    'image-to-3d': ['3d pipeline', 'reconstruction 3d', 'modélisation', 'studio 3d'],
   };
 
   public static parse(transcript: string, confidence: number = 1.0): ParsedVoiceIntent {
@@ -157,9 +167,41 @@ class VoiceIntentParser {
       }
     }
 
+    // Spécial : Si on parle d'"accueil" ou "dashboard", on cible le système avec l'action navigate
+    if (lower.includes('dashboard') || lower.includes('accueil') || lower.includes('main screen')) {
+      result.addonId = 'system';
+      result.verb = 'navigate';
+      result.subject = lower.includes('dashboard') ? 'dashboard' : 'home';
+    }
+
     // 3. Extraction du Sujet (ce qui reste après le verbe et l'addon)
-    // Logique simplifiée : on prend la fin de la phrase après les mots clés
-    result.subject = transcript; // Temporaire
+    // On nettoie le sujet des mots-clés addons et verbes détectés
+    let cleanSubject = lower;
+    
+    // Supprimer les mots clés verbes
+    for (const keywords of Object.values(this.VERBS)) {
+      keywords.forEach(kw => {
+        if (cleanSubject.includes(kw)) {
+          cleanSubject = cleanSubject.replace(new RegExp(`\\b${kw}\\b`, 'gi'), '').trim();
+        }
+      });
+    }
+
+    // Supprimer les mots clés addons
+    for (const keywords of Object.values(this.ADDONS)) {
+      keywords.forEach(kw => {
+        if (cleanSubject.includes(kw)) {
+          cleanSubject = cleanSubject.replace(new RegExp(`\\b${kw}\\b`, 'gi'), '').trim();
+        }
+      });
+    }
+
+    // Nettoyage final des conjonctions communes ("un", "une", "le", "la", "sur", "en")
+    result.subject = cleanSubject.replace(/^(un|une|le|la|les|ce|cette|sur|en|avec|pour|mon|ma|ta|ton|votre|notre)\s+/i, '').trim();
+
+    if (!result.subject) {
+      result.subject = transcript; // Fallback hard si vide
+    }
 
     return result;
   }
@@ -202,6 +244,7 @@ export class AddonVoiceCommandRouter {
       case 'project-translator':
       case 'credits-screen':
       case 'video-publisher':
+      case 'image-to-3d':
         return this.handleImageVideoAddon(intent);
       default:
         return {

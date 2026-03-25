@@ -75,9 +75,16 @@ export class ConfigurationStore {
       // Encrypt sensitive fields
       const configToSave = this.encryptSensitiveFields(config);
 
-      // Save to local storage
-      const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
-      localStorage.setItem(key, JSON.stringify(configToSave));
+      // Try to save via Electron API (High integrity persistence in project.json)
+      if (window.electronAPI?.config?.saveProject) {
+        await window.electronAPI.config.saveProject(projectId, configToSave);
+        console.log('[ConfigurationStore] Saved configuration via Electron API');
+      } else {
+        // Fallback to local storage
+        const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
+        localStorage.setItem(key, JSON.stringify(configToSave));
+        console.warn('[ConfigurationStore] Fallback: Saved configuration to localStorage');
+      }
 
     } catch (error) {
       console.error('Failed to save project configuration:', error);
@@ -90,15 +97,29 @@ export class ConfigurationStore {
    */
   static async loadProjectConfig(projectId: string): Promise<ProjectConfiguration> {
     try {
-      const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
-      const stored = localStorage.getItem(key);
+      let storedConfig: string | null = null;
+      let config: any = null;
 
-      if (!stored) {
-        // Return default configuration if not found
-        return this.getDefaultProjectConfig(projectId);
+      // Try to load via Electron API
+      if (window.electronAPI?.config?.loadProject) {
+        config = await window.electronAPI.config.loadProject(projectId);
+        console.log('[ConfigurationStore] Loaded configuration via Electron API');
+      } 
+      
+      // Fallback to local storage if not found or API missing
+      if (!config) {
+        const key = `${PROJECT_CONFIG_PREFIX}${projectId}`;
+        storedConfig = localStorage.getItem(key);
+        if (storedConfig) {
+          config = JSON.parse(storedConfig);
+          console.warn('[ConfigurationStore] Loaded configuration from localStorage');
+        }
       }
 
-      const config = JSON.parse(stored);
+      if (!config) {
+        // Return default configuration if not found
+        return this.validateAndMergeProjectConfig(this.getDefaultProjectConfig(projectId));
+      }
 
       // Decrypt sensitive fields
       const decryptedConfig = this.decryptSensitiveFields(config);

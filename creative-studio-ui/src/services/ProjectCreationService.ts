@@ -12,6 +12,7 @@ import type { Shot, SequencePlan, Character, StoryObject, Story, StoryVersion } 
 import type { World } from '@/types/world';
 import type { Location as ProductionLocation } from '@/types/location';
 import type { GeneratedSequence } from '@/utils/projectTemplateGenerator';
+import { persistenceService } from './PersistenceService';
 
 // Helper function to convert Electron project to Store project format
 export function convertElectronProjectToStore(electronProject: {
@@ -46,7 +47,7 @@ export function convertElectronProjectToStore(electronProject: {
     id: electronProject.id || Date.now().toString(),
     schema_version: (config.schema_version as string) || '1.0',
     project_name: electronProject.name || (config.project_name as string) || 'Untitled Project',
-    path: electronProject.path || '',
+    path: electronProject.path || (config.path as string) || '',
     shots: deduplicateById((config.shots as Shot[]) || []),
     assets: (config.assets as StoreProject['assets']) || [],
     worlds: worlds.length > 0 ? worlds : undefined,
@@ -57,6 +58,7 @@ export function convertElectronProjectToStore(electronProject: {
     objects: objects.length > 0 ? deduplicateById(objects) : undefined,
     locations: locations.length > 0 ? deduplicateById(locations, 'location_id') : undefined,
     sequencePlans: sequencePlans.length > 0 ? deduplicateById(sequencePlans) : undefined,
+    projectSetup: config.projectSetup as StoreProject['projectSetup'],
     capabilities: (config.capabilities as StoreProject['capabilities']) || {
       grid_generation: true,
       promotion_engine: true,
@@ -71,7 +73,7 @@ export function convertElectronProjectToStore(electronProject: {
     global_resume: config.global_resume as string,
     metadata: {
       id: electronProject.id || Date.now().toString(),
-      path: electronProject.path || '',
+      path: electronProject.path || (config.path as string) || '',
       version: electronProject.version || '1.0',
       created_at: electronProject.createdAt instanceof Date 
         ? electronProject.createdAt.toISOString() 
@@ -291,6 +293,7 @@ export class ProjectCreationService {
           description: 'State-of-the-art DJ turntable and mixing console.',
           metadata: { usage: 'performance', importance: 'high' }
         } as unknown as StoryObject] : []),
+        discussion: request.discussion,
         settings: {
           created_by: 'llm-assistant',
           creation_timestamp: new Date().toISOString(),
@@ -440,6 +443,11 @@ export class ProjectCreationService {
     // Set project path in editor store so persistence hooks can use it
     useEditorStore.getState().setProjectPath(projectPath);
 
+    // Initial clean up and discussion load
+    persistenceService.loadDiscussionIntoChat(projectPath).catch(e => console.error('Failed to load discussion:', e));
+    persistenceService.cleanupCharacterFolders(projectPath).catch(e => console.error('Failed to cleanup characters:', e));
+
+
     // Reload recent projects
     if (window.electronAPI?.recentProjects?.get) {
       try {
@@ -459,8 +467,14 @@ export class ProjectCreationService {
       // Encode the project path for URL safety
       const encodedPath = encodeURIComponent(projectPath);
       
-      // Navigate to the project dashboard
-      window.location.href = `/project/${encodedPath}`;
+      // Attempt to use React Router if available (via import)
+      // We do a dynamic import to avoid circular dependencies if any
+      import('@/router').then(({ router }) => {
+        router.navigate(`/project/${encodedPath}`);
+      }).catch(err => {
+        console.error('Failed to load router for navigation:', err);
+        window.location.href = `/project/${encodedPath}`;
+      });
     } catch (error) {
       console.error('Failed to navigate to project dashboard:', error);
       // Fallback: reload the page to show the new project

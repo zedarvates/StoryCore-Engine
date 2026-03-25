@@ -12,7 +12,7 @@ import { logger } from '@/utils/logger';
 
 export interface LLMConfig {
   // Existing fields
-  provider: 'local' | 'openai' | 'anthropic' | 'openrouter';
+  provider: 'local' | 'openai' | 'anthropic' | 'openrouter' | 'lmstudio' | 'custom' | 'diffusion';
   model: string;
   apiEndpoint: string;
   streamingEnabled: boolean;
@@ -51,7 +51,7 @@ export interface LLMConfig {
   schemaVersion?: string;
 }
 
-const STORAGE_KEY = 'storycore-llm-config';
+const STORAGE_KEY = 'storycore-settings'; // Unified with llmConfigService/secureStorage
 const CURRENT_SCHEMA_VERSION = '2.0';
 
 /**
@@ -59,7 +59,7 @@ const CURRENT_SCHEMA_VERSION = '2.0';
  */
 const DEFAULT_CONFIG: LLMConfig = {
   provider: 'local',
-  model: 'gemma3:4b',
+  model: 'qwen3-vl:4b',
   apiEndpoint: 'http://localhost:11434',
   streamingEnabled: true,
   parameters: {
@@ -70,10 +70,10 @@ const DEFAULT_CONFIG: LLMConfig = {
     presencePenalty: 0
   },
   availableModels: {
-    vision: ['qwen3-vl:8b'],
-    storytelling: ['llama3.1:8b', 'mistral:7b'],
-    quick: ['gemma3:4b', 'gemma3:1b'],
-    default: 'gemma3:4b'
+    vision: ['qwen3-vl:4b', 'qwen3-vl:8b'],
+    storytelling: ['qwen3-vl:4b', 'mistral:7b', 'llama3.2:3b'],
+    quick: ['qwen3-vl:4b', 'gemma3:4b', 'gemma3:1b'],
+    default: 'qwen3-vl:4b'
   },
   reasoningMode: {
     enabled: true,
@@ -103,11 +103,13 @@ export class ConfigManager {
         return { ...DEFAULT_CONFIG };
       }
       
-      const config = JSON.parse(stored) as LLMConfig;
+      let config = JSON.parse(stored) as LLMConfig;
       
       // Check if migration is needed
       if (!config.schemaVersion || config.schemaVersion !== CURRENT_SCHEMA_VERSION) {
-        return this.migrateConfig(config);
+        config = this.migrateConfig(config);
+        // Save only once after migration
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
       }
       
       // Validate and merge with defaults
@@ -124,8 +126,19 @@ export class ConfigManager {
    */
   static saveLLMConfig(config: Partial<LLMConfig>): void {
     try {
-      // Get current config
-      const currentConfig = this.getLLMConfig();
+      // Get current config directly from storage to avoid migration loop
+      const stored = localStorage.getItem(STORAGE_KEY);
+      let currentConfig: LLMConfig;
+
+      if (!stored) {
+        currentConfig = { ...DEFAULT_CONFIG };
+      } else {
+        try {
+          currentConfig = JSON.parse(stored) as LLMConfig;
+        } catch (_e) {
+          currentConfig = { ...DEFAULT_CONFIG };
+        }
+      }
       
       // Merge with new config
       const updatedConfig: LLMConfig = {
@@ -212,8 +225,8 @@ export class ConfigManager {
     // Update schema version
     migratedConfig.schemaVersion = CURRENT_SCHEMA_VERSION;
     
-    // Save migrated config
-    this.saveLLMConfig(migratedConfig);
+    // NOTE: We don't call saveLLMConfig(migratedConfig) here to avoid recursion
+    // The caller (getLLMConfig) handles the saving.
     
     return migratedConfig;
   }
@@ -254,7 +267,7 @@ export class ConfigManager {
     }
     
     // Check provider is valid
-    if (!['local', 'openai', 'anthropic', 'openrouter'].includes(config.provider)) {
+    if (!['local', 'openai', 'anthropic', 'openrouter', 'lmstudio', 'custom', 'diffusion'].includes(config.provider)) {
       return false;
     }
     

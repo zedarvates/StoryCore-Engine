@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, CheckCircle2, User, Fingerprint, Clock } from 'lucide-react';
 import type { Character } from '@/types/character';
-import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS } from '@/constants/characterOptions';
+import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS, ETHNICITIES } from '@/constants/characterOptions';
 import { CHARACTER_PRESETS, CharacterPreset, ICONS } from '../presets';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,7 +30,7 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
       onUpdate({ role: { ...data.role, archetype: value } as Character['role'] });
     } else if (field === 'narrative_function') {
       onUpdate({ role: { ...data.role, narrative_function: value } as Character['role'] });
-    } else if (field === 'age_range' || field === 'gender') {
+    } else if (field === 'age_range' || field === 'gender' || field === 'ethnicity') {
       onUpdate({ 
         visual_identity: { 
           ...data.visual_identity, 
@@ -189,6 +189,25 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
               </SelectTrigger>
               <SelectContent>
                 {GENDER_OPTIONS.map((opt) => (
+                  <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
+              {t('characterWizard.identity.ethnicity') || 'Ethnicity / Origin'}
+            </label>
+            <Select
+              value={data.visual_identity?.ethnicity || ''}
+              onValueChange={(val) => handleFieldChange('ethnicity', val)}
+            >
+              <SelectTrigger className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl">
+                <SelectValue placeholder={t('characterWizard.identity.placeholderEthnicity') || "Select origin"} />
+              </SelectTrigger>
+              <SelectContent>
+                {ETHNICITIES.map((opt) => (
                   <SelectItem key={opt} value={opt}>{opt}</SelectItem>
                 ))}
               </SelectContent>

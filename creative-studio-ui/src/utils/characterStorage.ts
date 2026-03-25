@@ -353,7 +353,7 @@ export async function loadCharacterFromProject(
 
     // Read all files in the folder to find the character JSON
     for (const folder of folders) {
-      if (folder.includes(characterId.substring(0, 8))) {
+      if (characterId && typeof characterId === 'string' && folder.includes(characterId.substring(0, 8))) {
         const folderPath = `${charactersDir}/${folder}`;
         
         try {

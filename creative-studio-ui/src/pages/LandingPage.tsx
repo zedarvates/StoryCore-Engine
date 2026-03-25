@@ -24,6 +24,9 @@ interface LandingPageProps {
   recentProjects?: RecentProject[];
   onRecentProjectClick?: (project: RecentProject) => void;
   onRemoveRecentProject?: (projectPath: string) => void;
+  onShowDocumentation?: () => void;
+  onShowSupport?: () => void;
+  onShowAbout?: () => void;
   version?: string;
   children?: React.ReactNode;
 }
@@ -34,6 +37,9 @@ export function LandingPage({
   recentProjects = [],
   onRecentProjectClick,
   onRemoveRecentProject,
+  onShowDocumentation,
+  onShowSupport,
+  onShowAbout,
   version = '1.0.0',
   children,
 }: LandingPageProps) {
@@ -322,15 +328,24 @@ export function LandingPage({
           <div className="flex items-center justify-between text-sm text-gray-400">
             <p>© 2026 StoryCore Engine. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-white transition-colors">
+              <button 
+                onClick={onShowDocumentation}
+                className="hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0 text-sm text-gray-400"
+              >
                 Documentation
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </button>
+              <button 
+                onClick={onShowSupport}
+                className="hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0 text-sm text-gray-400"
+              >
                 Support
-              </a>
-              <a href="#" className="hover:text-white transition-colors">
+              </button>
+              <button 
+                onClick={onShowAbout}
+                className="hover:text-white transition-colors bg-transparent border-none cursor-pointer p-0 text-sm text-gray-400"
+              >
                 About
-              </a>
+              </button>
             </div>
           </div>
         </div>

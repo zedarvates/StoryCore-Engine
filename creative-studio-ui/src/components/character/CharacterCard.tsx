@@ -216,9 +216,13 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
       details.push(`${visual.facial_structure} face`);
     }
 
-    // Skin and build
+    // Skin, Ethnicity and build
+    if (visual.ethnicity) {
+      details.push(`${visual.ethnicity} origin`);
+    }
+
     if (visual.skin_tone) {
-      details.push(`${visual.skin_tone} skin`);
+      details.push(`${visual.skin_tone} skin tone`);
     }
 
     if (visual.build) {

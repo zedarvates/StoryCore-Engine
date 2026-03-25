@@ -63,6 +63,16 @@ export interface OllamaModelConfig {
  */
 export const GEMMA3_MODELS: OllamaModelConfig[] = [
   {
+    id: 'qwen3-vl:4b',
+    name: 'Qwen 3 VL 4B (Base)',
+    size: '4b',
+    minRAM: 4,
+    recommendedRAM: 8,
+    minVRAM: 4,
+    contextWindow: 32768,
+    description: 'Latest vision-language model, recommended for best experience',
+  },
+  {
     id: 'gemma2:2b',
     name: 'Gemma 2 2B',
     size: '2b',
@@ -113,13 +123,19 @@ export async function detectSystemCapabilities(): Promise<SystemCapabilities> {
   const nav = navigator as NavigatorWithDeviceMemory;
   const deviceMemory = nav.deviceMemory;
   
+  console.log('[System Capabilities] Device memory from API:', deviceMemory);
+  
   // Estimate based on available information
   const totalRAM = deviceMemory || estimateRAMFromHardwareConcurrency();
   const availableRAM = totalRAM * 0.7; // Assume 70% available
   
+  console.log('[System Capabilities] Total RAM:', totalRAM, 'GB, Available:', availableRAM, 'GB');
+  
   // Check for GPU (WebGL as proxy)
   const hasGPU = detectGPU();
   const gpuVRAM = hasGPU ? estimateGPUVRAM() : undefined;
+
+  console.log('[System Capabilities] Has GPU:', hasGPU, ', Estimated VRAM:', gpuVRAM, 'GB');
 
   return {
     totalRAM,
@@ -149,17 +165,28 @@ function detectGPU(): boolean {
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) return false;
+    if (!gl) {
+      console.warn('[GPU Detection] WebGL not available, no GPU detected');
+      return false;
+    }
 
     const debugInfo = (gl as WebGLDebugContext).getExtension('WEBGL_debug_renderer_info');
-    if (!debugInfo) return true; // Has WebGL but can't get details
+    if (!debugInfo) {
+      console.warn('[GPU Detection] WebGL debug info not available, assuming has GPU');
+      return true; // Has WebGL but can't get details
+    }
 
     const renderer = (gl as WebGLDebugContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) as string;
     
-    // Check if it's a dedicated GPU (not integrated)
+    console.log('[GPU Detection] Detected GPU:', renderer);
+    
+    // Check if it's a dedicated GPU (not integrated) - include RTX 50 series
     const isDedicated = /nvidia|amd|radeon|geforce|rtx|gtx/i.test(renderer);
+    
+    console.log('[GPU Detection] Is dedicated GPU:', isDedicated);
     return isDedicated;
-  } catch {
+  } catch (error) {
+    console.error('[GPU Detection] Error detecting GPU:', error);
     return false;
   }
 }
@@ -171,22 +198,55 @@ function estimateGPUVRAM(): number {
   try {
     const canvas = document.createElement('canvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-    if (!gl) return 2; // Default to 2GB
+    if (!gl) {
+      console.warn('[VRAM Detection] WebGL not available, defaulting to 2GB VRAM');
+      return 2; // Default to 2GB
+    }
 
     const debugInfo = (gl as WebGLDebugContext).getExtension('WEBGL_debug_renderer_info');
-    if (!debugInfo) return 4; // Default to 4GB
+    if (!debugInfo) {
+      console.warn('[VRAM Detection] WebGL debug info not available, defaulting to 4GB VRAM');
+      return 4; // Default to 4GB
+    }
 
     const renderer = ((gl as WebGLDebugContext).getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) as string).toLowerCase();
     
-    // Rough estimation based on GPU model
-    if (renderer.includes('rtx 4090') || renderer.includes('rtx 4080')) return 16;
-    if (renderer.includes('rtx 4070') || renderer.includes('rtx 3090')) return 12;
-    if (renderer.includes('rtx 3080') || renderer.includes('rtx 4060')) return 8;
-    if (renderer.includes('rtx 3070') || renderer.includes('rtx 3060')) return 6;
-    if (renderer.includes('gtx') || renderer.includes('rtx 20')) return 4;
+    console.log('[VRAM Detection] Detected GPU renderer:', renderer);
     
+    // Rough estimation based on GPU model - RTX 50 series (newer GPUs)
+    if (renderer.includes('rtx 5090') || renderer.includes('rtx 5080')) {
+      console.log('[VRAM Detection] Matched RTX 5090/5080, returning 16GB VRAM');
+      return 16;
+    }
+    if (renderer.includes('rtx 5070') || renderer.includes('rtx 5060') || renderer.includes('rtx 5070 ti') || renderer.includes('rtx 5060 ti')) {
+      console.log('[VRAM Detection] Matched RTX 5060/5070 series, returning 16GB VRAM');
+      return 16;
+    }
+    if (renderer.includes('rtx 4090') || renderer.includes('rtx 4080')) {
+      console.log('[VRAM Detection] Matched RTX 4090/4080, returning 16GB VRAM');
+      return 16;
+    }
+    if (renderer.includes('rtx 4070') || renderer.includes('rtx 3090')) {
+      console.log('[VRAM Detection] Matched RTX 4070/3090, returning 12GB VRAM');
+      return 12;
+    }
+    if (renderer.includes('rtx 3080') || renderer.includes('rtx 4060')) {
+      console.log('[VRAM Detection] Matched RTX 3080/4060, returning 8GB VRAM');
+      return 8;
+    }
+    if (renderer.includes('rtx 3070') || renderer.includes('rtx 3060')) {
+      console.log('[VRAM Detection] Matched RTX 3070/3060, returning 6GB VRAM');
+      return 6;
+    }
+    if (renderer.includes('gtx') || renderer.includes('rtx 20')) {
+      console.log('[VRAM Detection] Matched GTX/RTX 20 series, returning 4GB VRAM');
+      return 4;
+    }
+    
+    console.warn('[VRAM Detection] Unknown GPU detected:', renderer, ', defaulting to 4GB VRAM');
     return 4; // Default to 4GB for unknown GPUs
-  } catch {
+  } catch (error) {
+    console.error('[VRAM Detection] Error detecting VRAM:', error, ', defaulting to 2GB VRAM');
     return 2; // Default to 2GB on error
   }
 }
@@ -195,6 +255,8 @@ function estimateGPUVRAM(): number {
  * Select best Gemma 3 model based on system capabilities
  */
 export function selectBestModel(capabilities: SystemCapabilities): OllamaModelConfig {
+  console.log('[Model Selection] Starting model selection with capabilities:', capabilities);
+  
   // Sort models by size (largest first)
   const sortedModels = [...GEMMA3_MODELS].sort((a, b) => {
     const sizeA = parseInt(a.size);
@@ -202,23 +264,36 @@ export function selectBestModel(capabilities: SystemCapabilities): OllamaModelCo
     return sizeB - sizeA;
   });
 
+  console.log('[Model Selection] Available models (sorted):', sortedModels.map(m => m.id));
+
   // Find the largest model that fits the system
   for (const model of sortedModels) {
+    console.log(`[Model Selection] Checking model: ${model.id}, minRAM: ${model.minRAM}GB, minVRAM: ${model.minVRAM}GB`);
+    
     // Check RAM requirements
     if (capabilities.availableRAM >= model.minRAM) {
+      console.log(`[Model Selection] ${model.id} RAM check passed (available: ${capabilities.availableRAM}GB >= min: ${model.minRAM}GB)`);
+      
       // If GPU available, check VRAM requirements
       if (capabilities.hasGPU && model.minVRAM) {
         if (capabilities.gpuVRAM && capabilities.gpuVRAM >= model.minVRAM) {
+          console.log(`[Model Selection] Selected: ${model.id} (VRAM check passed: ${capabilities.gpuVRAM}GB >= ${model.minVRAM}GB)`);
           return model;
+        } else {
+          console.log(`[Model Selection] ${model.id} VRAM check failed (available: ${capabilities.gpuVRAM}GB < min: ${model.minVRAM}GB)`);
         }
       } else if (!capabilities.hasGPU) {
         // CPU-only: use RAM requirements
+        console.log(`[Model Selection] Selected: ${model.id} (CPU-only mode)`);
         return model;
       }
+    } else {
+      console.log(`[Model Selection] ${model.id} RAM check failed (available: ${capabilities.availableRAM}GB < min: ${model.minRAM}GB)`);
     }
   }
 
   // Fallback to smallest model
+  console.log('[Model Selection] No model fit, falling back to smallest model:', GEMMA3_MODELS[0].id);
   return GEMMA3_MODELS[0];
 }
 

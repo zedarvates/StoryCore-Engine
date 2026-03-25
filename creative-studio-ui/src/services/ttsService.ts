@@ -22,6 +22,20 @@ export interface Voice {
 }
 
 /**
+ * ElevenLabs API response interface for voice list
+ */
+interface ElevenLabsVoice {
+  voice_id: string;
+  name: string;
+  labels?: {
+    gender?: string;
+    language?: string;
+    [key: string]: string | undefined;
+  };
+  preview_url?: string;
+}
+
+/**
  * Mock TTS Provider for development and testing
  * In production, replace with actual API calls to ElevenLabs, Google TTS, or Azure TTS
  */
@@ -279,7 +293,7 @@ class ElevenLabsTTSProvider implements TTSProvider {
     }
 
     const data = await response.json();
-    return data.voices.map((voice: any) => ({
+    return data.voices.map((voice: ElevenLabsVoice) => ({
       id: voice.voice_id,
       name: voice.name,
       gender: voice.labels?.gender || 'neutral',

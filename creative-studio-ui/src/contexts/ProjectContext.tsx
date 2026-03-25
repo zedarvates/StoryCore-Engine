@@ -1,10 +1,9 @@
 /**
  * ProjectContext - State management for ProjectDashboardNew
- * 
+ *
  * Provides centralized state management for project data, shots, dialogue phrases,
- * and generation status. Implements shot management, dialogue phrase management,
- * and validation functions.
- * 
+ * and generation status.
+ *
  * Requirements: 1.2, 1.4, 9.3
  */
 
@@ -16,7 +15,9 @@ import type {
   GenerationStatus as DashboardGenerationStatus,
   GenerationResults,
 } from '../types/projectDashboard';
-import type { Project, Shot } from '../types';
+import type { Project } from '../types';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { Shot } from '../types';
 import { memoizedValidatePrompt } from '../utils/performanceOptimizations';
 import {
   projectPersistence,
@@ -146,17 +147,23 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         const newProject: DashboardProject = {
           id,
           name: `Project ${id}`,
-          schemaVersion: '1.0',
+          schema_version: '1.0',
+          project_name: `Project ${id}`,
           sequences: [],
           shots: [],
           audioPhrases: [],
           generationHistory: [],
+          assets: [],
           capabilities: {
-            gridGeneration: true,
-            promotionEngine: true,
-            qaEngine: true,
-            autofixEngine: true,
-            voiceGeneration: true,
+            grid_generation: true,
+            promotion_engine: true,
+            qa_engine: true,
+            autofix_engine: true,
+            voice_generation: true,
+          },
+          generation_status: {
+            grid: 'pending',
+            promotion: 'pending',
           },
         };
 
@@ -205,7 +212,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
         // Log success for debugging in development only
         if (process.env.NODE_ENV === 'development') {
-          ;
+          console.log('Project saved successfully');
         }
       } else {
         // Save failed
@@ -284,7 +291,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   /**
    * Delete shot with phrase handling
    * Requirements: 7.3
-   * 
+   *
    * @param shotId - ID of the shot to delete
    * @param deletePhrases - If true, delete associated phrases; if false, unlink them
    */
@@ -310,24 +317,23 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
       if (deletePhrases) {
         // Delete all phrases linked to this shot
-        updatedPhrases = prev.audioPhrases.filter(phrase => phrase.shotId !== shotId);
+        updatedPhrases = (prev.audioPhrases || []).filter(phrase => phrase.shotId !== shotId);
 
         // Log for debugging in development only
         if (process.env.NODE_ENV === 'development') {
-          ;
+          console.log(`Deleted ${updatedPhrases.length} phrases for shot ${shotId}`);
         }
       } else {
         // Unlink phrases by setting shotId to empty string
         // This ensures no orphaned references remain
-        updatedPhrases = prev.audioPhrases.map(phrase =>
+        updatedPhrases = (prev.audioPhrases || []).map(phrase =>
           phrase.shotId === shotId
             ? { ...phrase, shotId: '' }
-            : phrase
-        );
+            : phrase        );
 
         // Log for debugging in development only
         if (process.env.NODE_ENV === 'development') {
-          ;
+          console.log(`Unlinked ${updatedPhrases.length} phrases from shot ${shotId}`);
         }
       }
 
@@ -357,7 +363,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
     }
 
     const invalidShots = project.shots.filter(shot => {
-      const validation = memoizedValidatePrompt(shot.prompt);
+      const validation = memoizedValidatePrompt(shot.prompt || '');
       return !validation.isValid;
     });
 
@@ -384,7 +390,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
       const total = project.shots.length;
       const complete = project.shots.filter(shot => {
-        const validation = memoizedValidatePrompt(shot.prompt);
+        const validation = memoizedValidatePrompt(shot.prompt || '');
         return validation.isValid;
       }).length;
       const incomplete = total - complete;
@@ -415,7 +421,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
       return {
         ...prev,
-        audioPhrases: [...prev.audioPhrases, newPhrase],
+        audioPhrases: [...(prev.audioPhrases || []), newPhrase],
       };
     });
   }, []);
@@ -428,7 +434,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
     setProject(prev => {
       if (!prev) return prev;
 
-      const updatedPhrases = prev.audioPhrases.map(phrase =>
+      const updatedPhrases = (prev.audioPhrases || []).map(phrase =>
         phrase.id === phraseId ? { ...phrase, ...updates } : phrase
       );
 
@@ -447,7 +453,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
     setProject(prev => {
       if (!prev) return prev;
 
-      const filteredPhrases = prev.audioPhrases.filter(phrase => phrase.id !== phraseId);
+      const filteredPhrases = (prev.audioPhrases || []).filter(phrase => phrase.id !== phraseId);
 
       return {
         ...prev,
@@ -474,7 +480,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         return prev;
       }
 
-      const updatedPhrases = prev.audioPhrases.map(phrase =>
+      const updatedPhrases = (prev.audioPhrases || []).map(phrase =>
         phrase.id === phraseId ? { ...phrase, shotId } : phrase
       );
 
@@ -515,10 +521,10 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         onProgress: (status) => {
           setGenerationStatus(status);
         },
-        onStageComplete: (stage, result) => {
+        onStageComplete: (stage, _result) => {
           // Log stage completion for debugging in development only
           if (process.env.NODE_ENV === 'development') {
-            ;
+            console.log(`Stage ${stage} completed`);
           }
         },
         onError: (error) => {
@@ -639,7 +645,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 
           // Log restoration for debugging in development only
           if (process.env.NODE_ENV === 'development') {
-            ;
+            console.log('Restored generation state from persistence');
           }
         }
       }).catch(error => {
@@ -649,7 +655,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         }
       });
     }
-  }, [project?.id]);
+  }, [project]);
 
   // ============================================================================
   // Save generation state periodically during generation (Requirements: 10.5)
@@ -668,7 +674,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
         generationStatePersistence.cancelPeriodicUpdates(project.id);
       };
     }
-  }, [project?.id, isGenerating, generationStatus]);
+  }, [project, isGenerating, generationStatus]);
 
   // ============================================================================
   // Context Value
@@ -723,7 +729,7 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
 /**
  * useProject - Custom hook for consuming ProjectContext
  * Requirements: 1.2, 1.4, 9.3
- * 
+ *
  * @throws Error if used outside ProjectProvider
  */
 export function useProject(): ProjectContextValue {

@@ -13,10 +13,10 @@ export class PromptOptimizationService {
 You are the StoryCore "Prompt Booster" engine. Your role is to transform vague or short user prompts into "GDPval-style" professional task descriptions of high economic value, specifically for high-end cinematic production.
 
 GDPval Methodology Principles:
-1. PROFESSIONAL IDENTITY: Define a clear high-level Hollywood role (e.g., Director of Photography, VFX Supervisor, Costume Designer).
+1. PROFESSIONAL IDENTITY: Define a clear high-level Hollywood role (e.g., Director of Photography, VFX Supervisor, Costume Designer, 3D Technical Artist).
 2. STRUCTURED CONTEXT: Add detailed background, lighting conditions, technical constraints, and mood.
 3. CLEAR OBJECTIVE: Define the exact core task.
-4. SPECIFIC DELIVERABLES: Specify the expected technical format (e.g., 4K, 24fps, EXR sequence, .cube LUT, MIDI file).
+4. SPECIFIC DELIVERABLES: Specify the expected technical format (e.g., 4K, 24fps, EXR sequence, .cube LUT, MIDI file, .glb Mesh High-Poly).
 
 Transformation Rules:
 - If user mentions "vidéo" or "image", assume a "Director of Photography" or "Cinematographer" role.
@@ -26,6 +26,7 @@ Transformation Rules:
 - If user mentions "musique" or "ambiance sonore", assume a "Music Composer" or "Sound Designer" role.
 - If user mentions "personnage" or "acteur", assume a "Casting Director" role.
 - If user mentions "lieu" or "décor", assume a "Location Manager" or "Production Designer" role.
+- If user mentions "modèle 3D", "maillage", "mesh" or "reconstruction", assume a "3D Technical Artist" role.
 - Output ONLY the optimized prompt in French (unless the input is exclusively English), no conversational filler.
 
 [EXAMPLES]
@@ -43,6 +44,11 @@ Input: "Thème triste au piano"
 Output: "En tant que Compositeur Film, je dois composer le thème mélancolique du protagoniste après sa défaite.
 Contexte: Mélodie simple au piano à queue avec une forte réverbération. Accompagnement discret de violoncelles gémissants. Rythme lent et rubato.
 Livrable attendu: Fichier MIDI et rendu audio HQ (WAV 96kHz/24bit)."
+
+Input: "Génère ce bâtiment en 3D"
+Output: "En tant que 3D Technical Artist, je souhaite reconstruire un maillage haute-fidélité de cette architecture urbaine.
+Contexte: Façade en briques rouges patinées, fenêtres à cadre métallique sombre (réflexion PBR), toiture en ardoise. Éclairage neutre global pour éviter le baking d'ombres.
+Livrable attendu: Fichier .glb compatible avec un rendu temps réel, topologie optimisée, textures PBR 2K."
 `;
 
   /**
@@ -78,7 +84,11 @@ Optimized GDPval Prompt:`;
 
       return cleanedResult;
     } catch (error) {
-      logger.error('[PromptOptimization] Failed to optimize prompt:', error);
+      if (error instanceof Error && error.message.includes('Memory')) {
+        logger.warn('[PromptOptimization] Local LLM Resource Exhausted: Memory limit reached. Using original prompt without optimization.');
+      } else {
+        logger.error('[PromptOptimization] Failed to optimize prompt:', error);
+      }
       return input; // Fallback to original input
     }
   }
@@ -107,7 +117,9 @@ ${taskList}
 Return the ID only.
 `;
 
-      const response = await ollamaClient.generate('gdpval-matcher', prompt, {
+      const model = await ollamaClient.getBestAvailableModel('quick');
+      
+      const response = await ollamaClient.generate(model, prompt, {
         temperature: 0.1 // Low temperature for precise matching
       });
 
@@ -116,6 +128,13 @@ Return the ID only.
       console.error('Error in suggestTemplate:', error);
       return null;
     }
+  }
+  /**
+   * Specifically optimizes for 3D reconstruction tasks (High Fidelity Production)
+   */
+  public async optimize3DPrompt(elementDescription: string): Promise<string> {
+    const basePrompt = `Génère un modèle 3D haute fidélité pour : ${elementDescription}. Optimisation pour reconstruction studio.`;
+    return this.balancePrompt(basePrompt);
   }
 }
 

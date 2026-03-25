@@ -36,27 +36,75 @@ export class ConfigurationStore {
     }
   }
 
-  async saveProjectConfig(projectId: string, config: ProjectConfiguration): Promise<void> {
+  async saveProjectConfig(projectId: string, config: ProjectConfiguration, projectPath?: string): Promise<void> {
     const toSave = {
-      schema_version: '1.0',
       ...config
     };
     this.processSensitiveFields(toSave, 'encrypt');
+    
+    // If a projectPath is provided, save directly to project.json in that folder
+    if (projectPath) {
+      const projectJsonPath = path.join(projectPath, 'project.json');
+      try {
+        if (await fs.stat(projectJsonPath)) {
+          const content = await fs.readFile(projectJsonPath, 'utf8');
+          const projectData = JSON.parse(content);
+          
+          // Merge configuration into project.json structure
+          projectData.llm = toSave.llm;
+          projectData.api_config = toSave.api;
+          projectData.comfyui_config = toSave.comfyui;
+          projectData.wizards_config = toSave.wizards;
+          projectData.modified_at = new Date().toISOString();
+          
+          await fs.writeFile(projectJsonPath, JSON.stringify(projectData, null, 2), 'utf8');
+          console.log(`[ConfigurationStore] Saved config to ${projectJsonPath}`);
+          return;
+        }
+      } catch (error) {
+        console.warn(`[ConfigurationStore] Failed to save to project.json at ${projectPath}, falling back to default storage`, error);
+      }
+    }
+
+    // Fallback: Save to centralized storage (Legacy/Default)
     const dir = path.join(process.cwd(), 'projects', projectId);
     await fs.mkdir(dir, { recursive: true });
     const filePath = path.join(dir, 'config.json');
     await fs.writeFile(filePath, JSON.stringify(toSave, null, 2), 'utf8');
   }
 
-  async loadProjectConfig(projectId: string): Promise<ProjectConfiguration | null> {
+  async loadProjectConfig(projectId: string, projectPath?: string): Promise<ProjectConfiguration | null> {
+    // Priority 1: Load from project.json in projectPath
+    if (projectPath) {
+      const projectJsonPath = path.join(projectPath, 'project.json');
+      try {
+        const data = await fs.readFile(projectJsonPath, 'utf8');
+        const projectData = JSON.parse(data);
+        
+        if (projectData.llm) {
+          const config: ProjectConfiguration = {
+            projectId,
+            llm: projectData.llm,
+            api: projectData.api_config || {},
+            comfyui: projectData.comfyui_config || {},
+            wizards: projectData.wizards_config || []
+          };
+          this.processSensitiveFields(config, 'decrypt');
+          return config;
+        }
+      } catch (error) {
+        console.warn(`[ConfigurationStore] Failed to load from project.json at ${projectPath}`, error);
+      }
+    }
+
+    // Priority 2: Fallback to centralized storage
     const filePath = path.join(process.cwd(), 'projects', projectId, 'config.json');
     try {
       const data = await fs.readFile(filePath, 'utf8');
       const parsed = JSON.parse(data);
-      if (parsed.schema_version !== '1.0') {
-        throw new Error('Unsupported schema version');
+      if (parsed.schema_version === '1.0') {
+         delete parsed.schema_version;
       }
-      delete parsed.schema_version;
       this.processSensitiveFields(parsed, 'decrypt');
       return parsed as ProjectConfiguration;
     } catch {

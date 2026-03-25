@@ -23,12 +23,14 @@ import {
   updateShot,
   splitShot,
   reorderShots,
+  deleteShot,
 } from '@/sequence-editor/store/slices/timelineSlice';
 import type { Track, Shot, LayerType, Layer, MediaLayerData } from '@/sequence-editor/types';
 import type { VideoExtensionOptions, SpeechConfigOptions } from '@/sequence-editor/hooks/useTimelineInteractions';
 import { handleShotSplit } from '@/sequence-editor/utils/toolInteractions';
 import { VirtualTimelineCanvas } from './VirtualTimelineCanvas';
 import { Reorder } from 'framer-motion';
+import { setActivePanel, setShotConfigTarget } from '../../store/slices/panelsSlice';
 import { TrackHeader } from './TrackHeader';
 import { PlayheadIndicator } from './PlayheadIndicator';
 import { TimelineControls } from './TimelineControls';
@@ -36,8 +38,9 @@ import { TimeRuler } from './TimeRuler';
 import { TimelineContextMenu } from './TimelineContextMenu';
 import { VideoExtensionDialog } from './VideoExtensionDialog';
 import { SpeechConfigDialog } from './SpeechConfigDialog';
-import { Film, GripVertical, Plus, Layout } from 'lucide-react';
+import { Film, GripVertical, Plus, Layout, Image as ImageIcon, Video as VideoIcon, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { videoEditorAPI } from '@/services/videoEditorAPI';
 import './timeline.css';
 import './timelineDialogs.css';
 
@@ -68,6 +71,7 @@ export const Timeline: React.FC = () => {
   const contentAreaRef = useRef<HTMLDivElement>(null);
 
   const {
+    projectId,
     shots,
     tracks,
     playheadPosition,
@@ -75,8 +79,6 @@ export const Timeline: React.FC = () => {
     selectedElements,
     duration,
   } = useAppSelector((state) => state.timeline);
-  
-  const project = useAppSelector((state) => state.project);
 
   const [isDraggingPlayhead, setIsDraggingPlayhead] = useState(false);
   const [hoveredTrackId, setHoveredTrackId] = useState<string | null>(null);
@@ -506,16 +508,20 @@ export const Timeline: React.FC = () => {
   }, [dispatch, selectedElements]);
 
   // Handle shot add
-  const handleAddShot = useCallback(() => {
+  const handleAddShot = useCallback((atPlayhead: boolean = false) => {
     const newShotId = `shot-${Date.now()}`;
-    const nextStartTime = shots.length > 0
-      ? shots.reduce((max, s) => Math.max(max, s.startTime + s.duration), 0)
-      : 0;
+    
+    // Determine start time: either at playhead or at the very end
+    const insertTime = atPlayhead ? playheadPosition : (
+      shots.length > 0
+        ? shots.reduce((max, s) => Math.max(max, s.startTime + s.duration), 0)
+        : 0
+    );
 
     const newShot: Shot = {
       id: newShotId,
       name: `Shot ${shots.length + 1}`,
-      startTime: nextStartTime,
+      startTime: insertTime,
       duration: 120, // 5 seconds at 24fps
       layers: [
         {
@@ -551,8 +557,35 @@ export const Timeline: React.FC = () => {
       },
       generationStatus: 'pending',
     };
-    dispatch(addShot(newShot));
-  }, [dispatch, shots]);
+
+    if (atPlayhead && shots.length > 0) {
+      // Ripple effect: shift all shots that start after or at the insert point
+      const shiftedShots = shots.map(s => {
+        if (s.startTime >= insertTime) {
+          return { ...s, startTime: s.startTime + 120 };
+        }
+        // If the playhead is INSIDE a shot, we might want to split it, 
+        // but for now let's just shift shots that are AFTER the insert point.
+        return s;
+      });
+      
+      dispatch(addShot(newShot));
+      // Re-sort and update all start times to ensure consistency
+      const allShots = [...shiftedShots, newShot].sort((a, b) => a.startTime - b.startTime);
+      
+      // Enforce continuity if needed
+      let currentTime = 0;
+      const rippled = allShots.map(s => {
+        const updated = { ...s, startTime: currentTime };
+        currentTime += s.duration;
+        return updated;
+      });
+      
+      dispatch(reorderShots(rippled));
+    } else {
+      dispatch(addShot(newShot));
+    }
+  }, [dispatch, shots, playheadPosition]);
 
   // Handle track add
   const handleAddTrack = useCallback((type: LayerType) => {
@@ -601,6 +634,34 @@ export const Timeline: React.FC = () => {
     // In a real implementation, this would call the backend API
     alert('AI Auto-Mix triggered! Analyzing audio levels and applying ducking...');
   }, [shots]);
+
+  // Handle shot deletion
+  const handleDeleteShot = useCallback(() => {
+    let shotIdsToDelete: string[] = [];
+
+    if (selectedElements.length > 0) {
+      shotIdsToDelete = selectedElements.filter(id => shots.some(s => s.id === id));
+    } else {
+      // Find shot at playhead
+      const shotAtPlayhead = shots.find(s => 
+        playheadPosition >= s.startTime && 
+        playheadPosition < (s.startTime + s.duration)
+      );
+      if (shotAtPlayhead) {
+        shotIdsToDelete = [shotAtPlayhead.id];
+      }
+    }
+
+    if (shotIdsToDelete.length > 0) {
+      if (confirm(`Delete ${shotIdsToDelete.length} shot(s)?`)) {
+        // Simple ripple for now - could be improved based on editor mode
+        shotIdsToDelete.forEach(id => dispatch(deleteShot(id)));
+        console.log('[Timeline] Deleted shots:', shotIdsToDelete);
+      }
+    } else {
+      alert('Select a shot or place playhead over a shot to delete.');
+    }
+  }, [selectedElements, shots, playheadPosition, dispatch]);
 
   // Handle scroll
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -698,13 +759,22 @@ export const Timeline: React.FC = () => {
             <Reorder.Item
               key={shot.id}
               value={shot}
-              className="storyboard-item group relative bg-secondary/30 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing"
+              className={`storyboard-item group relative bg-secondary/30 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all cursor-grab active:cursor-grabbing ${selectedElements.includes(shot.id) ? 'border-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]' : ''}`}
               whileHover={{ scale: 1.02, y: -4 }}
               whileDrag={{ scale: 1.05, boxShadow: "0 20px 40px rgba(0,0,0,0.5)", zIndex: 100 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShotSelect(shot.id, e.ctrlKey || e.metaKey);
+              }}
             >
               <div className="aspect-video bg-black/40 relative">
-                {shot.outputPath ? (
-                  <img src={shot.outputPath} alt={shot.name} className="w-full h-full object-cover" />
+                {/* Visual Linking: Show generated map or fallback to first reference image */}
+                {(shot.outputPath || (shot.referenceImages && shot.referenceImages.length > 0)) ? (
+                  <img 
+                    src={shot.outputPath || shot.referenceImages[0].url} 
+                    alt={shot.name} 
+                    className="w-full h-full object-cover" 
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary/50 to-background">
                     <Film className="w-12 h-12 text-muted-foreground opacity-20" />
@@ -718,23 +788,51 @@ export const Timeline: React.FC = () => {
                     {(shot.duration / 24).toFixed(1)}s
                   </Badge>
                 </div>
-                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <GripVertical className="w-5 h-5 text-white/50" />
+                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShotSelect(shot.id, false);
+                      dispatch(setActivePanel('shotConfig'));
+                      dispatch(setShotConfigTarget(shot.id));
+                    }}
+                    className="p-1.5 bg-black/60 backdrop-blur-md rounded-md hover:bg-primary/80 text-white transition-colors"
+                    title="Edit Shot Config"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <div className="p-1.5 bg-black/60 backdrop-blur-md rounded-md text-white/50">
+                    <GripVertical className="w-4 h-4" />
+                  </div>
                 </div>
               </div>
-              <div className="p-4 border-t border-white/5">
+              <div className="p-4 border-t border-white/5 bg-secondary/20">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-semibold text-sm truncate pr-2">{shot.name}</h4>
+                  <h4 className="font-semibold text-sm truncate pr-2 m-0 text-white/90">{shot.name}</h4>
                 </div>
-                <p className="text-xs text-muted-foreground line-clamp-2 italic opacity-80">
-                  {shot.prompt || "No description provided..."}
-                </p>
+                {/* Linked Prompt View */}
+                <div className="space-y-2">
+                   <div className="flex items-start gap-2">
+                      <ImageIcon size={12} className="text-primary mt-1 shrink-0" />
+                      <p className="text-[11px] leading-tight text-foreground/80 line-clamp-3 italic bg-black/20 p-2 rounded border border-white/5 w-full m-0">
+                        {shot.prompt || <span className="text-muted-foreground/50 opacity-50">No image prompt linked...</span>}
+                      </p>
+                   </div>
+                   {shot.animationPrompt && (
+                     <div className="flex items-start gap-2">
+                        <VideoIcon size={12} className="text-orange-400 mt-1 shrink-0" />
+                        <p className="text-[11px] leading-tight text-foreground/60 line-clamp-2 m-0">
+                          {shot.animationPrompt}
+                        </p>
+                     </div>
+                   )}
+                </div>
               </div>
             </Reorder.Item>
           ))}
           
           <button
-            onClick={handleAddShot}
+            onClick={() => handleAddShot(false)}
             className="storyboard-add-btn border-2 border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center p-8 hover:border-primary/50 hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary min-h-[200px]"
           >
             <Plus className="w-8 h-8 mb-2 opacity-50" />
@@ -745,155 +843,9 @@ export const Timeline: React.FC = () => {
     );
   };
 
-  // Add sample shots for demonstration
-  useEffect(() => {
-    // Only add sample shots if there are no shots AND no project is loaded
-    if (shots.length === 0 && !project.metadata?.id) {
-      // Check if we already have these specific sample IDs to avoid duplicates in strict mode/HMR
-      const hasSampleShots = shots.some(s => s.id.startsWith('sample-shot-'));
-      if (hasSampleShots) return;
+  // Sample shots logic removed as it caused duplicate key errors.
+  // Use project shots directly.
 
-      const sampleShots: Shot[] = [
-        {
-          id: 'sample-shot-1',
-          name: 'Opening Scene',
-          startTime: 0,
-          duration: 120, // 4 seconds at 30fps
-          layers: [
-            {
-              id: 'layer-sample-1',
-              type: 'media',
-              startTime: 0,
-              duration: 120,
-              locked: false,
-              hidden: false,
-              opacity: 1,
-              blendMode: 'normal',
-              data: {
-                sourceUrl: '',
-                trim: { start: 0, end: 120 },
-                transform: {
-                  position: { x: 0, y: 0 },
-                  scale: { x: 1, y: 1 },
-                  rotation: 0,
-                  anchor: { x: 0.5, y: 0.5 },
-                },
-              } as MediaLayerData,
-            }
-          ],
-          referenceImages: [],
-          prompt: 'A beautiful sunset over mountains',
-          parameters: {
-            seed: 12345,
-            denoising: 0.7,
-            steps: 30,
-            guidance: 7.5,
-            sampler: 'euler',
-            scheduler: 'normal',
-          },
-          generationStatus: 'pending',
-        },
-        {
-          id: 'sample-shot-2',
-          name: 'Close-up Action',
-          startTime: 120,
-          duration: 90, // 3 seconds at 30fps
-          layers: [
-            {
-              id: 'layer-sample-2',
-              type: 'media',
-              startTime: 0,
-              duration: 90,
-              locked: false,
-              hidden: false,
-              opacity: 1,
-              blendMode: 'normal',
-              data: {
-                sourceUrl: '',
-                trim: { start: 0, end: 90 },
-                transform: {
-                  position: { x: 0, y: 0 },
-                  scale: { x: 1, y: 1 },
-                  rotation: 0,
-                  anchor: { x: 0.5, y: 0.5 },
-                },
-              } as MediaLayerData,
-            }
-          ],
-          referenceImages: [],
-          prompt: 'A character looking surprised',
-          parameters: {
-            seed: 67890,
-            denoising: 0.7,
-            steps: 30,
-            guidance: 7.5,
-            sampler: 'euler',
-            scheduler: 'normal',
-          },
-          generationStatus: 'pending',
-        },
-        {
-          id: 'sample-shot-3',
-          name: 'Character Reaction',
-          startTime: 210,
-          duration: 150, // 5 seconds at 30fps
-          layers: [
-            {
-              id: 'layer-sample-3',
-              type: 'media',
-              startTime: 0,
-              duration: 150,
-              locked: false,
-              hidden: false,
-              opacity: 1,
-              blendMode: 'normal',
-              data: {
-                sourceUrl: '',
-                trim: { start: 0, end: 150 },
-                transform: {
-                  position: { x: 0, y: 0 },
-                  scale: { x: 1, y: 1 },
-                  rotation: 0,
-                  anchor: { x: 0.5, y: 0.5 },
-                },
-              } as MediaLayerData,
-            },
-            {
-              id: 'layer-4',
-              type: 'audio',
-              startTime: 0,
-              duration: 150,
-              locked: false,
-              hidden: false,
-              opacity: 1,
-              blendMode: 'normal',
-              data: {
-                sourceUrl: '',
-                volume: 0.8,
-                fadeIn: 0,
-                fadeOut: 0,
-              },
-            }
-          ],
-          referenceImages: [],
-          prompt: 'Wide shot of a bustling city street at night',
-          parameters: {
-            seed: 54321,
-            denoising: 0.7,
-            steps: 30,
-            guidance: 7.5,
-            sampler: 'euler',
-            scheduler: 'normal',
-          },
-          generationStatus: 'pending',
-        },
-      ];
-
-      sampleShots.forEach((shot) => {
-        dispatch(addShot(shot));
-      });
-    }
-  }, [shots.length, dispatch, project.metadata?.id]);
 
   // Render time ruler using TimeRuler component
   const renderTimeRuler = useCallback(() => {
@@ -1028,7 +980,7 @@ export const Timeline: React.FC = () => {
   // ============================================================================
 
   const handleVideoExtension = useCallback(
-    (options: VideoExtensionOptions) => {
+    async (options: VideoExtensionOptions) => {
       const { shotId } = videoExtensionState;
       if (!shotId) return;
 
@@ -1037,19 +989,50 @@ export const Timeline: React.FC = () => {
 
       console.log('[Timeline] Video extension:', { shotId, options });
 
-      // Update the shot duration
-      dispatch(
-        updateShot({
-          id: shotId,
-          updates: {
-            duration: shot.duration + options.duration,
-          },
-        })
-      );
+      if (options.mode === 'extend-ai') {
+        const mediaLayer = shot.layers.find(l => l.type === 'media') as (Layer & { data: MediaLayerData });
+        const sourceVideoUrl = mediaLayer?.data?.sourceUrl || '';
+
+        try {
+          // Trigger the AI extension on the backend
+          const result = await videoEditorAPI.extendVideo(
+            projectId,
+            shotId,
+            sourceVideoUrl,
+            {
+              extensionDuration: options.duration / 24, // Assuming 24fps
+              workflow: 'smart_vision_ltx2_i2v_unlimited_length_gguf', // cspell:ignore gguf
+            }
+          );
+
+          console.log('[Timeline] AI Extension result:', result);
+          
+          dispatch(
+            updateShot({
+              id: shotId,
+              updates: {
+                generationStatus: 'processing',
+              },
+            })
+          );
+        } catch (error) {
+          console.error('[Timeline] AI Extension failed:', error);
+        }
+      } else {
+        // Fallback for non-AI modes (freeze-frame, loop, etc.)
+        dispatch(
+          updateShot({
+            id: shotId,
+            updates: {
+              duration: shot.duration + options.duration,
+            },
+          })
+        );
+      }
 
       setVideoExtensionState({ isOpen: false, shotId: null, layerId: null });
     },
-    [videoExtensionState, shots, dispatch]
+    [videoExtensionState, shots, dispatch, projectId]
   );
 
   // ============================================================================
@@ -1107,6 +1090,8 @@ export const Timeline: React.FC = () => {
         zoomLevel={zoomLevel}
         onZoomChange={handleZoomChange}
         onAddTrack={handleAddTrack}
+        onAddShot={(atPlayhead) => handleAddShot(!!atPlayhead)}
+        onDeleteShot={handleDeleteShot}
         playheadPosition={playheadPosition}
         duration={duration}
         onSplit={handleSplit}
@@ -1183,8 +1168,35 @@ export const Timeline: React.FC = () => {
                       return updated;
                     });
                     dispatch(reorderShots(rippleShots));
-                  } else {
-                    dispatch(updateShot({ id: shotId, updates: { startTime: newStartTime } }));
+                  }
+                }}
+                onShotResize={(shotId, newDuration, edge) => {
+                  const currentShot = shots.find(s => s.id === shotId);
+                  if (!currentShot) return;
+                  
+                  const isProlonged = newDuration > currentShot.duration;
+                  const currentEnd = currentShot.startTime + currentShot.duration;
+                  const newStartTime = edge === 'start' ? currentEnd - newDuration : currentShot.startTime;
+                  
+                  const updatedShots = shots.map(s => s.id === shotId ? { ...s, duration: newDuration, startTime: Math.max(0, newStartTime) } : s);
+                  const sorted = [...updatedShots].sort((a, b) => a.startTime - b.startTime);
+                  
+                  let currentTime = 0;
+                  const rippleShots = sorted.map(s => {
+                    const updated = { ...s, startTime: currentTime };
+                    currentTime += s.duration;
+                    return updated;
+                  });
+                  
+                  dispatch(reorderShots(rippleShots));
+
+                  // Trigger prolongation workflow if the shot was lengthened and contains media
+                  if (isProlonged && currentShot.layers.some(l => l.type === 'media')) {
+                    setVideoExtensionState({
+                      isOpen: true,
+                      shotId,
+                      layerId: currentShot.layers.find(l => l.type === 'media')?.id || null,
+                    });
                   }
                 }}
               />

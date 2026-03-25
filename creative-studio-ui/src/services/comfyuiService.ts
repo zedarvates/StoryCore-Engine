@@ -393,6 +393,18 @@ export class ComfyUIService {
   }
 
   /**
+   * Upscale an existing image using ComfyUI
+   */
+  public async upscaleImage(params: {
+    imagePath: string; // Path relative to project or absolute if ComfyUI input dir
+    upscaleFactor?: number; // 2, 4, etc.
+    modelName?: string; // e.g., 'RealESRGAN_x4plus.safetensors'
+  }, onProgress?: (progress: number, message: string) => void): Promise<string> {
+    logger.debug('🚀 [ComfyUIService] Starting image upscaling');
+    return this.generateAsset('upscale', params, onProgress);
+  }
+
+  /**
    * Generate video using ComfyUI
    */
   public async generateVideo(params: {
@@ -411,7 +423,7 @@ export class ComfyUIService {
   /**
    * Generic asset generation helper
    */
-  private async generateAsset(type: 'image' | 'video', params: unknown, onProgress?: (progress: number, message: string) => void): Promise<string> {
+  private async generateAsset(type: 'image' | 'video' | 'upscale', params: unknown, onProgress?: (progress: number, message: string) => void): Promise<string> {
     const endpoint = this.getConfiguredEndpoint();
     if (!endpoint) throw new Error('ComfyUI endpoint not configured');
 
@@ -431,12 +443,19 @@ export class ComfyUIService {
       cfgScale: (inputParams.cfgScale as number) || 1.0,
     };
 
-     const workflowType = inputParams.workflowType as string || 'flux-turbo';
-     const workflow = type === 'image'
-       ? (workflowType === 'flux-turbo' 
-           ? this.buildFluxTurboWorkflow(effectiveParams as Parameters<typeof ComfyUIService.prototype.buildFluxTurboWorkflow>[0]) 
-           : this.buildSimpleWorkflow(effectiveParams as Parameters<typeof ComfyUIService.prototype.buildSimpleWorkflow>[0]))
-       : this.buildVideoWorkflow(effectiveParams);
+     const workflowType = inputParams.workflowType as string || (type === 'upscale' ? 'upscale' : 'flux-turbo');
+     
+     let workflow: Record<string, unknown>;
+     
+     if (type === 'image') {
+       workflow = workflowType === 'flux-turbo' 
+         ? this.buildFluxTurboWorkflow(effectiveParams as Parameters<typeof ComfyUIService.prototype.buildFluxTurboWorkflow>[0]) 
+         : this.buildSimpleWorkflow(effectiveParams as Parameters<typeof ComfyUIService.prototype.buildSimpleWorkflow>[0]);
+     } else if (type === 'video') {
+       workflow = this.buildVideoWorkflow(effectiveParams);
+     } else {
+       workflow = this.buildUpscaleWorkflow(effectiveParams as { imagePath: string; upscaleFactor?: number; modelName?: string });
+     }
  
      logger.debug(`🏗️ [ComfyUIService] Built ${workflowType} workflow for ${type}`);
 
@@ -659,7 +678,7 @@ export class ComfyUIService {
           "height": params.height,
           "batch_size": 1
         },
-        "class_type": "EmptySD3LatentImage",
+        "class_type": "EmptyLatentImage",
         "_meta": { "title": "EmptySD3LatentImage" }
       },
       "57:3": {
@@ -685,6 +704,46 @@ export class ComfyUIService {
         },
         "class_type": "ModelSamplingAuraFlow",
         "_meta": { "title": "ModelSamplingAuraFlow" }
+      }
+    };
+  }
+
+  /**
+   * Build Upscale Workflow (ESRGAN based)
+   */
+  private buildUpscaleWorkflow(params: {
+    imagePath: string;
+    upscaleFactor?: number;
+    modelName?: string;
+  }): Record<string, unknown> {
+    const modelName = params.modelName || 'RealESRGAN_x4plus.safetensors';
+    
+    return {
+      "1": {
+        "inputs": {
+          "image": params.imagePath
+        },
+        "class_type": "LoadImage"
+      },
+      "2": {
+        "inputs": {
+          "upscale_model": ["3", 0],
+          "image": ["1", 0]
+        },
+        "class_type": "ImageUpscaleWithModel"
+      },
+      "3": {
+        "inputs": {
+          "model_name": modelName
+        },
+        "class_type": "UpscaleModelLoader"
+      },
+      "4": {
+        "inputs": {
+          "filename_prefix": "upscaled_portrait",
+          "images": ["2", 0]
+        },
+        "class_type": "SaveImage"
       }
     };
   }

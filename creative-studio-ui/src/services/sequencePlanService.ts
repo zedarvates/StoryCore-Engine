@@ -393,7 +393,7 @@ export class SequencePlanService {
 
     // Remove thumbnails if not included
     if (!includeThumbnails) {
-      exportData.shots = exportData.shots.map((shot: any) => {
+      exportData.shots = exportData.shots.map((shot: Shot) => {
         const { image: _image, ...shotWithoutImage } = shot;
         return shotWithoutImage;
       });
@@ -464,7 +464,7 @@ export class SequencePlanService {
 
       // Validate shots
       if (Array.isArray(plan.shots)) {
-        plan.shots.forEach((shot: any, index: number) => {
+        plan.shots.forEach((shot: Shot, index: number) => {
           if (!shot.id) errors.push(`Shot ${index}: Missing required field: id`);
           if (!shot.title) errors.push(`Shot ${index}: Missing required field: title`);
           if (typeof shot.duration !== 'number') {

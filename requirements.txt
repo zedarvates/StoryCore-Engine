@@ -18,6 +18,10 @@ cryptography>=43.0.0
 certifi>=2024.8.30
 bcrypt>=4.0.0  # Secure password hashing
 
+# Explicitly require ecdsa>=0.18.0 to fix Minerva timing attack vulnerability
+# (CVE-2024-23342) - transitive dependency from python-jose
+ecdsa>=0.18.0
+
 # Testing dependencies
 pytest>=8.0.0
 hypothesis>=6.100.0

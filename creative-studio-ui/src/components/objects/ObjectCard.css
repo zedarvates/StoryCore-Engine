@@ -1,0 +1,317 @@
+.object-card {
+  position: relative;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.object-card:hover {
+  border-color: #10b981;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.object-card__thumbnail {
+  width: 100%;
+  aspect-ratio: 1;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  border-bottom: 1px solid #333;
+}
+
+.object-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.object-card:hover .object-card__image {
+  transform: scale(1.1);
+}
+
+.object-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #111 0%, #222 100%);
+  padding: 20px;
+}
+
+/* Actions Overlay (Edit/Delete) */
+.object-card__actions-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.object-card:hover .object-card__actions-overlay {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.edit-btn {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.edit-btn:hover {
+  background: #3b82f6;
+  color: white;
+}
+
+.delete-btn {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.delete-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+/* Info/Prompt Button */
+.info-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #9ca3af;
+  opacity: 0.6;
+}
+
+.info-btn:hover, .info-btn.active {
+  opacity: 1;
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+/* Prompt Overlay */
+.object-card__prompt-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: 20;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.prompt-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prompt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #10b981;
+}
+
+.prompt-header button {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 16px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.prompt-text {
+  font-size: 11px;
+  color: #d1d5db;
+  line-height: 1.4;
+  overflow-y: auto;
+  flex: 1;
+  margin: 0;
+  padding-right: 4px;
+}
+
+.prompt-text::-webkit-scrollbar {
+  width: 3px;
+}
+
+.prompt-text::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.object-header {
+  padding: 12px 12px 4px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.object-icon-wrapper {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.object-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.object-name {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.object-type-badge {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #2a2a2a;
+  color: #9ca3af;
+  border: 1px solid #374151;
+}
+
+.object-power-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.object-description {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.tag-pill {
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #6b7280;
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+/* Rarity Effects */
+.object-card.rarity-legendary { border-color: #f59e0b; }
+.object-card.rarity-mythical { border-color: #ef4444; }
+.object-card.rarity-epic { border-color: #a855f7; }
+.object-card.rarity-rare { border-color: #3b82f6; }
+
+.object-card__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.object-card__generate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.object-card__generate-button:hover {
+  background: #10b981;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.object-card__regenerate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #9ca3af;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.object-card__regenerate-button:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.3);
+}

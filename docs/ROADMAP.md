@@ -57,7 +57,7 @@ For detailed technical specifications, follow the links to individual feature do
 **Dependencies**: Redux state management, WebSocket API for real-time updates
 
 ##### Project Dashboard Enhancement
-**Status**: 🚧 In Progress | **Timeline**: Q1 2026 | **Effort**: 2-3 weeks  
+**Status**: ✅ Completed | **Timeline**: Q1 2026 | **Effort**: 2-3 weeks  
 **Reference**: [.kiro/specs/project-dashboard-new](.kiro/specs/project-dashboard-new)
 
 **User Benefits**:
@@ -65,12 +65,14 @@ For detailed technical specifications, follow the links to individual feature do
 - Automated sequence generation from prompts
 - Advanced audio track synchronization
 - Visual project overview with status indicators
+- Direct project folder access via system explorer
 
 **Key Features**:
 - Shot prompt editor with template support
 - Sequence generation controls with progress tracking
 - Audio track manager with waveform visualization
 - Project metadata editor
+- Native "Open Folder" button integration
 
 **Dependencies**: Backend API for sequence generation, Audio processing API
 
@@ -653,24 +655,30 @@ All audit findings have been resolved. The codebase is now production-ready with
 
 ---
 
-## Recent Implementation Achievements (March 2026)
+---
 
-### ✅ Automated Narrative Assets & Studio CX - COMPLETED 04/03/2026
-**Status**: ✅ **FULLY IMPLEMENTED AND INTEGRATED**
-**Reference**: [creative-studio-ui/src/components/addons/credits_screen/](creative-studio-ui/src/components/addons/credits_screen/)
+## Recent Implementation Achievements (Late March 2026)
+
+### ✅ Graph RAG, 3D Forge & Persistence Stabilization - COMPLETED 25/03/2026
+**Status**: ✅ **FULLY INTEGRATED AND PRODUCTION READY**
 
 **Key Achievements**:
-- **Automated Credits & Sequence Planning**: New add-on logic that automatically creates and injects a `SequencePlan` into the project metadata during credits generation.
-- **Dynamic Placement Architecture**: Advanced logic for "Beginning" vs "End" asset injection with auto-sorting of the production timeline.
-- **Advanced Neural Assistant (v4)**: Complete overhaul of the chat interface with reactive AI-driven pro-active buttons (Improve Story, Refine Style, Logic Check) and account management integration.
-- **Studio-wide Add-on Stabilization**: Restored and validated "Video Studio Publisher" and "Credits Screen" integrations across the dashboard.
+- **Graph RAG Integration**: Full Knowledge Graph (GraphRAG) implementation with in-memory store and JSON persistence per-project. Includes 12 consistency patterns for automated plot-hole detection.
+- **Forge-3D-Asset Pipeline**: New backend implementation for 3D asset generation and 3D Gaussian Splatting (tttLRM) reconstruction, integrated into the creative workflow.
+- **Advanced Character Consistency (IP-Adapter)**: Native support for IP-Adapter character sheets in ComfyUI, allowing perfect character reproduction across shots.
+- **Studio UI Refinement & Dashboards**: Refactored the Objects dashboard with `ObjectCard` components, Edit/Delete actions, and "Open Project Folder" system-level integration.
+- **Persistence Architecture Stabilization**: Fixed critical recursion in `ConfigManager` and unified data schemas for robust multi-case (camelCase/snake_case) support.
+- **Model Ecosystem Update**: Upgraded LLM configurations to prioritize `qwen3-vl:4b` for vision-to-text analysis.
 
 **Technical Implementation**:
-- `CreditsScreenEditor.tsx`: Integrated with `SequencePlan` service and store for automatic asset genesis.
-- `AddonManager.ts`: Unified registration for multi-platform publishing and cinematic tools.
-- `LandingChatBox.tsx` & `ChatPanel.tsx`: New glassmorphism layout with dynamic action dispatcher.
+- `GraphMemoryStore.ts` & `GraphRAGService.ts`: Core Graph RAG engine.
+- `video_editor_api.py`: New `/api/video-editor/forge-3d-asset` endpoint.
+- `ObjectCard.tsx` & `ObjectsSection.tsx`: Modernized dashboard components.
+- `ConfigManager.ts`: Refactored save/migration lifecycle.
 
 ---
+
+## Recent Implementation Achievements (Early March 2026)
 
 ## Recent Implementation Achievements (February 2026)
 

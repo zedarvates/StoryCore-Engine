@@ -11,6 +11,8 @@ import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon, Eye, MapPin, RefreshCw } from 'lucide-react';
 import type { Location } from '@/types/location';
 import { LocationImageGenerator } from './LocationImageGenerator';
+import { getImageDisplayUrl } from '@/services/imageStorageService';
+import { useAppStore } from '@/stores/useAppStore';
 import './LocationImagesSection.css';
 
 interface LocationImagesSectionProps {
@@ -19,6 +21,9 @@ interface LocationImagesSectionProps {
 
   /** Handler when an image is generated */
   onImageGenerated?: (tileUrl: string, prompt?: string) => void;
+
+  /** Handler when a historical image is selected to be restored */
+  onImageSelect?: (tileUrl: string) => void;
 }
 
 /**
@@ -27,21 +32,50 @@ interface LocationImagesSectionProps {
 export function LocationImagesSection({
   location,
   onImageGenerated,
+  onImageSelect,
 }: LocationImagesSectionProps) {
   const [showGenerator, setShowGenerator] = useState(false);
-  const [currentTileImage, setCurrentTileImage] = useState<string | null>(
-    location.metadata?.tile_image_path || null
-  );
+  const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null);
+  const [historyUrls, setHistoryUrls] = useState<Record<string, string>>({});
+  
+  const project = useAppStore((state) => state.project);
 
-  // Update local state when location changes
+  // Update display URL when location changes
   useEffect(() => {
-    if (location.metadata?.tile_image_path) {
-      setCurrentTileImage(location.metadata.tile_image_path);
-    }
-  }, [location.metadata?.tile_image_path]);
+    const loadDisplayUrls = async () => {
+      // Load current image
+      const currentPath = location.metadata?.thumbnail_path || location.metadata?.tile_image_path;
+      if (currentPath) {
+        const url = await getImageDisplayUrl(
+          currentPath,
+          project?.path || project?.metadata?.path as string | undefined
+        );
+        setDisplayImageUrl(url);
+      } else {
+        setDisplayImageUrl(null);
+      }
+
+      // Load history images
+      const history = location.metadata?.thumbnail_history || [];
+      const urls: Record<string, string> = {};
+      
+      for (const path of history) {
+        if (!urls[path]) {
+          const url = await getImageDisplayUrl(
+            path,
+            project?.path || project?.metadata?.path as string | undefined
+          );
+          if (url) urls[path] = url;
+        }
+      }
+      setHistoryUrls(urls);
+    };
+
+    loadDisplayUrls();
+  }, [location.metadata?.thumbnail_path, location.metadata?.tile_image_path, location.metadata?.thumbnail_history, project?.path, project?.metadata?.path]);
 
   const handleImageGenerated = (tileUrl: string, prompt?: string) => {
-    setCurrentTileImage(tileUrl);
+    setDisplayImageUrl(tileUrl);
     onImageGenerated?.(tileUrl, prompt);
     setShowGenerator(false);
   };
@@ -66,10 +100,10 @@ export function LocationImagesSection({
           Current Tile Image
         </h4>
 
-        {currentTileImage ? (
+        {displayImageUrl ? (
           <div className="location-images-section__preview">
             <img
-              src={currentTileImage}
+              src={displayImageUrl}
               alt={`Tile image of ${location.name}`}
               className="location-images-section__image"
             />
@@ -88,6 +122,41 @@ export function LocationImagesSection({
             </span>
           </div>
         )}
+      {/* Image History */}
+      {location.metadata?.thumbnail_history && location.metadata.thumbnail_history.length > 0 && (
+        <div className="location-images-section__history">
+          <h4 className="location-images-section__subsection-title">
+            <ImageIcon size={16} />
+            Generation History (Last {location.metadata.thumbnail_history.length})
+          </h4>
+          <div className="location-images-section__history-grid">
+            {location.metadata.thumbnail_history.map((path, index) => (
+              <div 
+                key={`${path}-${index}`}
+                className={`location-images-section__history-item ${
+                  (location.metadata?.thumbnail_path === path || location.metadata?.tile_image_path === path) 
+                    ? 'location-images-section__history-item--active' 
+                    : ''
+                }`}
+                onClick={() => onImageSelect?.(path)}
+                title="Restore this image"
+              >
+                {historyUrls[path] ? (
+                  <img 
+                    src={historyUrls[path]} 
+                    alt={`History ${index}`} 
+                    className="location-images-section__history-image" 
+                  />
+                ) : (
+                  <div className="location-images-section__history-placeholder">
+                    <RefreshCw size={12} className="animate-spin" />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       </div>
 
       {/* Generate new image button */}
@@ -128,7 +197,7 @@ export function LocationImagesSection({
             </div>
 
             <LocationImageGenerator
-              location={location as any}
+              location={location}
               onImageGenerated={handleImageGenerated}
             />
           </div>

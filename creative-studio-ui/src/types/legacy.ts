@@ -222,52 +222,578 @@ export function createLegacyMetadata<T extends Record<string, unknown>>(data: T)
 // Ces types sont des placeholders en attente d'être finalisés
 // ============================================================================
 
-/** Placeholder pour CharacterData - TODO: Créer le type complet */
-export interface LegacyCharacterData {
+/**
+ * Complete UserData interface for user information
+ * Replaces generic types with strict typing
+ */
+export interface UserData {
   id: string;
-  name: string;
-  // TODO: Ajouter les autres propriétés
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  createdAt: number;
+  updatedAt: number;
+  preferences: UserPreferences;
+  subscription?: SubscriptionInfo;
+  projects: string[];
+  role: 'user' | 'admin' | 'guest';
+  language: 'fr' | 'en' | 'es' | 'de';
+  theme: 'light' | 'dark' | 'system';
 }
 
-/** Placeholder pour LocationData - TODO: Créer le type complet */
-export interface LegacyLocationData {
-  id: string;
-  name: string;
-  // TODO: Ajouter les autres propriétés
+export interface UserPreferences {
+  autoSave: boolean;
+  autoSaveInterval: number;
+  defaultVisualStyle?: string;
+  defaultAudioStyle?: string;
+  gridEditorPreferences?: GridEditorPreferences;
+  notificationSettings: NotificationSettings;
 }
 
-/** Placeholder pour StoryData - TODO: Créer le type complet */
-export interface LegacyStoryData {
+export interface GridEditorPreferences {
+  snapToGrid: boolean;
+  gridSize: number;
+  showGrid: boolean;
+  showRulers: boolean;
+}
+
+export interface NotificationSettings {
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  projectUpdates: boolean;
+  marketingEmails: boolean;
+}
+
+export interface SubscriptionInfo {
+  plan: 'free' | 'pro' | 'enterprise';
+  status: 'active' | 'cancelled' | 'expired';
+  expiresAt?: number;
+  features: string[];
+}
+
+/**
+ * Complete CharacterData interface for character information
+ * Based on Character type from character.ts
+ */
+export interface CharacterData {
+  character_id: string;
+  name: string;
+  creation_method: 'wizard' | 'auto_generated' | 'manual' | 'ai_vision';
+  creation_timestamp: number;
+  last_modified?: number;
+  version: string;
+  visual_identity: VisualIdentityData;
+  personality: PersonalityData;
+  background: BackgroundData;
+  relationships: CharacterRelationshipData[];
+  role: RoleData;
+  archetype?: string;
+  goal?: string;
+  flaw_sympathy?: string;
+  daily_details?: DailyDetailsData;
+  prompts?: string[];
+  material_color?: [number, number, number];
+  ai_coherence_data?: unknown;
+}
+
+export interface VisualIdentityData {
+  hair_color: string;
+  hair_style: string;
+  hair_length: string;
+  eye_color: string;
+  eye_shape: string;
+  skin_tone: string;
+  facial_structure: string;
+  distinctive_features: string[];
+  age_range: string;
+  gender: 'male' | 'female' | 'non-binary' | 'other' | 'unspecified';
+  height: string;
+  build: string;
+  posture: string;
+  clothing_style: string;
+  color_palette: string[];
+  generated_portrait?: string;
+  reference_images: ReferenceImageData[];
+  reference_sheet_images: SheetImageData[];
+}
+
+export interface ReferenceImageData {
+  id: string;
+  url: string;
+  type: 'reference' | 'reference_sheet';
+  panel?: string;
+  created_at: number;
+  filename?: string;
+}
+
+export interface SheetImageData {
+  id: string;
+  url: string;
+  panel: string;
+  created_at: number;
+  filename?: string;
+}
+
+export interface PersonalityData {
+  traits: string[];
+  values: string[];
+  fears: string[];
+  desires: string[];
+  flaws: string[];
+  strengths: string[];
+  temperament: string;
+  communication_style: string;
+  goal?: string;
+  flaw_sympathy?: string;
+  daily_details?: DailyDetailsData;
+}
+
+export interface DailyDetailsData {
+  habits?: string[];
+  diet?: string;
+  clothing_style?: string;
+  [key: string]: unknown;
+}
+
+export interface BackgroundData {
+  origin: string;
+  occupation: string;
+  education: string;
+  family: string;
+  significant_events: string[];
+  current_situation: string;
+  backstory: string;
+}
+
+export interface CharacterRelationshipData {
+  character_id: string;
+  character_name: string;
+  relationship_type: string;
+  description: string;
+  dynamic: string;
+}
+
+export interface RoleData {
+  archetype: string;
+  narrative_function: string;
+  character_arc: string;
+}
+
+/**
+ * Complete LocationData interface for location information
+ * Based on Location type from location.ts
+ */
+export interface LocationData {
+  location_id: string;
+  world_location_id?: string;
+  world_id?: string;
+  name: string;
+  creation_method: 'wizard' | 'auto_generated' | 'manual' | 'ai_vision';
+  creation_timestamp: number;
+  last_modified?: number;
+  version: string;
+  location_type: 'exterior' | 'interior';
+  texture_direction: 'inward' | 'outward';
+  metadata: LocationMetadataData;
+  cube_textures: CubeTextureMappingData;
+  prompts?: string[];
+  skybox_config?: SkyBoxConfigData;
+  placed_assets: PlacedAssetData[];
+  scene_transform?: Transform3DData;
+  is_world_derived: boolean;
+  world_snapshot?: WorldLocationSnapshotData;
+}
+
+export interface LocationMetadataData {
+  description: string;
+  atmosphere: string;
+  significance?: string;
+  time_period?: string;
+  genre_tags: string[];
+  color_palette?: string[];
+  key_features?: string[];
+  address?: string;
+  coordinates?: string;
+  owner?: string;
+  purpose?: string;
+  secrets?: string;
+  importance?: 'high' | 'medium' | 'low';
+  accessibility?: 'public' | 'private' | 'restricted';
+  thumbnail_path?: string;
+  tile_image_path?: string;
+}
+
+export interface CubeTextureMappingData {
+  front?: CubeFaceTextureData;
+  back?: CubeFaceTextureData;
+  left?: CubeFaceTextureData;
+  right?: CubeFaceTextureData;
+  top?: CubeFaceTextureData;
+  bottom?: CubeFaceTextureData;
+}
+
+export interface CubeFaceTextureData {
+  id: string;
+  face: 'front' | 'back' | 'left' | 'right' | 'top' | 'bottom';
+  image_path: string;
+  generation_params: ImageGenerationParamsData;
+  generated_at: number;
+  workflow_url?: string;
+}
+
+export interface ImageGenerationParamsData {
+  prompt: string;
+  negative_prompt?: string;
+  width: number;
+  height: number;
+  steps: number;
+  cfg_scale: number;
+  seed: number;
+  model?: string;
+  sampler?: string;
+  scheduler?: string;
+}
+
+export interface SkyBoxConfigData {
+  type: 'procedural' | 'image_based' | 'none';
+  skybox_type?: SkyboxTypeData;
+  shot_type?: ShotTypeData;
+  colors?: {
+    top: string;
+    horizon: string;
+    bottom: string;
+  };
+  texture_path?: string;
+  time_of_day?: number;
+  light_position?: { x: number; y: number; z: number };
+  intensity?: number;
+  weather?: WeatherConditionData;
+  custom_prompt?: string;
+  shot_requirements?: ShotRequirementsData;
+}
+
+export type SkyboxTypeData = 'clear_day' | 'clear_night' | 'overcast' | 'sunset' | 'sunrise' | 'storm' | 'foggy' | 'custom';
+export type ShotTypeData = 'plan_sequence' | 'choc' | 'standard';
+export type WeatherConditionData = 'clear' | 'cloudy' | 'overcast' | 'rain' | 'storm' | 'fog' | 'snow';
+
+export interface ShotRequirementsData {
+  full_360_required?: boolean;
+  horizon_continuity?: boolean;
+  time_preservation?: boolean;
+  dramatic_lighting?: boolean;
+  stylized_elements?: boolean;
+}
+
+export interface PlacedAssetData {
+  id: string;
+  asset_id: string;
+  position: { x: number; y: number; z: number };
+  rotation: { x: number; y: number; z: number };
+  scale: number;
+  visible: boolean;
+}
+
+export interface Transform3DData {
+  position: { x: number; y: number; z: number };
+  rotation: { x: number; y: number; z: number };
+  scale: { x: number; y: number; z: number };
+}
+
+export interface WorldLocationSnapshotData {
+  world_location_id: string;
+  world_id: string;
+  world_name: string;
+  world_type: string;
+  world_description: string;
+  significance?: string;
+  snapshot_at: number;
+}
+
+/**
+ * Complete StoryData interface for story information
+ * Based on Story type from story.ts
+ */
+export interface StoryData {
   id: string;
   title: string;
-  // TODO: Ajouter les autres propriétés
+  content: string;
+  summary: string;
+  genre: string[];
+  tone: string[];
+  length: 'short' | 'medium' | 'long' | 'scene' | 'short_story' | 'novella' | 'novel' | 'epic_novel';
+  charactersUsed: CharacterReferenceData[];
+  locationsUsed: LocationReferenceData[];
+  autoGeneratedElements: AutoGeneratedElementData[];
+  createdAt: number;
+  updatedAt: number;
+  version: number;
+  worldId?: string;
+  acts?: StoryActData[];
+  logline?: string;
+  parts?: StoryPartData[];
+  fileFormat?: 'md' | 'txt';
+  methodologyState?: unknown;
+  productionMode?: ProductionModeData;
+  critique?: string;
 }
 
-/** Placeholder pour ProjectData - TODO: Créer le type complet */
-export interface LegacyProjectData {
+export type ProductionModeData = 'fiction' | 'documentary' | 'interview' | 'music_video' | 'social_media' | 'cinematic' | 'recap' | 'influencer' | 'maker' | 'scientific_review' | 'historical_review' | 'top_tier_list' | 'faith_spirituality' | 'game_review' | 'tech_review' | 'finance_review' | 'masterclass' | 'real_estate' | 'product_hype' | 'legal_recon' | 'asmr' | 'meditation' | 'experimental' | 'true_crime' | 'sports_highlight' | 'gardening' | 'renovation';
+
+export interface CharacterReferenceData {
   id: string;
   name: string;
-  // TODO: Ajouter les autres propriétés
+  role: string;
 }
 
-/** Placeholder pour WizardData - TODO: Créer le type complet */
-export interface LegacyWizardData {
+export interface LocationReferenceData {
   id: string;
-  type: string;
-  // TODO: Ajouter les autres propriétés
+  name: string;
+  significance: string;
+  type?: string;
 }
 
-/** Placeholder pour ValidationResult - TODO: Créer le type complet */
-export interface LegacyValidationResult {
+export interface AutoGeneratedElementData {
+  type: 'character' | 'location';
+  id: string;
+  name: string;
+  generatedAt: number;
+}
+
+export interface StoryActData {
+  id: string;
+  title: string;
+  summary: string;
+  order: number;
+}
+
+export interface StoryPartData {
+  id: string;
+  type: 'intro' | 'chapter' | 'ending';
+  title: string;
+  content: string;
+  summary: string;
+  reviewScore?: ReviewScoreData;
+  order: number;
+  metadata?: StoryFileMetadataData;
+}
+
+export interface ReviewScoreData {
+  tension: number;
+  drama: number;
+  sense: number;
+  emotion: number;
+  overall: number;
+}
+
+export interface StoryFileMetadataData {
+  title: string;
+  type: 'index' | 'intro' | 'chapter' | 'ending' | 'summary';
+  order?: number;
+  part_number?: number;
+  total_parts?: number;
+  genre?: string[];
+  tone?: string[];
+  characters?: string[];
+  locations?: string[];
+  previous_summary?: string;
+  next_part?: string;
+  prev_part?: string;
+  generated_at?: string;
+  review_score?: ReviewScoreData;
+}
+
+/**
+ * Complete ProjectData interface for StoryCore projects
+ * Based on ProjectData type from project.ts
+ */
+export interface ProjectData {
+  schema_version: string;
+  project_name: string;
+  capabilities: ProjectCapabilitiesData;
+  generation_status: GenerationStatusData;
+  storyboard?: unknown[];
+  assets?: unknown[];
+  characters?: CharacterReferenceData[];
+  scenes?: SceneReferenceData[];
+  world?: WorldDefinitionData;
+  global_resume?: string;
+  projectSetup?: ProjectSetupData;
+  moodboard?: unknown;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ProjectCapabilitiesData {
+  grid_generation: boolean;
+  promotion_engine: boolean;
+  qa_engine: boolean;
+  autofix_engine: boolean;
+  wizard_generation?: boolean;
+}
+
+export interface GenerationStatusData {
+  grid: 'pending' | 'done' | 'failed' | 'passed';
+  promotion: 'pending' | 'done' | 'failed' | 'passed';
+  wizard?: 'pending' | 'done' | 'failed' | 'passed';
+}
+
+export interface SceneReferenceData {
+  id: string;
+  name: string;
+  shot_ids: string[];
+  created_at: string;
+}
+
+export interface WorldDefinitionData {
+  id: string;
+  name: string;
+  setting: string;
+  time_period: string;
+  locations: WorldLocationData[];
+  rules: string[];
+  lore: string;
+  created_at: string;
+  metadata: WorldMetadataData;
+}
+
+export interface WorldLocationData {
+  name: string;
+  description: string;
+  visual_reference?: string;
+}
+
+export interface WorldMetadataData {
+  generation_prompt: string;
+  used_in_wizards: string[];
+}
+
+export interface ProjectSetupData {
+  projectName?: string;
+  projectDescription?: string;
+  genre?: string[];
+  tone?: string[];
+  productionMode?: string;
+  targetAudience?: string;
+  estimatedDuration?: string;
+  visualStyle?: string;
+  audioStyle?: string;
+  constraints?: ProjectConstraintData[];
+  tags?: string[];
+  seoMetadata?: SeoMetadataData;
+}
+
+export interface ProjectConstraintData {
+  id: string;
+  category: 'technical' | 'creative' | 'budget' | 'timeline';
+  constraint: string;
+  impact: string;
+}
+
+export interface SeoMetadataData {
+  searchTitle?: string;
+  searchDescription?: string;
+  canonicalUrl?: string;
+}
+
+/**
+ * Complete WizardData interface for wizard information
+ * Based on wizard types from wizard.ts
+ */
+export interface WizardData {
+  id: string;
+  type: WizardTypeData;
+  currentStep: number;
+  totalSteps: number;
+  isComplete: boolean;
   isValid: boolean;
-  errors: string[];
-  // TODO: Ajouter les autres propriétés
+  data: WizardStepData;
+  createdAt: number;
+  updatedAt: number;
+  language: SupportedLanguageData;
+  draft?: WizardDraftData;
+  validationErrors: ValidationErrorData[];
 }
 
-/** Placeholder pour FormSubmission - TODO: Créer le type complet */
-export interface LegacyFormSubmission {
-  data: Record<string, unknown>;
-  // TODO: Ajouter les autres propriétés
+export type WizardTypeData = 'world' | 'character' | 'storyteller' | 'dialogue-writer' | 'scene-generator' | 'storyboard-creator' | 'style-transfer' | 'sequence-plan' | 'shot';
+export type SupportedLanguageData = 'fr' | 'en' | 'es' | 'de';
+
+export interface WizardStepData {
+  [key: string]: unknown;
+}
+
+export interface WizardDraftData {
+  data: WizardStepData;
+  timestamp: number;
+  language: SupportedLanguageData;
+  stepIndex: number;
+}
+
+export interface ValidationErrorData {
+  field: string;
+  message: string;
+  code?: string;
+}
+
+/**
+ * Complete ValidationResult interface for form validation
+ * Based on ValidationResult from project.ts
+ */
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  fieldErrors?: FieldErrorData[];
+  timestamp?: number;
+  validatedBy?: string;
+}
+
+export interface FieldErrorData {
+  field: string;
+  message: string;
+  severity: 'error' | 'warning' | 'info';
+  code?: string;
+}
+
+/**
+ * Complete FormSubmission interface for form submissions
+ * Robust interface for complete form handling
+ */
+export interface FormSubmission {
+  id: string;
+  formId: string;
+  data: FormFieldData[];
+  submittedAt: number;
+  status: SubmissionStatusData;
+  validationResult?: ValidationResult;
+  metadata?: SubmissionMetadataData;
+  attachments?: AttachmentData[];
+}
+
+export interface FormFieldData {
+  name: string;
+  value: unknown;
+  type: FieldTypeData;
+  isValid: boolean;
+  error?: string;
+}
+
+export type FieldTypeData = 'text' | 'number' | 'boolean' | 'select' | 'multiselect' | 'date' | 'file' | 'textarea' | 'checkbox' | 'radio' | 'hidden';
+export type SubmissionStatusData = 'pending' | 'validating' | 'validated' | 'submitted' | 'failed' | 'cancelled';
+
+export interface SubmissionMetadataData {
+  ipAddress?: string;
+  userAgent?: string;
+  referrer?: string;
+  sessionId?: string;
+  userId?: string;
+}
+
+export interface AttachmentData {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  uploadedAt: number;
 }
 
 // ============================================================================

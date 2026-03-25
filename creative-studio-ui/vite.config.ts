@@ -73,7 +73,17 @@ export default defineConfig({
     chunkSizeWarningLimit: 500,
     // CSS code splitting for better caching
     cssCodeSplit: true,
+    // Enable module preload for better performance
+    modulePreload: {
+      polyfill: true,
+    },
     rollupOptions: {
+      // Optimize rollup for tree shaking
+      treeshake: {
+        moduleSideEffects: false,
+        propertyReadSideEffects: false,
+        tryCatchDeoptimization: false,
+      },
       output: {
         // Optimize chunk naming for better caching
         chunkFileNames: 'assets/[name]-[hash].js',
@@ -134,8 +144,40 @@ export default defineConfig({
             return 'ai-providers';
           }
 
-          // AI services - split into smaller chunks
-          if (id.includes('ai') && !id.includes('llm') && !id.includes('ollama') && !id.includes('node_modules')) {
+          // AI services - split into smaller chunks by service type
+          // AI Wizard services
+          if (id.includes('aiWizardService') || id.includes('WizardService')) {
+            return 'ai-wizard';
+          }
+          
+          // AI Composition services (shot composition, script analysis)
+          if (id.includes('aiShotCompositionService') || id.includes('aiScriptAnalysisService')) {
+            return 'ai-composition';
+          }
+          
+          // AI Character services
+          if (id.includes('aiCharacterService')) {
+            return 'ai-character';
+          }
+          
+          // AI Media services (audio enhancement, color grading)
+          if (id.includes('aiAudioEnhancementService') || id.includes('aiColorGradingService')) {
+            return 'ai-media';
+          }
+          
+          // AI Preset and Performance services
+          if (id.includes('aiPresetService') || id.includes('aiPerformanceService') || id.includes('ObjectsAIService')) {
+            return 'ai-presets';
+          }
+          
+          // Core AI services (ActionDispatcher, IntentOrchestration, etc.)
+          if (id.includes('services/ai/')) {
+            return 'ai-core';
+          }
+          
+          // Internal AI services (other services with 'ai' in path)
+          if (id.includes('ai') && id.includes('services') && !id.includes('node_modules')) {
+             // Keep fallback for other AI services
              return 'ai-internal';
           }
 
@@ -152,6 +194,56 @@ export default defineConfig({
           // Audio and video processing (separate chunk)
           if (id.includes('audio') || id.includes('video') || id.includes('ffmpeg')) {
             return 'media-processing';
+          }
+
+          // Wizard components (large feature)
+          if (id.includes('components/wizard/')) {
+            return 'wizard-components';
+          }
+          
+          // Modal components
+          if (id.includes('components/modals/')) {
+            return 'modal-components';
+          }
+          
+          // Workspace components
+          if (id.includes('components/workspace/')) {
+            return 'workspace-components';
+          }
+          
+          // Character components
+          if (id.includes('components/character/')) {
+            return 'character-components';
+          }
+          
+          // Location components
+          if (id.includes('components/location/')) {
+            return 'location-components';
+          }
+          
+          // Object components
+          if (id.includes('components/objects/')) {
+            return 'object-components';
+          }
+          
+          // Sequence editor components (heavy feature)
+          if (id.includes('sequence-editor/')) {
+            return 'sequence-editor';
+          }
+          
+          // EditorPage components
+          if (id.includes('EditorPage') || id.includes('components/editor/')) {
+            return 'editor-page';
+          }
+          
+          // Custom hooks (can be lazy loaded)
+          if (id.includes('hooks/') && !id.includes('node_modules')) {
+            return 'app-hooks';
+          }
+
+          // Story components
+          if (id.includes('storyteller') || id.includes('Storyteller')) {
+            return 'storyteller-feature';
           }
           
           // Default chunk for other dependencies

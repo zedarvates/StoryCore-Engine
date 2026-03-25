@@ -31,8 +31,8 @@ Welcome to the StoryCore-Engine project index! This document provides a comprehe
 
 ### Version Information
 - **Current Version**: v1.0.0 (Production Ready)
-- **Last Updated**: March 19, 2026
-- **Build Status**: 🔄 Build passing (Vite), 🚧 Type-checking in progress
+- **Last Updated**: March 25, 2026
+- **Build Status**: ✅ Build passing (Vite), 🚧 Type-checking in progress
 - **License**: ISC
 - **Python Version**: 3.11+
 - **Node.js Version**: 18+
@@ -407,7 +407,11 @@ npm run dev
 - **Security**: 41/41 security tests passing
 
 ### Recent Achievements
-- ✅ Bidirectional Persistance & Synchronization (March 11, 2026)
+- ✅ Graph RAG & Knowledge Graph Persistence (March 25, 2026)
+- ✅ Forge-3D-Asset generation & reconstruction (March 25, 2026)
+- ✅ IP-Adapter Character Consistency Sheets (March 25, 2026)
+- ✅ Studio UI & Dashboard Dash Optimization (March 25, 2026)
+- ✅ Bidirectional Persistence & Synchronization (March 11, 2026)
 - ✅ SyncManager for character/world/shot sync (March 19, 2026)
 - ✅ Neural Augmented Creation & Project Genesis (Feb 26, 2026)
 - ✅ Total Recall AI Memory System (Feb 26, 2026)

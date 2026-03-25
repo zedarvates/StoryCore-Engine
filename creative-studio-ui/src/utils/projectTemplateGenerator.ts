@@ -6,6 +6,7 @@
 
 import type { Shot } from '@/types';
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
+import { generateId as generateSecureId } from '@/utils/idGenerator';
 
 // ============================================================================
 // Types
@@ -34,7 +35,7 @@ export interface ProjectTemplate {
  * Generate a unique ID
  */
 function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return generateSecureId();
 }
 
 /**

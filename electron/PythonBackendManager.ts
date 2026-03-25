@@ -124,11 +124,51 @@ export class PythonBackendManager {
    */
   private async spawnBackendProcess(port: number): Promise<void> {
     return new Promise((resolve, reject) => {
-      const rootPath = path.join(__dirname, '..');
+      // Try multiple strategies to find the backend location
+      const possiblePaths = [
+        // Development: project root (two levels up from dist/electron)
+        path.resolve(__dirname, '../../'),
+        // Production (electron-builder): app.asar root
+        path.join(__dirname, '..'),
+        // Alternative production: app contents
+        path.resolve(__dirname, '../..'),
+      ];
+      
+      // Cache fs module outside loop for efficiency
+      const fs = require('fs');
+      
+      // Find the first path that has backend/main_api.py
+      let rootPath: string | undefined;
+      for (const candidate of possiblePaths) {
+        const backendPath = path.join(candidate, 'backend', 'main_api.py');
+        try {
+          if (fs.existsSync(backendPath)) {
+            rootPath = candidate;
+            console.log(`[PythonBackend] Found backend at: ${backendPath}`);
+            break;
+          }
+        } catch {
+          // Continue to next candidate
+        }
+      }
+      
+      if (!rootPath) {
+        // Error: No valid backend path found in any location
+        const errorMsg = `[PythonBackend] CRITICAL: Could not locate backend/main_api.py in any search path.\n` +
+          `Searched paths: ${possiblePaths.join('\n')}\n` +
+          `Please ensure the backend is properly installed or rebuilt.`;
+        console.error(errorMsg);
+        // Fallback to development path but log as error
+        rootPath = path.resolve(__dirname, '../../');
+        console.error(`[PythonBackend] Using fallback path: ${rootPath} - THIS MAY NOT WORK IN PRODUCTION`);
+      }
       
       // Select python command
       const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
-
+      
+      console.log(`[PythonBackend] Starting python backend from: ${rootPath}`);
+      console.log(`[PythonBackend] command: ${pythonCmd} -m backend.main_api`);
+      
       console.log(`[Backend] Spawning Python backend on port ${port}...`);
       
       this.process = spawn(pythonCmd, ['-m', 'backend.main_api'], {

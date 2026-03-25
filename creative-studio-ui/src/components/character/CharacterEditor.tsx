@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { X, Save, Trash2, AlertTriangle } from 'lucide-react';
-import { useAppStore } from '@/stores/useAppStore';
-import type { Character } from '@/types/character';
+import type { Character, ReferenceImageData, SheetImageData } from '@/types/character';
 import { useCharacterManager } from '@/hooks/useCharacterManager';
 import { BasicIdentitySection } from './editor/BasicIdentitySection';
 import { AppearanceSection } from './editor/AppearanceSection';
@@ -60,7 +59,6 @@ export function CharacterEditor({
   onSave,
   onDelete,
 }: CharacterEditorProps) {
-  const project = useAppStore((state) => state.project);
   const characterManager = useCharacterManager();
   const dialogRef = React.useRef<HTMLDialogElement>(null);
   const unsavedDialogRef = React.useRef<HTMLDialogElement>(null);
@@ -179,13 +177,13 @@ export function CharacterEditor({
   };
 
   // Handle cancel
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (isDirty) {
       setShowUnsavedWarning(true);
     } else {
       onClose();
     }
-  };
+  }, [isDirty, onClose]);
 
   // Confirm cancel with unsaved changes
   const confirmCancel = () => {
@@ -224,13 +222,6 @@ export function CharacterEditor({
     }
   };
 
-  // Handle backdrop click
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleCancel();
-    }
-  };
-
   // Handle escape key - native dialog handles this automatically, but we keep for cleanup
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -242,7 +233,7 @@ export function CharacterEditor({
 
     globalThis.addEventListener('keydown', handleEscape);
     return () => globalThis.removeEventListener('keydown', handleEscape);
-  }, [isDirty]);
+  }, [isDirty, handleCancel]);
 
   // Open dialog when component mounts
   useEffect(() => {
@@ -411,6 +402,10 @@ export function CharacterEditor({
               characterId={characterId}
               characterName={originalCharacter.name}
               character={formData as Character}
+              onImagesUpdate={(updates: { reference_images: ReferenceImageData[], reference_sheet_images: SheetImageData[] }) => {
+                handleNestedFieldChange('visual_identity', 'reference_images', updates.reference_images);
+                handleNestedFieldChange('visual_identity', 'reference_sheet_images', updates.reference_sheet_images);
+              }}
               id="panel-images"
             />
           )}

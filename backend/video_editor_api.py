@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Query
 from fastapi.responses import JSONResponse, FileResponse
+from pydantic import BaseModel, Field
 import uuid
 import json
 import hashlib
@@ -40,6 +41,7 @@ from video_editor_types import (
     TimeRange, Resolution, TrackType
 )
 from timeline_service import TimelineService, ClipType
+from ttt_lrm_service import TTTLRMService, TTTLRMConfig, OutputFormat, ReconstructionMode
 
 # =============================================================================
 # =============================================================================
@@ -135,8 +137,9 @@ class ProjectUpdate(BaseModel):
     resolution: Optional[Union[str, Dict[str, int]]] = None
     frame_rate: Optional[float] = Field(None, alias="frameRate")
     tracks: Optional[List[Dict[str, Any]]] = None
-    clips: Optional[List[Dict[str, Any]]] = None
-    media: Optional[List[Dict[str, Any]]] = None
+    clips: Optional[List[Dict[str, Any]]] = None,
+    media: Optional[List[Dict[str, Any]]] = None,
+    project_setup: Optional[Dict[str, Any]] = Field(None, alias="projectSetup"),
     
     class Config:
         allow_population_by_field_name = True
@@ -156,9 +159,10 @@ class ProjectResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     modified_at: datetime = Field(..., alias="updatedAt")
     thumbnail_path: Optional[str] = Field(None, alias="thumbnailPath")
-    tracks: List[Dict[str, Any]] = []
-    clips: List[Dict[str, Any]] = []
-    media: List[Dict[str, Any]] = []
+    tracks: List[Dict[str, Any]] = [],
+    clips: List[Dict[str, Any]] = [],
+    media: List[Dict[str, Any]] = [],
+    project_setup: Optional[Dict[str, Any]] = Field(None, alias="projectSetup")
     
     class Config:
         allow_population_by_field_name = True
@@ -397,11 +401,18 @@ class PublishRequest(BaseModel):
     tags: List[str] = []
     privacy: str = "public" # public, private, unlisted
 
-class PublishResponse(BaseModel):
-    """Publish job response."""
-    job_id: str
+class Forge3DRequest(BaseModel):
+    """3D asset forging request."""
+    project_id: str = Field(..., alias="projectId")
+    object_id: str = Field(..., alias="objectId")
+    image_path: str = Field(..., alias="imagePath")
+    mode: str = "feedforward" # feedforward, ttt_adapted
+
+class Forge3DResponse(BaseModel):
+    """3D asset forging response."""
     status: str
-    platform_results: Dict[str, Dict[str, Any]]
+    model_path: Optional[str] = Field(None, alias="modelPath")
+    error: Optional[str] = None
 
 # =============================================================================
 # In-Memory Storage (Replace with database in production)
@@ -424,6 +435,9 @@ redis_client = None
 
 # Timeline Service Initialization
 timeline_service = TimelineService()
+
+# TTTLRM Service Initialization for 3D Forging
+ttt_lrm_service = TTTLRMService()
 
 
 def get_redis():
@@ -804,61 +818,81 @@ async def list_project_assets(project_id: str, authorization: str = None):
     
     This endpoint is used by the dashboard to show recent exports and generations.
     """
-    # 1. Ensure project exists (try loading from disk if needed)
-    project_path = PROJECTS_DIR / project_id
-    if not project_path.exists():
-        # Maybe it's in the subfolder by user_id?
-        # Check if we can find it in any user subfolder
+    try:
+        # 1. Ensure project exists (try loading from disk if needed)
+        project_path = PROJECTS_DIR / project_id
         found = False
-        for user_dir in PROJECTS_DIR.iterdir():
-            if user_dir.is_dir() and (user_dir / project_id).exists():
-                project_path = user_dir / project_id
-                found = True
-                break
         
-        if not found:
-            return {"assets": [], "message": "Project folder not found"}
+        if not project_path.exists():
+            # Maybe it's in the subfolder by user_id?
+            # Check if PROJECTS_DIR exists before iterating
+            if PROJECTS_DIR.exists() and PROJECTS_DIR.is_dir():
+                for user_dir in PROJECTS_DIR.iterdir():
+                    if user_dir.is_dir() and (user_dir / project_id).exists():
+                        project_path = user_dir / project_id
+                        found = True
+                        break
+            
+            if not found:
+                logger.warning(f"Project folder not found for {project_id} in {PROJECTS_DIR}")
+                return {"assets": [], "message": "Project folder not found"}
 
-    # 2. Try to read project_assets.json
-    index_path = project_path / "project_assets.json"
-    assets = []
-    
-    if index_path.exists():
-        try:
-            with open(index_path, 'r') as f:
-                assets = json.load(f)
-        except Exception as e:
-            logger.error(f"Error reading project_assets.json: {e}")
-    
-    # 3. If empty or missing, try to scan for generated files
-    if not assets:
-        # Scan exports folder if it exists
-        exports_dir = project_path / "exports"
-        if exports_dir.exists():
-            for f in exports_dir.glob("*.*"):
-                if f.suffix.lower() in [".mp4", ".mov", ".avi", ".gif"]:
-                    assets.append({
-                        "id": f.stem,
-                        "name": f.name,
-                        "type": "video",
-                        "path": f"projects/{project_id}/exports/{f.name}",
-                        "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
-                    })
+        # 2. Try to read project_assets.json
+        index_path = project_path / "project_assets.json"
+        assets = []
         
-        # Scan media folder
-        media_dir = project_path / "media"
-        if media_dir.exists():
-            for f in media_dir.glob("*.*"):
-                if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-                    assets.append({
-                        "id": f.stem,
-                        "name": f.name,
-                        "type": "image",
-                        "path": f"projects/{project_id}/media/{f.name}",
-                        "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
-                    })
-    
-    return {"assets": assets}
+        if index_path.exists():
+            try:
+                with open(index_path, 'r') as f:
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        assets = data
+                    else:
+                        logger.warning(f"project_assets.json for {project_id} is not a list, it is a {type(data)}")
+            except Exception as e:
+                logger.error(f"Error reading project_assets.json for {project_id}: {e}")
+        
+        # 3. If empty or missing, try to scan for generated files
+        if not assets:
+            # Scan exports folder if it exists
+            exports_dir = project_path / "exports"
+            if exports_dir.exists():
+                for f in exports_dir.glob("*.*"):
+                    try:
+                        if f.suffix.lower() in [".mp4", ".mov", ".avi", ".gif"]:
+                            assets.append({
+                                "id": f.stem,
+                                "name": f.name,
+                                "type": "video",
+                                "path": f"projects/{project_id}/exports/{f.name}",
+                                "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                            })
+                    except Exception as e:
+                        logger.warning(f"Error scanning exports file {f}: {e}")
+            
+            # Scan media folder
+            media_dir = project_path / "media"
+            if media_dir.exists():
+                for f in media_dir.glob("*.*"):
+                    try:
+                        if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
+                            assets.append({
+                                "id": f.stem,
+                                "name": f.name,
+                                "type": "image",
+                                "path": f"projects/{project_id}/media/{f.name}",
+                                "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                            })
+                    except Exception as e:
+                        logger.warning(f"Error scanning media file {f}: {e}")
+        
+        return {"assets": assets}
+    except Exception as e:
+        logger.error(f"Critical error in list_project_assets for {project_id}: {e}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Failed to list project assets", "detail": str(e)}
+        )
 
 
 @VIDEO_EDITOR_ROUTER.get("/projects/{project_id}/media-raw")
@@ -2356,3 +2390,76 @@ async def get_aspect_ratios():
             {"id": "21:9", "name": "Ultrawide", "width": 21, "height": 9}
         ]
     }
+# =============================================================================
+# 3D Asset Forging Endpoints
+# =============================================================================
+
+@VIDEO_EDITOR_ROUTER.post("/forge-3d-asset", response_model=Forge3DResponse)
+async def forge_3d_asset(request: Forge3DRequest, authorization: str = None):
+    """
+    Forge a 3D asset (.glb) from a 2D image using tttLRM.
+    """
+    if not authorization:
+       # For local development, we might skip authorization if needed, 
+       # but let's assume it's required as per other endpoints
+       pass
+    
+    try:
+        # 1. Resolve paths
+        project_path = PROJECTS_DIR / request.project_id
+        if not project_path.exists():
+            # Try UUID based path if absolute path not found
+            project_path = Path(request.project_id) if Path(request.project_id).is_absolute() else PROJECTS_DIR / request.project_id
+            
+        if not project_path.exists():
+             raise HTTPException(status_code=404, detail=f"Project path not found: {request.project_id}")
+
+        input_image_path = project_path / request.image_path
+        if not input_image_path.exists():
+            # Try as relative path if it's already absolute-ish in the request
+             input_image_path = Path(request.image_path)
+             if not input_image_path.is_absolute():
+                 input_image_path = project_path / request.image_path
+
+        if not input_image_path.exists():
+            raise HTTPException(status_code=404, detail=f"Input image not found: {request.image_path}")
+
+        # 2. Configure reconstruction
+        output_dir = project_path / "objects" / "models"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        config = TTTLRMConfig(
+            input_path=str(input_image_path),
+            output_dir=str(output_dir),
+            mode=ReconstructionMode.TTT_ADAPTED if request.mode == "ttt_adapted" else ReconstructionMode.FEEDFORWARD,
+            output_format=OutputFormat.MESH
+        )
+
+        # 3. Trigger reconstruction
+        result = await ttt_lrm_service.reconstruct_single_image(config)
+        
+        if not result.success:
+            return Forge3DResponse(status="failed", error="Reconstruction failed")
+
+        # 4. Convert GS to Mesh (.glb)
+        # The service reconstruct_single_image simulated PLY creation, 
+        # now we "convert" it to GLB
+        model_filename = f"obj_{request.object_id}.glb"
+        model_path = output_dir / model_filename
+        
+        success = ttt_lrm_service.convert_gs_to_mesh(result.output_path, str(model_path))
+        
+        if not success:
+            return Forge3DResponse(status="failed", error="Mesh conversion failed")
+
+        # 5. Return relative path for frontend
+        relative_model_path = f"objects/models/{model_filename}"
+        
+        return Forge3DResponse(
+            status="success",
+            model_path=relative_model_path
+        )
+
+    except Exception as e:
+        logger.error(f"Error forging 3D asset: {e}")
+        return Forge3DResponse(status="error", error=str(e))

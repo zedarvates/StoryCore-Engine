@@ -86,6 +86,13 @@ async def lifespan(app: FastAPI):
         os.makedirs(directory, exist_ok=True)
         logger.info(f"Ensured directory exists: {directory}")
 
+    # Core Database: Migration des modèles de base
+    try:
+        from backend.database import init_db
+        await init_db()
+    except Exception as e:
+        logger.error(f"Core database initialization failed: {e}")
+
     # 💎 GemReward: Migration des tables DB au démarrage
     try:
         from backend.gem_migration import run_gem_migration

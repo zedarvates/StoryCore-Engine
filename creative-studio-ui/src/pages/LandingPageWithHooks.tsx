@@ -4,6 +4,8 @@ import { CreateProjectDialog } from '@/components/launcher/CreateProjectDialog';
 import { FolderNavigationModal } from '@/components/launcher/FolderNavigationModal';
 import { useLandingPage } from '@/hooks/useLandingPage';
 import { useRecentProjects } from '@/hooks/useRecentProjects';
+import { useAppStore } from '@/stores/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Alert } from '@/components/ui/alert';
 
 // ============================================================================
@@ -25,6 +27,16 @@ export function LandingPageWithHooks() {
     setShowOpenDialog,
     clearError,
   } = useLandingPage();
+  
+  const {
+    setShowDocumentationModal,
+    setShowFeedbackPanel,
+    setShowAboutModal
+  } = useAppStore(useShallow(state => ({
+    setShowDocumentationModal: state.setShowDocumentationModal,
+    setShowFeedbackPanel: state.setShowFeedbackPanel,
+    setShowAboutModal: state.setShowAboutModal,
+  })));
 
   const {
     projects: recentProjects,
@@ -70,6 +82,9 @@ export function LandingPageWithHooks() {
         recentProjects={recentProjects}
         onRecentProjectClick={handleRecentProjectClick}
         onRemoveRecentProject={removeRecentProject}
+        onShowDocumentation={() => setShowDocumentationModal(true)}
+        onShowSupport={() => setShowFeedbackPanel(true)}
+        onShowAbout={() => setShowAboutModal(true)}
         version="1.0.0"
       />
 

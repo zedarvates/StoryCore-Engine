@@ -7,6 +7,7 @@
  */
 
 import type { AppError } from '../errorHandlingService';
+import { generateIdWithPrefix } from '@/utils/idGenerator';
 
 export interface ErrorLogEntry {
   error: AppError;
@@ -236,7 +237,7 @@ export class ErrorLoggingService {
    * Private: Generate session ID
    */
   private generateSessionId(): string {
-    return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return generateIdWithPrefix('session');
   }
 
   /**
@@ -271,7 +272,7 @@ export class ErrorLoggingService {
       const data = JSON.parse(stored);
       
       // Restore logs with Date objects
-      this.logs = data.logs.map((entry: unknown) => ({
+      this.logs = data.logs.map((entry: any) => ({
         ...entry,
         timestamp: new Date(entry.timestamp),
       }));

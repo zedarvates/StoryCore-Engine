@@ -11,6 +11,7 @@ import type {
   WizardState,
 } from '../../types/wizard';
 import { logger } from '@/utils/logger';
+import { generateIdWithPrefix } from '@/utils/idGenerator';
 
 // ============================================================================
 // Template Types
@@ -39,7 +40,6 @@ export interface TemplateMetadata {
 // Storage Keys
 // ============================================================================
 
-const STORAGE_KEY_PREFIX = 'storycore_wizard_template_';
 const CUSTOM_TEMPLATES_KEY = 'storycore_wizard_custom_templates';
 
 // ============================================================================
@@ -680,7 +680,7 @@ export class TemplateSystem {
     description: string,
     data: Partial<WizardState>
   ): Promise<string> {
-    const templateId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const templateId = generateIdWithPrefix('custom');
     
     const template: ProjectTemplate = {
       id: templateId,

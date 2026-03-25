@@ -24,6 +24,40 @@ interface UpdateProjectParams {
   media?: MediaFile[];
 }
 
+/**
+ * Subtitle segment from AI job
+ */
+export interface SubtitleSegment {
+  id?: string;
+  start: number;
+  end: number;
+  text: string;
+}
+
+/**
+ * Crop region from AI job
+ */
+export interface CropRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * AI Job status response
+ */
+export interface AIJobStatus {
+  id: string;
+  status: string;
+  progress?: number;
+  outputPath?: string;
+  error?: string;
+  text?: string;
+  segments?: SubtitleSegment[];
+  crop_regions?: CropRegion[];
+}
+
 class VideoEditorAPI {
   private baseUrl: string;
 
@@ -255,17 +289,8 @@ class VideoEditorAPI {
     });
   }
 
-  async getAIJobStatus(jobId: string): Promise<{ 
-    id: string; 
-    status: string; 
-    progress?: number; 
-    outputPath?: string; 
-    error?: string;
-    text?: string;
-    segments?: any[];
-    crop_regions?: any[];
-  }> {
-    return this.request<any>(`/ai/jobs/${jobId}/status`, {
+  async getAIJobStatus(jobId: string): Promise<AIJobStatus> {
+    return this.request<AIJobStatus>(`/ai/jobs/${jobId}/status`, {
       method: 'GET',
     });
   }
@@ -433,6 +458,21 @@ class VideoEditorAPI {
         }),
       }
     );
+  }
+
+  /**
+   * Forge a 3D asset from a 2D image
+   */
+  async forge3DAsset(params: {
+    projectId: string;
+    objectId: string;
+    imagePath: string;
+    mode?: 'feedforward' | 'ttt_adapted';
+  }): Promise<{ status: string; modelPath?: string; error?: string }> {
+    return this.request<{ status: string; modelPath?: string; error?: string }>('/forge-3d-asset', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
   }
 
 

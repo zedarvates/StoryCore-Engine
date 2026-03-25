@@ -47,6 +47,9 @@ setup(
         # Security
         "cryptography>=43.0.0",
         "certifi>=2024.8.30",
+        # Explicitly require ecdsa>=0.18.0 to fix Minerva timing attack vulnerability
+        # (CVE-2024-23342) - transitive dependency from python-jose
+        "ecdsa>=0.18.0",
         
         # API server (optional)
         "fastapi>=0.104.0",

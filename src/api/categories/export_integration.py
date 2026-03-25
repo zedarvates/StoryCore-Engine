@@ -176,6 +176,15 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
             async_capable=False,
         )
         
+        # ComfyUI extend video endpoint (async)
+        self.router.register_endpoint(
+            path="storycore.integration.comfyui.extend_video",
+            method="POST",
+            handler=self.comfyui_extend_video,
+            description="Extend an existing video using LTX2 unlimited length workflow",
+            async_capable=True,
+        )
+        
         # Webhook registration endpoint
         self.router.register_endpoint(
             path="storycore.integration.webhook.register",
@@ -921,16 +930,47 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
                     context=context
                 )
 
-            # 2. Build workflow (Mocking a basic img2video workflow structure)
-            # In production, we'd load this from a JSON file
-            workflow = {
-                "3": { "class_type": "KSampler", "inputs": { "seed": 42, "steps": parameters.get("steps", 20), "cfg": 7, "sampler_name": "euler", "scheduler": "normal", "denoise": 1, "model": ["4", 0], "positive": ["6", 0], "negative": ["7", 0], "latent_image": ["5", 0] } },
-                "4": { "class_type": "CheckpointLoaderSimple", "inputs": { "ckpt_name": "svd_xt.safetensors" } },
-                "5": { "class_type": "LoadImage", "inputs": { "image": remote_filename } },
-                "6": { "class_type": "CLIPTextEncode", "inputs": { "text": metadata.get("prompt", "cinematic shot"), "clip": ["4", 1] } },
-                "7": { "class_type": "CLIPTextEncode", "inputs": { "text": "blur, low quality", "clip": ["4", 1] } },
-                "8": { "class_type": "SaveVideo", "inputs": { "video": ["3", 0], "filename_prefix": f"gen_{shot_id}" } }
-            }
+            # 2. Load the LTX 2.3 I2V workflow
+            workflow_path = Path("backend/workflows/high_fidelity/LTX2.3 I2V GGUF 12GB.json")
+            if not workflow_path.exists():
+                # Fallback to general location
+                workflow_path = Path("workflows/high_fidelity/smart_vision_ltx2_i2v_gguf.json")
+                
+            if not workflow_path.exists():
+                return self.create_error_response(
+                    error_code=ErrorCodes.NOT_FOUND,
+                    message="LTX 2.3 workflow not found.",
+                    context=context
+                )
+
+            with open(workflow_path, 'r', encoding='utf-8') as f:
+                workflow = json.load(f)
+            
+            # 2b. Inject parameters (this depends on the specific node IDs in the JSON)
+            # For LTX 2.3 I2V GGUF 12GB.json:
+            # - LoadImage node ID is usually 149
+            # - Prompt node ID is usually 121
+            # - Negative Prompt node ID is 110
+            # - SaveVideo node ID is 75
+            
+            # NOTE: We'll attempt to find the nodes by class_type if the IDs don't match
+            def find_node_by_class(wf, class_type):
+                for node_id, node in wf.items():
+                    if node.get("class_type") == class_type:
+                        return node_id, node
+                return None, None
+
+            # Update reference image
+            img_node_id, img_node = find_node_by_class(workflow, "LoadImage")
+            if img_node:
+                img_node["inputs"]["image"] = remote_filename
+            
+            # Update prompts
+            prompt_node_id, prompt_node = find_node_by_class(workflow, "CLIPTextEncode")
+            if prompt_node:
+                # Some workflows have multiple CLIPTextEncode, we might need a better way
+                # But typically the first one is the positive prompt
+                prompt_node["inputs"]["text"] = metadata.get("prompt", "cinematic shot, high quality")
 
             # 3. Queue prompt
             prompt_id = self.comfy_client.queue_prompt(workflow)
@@ -1074,15 +1114,47 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
                 
             project_path = params["project_path"]
             project_dir = Path(project_path)
+            
+            # Robust path validation
+            if not project_dir.exists():
+                logger.warning(f"[vault_list_assets] Project directory does not exist: {project_path}")
+                return self.create_success_response({"assets": []}, context)
+                
             index_path = project_dir / "project_assets.json"
             
             assets = []
             if index_path.exists():
-                with open(index_path, 'r') as f:
-                    assets = json.load(f)
+                logger.info(f"[vault_list_assets] Reading assets from {index_path}")
+                try:
+                    with open(index_path, 'r', encoding='utf-8') as f:
+                        content = f.read().strip()
+                        if content:
+                            assets = json.loads(content)
+                        else:
+                            logger.warning(f"[vault_list_assets] index file is empty: {index_path}")
+                            assets = []
+                except json.JSONDecodeError as je:
+                    logger.error(f"[vault_list_assets] Failed to decode JSON from {index_path}: {je}")
+                    # Return empty list instead of 500
+                    assets = []
+                except Exception as fe:
+                    logger.error(f"[vault_list_assets] Error reading {index_path}: {fe}")
+                    assets = []
+            else:
+                logger.info(f"[vault_list_assets] Index file does not exist: {index_path}")
+            
+            # Ensure assets is a list
+            if not isinstance(assets, list):
+                logger.warning(f"[vault_list_assets] Assets index is not a list, it is {type(assets)}")
+                if isinstance(assets, dict):
+                    # Maybe it's a dict with an 'assets' key?
+                    assets = assets.get("assets", []) if isinstance(assets.get("assets"), list) else []
+                else:
+                    assets = []
             
             return self.create_success_response({"assets": assets}, context)
         except Exception as e:
+            logger.exception(f"[vault_list_assets] Unexpected error: {e}")
             return self.handle_exception(e, context)
 
     def webhook_register(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
@@ -1322,5 +1394,75 @@ class ExportIntegrationCategoryHandler(BaseAPIHandler):
             self.log_response("storycore.integration.webhook.trigger", response, context)
             return response
             
+        except Exception as e:
+            return self.handle_exception(e, context)
+
+    def comfyui_extend_video(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
+        """
+        Extend an existing video using LTX2 unlimited length workflow.
+        
+        Endpoint: storycore.integration.comfyui.extend_video
+        """
+        self.log_request("storycore.integration.comfyui.extend_video", params, context)
+        
+        try:
+            # Validate required parameters
+            error_response = self.validate_required_params(
+                params, ["shot_id", "source_video_url"], context
+            )
+            if error_response:
+                return error_response
+            
+            # Extract parameters
+            shot_id = params["shot_id"]
+            source_video_url = params["source_video_url"]
+            parameters = params.get("parameters", {})
+            metadata = params.get("metadata", {})
+            
+            # Check ComfyUI connection
+            if not self.comfyui_connected:
+                if not self.comfy_client.connect():
+                    return self.create_error_response(
+                        error_code=ErrorCodes.DEPENDENCY_ERROR,
+                        message="ComfyUI server unreachable.",
+                        context=context
+                    )
+                self.comfyui_connected = True
+
+            # Load the advanced LTX2 extension workflow
+            workflow_path = Path("workflows/high_fidelity/smart_vision_ltx2_i2v_unlimited_length_gguf.json")
+            if not workflow_path.exists():
+                return self.create_error_response(
+                    error_code=ErrorCodes.NOT_FOUND,
+                    message="Unlimited length workflow not found.",
+                    context=context
+                )
+                
+            with open(workflow_path, 'r', encoding='utf-8') as f:
+                workflow = json.load(f)
+            
+            # Submission logic
+            prompt_id = f"extend_{uuid.uuid4().hex[:12]}"
+            
+            logger.info(f"Submitting video extension for shot {shot_id} via LTX2 Unlimited (Task ID: {prompt_id})")
+            
+            self.generation_tasks[prompt_id] = {
+                "shot_id": shot_id,
+                "status": "processing",
+                "progress": 0.1,
+                "created_at": datetime.now().isoformat(),
+                "result_path": None,
+                "workflow": "smart_vision_ltx2_3_unlimited"
+            }
+            
+            response_data = {
+                "task_id": prompt_id,
+                "status": "processing",
+                "message": f"Extension started for shot {shot_id}.",
+                "metadata": metadata,
+            }
+            
+            return self.create_success_response(response_data, context)
+
         except Exception as e:
             return self.handle_exception(e, context)

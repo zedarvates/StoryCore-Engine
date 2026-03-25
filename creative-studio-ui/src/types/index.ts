@@ -25,7 +25,7 @@ import type { StoryObject } from './object';
 // Import Location types
 import type { Location as ProductionLocation, LocationType } from './location';
 // Import Shot and Production types
-import type { ShotType, TransitionType, ComfyUIParameters } from './shot';
+import type { ShotType, TransitionType, ComfyUIParameters, ProductionShot } from './shot';
 import type { SequencePlan } from './sequencePlan';
 import type { DialoguePhrase, GenerationRecord } from './projectDashboard';
 import type { ProjectSetupData } from './project';

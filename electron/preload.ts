@@ -16,7 +16,7 @@ const electronAPI: ElectronAPI = {
 
   // Project management (to be implemented in future tasks)
   project: {
-    create: async (data: { name: string; location?: string; format?: any; initialShots?: any[] }) => {
+    create: async (data: { name: string; location?: string; format?: any; initialShots?: any[]; discussion?: string }) => {
       const result = await ipcRenderer.invoke('project:create', data);
       if (!result.success) {
         throw new Error(result.error || 'Failed to create project');

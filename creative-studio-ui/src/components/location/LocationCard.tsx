@@ -7,13 +7,13 @@
  * File: creative-studio-ui/src/components/location/LocationCard.tsx
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit2, Trash2, Image as ImageIcon, Loader2, Box, RefreshCw } from 'lucide-react';
 import type { Location } from '@/types/location';
 import { getLocationCompletionPercentage } from '@/stores/locationStore';
 import { ComfyUIService } from '@/services/comfyuiService';
 import { useAppStore } from '@/stores/useAppStore';
-import { downloadAndSaveImage } from '@/services/imageStorageService';
+import { downloadAndSaveImage, getImageDisplayUrl } from '@/services/imageStorageService';
 import { logger } from '@/utils/logger';
 import { devLog } from '@/utils/devOnly';
 import './LocationCard.css';
@@ -76,22 +76,60 @@ export function LocationCard({
   const [imageError, setImageError] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
+  const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null);
   
   const completionPercentage = getLocationCompletionPercentage(location);
-  const hasThumbnail = (location.metadata?.thumbnail_path || generatedImageUrl) && !imageError;
-
+  
   const comfyuiService = ComfyUIService.getInstance();
   const project = useAppStore((state) => state.project);
   
+  // Load display URL for saved location image
+  useEffect(() => {
+    const loadDisplayUrl = async () => {
+      // Priority 1: Generated image URL (temporary, from current session)
+      if (generatedImageUrl) {
+        setDisplayImageUrl(generatedImageUrl);
+        return;
+      }
+
+      // Priority 2: Saved thumbnail path (persistent)
+      const imagePath = location.metadata?.thumbnail_path || location.metadata?.tile_image_path;
+      if (imagePath) {
+        const projectPath = project?.path || project?.metadata?.path as string | undefined;
+        const url = await getImageDisplayUrl(
+          imagePath,
+          projectPath
+        );
+        if (url) {
+          setDisplayImageUrl(url);
+          return;
+        }
+      }
+
+      // Priority 3: Cube texture (front)
+      if (location.cube_textures?.front?.image_path) {
+        const projectPath = project?.path || project?.metadata?.path as string | undefined;
+        const url = await getImageDisplayUrl(
+          location.cube_textures.front.image_path,
+          projectPath
+        );
+        if (url) {
+          setDisplayImageUrl(url);
+          return;
+        }
+      }
+
+      setDisplayImageUrl(null);
+    };
+
+    loadDisplayUrl();
+  }, [location, generatedImageUrl, project?.path, project?.metadata?.path]);
+
   // Get visual style from project
   const visualStyle = project?.projectSetup?.visualStyle || 'realistic';
 
-  // Get thumbnail from front face if no dedicated thumbnail
-  const displayThumbnail = generatedImageUrl 
-    ? generatedImageUrl
-    : hasThumbnail 
-      ? location.metadata?.thumbnail_path 
-      : location.cube_textures?.front?.image_path;
+  // Final display URL
+  const displayThumbnail = displayImageUrl;
   
   const handleCardClick = () => {
     if (selectable && onSelect) {
@@ -227,12 +265,11 @@ export function LocationCard({
       setGeneratedImageUrl(imageUrl);
 
       // Save locally
-      const projectPath = project?.metadata?.path as string | undefined;
+      const projectPath = project?.path || project?.metadata?.path as string | undefined;
       if (projectPath) {
         // Sanitize location name for folder path (must match locationStorage.ts)
         const sanitizedName = location.name
           .trim()
-          // eslint-disable-next-line no-control-regex
           .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_')
           .replace(/\s+/g, '_')
           .substring(0, 100);
@@ -291,7 +328,7 @@ export function LocationCard({
       )}
       
       <div className="location-card__thumbnail">
-        {displayThumbnail ? (
+        {displayThumbnail && !imageError ? (
           <img 
             src={displayThumbnail} 
             alt={location.name}

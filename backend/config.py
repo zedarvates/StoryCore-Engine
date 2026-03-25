@@ -113,7 +113,7 @@ class Settings(BaseSettings):
         description="Ollama LLM service base URL"
     )
     OLLAMA_MODEL: str = Field(
-        default="qwen3:8b",
+        default="qwen3-vl:4b",
         description="Default Ollama model"
     )
     OLLAMA_TIMEOUT: int = Field(

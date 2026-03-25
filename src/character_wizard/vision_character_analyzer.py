@@ -215,7 +215,8 @@ class VisionCharacterAnalyzer:
         style: Optional[str] = None,
         additional_context: Optional[str] = None,
         target_gender: Optional[str] = None,
-        target_age: Optional[str] = None
+        target_age: Optional[str] = None,
+        target_ethnicity: Optional[str] = None
     ) -> CharacterAnalysisResult:
         """
         Analyze an image and extract character information.
@@ -252,7 +253,8 @@ class VisionCharacterAnalyzer:
                 style, 
                 additional_context, 
                 target_gender, 
-                target_age
+                target_age,
+                target_ethnicity
             )
             
             # Call the appropriate vision provider
@@ -325,7 +327,8 @@ class VisionCharacterAnalyzer:
         style: Optional[str] = None,
         additional_context: Optional[str] = None,
         target_gender: Optional[str] = None,
-        target_age: Optional[str] = None
+        target_age: Optional[str] = None,
+        target_ethnicity: Optional[str] = None
     ) -> str:
         """Build the analysis prompt for the vision model"""
         prompt = """Analyze this image and extract detailed character information for character creation. 
@@ -339,6 +342,7 @@ Provide your response as a JSON object with the following structure:
     "physical_attributes": {
         "gender": "male/female/androgynous/unclear",
         "age_range": "child/teenager/young adult/middle-aged/elderly",
+        "ethnicity": "caucasian/asian/african/hispanic/etc.",
         "face_shape": "oval/round/square/heart/oblong",
         "eye_color": "brown/blue/green/hazel/gray/other",
         "eye_shape": "almond/round/hooded/upturned/downturned",
@@ -373,6 +377,9 @@ Provide your response as a JSON object with the following structure:
         
         if target_age:
             prompt += f"\nHINT: The character's age range is estimated as {target_age.upper()}. Use this as a reference.\n"
+        
+        if target_ethnicity:
+            prompt += f"\nSTRICT HINT: The character's ethnicity/origin MUST be {target_ethnicity.upper()}. The visual description and suggestions MUST match this identity.\n"
         
         if style:
             prompt += f"\nThe visual style is {style}. Adapt the description accordingly.\n"

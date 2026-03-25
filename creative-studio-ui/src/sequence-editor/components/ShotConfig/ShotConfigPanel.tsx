@@ -12,7 +12,7 @@
  * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { useStore as useMainStore } from '../../../store';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +26,7 @@ import type { ConsistencyIssue, ConsistencyScore } from '../../../services/consi
 import type { CharacterAppearanceSheet, LocationAppearanceSheet } from '../../../types/reference';
 import { Image as ImageIcon, Video as VideoIcon, Volume2 as AudioIcon } from 'lucide-react';
 import { GenerateButton } from '../GenerateButton/GenerateButton';
+import { ConsistencyAssetBrowser } from './ConsistencyAssetBrowser';
 import './shotConfigPanel.css';
 
 // ============================================================================
@@ -64,7 +65,20 @@ export const ShotConfigPanel: React.FC = () => {
   const globalStyle = mainProject?.projectSetup?.visualStyle || 'cinematic';
 
   // Get selected shot
-  const selectedShot = shots.find((shot: Shot) => selectedElements.includes(shot.id));
+  const selectedShot = useMemo(() => {
+    if (selectedElements.length === 0) return null;
+    
+    // Try to find if any of the selected elements is a shot ID
+    const directShot = shots.find((shot: Shot) => selectedElements.includes(shot.id));
+    if (directShot) return directShot;
+    
+    // If not, try to find a shot that contains any of the selected layer IDs
+    const shotWithSelectedLayer = shots.find((shot: Shot) => 
+      shot.layers.some((layer: any) => selectedElements.includes(layer.id))
+    );
+    
+    return shotWithSelectedLayer || null;
+  }, [shots, selectedElements]);
 
   // Local state
   const [modifications, setModifications] = useState<ShotModifications>({});
@@ -214,6 +228,18 @@ export const ShotConfigPanel: React.FC = () => {
     try {
       toast({ title: 'Génération', description: 'Génération de l\'image de référence via le prompt...' });
       
+      // Extract coherence assets from reference images
+      const charSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-character'))?.url;
+      const locSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-location'))?.url;
+
+      if (charSheet || locSheet) {
+        toast({ 
+          title: 'Coherence Detected', 
+          description: `Using Character: ${charSheet ? 'YES' : 'NO'}, Location: ${locSheet ? 'YES' : 'NO'}`,
+          variant: 'default'
+        });
+      }
+
       const response = await fetch('/api/addons/grok-imagine/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -221,7 +247,10 @@ export const ShotConfigPanel: React.FC = () => {
           scene: {
             description: modifications.prompt || selectedShot.prompt,
             aspect_ratio: '16:9',
-            style: globalStyle
+            style: globalStyle,
+            // Coherence Integration
+            coherence_character_sheet: charSheet,
+            coherence_location_sheet: locSheet
           },
           config_overrides: {
             model: 'grok-3.1-fast',
@@ -272,6 +301,10 @@ export const ShotConfigPanel: React.FC = () => {
     try {
       toast({ title: 'Vidéo', description: 'Création de la vidéo avec le prompt d\'animation...' });
       
+      // Extract coherence assets from reference images
+      const charSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-character'))?.url;
+      const locSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-location'))?.url;
+
       const response = await fetch('/api/addons/grok-imagine/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -279,7 +312,10 @@ export const ShotConfigPanel: React.FC = () => {
           scene: {
             description: modifications.animationPrompt || selectedShot.animationPrompt || modifications.prompt || selectedShot.prompt,
             aspect_ratio: '16:9',
-            style: globalStyle
+            style: globalStyle,
+            // Coherence Integration for Video (Crucial for consistency)
+            coherence_character_sheet: charSheet,
+            coherence_location_sheet: locSheet
           },
           config_overrides: {
             model: 'grok-3.1-fast',
@@ -318,6 +354,39 @@ export const ShotConfigPanel: React.FC = () => {
       setIsGeneratingAudio(false);
     }
   }, [selectedShot, toast]);
+
+  const handleSelectAsset = useCallback((asset: any, type: 'character' | 'location') => {
+    if (!selectedShot) return;
+
+    const sheet = asset.appearance_sheet || asset.sheet;
+    if (!sheet?.sheet_url) {
+      toast({
+        title: "Missing Sheet",
+        description: `This ${type} does not have an appearance sheet for consistency.`,
+        variant: "warning"
+      });
+      return;
+    }
+
+    const newRef: ReferenceImage = {
+      id: `sheet-${type}-${asset.character_id || asset.location_id}`,
+      url: sheet.sheet_url,
+      source: 'library',
+      weight: 1.0
+    };
+
+    setModifications(prev => ({
+      ...prev,
+      referenceImages: [...(prev.referenceImages || []).filter(r => !r.id.startsWith(`sheet-${type}`)), newRef]
+    }));
+    setHasModifications(true);
+
+    toast({
+      title: "Coherence Locked",
+      description: `${asset.name} sheet added to shot references.`,
+    });
+  }, [selectedShot, toast]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load inherited references
@@ -611,6 +680,9 @@ export const ShotConfigPanel: React.FC = () => {
   return (
     <ShotConfigDropTarget shot={selectedShot}>
       <div className="shot-config-panel">
+        {/* Consistency Asset Browser */}
+        <ConsistencyAssetBrowser onSelectAsset={handleSelectAsset} />
+
         {/* Header */}
         <div className="shot-config-header">
           <h3 className="shot-name">{selectedShot.name}</h3>
@@ -801,6 +873,17 @@ export const ShotConfigPanel: React.FC = () => {
             rows={4}
           />
           
+          <div className="flex justify-center mt-3 mb-4">
+             <button
+               className={`apply-btn w-full shadow-lg shadow-primary/20 flex items-center justify-center gap-2 ${isGeneratingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
+               onClick={handleGenerateImageFromPrompt}
+               disabled={isGeneratingImage}
+             >
+               {isGeneratingImage ? <span className="animate-spin text-sm">↻</span> : <ImageIcon size={16} />}
+               <span>🎨 Générer l'Image</span>
+             </button>
+          </div>
+          
           <div className="section-header" style={{ marginTop: '16px' }}>
             <h4 className="section-title">Prompt Animation</h4>
             <span className="char-count">{modifications.animationPrompt?.length || 0} characters</span>
@@ -813,10 +896,16 @@ export const ShotConfigPanel: React.FC = () => {
             placeholder="Describe the animation or motion in detail..."
             rows={4}
           />
-          
-          {/* Generate Button - positioned under the prompt editor */}
-          <div className="prompt-generate-button">
-            <GenerateButton />
+
+          <div className="flex justify-center mt-3 mb-2">
+             <button
+               className={`revert-btn w-full flex items-center justify-center gap-2 ${isGeneratingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
+               onClick={handleGenerateVideo}
+               disabled={isGeneratingVideo}
+             >
+               {isGeneratingVideo ? <span className="animate-spin text-sm">↻</span> : <VideoIcon size={16} />}
+               <span>🎬 Générer la Vidéo</span>
+             </button>
           </div>
         </div>
 
@@ -898,46 +987,42 @@ export const ShotConfigPanel: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="config-actions">
-          <div className="generation-actions" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #333', paddingBottom: '16px', width: '100%' }}>
+          <div className="generation-actions-grid">
             <button
-              className="action-btn"
+              className="generation-action-btn"
               onClick={handleGenerateImageFrom3D}
               disabled={isGeneratingImage}
               title="Générer l'image par rapport à la scène 3D"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <ImageIcon size={16} />
-              <span style={{ fontSize: '10px', textAlign: 'center' }}>Générer Image via Scène 3D</span>
+              <span className="generation-action-label">Générer Image via Scène 3D</span>
             </button>
             <button
-              className="action-btn"
+              className="generation-action-btn"
               onClick={handleGenerateImageFromPrompt}
               disabled={isGeneratingImage}
               title="Générer l'image de sous référence par rapport au prompt"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <ImageIcon size={16} />
-              <span style={{ fontSize: '10px', textAlign: 'center' }}>Générer Image via Prompt</span>
+              <span className="generation-action-label">Générer Image via Prompt</span>
             </button>
             <button
-              className="action-btn"
+              className="generation-action-btn"
               onClick={handleGenerateVideo}
               disabled={isGeneratingVideo}
               title="Générer la vidéo par rapport à l'image"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <VideoIcon size={16} />
-              <span style={{ fontSize: '10px', textAlign: 'center' }}>Générer Vidéo via Image</span>
+              <span className="generation-action-label">Générer Vidéo via Image</span>
             </button>
             <button
-              className="action-btn"
+              className="generation-action-btn"
               onClick={handleGenerateAudio}
               disabled={isGeneratingAudio}
               title="Générer l'audio"
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '8px', background: '#252530', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer' }}
             >
               <AudioIcon size={16} />
-              <span style={{ fontSize: '10px', textAlign: 'center' }}>Audio</span>
+              <span className="generation-action-label">Audio</span>
             </button>
           </div>
           {/* New button to convert shot to puppet */}
@@ -949,20 +1034,22 @@ export const ShotConfigPanel: React.FC = () => {
           >
             {isConverting ? 'Conversion...' : 'Convertir en marionnette'}
           </button>
-          <button
-            className="revert-btn"
-            onClick={handleRevert}
-            disabled={!hasModifications}
-          >
-            Revert
-          </button>
-          <button
-            className="apply-btn"
-            onClick={handleApply}
-            disabled={!hasModifications}
-          >
-            Apply Changes
-          </button>
+          <div className="config-actions-row">
+            <button
+              className="revert-btn"
+              onClick={handleRevert}
+              disabled={!hasModifications}
+            >
+              Revert
+            </button>
+            <button
+              className="apply-btn"
+              onClick={handleApply}
+              disabled={!hasModifications}
+            >
+              Apply Changes
+            </button>
+          </div>
         </div>
       </div>
     </ShotConfigDropTarget>

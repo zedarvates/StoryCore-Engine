@@ -205,7 +205,7 @@ If you use a <subtask>, the execution will halt and resume with the result.`;
         massiveContext: string = "",
         llmProvider?: string,
         llmModel?: string
-    ): Promise<{ final_answer: string; steps: any[] }> {
+    ): Promise<{ final_answer: string; steps: RLMTrajectoryStep[] }> {
         const response = await fetch(`${BACKEND_URL}/api/v1/generate/rlm/generate`, {
             method: 'POST',
             headers: {

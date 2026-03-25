@@ -13,6 +13,7 @@ export interface ProjectData {
   initialLocations?: unknown[];
   initialObjects?: unknown[];
   settings?: Record<string, unknown>;
+  discussion?: string; // Discussion history to save as markdown
 }
 
 export interface ProjectFormat {
@@ -324,6 +325,15 @@ export interface StoryCoreElectronAPI {
     capture: (options?: { quality?: number; format?: 'png' | 'jpg'; displayIndex?: number }) => Promise<string>;
     startAreaCapture: (options?: { quality?: number; format?: 'png' | 'jpg' }) => Promise<string | null>;
     saveCapture: (data: string, filename: string, projectPath?: string) => Promise<{ success: boolean; path: string }>;
+  };
+
+  // Configuration management
+  config: {
+    saveProject: (projectId: string, config: any) => Promise<void>;
+    loadProject: (projectId: string) => Promise<any>;
+    saveGlobal: (config: any) => Promise<void>;
+    loadGlobal: () => Promise<any>;
+    validate: (config: any, rules: any[]) => Promise<any>;
   };
 
   // Event listening

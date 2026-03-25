@@ -1,4 +1,7 @@
 import { Location } from '../../types/location';
+import { backgroundRemovalService } from './BackgroundRemovalService';
+import { promptOptimizer } from './PromptOptimizationService';
+import { logger } from '@/utils/logger';
 
 export interface Scene3DGenerationState {
   status: 'idle' | 'generating_skybox' | 'generating_terrain_textures' | 'analyzing_elements' | 'erasing_mobiles' | 'extracting_assets' | 'matching_assets' | 'generating_3d_models' | 'composing_scene' | 'complete' | 'error';
@@ -21,6 +24,7 @@ export interface ExtractedElement {
   model3DUrl?: string; // Generated GLB/GLTF
   position: { x: number; y: number; z: number };
   assetSource?: 'generated' | 'reused'; // Indique si l'asset a été généré ou réutilisé depuis la bibliothèque
+  metadata?: Record<string, unknown>;
 }
 
 export interface ComposedScene {
@@ -151,9 +155,27 @@ export class Scene3DGenerationPipeline {
     return imageUrl; // Renvoie la version inpaintée
   }
 
-  private static async extractToStudioBackground(_imageUrl: string, element: ExtractedElement): Promise<ExtractedElement> {
-    await new Promise(r => setTimeout(r, 500));
-    return { ...element, studioImageUrl: 'studio_bg_image.png' };
+  private static async extractToStudioBackground(imageUrl: string, element: ExtractedElement): Promise<ExtractedElement> {
+    logger.info(`[Scene3DGeneration] Extracting element ${element.id} to studio background...`);
+    
+    try {
+      // Use real background removal service instead of simulation
+      const result = await backgroundRemovalService.removeBackground(imageUrl, {
+        backend: 'rembg',
+        alphaMatting: true,
+        outputFormat: 'png'
+      });
+
+      if (result.success && result.foregroundUrl) {
+        return { ...element, studioImageUrl: result.foregroundUrl };
+      } else {
+        logger.warn(`[Scene3DGeneration] Background removal failed for ${element.id}: ${result.error}`);
+        return { ...element, studioImageUrl: imageUrl }; // Fallback to original
+      }
+    } catch (error) {
+      logger.error(`[Scene3DGeneration] Error extracting element ${element.id}:`, error);
+      return { ...element, studioImageUrl: imageUrl };
+    }
   }
 
   private static async matchWithExistingAssets(elements: ExtractedElement[]): Promise<ExtractedElement[]> {
@@ -178,18 +200,22 @@ export class Scene3DGenerationPipeline {
     });
   }
 
+  /**
+   * Utilisation de la technologie tttLRM pour une reconstruction de haute qualité
+   */
   private static async generate3DModel(element: ExtractedElement): Promise<ExtractedElement> {
-    // Si l'asset a déjà été matching avec la bibliothèque, on ignore la génération !
-    if (element.assetSource === 'reused') {
-      return element;
-    }
+    if (element.assetSource === 'reused') return element;
 
-    // Utilisation de la nouvelle technologie tttLRM pour une reconstruction de haute qualité
-    // On privilégie tttLRM pour les bâtiments et éléments complexes
+    // 1. Optimisation du Prompt via GDPval (3D Technical Artist)
+    const elementDesc = `${element.type} for a cinematic scene`;
+    const technicalPrompt = await promptOptimizer.optimize3DPrompt(elementDesc);
+    logger.info(`[Scene3DGeneration] Optimized prompt for ${element.id}: ${technicalPrompt}`);
+
+    // 2. Génération avec tttLRM
     if (element.type === 'building' || element.type === 'other') {
-      const modelUrl = await this.generate3DWithTTTLRM(element.studioImageUrl || '', 'ttt_adapted');
+      const modelUrl = await this.generate3DWithTTTLRM(element.studioImageUrl || '', technicalPrompt);
       if (modelUrl) {
-        return { ...element, model3DUrl: modelUrl };
+        return { ...element, model3DUrl: modelUrl, metadata: { technicalPrompt } };
       }
     }
 
@@ -206,15 +232,15 @@ export class Scene3DGenerationPipeline {
   /**
    * Intègre la technologie tttLRM pour une reconstruction de haute qualité (Gaussian Splatting)
    */
-  private static async generate3DWithTTTLRM(imagePath: string, mode: 'feedforward' | 'ttt_adapted' = 'feedforward'): Promise<string> {
+  private static async generate3DWithTTTLRM(imagePath: string, prompt: string): Promise<string> {
     try {
-      // Note: Dans un environnement réel, on utiliserait un client API typé
       const response = await fetch('/api/ttt-lrm/reconstruct/image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           input_path: imagePath,
-          mode: mode,
+          promptHint: prompt,
+          mode: 'ttt_adapted',
           output_format: '3dgs'
         })
       });

@@ -3,6 +3,7 @@
  */
 
 export { ProjectService, projectService } from './ProjectService';
+export { ProjectOrchestrator, projectOrchestrator } from './ProjectOrchestrator';
 export type {
   ProjectData,
   ProjectCapabilities,

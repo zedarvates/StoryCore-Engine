@@ -112,13 +112,18 @@ export class WizardLogger {
       return;
     }
 
-    const entry: any = {
+    // Extract error from details if it's a valid error type
+    const entryError = details?.error instanceof Error || details?.error instanceof WizardError
+      ? details.error
+      : undefined;
+
+    const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
       category,
       message,
       details,
-      error: details?.error,
+      error: entryError,
     };
 
     // Add to in-memory log

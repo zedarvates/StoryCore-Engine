@@ -70,7 +70,9 @@ interface ProjectSetupWizardProps {
 export function ProjectSetupWizard({
   onComplete,
   onCancel,
-  initialData = {},
+  initialData = {
+    visualStyle: 'realistic'
+  },
 }: ProjectSetupWizardProps) {
   // ============================================================================
   // Validation

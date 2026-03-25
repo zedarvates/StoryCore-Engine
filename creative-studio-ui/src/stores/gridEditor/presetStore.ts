@@ -7,7 +7,8 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Preset, Transform, CropRegion, DEFAULT_TRANSFORM, DEFAULT_CROP_REGION } from '../../types/gridEditor';
+import { Preset, Transform, CropRegion, DEFAULT_TRANSFORM } from '../../types/gridEditor';
+import { generateIdWithPrefix } from '@/utils/idGenerator';
 
 // ============================================================================
 // Default Presets
@@ -172,7 +173,7 @@ export const usePresetStore = create<PresetStore>()(
       addCustomPreset: (preset) => {
         const newPreset: Preset = {
           ...preset,
-          id: `preset-custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          id: generateIdWithPrefix('preset-custom'),
         };
         
         set((state) => ({

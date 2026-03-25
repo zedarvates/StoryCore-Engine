@@ -1,3 +1,4 @@
+/* cspell:ignore upscaler upscaling tabular-nums */
 /**
  * WizardVoiceAssistant
  * =====================
@@ -43,8 +44,17 @@ export interface WizardVoiceAssistantProps {
   /** Remplir les champs vides */
   onFillMissing?: () => void;
 
+  /** Naviguer vers le dashboard */
+  onDashboard?: () => void;
+
   /** Callback pour chaque patch appliqué avec succès */
   onPatchApplied?: (patch: FieldPatch) => void;
+
+  /** Callback pour upscaler un média */
+  onUpscale?: (resolution: string) => void;
+
+  /** Callback pour changer le format/résolution */
+  onSetResolution?: (ratio: string) => void;
 
   /** Position du widget : 'bottom-right' | 'bottom-left' | 'inline' */
   position?: 'bottom-right' | 'bottom-left' | 'inline';
@@ -66,7 +76,10 @@ export const WizardVoiceAssistant: React.FC<WizardVoiceAssistantProps> = ({
   onTabChange,
   onGenerateSection,
   onFillMissing,
+  onDashboard,
   onPatchApplied,
+  onUpscale,
+  onSetResolution,
   position = 'inline',
   className = '',
   triggerLabel,
@@ -82,15 +95,24 @@ export const WizardVoiceAssistant: React.FC<WizardVoiceAssistantProps> = ({
     onTabChange,
     onGenerateSection,
     onFillMissing,
+    onDashboard,
     onPatchApplied,
+    onUpscale,
+    onSetResolution,
   });
 
-  // Sync transcript vocal → input
+  const [prevTranscript, setPrevTranscript] = useState(assistant.transcript);
+
+  // Sync transcript vocal → input (pattern derivation d'état recommandé par React)
   useEffect(() => {
-    if (assistant.transcript) {
-      setInputText(assistant.transcript);
+    if (assistant.isListening && assistant.transcript !== prevTranscript) {
+      setPrevTranscript(assistant.transcript);
+      // On ne met à jour l'input que si différent du transcript actuel
+      if (assistant.transcript !== inputText) {
+        setInputText(assistant.transcript);
+      }
     }
-  }, [assistant.transcript]);
+  }, [assistant.isListening, assistant.transcript, prevTranscript, inputText]);
 
   const handleSubmit = useCallback(() => {
     const text = inputText.trim();
@@ -123,16 +145,33 @@ export const WizardVoiceAssistant: React.FC<WizardVoiceAssistantProps> = ({
     return (
       <div className={`wva-floating wva-floating--${position} ${className}`}>
         {/* Trigger button */}
-        <button
-          className={`wva-float-btn ${assistant.isListening ? 'wva-float-btn--active' : ''}`}
-          onClick={() => setIsExpanded(v => !v)}
-          title={`Assistant vocal ${entityLabel}`}
-          aria-label="Assistant commandes vocales wizard"
-        >
-          {assistant.isListening ? '🎤' : '✨'}
-          {triggerLabel && <span className="wva-float-label">{triggerLabel}</span>}
-          {assistant.isListening && <span className="wva-float-ripple" />}
-        </button>
+        {isExpanded ? (
+          <button
+            type="button"
+            className={`wva-float-btn ${assistant.isListening ? 'wva-float-btn--active' : ''}`}
+            onClick={() => setIsExpanded(false)}
+            title={`Assistant vocal ${entityLabel}`}
+            aria-label="Assistant commandes vocales wizard"
+            aria-expanded="true"
+          >
+            {assistant.isListening ? '🎤' : '✨'}
+            {triggerLabel && <span className="wva-float-label">{triggerLabel}</span>}
+            {assistant.isListening && <span className="wva-float-ripple" />}
+          </button>
+        ) : (
+          <button
+            type="button"
+            className={`wva-float-btn ${assistant.isListening ? 'wva-float-btn--active' : ''}`}
+            onClick={() => setIsExpanded(true)}
+            title={`Assistant vocal ${entityLabel}`}
+            aria-label="Assistant commandes vocales wizard"
+            aria-expanded="false"
+          >
+            {assistant.isListening ? '🎤' : '✨'}
+            {triggerLabel && <span className="wva-float-label">{triggerLabel}</span>}
+            {assistant.isListening && <span className="wva-float-ripple" />}
+          </button>
+        )}
 
         {/* Panel */}
         {isExpanded && (
@@ -162,15 +201,29 @@ export const WizardVoiceAssistant: React.FC<WizardVoiceAssistantProps> = ({
   return (
     <div className={`wva-root ${className}`}>
       {/* Header toggle */}
-      <button
-        className="wva-header"
-        onClick={() => setIsExpanded(v => !v)}
-        aria-expanded={isExpanded}
-      >
-        <span className="wva-header-icon">{assistant.isListening ? '🎤' : '✨'}</span>
-        <span className="wva-header-label">Assistant vocal — {entityLabel}</span>
-        <span className="wva-header-chevron">{isExpanded ? '▲' : '▼'}</span>
-      </button>
+      {isExpanded ? (
+        <button
+          type="button"
+          className="wva-header"
+          onClick={() => setIsExpanded(false)}
+          aria-expanded="true"
+        >
+          <span className="wva-header-icon">{assistant.isListening ? '🎤' : '✨'}</span>
+          <span className="wva-header-label">Assistant vocal — {entityLabel}</span>
+          <span className="wva-header-chevron">▲</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="wva-header"
+          onClick={() => setIsExpanded(true)}
+          aria-expanded="false"
+        >
+          <span className="wva-header-icon">{assistant.isListening ? '🎤' : '✨'}</span>
+          <span className="wva-header-label">Assistant vocal — {entityLabel}</span>
+          <span className="wva-header-chevron">▼</span>
+        </button>
+      )}
 
       {isExpanded && (
         <div className="wva-panel wva-panel--inline">
@@ -233,6 +286,7 @@ const WizardAssistantContent: React.FC<WizardAssistantContentProps> = ({
       <div className={`wva-bar ${assistant.isListening ? 'wva-bar--listening' : ''}`}>
         {/* Bouton micro */}
         <button
+          type="button"
           className={`wva-mic ${assistant.isListening ? 'wva-mic--active' : ''} ${!assistant.isVoiceSupported ? 'wva-mic--disabled' : ''}`}
           onClick={assistant.toggleListening}
           disabled={!assistant.isVoiceSupported}
@@ -263,12 +317,23 @@ const WizardAssistantContent: React.FC<WizardAssistantContentProps> = ({
         />
 
         {/* Bouton suggestions */}
-        <button
-          className="wva-action-btn"
-          onClick={() => setShowSuggestions(v => !v)}
-          title="Voir les exemples"
-          aria-label="Suggestions"
-        >💡</button>
+        {showSuggestions ? (
+          <button
+            className="wva-action-btn"
+            onClick={() => setShowSuggestions(false)}
+            title="Masquer les exemples"
+            aria-label="Suggestions"
+            aria-expanded="true"
+          >💡</button>
+        ) : (
+          <button
+            className="wva-action-btn"
+            onClick={() => setShowSuggestions(true)}
+            title="Voir les exemples"
+            aria-label="Suggestions"
+            aria-expanded="false"
+          >💡</button>
+        )}
 
         {/* Bouton envoi */}
         <button
@@ -324,6 +389,21 @@ const WizardAssistantContent: React.FC<WizardAssistantContentProps> = ({
       {showSuggestions && (
         <div className="wva-suggestions">
           <div className="wva-suggestions-title">💡 Commandes disponibles pour {entityLabel}</div>
+          
+          {/* Dashboard Entry Point as requested by user */}
+          <div 
+            className="flex items-center justify-between p-3 cursor-pointer hover:bg-white/5 transition-colors border-b border-white/5 mb-2 group"
+            onMouseDown={() => assistant.onDashboard()}
+          >
+            <div className="flex items-center gap-3">
+               <span className="text-lg group-hover:scale-110 transition-transform">📊</span>
+               <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-primary">Dashboard Hub</div>
+                  <div className="text-[9px] text-white/40 font-bold uppercase tracking-tight italic">Quitter le wizard et revenir à la vue globale</div>
+               </div>
+            </div>
+          </div>
+
           {assistant.suggestions.map((s, i) => (
             <button
               key={i}

@@ -1,6 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Folder, 
   Clock, 
   X, 
   AlertCircle, 
@@ -11,7 +10,8 @@ import {
   Video,
   Film,
   Image,
-  Clapperboard
+  Clapperboard,
+  MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -87,7 +87,6 @@ export function RecentProjectsList({
   animated = true,
 }: RecentProjectsListProps) {
   const [visibleProjects, setVisibleProjects] = useState<RecentProject[]>([]);
-  const [isInitializing, setIsInitializing] = useState(true);
 
   // Animate entrance when projects load
   useEffect(() => {
@@ -95,11 +94,8 @@ export function RecentProjectsList({
       // Stagger the animation of each project card
       const timer = setTimeout(() => {
         setVisibleProjects(projects);
-        setIsInitializing(false);
       }, 100);
       return () => clearTimeout(timer);
-    } else if (!isLoading) {
-      setIsInitializing(false);
     }
   }, [isLoading, projects]);
 
@@ -420,20 +416,64 @@ function EnhancedProjectCard({
         </div>
       </div>
 
-      {/* Remove Button */}
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={handleRemove}
-        aria-label={`Remove ${project.name} from recent projects`}
-        className={cn(
-          'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
-          'hover:bg-red-500/20 hover:text-red-400'
+      {/* Action Buttons */}
+      <div className="flex items-center gap-1 z-20">
+        {/* Open Folder Button */}
+        {!isMissing && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.electronAPI.app.openFolder(project.path);
+            }}
+            className={cn(
+              'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
+              'hover:bg-blue-500/20 hover:text-blue-400'
+            )}
+            title="Open Project Folder"
+          >
+            <FolderOpen className="w-4 h-4" />
+          </Button>
         )}
-      >
-        <X className="w-4 h-4" />
-      </Button>
+
+        {/* More Options Button */}
+        {!isMissing && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={cn(
+              'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
+              'hover:bg-gray-700/50 text-gray-400 hover:text-white'
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            title="More Options"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </Button>
+        )}
+
+        {/* Remove Button */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleRemove}
+          aria-label={`Remove ${project.name} from recent projects`}
+          className={cn(
+            'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
+            'hover:bg-red-500/20 hover:text-red-400'
+          )}
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
     </div>
   );
 }

@@ -42,6 +42,31 @@ export interface LLMConfiguration {
     apiKey: string;
     model: string;
     temperature: number;
+    maxTokens?: number;
+  };
+  anthropic?: {
+    apiKey: string;
+    model: string;
+    temperature: number;
+    maxTokens?: number;
+  };
+  custom?: {
+    baseUrl: string;
+    apiKey?: string;
+    model: string;
+    [key: string]: any;
+  };
+  parameters?: {
+    temperature: number;
+    maxTokens: number;
+    topP: number;
+    frequencyPenalty: number;
+    presencePenalty: number;
+  };
+  systemPrompts?: {
+    worldGeneration: string;
+    characterGeneration: string;
+    dialogueGeneration: string;
   };
   defaultProvider: string;
   enableFallback: boolean;

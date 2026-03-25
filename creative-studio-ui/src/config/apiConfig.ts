@@ -80,6 +80,12 @@ export const REDIS_URL = config.redis.url;
 export const DEFAULT_OLLAMA_MODEL = config.ollama.model;
 
 /**
+ * LM Studio local server URL
+ * @example const response = await fetch(`${LM_STUDIO_URL}/api/tags`);
+ */
+export const LM_STUDIO_URL = 'http://localhost:1234';
+
+/**
  * Ollama timeout in milliseconds
  */
 export const OLLAMA_TIMEOUT = config.ollama.timeout;

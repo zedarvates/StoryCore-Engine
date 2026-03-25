@@ -164,6 +164,7 @@ export interface ProductionShot {
 
   // Added for compatibility with UI usage
   title?: string;
+  description?: string;
   status: 'planned' | 'generating' | 'generated' | 'approved' | 'rejected';
   thumbnailUrl?: string;
   generatedAssetUrl?: string;

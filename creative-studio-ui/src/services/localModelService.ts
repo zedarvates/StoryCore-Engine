@@ -265,12 +265,26 @@ export const LOCAL_MODELS: LocalModel[] = [
   },
   // Qwen 3 VL Family (Vision + Language)
   {
+    id: 'qwen3-vl:4b',
+    name: 'qwen3-vl:4b',
+    displayName: '⭐ Qwen 3 VL 4B (BASE MODEL)',
+    size: '3.1GB',
+    sizeBytes: 3.1 * 1024 * 1024 * 1024,
+    description: 'Alibaba\'s latest vision-language model (4B), highly efficient and capable for local use',
+    capabilities: ['text-generation', 'chat', 'reasoning', 'multilingual', 'vision-understanding', 'image-analysis', 'visual-storytelling'],
+    minRAM: 4,
+    recommendedRAM: 8,
+    requiresGPU: false,
+    contextWindow: 32768,
+    family: 'qwen',
+  },
+  {
     id: 'qwen3-vl:8b',
     name: 'qwen3-vl:8b',
-    displayName: '⭐ Qwen 3 VL 8B (RECOMMENDED)',
+    displayName: 'Qwen 3 VL 8B',
     size: '6.1GB',
     sizeBytes: 6.1 * 1024 * 1024 * 1024,
-    description: 'Alibaba\'s latest vision-language model, excellent for StoryCore visual storytelling and multimodal tasks',
+    description: 'Alibaba\'s latest vision-language model (8B), excellent for StoryCore visual storytelling and multimodal tasks',
     capabilities: ['text-generation', 'chat', 'reasoning', 'multilingual', 'vision-understanding', 'image-analysis', 'visual-storytelling'],
     minRAM: 8,
     recommendedRAM: 16,
@@ -533,11 +547,21 @@ export class LocalModelService {
     // Try to detect system capabilities
     // Note: This is limited in browser environment
     const memory = ((navigator as unknown) as { deviceMemory?: number }).deviceMemory || 8; // GB, fallback to 8GB
+    const hasGPU = await this.detectGPU();
+    const gpuMemory = hasGPU ? await this.estimateGPUVRAM() : undefined;
+    
+    console.log('[LocalModelService] System capabilities:', {
+      totalRAM: memory,
+      availableRAM: memory * 0.7,
+      hasGPU,
+      gpuMemory
+    });
     
     return {
       totalRAM: memory,
       availableRAM: memory * 0.7, // Estimate 70% available
-      hasGPU: await this.detectGPU(),
+      hasGPU,
+      gpuMemory,
     };
   }
 
@@ -549,9 +573,64 @@ export class LocalModelService {
       // Try WebGL detection
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      return !!gl;
+      if (!gl) return false;
+
+      // Cast to WebGLRenderingContext to access debug info
+      const webglGl = gl as unknown as WebGLRenderingContext & {
+        getExtension: (name: string) => { UNMASKED_RENDERER_WEBGL: number } | null;
+        getParameter: (pname: number) => string;
+      };
+      
+      const debugInfo = webglGl.getExtension('WEBGL_debug_renderer_info');
+      if (!debugInfo) return true; // Has WebGL but can't get details
+
+      const renderer = webglGl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+      
+      console.log('[LocalModelService] Detected GPU:', renderer);
+      
+      // Check if it's a dedicated GPU (not integrated)
+      const isDedicated = /nvidia|amd|radeon|geforce|rtx|gtx/i.test(renderer);
+      return isDedicated;
     } catch {
       return false;
+    }
+  }
+
+  /**
+   * Estimate GPU VRAM (rough estimation)
+   */
+  private async estimateGPUVRAM(): Promise<number> {
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) return 4; // Default to 4GB
+
+      // Cast to WebGLRenderingContext to access debug info
+      const webglGl = gl as unknown as WebGLRenderingContext & {
+        getExtension: (name: string) => { UNMASKED_RENDERER_WEBGL: number } | null;
+        getParameter: (pname: number) => string;
+      };
+      
+      const debugInfo = webglGl.getExtension('WEBGL_debug_renderer_info');
+      if (!debugInfo) return 4; // Default to 4GB
+
+      const renderer = webglGl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL).toLowerCase();
+      
+      console.log('[LocalModelService] Estimating VRAM for GPU:', renderer);
+      
+      // Rough estimation based on GPU model - include RTX 50 series
+      if (renderer.includes('rtx 5090') || renderer.includes('rtx 5080')) return 16;
+      if (renderer.includes('rtx 5070') || renderer.includes('rtx 5060') || renderer.includes('rtx 5070 ti') || renderer.includes('rtx 5060 ti')) return 16;
+      if (renderer.includes('rtx 4090') || renderer.includes('rtx 4080')) return 16;
+      if (renderer.includes('rtx 4070') || renderer.includes('rtx 3090')) return 12;
+      if (renderer.includes('rtx 3080') || renderer.includes('rtx 4060')) return 8;
+      if (renderer.includes('rtx 3070') || renderer.includes('rtx 3060')) return 6;
+      if (renderer.includes('gtx') || renderer.includes('rtx 20')) return 4;
+      
+      console.warn('[LocalModelService] Unknown GPU, defaulting to 4GB VRAM');
+      return 4; // Default to 4GB for unknown GPUs
+    } catch {
+      return 4; // Default to 4GB on error
     }
   }
 
@@ -561,17 +640,33 @@ export class LocalModelService {
   async getRecommendedModels(): Promise<LocalModel[]> {
     const capabilities = await this.getSystemCapabilities();
     
+    console.log('[LocalModelService] Filtering models with capabilities:', capabilities);
+    
     return LOCAL_MODELS.filter(model => {
       // Filter by RAM requirements
       if (model.minRAM > capabilities.availableRAM) {
+        console.log(`[LocalModelService] Model ${model.id} filtered out: insufficient RAM (${capabilities.availableRAM}GB < ${model.minRAM}GB)`);
         return false;
       }
       
       // Filter by GPU requirements
       if (model.requiresGPU && !capabilities.hasGPU) {
+        console.log(`[LocalModelService] Model ${model.id} filtered out: requires GPU but none detected`);
         return false;
       }
+
+      // Filter by GPU VRAM if the model has a minimum VRAM requirement
+      // Note: Most models don't have explicit minVRAM, but we should check if available
+      if (capabilities.hasGPU && capabilities.gpuMemory) {
+        // Estimate VRAM needs based on model size (rough heuristic: ~2GB per 1B parameters for quantized models)
+        const estimatedVRAMNeeded = this.estimateModelVRAM(model);
+        if (capabilities.gpuMemory < estimatedVRAMNeeded) {
+          console.log(`[LocalModelService] Model ${model.id} filtered out: insufficient VRAM (${capabilities.gpuMemory}GB < ${estimatedVRAMNeeded}GB estimated)`);
+          return false;
+        }
+      }
       
+      console.log(`[LocalModelService] Model ${model.id} accepted`);
       return true;
     }).sort((a, b) => {
       // Sort by recommended RAM (prefer models that fit well)
@@ -579,6 +674,20 @@ export class LocalModelService {
       const bFit = Math.abs(b.recommendedRAM - capabilities.availableRAM);
       return aFit - bFit;
     });
+  }
+
+  /**
+   * Estimate VRAM needed for a model based on its size
+   */
+  private estimateModelVRAM(model: LocalModel): number {
+    // Rough estimation: models are typically quantized to ~2-4 bits per parameter
+    // For a 4B model: ~4GB, for 8B model: ~8GB, etc.
+    // This is a conservative estimate
+    const sizeGB = parseFloat(model.size);
+    
+    // If model size is explicitly defined, use it as a rough VRAM estimate
+    // Add some buffer for runtime overhead
+    return Math.ceil(sizeGB * 1.2);
   }
 
   /**

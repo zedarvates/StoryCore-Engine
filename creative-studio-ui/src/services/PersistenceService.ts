@@ -13,7 +13,7 @@
 import { World } from '@/types/world';
 import { Character } from '@/types/character';
 import { SequencePlan } from '@/types/sequencePlan';
-import { Shot } from '@/types';
+import { Shot, ChatMessage, Project } from '@/types';
 import { logger } from '@/utils/logger';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
@@ -40,6 +40,10 @@ export class PersistenceService {
   // FIX: Track last save time to prevent rapid duplicate saves
   private lastSaveTimes: Map<string, number> = new Map();
   private readonly MIN_SAVE_INTERVAL = 1000; // 1 second minimum between saves
+  private autoSaveTimer: NodeJS.Timeout | null = null;
+  private readonly AUTO_SAVE_DELAY = 5000; // 5 seconds debounce for autosave
+  private lastActivityTime = 0;
+  private isSaving = false; // Mutex to prevent concurrent save operations
 
   private constructor() {
     // Démarrer le processing de la queue de retry
@@ -64,7 +68,53 @@ export class PersistenceService {
       return false;
     }
     this.lastSaveTimes.set(characterId, now);
+    this.triggerAutoSave();
     return true;
+  }
+
+  /**
+   * Déclenche un auto-save différé pour ne pas saturer le disque dur
+   */
+  private triggerAutoSave(): void {
+    if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+    
+    this.autoSaveTimer = setTimeout(async () => {
+      // Prevent concurrent save operations
+      if (this.isSaving) {
+        logger.debug('[PersistenceService] Save already in progress, skipping auto-save');
+        return;
+      }
+      
+      this.isSaving = true;
+      try {
+        const { useStore } = await import('@/store');
+        const state = useStore.getState();
+        const project = state.project;
+        
+        if (project && (project as any).projectPath) {
+          logger.info('[PersistenceService] Auto-saving project state...');
+          // On synchronise tout le projet
+          await this.syncData((project as any).projectPath);
+          // Et on sauve le fichier projet principal
+          await this.saveProject(project, (project as any).projectPath);
+        }
+      } finally {
+        this.isSaving = false;
+      }
+    }, this.AUTO_SAVE_DELAY);
+  }
+
+  /**
+   * FIX: Standardized name sanitization to match backend ProjectService
+   * Preserves accented characters (Latin Supplement) for international names
+   */
+  private sanitizeName(name: string): string {
+    return (name || 'unnamed')
+      // Keep letters (including accented), numbers, and essential punctuation
+      .replace(/[^a-zA-Z0-9\u00C0-\u024F\s'-]/g, '_')
+      .replace(/\s+/g, '_')
+      .toLowerCase()
+      .substring(0, 50);
   }
 
   /**
@@ -94,6 +144,25 @@ export class PersistenceService {
   }
 
   /**
+   * Garantit que l'arborescence Hi-Fi du projet existe sur le disque
+   */
+  private async ensureProjectStructure(projectPath: string): Promise<void> {
+    if (window.electronAPI?.fs?.mkdir) {
+      const dirs = [
+        `${projectPath}/characters`,
+        `${projectPath}/worlds`,
+        `${projectPath}/sequences`,
+        `${projectPath}/assets/thumbnails`,
+        `${projectPath}/assets/renders`
+      ];
+
+      for (const dir of dirs) {
+        await window.electronAPI.fs.mkdir(dir, { recursive: true });
+      }
+    }
+  }
+
+  /**
    * Save a character with multi-layer persistence
    */
   async saveCharacter(character: Character, projectPath?: string): Promise<PersistenceResult[]> {
@@ -103,6 +172,8 @@ export class PersistenceService {
     if (!this.canSaveCharacter(character.character_id)) {
       return [{ success: true, layer: 'store' }]; // Skip duplicate save
     }
+
+    logger.info(`[PersistenceService] Initiating Hi-Fi native save for character ${character.name}...`);
 
     // Normalize role field to ensure it's in object format
     const normalizedCharacter = this.normalizeCharacterRole(character);
@@ -117,7 +188,18 @@ export class PersistenceService {
     const projectName = projectPath ? (projectPath.split(/[/\\]/).pop() || 'unknown') : 'default';
     this.cleanupDuplicates(`project-${projectName}-characters`);
 
-    // Layer 1: Store Zustand (si disponible)
+    // Layer 1: Electron File System (HI-FI NATIVE MODE - Priority 1)
+    if (projectPath && window.electronAPI?.fs?.writeFile && typeof window.electronAPI.fs.writeFile === 'function') {
+      try {
+        await this.ensureProjectStructure(projectPath);
+        const fileResult = await this.saveCharacterToFile(normalizedCharacter, projectPath);
+        results.push(fileResult);
+      } catch (error) {
+        logger.warn('[PersistenceService] Native file save failed, falling back:', error);
+      }
+    }
+
+    // Layer 2: Store Zustand (Priority 2)
     try {
       results.push(await this.saveCharacterToStore(normalizedCharacter));
     } catch (error) {
@@ -129,9 +211,11 @@ export class PersistenceService {
       });
     }
 
-    // Layer 2: localStorage
+    // Layer 3: localStorage (Priority 3 - Fallback only for small data)
     try {
-      results.push(await this.saveCharacterToLocalStorage(normalizedCharacter, projectPath));
+      if (results.filter(r => r.success).length === 0 || !projectPath) {
+        results.push(await this.saveCharacterToLocalStorage(normalizedCharacter, projectPath));
+      }
     } catch (error) {
       logger.warn('[PersistenceService] localStorage save failed:', error);
       results.push({
@@ -139,20 +223,6 @@ export class PersistenceService {
         layer: 'localStorage',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
-    }
-
-    // Layer 3: Fichier JSON du projet
-    if (projectPath) {
-      try {
-        results.push(await this.saveCharacterToFile(normalizedCharacter, projectPath));
-      } catch (error) {
-        logger.warn('[PersistenceService] File save failed:', error);
-        results.push({
-          success: false,
-          layer: 'file',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
     }
 
     // Si toutes les couches ont échoué, utiliser fallback
@@ -174,61 +244,94 @@ export class PersistenceService {
   async saveWorld(world: World, projectPath?: string): Promise<PersistenceResult[]> {
     const results: PersistenceResult[] = [];
 
-    // Validation des données
+    // Validation
     const validation = this.validateWorld(world);
     if (!validation.isValid) {
-      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+      throw new Error(`World validation failed: ${validation.errors.join(', ')}`);
     }
 
-    // Layer 1: Store Zustand (si disponible)
+    // Layer 1: Store Zustand
     try {
       results.push(await this.saveToStore(world));
     } catch (error) {
       logger.warn('[PersistenceService] Store save failed:', error);
-      results.push({
-        success: false,
-        layer: 'store',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      results.push({ success: false, layer: 'store', error: String(error) });
     }
 
-    // Layer 2: localStorage
+    // Layer 2: Electron File System (HI-FI NATIVE MODE)
+    if (projectPath && window.electronAPI?.fs?.writeFile && typeof window.electronAPI.fs.writeFile === 'function') {
+      try {
+        await this.ensureProjectStructure(projectPath);
+        const fileResult = await this.saveToFile(world, projectPath);
+        results.push(fileResult);
+      } catch (error) {
+        logger.warn('[PersistenceService] Native file save failed, falling back:', error);
+      }
+    }
+
+    // Layer 3: localStorage (Fallback)
     try {
-      results.push(await this.saveToLocalStorage(world, projectPath));
+      if (results.filter(r => r.success).length === 0 || !projectPath) {
+        results.push(await this.saveToLocalStorage(world, projectPath));
+      }
     } catch (error) {
       logger.warn('[PersistenceService] localStorage save failed:', error);
-      results.push({
-        success: false,
-        layer: 'localStorage',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
-    }
-
-    // Layer 3: Fichier JSON du projet
-    if (projectPath) {
-      try {
-        results.push(await this.saveToFile(world, projectPath));
-      } catch (error) {
-        logger.warn('[PersistenceService] File save failed:', error);
-        results.push({
-          success: false,
-          layer: 'file',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }
-
-    // Si toutes les couches ont échoué, utiliser fallback
-    const successfulLayers = results.filter(r => r.success);
-    if (successfulLayers.length === 0) {
-      try {
-        results.push(await this.saveToFallback(world));
-      } catch (error) {
-        logger.error('[PersistenceService] All persistence layers failed:', error);
-      }
+      results.push({ success: false, layer: 'localStorage', error: String(error) });
     }
 
     return results;
+  }
+
+  /**
+   * Sauvegarde le fichier de configuration principal du projet (project.json)
+   */
+  async saveProject(project: Project, projectPath: string): Promise<PersistenceResult> {
+    if (!window.electronAPI?.fs?.writeFile) {
+      return { success: false, layer: 'file', error: 'Electron FS not available' };
+    }
+
+    try {
+      await this.ensureProjectStructure(projectPath);
+      const filePath = `${projectPath}/project.json`;
+      
+      // Sécurisation
+      await this.createBackup(filePath);
+      
+      const jsonData = JSON.stringify(project, null, 2);
+      await window.electronAPI.fs.writeFile(filePath, jsonData);
+      
+      logger.info(`[PersistenceService] Project configuration saved: ${filePath}`);
+      return { success: true, layer: 'file' };
+    } catch (error) {
+      logger.error('[PersistenceService] Project save failed:', error);
+      return { 
+        success: false, 
+        layer: 'file', 
+        error: error instanceof Error ? error.message : 'Unknown error' 
+      };
+    }
+  }
+
+  /**
+   * Met à jour uniquement les métadonnées spécifiques du projet
+   */
+  async updateProjectMetadata(projectPath: string, metadata: Record<string, unknown>): Promise<PersistenceResult> {
+    if (!window.electronAPI?.project?.updateMetadata) {
+       // Fallback sur saveProject complet si l'API spécifique n'est pas là
+       logger.debug('[PersistenceService] Falling back to full project save for metadata update');
+       return { success: false, layer: 'file', error: 'API updateMetadata not available' };
+    }
+
+    try {
+      if (typeof window.electronAPI.project.updateMetadata === 'function') {
+        await window.electronAPI.project.updateMetadata(projectPath, metadata);
+        return { success: true, layer: 'file' };
+      }
+      return { success: false, layer: 'file', error: 'updateMetadata is not a function' };
+    } catch (error) {
+      logger.error('[PersistenceService] Metadata update failed:', error);
+      return { success: false, layer: 'file', error: String(error) };
+    }
   }
 
   /**
@@ -560,17 +663,21 @@ export class PersistenceService {
       // Utiliser l'API Electron pour sauvegarder
       if (window.electronAPI?.fs?.writeFile) {
         const worldsDir = `${projectPath}/worlds`;
-        const fileName = `world_${world.id}.json`;
-        const filePath = `${worldsDir}/${fileName}`;
-
-        // S'assurer que le dossier existe (use mkdir with recursive option)
+        // Standardize: Use a subdirectory per world to match the newest UI standard
+        const sanitizedName = world.name.replace(/\s+/g, '_').replace(/[<>:"/\\|?*]/g, '').substring(0, 100);
+        const worldDir = `${worldsDir}/${sanitizedName}`;
+        
         if (window.electronAPI.fs.mkdir) {
-          await window.electronAPI.fs.mkdir(worldsDir, { recursive: true });
+          await window.electronAPI.fs.mkdir(worldDir, { recursive: true });
         }
-
+        
+        const filePath = `${worldDir}/world.json`;
+        
+        // FIX: Create backup of world file before overwriting
+        await this.createBackup(filePath);
+        
         const jsonData = JSON.stringify(world, null, 2);
         
-        // Convert to string or Buffer - electron fs API accepts string or Buffer
         await window.electronAPI.fs.writeFile(filePath, jsonData);
 
         return { success: true, layer: 'file' as const };
@@ -609,23 +716,43 @@ export class PersistenceService {
   private async loadCharacterFromFile(characterIdOrFolder: string, projectPath: string): Promise<Character | null> {
     if (window.electronAPI?.fs?.readFile) {
       const charactersDir = `${projectPath}/characters`;
-      // FIX: Standardize path to characters/ID/character.json
-      const filePath = `${charactersDir}/${characterIdOrFolder}/character.json`;
       
-      // Fallback check for legacy character_ID.json format
-      const legacyFilePath = `${charactersDir}/character_${characterIdOrFolder}.json`;
+      // Pattern 1: Direct match (ID as folder name) - Legacy/Persistence standard
+      const directFilePath = `${charactersDir}/${characterIdOrFolder}/character.json`;
       
-      let finalPath = filePath;
-      const fileExists = await window.electronAPI.fs.exists(filePath);
+      // Pattern 2: Search by ID suffix - New standard (name_shortId)
+      let finalPath = directFilePath;
+      let found = await window.electronAPI.fs.exists(directFilePath);
       
-      if (!fileExists) {
-        const legacyExists = await window.electronAPI.fs.exists(legacyFilePath);
-        if (legacyExists) {
-          finalPath = legacyFilePath;
-        } else {
-          return null;
+      if (!found && window.electronAPI.fs.readdir) {
+        try {
+          const shortId = characterIdOrFolder.substring(0, 8);
+          const folders = await window.electronAPI.fs.readdir(charactersDir);
+          for (const folder of folders) {
+            if (folder.endsWith(`_${shortId}`) || folder === characterIdOrFolder) {
+              const testPath = `${charactersDir}/${folder}/character.json`;
+              if (await window.electronAPI.fs.exists(testPath)) {
+                finalPath = testPath;
+                found = true;
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          logger.warn('[PersistenceService] Error searching character folders:', e);
         }
       }
+      
+      // Pattern 3: Legacy flat file character_ID.json
+      if (!found) {
+        const legacyFilePath = `${charactersDir}/character_${characterIdOrFolder}.json`;
+        if (await window.electronAPI.fs.exists(legacyFilePath)) {
+          finalPath = legacyFilePath;
+          found = true;
+        }
+      }
+
+      if (!found) return null;
 
       try {
         const buffer = await window.electronAPI.fs.readFile(finalPath);
@@ -633,7 +760,6 @@ export class PersistenceService {
         const character = JSON.parse(jsonString);
         return character;
       } catch (_error) {
-        // Fallback: maybe the ID is different from the folder name
         return null;
       }
     }
@@ -659,14 +785,39 @@ export class PersistenceService {
   private async loadFromFile(worldId: string, projectPath: string): Promise<World | null> {
     if (window.electronAPI?.fs?.readFile) {
       const worldsDir = `${projectPath}/worlds`;
+      
+      // Support both patterns: folder-based and legacy file-based
+      // Pattern 1: folder-based (browse folders to find matching ID)
+      if (window.electronAPI.fs.readdir) {
+        try {
+          if (await window.electronAPI.fs.exists(worldsDir)) {
+            const folders = await window.electronAPI.fs.readdir(worldsDir);
+            for (const folder of folders) {
+              const filePath = `${worldsDir}/${folder}/world.json`;
+              if (await window.electronAPI.fs.exists(filePath)) {
+                const buffer = await window.electronAPI.fs.readFile(filePath);
+                const jsonString = new TextDecoder().decode(buffer);
+                const world = JSON.parse(jsonString) as World;
+                if (world.id === worldId) return world;
+              }
+            }
+          }
+        } catch (_error) {
+          // Skip if readdir fails
+        }
+      }
+
+      // Pattern 2: legacy file-based (direct check to avoid noisy logs)
       const fileName = `world_${worldId}.json`;
       const filePath = `${worldsDir}/${fileName}`;
 
       try {
-        const buffer = await window.electronAPI.fs.readFile(filePath);
-        const jsonString = new TextDecoder().decode(buffer);
-        return JSON.parse(jsonString);
-      } catch (error) {
+        if (await window.electronAPI.fs.exists(filePath)) {
+          const buffer = await window.electronAPI.fs.readFile(filePath);
+          const jsonString = new TextDecoder().decode(buffer);
+          return JSON.parse(jsonString);
+        }
+      } catch (_error) {
         return null;
       }
     }
@@ -688,7 +839,7 @@ export class PersistenceService {
       try {
         const worlds: World[] = JSON.parse(worldsData);
         return worlds.find(w => w.id === worldId) || null;
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     }
@@ -746,21 +897,28 @@ export class PersistenceService {
       // Utiliser l'API Electron pour sauvegarder
       if (window.electronAPI?.fs?.writeFile) {
         const charactersDir = `${projectPath}/characters`;
-        // Standardize: Use a subdirectory per character to match the loader
-        const charDir = `${charactersDir}/${character.character_id}`;
-        await window.electronAPI.fs.mkdir(charDir, { recursive: true });
+        
+        // FIX: Standardize folder name to {name}_{shortId} to match backend and avoid duplicates
+        const shortId = character.character_id.substring(0, 8);
+        const sanitizedName = this.sanitizeName(character.name);
+        const charDirName = `${sanitizedName}_${shortId}`;
+        const charDir = `${charactersDir}/${charDirName}`;
+        
+        // Ensure character directory and subfolders exist
+        if (window.electronAPI.fs.mkdir) {
+          await window.electronAPI.fs.mkdir(charDir, { recursive: true });
+          await window.electronAPI.fs.mkdir(`${charDir}/images`, { recursive: true });
+          await window.electronAPI.fs.mkdir(`${charDir}/reference_sheets`, { recursive: true });
+        }
         
         const filePath = `${charDir}/character.json`;
-
-        // S'assurer que le dossier existe
-        if (window.electronAPI.fs.mkdir) {
-          await window.electronAPI.fs.mkdir(charactersDir, { recursive: true });
-        }
-
         const jsonData = JSON.stringify(character, null, 2);
         
-        // Convert to string or Buffer - electron fs API accepts string or Buffer
         await window.electronAPI.fs.writeFile(filePath, jsonData);
+
+        // Optional: Create a README for ease of use
+        const readmeContent = `# Character: ${character.name}\n\nID: ${character.character_id}\nRole: ${character.role?.archetype || 'N/A'}\nDescription: ${character.background?.current_situation || 'N/A'}`;
+        await window.electronAPI.fs.writeFile(`${charDir}/README.md`, readmeContent);
 
         return { success: true, layer: 'file' as const };
       }
@@ -768,8 +926,138 @@ export class PersistenceService {
       // Fallback: déclencher un téléchargement
       this.downloadAsFile(character, `character_${character.character_id}.json`);
 
+      // Trigger folder cleanup to ensure standard naming
+      this.cleanupCharacterFolders(projectPath).catch(_err => logger.warn('[PersistenceService] Cleanup failed:', _err));
+
       return { success: true, layer: 'file' as const };
     }, 3);
+  }
+
+  /**
+   * Cleans up character folders within a project to ensure they match the standard name_id format
+   * and removes incomplete/duplicate folders
+   */
+  async cleanupCharacterFolders(projectPath: string): Promise<void> {
+    if (!window.electronAPI?.fs?.readdir || !window.electronAPI?.fs?.exists) return;
+
+    try {
+      const charactersDir = `${projectPath}/characters`;
+      if (!(await window.electronAPI.fs.exists(charactersDir))) return;
+
+      const items = await window.electronAPI.fs.readdir(charactersDir);
+      
+      logger.debug(`[PersistenceService] Cleaning up character folders in ${charactersDir}`);
+
+      for (const item of items) {
+        const itemPath = `${charactersDir}/${item}`;
+        if (item.startsWith('.')) continue;
+
+        const jsonPath = `${itemPath}/character.json`;
+        const hasJson = await window.electronAPI.fs.exists(jsonPath);
+
+        if (!hasJson) continue;
+
+        try {
+          const buffer = await window.electronAPI.fs.readFile(jsonPath);
+          const character = JSON.parse(new TextDecoder().decode(buffer)) as Character;
+          
+          const standardName = this.sanitizeName(character.name);
+          const shortId = character.character_id.substring(0, 8);
+          const standardFolderName = `${standardName}_${shortId}`;
+
+          if (item !== standardFolderName && item !== character.character_id) {
+            logger.info(`[PersistenceService] Renaming non-standard character folder: ${item} -> ${standardFolderName}`);
+            const fs = window.electronAPI.fs as unknown as { rename?: (oldPath: string, newPath: string) => Promise<void> };
+            if (fs && typeof fs.rename === 'function') {
+              await fs.rename(itemPath, `${charactersDir}/${standardFolderName}`);
+            }
+          }
+        } catch (_e) {
+          // Skip folders that can't be read
+        }
+      }
+    } catch (error) {
+      logger.error('[PersistenceService] Character folder cleanup failed:', error);
+    }
+  }
+
+  /**
+   * Loads the project discussion from DISCUSSION.md into the chat
+   */
+  async loadDiscussionIntoChat(projectPath: string): Promise<void> {
+    if (!window.electronAPI?.fs?.readFile || !window.electronAPI?.fs?.exists) return;
+
+    try {
+      const discussionPath = `${projectPath}/DISCUSSION.md`;
+      if (!(await window.electronAPI.fs.exists(discussionPath))) return;
+
+      const buffer = await window.electronAPI.fs.readFile(discussionPath);
+      const content = new TextDecoder().decode(buffer);
+      
+      const appStore = useAppStore.getState();
+      
+      // Only load discussion if no meaningful messages exist (only welcome message)
+      // Check if existing messages are actual conversation (not just welcome)
+      const hasConversation = appStore.chatMessages.some(
+        msg => msg.role === 'user' || msg.role === 'assistant'
+      );
+      
+      if (!hasConversation) {
+         const messages: ChatMessage[] = [];
+         // Simple parsing of # User / # Assistant blocks
+         const blocks = content.split(/^# /m);
+         
+         for (const block of blocks) {
+           if (!block.trim() || block.startsWith('Project Discussion')) continue;
+           
+           const lines = block.split('\n');
+           const header = lines[0].trim();
+           const role = header.toLowerCase().includes('user') ? 'user' : 
+                        (header.toLowerCase().includes('assistant') ? 'assistant' : 'system') as ChatMessage['role'];
+           
+           const messageContent = lines.slice(1).join('\n').trim().replace(/---$/, '').trim();
+           
+           if (messageContent) {
+             messages.push({
+               id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+               role: role as ChatMessage['role'],
+               content: messageContent,
+               timestamp: new Date()
+             });
+           }
+         }
+         
+         if (messages.length > 0) {
+           appStore.setChatMessages(messages);
+           logger.info(`[PersistenceService] Loaded ${messages.length} messages from DISCUSSION.md`);
+         }
+      }
+    } catch (error) {
+      logger.warn('[PersistenceService] Failed to load discussion:', error);
+    }
+  }
+
+  /**
+   * Saves the current chat to DISCUSSION.md
+   */
+  async saveDiscussionFile(projectPath: string, messages: ChatMessage[]): Promise<void> {
+    if (!window.electronAPI?.fs?.writeFile) return;
+
+    try {
+      let content = `# Project Discussion\n\nGenerated on: ${new Date().toLocaleString()}\n\n`;
+      
+      for (const msg of messages) {
+        // Fix: Use either role or type (fallback for local message format in LandingChatBox)
+        const roleValue = msg.role || (msg as any).type || 'unknown';
+        const roleStr = typeof roleValue === 'string' ? roleValue : 'unknown';
+        const role = roleStr.charAt(0).toUpperCase() + roleStr.slice(1);
+        content += `# ${role}\n\n${msg.content}\n\n---\n\n`;
+      }
+
+      await window.electronAPI.fs.writeFile(`${projectPath}/DISCUSSION.md`, content);
+    } catch (error) {
+      logger.warn('[PersistenceService] Failed to save discussion:', error);
+    }
   }
 
   /**
@@ -956,6 +1244,74 @@ export class PersistenceService {
   }
 
   /**
+   * FIX: Create a safety backup (.bak) of an existing file before overwriting
+   */
+  private async createBackup(filePath: string): Promise<boolean> {
+    if (!window.electronAPI?.fs?.readFile || !window.electronAPI?.fs?.writeFile) {
+      return false;
+    }
+
+    try {
+      // Check if file exists by trying to read it
+      const buffer = await window.electronAPI.fs.readFile(filePath);
+      if (buffer) {
+        const backupPath = `${filePath}.bak`;
+        await window.electronAPI.fs.writeFile(backupPath, buffer);
+        logger.debug(`[PersistenceService] Safety backup created: ${backupPath}`);
+        return true;
+      }
+    } catch (_error) {
+      // File likely doesn't exist yet, which is fine for first save
+    }
+    return false;
+  }
+
+  /**
+   * Sauvegarde un asset binaire (image, vidéo, blob) dans le dossier du projet
+   */
+  public async saveAsset(
+    source: Blob | string, // Blob ou DataURL
+    projectPath: string,
+    type: 'thumbnail' | 'render' | 'character' | 'world',
+    filename: string
+  ): Promise<string | null> {
+    if (!window.electronAPI?.fs?.writeFile) {
+      logger.warn('[PersistenceService] Native FS not available for asset save.');
+      return null;
+    }
+
+    try {
+      await this.ensureProjectStructure(projectPath);
+      
+      let subDir = 'assets';
+      if (type === 'thumbnail') subDir = 'assets/thumbnails';
+      if (type === 'render') subDir = 'assets/renders';
+      if (type === 'character') subDir = 'characters';
+      if (type === 'world') subDir = 'worlds';
+
+      const filePath = `${projectPath}/${subDir}/${filename}`;
+      
+      let buffer: Buffer;
+      if (typeof source === 'string') {
+        // Supposer que c'est un DataURL base64
+        const base64Data = source.split(',')[1] || source;
+        buffer = Buffer.from(base64Data, 'base64');
+      } else {
+        // Convertir Blob en Buffer
+        const arrayBuffer = await source.arrayBuffer();
+        buffer = Buffer.from(arrayBuffer);
+      }
+
+      await window.electronAPI.fs.writeFile(filePath, buffer);
+      logger.info(`[PersistenceService] Asset saved successfully: ${filePath}`);
+      return filePath;
+    } catch (error) {
+      logger.error(`[PersistenceService] Failed to save asset ${filename}:`, error);
+      return null;
+    }
+  }
+
+  /**
    * Téléchargement d'un fichier comme fallback
    */
   private downloadAsFile(data: unknown, filename: string): void {
@@ -987,6 +1343,9 @@ export class PersistenceService {
         const db = (event.target as IDBOpenDBRequest).result;
         if (!db.objectStoreNames.contains('worlds')) {
           db.createObjectStore('worlds', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('characters')) {
+          db.createObjectStore('characters', { keyPath: 'character_id' });
         }
       };
     });

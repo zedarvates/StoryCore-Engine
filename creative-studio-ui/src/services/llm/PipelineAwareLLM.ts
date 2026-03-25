@@ -141,7 +141,7 @@ export class PipelineAwareLLM {
 
         const hasCharacters = Boolean(project?.characters && project.characters.length > 0);
         const hasShots = Boolean(project?.shots && project.shots.length > 0);
-        const hasSequences = Boolean(project?.sequences && project.sequences.length > 0);
+        const hasSequences = Boolean(project?.sequencePlans && project.sequencePlans.length > 0);
 
         // Check pipeline asset graph for generated content
         const assets = Array.from(genState.assetGraph.nodes.values());

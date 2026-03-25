@@ -17,6 +17,7 @@ import { llmResponseParser } from './LLMResponseParser';
 import { generationOrchestrator } from './GenerationOrchestrator';
 import { logger } from '@/utils/logger';
 import type { LanguageCode } from '@/utils/llmConfigStorage';
+import { generateIdWithPrefix } from '@/utils/idGenerator';
 
 // ============================================================================
 // Types - Content Creation
@@ -63,6 +64,7 @@ export interface CharacterCreationParams {
     role?: string;
     gender?: string;
     age?: string;
+    ethnicity?: string;
     personality?: string[];
     appearance?: string;
     backstory?: string;
@@ -399,6 +401,9 @@ class ContentCreationServiceImpl {
             // Try to use LLM for a better name
             try {
                 const llmService = llmConfigService.getService();
+                if (!llmService) {
+                    throw new Error('LLM Service not configured');
+                }
                 const namePrompt = language === 'fr'
                     ? `Génère un seul nom unique et créatif pour un(e) ${type} dans un univers ${worldContext || 'fantastique'}. Réponds uniquement avec le nom, sans explication.`
                     : `Generate a single unique creative name for a ${type} in a ${worldContext || 'fantasy'} universe. Reply only with the name, no explanation.`;
@@ -424,9 +429,12 @@ class ContentCreationServiceImpl {
         if (!filledData.description && type !== 'dialogue' && type !== 'image' && type !== 'audio' && type !== 'video') {
             try {
                 const llmService = llmConfigService.getService();
+                if (!llmService) {
+                    throw new Error('LLM Service not configured');
+                }
                 const descPrompt = language === 'fr'
-                    ? `Génère une courte description (2-3 phrases) pour ${type === 'character' ? 'le personnage' : type === 'location' ? 'le lieu' : type === 'object' ? 'l\'objet' : type === 'world' ? 'le monde' : 'le contenu'} "${filledData.name || 'inconnu'}" dans un contexte ${worldContext || 'fantastique'}. Réponds uniquement avec la description.`
-                    : `Generate a short description (2-3 sentences) for the ${type} "${filledData.name || 'unknown'}" in a ${worldContext || 'fantasy'} context. Reply only with the description.`;
+                    ? `Génère une courte description (2-3 phrases) pour ${type === 'character' ? `le personnage ${filledData.ethnicity ? filledData.ethnicity : ''}` : type === 'location' ? 'le lieu' : type === 'object' ? 'l\'objet' : type === 'world' ? 'le monde' : 'le contenu'} "${filledData.name || 'inconnu'}" dans un contexte ${worldContext || 'fantastique'}. Réponds uniquement avec la description.`
+                    : `Generate a short description (2-3 sentences) for the ${type} ${type === 'character' && filledData.ethnicity ? filledData.ethnicity : ''} "${filledData.name || 'unknown'}" in a ${worldContext || 'fantasy'} context. Reply only with the description.`;
 
                 const response = await llmService.generateCompletion({
                     prompt: descPrompt,
@@ -578,7 +586,7 @@ class ContentCreationServiceImpl {
         worldContext?: string,
         language: LanguageCode = 'fr'
     ): Promise<Record<string, unknown>> {
-        const id = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const id = generateIdWithPrefix(type);
         const now = Date.now();
 
         // Helper for data URIs
@@ -600,6 +608,7 @@ class ContentCreationServiceImpl {
                     role: charData.role || 'supporting',
                     gender: charData.gender || 'neutral',
                     age: charData.age || '',
+                    ethnicity: charData.ethnicity || '',
                     description: charData.description || '',
                     personality: charData.personality || [],
                     appearance: charData.appearance || '',
@@ -644,7 +653,7 @@ class ContentCreationServiceImpl {
                         material: objData.material || '',
                         usage: objData.usage || '',
                     },
-                    powerLevel: objData.powerLevel || 1,
+                    power: objData.powerLevel || (objData as any).power || 1,
                     abilities: objData.abilities || [],
                     lore: (objData as any).lore || '',
                     imageUrl: formatImage(objData.visualRef),
@@ -677,12 +686,19 @@ class ContentCreationServiceImpl {
                     genre: Array.isArray(data.genre) ? data.genre : [data.genre || 'fantasy'],
                     tone: Array.isArray(data.tone) ? data.tone : [data.tone || 'neutral'],
                     summary: data.description || data.summary || '',
-                    charactersUsed: (Array.isArray(data.characters) ? data.characters : []).map((c: any) => ({
-                        id: c.id || crypto.randomUUID(),
-                        name: c.name || String(c),
-                        role: c.role || '',
+                    charactersUsed: (Array.isArray(data.characters) ? data.characters : []).map((c: any) => {
+                        const char = typeof c === 'object' ? c : { name: String(c) };
+                        return {
+                            id: (char as any).id || crypto.randomUUID(),
+                            name: (char as any).name || 'Unnamed',
+                            role: (char as any).role || '',
+                        };
+                    }),
+                    locationsUsed: (Array.isArray(data.locations) ? data.locations : []).map((l: any) => ({
+                        id: (l as any).id || generateIdWithPrefix('loc'),
+                        name: (l as any).name || String(l),
+                        description: (l as any).description || '',
                     })),
-                    locationsUsed: [],
                     autoGeneratedElements: [],
                     content: '',
                     createdAt: now,
@@ -701,7 +717,14 @@ class ContentCreationServiceImpl {
                     tone: Array.isArray(data.tone) ? data.tone : [data.tone || 'neutral'],
                     atmosphere: data.description || data.atmosphere || '',
                     rules: data.rules || [],
-                    culturalElements: data.cultures || {},
+                    culturalElements: {
+                        languages: Array.isArray(data.languages) ? data.languages : [],
+                        religions: Array.isArray(data.religions) ? data.religions : [],
+                        traditions: Array.isArray(data.traditions) ? data.traditions : [],
+                        historicalEvents: Array.isArray(data.historicalEvents) ? data.historicalEvents : [],
+                        culturalConflicts: Array.isArray(data.culturalConflicts) ? data.culturalConflicts : [],
+                        ...(typeof data.cultures === 'object' ? data.cultures as any : {})
+                    },
                     locations: [],
                     createdAt: now,
                     updatedAt: now,
@@ -723,12 +746,15 @@ class ContentCreationServiceImpl {
                     summary,
                     genre: Array.isArray(data.genre) ? data.genre : [data.genre || (language === 'fr' ? 'fantaisie' : 'fantasy')],
                     tone: Array.isArray(data.tone) ? data.tone : [data.tone || 'neutral'],
-                    length: (data.length as any) || 'scene',
-                    charactersUsed: (Array.isArray(data.characters) ? data.characters : []).map((c: any) => ({
-                        id: c.id || `char-${Math.random().toString(36).substr(2, 5)}`,
-                        name: c.name || String(c),
-                        role: c.role || '',
-                    })),
+                    length: (data.length as 'scene' | 'act' | 'chapter' | 'full') || 'scene',
+                    charactersUsed: (Array.isArray(data.characters) ? data.characters : []).map((c: any) => {
+                        const char = typeof c === 'object' ? c : { name: String(c) };
+                        return {
+                            id: char.id || generateIdWithPrefix('char'),
+                            name: char.name || 'Unnamed',
+                            role: char.role || '',
+                        };
+                    }),
                     locationsUsed: [],
                     autoGeneratedElements: [],
                     createdAt: now,
@@ -885,6 +911,9 @@ class ContentCreationServiceImpl {
     ): Promise<Array<{ character: string; text: string; emotion: string }>> {
         try {
             const llmService = llmConfigService.getService();
+            if (!llmService) {
+                 throw new Error('LLM Service not configured');
+            }
             const characters = (data.characters as string[]) || ['Character A', 'Character B'];
             const topic = (data.topic as string) || (language === 'fr' ? 'une discussion' : 'a conversation');
 

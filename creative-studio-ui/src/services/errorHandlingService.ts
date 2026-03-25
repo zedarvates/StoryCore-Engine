@@ -5,6 +5,8 @@
  * error recovery workflows, and user-friendly error messages.
  */
 
+import { generateIdWithPrefix } from '@/utils/idGenerator';
+
 export type ErrorSeverity = 'info' | 'warning' | 'error' | 'critical';
 export type ErrorCategory = 'network' | 'validation' | 'backend' | 'timeout' | 'unknown';
 
@@ -251,7 +253,7 @@ export class ErrorHandlingService {
    * Private: Generate unique error ID
    */
   private generateErrorId(): string {
-    return `error-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return generateIdWithPrefix('error');
   }
 
   /**

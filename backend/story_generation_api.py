@@ -4,11 +4,13 @@ from typing import List, Optional, Dict, Any
 import uuid
 from backend.auth import verify_jwt_token
 from backend.story_generation_service import StoryGenerationService, StoryGenre, StoryStructure, ProductionMode
+from backend.ai_story_generation_service import AIDrivenStoryGenerationService, StoryGenerationRequest, StoryGenerationResponse, StoryRefinementResponse
 
 router = APIRouter(prefix="/api/story", tags=["Story Generation"])
 
-# Global service instance
+# Global service instances
 story_service = StoryGenerationService()
+ai_story_service = AIDrivenStoryGenerationService()
 
 class StoryGenerateRequest(BaseModel):
     prompt: str = Field(..., min_length=5, description="Prompt pour la génération de la story")
@@ -17,6 +19,8 @@ class StoryGenerateRequest(BaseModel):
     mode: str = Field(default="FICTION", description="Mode de production (ex: FICTION, DOCUMENTARY, INFLUENCER, SCIENTIFIC_REVIEW)")
     length: str = Field(default="medium", description="Longueur: short, medium, long")
     with_critique: bool = Field(default=False, description="Activer la critique multi-agent")
+    temperature: float = Field(default=0.7, ge=0.0, le=1.0, description="Température de créativité")
+    max_attempts: int = Field(default=3, ge=1, le=10, description="Nombre maximum de tentatives")
 
 class StoryGenerateResponse(BaseModel):
     id: str
@@ -30,8 +34,35 @@ class StoryGenerateResponse(BaseModel):
     scenes: List[Dict[str, Any]]
     critique: Optional[str] = None
 
-@router.post("/generate", response_model=StoryGenerateResponse)
-async def generate_story_endpoint(req: StoryGenerateRequest):
+@router.post("/generate", response_model=StoryGenerationResponse)
+async def generate_story_endpoint(req: StoryGenerateRequest, user_id: str = Depends(verify_jwt_token)):
+    try:
+        # Use AI-driven service for enhanced generation
+        ai_req = StoryGenerationRequest(
+            prompt=req.prompt,
+            genre=req.genre,
+            structure=req.structure,
+            mode=req.mode,
+            length=req.length,
+            with_critique=req.with_critique,
+            temperature=req.temperature,
+            max_attempts=req.max_attempts
+        )
+        
+        response = await ai_story_service.generate_story(ai_req)
+        
+        return response
+    except HTTPException as e:
+        # Re-raise HTTPExceptions as is to preserve status codes (502, 503, etc.)
+        raise e
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # Fallback for unexpected internal errors
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/generate/basic", response_model=StoryGenerateResponse)
+async def generate_story_basic_endpoint(req: StoryGenerateRequest, user_id: str = Depends(verify_jwt_token)):
     try:
         # Convert strings to Enums
         genre = getattr(StoryGenre, req.genre.upper(), StoryGenre.DRAMA)
@@ -53,7 +84,7 @@ async def generate_story_endpoint(req: StoryGenerateRequest):
             synopsis=story.synopsis,
             genre=story.genre.name,
             mode=story.mode.name,
-            length=story.length,
+            length=story.length if hasattr(story, 'length') and story.length else req.length,
             characters=story.characters,
             locations=story.locations,
             scenes=[vars(s) for s in story.scenes],
@@ -84,8 +115,37 @@ async def get_story(story_id: str):
         "critique": story.critique,
         "scenes": [vars(s) for s in story.scenes]
     }
-@router.post("/{story_id}/refine", response_model=StoryGenerateResponse)
-async def refine_story_endpoint(story_id: str, feedback: Dict[str, str]):
+@router.post("/{story_id}/refine", response_model=StoryRefinementResponse)
+async def refine_story_endpoint(story_id: str, feedback: Dict[str, str], user_id: str = Depends(verify_jwt_token)):
+    try:
+        user_feedback = feedback.get("feedback", "")
+        refined_story = await ai_story_service.refine_story(story_id, user_feedback)
+        
+        if not refined_story:
+            raise HTTPException(status_code=404, detail="Story not found or refinement failed")
+        
+        # Convert to response model
+        return StoryRefinementResponse(
+            id=refined_story.id,
+            title=refined_story.title,
+            synopsis=refined_story.synopsis,
+            genre=refined_story.genre.name,
+            mode=refined_story.mode.name,
+            length="medium",  # Would need to store this properly
+            characters=refined_story.characters,
+            locations=refined_story.locations,
+            scenes=[vars(s) for s in refined_story.scenes],
+            critique=refined_story.critique,
+            status="refined",
+            version=2
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{story_id}/refine/basic", response_model=StoryGenerateResponse)
+async def refine_story_basic_endpoint(story_id: str, feedback: Dict[str, str], user_id: str = Depends(verify_jwt_token)):
     try:
         if story_id not in story_service.stories:
             raise HTTPException(status_code=404, detail="Story not found")
@@ -99,7 +159,7 @@ async def refine_story_endpoint(story_id: str, feedback: Dict[str, str]):
             synopsis=story.synopsis,
             genre=story.genre.name,
             mode=story.mode.name,
-            length=story.length,
+            length=(story.metadata.get("length") if isinstance(story.metadata, dict) else "medium"),
             characters=story.characters,
             locations=story.locations,
             scenes=[vars(s) for s in story.scenes],

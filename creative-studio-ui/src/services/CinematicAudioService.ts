@@ -15,6 +15,11 @@ export interface V2AOptions {
   audioMood?: string;
 }
 
+export interface AudioSyncEvent {
+  time: number;
+  type: 'footstep' | 'movement' | 'impact' | 'ambient' | string;
+}
+
 class CinematicAudioService {
   /**
    * Generates a sound effect from a text prompt
@@ -39,7 +44,7 @@ class CinematicAudioService {
   /**
    * Synchronizes audio to video motion
    */
-  async syncVideoAudio(videoUrl: string, options: V2AOptions = {}): Promise<{ success: boolean; url?: string; events?: any[]; error?: string }> {
+  async syncVideoAudio(videoUrl: string, options: V2AOptions = {}): Promise<{ success: boolean; url?: string; events?: AudioSyncEvent[]; error?: string }> {
     try {
       console.log('Syncing video to audio:', videoUrl, options);
       

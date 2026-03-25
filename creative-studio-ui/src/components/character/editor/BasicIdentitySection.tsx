@@ -127,11 +127,11 @@ export function BasicIdentitySection({
           ))}
         </select>
         {data.visual_identity?.gender &&
-          !['Male', 'Female', 'Non-binary'].includes(data.visual_identity.gender) && (
+          !['Male', 'Female', 'Non-binary', 'male', 'female', 'non-binary'].includes(data.visual_identity.gender) && (
             <input
               type="text"
               className="editor-section__input mt-2"
-              value={data.visual_identity.gender === 'Other' ? '' : data.visual_identity.gender}
+              value={(data.visual_identity.gender as string) === 'Other' ? '' : data.visual_identity.gender}
               onChange={(e) => onNestedChange('visual_identity', 'gender', e.target.value || 'Other')}
               placeholder="Specify gender..."
             />
@@ -144,6 +144,7 @@ export function BasicIdentitySection({
           </div>
         )}
       </div>
+
 
       {/* Narrative Function */}
       <div className="editor-section__field">

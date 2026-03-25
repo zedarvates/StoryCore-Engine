@@ -6,6 +6,7 @@
  */
 
 import { LanguageCode } from '@/utils/llmConfigStorage';
+import { generateIdWithPrefix } from '@/utils/idGenerator';
 
 export type NotificationType =
   | 'success'
@@ -60,6 +61,22 @@ export interface NotificationContext {
 }
 
 /**
+ * Interface pour les données de notification sérialisées (sans objets Date)
+ */
+export interface SerializedNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  priority: NotificationPriority;
+  timestamp: string;
+  expiresAt?: string;
+  metadata?: Record<string, unknown>;
+  dismissed?: boolean;
+  read?: boolean;
+}
+
+/**
  * Service de notifications intelligentes
  */
 export class NotificationService {
@@ -79,6 +96,12 @@ export class NotificationService {
 
     // Écouter les changements d'activité utilisateur
     this.setupActivityListeners();
+
+    // Charger les notifications persistantes
+    this.loadNotifications();
+
+    // Demander la permission pour les notifications natives
+    this.requestNativePermission();
   }
 
   static getInstance(): NotificationService {
@@ -141,12 +164,53 @@ export class NotificationService {
   }
 
   /**
+   * Demande la permission pour les notifications système (Optionnel pour Electron, utile pour Browser)
+   */
+  private async requestNativePermission(): Promise<void> {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+    }
+  }
+
+  /**
+   * Charger les notifications depuis le stockage local
+   */
+  private loadNotifications(): void {
+    try {
+      const stored = localStorage.getItem('notification-history');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        this.notifications = parsed.map((n: SerializedNotification) => ({
+          ...n,
+          timestamp: new Date(n.timestamp),
+          expiresAt: n.expiresAt ? new Date(n.expiresAt) : undefined
+        }));
+      }
+    } catch (error) {
+      console.warn('[NotificationService] Failed to load history:', error);
+    }
+  }
+
+  /**
+   * Persister les notifications
+   */
+  private persistNotifications(): void {
+    try {
+      localStorage.setItem('notification-history', JSON.stringify(this.notifications));
+    } catch (error) {
+      console.warn('[NotificationService] Failed to persist history:', error);
+    }
+  }
+
+  /**
    * Crée une notification
    */
   create(notification: Omit<Notification, 'id' | 'timestamp'>): string {
     if (!this.settings.enabled) return '';
 
-    const id = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const id = generateIdWithPrefix('notif');
     const fullNotification: Notification = {
       ...notification,
       id,
@@ -156,6 +220,9 @@ export class NotificationService {
     };
 
     this.notifications.unshift(fullNotification);
+
+    // Persister l'historique
+    this.persistNotifications();
 
     // Limiter le nombre de notifications
     if (this.notifications.length > this.settings.maxNotifications) {
@@ -172,8 +239,30 @@ export class NotificationService {
       fullNotification.expiresAt = new Date(Date.now() + this.settings.autoHideDelay);
     }
 
+    // Déclencher une notification native pour les priorités hautes ou critiques
+    if (notification.priority === 'high' || notification.priority === 'critical') {
+      this.showNativeNotification(fullNotification);
+    }
+
     this.notifyListeners();
     return id;
+  }
+
+  /**
+   * Affiche une notification système native
+   */
+  private showNativeNotification(notif: Notification): void {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(notif.title, {
+          body: notif.message,
+          icon: '/favicon.ico', // On pourrait utiliser une icône spécifique au type
+          tag: notif.id // Évite les doublons si même ID
+        });
+      } catch (error) {
+        console.warn('[NotificationService] Native notification failed:', error);
+      }
+    }
   }
 
   /**

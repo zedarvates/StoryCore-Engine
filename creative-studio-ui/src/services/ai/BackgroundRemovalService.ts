@@ -41,7 +41,7 @@ const DEFAULT_OPTIONS: RemovalOptions = {
 };
 
 export class BackgroundRemovalService {
-    private rembgAvailable: boolean | null = null;
+    private rembgAvailable: boolean = false;
 
     /**
      * Remove the background from a single image.
@@ -64,10 +64,11 @@ export class BackgroundRemovalService {
                 default:
                     throw new Error(`Unknown backend: ${opts.backend}`);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
             return {
                 success: false,
-                error: err.message ?? String(err),
+                error: errorMessage,
                 processingTimeMs: Date.now() - startTime,
             };
         }
@@ -147,10 +148,11 @@ export class BackgroundRemovalService {
                 foregroundUrl: result.foregroundPath,
                 processingTimeMs: Date.now() - startTime,
             };
-        } catch (err: any) {
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
             return {
                 success: false,
-                error: `rembg failed: ${err.message}`,
+                error: `rembg failed: ${errorMessage}`,
                 processingTimeMs: Date.now() - startTime,
             };
         }
@@ -161,15 +163,7 @@ export class BackgroundRemovalService {
         _options: RemovalOptions,
         startTime: number,
     ): Promise<RemovalResult> {
-        // TODO: Integrate with existing comfyuiService to run a Segment Anything
-        //       workflow that outputs a mask image.
-        //
-        // Workflow:
-        //   1. Upload image to ComfyUI
-        //   2. Run SAM segmentation workflow
-        //   3. Download resulting mask
-        //
-        // For now, simulate:
+        // Integration pending - using simulation fallback
         return this.simulateRemoval(imageUrl, startTime);
     }
 

@@ -31,36 +31,50 @@ const ProjectSchema = z.object({
 
   // Dashboard / Generation metadata
   audio_phrases: z.array(z.any()).optional(),
+  audioPhrases: z.array(z.any()).optional(), // CamelCase alias
   master_coherence_sheet: z.object({
     url: z.string(),
     generated_at: z.number(),
   }).optional(),
+  masterCoherenceSheet: z.object({ // CamelCase alias
+    url: z.string(),
+    generatedAt: z.number(),
+  }).optional(),
   generation_history: z.array(z.any()).optional(),
+  generationHistory: z.array(z.any()).optional(), // CamelCase alias
 
   capabilities: z.object({
-    grid_generation: z.boolean(),
-    promotion_engine: z.boolean(),
-    qa_engine: z.boolean(),
-    autofix_engine: z.boolean(),
+    grid_generation: z.boolean().optional(),
+    promotion_engine: z.boolean().optional(),
+    qa_engine: z.boolean().optional(),
+    autofix_engine: z.boolean().optional(),
     character_casting: z.boolean().optional(),
     voice_generation: z.boolean().optional(),
-  }),
+    // CamelCase aliases
+    gridGeneration: z.boolean().optional(),
+    promotionEngine: z.boolean().optional(),
+    qaEngine: z.boolean().optional(),
+    autofixEngine: z.boolean().optional(),
+  }).optional(),
   generation_status: z.object({
-    grid: z.enum(['pending', 'done', 'failed', 'passed']),
-    promotion: z.enum(['pending', 'done', 'failed', 'passed']),
+    grid: z.enum(['pending', 'done', 'failed', 'passed']).optional(),
+    promotion: z.enum(['pending', 'done', 'failed', 'passed']).optional(),
     wizard: z.enum(['pending', 'done', 'failed', 'passed']).optional(),
-  }),
+  }).optional(),
   casting: z.object({
     version: z.string(),
     assignments: z.array(z.object({
       character_id: z.string(),
       avatar_id: z.string(),
-      assigned_at: z.string(),
+      assigned_at: z.any(), // Support number or string
     })),
-    last_modified: z.string(),
+    last_modified: z.any(), // Support number or string
   }).optional(),
   metadata: z.record(z.string(), z.any()).optional(),
   global_resume: z.string().optional(),
+  sequences: z.array(z.any()).optional(),
+  sequencePlans: z.array(z.any()).optional(),
+  locations: z.array(z.any()).optional(),
 });
 
 // ============================================================================

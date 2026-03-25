@@ -204,15 +204,22 @@ export const LLMConfigDialog = memo(function LLMConfigDialog({
       return;
     }
 
-      const newConfig: LLMConfig = {
-        ...config,
-        provider,
+    const newConfig: LLMConfig = {
+      ...config,
+      provider,
       model,
       apiKey,
       parameters: {
         ...config.parameters,
         temperature,
         maxTokens,
+        creativityMode,
+        jokesEnabled,
+        wordGamesEnabled,
+        probabilityFramingEnabled,
+        vectorialOptimization,
+        embeddingModel,
+        similarityThreshold,
       },
       streamingEnabled,
     };

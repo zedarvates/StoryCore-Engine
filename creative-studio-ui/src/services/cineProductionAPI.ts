@@ -33,7 +33,7 @@ export interface CineProductionJob {
     progress: number;
     results: Array<{
         step: string;
-        output: any;
+        output: unknown;
     }>;
     error?: string;
     startTime: string;
@@ -128,7 +128,7 @@ class CineProductionAPI {
                     if (job.status === 'completed') {
                         resolve(job);
                     } else if (job.status === 'failed') {
-                        reject(new Error(job.results.find(r => r.step === 'error')?.output || 'Job failed'));
+                        reject(new Error(String(job.results.find(r => r.step === 'error')?.output) || 'Job failed'));
                     } else {
                         setTimeout(poll, intervalMs);
                     }

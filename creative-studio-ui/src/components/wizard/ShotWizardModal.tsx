@@ -930,7 +930,7 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                                  <div className="w-full bg-black/60 h-1.5 rounded-full overflow-hidden border border-white/5">
                                     <div 
                                       className="h-full bg-pink-600 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300" 
-                                      style={{ '--progress-width': `${generationProgress * 100}%` } as React.CSSProperties} 
+                                      style={{ width: `${generationProgress * 100}%` }} 
                                       id="generation-progress-bar"
                                     />
                                  </div>

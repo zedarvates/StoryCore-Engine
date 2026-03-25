@@ -853,12 +853,12 @@ async def call_llm_ollama(request: LLMRequest, user_id: str) -> LLMResponse:
     ollama_host = os.environ.get("OLLAMA_HOST", app_settings.OLLAMA_BASE_URL)
     
     # Check cache first
-    cache_key = get_cache_key(request.prompt, request.model or "llama2", request.temperature or 0.7)
+    cache_key = get_cache_key(request.prompt, request.model or app_settings.OLLAMA_MODEL or "qwen3-vl:4b", request.temperature or 0.7)
     cached = get_cached_response(cache_key)
     if cached and request.use_cache:
         return LLMResponse(**cached)
     
-    model = request.model or "llama2"
+    model = request.model or app_settings.OLLAMA_MODEL or "qwen3-vl:4b"
     
     async with httpx.AsyncClient(timeout=300.0) as client:
         try:
@@ -1163,7 +1163,9 @@ async def list_models(
         {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "provider": "openai", "max_tokens": 16385, "capabilities": ["text"]},
         {"id": "claude-3-haiku", "name": "Claude 3 Haiku", "provider": "anthropic", "max_tokens": 200000, "capabilities": ["text", "reasoning"]},
         {"id": "claude-3-sonnet", "name": "Claude 3 Sonnet", "provider": "anthropic", "max_tokens": 200000, "capabilities": ["text", "reasoning"]},
-        {"id": "llama2", "name": "Llama 2", "provider": "ollama", "max_tokens": 4096, "capabilities": ["text"]},
+        {"id": "qwen3-vl:4b", "name": "Qwen 3 VL 4B", "provider": "ollama", "max_tokens": 32768, "capabilities": ["text", "vision", "multilingual"]},
+        {"id": "qwen3-vl:8b", "name": "Qwen 3 VL 8B", "provider": "ollama", "max_tokens": 32768, "capabilities": ["text", "vision", "multilingual"]},
+        {"id": "llama3.1:8b", "name": "Llama 3.1 8B", "provider": "ollama", "max_tokens": 128000, "capabilities": ["text", "reasoning"]},
         {"id": "mistral", "name": "Mistral", "provider": "ollama", "max_tokens": 32768, "capabilities": ["text"]}
     ]
     

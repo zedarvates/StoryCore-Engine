@@ -65,6 +65,23 @@ export const GENDER_OPTIONS = [
 export type GenderOption = typeof GENDER_OPTIONS[number];
 
 /**
+ * Ethnicity options for character visual identity
+ */
+export const ETHNICITIES = [
+  'Caucasian',
+  'African',
+  'Asian',
+  'Hispanic/Latino',
+  'Middle Eastern',
+  'South Asian',
+  'Native American/Indigenous',
+  'Mixed Heritage',
+  'Fantasy/Other',
+] as const;
+
+export type EthnicityOption = typeof ETHNICITIES[number];
+
+/**
  * Hair color suggestions for autocomplete/reference
  */
 export const HAIR_COLORS = [

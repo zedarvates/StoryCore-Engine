@@ -1,6 +1,7 @@
 import { GenerationTask, GeneratedAsset } from '@/types/generation';
 import { eventEmitter } from './eventEmitter';
 import { logger } from '@/utils/logger';
+import { generateId, generateIdWithPrefix } from '@/utils/idGenerator';
 
 export interface QueuedGenerationTask extends GenerationTask {
   serverId?: string; // For ComfyUI routing
@@ -56,7 +57,7 @@ class GenerationQueueService {
   public addToQueue(task: Omit<QueuedGenerationTask, 'id' | 'status' | 'progress' | 'createdAt'>): QueuedGenerationTask {
     const newTask: QueuedGenerationTask = {
       ...task,
-      id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: generateIdWithPrefix('task'),
       status: 'queued',
       progress: {
         stage: 'Queued',
@@ -268,9 +269,9 @@ class GenerationQueueService {
               output.images.forEach((img) => {
                 if (img.filename) {
                   const url = `${baseUrl}/view?filename=${img.filename}&subfolder=${img.subfolder || ''}&type=${img.type || 'output'}`;
-                  const asset: GeneratedAsset = {
-                    id: crypto.randomUUID(),
-                    type: task.type === 'image' ? 'image' : 'video',
+                    const asset: GeneratedAsset = {
+                      id: generateId(),
+                      type: task.type === 'image' ? 'image' : 'video',
                     url: url,
                     timestamp: Date.now(),
                     relatedAssets: [],

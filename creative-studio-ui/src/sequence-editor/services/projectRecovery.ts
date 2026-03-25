@@ -9,6 +9,7 @@
 
 import type { RootState } from '../store';
 import { exportProjectToJSON, type ProjectFile } from './projectPersistence';
+import { generateId } from '@/utils/idGenerator';
 
 // Recovery snapshot interval: 5 minutes
 const RECOVERY_INTERVAL = 5 * 60 * 1000; // 5 minutes in milliseconds
@@ -74,8 +75,9 @@ function saveRecoveryIndex(index: RecoveryIndex): void {
  * Generate unique snapshot ID
  */
 function generateSnapshotId(): string {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return generateId();
 }
+
 
 /**
  * Save recovery snapshot

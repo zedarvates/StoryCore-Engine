@@ -1,5 +1,5 @@
-/* cspell:ignore Chatbox chatbox openai openai Anthropic Anthropic Italiano Português creer */
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+/* cspell:ignore Chatbox chatbox openai openai Anthropic Anthropic Italiano Português creer moodboard Moodboard protag antag alli métrage trage nums upscaler trage trace track tracking */
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -225,14 +225,15 @@ const AttachmentPreviewItem: React.FC<AttachmentPreviewItemProps> = ({ file, onR
 // Constants
 // ============================================================================
 
-const MESSAGE_HISTORY_LIMIT = 100; // Maximum number of messages to keep in history
+// const MESSAGE_HISTORY_LIMIT = 100; // Maximum number of messages to keep in history
 // const CONFIG_DEBOUNCE_DELAY = 500; // Removed as no longer needed with unified config
 
 // ============================================================================
 // Types
 // ============================================================================
 
-import { type ChatAttachment } from '@/types';
+import { type ChatAttachment, type ChatMessage } from '@/types';
+import { persistenceService } from '@/services/PersistenceService';
 
 interface Message {
   id: string;
@@ -263,8 +264,53 @@ export function LandingChatBox({
   height,
   isDetached = false,
 }: LandingChatBoxProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { chatMessages: storeMessages, addChatMessage, setChatMessages } = useAppStore();
+  
+  // Helper to convert store messages to local Message format with proper type guards
+  const toLocalMessages = useCallback((msgs: ChatMessage[]): Message[] => {
+    return msgs?.map(msg => ({
+      id: msg.id,
+      type: msg.role === 'user' ? 'user' : msg.role === 'assistant' ? 'assistant' : msg.role === 'system' ? 'system' : 'error',
+      content: msg.content || '',
+      timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      attachments: msg.attachments || [],
+      isStreaming: msg.isStreaming || false,
+      streamComplete: msg.streamComplete || false,
+    })) || [];
+  }, []);
+  
+  const messages = toLocalMessages(storeMessages);
+  
+  const setMessages = useCallback((msgs: Message[] | ((prev: Message[]) => Message[])) => {
+    if (typeof msgs === 'function') {
+      const currentMessages = toLocalMessages(useAppStore.getState().chatMessages);
+      const updated = msgs(currentMessages);
+      // Convert back to store format
+      const storeMsgs = updated.map(msg => ({
+        id: msg.id,
+        role: msg.type as any,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        attachments: msg.attachments,
+        isStreaming: msg.isStreaming,
+        streamComplete: msg.streamComplete,
+      }));
+      setChatMessages(storeMsgs);
+    } else {
+      const storeMsgs = msgs.map(msg => ({
+        id: msg.id,
+        role: msg.type as any,
+        content: msg.content,
+        timestamp: msg.timestamp,
+        attachments: msg.attachments,
+        isStreaming: msg.isStreaming,
+        streamComplete: msg.streamComplete,
+      }));
+      setChatMessages(storeMsgs);
+    }
+  }, [setChatMessages, toLocalMessages]);
   const [inputValue, setInputValue] = useState('');
+
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
@@ -279,6 +325,8 @@ export function LandingChatBox({
   const [currentStreamRequestId, setCurrentStreamRequestId] = useState<string | null>(null);
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
   const [isFallbackMode, setIsFallbackMode] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const messagesAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -287,28 +335,71 @@ export function LandingChatBox({
   const [isListening, setIsListening] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
 
+  // Auto-save discussion to project (Requirement: Discussion persistence)
+  const { 
+    project, 
+    selectedShotId,
+    showCharacterWizard,
+    showLocationWizard,
+    showObjectWizard,
+    showWorldWizard,
+    showScenarioBuilder,
+    showVideoEditorWizard,
+    showAudioProductionWizard,
+  } = useAppStore();
+
+  const activeWizards = useMemo(() => {
+    const active = [];
+    if (showCharacterWizard) active.push('Character Creator');
+    if (showLocationWizard) active.push('Location Builder');
+    if (showObjectWizard) active.push('Object Smith');
+    if (showWorldWizard) active.push('World Bible');
+    if (showScenarioBuilder) active.push('Scenario Editor');
+    if (showVideoEditorWizard) active.push('Video Editor');
+    if (showAudioProductionWizard) active.push('Audio Production');
+    return active;
+  }, [
+    showCharacterWizard, showLocationWizard, showObjectWizard, 
+    showWorldWizard, showScenarioBuilder, showVideoEditorWizard, 
+    showAudioProductionWizard
+  ]);
+
+  const projectContext = useMemo(() => ({
+    projectName: project?.project_name,
+    genre: project?.projectSetup?.genre,
+    tone: project?.projectSetup?.tone,
+    visualStyle: project?.projectSetup?.visualStyle,
+    targetAudience: project?.projectSetup?.targetAudience,
+    currentShot: selectedShotId ?? undefined,
+    activeWizards
+  }), [project, selectedShotId, activeWizards]);
+
+  useEffect(() => {
+    const projectPath: string | undefined = project?.path;
+    if (projectPath && messages.length > 0) {
+      const saveDiscussion = async () => {
+        try {
+          await persistenceService.saveDiscussionFile(projectPath, storeMessages);
+        } catch (error) {
+          console.error('[LandingChatBox] Discussion save failed:', error);
+        }
+      };
+      
+      // Debounce save
+      const timer = setTimeout(saveDiscussion, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [messages, storeMessages, project?.path]);
+
   // Ref to break circular dependency between createErrorMessage and handleRetryMessage
   const handleRetryMessageRef = useRef<((userInput: string) => Promise<void>) | null>(null);
 
   // Helper function to add messages with history limit
   const addMessage = useCallback((newMessage: Message | Message[]) => {
-    setMessages(prev => {
-      const updatedMessages = Array.isArray(newMessage)
-        ? [...prev, ...newMessage]
-        : [...prev, newMessage];
+    const messagesToAdd = Array.isArray(newMessage) ? newMessage : [newMessage];
+    addChatMessage(messagesToAdd as any);
+  }, [addChatMessage]);
 
-      // Limit message history to prevent memory issues
-      if (updatedMessages.length > MESSAGE_HISTORY_LIMIT) {
-        // Keep the first message (welcome message) and the most recent messages
-        return [
-          updatedMessages[0],
-          ...updatedMessages.slice(-(MESSAGE_HISTORY_LIMIT - 1))
-        ];
-      }
-
-      return updatedMessages;
-    });
-  }, []);
 
   // Initialize welcome message based on current language
   useEffect(() => {
@@ -320,9 +411,11 @@ export function LandingChatBox({
         content: getWelcomeMessage(currentLanguage),
         timestamp: new Date(),
       };
-      setMessages([welcomeMessage]);
+      addChatMessage(welcomeMessage as any);
     }
-  }, [currentLanguage, messages.length]); // Run when language changes or messages are cleared
+
+  }, [currentLanguage, messages.length, addChatMessage]); // Run when language changes or messages are cleared
+
 
   // Listen for global events from AgentFloatingControlBar
   useEffect(() => {
@@ -451,9 +544,18 @@ export function LandingChatBox({
     };
   }, [llmService, currentStreamRequestId]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (only if already near bottom)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!messagesAreaRef.current) return;
+    
+    const { scrollHeight, clientHeight, scrollTop } = messagesAreaRef.current;
+    // Only auto-scroll if user is within 150px of bottom, OR if this is the very first message
+    const isAtBottom = scrollHeight - clientHeight <= scrollTop + 150;
+    const isFirstWelcomeMessage = messages.length === 1 && messages[0].id === '1';
+    
+    if (isAtBottom || isFirstWelcomeMessage) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
 
@@ -522,7 +624,7 @@ export function LandingChatBox({
       timestamp: new Date(),
       error: recoveryOptions,
     };
-  }, [setShowConfigDialog]); // handleRetryMessageRef, addMessage, setMessages are stable
+  }, [setShowConfigDialog, setMessages]); // handleRetryMessageRef, addMessage are stable
 
   // Helper function to retry a failed message (Requirement 7.6)
   const handleRetryMessage = useCallback(async (userInput: string) => {
@@ -547,7 +649,7 @@ export function LandingChatBox({
 
     try {
       // Build language-aware system prompt
-      const systemPrompt = buildSystemPrompt(currentLanguage);
+      const systemPrompt = buildSystemPrompt(currentLanguage, projectContext);
       
       // Create LLM request
       const request: LLMRequest = {
@@ -631,7 +733,7 @@ export function LandingChatBox({
       const errorMessage = createErrorMessage(error as Error, userInput);
       addMessage(errorMessage);
     }
-  }, [llmService, llmConfig, currentLanguage, addMessage, createErrorMessage]);
+  }, [llmService, llmConfig, currentLanguage, addMessage, createErrorMessage, setMessages, projectContext]);
 
   // Update retry ref
   useEffect(() => {
@@ -890,6 +992,17 @@ export function LandingChatBox({
     }
   };
 
+  // Helper to convert chat history to markdown for project tracing
+  const messagesToMarkdown = useCallback((msgs: Message[]) => {
+    return msgs
+      .map(msg => {
+        const role = msg.type === 'user' ? 'USER' : 'ASSISTANT';
+        const date = new Date(msg.timestamp).toLocaleString();
+        return `### ${role} (${date})\n\n${msg.content}\n\n---`;
+      })
+      .join('\n\n');
+  }, []);
+
   // Handle project creation with enhanced error handling
   const handleProjectCreation = useCallback(async (projectRequest: ProjectCreationRequest) => {
     try {
@@ -898,8 +1011,14 @@ export function LandingChatBox({
         throw new Error('Project name is required');
       }
 
+      // Add the discussion history to the request
+      const requestWithHistory = {
+        ...projectRequest,
+        discussion: messagesToMarkdown(messages)
+      };
+
       // Use the centralized ProjectCreationService
-      const result = await projectCreationService.createProjectAndNavigate(projectRequest);
+      const result = await projectCreationService.createProjectAndNavigate(requestWithHistory);
       
       if (result.success) {
         toast({ 
@@ -936,7 +1055,7 @@ export function LandingChatBox({
             : "Failed to create project. Please check your connection."
       });
     }
-  }, [currentLanguage, toast]);
+  }, [messages, messagesToMarkdown, currentLanguage, toast]);
 
   // Handle send message
   const handleSend = async () => {
@@ -1038,7 +1157,7 @@ export function LandingChatBox({
           }
         }
 
-        let refType: any = 'image';
+        let refType: 'image' | 'video' | 'texture' | 'pattern' | 'audio' | '3d' | 'document' = 'image';
         if (file.type.startsWith('video/')) refType = 'video';
         else if (file.type.startsWith('audio/')) refType = 'audio';
         else if (file.name.endsWith('.obj') || file.name.endsWith('.glb') || file.name.endsWith('.gltf') || file.name.endsWith('.stl')) refType = '3d';
@@ -1074,7 +1193,7 @@ export function LandingChatBox({
     if (llmService) {
       try {
         // Build language-aware system prompt (Requirement 3.4)
-        const systemPrompt = buildSystemPrompt(currentLanguage);
+        const systemPrompt = buildSystemPrompt(currentLanguage, projectContext);
         
         // Create LLM request
         const request: LLMRequest = {
@@ -1322,16 +1441,87 @@ export function LandingChatBox({
     }
 
     // Parse characters
-    const characters: Record<string, unknown>[] = [];
+    const characters: Character[] = [];
     const charRegex = /\[TOOL:createCharacter:([^:\]]+)(?::([^\]]+))?\]/gi;
     let charMatch;
     while ((charMatch = charRegex.exec(assistantMessage)) !== null) {
+      const name = charMatch[1].trim();
+      const rawRole = charMatch[2] ? charMatch[2].trim() : 'Protagonist';
+      
+      // Determine narrative function and archetype from role string
+      let narrative_function = rawRole;
+      let archetype = 'other';
+      
+      const lowerRole = rawRole.toLowerCase();
+      if (/protag|h[eé]ros|hero/i.test(lowerRole)) {
+        archetype = 'hero';
+        narrative_function = 'Protagonist';
+      } else if (/antag|vilain|villain|n[eéè]m[eéè]sis|loup/i.test(lowerRole)) {
+        archetype = 'villain';
+        narrative_function = 'Antagonist';
+      } else if (/mentor|sage/i.test(lowerRole)) {
+        archetype = 'mentor';
+        narrative_function = 'Mentor';
+      } else if (/alli[eé]|ally|ami/i.test(lowerRole)) {
+        archetype = 'ally';
+        narrative_function = 'Ally';
+      } else if (/catalyst|support/i.test(lowerRole)) {
+        archetype = 'other';
+        narrative_function = 'Catalyst';
+      }
+
       characters.push({
-        id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-        name: charMatch[1].trim(),
-        role: charMatch[2] ? charMatch[2].trim() : 'Protagonist',
-        description: 'Auto-generated character from assistant',
-      });
+        character_id: `char_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        name,
+        creation_method: 'auto_generated',
+        creation_timestamp: Date.now(),
+        version: '1.0',
+        role: {
+          archetype,
+          narrative_function,
+          character_arc: 'positive',
+        },
+        description: `Auto-generated character "${name}" with role ${rawRole}.`,
+        visual_identity: {
+          hair_color: '',
+          hair_style: '',
+          hair_length: '',
+          eye_color: '',
+          eye_shape: '',
+          skin_tone: '',
+          facial_structure: '',
+          distinctive_features: [],
+          age_range: 'adult',
+          gender: 'unspecified',
+          height: '',
+          build: '',
+          posture: '',
+          clothing_style: '',
+          color_palette: [],
+          reference_images: [],
+          reference_sheet_images: [],
+        },
+        personality: {
+          traits: [],
+          values: [],
+          fears: [],
+          desires: [],
+          flaws: [],
+          strengths: [],
+          temperament: '',
+          communication_style: '',
+        },
+        background: {
+          origin: '',
+          occupation: '',
+          education: '',
+          family: '',
+          significant_events: [],
+          current_situation: '',
+          backstory: '',
+        },
+        relationships: [],
+      } as Character);
     }
 
     // Parse locations
@@ -1378,7 +1568,7 @@ export function LandingChatBox({
       universe,
       genre,
       formatId,
-      description: userInput,
+      description: assistantMessage.replace(/\[TOOL:[^\]]+\]/gi, '').replace(/\n+/g, '\n').trim() || userInput,
       initialEntities: {
         characters: characters.length > 0 ? characters as unknown as Character[] : undefined,
         locations: locations.length > 0 ? locations as unknown as ProductionLocation[] : undefined,
@@ -1594,14 +1784,14 @@ export function LandingChatBox({
       timestamp: new Date(),
     };
     addMessage(systemMessage);
-  }, [addMessage]);
+  }, [addMessage, setMessages]);
 
   return (
     <div
-      className={`flex flex-col ${height ? '' : 'min-h-[400px] max-h-[70vh]'} ${isDetached ? '' : 'rounded-[28px] border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'} overflow-hidden transition-all duration-300 backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70`}
-      /* eslint-disable-next-line */
-      style={height ? ({ height } as React.CSSProperties) : undefined}
+      ref={containerRef}
+      className={`flex flex-col ${height ? 'h-full' : 'min-h-[400px] max-h-[70vh]'} ${isDetached ? 'h-full' : 'rounded-[28px] border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'} overflow-hidden transition-all duration-300 backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70`}
       id="landing-chatbox-container"
+      style={height ? { height } : undefined}
     >
       {/* Header */}
       <div 
@@ -1639,6 +1829,7 @@ export function LandingChatBox({
 
       {/* Messages Area */}
       <div 
+        ref={messagesAreaRef}
         className="flex-1 overflow-y-auto p-4 space-y-4"
         role="log"
         aria-live="polite"
@@ -1767,12 +1958,14 @@ export function LandingChatBox({
               >
                 <p className="text-sm text-blue-300 text-center whitespace-pre-wrap">{message.content}</p>
                 <span className="text-xs text-blue-400/60 mt-1 block text-center">
-                  <time dateTime={message.timestamp.toISOString()}>
-                    {message.timestamp.toLocaleTimeString('fr-FR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </time>
+                  {message.timestamp && (
+                    <time dateTime={new Date(message.timestamp).toISOString()}>
+                      {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </time>
+                  )}
                 </span>
               </div>
             ) : (
@@ -1803,7 +1996,6 @@ export function LandingChatBox({
                   <div className={`mt-3 flex flex-wrap gap-2 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`} role="list" aria-label="Attachments">
                     {message.attachments.map((attachment, idx) => {
                       const isImage = attachment.type?.startsWith('image/');
-                      
                       if (isImage) {
                         return (
                           <div key={idx} className="group relative" role="listitem">
@@ -1830,16 +2022,17 @@ export function LandingChatBox({
                   </div>
                 )}
                 {/* Display timestamp after streaming completes (Requirement 8.4) */}
-                {!message.isStreaming && (
+                {!message.isStreaming && message.timestamp && (
                   <span className="text-xs text-gray-400 mt-1 block">
-                    <time dateTime={message.timestamp.toISOString()}>
-                      {message.timestamp.toLocaleTimeString('fr-FR', {
+                    <time dateTime={new Date(message.timestamp).toISOString()}>
+                      {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
                         hour: '2-digit',
                         minute: '2-digit',
                       })}
                     </time>
                   </span>
                 )}
+
               </div>
             )}
           </div>

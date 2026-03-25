@@ -147,7 +147,7 @@ export function NeuralProductionAssistant() {
 
         try {
             // Step 1: Prompt Synthesis
-            const worldStyle = currentWorld?.visualIntent?.style || 'cinematic';
+            const visualStyle = project?.projectSetup?.visualStyle || currentWorld?.visualIntent?.style || 'realistic';
             const worldVibe = currentWorld?.visualIntent?.vibe || 'neutral';
             const worldColors = currentWorld?.visualIntent?.colors?.join(', ') || 'natural lighting';
             const worldRules = currentWorld?.rules?.map(r => r.rule).join('. ') || '';
@@ -158,7 +158,7 @@ export function NeuralProductionAssistant() {
             const prompt = `${baseDescription}. 
                 [PROJECT PROTOCOLS]: ${workingContext}
                 Environment context: ${worldVibe}, ${techLvl} technology level. 
-                Visual Signature: ${worldStyle} aesthetics. 
+                Visual Signature: ${visualStyle} aesthetics. 
                 Color palette guidelines: ${worldColors}.
                 World Principles: ${worldRules}.
                 Specs: 8k resolution, high-end photographic render, cinematic depth of field, sharp textures, professional color grading.`;
@@ -232,7 +232,7 @@ export function NeuralProductionAssistant() {
                 } : undefined
             });
         }
-    }, [characters, currentWorld, selectedModel, addManifestedAsset, toast]);
+    }, [characters, currentWorld, project, selectedModel, addManifestedAsset, toast]);
 
     useEffect(() => {
         const handleGenEvent = (e: Event) => {
@@ -314,7 +314,7 @@ export function NeuralProductionAssistant() {
                 responseText = final_answer;
                 // Steps from backend are NSMStep objects {type, message, timestamp}
                 // We map them to the UI trajectory format
-                const mappedTrajectory: RLMTrajectoryStep[] = steps.map((s: { type: string; message: string; timestamp?: string }, _idx: number) => ({
+                const mappedTrajectory: RLMTrajectoryStep[] = (steps as any[]).map((s: { type: string; message: string; timestamp?: string }, _idx: number) => ({
                     depth: 0,
                     task: prompt,
                     thought: s.type === 'thinking' ? s.message : undefined,

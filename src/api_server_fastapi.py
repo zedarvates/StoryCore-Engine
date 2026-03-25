@@ -180,28 +180,127 @@ video_editor_router = APIRouter(prefix="/api/video-editor")
 async def generate_video(project_id: str, body: dict):
     """Bridge to ExportIntegrationCategoryHandler for AI video generation"""
     context = RequestContext(endpoint="storycore.integration.comfyui.generate_video", method="POST")
-    # Pass project_id in params
+    # Resolve project path
+    if project_id.startswith("./") or "projects" in project_id:
+        project_path = project_id
+    elif ":" in project_id or project_id.startswith("/") or project_id.startswith("\\"):
+        project_path = project_id
+    else:
+        project_path = f"./projects/{project_id}"
+        
     params = body.copy()
     params["project_id"] = project_id
+    params["project_path"] = project_path
     
     response = export_handler.comfyui_generate_video(params, context)
     
+    if response is None:
+        raise HTTPException(status_code=500, detail="Internal error: response is None")
+    
     if response.status == "error":
-        raise HTTPException(status_code=400, detail=response.error.message)
+        # Safely handle potential None error object
+        error_detail = "Unknown error"
+        if response.error is not None:
+            error_detail = response.error.message if hasattr(response.error, 'message') else str(response.error)
+        logger.error(f"[generate_video] Error response: {error_detail}")
+        raise HTTPException(status_code=400, detail=error_detail)
     
     return response.data
+
+
+@video_editor_router.post("/projects/{project_id}/ai/extend-video")
+async def extend_video(project_id: str, body: dict):
+    """Bridge to ExportIntegrationCategoryHandler for AI video extension"""
+    context = RequestContext(endpoint="storycore.integration.comfyui.extend_video", method="POST")
+    
+    # Resolve project path
+    if project_id.startswith("./") or "projects" in project_id:
+        project_path = project_id
+    elif ":" in project_id or project_id.startswith("/") or project_id.startswith("\\"):
+        project_path = project_id
+    else:
+        project_path = f"./projects/{project_id}"
+        
+    params = body.copy()
+    params["project_id"] = project_id
+    params["project_path"] = project_path
+    
+    response = export_handler.comfyui_extend_video(params, context)
+    
+    if response is None:
+        raise HTTPException(status_code=500, detail="Internal error: response is None")
+    
+    if response.status == "error":
+        # Safely handle potential None error object
+        error_detail = "Unknown error"
+        if response.error is not None:
+            error_detail = response.error.message if hasattr(response.error, 'message') else str(response.error)
+        logger.error(f"[extend_video] Error response: {error_detail}")
+        raise HTTPException(status_code=400, detail=error_detail)
+    
+    return response.data
+
 
 @video_editor_router.get("/projects/{project_id}/vault/assets")
 async def list_vault_assets(project_id: str):
     """Bridge to vault_list_assets"""
-    # Simple project path resolution for now
-    params = {"project_path": f"./projects/{project_id}"} 
-    return export_handler.vault_list_assets(params, RequestContext())
+    logger.info(f"[vault_assets] Called for project_id={project_id}")
+    
+    # Project path resolution: handle both simple IDs and full paths
+    if project_id.startswith("./") or "projects" in project_id:
+        project_path = project_id
+    elif ":" in project_id or project_id.startswith("/") or project_id.startswith("\\"):
+        # It's already a full path
+        project_path = project_id
+    else:
+        # It's a simple ID, look in projects folder
+        project_path = f"./projects/{project_id}"
+        
+    logger.info(f"[vault_assets] resolved project_path={project_path}")
+    
+    try:
+        params = {"project_path": project_path} 
+        response = export_handler.vault_list_assets(params, RequestContext())
+        
+        # Defensive check for None response
+        if response is None:
+            logger.error("[vault_assets] Response is None!")
+            raise HTTPException(status_code=500, detail="Internal error: response is None")
+        
+        logger.info(f"[vault_assets] response status={response.status}, has_error={response.error is not None}")
+        
+        if response.status == "error":
+            # Safely handle potential None error object
+            error_detail = "Unknown error"
+            if response.error is not None:
+                error_detail = response.error.message if hasattr(response.error, 'message') else str(response.error)
+            else:
+                error_detail = "Unknown error - error object is None"
+            logger.error(f"[vault_assets] Error response: {error_detail}")
+            raise HTTPException(status_code=400, detail=error_detail)
+        
+        # Handle case where data is None but status is success
+        if response.data is None:
+            logger.warning("[vault_assets] Success but data is None, returning empty list")
+            return {"assets": []}
+        
+        logger.info(f"[vault_assets] Success, returning data")
+        return response.data
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"[vault_assets] Unexpected exception: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @video_editor_router.get("/projects/{project_id}/media-raw")
 async def get_media_raw(project_id: str, path: str = Query(...)):
-    """Serve a raw media file from the project directory"""
-    project_dir = Path("./projects") / project_id
+    # Resolve project path
+    if project_id.startswith("./") or "projects" in project_id:
+        project_dir = Path(project_id)
+    elif ":" in project_id or project_id.startswith("/") or project_id.startswith("\\"):
+        project_dir = Path(project_id)
+    else:
+        project_dir = Path("./projects") / project_id
     
     # Resolve to absolute path and validate it stays within project
     full_path = (project_dir / path).resolve()
@@ -219,12 +318,33 @@ async def get_media_raw(project_id: str, path: str = Query(...)):
 async def get_generation_status(project_id: str, task_id: str):
     """Bridge to ExportIntegrationCategoryHandler for checking generation status"""
     context = RequestContext(endpoint="storycore.integration.comfyui.get_status", method="GET")
-    params = {"task_id": task_id, "project_id": project_id}
+    
+    # Resolve project path
+    if project_id.startswith("./") or "projects" in project_id:
+        project_path = project_id
+    elif ":" in project_id or project_id.startswith("/") or project_id.startswith("\\"):
+        project_path = project_id
+    else:
+        project_path = f"./projects/{project_id}"
+        
+    params = {"task_id": task_id, "project_id": project_id, "project_path": project_path}
     
     response = export_handler.comfyui_get_status(params, context)
     
+    # Defensive check for None response
+    if response is None:
+        logger.error("[get_generation_status] Response is None!")
+        raise HTTPException(status_code=500, detail="Internal error: response is None")
+    
     if response.status == "error":
-        raise HTTPException(status_code=404, detail=response.error.message)
+        # Safely handle potential None error object
+        error_detail = "Unknown error"
+        if response.error is not None:
+            error_detail = response.error.message if hasattr(response.error, 'message') else str(response.error)
+        else:
+            error_detail = "Unknown error - error object is None"
+        logger.error(f"[get_generation_status] Error response: {error_detail}")
+        raise HTTPException(status_code=404, detail=error_detail)
     
     return response.data
 

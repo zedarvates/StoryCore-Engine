@@ -5,8 +5,8 @@
  * Supports streaming responses, retry logic, and error handling
  */
 
-import { ollamaClient } from './llm/OllamaClient';
-import { OLLAMA_URL } from '../config/apiConfig';
+import { ollamaClient, OllamaClient } from './llm/OllamaClient';
+import { OLLAMA_URL, LM_STUDIO_URL } from '../config/apiConfig';
 import { logger } from '../utils/logger';
 import { backendApiService } from './backendApiService';
 
@@ -14,7 +14,7 @@ import { backendApiService } from './backendApiService';
 /**
  * Supported LLM providers
  */
-export type LLMProvider = 'openai' | 'anthropic' | 'openrouter' | 'local' | 'custom' | 'diffusion';
+export type LLMProvider = 'openai' | 'anthropic' | 'openrouter' | 'local' | 'lmstudio' | 'custom' | 'diffusion';
 
 /**
  * LLM provider configuration
@@ -133,6 +133,7 @@ export const LLMErrorCategory = {
   INVALID_REQUEST: 'invalid_request',
   CONTENT_FILTER: 'content_filter',
   SERVER_ERROR: 'server_error',
+  RESOURCE_EXHAUSTED: 'resource_exhausted',
   UNKNOWN: 'unknown',
 } as const;
 
@@ -206,7 +207,14 @@ export class LLMError extends Error {
       return LLMErrorCategory.CONTENT_FILTER;
     }
     if (code.includes('server') || code.includes('500') || code.includes('503')) {
+      // Check for specific resource issues in message if available
+      if (this.message?.toLowerCase().includes('memory') || this.message?.toLowerCase().includes('available')) {
+        return LLMErrorCategory.RESOURCE_EXHAUSTED;
+      }
       return LLMErrorCategory.SERVER_ERROR;
+    }
+    if (code.includes('memory') || code.includes('resource')) {
+      return LLMErrorCategory.RESOURCE_EXHAUSTED;
     }
     return LLMErrorCategory.UNKNOWN;
   }
@@ -230,6 +238,8 @@ export class LLMError extends Error {
         return 'Content was filtered by safety guidelines. Please try different input.';
       case LLMErrorCategory.SERVER_ERROR:
         return 'AI service is temporarily unavailable. Please try again later.';
+      case LLMErrorCategory.RESOURCE_EXHAUSTED:
+        return 'The selected model is too large for your system memory. Please choose a smaller model (e.g., llama3:8b instead of 70b) in the LLM configuration.';
       default:
         return 'An unexpected error occurred. Please try again.';
     }
@@ -979,11 +989,13 @@ class OpenRouterProvider extends LLMProviderBase {
  */
 class CustomProvider extends LLMProviderBase {
   getProviderName(): string {
-    return this.config.provider === 'local' ? 'Local' : 'Custom';
+    return this.config.provider === 'local' ? 'Local' : this.config.provider === 'lmstudio' ? 'LM Studio' : 'Custom';
   }
 
   async generateCompletion(request: LLMRequest, signal?: AbortSignal): Promise<LLMResponse> {
     const endpoint = this.config.apiEndpoint || OLLAMA_URL;
+    // Create a local OllamaClient instance with the correct endpoint
+    const localClient = new OllamaClient(endpoint);
 
     try {
       // Use Ollama's native API format
@@ -996,7 +1008,7 @@ class CustomProvider extends LLMProviderBase {
         ? `${request.systemPrompt}\n\n${request.prompt}`
         : request.prompt;
 
-      const response = await ollamaClient.generate(this.config.model, prompt, {
+      const response = await localClient.generate(this.config.model, prompt, {
         temperature: request.temperature ?? this.config.parameters.temperature,
         maxTokens: numPredict,
         images: request.images,
@@ -1015,7 +1027,7 @@ class CustomProvider extends LLMProviderBase {
       ) {
         logger.warn(`[CustomProvider] Model '${this.config.model}' not found. Attempting auto-fallback...`);
         try {
-          const bestModel = await ollamaClient.getBestAvailableModel();
+          const bestModel = await localClient.getBestAvailableModel();
           if (bestModel && bestModel !== this.config.model) {
             logger.info(`[CustomProvider] Falling back to available model: ${bestModel}`);
             
@@ -1025,7 +1037,7 @@ class CustomProvider extends LLMProviderBase {
               ? `${request.systemPrompt}\n\n${request.prompt}`
               : request.prompt;
 
-            const response = await ollamaClient.generate(bestModel, prompt, {
+            const response = await localClient.generate(bestModel, prompt, {
               temperature: request.temperature ?? this.config.parameters.temperature,
               maxTokens: numPredict,
               images: request.images,
@@ -1057,11 +1069,15 @@ class CustomProvider extends LLMProviderBase {
       }
 
       // Wrap other errors
+      const finalErrorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const isMemoryError = finalErrorMessage.toLowerCase().includes('memory') || finalErrorMessage.toLowerCase().includes('available');
+      
       throw new LLMError(
-        error instanceof Error ? error.message : 'Unknown error occurred',
-        'unknown',
-        false,
-        { originalError: error }
+        finalErrorMessage,
+        isMemoryError ? 'resource_exhausted' : 'unknown',
+        !isMemoryError, // Don't retry memory errors
+        { originalError: error },
+        isMemoryError ? LLMErrorCategory.RESOURCE_EXHAUSTED : undefined
       );
     }
   }
@@ -1110,7 +1126,8 @@ class CustomProvider extends LLMProviderBase {
           
           if (isModelMissing) {
              logger.warn(`[CustomProvider] Model '${this.config.model}' not found during streaming. Attempting fallback...`);
-             const bestModel = await ollamaClient.getBestAvailableModel();
+             const localClient = new OllamaClient(endpoint);
+             const bestModel = await localClient.getBestAvailableModel();
              
              if (bestModel && bestModel !== model) {
                logger.info(`[CustomProvider] Falling back to: ${bestModel}`);
@@ -1128,11 +1145,15 @@ class CustomProvider extends LLMProviderBase {
         }
 
         const error = await response.json().catch(() => ({}));
+        const errorMessage = error.error || `Ollama request failed with status ${response.status}`;
+        const isMemoryError = errorMessage.toLowerCase().includes('memory') || errorMessage.toLowerCase().includes('available');
+        
         throw new LLMError(
-          error.error || `Ollama request failed with status ${response.status}`,
-          'api_error',
-          response.status === 429 || response.status >= 500,
-          error
+          errorMessage,
+          isMemoryError ? 'resource_exhausted' : 'api_error',
+          !isMemoryError && (response.status === 429 || response.status >= 500),
+          error,
+          isMemoryError ? LLMErrorCategory.RESOURCE_EXHAUSTED : undefined
         );
       }
 
@@ -1154,11 +1175,15 @@ class CustomProvider extends LLMProviderBase {
       }
 
       // Wrap other errors
+      const finalErrorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const isMemoryError = finalErrorMessage.toLowerCase().includes('memory') || finalErrorMessage.toLowerCase().includes('available');
+      
       throw new LLMError(
-        error instanceof Error ? error.message : 'Unknown error occurred',
-        'unknown',
-        false,
-        { originalError: error }
+        finalErrorMessage,
+        isMemoryError ? 'resource_exhausted' : 'unknown',
+        !isMemoryError, // Don't retry memory errors
+        { originalError: error },
+        isMemoryError ? LLMErrorCategory.RESOURCE_EXHAUSTED : undefined
       );
     }
   }
@@ -1359,6 +1384,7 @@ export class LLMService {
       case 'openrouter':
         return new OpenRouterProvider(config);
       case 'local':
+      case 'lmstudio':
       case 'custom':
         return new CustomProvider(config);
       case 'diffusion':
@@ -2413,12 +2439,6 @@ export function getAvailableProviders(): LLMProviderInfo[] {
           capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
         },
         {
-          id: 'llama3.1:8b',
-          name: 'Llama 3.1 8B (High Quality)',
-          contextWindow: 8192,
-          capabilities: ['chat', 'completion', 'streaming'],
-        },
-        {
           id: 'llama3.2:3b',
           name: 'Llama 3.2 3B (Balanced)',
           contextWindow: 8192,
@@ -2458,6 +2478,69 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       requiresApiKey: false,
       supportsStreaming: true,
       defaultEndpoint: OLLAMA_URL,
+    },
+    {
+      id: 'lmstudio',
+      name: 'LM Studio (Local Server)',
+      models: [
+        {
+          id: 'qwen3-vl:8b',
+          name: 'Qwen 3 VL 8B (Vision + Language)',
+          contextWindow: 32768,
+          capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
+        },
+        {
+          id: 'qwen3-vl:4b',
+          name: 'Qwen 3 VL 4B (Vision + Language)',
+          contextWindow: 32768,
+          capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
+        },
+        {
+          id: 'llama3.2:3b',
+          name: 'Llama 3.2 3B',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'llama3.2:1b',
+          name: 'Llama 3.2 1B',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'gemma3:4b',
+          name: 'Gemma 3 4B',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'gemma3:1b',
+          name: 'Gemma 3 1B',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'mistral:latest',
+          name: 'Mistral 7B',
+          contextWindow: 8192,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'phi3:mini',
+          name: 'Phi 3 Mini',
+          contextWindow: 4096,
+          capabilities: ['chat', 'completion', 'streaming'],
+        },
+        {
+          id: 'qwen2.5-coder:latest',
+          name: 'Qwen 2.5 Coder',
+          contextWindow: 32768,
+          capabilities: ['chat', 'completion', 'streaming', 'code'],
+        },
+      ],
+      requiresApiKey: false,
+      supportsStreaming: true,
+      defaultEndpoint: LM_STUDIO_URL,
     },
     {
       id: 'custom',

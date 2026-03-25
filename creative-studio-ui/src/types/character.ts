@@ -84,6 +84,8 @@ export interface VisualIdentity {
   build: string;
   posture: string;
   clothing_style: string;
+  visual_style?: string; // e.g., 'manga', 'cinematic'
+  ethnicity?: string;
   color_palette: string[];
   generated_portrait?: string; // Path to generated portrait image (relative to project or indexeddb://)
 
