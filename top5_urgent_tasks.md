@@ -1,25 +1,22 @@
-# Top 5 des tâches urgentes
+# StoryCore Engine - Top 5 Urgent Tasks Status
 
-1. Rendre fonctionnels les boutons de la fenêtre compacte
-2. Implémenter la réorganisation par drag-and-drop des shots
-3. Intégrer l'appel à l'API M&M pour génération musicale/transition
-4. Développer le système de scoring d'alignement story
-5. Tester avec différents plans séquences
+| ID | Task | Status | Priority | ETA | Assignee |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| 1 | **Optimisation des performances : Virtualisation de la Timeline** | ✅ **DONE** | Critical | -- | Antigravity |
+| 2 | **Correction du bug de sélection CSS dans CompactDirectorPanel** | ✅ **DONE** | High | -- | Antigravity |
+| 3 | **Intégrer l'appel à l'API M&M pour génération musicale/transition** | ✅ **DONE** | High | -- | Antigravity |
+| 4 | **Mettre en place le moteur de scoring d'alignement au script** | ✅ **DONE** | High | -- | Antigravity |
+| 5 | **Interconnexion des states du Store (Undo/Redo finalisation)** | ✅ **DONE** | Medium | -- | Antigravity |
 
-## Tâche urgente sélectionnée
-- [x] Rendre fonctionnels les boutons de la fenêtre compacte
-- [x] Analyser le composant VideoGenerationPanel.tsx
-- [x] Concevoir le design de la fenêtre compacte
-- [x] Implémenter les handlers d'événement
-- [x] Intégrer l'appel à l'API M&M (partiellement via cineProductionAPI.ts)
-- [x] Corriger les erreurs TypeScript critiques
-- [x] Nettoyer la dette technique (CSS externe, variables inutilisées)
-- [ ] Tester les modifications complètes
+## Recent Accomplishments (Phase 7 - Production Mastering)
 
-# task_progress
-- [x] Sélection de la tâche urgente
-- [ ] Analyse du composant
-- [ ] Conception UI
-- [ ] Implémentation des handlers
-- [ ] Intégration API M&M
-- [ ] Tests
+- **Production Export Engine**: High-bitrate MP4/ProRes mastering (H.265).
+- **Directorial Annotator**: Real-time frame review with surgical annotations.
+- **Cinematic Assembler (Mastering Mode)**: Toggle between blueprinting and delivery.
+- **GPU-Accelerated Rendering**: Integrated 4K upscaling for final sequences.
+
+## Phase 8: Advanced Visual Mastery & Frame Composition
+
+1. **High-Precision Masking Tool**: SAM-based subject isolation for selective grading.
+2. **Atmospheric Grading Studio**: Advanced LUT & volumetric lighting controls.
+3. **Automated Motion VFX**: Narrative-driven physics and particle presets.

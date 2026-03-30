@@ -123,9 +123,16 @@ export const createTimelineSlice: StateCreator<
   reorderShots: (shots: Shot[], skipHistory = false) => {
     const previousShots = get().shots;
     
+    // Update positions based on new order
+    const updatedShots = shots.map((shot, index) => {
+      // If we are in a sequential/magnetic mode, we might want to update startTime too
+      // but for now let's just update the internal position index
+      return { ...shot, position: index };
+    });
+    
     set((state) => {
-      const updatedProject = state.project ? { ...state.project, shots } : null;
-      return { shots, project: updatedProject };
+      const updatedProject = state.project ? { ...state.project, shots: updatedShots } : null;
+      return { shots: updatedShots, project: updatedProject };
     });
     
     if (!skipHistory) {

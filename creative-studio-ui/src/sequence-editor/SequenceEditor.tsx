@@ -16,10 +16,11 @@ import { ShotConfigPanel } from './components/ShotConfig/ShotConfigPanel';
 import { Timeline } from './components/Timeline/Timeline';
 import { CompactDirectorPanel } from './components/CompactDirectorPanel/CompactDirectorPanel';
 import { CompactAssistant } from './components/Assistant/CompactAssistant';
-import { AlignmentDashboard, AlignmentReport } from './components/Alignment/AlignmentDashboard';
+import { AlignmentDashboard } from './components/Alignment/AlignmentDashboard';
 import { StatusBar } from './components/StatusBar/StatusBar';
 import { BottomBar } from './components/BottomBar/BottomBar';
 import { LayerManager } from './components/LayerManager/LayerManager';
+import { addMessage, setIsOpen as setChatOpen } from './store/slices/chatSlice';
 import { AudioMixerPanel } from './components/AudioMixerPanel/AudioMixerPanel';
 import { ExportDialog } from './components/Dialogs/ExportDialog';
 import { SettingsDialog } from './components/Dialogs/SettingsDialog';
@@ -49,21 +50,27 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
   const compactMode = useAppSelector((state) => state.panels.compactMode);
   const showAlignmentDashboard = useAppSelector((state) => state.panels.showAlignmentDashboard);
   
-  // Mock Alignment Report for demonstration if not present in project
-  const [report] = React.useState<AlignmentReport>({
-    total_score: 74,
-    summary: "The project shows strong thematic consistency, but several shots have lighting mismatches and rhythmic pacing issues in the second act.",
-    categories: {
-      narrative_flow: { score: 85, issues: [], recommendations: ["Increase character tension in shot 4"] },
-      visual_coherence: { score: 62, issues: ["Lighting mismatch in shots 2 and 3"], recommendations: ["Apply consistent morning LUT across sequence"] },
-      rhythm_pacing: { score: 75, issues: ["Shot 5 is 24f longer than optimal rhythm"], recommendations: ["Trim shot 5 to 48 frames"] }
-    },
-    recommendations: [
-      "Harmonize lighting between shot 2 and 3",
-      "Trim shot 5 for better act-end rhythm",
-      "Add environmental SFX to character appearance in shot 1"
-    ]
-  });
+  // Alignment State from Unified Project Store
+  const { 
+    alignmentReport, 
+    isAnalyzingAlignment,
+    isRefiningAlignment,
+    generateAlignmentReport,
+    applyAlignmentRepair
+  } = useProjectStore(useShallow(state => ({
+    alignmentReport: state.alignmentReport,
+    isAnalyzingAlignment: state.isAnalyzingAlignment,
+    isRefiningAlignment: state.isRefiningAlignment,
+    generateAlignmentReport: state.generateAlignmentReport,
+    applyAlignmentRepair: state.applyAlignmentRepair
+  })));
+
+  // Auto-analyze on load if no report
+  React.useEffect(() => {
+    if (!alignmentReport && !isAnalyzingAlignment) {
+      generateAlignmentReport();
+    }
+  }, [alignmentReport, isAnalyzingAlignment, generateAlignmentReport]);
 
   const projectState = useAppSelector((state) => state.project);
   
@@ -147,8 +154,8 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
 
   const handleShotDoubleClick = (shotId: string) => {
     const shot = shots.find(s => s.id === shotId);
-    if (shot && (shot.type === 'sequence' || (shot as any).subSequenceId)) {
-      const targetSeqId = (shot as any).subSequenceId || shot.id;
+    if (shot && (shot.type === 'sequence' || (shot as Shot & { subSequenceId?: string }).subSequenceId)) {
+      const targetSeqId = (shot as Shot & { subSequenceId?: string }).subSequenceId || shot.id;
       navigate(`/project/${projectId}/sequence/${targetSeqId}`);
     }
   };
@@ -265,8 +272,28 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
               <aside className="timeline-mixer-sidebar">
                 {showAlignmentDashboard ? (
                   <AlignmentDashboard 
-                    report={report} 
-                    onFixAll={(recs) => console.log('Fix all:', recs)}
+                    report={alignmentReport || { total_score: 0, summary: "Analyzing...", categories: {}, recommendations: [] }} 
+                    isRefining={isAnalyzingAlignment || isRefiningAlignment}
+                    onFixAll={(recs) => {
+                      applyAlignmentRepair(recs);
+                    }}
+                    onFixSingle={(rec) => {
+                      console.log('Fixing single:', rec);
+                      // Logic for specific repair
+                      dispatch(addMessage({ 
+                        role: 'assistant', 
+                        content: `I've analyzed the recommendation: "${rec}". I am now preparing an automated repair plan for your sequence.` 
+                      }));
+                      dispatch(setChatOpen(true));
+                    }}
+                    onChat={(rec) => {
+                      // Logic to open chat with this recommendation
+                      dispatch(addMessage({ 
+                        role: 'user', 
+                        content: `How can I fix this issue: "${rec}"?` 
+                      }));
+                      dispatch(setChatOpen(true));
+                    }}
                   />
                 ) : showLayerManager ? (
                   <LayerManager shot={selectedShot as Shot} selectedLayerIds={[]} />

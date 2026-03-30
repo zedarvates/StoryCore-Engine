@@ -414,3 +414,8 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.tool-item.processing {
+  opacity: 0.5;
+  cursor: wait;
+}

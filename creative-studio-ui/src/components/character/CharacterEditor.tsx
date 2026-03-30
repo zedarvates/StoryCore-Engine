@@ -11,11 +11,12 @@ import { CharacterImagesSection } from './editor/CharacterImagesSection';
 import { AIChatSection } from './editor/AIChatSection';
 import { PromptsManager } from '../common/PromptsManager';
 import { buildVisualPromptForCharacter } from '@/lib/promptUtils';
+import { PerformanceSection } from './editor/PerformanceSection';
 import './CharacterEditor.css';
 
 /**
  * Props for the CharacterEditor component
- * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 7.1, 7.2
+ * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 7.1, 7.2, 21.5 (LipSync)
  */
 export interface CharacterEditorProps {
   /** ID of the character to edit */
@@ -31,7 +32,7 @@ export interface CharacterEditorProps {
   onDelete?: (characterId: string) => void;
 }
 
-type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images' | 'prompts' | 'ai_chat';
+type TabId = 'identity' | 'appearance' | 'personality' | 'background' | 'relationships' | 'images' | 'prompts' | 'ai_chat' | 'performance';
 
 interface ValidationErrors {
   [key: string]: string[];
@@ -274,6 +275,7 @@ export function CharacterEditor({
     { id: 'images', label: 'Images' },
     { id: 'prompts', label: 'Prompts' },
     { id: 'ai_chat', label: 'Personality Chat' },
+    { id: 'performance', label: 'Performance (P5)' },
   ];
 
   return (
@@ -426,6 +428,15 @@ export function CharacterEditor({
                 entityName={formData.name || 'Character'}
               />
             </div>
+          )}
+
+          {activeTab === 'performance' && (
+            <PerformanceSection
+              characterId={characterId}
+              characterName={formData.name || ''}
+              characterImage={formData.visual_identity?.reference_images?.[0]?.url}
+              id="panel-performance"
+            />
           )}
         </div>
 

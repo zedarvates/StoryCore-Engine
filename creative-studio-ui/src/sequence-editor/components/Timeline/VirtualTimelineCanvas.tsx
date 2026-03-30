@@ -15,7 +15,8 @@ import { splitShot } from '../../store/slices/timelineSlice';
 import { LAYER_ICONS, getTrackShots, getLayerIndex } from '../../constants/timelineConstants';
 import type { Track, ToolType } from '@/sequence-editor/types';
 import type { Shot, Layer, LayerType } from '@/types';
-import './VirtualTimelineCanvas.css';
+import { cinematicTensionService, type TensionNode } from '@/services/CinematicTensionService';
+import '@/sequence-editor/components/Timeline/VirtualTimelineCanvas.css';
  
 // Canvas roundRect Polyfill for Older Browsers
 if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
@@ -470,6 +471,16 @@ function drawLayer(
       }
       indicatorX -= INDICATOR_SIZE + 20;
   }
+
+  // Sub-Sequence Branching Indicator (Phase 6 Orchestration)
+  if (shot.subSequenceId) {
+      ctx.save();
+      ctx.fillStyle = '#3498db';
+      ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText('🌿', indicatorX, INDICATOR_Y + 4);
+      ctx.restore();
+  }
   // Draw Slip/Slide Frame Offset Overlay (Requirement: Precise Feedback)
   if (isSelected && (activeTool === 'slip' || activeTool === 'slide') && contentOffset !== 0) {
       const deltaFrames = Math.round(contentOffset / zoomLevel);
@@ -491,6 +502,63 @@ function drawLayer(
       ctx.fillText(offsetText, x + width / 2, y + height + 10);
       ctx.textAlign = 'left';
   }
+}
+
+/**
+ * Draw narrative tension curve on canvas
+ * Phase 6: AI-Directorial Controls
+ */
+function drawTensionCurve(
+  ctx: CanvasRenderingContext2D,
+  nodes: TensionNode[],
+  width: number,
+  height: number,
+  zoomLevel: number,
+  scrollLeft: number
+): void {
+  if (nodes.length < 2) return;
+
+  ctx.save();
+  ctx.beginPath();
+  
+  // Luxury gradient for the intensity curve
+  const tensionGradient = ctx.createLinearGradient(0, height, 0, 0);
+  tensionGradient.addColorStop(0, 'rgba(231, 76, 60, 0.1)'); // Low intensity: Subdued Red
+  tensionGradient.addColorStop(1, 'rgba(231, 76, 60, 0.6)'); // High intensity: Vibrant Red
+
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  
+  // Use a softer glow for high intensity
+  ctx.shadowColor = 'rgba(231, 76, 60, 0.4)';
+  ctx.shadowBlur = 8;
+
+  let first = true;
+  nodes.forEach(node => {
+    const x = (node.frame * zoomLevel) - scrollLeft;
+    // Map value 0-1 to height (from bottom to top)
+    const y = height - (node.value * height * 0.8) - 10;
+
+    if (first) {
+      ctx.moveTo(x, y);
+      first = false;
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
+  
+  // Fill under the curve for better visibility
+  ctx.lineTo(nodes[nodes.length-1].frame * zoomLevel - scrollLeft, height);
+  ctx.lineTo(nodes[0].frame * zoomLevel - scrollLeft, height);
+  ctx.fillStyle = tensionGradient;
+  ctx.globalAlpha = 0.3;
+  ctx.fill();
+  
+  ctx.restore();
 }
 
 /**
@@ -746,8 +814,16 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         );
         ctx.restore();
       });
+
+      // ====================================================================
+      // Narrative Tension Overlay (Phase 6 Orchestration)
+      // ====================================================================
+      if (track.id === 'track-narrative-meta' || track.type === 'media') {
+         const tensionNodes = cinematicTensionService.calculateTimelineTension(shots);
+         drawTensionCurve(ctx, tensionNodes, canvas.width, canvas.height, zoomLevel, scrollLeft);
+      }
     });
-  }, [shots, zoomLevel, selectedElements, isDragging, draggedShotId, dragTrackId, currentDragX, dragStartX, isResizing, resizeEdge, playheadPosition, promptsVisible, gridVisible, activeTool, visibleTracks]);
+  }, [shots, zoomLevel, selectedElements, isDragging, draggedShotId, dragTrackId, currentDragX, dragStartX, isResizing, resizeEdge, playheadPosition, promptsVisible, gridVisible, activeTool, visibleTracks, scrollElement]);
   
   // Handle canvas click for shot/layer selection
   // Handle canvas mouse down for shot/layer selection and drag start

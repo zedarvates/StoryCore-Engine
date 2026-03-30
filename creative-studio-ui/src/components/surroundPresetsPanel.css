@@ -1,0 +1,205 @@
+.surround-presets-panel {
+  padding: 1rem;
+  background-color: var(--slate-50);
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.presets-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-title-group h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--slate-900);
+  margin: 0;
+}
+
+.save-current-btn {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  background-color: var(--blue-600);
+  color: white;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-current-btn:hover {
+  background-color: var(--blue-700);
+}
+
+/* Save Dialog */
+.save-preset-dialog {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--slate-200);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.save-preset-dialog h4 {
+  margin: 0;
+  font-weight: 500;
+  color: var(--slate-900);
+}
+
+.dialog-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dialog-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--slate-300);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dialog-btn {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+}
+
+.dialog-btn.primary {
+  background-color: var(--blue-600);
+  color: white;
+}
+
+.dialog-btn.secondary {
+  background-color: var(--slate-200);
+  color: var(--slate-700);
+}
+
+/* Grids */
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.section-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--slate-700);
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Preset Card */
+.preset-card {
+  position: relative;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--slate-200);
+  background-color: white;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.preset-card:hover {
+  border-color: var(--blue-400);
+}
+
+.preset-card.active {
+  border-color: var(--blue-600);
+  background-color: var(--blue-50);
+}
+
+.delete-preset-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem;
+  color: var(--slate-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-preset-btn:hover {
+  color: var(--error-600);
+}
+
+.preset-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.preset-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.preset-name-row h4 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--slate-900);
+}
+
+.preset-mode-badge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  background-color: var(--slate-100);
+  color: var(--slate-600);
+  border-radius: 0.25rem;
+}
+
+.preset-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--slate-600);
+}
+
+/* Channels Preview */
+.channels-preview {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.channel-bar-bg {
+  flex: 1;
+  height: 0.25rem;
+  background-color: var(--slate-200);
+  border-radius: 0.125rem;
+  overflow: hidden;
+}
+
+.channel-bar-fill {
+  height: 100%;
+  background-color: var(--blue-600);
+  width: var(--level-percent, 0%);
+}

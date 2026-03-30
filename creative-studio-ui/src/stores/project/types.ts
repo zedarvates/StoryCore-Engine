@@ -12,6 +12,7 @@ import type {
   SequencePlan
 } from '@/types';
 import type { Track, TimelineMarker } from '@/sequence-editor/types';
+import type { AlignmentReport } from '@/sequence-editor/components/Alignment/AlignmentDashboard';
 
 /**
  * Unified History Entry
@@ -89,6 +90,11 @@ export interface ProjectState {
   history: HistoryEntry[];
   historyIndex: number;
   lastSavedIndex: number;
+  
+  // Alignment (Audit Task 4)
+  alignmentReport: AlignmentReport | null;
+  isAnalyzingAlignment: boolean;
+  isRefiningAlignment: boolean;
 }
 
 /**
@@ -176,6 +182,10 @@ export interface ProjectActions {
   goToHistoryIndex: (index: number) => void;
   clearHistory: () => void;
   markAsSaved: () => void;
+  
+  // Alignment (Audit Task 4)
+  generateAlignmentReport: () => Promise<AlignmentReport>;
+  applyAlignmentRepair: (recommendations: string[]) => Promise<void>;
 }
 
 export type UnifiedProjectStore = ProjectState & ProjectActions;

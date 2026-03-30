@@ -12,8 +12,13 @@
  */
 
 import React, { useState, useCallback } from 'react';
-// cSpell:ignore Ultrawide Katja
 import './aiFeaturesPanel.css';
+import { cineProductionAPI } from '@/services/cineProductionAPI';
+import { useProjectStore } from '@/stores/useProjectStore';
+import { UnifiedProjectStore } from '@/stores/project/types';
+import { useShallow } from 'zustand/react/shallow';
+import { bRollService, type BRollSuggestion } from '@/services/bRollService';
+import type { StyleParameters } from '@/types';
 
 // =============================================================================
 // Types
@@ -109,12 +114,28 @@ export const AIFeaturesPanel: React.FC = () => {
   const [translationResult, setTranslationResult] = useState('');
 
   // AI Assistant state (Director)
+  // AI Assistant state (Director)
   const [directorPrompt, setDirectorPrompt] = useState('');
   const [directorMood, setDirectorMood] = useState('cinematic');
   const [directorShotCount, setDirectorShotCount] = useState(5);
   const [isProcessingDirector, setIsProcessingDirector] = useState(false);
   const [isProcessingBRoll, setIsProcessingBRoll] = useState(false);
+  const [bRollSuggestions, setBRollSuggestions] = useState<BRollSuggestion[]>([]);
   const [isProcessingColorMatch, setIsProcessingColorMatch] = useState(false);
+  
+  // Music Gen state
+  const [musicPrompt, setMusicPrompt] = useState('');
+  const [musicDuration, setMusicDuration] = useState(30);
+  const [musicStyle, setMusicStyle] = useState('cinematic_orchestral');
+  const [isGeneratingMusic, setIsGeneratingMusic] = useState(false);
+  const [musicJobId, setMusicJobId] = useState<string | null>(null);
+
+  const { project, stories, shots, addShot } = useProjectStore(useShallow((state: UnifiedProjectStore) => ({
+    project: state.project,
+    stories: state.stories,
+    shots: state.shots,
+    addShot: state.addShot
+  })));
   
   // =============================================================================
   // Handlers
@@ -266,15 +287,52 @@ export const AIFeaturesPanel: React.FC = () => {
   }, [directorPrompt, directorShotCount, directorMood]);
 
   const handleSmartBRoll = useCallback(async () => {
+    if (!project || !shots.length) return;
+    
     setIsProcessingBRoll(true);
+    setBRollSuggestions([]);
+    
     try {
-      // Mock API call for B-Roll suggestion
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Smart B-Roll suggestions generated');
+      const suggestions = await bRollService.suggestBRoll(project, shots);
+      setBRollSuggestions(suggestions);
+    } catch (error) {
+      console.error('B-Roll generation failed:', error);
     } finally {
       setIsProcessingBRoll(false);
     }
-  }, []);
+  }, [project, shots]); 
+
+  const handleApplyBRoll = useCallback((suggestion: BRollSuggestion) => {
+    const newShotId = `broll-${Date.now()}`;
+    addShot({
+      id: newShotId,
+      name: `B-Roll: ${suggestion.reason.substring(0, 20)}...`,
+      prompt: suggestion.description,
+      duration: 72, // 3s for B-roll
+      startTime: 0, // Timeline will handle positioning if magnetic, but ideally search by index
+      position: suggestion.shotIndex,
+      layers: [],
+      referenceImages: [],
+      visualStyle: { 
+        shotId: newShotId,
+        styleId: `style-${suggestion.visualStyle.toLowerCase()}`,
+        styleName: suggestion.visualStyle, 
+        intensity: 100, 
+        appliedAt: Date.now(),
+        parameters: {} as Partial<StyleParameters> as StyleParameters
+      },
+      parameters: {
+        seed: -1,
+        denoising: 0.7,
+        steps: 20,
+        guidance: 7,
+        sampler: 'dpmpp_2m',
+        scheduler: 'karras'
+      }
+    });
+
+    setBRollSuggestions(prev => prev.filter(s => s !== suggestion));
+  }, [addShot]); 
 
   const handleColorMatch = useCallback(async () => {
     setIsProcessingColorMatch(true);
@@ -286,6 +344,40 @@ export const AIFeaturesPanel: React.FC = () => {
       setIsProcessingColorMatch(false);
     }
   }, []);
+
+  const handleGenerateMusic = useCallback(async () => {
+    if (!musicPrompt.trim() && !project?.project_name) return;
+    
+    setIsGeneratingMusic(true);
+    try {
+      const sceneDesc = stories.length > 0 ? stories[0].content : (project?.summary || project?.project_name || 'Cinematic sequence');
+      
+      const { jobId } = await cineProductionAPI.startProduction({
+        projectId: project?.id || 'default',
+        chainType: 'music_pro',
+        sceneDescription: sceneDesc,
+        audioPrompt: musicPrompt || `Generate a ${musicStyle} score for this scene`,
+        style: musicStyle,
+        overrides: {
+          duration: musicDuration
+        }
+      });
+      
+      setMusicJobId(jobId);
+      
+      // Monitor job
+      const result = await cineProductionAPI.monitorJob(jobId, (progress) => {
+        console.log(`Music Generation Progress: ${progress}%`);
+      });
+      
+      console.log('Music generation complete:', result);
+      // In a real app, we would add the resulting audio to the timeline assets
+    } catch (error) {
+      console.error('Music generation failed:', error);
+    } finally {
+      setIsGeneratingMusic(false);
+    }
+  }, [musicPrompt, project, stories, musicStyle, musicDuration]);
   
   // =============================================================================
   // Render
@@ -360,6 +452,7 @@ export const AIFeaturesPanel: React.FC = () => {
                       value={directorMood} 
                       onChange={(e) => setDirectorMood(e.target.value)}
                       className="form-select mini"
+                      title="Director Mood"
                     >
                       <option value="cinematic">Cinematic</option>
                       <option value="cyberpunk">Cyberpunk</option>
@@ -389,14 +482,35 @@ export const AIFeaturesPanel: React.FC = () => {
 
               {/* B-Roll & Style Tools */}
               <div className="assistant-tools">
-                <div className="tool-item" onClick={handleSmartBRoll}>
+                <div 
+                  className={`tool-item ${isProcessingBRoll ? 'processing' : ''}`} 
+                  onClick={handleSmartBRoll}
+                >
                   <div className="tool-icon">🖼️</div>
                   <div className="tool-info">
                     <h6>Smart B-Roll</h6>
-                    <p>Suggest mood-fitting assets</p>
+                    <p>{isProcessingBRoll ? 'Analyzing sequence...' : 'Suggest mood-fitting assets'}</p>
                   </div>
                   {isProcessingBRoll && <div className="spinner-sm" />}
                 </div>
+
+                {/* B-Roll Suggestions List */}
+                {bRollSuggestions.length > 0 && (
+                  <div className="broll-suggestions-list">
+                    <div className="list-header">Narrative B-Roll Insights</div>
+                    {bRollSuggestions.map((suggestion, idx) => (
+                      <div key={idx} className="broll-suggestion-card">
+                        <div className="suggestion-main">
+                           <div className="suggestion-reason">🎯 {suggestion.reason}</div>
+                           <div className="suggestion-desc">Prompt: "{suggestion.description}"</div>
+                        </div>
+                        <button className="apply-broll-btn" onClick={() => handleApplyBRoll(suggestion)}>
+                          INSERT AT #{suggestion.shotIndex + 1}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <div className="tool-item" onClick={handleColorMatch}>
                   <div className="tool-icon">🌈</div>
@@ -407,13 +521,59 @@ export const AIFeaturesPanel: React.FC = () => {
                   {isProcessingColorMatch && <div className="spinner-sm" />}
                 </div>
 
-                <div className="tool-item disabled">
+                <div 
+                  className={`tool-item ${isGeneratingMusic ? 'processing' : ''}`} 
+                  onClick={handleGenerateMusic}
+                >
                   <div className="tool-icon">🎵</div>
                   <div className="tool-info">
-                    <h6>Sentiment Audio Sync</h6>
-                    <p>Auto-mix score (Coming soon)</p>
+                    <h6>AI Music Composer</h6>
+                    <p>{isGeneratingMusic ? 'Composing...' : 'Generate custom score'}</p>
                   </div>
+                  {isGeneratingMusic && <div className="spinner-sm" />}
                 </div>
+
+                {/* Music Controls (Expandable) */}
+                {(musicPrompt || isGeneratingMusic) && (
+                  <div className="music-gen-controls">
+                    <textarea
+                      value={musicPrompt}
+                      onChange={(e) => setMusicPrompt(e.target.value)}
+                      placeholder="Tonalité, instruments, tempo..."
+                      className="form-textarea mini"
+                    />
+                    <div className="music-params">
+                      <select 
+                        value={musicStyle} 
+                        onChange={(e) => setMusicStyle(e.target.value)}
+                        className="form-select mini"
+                        title="Style musical"
+                      >
+                        <option value="cinematic_orchestral">Orchestral</option>
+                        <option value="synth_wave">Synthwave</option>
+                        <option value="ambient_drone">Ambient</option>
+                        <option value="epic_trailer">Epic Trailer</option>
+                        <option value="lofi_chill">Lofi Chill</option>
+                      </select>
+                      <input 
+                        type="number" 
+                        value={musicDuration} 
+                        onChange={(e) => setMusicDuration(Number(e.target.value))}
+                        className="form-input mini"
+                        min={5}
+                        max={300}
+                        title="Duration (s)"
+                      />
+                    </div>
+                    {musicJobId && (
+                      <div className="job-status-hint">
+                        <span className="job-icon">⚙️</span>
+                        <span className="job-label">Task ID:</span>
+                        <span className="job-id">{musicJobId}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -496,6 +656,7 @@ export const AIFeaturesPanel: React.FC = () => {
                 value={selectedVoice}
                 onChange={(e) => setSelectedVoice(e.target.value)}
                 className="form-select"
+                title="Select Voice"
               >
                 {VOICES.map(voice => (
                   <option key={voice.id} value={voice.id}>

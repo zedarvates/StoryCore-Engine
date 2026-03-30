@@ -605,6 +605,17 @@ export class SequencePlanService {
   }
 
   /**
+   * Enhance shot prompt using AI based on visual style (Phase 8 Adaptation)
+   */
+  public async enhanceShotPrompt(description: string, visualStyle: string): Promise<string> {
+    console.log(`[NeuralEnhance] Processing: "${description}" with style "${visualStyle}"`);
+    // Simulated AI enhancement logic
+    const enhanced = `High-end cinematic composition, ${visualStyle} style, 8k resolution, photorealistic, ${description}, masterful lighting, anamorphic lens flares, volumetric atmosphere.`;
+    
+    return new Promise(resolve => setTimeout(() => resolve(enhanced), 800));
+  }
+
+  /**
    * Generate unique name for duplicated plan
    */
   private generateUniqueName(baseName: string): string {

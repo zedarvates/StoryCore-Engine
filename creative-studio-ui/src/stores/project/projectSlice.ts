@@ -3,6 +3,8 @@ import { UnifiedProjectStore, ProjectState } from './types';
 import { logger as Logger } from '@/utils/logger';
 import { StorageManager } from '@/utils/storageManager';
 import { generateId } from '@/utils/idGenerator';
+import { alignmentService } from '@/services/alignmentService';
+import { alignmentRepairService } from '@/services/alignmentRepairService';
 import type { 
   Project, 
   Shot,
@@ -44,6 +46,11 @@ export const createProjectSlice: StateCreator<
     isGenerating: false,
     progress: 0,
   },
+
+  // Alignment
+  alignmentReport: null,
+  isAnalyzingAlignment: false,
+  isRefiningAlignment: false,
 
   // UI Panels
   showChat: false,
@@ -343,5 +350,81 @@ export const createProjectSlice: StateCreator<
        previousState: { shots: previousShots },
        nextState: { shots: get().shots }
     });
+  },
+
+  /**
+   * Alignment Actions
+   */
+  generateAlignmentReport: async () => {
+    const { project, stories, shots } = get();
+    
+    if (!project || !stories.length || !shots.length) {
+      return {
+        total_score: 0,
+        summary: "Missing project data for analysis",
+        categories: {},
+        recommendations: []
+      };
+    }
+
+    set({ isAnalyzingAlignment: true });
+    
+    try {
+      const report = await alignmentService.generateReport(project, stories, shots);
+      set({ alignmentReport: report, isAnalyzingAlignment: false });
+      return report;
+    } catch (error) {
+      set({ isAnalyzingAlignment: false });
+      throw error;
+    }
+  },
+
+  applyAlignmentRepair: async (recommendations: string[]) => {
+    const { project, shots } = get();
+    if (!project || !shots.length || !recommendations.length) return;
+
+    set({ isRefiningAlignment: true });
+    
+    try {
+      const actions = await alignmentRepairService.planRepairs(project, shots, recommendations);
+      
+      const previousShots = [...shots];
+      
+      // Execute each action
+      actions.forEach(action => {
+        if (action.type === 'updateShot') {
+          const payload = action.payload as { id: string, updates: Partial<Shot> };
+          if (payload.id && payload.updates) {
+            get().updateShot(payload.id, payload.updates, true);
+          }
+        } else if (action.type === 'deleteShot') {
+          const payload = action.payload as { id: string };
+          if (payload.id) {
+            get().deleteShot(payload.id, true);
+          }
+        } else if (action.type === 'addShot') {
+          const payload = action.payload as { newShot: Shot };
+          if (payload.newShot) {
+            get().addShot(payload.newShot, true);
+          }
+        }
+      });
+
+      // Update report after repair
+      await get().generateAlignmentReport();
+      
+      get().pushHistory({
+        id: generateId(),
+        timestamp: Date.now(),
+        action: `AI Auto-Repair: ${recommendations.length} recommendations`,
+        previousState: { shots: previousShots },
+        nextState: { shots: get().shots }
+      });
+
+      set({ isRefiningAlignment: false });
+    } catch (error) {
+      set({ isRefiningAlignment: false });
+      throw error;
+    }
   }
 });

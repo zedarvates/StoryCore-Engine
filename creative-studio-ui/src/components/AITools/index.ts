@@ -10,6 +10,12 @@ export { AnimationPresetsPanel } from './AnimationPresetsPanel';
 // Magic Mask - One-click subject isolation
 export { MagicMaskTool } from './MagicMaskTool';
 
+// Atmospheric Grading Studio - Cinematic color & volumetric lighting
+export { AtmosphericGradingStudio } from './AtmosphericGradingStudio';
+
+// Motion VFX Presets - Narrative-driven physics presets
+export { MotionVFXPresets } from './MotionVFXPresets';
+
 // Subtitle Editor - AI-powered subtitle generation
 export { SubtitleEditor } from './SubtitleEditor';
 

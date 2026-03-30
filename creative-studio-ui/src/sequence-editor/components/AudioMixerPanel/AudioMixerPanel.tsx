@@ -15,6 +15,8 @@
 
 import React, { useState, useCallback } from 'react';
 import { useAppSelector } from '../../store';
+import { useProjectStore } from '@/stores/useProjectStore';
+import { useShallow } from 'zustand/react/shallow';
 import { SurroundMixer } from './SurroundMixer';
 import { WaveformVisualizer } from './WaveformVisualizer';
 import './audioMixerPanel.css';
@@ -117,6 +119,16 @@ export const AudioMixerPanel: React.FC = () => {
   const [analysisText, setAnalysisText] = useState(projectDescription);
   const [detectedSentiment, setDetectedSentiment] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // Soundstage / Worldization state
+  const [isWorldizing, setIsWorldizing] = useState(false);
+  const [worldizationStatus, setWorldizationStatus] = useState<string | null>(null);
+
+  const { alignmentReport, updateShot, shots } = useProjectStore(useShallow(state => ({
+    alignmentReport: state.alignmentReport,
+    updateShot: state.updateShot,
+    shots: state.shots
+  })));
   
   // =============================================================================
   // Handlers
@@ -257,6 +269,52 @@ export const AudioMixerPanel: React.FC = () => {
       setIsExporting(false);
     }
   }, [projectId, exportFormat]);
+
+  const handleAutoWorldize = useCallback(async () => {
+    if (!alignmentReport) return;
+    
+    setIsWorldizing(true);
+    setWorldizationStatus("Analyzing narrative pressure...");
+    
+    try {
+      // Simulate mapping alignment scores to spatial parameters
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const intensity = Math.min(100, Math.max(0, 100 - (alignmentReport.total_score))); 
+      // Lower score = higher tension/intensity for worldization adjustment
+      
+      const preset = alignmentReport.total_score > 80 ? 'Natural/Ambient' : 
+                     alignmentReport.total_score > 50 ? 'Cinematic/Focused' : 'Dramatic/Surround';
+      
+      setWorldizationStatus(`Applying ${preset} field (Intensity: ${intensity}%)`);
+      
+      // Apply to all shots in sequence
+      shots.forEach(shot => {
+        updateShot(shot.id, {
+          audioSettings: {
+            ...shot.audioSettings,
+            volume: shot.audioSettings?.volume || 0,
+            pan: shot.audioSettings?.pan || 0,
+            surroundConfig: {
+              mode: intensity > 70 ? '7.1' : intensity > 40 ? '5.1' : 'stereo',
+              channels: {},
+              aiSuggestedPreset: preset
+            }
+          }
+        }, true); // skipHistory for bulk
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setWorldizationStatus("Soundstage synchronized.");
+      
+      setTimeout(() => setWorldizationStatus(null), 3000);
+    } catch (error) {
+      console.error('Worldization failed:', error);
+      setWorldizationStatus("Sync failed.");
+    } finally {
+      setIsWorldizing(false);
+    }
+  }, [alignmentReport, shots, updateShot]);
   
   // =============================================================================
   // Render
@@ -406,7 +464,30 @@ export const AudioMixerPanel: React.FC = () => {
         
         {/* Surround Tab */}
         {activeTab === 'surround' && (
-          <SurroundMixer />
+          <div className="surround-section">
+            <div className="surround-orchestration-bar">
+               <div className="orch-info">
+                  <h5>AI Soundstage Sync</h5>
+                  <p>Orchestrate spatial audio mapping based on narrative alignment.</p>
+               </div>
+               <button 
+                 className={`worldize-btn ${isWorldizing ? 'loading' : ''}`}
+                 onClick={handleAutoWorldize}
+                 disabled={isWorldizing || !alignmentReport}
+               >
+                 {isWorldizing ? 'Synchronizing...' : 'Sync with Story Health'}
+               </button>
+            </div>
+            
+            {worldizationStatus && (
+              <div className="worldization-status-hint">
+                <span className="status-icon">🎧</span>
+                <span className="status-text">{worldizationStatus}</span>
+              </div>
+            )}
+
+            <SurroundMixer />
+          </div>
         )}
         
         {/* Generate Tab */}

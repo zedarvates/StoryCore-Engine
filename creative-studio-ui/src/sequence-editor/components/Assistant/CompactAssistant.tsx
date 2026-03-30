@@ -1,40 +1,41 @@
-/**
- * Professional Compact AI Assistant (Image 3)
- * 
- * Floating overlay providing real-time AI guidance, prompt assistance,
- * and automated scene generation commands.
- */
-
 import React, { useState } from 'react';
 import { Sparkles, Send, X, Shrink, Maximize2 } from 'lucide-react';
 
-import { useAppDispatch } from '../../store';
-import { toggleCompactMode } from '../../store/slices/panelsSlice';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { 
+  addMessage, 
+  setIsOpen, 
+  setIsMinimized, 
+  setIsThinking 
+} from '../../store/slices/chatSlice';
 
 export const CompactAssistant: React.FC = () => {
   const dispatch = useAppDispatch();
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([
-    { role: 'assistant', content: "Hello! I'm your cinematic assistant. How can I help you refine your sequence today?" }
-  ]);
+  const { messages, isOpen, isMinimized, isThinking } = useAppSelector(state => state.chat);
   const [input, setInput] = useState('');
 
   const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { role: 'user', content: input }]);
+    if (!input.trim() || isThinking) return;
+    
+    dispatch(addMessage({ role: 'user', content: input }));
     setInput('');
+    dispatch(setIsThinking(true));
+    
     // Simulate thinking...
     setTimeout(() => {
-      setMessages(prev => [...prev, { role: 'assistant', content: "I'm analyzing your request. Shall I generate a few environment variations for you?" }]);
-    }, 1000);
+      dispatch(addMessage({ 
+        role: 'assistant', 
+        content: "I'm analyzing your request. Shall I generate a few environment variations for you?" 
+      }));
+      dispatch(setIsThinking(false));
+    }, 1500);
   };
 
   if (!isOpen) {
     return (
       <button 
         className="assistant-footer-trigger"
-        onClick={() => dispatch(toggleCompactMode())}
+        onClick={() => dispatch(setIsOpen(true))}
       >
         <Sparkles className="w-4 h-4 text-indigo-400" />
         <span className="text-[11px] font-black uppercase tracking-widest ml-2 text-white/90">Assistant LLM compact</span>
@@ -47,27 +48,29 @@ export const CompactAssistant: React.FC = () => {
       <header className="assistant-header">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-indigo-600/20 rounded-lg">
-             <Sparkles className="w-4 h-4 text-indigo-400" />
+             <Sparkles className={`w-4 h-4 text-indigo-400 ${isThinking ? 'animate-pulse' : ''}`} />
           </div>
           <div>
             <h4 className="text-xs font-black uppercase tracking-widest text-white/90 m-0">Assistant</h4>
             <div className="flex items-center gap-1.5">
-               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-               <span className="text-[9px] font-bold text-emerald-500/80 uppercase">Active</span>
+               <span className={`w-1.5 h-1.5 ${isThinking ? 'bg-amber-500' : 'bg-emerald-500'} rounded-full ${isThinking ? 'animate-pulse' : ''}`} />
+               <span className={`text-[9px] font-bold ${isThinking ? 'text-amber-500/80' : 'text-emerald-500/80'} uppercase`}>
+                 {isThinking ? 'Thinking...' : 'Active'}
+               </span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-1">
           <button 
             className="p-1.5 hover:bg-white/5 rounded-md text-white/40" 
-            onClick={() => setIsMinimized(!isMinimized)}
+            onClick={() => dispatch(setIsMinimized(!isMinimized))}
             title={isMinimized ? "Maximize Assistant" : "Minimize Assistant"}
           >
             {isMinimized ? <Maximize2 className="w-3.5 h-3.5" /> : <Shrink className="w-3.5 h-3.5" />}
           </button>
           <button 
             className="p-1.5 hover:bg-red-500/20 rounded-md text-white/40 hover:text-red-400" 
-            onClick={() => setIsOpen(false)}
+            onClick={() => dispatch(setIsOpen(false))}
             title="Close Assistant"
           >
             <X className="w-3.5 h-3.5" />
@@ -85,6 +88,13 @@ export const CompactAssistant: React.FC = () => {
                 </div>
               </div>
             ))}
+            {isThinking && (
+              <div className="message-row assistant">
+                <div className="message-bubble glassmorphic-dark opacity-50">
+                  <span className="dot-flashing" />
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="assistant-footer">
@@ -95,10 +105,12 @@ export const CompactAssistant: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+                disabled={isThinking}
               />
               <button 
-                className={`send-btn ${input.trim() ? 'active' : ''}`}
+                className={`send-btn ${input.trim() && !isThinking ? 'active' : ''}`}
                 onClick={handleSend}
+                disabled={!input.trim() || isThinking}
                 title="Send Message"
               >
                 <Send className="w-3.5 h-3.5" />

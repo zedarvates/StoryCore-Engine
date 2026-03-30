@@ -69,6 +69,7 @@ For detailed technical specifications, follow the links to individual feature do
 
 **Key Features**:
 - Shot prompt editor with template support
+- Réorganisation des shots par Drag-and-Drop (Framer Motion) [STABLE]
 - Sequence generation controls with progress tracking
 - Audio track manager with waveform visualization
 - Project metadata editor
@@ -697,7 +698,31 @@ All audit findings have been resolved. The codebase is now production-ready with
 
 ---
 
+## Recent Implementation Achievements (Late March 2026)
+
+### ✅ AI Cinematic Directorial Orchestration - COMPLETED 30/03/2026
+**Status**: ✅ **FULLY IMPLEMENTED AND PRODUCTION READY**  
+
+**Key Achievements**:
+- **Automated Narrative Repair**: Integrated `AlignmentRepairService` for one-click narrative synchronization and automated sequence remediation.
+- **Context-Aware B-Roll Orchestration**: Developed `BRollService` with intelligent gap analysis and one-click magnetic timeline insertion.
+- **Soundstage & Worldization Sync**: Automatic mapping of narrative alignment scores to complex spatial audio parameters in the `AudioMixerPanel`.
+- **Architectural Hardening**: Migration of the directorial UI to clean Vanilla CSS modules, eliminating technical debt and resolving consistent accessibility warnings.
+
+**Technical Implementation**:
+- `AlignmentRepairService.ts`: Narrative-to-action translation engine.
+- `BRollService.ts`: Script-to-asset gap analysis and style mapping.
+- `AudioMixerPanel.tsx`: Soundstage synchronization with story health metadata.
+- `SurroundPresetsPanel.css`: Clean, performant CSS module architecture.
+
+---
+
 ## Recent Implementation Achievements (Early March 2026)
+
+### ✅ Autonomous Story Weaver Expansion - COMPLETED 05/03/2026
+**Status**: ✅ **FULLY IMPLEMENTED**
+
+---
 
 ## Recent Implementation Achievements (February 2026)
 

@@ -12,15 +12,20 @@ import {
   Sparkles, Send, X, User, Play, Camera, Maximize2, 
   Settings as SettingsIcon, Image as ImageIcon, 
   Video as VideoIcon, Mic, Type, Music, Waves, Volume2, Save, CheckCircle,
-  Plus
+  Plus, Layers, Download, FileVideo, Palette, Activity
 } from 'lucide-react';
 import { useDrop } from 'react-dnd';
+import { Reorder } from 'framer-motion';
 import { DND_ITEM_TYPES, type CharacterDragItem } from '@/constants/dnd';
 import type { Shot, GenerationTask, StyleApplication, Cinematography } from '@/types';
 import { intentOrchestration, SystemContext } from '@/services/ai/IntentOrchestrationService';
 import type { IntentName, IntentEntities } from '@/services/ai/types';
 import { audioWorldizationMapper, WorldizationResult } from '@/services/audio/AudioWorldizationMapper';
 import { cinematicAudioService } from '@/services/CinematicAudioService';
+import { bulkProductionService } from '@/services/BulkProductionService';
+import { multiTrackExportService } from '@/services/MultiTrackExportService';
+import { colorGradingService, LUT_PRESETS, type LUTPreset } from '@/services/ColorGradingService';
+import { cinematicFeedbackService, type CinematicAuditReport } from '@/services/CinematicFeedbackService';
 import './compactDirectorPanel.css';
 
 interface Message {
@@ -43,10 +48,12 @@ export const CompactDirectorPanel: React.FC = () => {
     characters,
     project,
     addTask,
+    reorderShots,
     promoteAssetFromShot,
     promoteAllGeneratedAssets,
     assignCharacterToShot,
-    removeCharacterFromShot
+    removeCharacterFromShot,
+    updateShot
   } = useProjectStore(useShallow(state => ({
     shots: state.shots,
     selectedShotId: state.selectedShotId,
@@ -54,10 +61,12 @@ export const CompactDirectorPanel: React.FC = () => {
     characters: state.characters,
     project: state.project,
     addTask: state.addTask,
+    reorderShots: state.reorderShots,
     promoteAssetFromShot: state.promoteAssetFromShot,
     promoteAllGeneratedAssets: state.promoteAllGeneratedAssets,
     assignCharacterToShot: state.assignCharacterToShot,
-    removeCharacterFromShot: state.removeCharacterFromShot
+    removeCharacterFromShot: state.removeCharacterFromShot,
+    updateShot: state.updateShot
   })));
 
   const activeShotIndex = shots.findIndex(s => s.id === selectedShotId);
@@ -71,6 +80,8 @@ export const CompactDirectorPanel: React.FC = () => {
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [audioMap, setAudioMap] = useState<WorldizationResult | null>(null);
   const [generatingLayers, setGeneratingLayers] = useState<string[]>([]);
+  const [isBulkGenerating, setIsBulkGenerating] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   
   const [panelSettings] = useState({
@@ -105,6 +116,107 @@ export const CompactDirectorPanel: React.FC = () => {
     addTask(newTask);
   }, [selectedShotId, activeTab, prompt, activeShot, addTask]);
 
+  const handleBulkGenerate = useCallback(async () => {
+    if (!project || shots.length === 0) return;
+    
+    setIsBulkGenerating(true);
+    setBulkProgress(0);
+    setMessages(prev => [...prev, { role: 'assistant', content: `Démarrage du Bulk Rendering pour ${shots.length} plans...`, timestamp: Date.now() }]);
+
+    try {
+      const result = await bulkProductionService.generateSequenceBulk(
+        project,
+        shots,
+        characters,
+        {
+          concurrency: 3,
+          coherenceLock: true,
+          onProgress: (p) => setBulkProgress(p),
+          onShotComplete: (shotId, job) => {
+            const finalUrl = job.results.find(r => r.step === 'video' || r.step === 'image')?.output as string;
+            if (finalUrl) {
+              updateShot(shotId, { 
+                result_url: finalUrl,
+                status: 'complete'
+              });
+            }
+          },
+          onShotError: (shotId, error) => {
+             updateShot(shotId, { status: 'error' });
+          }
+        }
+      );
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: `Bulk Rendering terminé ! ${result.successful.length} réussis, ${result.failed.length} échoués.`, 
+        timestamp: Date.now() 
+      }]);
+    } catch (error) {
+      console.error("Bulk generation failed", error);
+    } finally {
+      setIsBulkGenerating(false);
+    }
+  }, [project, shots, characters, updateShot]);
+
+  const handleExport = useCallback(async () => {
+    if (!project || shots.length === 0) return;
+    
+    setIsAiThinking(true);
+    setMessages(prev => [...prev, { role: 'assistant', content: "Initialisation de l'export multi-piste professionnel...", timestamp: Date.now() }]);
+
+    try {
+      const manifest = await multiTrackExportService.exportFullProject(project, shots, characters, {
+        includeStems: true,
+        format: 'post-production-manifest'
+      });
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: `Export terminé ! Manifeste de production généré pour ${manifest.shots.length} plans.`, 
+        timestamp: Date.now(),
+        suggestions: ["Télécharger le Manifeste", "Exporter pour DAW"]
+      }]);
+    } catch (error) {
+      console.error("Export failed", error);
+      setMessages(prev => [...prev, { role: 'assistant', content: "L'export a échoué. Assurez-vous que tous les plans sont générés.", timestamp: Date.now() }]);
+    } finally {
+      setIsAiThinking(false);
+    }
+  }, [project, shots, characters]);
+
+  const handleApplyLUT = useCallback((presetId: string) => {
+    if (!selectedShotId || !activeShot) return;
+    
+    const preset = colorGradingService.getPreset(presetId);
+    if (!preset) return;
+
+    updateShot(selectedShotId, {
+      prompt: colorGradingService.applyGradingToPrompt(activeShot.prompt || '', presetId),
+      visualStyle: {
+        ...activeShot.visualStyle,
+        styleName: preset.name
+      } as StyleApplication
+    });
+
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      content: `Style cinématographique "${preset.name}" appliqué avec succès.`, 
+      timestamp: Date.now() 
+    }]);
+  }, [selectedShotId, activeShot, updateShot]);
+
+  const handleCinematicAudit = useCallback(() => {
+    const report = cinematicFeedbackService.analyzeSequence(shots);
+    
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      content: `Audit Cinématique Terminé: Score Global ${report.overallScore}/100. ${report.metrics[0].feedback}`,
+      suggestions: report.recommendations.map(r => `Action: ${r.actionLabel || r.message}`),
+      timestamp: Date.now() 
+    }]);
+  }, [shots]);
+
   const handleWorldizeAudio = useCallback(async () => {
     if (!activeShot) return;
     setIsAiThinking(true);
@@ -132,6 +244,17 @@ export const CompactDirectorPanel: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
     const currentInput = prompt;
     setPrompt('');
+
+    // Handle special commands from suggestions
+    if (currentInput.startsWith('Appliquer LUT: ')) {
+      const lutName = currentInput.replace('Appliquer LUT: ', '');
+      const preset = LUT_PRESETS.find((p: LUTPreset) => p.name === lutName);
+      if (preset) {
+        handleApplyLUT(preset.id);
+        return;
+      }
+    }
+
     setIsAiThinking(true);
 
     try {
@@ -235,7 +358,7 @@ export const CompactDirectorPanel: React.FC = () => {
     } finally {
       setIsAiThinking(false);
     }
-  }, [prompt, project, selectedShotId, handleGenerate, handleWorldizeAudio, activeShot?.cinematography, activeShot?.visualStyle, shots.length, setActiveTab]);
+  }, [prompt, project, selectedShotId, handleGenerate, handleWorldizeAudio, handleApplyLUT, activeShot?.cinematography, activeShot?.visualStyle, shots.length, setActiveTab]);
 
   const handleGenerateAudioLayer = async (layer: string, description: string) => {
     setGeneratingLayers(prev => [...prev, layer]);
@@ -484,31 +607,44 @@ export const CompactDirectorPanel: React.FC = () => {
           </div>
 
           <div className="shot-thumbnails-row">
-            {shots.map((shot, idx) => {
-              const isGenerated = !!(shot.result_url || shot.generated_image_url);
-              return (
-                <div 
-                  key={shot.id} 
-                  className={`shot-card ${selectedShotId === shot.id ? 'active' : ''}`}
-                  onClick={() => setSelectedShotId(shot.id)}
-                >
-                  <div className="shot-label">Shot {idx + 1}</div>
-                  <div className="shot-title">{shot.name || shot.title || 'Untitled'}</div>
-                  <CurvePreview path={mockPaths[idx % mockPaths.length]} />
-                  <div className="shot-duration-tag">{Math.round((shot.duration || 48) / 24)}s</div>
-                  
-                  {isGenerated && (
-                    <button 
-                      className="shot-promote-badge" 
-                      onClick={(e) => { e.stopPropagation(); promoteAssetFromShot(shot.id); }}
-                      title="Promouvoir vers la bibliothèque"
+            <Reorder.Group 
+              axis="x" 
+              values={shots} 
+              onReorder={reorderShots}
+              className="shot-reorder-group"
+              style={{ display: 'flex', gap: '8px' }}
+            >
+              {shots.map((shot, idx) => {
+                const isGenerated = !!(shot.result_url || shot.generated_image_url);
+                return (
+                  <Reorder.Item
+                    key={shot.id}
+                    value={shot}
+                    className={`shot-card-wrapper ${selectedShotId === shot.id ? 'active' : ''}`}
+                  >
+                    <div 
+                      className={`shot-card ${selectedShotId === shot.id ? 'active' : ''}`}
+                      onClick={() => setSelectedShotId(shot.id)}
                     >
-                      <CheckCircle className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                      <div className="shot-label">Shot {idx + 1}</div>
+                      <div className="shot-title">{shot.name || shot.title || 'Untitled'}</div>
+                      <CurvePreview path={mockPaths[idx % mockPaths.length]} />
+                      <div className="shot-duration-tag">{Math.round((shot.duration || 48) / 24)}s</div>
+                      
+                      {isGenerated && (
+                        <button 
+                          className="shot-promote-badge" 
+                          onClick={(e) => { e.stopPropagation(); promoteAssetFromShot(shot.id); }}
+                          title="Promouvoir vers la bibliothèque"
+                        >
+                          <CheckCircle className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </Reorder.Item>
+                );
+              })}
+            </Reorder.Group>
             {shots.length === 0 && (
               <div className="no-shots-message">Aucun plan disponible</div>
             )}
@@ -600,7 +736,20 @@ export const CompactDirectorPanel: React.FC = () => {
         <div className="settings-pills-group">
           <div className="setting-pill interactive" title="Mode de rendu"><SettingsIcon className="w-3 h-3" /> {panelSettings.mode}</div>
           <div className="setting-pill interactive" title="Ratio d'aspect"><Maximize2 className="w-3 h-3" /> {panelSettings.ratio}</div>
-          <div className="setting-pill interactive" title="Style visuel"><Sparkles className="w-3 h-3" /> {panelSettings.style}</div>
+          <div className="setting-pill interactive" title="Style visuel & LUT" onClick={() => {
+              const recommended = colorGradingService.suggestLutForScene(activeShot?.prompt || '');
+              setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                content: `Basé sur votre scène, je recommande ces LUTs pour une cohérence visuelle optimale :`,
+                timestamp: Date.now(),
+                suggestions: recommended.map(r => `Appliquer LUT: ${r.name}`)
+              }]);
+            }}>
+            <Palette className="w-3 h-3 text-pink-400" /> {activeShot?.visualStyle?.styleName || panelSettings.style}
+          </div>
+          <div className="setting-pill interactive" title="Lancer un Audit" onClick={handleCinematicAudit}>
+            <Activity className="w-3 h-3 text-emerald-400" /> Audit
+          </div>
         </div>
 
         <div className="orchestrator-actions">
@@ -608,18 +757,67 @@ export const CompactDirectorPanel: React.FC = () => {
             <Camera className="w-4 h-4 mb-1" />
             <span>Ref. Frame</span>
           </button>
+
+          {shots.length > 1 && (
+            <button 
+              className={`generate-btn bulk ${isBulkGenerating ? 'processing' : ''}`}
+              onClick={handleBulkGenerate}
+              disabled={isBulkGenerating}
+              title="Lancer le rendu de TOUTE la séquence en parallèle"
+            >
+              {isBulkGenerating ? (
+                <div className="flex items-center gap-2">
+                   <div className="mini-spinner" />
+                   <span>{bulkProgress}%</span>
+                </div>
+              ) : (
+                <>
+                  <Layers className="w-4 h-4" />
+                  <span>BULK RENDER</span>
+                </>
+              )}
+            </button>
+          )}
           
           <button 
             className="generate-btn"
             onClick={handleGenerate}
-            disabled={!selectedShotId}
-            title="Lancer l'orchestration"
+            disabled={!selectedShotId || isBulkGenerating}
+            title="Lancer l'orchestration du plan actif"
           >
             <Play className="w-5 h-5 fill-current" />
             ORCHESTRATE ✦
           </button>
+
+          <button 
+            className="frame-btn" 
+            onClick={handleExport}
+            disabled={isBulkGenerating}
+            title="Exporter tout le projet (Multi-track DAW/NLE)"
+          >
+            <FileVideo className="w-4 h-4 mb-1 text-green-400" />
+            <span>FULL EXPORT</span>
+          </button>
         </div>
       </div>
+
+      {isBulkGenerating && (
+        <div className="bulk-generation-overlay">
+           <div className="bulk-progress-container">
+             <div className="flex justify-between mb-2">
+                <span className="text-[10px] font-black tracking-widest text-white/40">MASS PRODUCTION ACTIVE</span>
+                <span className="text-[10px] font-mono text-blue-400">{bulkProgress}%</span>
+             </div>
+             <div className="bulk-progress-bar">
+                <div 
+                  className="bulk-progress-fill" 
+                  style={{ '--bulk-progress': `${bulkProgress}%` } as React.CSSProperties} 
+                />
+             </div>
+             <div className="text-[8px] text-center mt-2 opacity-30 italic">Coherence lock engaged. Analyzing project memory...</div>
+           </div>
+        </div>
+      )}
     </div>
   );
 };

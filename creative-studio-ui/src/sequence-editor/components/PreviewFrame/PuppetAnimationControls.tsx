@@ -2,9 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { 
   Plus, Trash2, Box, ChevronDown, ChevronUp, 
   Smile, Activity, Layers, Play, Settings2, 
-  Move, Target, BrainCircuit, Zap, Sparkles
+  Move, Target, BrainCircuit, Zap, Sparkles,
+  Camera, Layout
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { neuralPuppetService } from '@/services/NeuralPuppetService';
 import './puppetAnimationControls.css';
 
 interface PuppetKeyframe {
@@ -21,7 +23,12 @@ interface PuppetAnimationControlsProps {
   keyframes: PuppetKeyframe[];
 }
 
-const POSE_PRESETS = {
+interface PosePreset {
+  description: string;
+  icon: React.ReactNode;
+}
+
+const POSE_PRESETS: Record<string, PosePreset> = {
   idle: { description: 'Neutral focus', icon: <Target className="w-3.5 h-3.5" /> },
   walking: { description: 'Locomotion cycle', icon: <Activity className="w-3.5 h-3.5" /> },
   running: { description: 'Active sprint', icon: <Zap className="w-3.5 h-3.5" /> },
@@ -29,6 +36,20 @@ const POSE_PRESETS = {
   waving: { description: 'Gesture saluto', icon: <Smile className="w-3.5 h-3.5" /> },
   celebrating: { description: 'Success pose', icon: <Sparkles className="w-3.5 h-3.5" /> },
 };
+
+interface CinematicShotPreset {
+  id: string;
+  name: string;
+  focus: string;
+}
+
+const CINEMATIC_SHOT_PRESETS: CinematicShotPreset[] = [
+  { id: 'ECU', name: 'Extreme Close-Up', focus: 'Face' },
+  { id: 'CU', name: 'Close-Up', focus: 'Expression' },
+  { id: 'MS', name: 'Medium Shot', focus: 'Body' },
+  { id: 'LS', name: 'Long Shot', focus: 'Posture' },
+  { id: 'ELS', name: 'Extreme Long Shot', focus: 'Silhouette' },
+];
 
 const ANIMATION_TEMPLATES = [
   { id: 'walk-cycle', name: 'Walk Cycle', icon: <Activity className="w-4 h-4 text-emerald-400" /> },
@@ -45,6 +66,7 @@ export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = (
 }) => {
   const [selectedPose, setSelectedPose] = useState<string>('idle');
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showShotPresets, setShowShotPresets] = useState(true);
   const [expressionIntensity, setExpressionIntensity] = useState(50);
   const [selectedExpression, setSelectedExpression] = useState<string>('neutral');
   
@@ -53,6 +75,30 @@ export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = (
   const handleAddKeyframe = useCallback(() => {
     onKeyframeAdd({ frame: currentFrame, pose: selectedPose, joints: {} });
   }, [currentFrame, selectedPose, onKeyframeAdd]);
+
+  const handleApplyCinematicRig = useCallback((shotId: string) => {
+    const rigConfig = neuralPuppetService.getRigForCinematography({ framing: shotId as any });
+    
+    // Map rigConfig.joints (array) to the keyframe's joints (Record)
+    const jointsRecord: Record<string, { x: number; y: number; z: number }> = {};
+    rigConfig.joints.forEach(j => {
+      jointsRecord[j.id] = j.rotation;
+    });
+
+    onKeyframeAdd({ 
+      frame: currentFrame, 
+      pose: `Cinematic: ${shotId}`, 
+      joints: jointsRecord 
+    });
+    
+    setSelectedPose(`rig-${shotId}`);
+    if (rigConfig.facialExpression) {
+      // Find the highest intensity expression
+      const maxExp = Object.entries(rigConfig.facialExpression).reduce((a, b) => a[1] > b[1] ? a : b);
+      setSelectedExpression(maxExp[0]);
+      setExpressionIntensity(maxExp[1]);
+    }
+  }, [currentFrame, onKeyframeAdd]);
 
   return (
     <div className="puppet-controls-container glassmorphic-dark border-primary/20">
@@ -79,6 +125,37 @@ export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = (
             {currentKeyframe ? <Trash2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             <span>{currentKeyframe ? 'Drop Keyframe' : 'Capture Pose'}</span>
           </button>
+        </section>
+
+        {/* Directorial Presets */}
+        <section className="control-card special">
+           <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <Camera className="w-3.5 h-3.5 text-blue-400" />
+                <label className="card-label mb-0">Directorial Presets</label>
+              </div>
+              <button className="text-white/20 hover:text-white" onClick={() => setShowShotPresets(!showShotPresets)}>
+                 {showShotPresets ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+           </div>
+
+           {showShotPresets && (
+             <div className="shot-presets-grid grid grid-cols-1 gap-1.5 mt-2">
+                {CINEMATIC_SHOT_PRESETS.map(preset => (
+                  <button 
+                    key={preset.id} 
+                    className="shot-preset-item flex items-center justify-between p-2 rounded-md bg-white/5 hover:bg-blue-500/20 transition-all border border-white/5 active:scale-95"
+                    onClick={() => handleApplyCinematicRig(preset.id)}
+                  >
+                    <div className="flex flex-col items-start translate-x-1">
+                      <span className="text-[9px] font-black tracking-wider text-blue-300">{preset.id}</span>
+                      <span className="text-[8px] opacity-40 leading-none">{preset.name}</span>
+                    </div>
+                    <Layout className="w-3 h-3 opacity-20" />
+                  </button>
+                ))}
+             </div>
+           )}
         </section>
 
         {/* Pose Selection */}

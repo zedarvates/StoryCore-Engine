@@ -22,6 +22,7 @@ import effectsReducer from './slices/effectsSlice'; // Phase 1 - R&D
 import audioReducer from './slices/audioSlice'; // Phase 1 - R&D
 import presetsReducer from './slices/presetsSlice'; // Phase 5
 import exportReducer from './slices/exportSlice'; // Phase 5 - Batch Export
+import chatReducer from './slices/chatSlice';
 
 // Import middleware
 import { historyMiddleware } from './middleware/historyMiddleware';
@@ -40,6 +41,7 @@ export type RootReducerState = {
   audio: ReturnType<typeof audioReducer>;
   presets: ReturnType<typeof presetsReducer>;
   export: ReturnType<typeof exportReducer>;
+  chat: ReturnType<typeof chatReducer>;
 };
 
 // Configure the Redux store
@@ -55,6 +57,7 @@ const rootReducer = {
   audio: audioReducer,
   presets: presetsReducer,
   export: exportReducer,
+  chat: chatReducer,
 };
 
 export const store = configureStore({

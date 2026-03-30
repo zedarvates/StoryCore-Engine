@@ -8,10 +8,18 @@
 
 export const LipSyncModel = {
   WAV2LIP: 'wav2lip',
-  SADTALKER: 'sadtalker'
+  SADTALKER: 'sadtalker',
+  LIVE_PORTRAIT: 'live-portrait'
 } as const;
 
 export type LipSyncModel = typeof LipSyncModel[keyof typeof LipSyncModel];
+
+export interface PhonicAlignment {
+  viseme: string;
+  start: number;
+  end: number;
+  confidence: number;
+}
 
 export const LipSyncStyle = {
   NEUTRAL: 'neutral',

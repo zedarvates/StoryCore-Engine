@@ -12,6 +12,8 @@ import React, { useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { addTransition, removeTransition } from '../../store/slices/timelineSlice';
 import './transitionsPanel.css';
+import { cineProductionAPI } from '@/services/cineProductionAPI';
+import { useProjectStore } from '@/stores/useProjectStore';
 
 // Transition types matching backend TransitionType enum
 export type TransitionType = 
@@ -84,6 +86,10 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
+  // AI Transition state
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const project = useProjectStore(state => state.project);
+  
   // Get current transition for selected clip (from backend)
   const currentTransition = useCallback((_clipId: string, _pos: string) => {
     // In production, get from Redux store
@@ -148,6 +154,31 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({
       console.error('Failed to remove transition:', error);
     }
   }, [selectedClipId, position, dispatch]);
+
+  const handleGenerateAITransition = useCallback(async () => {
+    if (!selectedClipId || !project) return;
+    
+    setIsGeneratingAI(true);
+    try {
+      const { jobId } = await cineProductionAPI.startProduction({
+        projectId: project.id,
+        chainType: 'generate_scene',
+        sceneDescription: `Create a cinematic ${selectedTransition} transition bridge for clip ${selectedClipId}`,
+        style: 'seamless_blend',
+        overrides: {
+          transitionType: selectedTransition,
+          duration: duration
+        }
+      });
+      
+      await cineProductionAPI.monitorJob(jobId);
+      console.log('AI Transition generated successfully');
+    } catch (error) {
+      console.error('AI Transition failed:', error);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  }, [selectedClipId, project, selectedTransition, duration]);
   
   // Get categories
   const categories = [
@@ -171,15 +202,23 @@ export const TransitionsPanel: React.FC<TransitionsPanelProps> = ({
         <span className="position-badge">{position === 'in' ? 'In' : 'Out'}</span>
       </div>
       
-      {/* Search */}
+      {/* Search & AI Prompt */}
       <div className="transitions-search">
         <input
           type="text"
-          placeholder="Search transitions..."
+          placeholder="Search or AI Prompt..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="transitions-search-input"
         />
+        <button 
+          className={`ai-generate-mini ${isGeneratingAI ? 'processing' : ''}`}
+          onClick={handleGenerateAITransition}
+          disabled={isGeneratingAI || !selectedClipId}
+          title="Compose Dynamic Transition"
+        >
+          {isGeneratingAI ? '...' : '🪄'}
+        </button>
       </div>
       
       {/* Category Filter */}
