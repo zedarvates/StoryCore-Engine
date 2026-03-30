@@ -3,7 +3,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useStore } from '@/store';
 import { ollamaClient } from '@/services/llm/OllamaClient';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Save, Edit3, Loader2, BookOpen } from 'lucide-react';
+import { Sparkles, Save, Edit3, Loader2, BookOpen, FolderOpen } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { projectPersistence } from '@/services/persistence/projectPersistence';
 import './ProjectResumeSection.css';
@@ -31,7 +31,27 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
         } else if (project?.metadata?.description) {
             setResume(String(project.metadata.description));
         }
-    }, [project]);
+    }, [project?.global_resume, project?.metadata?.description]);
+
+    const handleOpenFolder = async () => {
+        const projectPath = project?.path || (project?.metadata?.path as string);
+        
+        if (!projectPath) {
+            showError('Folder Unknown', 'Project path is not available');
+            return;
+        }
+        
+        try {
+            if (window.electronAPI?.app?.openFolder) {
+                await window.electronAPI.app.openFolder(projectPath);
+            } else {
+                showError('Feature Unavailable', 'Opening folders is only supported in the desktop app.');
+            }
+        } catch (error) {
+            console.error('Failed to open folder:', error);
+            showError('Open Failed', 'Could not open the project directory.');
+        }
+    };
 
     const handleSave = async () => {
         if (!project) return;
@@ -108,6 +128,17 @@ export const ProjectResumeSection: React.FC<ProjectResumeSectionProps> = ({ clas
                 <div className="flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-primary" />
                     <h3>Project Creative Resume</h3>
+                    {!!(project?.path || project?.metadata?.path) && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleOpenFolder}
+                            className="w-8 h-8 rounded-full hover:bg-white/10 text-white/40 hover:text-primary transition-all ml-1"
+                            title="Open project folder in system explorer"
+                        >
+                            <FolderOpen className="w-4 h-4" />
+                        </Button>
+                    )}
                 </div>
                 <div className="header-actions">
                     <Button

@@ -102,7 +102,7 @@ export class OllamaClient {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(request),
-        signal: AbortSignal.timeout(60000), // 60 second timeout
+        signal: AbortSignal.timeout(300000), // 300 second (5 minute) timeout
       });
 
       if (!response.ok) {
@@ -192,7 +192,7 @@ export class OllamaClient {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(request),
-        signal: AbortSignal.timeout(120000), // 120 second timeout for streaming
+        signal: AbortSignal.timeout(600000), // 600 second (10 minute) timeout for streaming
       });
 
       if (!response.ok) {

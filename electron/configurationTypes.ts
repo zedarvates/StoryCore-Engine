@@ -80,6 +80,13 @@ export interface ComfyUIConfiguration {
   };
   timeout: number;
   enableQueueMonitoring: boolean;
+  mcpConfig?: {
+    enabled: boolean;
+    transport: 'stdio' | 'sse' | 'websockets';
+    serverPath?: string;
+    serverArgs?: string[];
+    env?: Record<string, string>;
+  };
 }
 
 // Wizard-related interfaces

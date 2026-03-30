@@ -1,11 +1,10 @@
-/**
- * Puppet Animation Controls Component
- * 
- * Timeline-synced puppet animation with keyframe markers and pose presets.
- * Requirements: 9.1, 9.2
- */
-
 import React, { useState, useCallback } from 'react';
+import { 
+  Plus, Trash2, Box, ChevronDown, ChevronUp, 
+  Smile, Activity, Layers, Play, Settings2, 
+  Move, Target, BrainCircuit, Zap, Sparkles
+} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import './puppetAnimationControls.css';
 
 interface PuppetKeyframe {
@@ -23,108 +22,18 @@ interface PuppetAnimationControlsProps {
 }
 
 const POSE_PRESETS = {
-  idle: {
-    description: 'Neutral standing pose',
-    joints: {
-      'left-shoulder': { x: 0, y: 0, z: 0 },
-      'right-shoulder': { x: 0, y: 0, z: 0 },
-      'left-elbow': { x: 0, y: 0, z: 0 },
-      'right-elbow': { x: 0, y: 0, z: 0 },
-    },
-  },
-  walking: {
-    description: 'Walking forward motion',
-    joints: {
-      'left-shoulder': { x: 0.3, y: 0, z: 0 },
-      'right-shoulder': { x: -0.3, y: 0, z: 0 },
-      'left-hip': { x: -0.2, y: 0, z: 0 },
-      'right-hip': { x: 0.2, y: 0, z: 0 },
-    },
-  },
-  running: {
-    description: 'Running motion',
-    joints: {
-      'left-shoulder': { x: 0.5, y: 0, z: 0 },
-      'right-shoulder': { x: -0.5, y: 0, z: 0 },
-      'left-hip': { x: -0.4, y: 0, z: 0 },
-      'right-hip': { x: 0.4, y: 0, z: 0 },
-    },
-  },
-  sitting: {
-    description: 'Sitting position',
-    joints: {
-      'left-hip': { x: 0, y: -0.5, z: 0 },
-      'right-hip': { x: 0, y: -0.5, z: 0 },
-      'left-knee': { x: 0.5, y: 0, z: 0 },
-      'right-knee': { x: 0.5, y: 0, z: 0 },
-    },
-  },
-  waving: {
-    description: 'Waving hand gesture',
-    joints: {
-      'right-shoulder': { x: 0, y: 0.8, z: 0 },
-      'right-elbow': { x: 0, y: 0.5, z: 0 },
-      'right-hand': { x: 0, y: 0.3, z: 0 },
-    },
-  },
-  pointing: {
-    description: 'Pointing forward',
-    joints: {
-      'right-shoulder': { x: 0, y: 0.3, z: 0 },
-      'right-elbow': { x: 0, y: 0, z: 0 },
-      'right-hand': { x: 0, y: 0, z: 0.5 },
-    },
-  },
-  thinking: {
-    description: 'Thinking pose with hand on chin',
-    joints: {
-      'right-shoulder': { x: 0, y: 0.5, z: 0 },
-      'right-elbow': { x: 0.3, y: 0, z: 0 },
-      'head': { x: 0, y: 0.2, z: 0 },
-    },
-  },
-  celebrating: {
-    description: 'Celebrating with arms raised',
-    joints: {
-      'left-shoulder': { x: 0, y: 1.2, z: 0 },
-      'right-shoulder': { x: 0, y: 1.2, z: 0 },
-      'left-elbow': { x: 0, y: 0.5, z: 0 },
-      'right-elbow': { x: 0, y: 0.5, z: 0 },
-    },
-  },
+  idle: { description: 'Neutral focus', icon: <Target className="w-3.5 h-3.5" /> },
+  walking: { description: 'Locomotion cycle', icon: <Activity className="w-3.5 h-3.5" /> },
+  running: { description: 'Active sprint', icon: <Zap className="w-3.5 h-3.5" /> },
+  sitting: { description: 'Relaxed posture', icon: <Box className="w-3.5 h-3.5" /> },
+  waving: { description: 'Gesture saluto', icon: <Smile className="w-3.5 h-3.5" /> },
+  celebrating: { description: 'Success pose', icon: <Sparkles className="w-3.5 h-3.5" /> },
 };
 
 const ANIMATION_TEMPLATES = [
-  {
-    id: 'walk-cycle',
-    name: 'Walk Cycle',
-    description: '4-frame walking animation',
-    frames: [
-      { frame: 0, pose: 'walking' },
-      { frame: 6, pose: 'idle' },
-      { frame: 12, pose: 'walking' },
-      { frame: 18, pose: 'idle' },
-    ],
-  },
-  {
-    id: 'wave-hello',
-    name: 'Wave Hello',
-    description: 'Friendly waving gesture',
-    frames: [
-      { frame: 0, pose: 'idle' },
-      { frame: 6, pose: 'waving' },
-      { frame: 12, pose: 'idle' },
-    ],
-  },
-  {
-    id: 'sit-down',
-    name: 'Sit Down',
-    description: 'Sitting down animation',
-    frames: [
-      { frame: 0, pose: 'idle' },
-      { frame: 12, pose: 'sitting' },
-    ],
-  },
+  { id: 'walk-cycle', name: 'Walk Cycle', icon: <Activity className="w-4 h-4 text-emerald-400" /> },
+  { id: 'wave-hello', name: 'Wave Hello', icon: <Smile className="w-4 h-4 text-sky-400" /> },
+  { id: 'smart-thinking', name: 'Smart Logic', icon: <BrainCircuit className="w-4 h-4 text-indigo-400" /> },
 ];
 
 export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = ({
@@ -139,188 +48,139 @@ export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = (
   const [expressionIntensity, setExpressionIntensity] = useState(50);
   const [selectedExpression, setSelectedExpression] = useState<string>('neutral');
   
-  // Check if there's a keyframe at current frame
   const currentKeyframe = keyframes.find((kf) => kf.frame === currentFrame);
   
-  // Add keyframe at current frame
   const handleAddKeyframe = useCallback(() => {
-    const poseData = POSE_PRESETS[selectedPose as keyof typeof POSE_PRESETS];
-    if (!poseData) return;
-    
-    const keyframe: PuppetKeyframe = {
-      frame: currentFrame,
-      pose: selectedPose,
-      joints: poseData.joints,
-    };
-    
-    onKeyframeAdd(keyframe);
+    onKeyframeAdd({ frame: currentFrame, pose: selectedPose, joints: {} });
   }, [currentFrame, selectedPose, onKeyframeAdd]);
-  
-  // Remove keyframe at current frame
-  const handleRemoveKeyframe = useCallback(() => {
-    if (currentKeyframe) {
-      onKeyframeRemove(currentKeyframe.frame);
-    }
-  }, [currentKeyframe, onKeyframeRemove]);
-  
-  // Apply animation template
-  const handleApplyTemplate = useCallback((templateId: string) => {
-    const template = ANIMATION_TEMPLATES.find((t) => t.id === templateId);
-    if (!template) return;
-    
-    template.frames.forEach((frameData) => {
-      const poseData = POSE_PRESETS[frameData.pose as keyof typeof POSE_PRESETS];
-      if (poseData) {
-        const keyframe: PuppetKeyframe = {
-          frame: currentFrame + frameData.frame,
-          pose: frameData.pose,
-          joints: poseData.joints,
-        };
-        onKeyframeAdd(keyframe);
-      }
-    });
-    
-    setShowTemplates(false);
-  }, [currentFrame, onKeyframeAdd]);
-  
+
   return (
-    <div className="puppet-animation-controls">
-      <h4>Animation Controls</h4>
-      
-      {/* Keyframe Controls */}
-      <div className="control-section">
-        <label className="section-label">Keyframe at Frame {currentFrame}</label>
-        <div className="keyframe-buttons">
-          {currentKeyframe ? (
-            <>
-              <div className="keyframe-info">
-                <span className="keyframe-indicator">●</span>
-                <span className="keyframe-pose">{currentKeyframe.pose}</span>
-              </div>
-              <button
-                className="keyframe-btn remove"
-                onClick={handleRemoveKeyframe}
-                title="Remove keyframe"
-              >
-                Remove Keyframe
-              </button>
-            </>
-          ) : (
-            <button
-              className="keyframe-btn add"
-              onClick={handleAddKeyframe}
-              title="Add keyframe at current frame"
-            >
-              + Add Keyframe
-            </button>
-          )}
+    <div className="puppet-controls-container glassmorphic-dark border-primary/20">
+      <header className="controls-header">
+        <div className="flex items-center gap-2">
+          <Move className="w-4 h-4 text-primary" />
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-primary/80">Puppet Intel</h3>
         </div>
-      </div>
+        <span className="text-[9px] font-mono opacity-40">ID: {puppetId.slice(0, 8)}</span>
+      </header>
       
-      {/* Pose Presets */}
-      <div className="control-section">
-        <label className="section-label">Pose Preset</label>
-        <select
-          className="pose-preset-select"
-          value={selectedPose}
-          onChange={(e) => setSelectedPose(e.target.value)}
-        >
-          {Object.entries(POSE_PRESETS).map(([key, preset]) => (
-            <option key={key} value={key}>
-              {key.charAt(0).toUpperCase() + key.slice(1)} - {preset.description}
-            </option>
-          ))}
-        </select>
-      </div>
-      
-      {/* Animation Templates */}
-      <div className="control-section">
-        <label className="section-label">Animation Templates</label>
-        <button
-          className="template-toggle-btn"
-          onClick={() => setShowTemplates(!showTemplates)}
-        >
-          {showTemplates ? 'Hide Templates' : 'Show Templates'}
-        </button>
-        
-        {showTemplates && (
-          <div className="template-list">
-            {ANIMATION_TEMPLATES.map((template) => (
-              <div key={template.id} className="template-item">
-                <div className="template-info">
-                  <span className="template-name">{template.name}</span>
-                  <span className="template-description">{template.description}</span>
-                </div>
-                <button
-                  className="template-apply-btn"
-                  onClick={() => handleApplyTemplate(template.id)}
-                >
-                  Apply
-                </button>
-              </div>
+      <div className="controls-scroll-area">
+        {/* Playback Focus */}
+        <section className="control-card highlight">
+          <div className="flex justify-between items-center mb-3">
+            <span className="text-[9px] font-bold uppercase text-white/40">Active Frame</span>
+            <Badge className="bg-primary/20 text-primary border-primary/30 font-mono">{currentFrame}</Badge>
+          </div>
+          
+          <button 
+            className={`keyframe-main-btn ${currentKeyframe ? 'active' : ''}`}
+            onClick={currentKeyframe ? () => onKeyframeRemove(currentFrame) : handleAddKeyframe}
+          >
+            {currentKeyframe ? <Trash2 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span>{currentKeyframe ? 'Drop Keyframe' : 'Capture Pose'}</span>
+          </button>
+        </section>
+
+        {/* Pose Selection */}
+        <section className="control-card">
+          <label className="card-label">Biometric Pose</label>
+          <div className="pose-grid">
+            {Object.entries(POSE_PRESETS).map(([id, data]) => (
+              <button 
+                key={id}
+                className={`pose-btn ${selectedPose === id ? 'selected' : ''}`}
+                onClick={() => setSelectedPose(id)}
+                title={(data as any).description}
+              >
+                <span className="icon-wrapper">{(data as any).icon}</span>
+                <span className="label-text">{id}</span>
+              </button>
             ))}
           </div>
-        )}
-      </div>
-      
-      {/* Facial Expression Controls */}
-      <div className="control-section">
-        <label className="section-label">Facial Expression</label>
-        <select
-          className="expression-select"
-          value={selectedExpression}
-          onChange={(e) => setSelectedExpression(e.target.value)}
-        >
-          <option value="neutral">Neutral</option>
-          <option value="happy">Happy</option>
-          <option value="sad">Sad</option>
-          <option value="angry">Angry</option>
-          <option value="surprised">Surprised</option>
-          <option value="confused">Confused</option>
-          <option value="excited">Excited</option>
-        </select>
-        
-        <div className="expression-intensity">
-          <label>Intensity:</label>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={expressionIntensity}
-            onChange={(e) => setExpressionIntensity(parseInt(e.target.value))}
-          />
-          <span className="intensity-value">{expressionIntensity}%</span>
-        </div>
-      </div>
-      
-      {/* Keyframe Timeline */}
-      <div className="control-section">
-        <label className="section-label">Keyframes ({keyframes.length})</label>
-        <div className="keyframe-timeline">
-          {keyframes.length === 0 ? (
-            <div className="no-keyframes">No keyframes yet</div>
-          ) : (
-            <div className="keyframe-list">
-              {keyframes.map((kf) => (
-                <div
-                  key={kf.frame}
-                  className={`keyframe-item ${kf.frame === currentFrame ? 'current' : ''}`}
-                >
-                  <span className="keyframe-frame">Frame {kf.frame}</span>
-                  <span className="keyframe-pose-name">{kf.pose}</span>
-                  <button
-                    className="keyframe-remove-btn"
-                    onClick={() => onKeyframeRemove(kf.frame)}
-                    title="Remove keyframe"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+        </section>
+
+        {/* Templates */}
+        <section className="control-card">
+          <div className="flex justify-between items-center">
+            <label className="card-label">Neural Motifs</label>
+            <button className="text-primary/60 hover:text-primary" onClick={() => setShowTemplates(!showTemplates)}>
+               {showTemplates ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+          </div>
+          
+          {showTemplates && (
+            <div className="template-stack mt-2">
+               {ANIMATION_TEMPLATES.map(t => (
+                 <button key={t.id} className="template-pill group">
+                   {t.icon}
+                   <span>{t.name}</span>
+                   <Play className="ml-auto w-2.5 h-2.5 opacity-0 group-hover:opacity-100" />
+                 </button>
+               ))}
             </div>
           )}
-        </div>
+        </section>
+
+        {/* Expressions */}
+        <section className="control-card">
+           <div className="flex items-center gap-2 mb-3">
+             <Smile className="w-3 h-3 text-indigo-400" />
+             <label className="card-label mb-0">Expression Engine</label>
+           </div>
+           
+           <div className="flex gap-2 mb-3">
+             {['neutral', 'happy', 'sad', 'angry'].map(exp => (
+               <button 
+                 key={exp}
+                 className={`expression-chip ${selectedExpression === exp ? 'active' : ''}`}
+                 onClick={() => setSelectedExpression(exp)}
+               >
+                 {exp[0].toUpperCase()}
+               </button>
+             ))}
+           </div>
+
+           <div className="intensity-slider-group">
+              <div className="flex justify-between text-[8px] uppercase font-bold opacity-40 mb-1">
+                <span>Weight</span>
+                <span>{expressionIntensity}%</span>
+              </div>
+              <input 
+                type="range" 
+                className="intensity-slider"
+                value={expressionIntensity}
+                title="Adjust expression intensity"
+                aria-label="Expression Engine Weight"
+                onChange={(e) => setExpressionIntensity(parseInt(e.target.value))}
+              />
+           </div>
+        </section>
+
+        {/* Timeline Summary */}
+        <section className="control-card last">
+          <div className="flex items-center gap-2 mb-3">
+            <Layers className="w-3 h-3 text-amber-400" />
+            <label className="card-label mb-0">Session Ledger ({keyframes.length})</label>
+          </div>
+          <div className="keyframes-summary-list">
+             {keyframes.slice(-5).map(kf => (
+               <div key={kf.frame} className="summary-item">
+                 <span className="frame font-mono">F{kf.frame}</span>
+                 <span className="pose">{kf.pose}</span>
+                 {kf.frame === currentFrame && <div className="active-dot" />}
+               </div>
+             ))}
+          </div>
+        </section>
       </div>
+      
+      <footer className="controls-footer">
+        <button className="settings-btn" title="Puppet Engine Settings"><Settings2 className="w-3.5 h-3.5" /></button>
+        <div className="ml-auto flex items-center gap-1.5 opacity-40">
+           <BrainCircuit className="w-3 h-3" />
+           <span className="text-[8px] font-black uppercase">Auto-Sync Active</span>
+        </div>
+      </footer>
     </div>
   );
 };

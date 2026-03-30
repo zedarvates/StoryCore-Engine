@@ -1,0 +1,91 @@
+.shot-mockup-editor {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+}
+
+.mockup-canvas {
+  flex: 1;
+}
+
+.canvas-container {
+  border: 4px solid #1a1a1a;
+}
+
+.canvas-grid-bg {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.mockup-element {
+  position: absolute;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.mockup-element:active { cursor: grabbing; }
+
+.mockup-element.character { color: var(--accent-primary, #ffd700); }
+.mockup-element.object { color: #60a5fa; }
+.mockup-element.figurant { color: #94a3b8; }
+
+.element-icon {
+    padding: 10px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 12px;
+    border: 1px solid currentColor;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.selected .element-icon {
+    box-shadow: 0 0 15px currentColor;
+    outline: 2px solid white;
+}
+
+.element-label {
+    margin-top: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: rgba(0,0,0,0.8);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.mockup-sidebar {
+    width: 250px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.library-item {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.library-item:hover { background: rgba(255,255,255,0.06); }
+.library-item.ghost { border-style: dashed; }

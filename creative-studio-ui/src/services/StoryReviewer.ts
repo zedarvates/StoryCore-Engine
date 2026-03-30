@@ -43,6 +43,7 @@ Output your review ONLY as a JSON object with the following structure:
             const response = await llmService.generateText(prompt, {
                 temperature: 0.3, // Lower temperature for more consistent evaluation
                 maxTokens: 300,
+                timeout: 45000, // 45 second timeout for review
             });
 
             // Extract JSON from response

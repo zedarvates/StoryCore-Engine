@@ -1,28 +1,10 @@
-
+import { llmService } from '../llmService';
 import { ollamaClient } from '../llm/OllamaClient';
 import { logger } from '@/utils/logger';
 
-export type IntentName = 
-  | 'CREATE_PROJECT' | 'OPEN_PROJECT' | 'SAVE_PROJECT' | 'SAVE_AS' | 'CLOSE_PROJECT' | 'EXPORT_PROJECT'
-  | 'ADD_SCENE' | 'DELETE_SCENE' | 'DUPLICATE_SCENE' | 'RENAME_SCENE'
-  | 'GENERATE_IMAGE' | 'GENERATE_VIDEO' | 'GENERATE_AUDIO' | 'MODIFY_GENERATION' | 'CREATE_MUSIC_VIDEO'
-  | 'STABILIZE_CLIP' | 'REMOVE_BACKGROUND' | 'ADD_STICKER' | 'ADJUST_SPEED' | 'AUTO_LYRICS'
-  | 'PLAY_TIMELINE' | 'STOP_TIMELINE' | 'ADD_CLIP' | 'REMOVE_CLIP' | 'MOVE_CLIP'
-  | 'UNDO' | 'REDO' | 'OPEN_SETTINGS' | 'TOGGLE_AUTOSAVE' | 'SHOW_STATUS'
-  | 'CONTEXT_ANALYSIS' | 'WORKFLOW_SUGGESTION' | 'BATCH_OPERATION' | 'PLUGIN_ACTION' | 'CAPTURE_SCREEN'
-  | 'LIP_SYNC' | 'GENERATE_RECAP' | 'OPEN_MCP'
-  | 'NONE';
+import type { IntentName, IntentResponse } from './types';
 
-export interface IntentResponse {
-  intent: IntentName;
-  confidence: number;
-  entities: Record<string, unknown>;
-  context_awareness: Record<string, unknown>;
-  requires_confirmation: boolean;
-  execution_priority: 'low' | 'medium' | 'high' | 'critical';
-  feedback: string;
-  suggestions?: string[];
-}
+export type { IntentName, IntentResponse };
 
 export interface SystemContext {
   active_module: string;
@@ -49,7 +31,7 @@ export class IntentOrchestrationService {
   - TIMELINE: PLAY_TIMELINE, STOP_TIMELINE, ADD_CLIP, REMOVE_CLIP, MOVE_CLIP
   - SYSTEM: UNDO, REDO, OPEN_SETTINGS, TOGGLE_AUTOSAVE, SHOW_STATUS, CAPTURE_SCREEN
   - ADVANCED: CONTEXT_ANALYSIS, WORKFLOW_SUGGESTION, BATCH_OPERATION, PLUGIN_ACTION, LIP_SYNC, GENERATE_RECAP, OPEN_MCP
-
+ 
   RULES:
   1. Internal deterministic logic: No conversational filler.
   2. STRICT JSON output only.
@@ -82,7 +64,8 @@ export class IntentOrchestrationService {
     context: SystemContext
   ): Promise<IntentResponse> {
     try {
-      const model = await ollamaClient.getBestAvailableModel('quick');
+      // Find the fastest model for intent classification
+      const bestQuickModel = await ollamaClient.getBestAvailableModel('quick');
       
       const fullPrompt = `
       ${IntentOrchestrationService.SYSTEM_PROMPT}
@@ -95,8 +78,10 @@ export class IntentOrchestrationService {
 
       Response (JSON only):`;
 
-      const response = await ollamaClient.generate(model, fullPrompt, {
-        temperature: 0.1, // High determinism
+      // Use the consolidated LLM service for robust generation (retries + timeouts)
+      const response = await llmService.generate(fullPrompt, {
+        model: bestQuickModel,
+        temperature: 0.1, // High determinism for intent JSON
         maxTokens: 500
       });
 
@@ -129,7 +114,7 @@ export class IntentOrchestrationService {
         context_awareness: {},
         requires_confirmation: false,
         execution_priority: 'low',
-        feedback: "Erreur de traitement de l'intention."
+        feedback: "Erreur de traitement de l'intention (Timeout ou échec LLM)."
       };
     }
   }

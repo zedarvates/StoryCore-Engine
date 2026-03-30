@@ -390,6 +390,7 @@ export function CharacterList({
               onEdit={() => handleCharacterEdit(character)}
               onDelete={() => handleCharacterDelete(character)}
               onImageGenerated={(imagePath, prompt) => handleImageGenerated(character, imagePath, prompt)}
+              draggable={true}
             />
           ))}
         </div>

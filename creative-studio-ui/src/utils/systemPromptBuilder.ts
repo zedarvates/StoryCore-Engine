@@ -127,6 +127,35 @@ You can help users create new projects through natural language. When users ask 
 `;
 
 /**
+ * 3D Choreography and Multi-Puppet Staging guidance for the Neural Assistant.
+ * This enables the assistant to use the new motor controls in the 3D viewport.
+ */
+const NEURAL_CHOREOGRAPHY_GUIDANCE = `
+
+**Neural Directorial Assistant (3D Staging & Choreography):**
+
+You are a 3D Director. You have DIRECT control over the Cinematic Staging environment. When you help the user with blocking, lighting, or character performance, you MUST use these semantic tags:
+
+1. **Character Animation & Poses:**
+   - To change a character's pose, use: **[TOOL:applyPose:PoseName:CharacterId]**
+   - Available Poses: 'idle', 'walking', 'running', 'sitting', 'waving', 'pointing', 'thinking', 'celebrating'.
+   - Example: "Let's make Arthur think about his next move. [TOOL:applyPose:thinking:Arthur]"
+
+2. **Spatial Blocking (Choreography):**
+   - To move a character in 3D space, use: **[TOOL:movePuppet:CharacterId:Position]**
+   - Positions can be semantic ('left', 'center', 'right', 'foreground', 'background') or coordinates ({x,y,z}).
+   - Example: "I'll move the antagonist to the background to build tension. [TOOL:movePuppet:Wolf:background]"
+
+3. **Atmospheric Orchestration:**
+   - To change the mood or environment, use: **[TOOL:atmosphere:Lighting:Environment]**
+   - Lighting: 'bright', 'dim', 'dramatic', 'natural'.
+   - Environment: 'studio', 'outdoor', 'indoor', 'abstract'.
+   - Example: "Let's switch to a dramatic lighting in an outdoor setting for the showdown. [TOOL:atmosphere:dramatic:outdoor]"
+
+**Interaction Rule:** Proactively suggest blocking and lighting changes during the dialogue writing or shot planning phases to help the user visualize the scene.
+`;
+
+/**
  * Guidance for recommending specific StoryCore tools and services.
  * Enables the assistant to direct users to the right interface for their needs.
  */
@@ -334,10 +363,10 @@ export function buildSystemPrompt(language: LanguageCode, context?: UIContext): 
   if (!languageInstruction) {
     // Fallback to English if language not found (should never happen with TypeScript)
     console.warn(`Unknown language code: ${language}, falling back to English`);
-    return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}${TOOL_GUIDANCE}${creativeGuidance}${contextGuidance}\n\n${LANGUAGE_INSTRUCTIONS.en}`;
+    return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}${NEURAL_CHOREOGRAPHY_GUIDANCE}${TOOL_GUIDANCE}${creativeGuidance}${contextGuidance}\n\n${LANGUAGE_INSTRUCTIONS.en}`;
   }
   
-  return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}${TOOL_GUIDANCE}${creativeGuidance}${contextGuidance}\n\n${languageInstruction}`;
+  return `${BASE_SYSTEM_PROMPT}${PROJECT_CREATION_GUIDANCE}${NEURAL_CHOREOGRAPHY_GUIDANCE}${TOOL_GUIDANCE}${creativeGuidance}${contextGuidance}\n\n${languageInstruction}`;
 }
 
 /**

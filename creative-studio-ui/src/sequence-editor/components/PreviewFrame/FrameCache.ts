@@ -1,3 +1,5 @@
+import { Shot } from '../../types';
+
 /**
  * Frame Cache System
  * 
@@ -299,81 +301,92 @@ export class FrameCache {
 /**
  * Create a frame render function for canvas
  */
+/**
+ * Create a frame render function for canvas
+ */
 export function createCanvasRenderFunction(
   canvas: HTMLCanvasElement,
-  shots: unknown[],
+  shots: Shot[],
   zoomLevel: number,
   fps: number = 24
 ): (frame: number, quality: 'low' | 'high', signal: AbortSignal) => Promise<ImageData | null> {
   return async (frame: number, quality: 'low' | 'high', signal: AbortSignal): Promise<ImageData | null> => {
-    if (signal.aborted) {
-      return null;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return null;
-    }
-    
-    // Find shot at this frame
-    const framePosition = frame * zoomLevel;
-    const currentShot = shots.find((shot) =>
-      framePosition >= shot.startTime * zoomLevel &&
-      framePosition < (shot.startTime + shot.duration) * zoomLevel
-    );
+    if (signal.aborted) return null;
     
     // Determine render scale based on quality
     const scale = quality === 'low' ? 0.5 : 1.0;
     const width = Math.floor(canvas.width * scale);
     const height = Math.floor(canvas.height * scale);
     
-    // Create temporary canvas for rendering
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = width;
     tempCanvas.height = height;
-    const tempCtx = tempCanvas.getContext('2d');
-    
-    if (!tempCtx) {
-      return null;
-    }
-    
-    // Check for abort before rendering
-    if (signal.aborted) {
-      return null;
-    }
-    
-    // Render frame
-    tempCtx.fillStyle = '#000000';
-    tempCtx.fillRect(0, 0, width, height);
-    
+    const ctx = tempCanvas.getContext('2d');
+    if (!ctx) return null;
+
+    // 1. Background (Cinematic Deep Blue)
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
+    gradient.addColorStop(0, '#0a0a14');
+    gradient.addColorStop(1, '#050508');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    // Find shot at this frame
+    const framePosition = frame * zoomLevel;
+    const currentShot = shots.find((shot) =>
+      framePosition >= shot.startTime * zoomLevel &&
+      framePosition < (shot.startTime + shot.duration) * zoomLevel
+    );
+
     if (currentShot) {
-      // Draw shot content
-      const gradient = tempCtx.createLinearGradient(0, 0, width, height);
-      gradient.addColorStop(0, '#1a1a2e');
-      gradient.addColorStop(1, '#16213e');
-      tempCtx.fillStyle = gradient;
-      tempCtx.fillRect(0, 0, width, height);
+      // 2. Mock Shot Content (Dynamic Visual)
+      const hue = (parseInt(currentShot.id.slice(-4), 16) % 360) || 220;
+      ctx.fillStyle = `hsla(${hue}, 40%, 20%, 0.4)`;
+      ctx.fillRect(0, 0, width, height);
       
-      // Draw shot info (scaled)
-      const fontSize = Math.floor(24 * scale);
-      tempCtx.fillStyle = '#ffffff';
-      tempCtx.font = `${fontSize}px sans-serif`;
-      tempCtx.textAlign = 'center';
-      tempCtx.fillText(currentShot.name, width / 2, height / 2 - 20 * scale);
+      // Decorative Grid for 'Pro' feel
+      ctx.strokeStyle = `hsla(${hue}, 50%, 50%, 0.1)`;
+      ctx.lineWidth = 1;
+      for(let x = 0; x < width; x += width/10) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+      }
+      for(let y = 0; y < height; y += height/10) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+      }
+
+      // 3. Text Overlays
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `600 ${Math.floor(22 * scale)}px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 10;
+      ctx.fillText(currentShot.name.toUpperCase(), width / 2, height / 2 - 10 * scale);
       
-      const smallFontSize = Math.floor(16 * scale);
-      tempCtx.font = `${smallFontSize}px sans-serif`;
-      tempCtx.fillStyle = '#aaaaaa';
-      tempCtx.fillText(`Frame: ${frame}`, width / 2, height / 2 + 20 * scale);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = `${Math.floor(14 * scale)}px Roboto Mono, monospace`;
+      ctx.fillText(`SEQ_${currentShot.id.slice(0,4).toUpperCase()} | ${formatTimecode(frame, fps)}`, width / 2, height / 2 + 20 * scale);
+
+      // 4. Cinematic Letterboxing (2.39:1)
+      const barHeight = height * 0.12; 
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, barHeight);
+      ctx.fillRect(0, height - barHeight, width, barHeight);
+
+      // Border lines for bars
+      ctx.strokeStyle = `hsla(${hue}, 50%, 50%, 0.3)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0, barHeight); ctx.lineTo(width, barHeight); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, height - barHeight); ctx.lineTo(width, height - barHeight); ctx.stroke();
+    } else {
+      // Empty Timeline State
+      ctx.fillStyle = '#333';
+      ctx.font = `${Math.floor(16 * scale)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText('NO MEDIA AT PLAYHEAD', width / 2, height / 2);
     }
-    
-    // Check for abort before returning
-    if (signal.aborted) {
-      return null;
-    }
-    
-    // Get image data
-    return tempCtx.getImageData(0, 0, width, height);
+
+    return ctx.getImageData(0, 0, width, height);
   };
 }
 

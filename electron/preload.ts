@@ -343,6 +343,58 @@ const electronAPI: ElectronAPI = {
       }
       return result.path;
     },
+    discoverNetwork: async () => {
+      const result = await ipcRenderer.invoke('comfyui:discover-network');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to discover servers');
+      }
+      return result.servers;
+    },
+    discoverMcp: async () => {
+      const result = await ipcRenderer.invoke('mcp:discover-network');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to discover MCP servers');
+      }
+      return result.servers;
+    },
+    connect: async (serverId: string, options: any) => {
+      const result = await ipcRenderer.invoke('mcp:connect', serverId, options);
+      if (!result.success) {
+        throw new Error(result.error || `Failed to connect to MCP server ${serverId}`);
+      }
+      return result;
+    },
+    disconnect: async (serverId: string) => {
+      await ipcRenderer.invoke('mcp:disconnect', serverId);
+    },
+    listTools: async (serverId: string) => {
+      const result = await ipcRenderer.invoke('mcp:list-tools', serverId);
+      if (!result.success) {
+        throw new Error(result.error || `Failed to list tools for MCP server ${serverId}`);
+      }
+      return result.tools;
+    },
+    callTool: async (serverId: string, toolName: string, args: any) => {
+      const result = await ipcRenderer.invoke('mcp:call-tool', serverId, toolName, args);
+      if (!result.success) {
+        throw new Error(result.error || `Failed to call tool ${toolName} on MCP server ${serverId}`);
+      }
+      return result.result;
+    },
+    listResources: async (serverId: string) => {
+      const result = await ipcRenderer.invoke('mcp:list-resources', serverId);
+      if (!result.success) {
+        throw new Error(result.error || `Failed to list resources for MCP server ${serverId}`);
+      }
+      return result.resources;
+    },
+    readResource: async (serverId: string, resourceUri: string) => {
+      const result = await ipcRenderer.invoke('mcp:read-resource', serverId, resourceUri);
+      if (!result.success) {
+        throw new Error(result.error || `Failed to read resource ${resourceUri} from MCP server ${serverId}`);
+      }
+      return result.contents;
+    },
   },
 
   // Rover (Persistent Memory Layer)

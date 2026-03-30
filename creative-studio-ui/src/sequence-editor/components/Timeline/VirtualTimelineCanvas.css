@@ -1,4 +1,4 @@
-.virtual-timeline-div {
+.virtual-timeline-canvas {
   position: relative;
   width: 100%;
   height: 100%;
@@ -10,11 +10,14 @@
   left: 0;
   pointer-events: none;
   z-index: 5;
+  width: var(--tw);
+  height: var(--th);
 }
 
 .timeline-track-list-container {
   width: 100%;
   position: relative;
+  height: var(--vth);
 }
 
 .virtual-track-row {
@@ -22,13 +25,43 @@
   left: 0;
   right: 0;
   width: 100%;
+  height: var(--rh);
+  transform: translateY(var(--ry));
 }
 
 .track-canvas-container {
   position: relative;
   width: 100%;
+  height: var(--rh);
 }
 
 .track-canvas {
   display: block;
+  width: var(--tw);
+  height: var(--rh);
+}
+
+/* Tool specific cursors (Section 5.2 visual fix) */
+.track-canvas.tool-select {
+  cursor: pointer;
+}
+
+.track-canvas.tool-cut {
+  cursor: crosshair; /* Fallback for scissors if custom not available */
+}
+
+.track-canvas.tool-move {
+  cursor: grab;
+}
+
+.track-canvas.tool-move:active {
+  cursor: grabbing;
+}
+
+.track-canvas.tool-zoom {
+  cursor: zoom-in;
+}
+
+.track-canvas:hover {
+  background: rgba(255, 255, 255, 0.01);
 }

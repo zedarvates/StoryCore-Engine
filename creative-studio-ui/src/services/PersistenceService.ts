@@ -1044,6 +1044,9 @@ export class PersistenceService {
     if (!window.electronAPI?.fs?.writeFile) return;
 
     try {
+      // Ensure the project structure exists before saving the discussion
+      await this.ensureProjectStructure(projectPath);
+      
       let content = `# Project Discussion\n\nGenerated on: ${new Date().toLocaleString()}\n\n`;
       
       for (const msg of messages) {

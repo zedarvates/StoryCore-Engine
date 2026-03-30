@@ -19,6 +19,7 @@ class StoryGenerateRequest(BaseModel):
     mode: str = Field(default="FICTION", description="Mode de production (ex: FICTION, DOCUMENTARY, INFLUENCER, SCIENTIFIC_REVIEW)")
     length: str = Field(default="medium", description="Longueur: short, medium, long")
     with_critique: bool = Field(default=False, description="Activer la critique multi-agent")
+    with_alignment_score: bool = Field(default=True, description="Activer le scoring d'alignement détaillé")
     temperature: float = Field(default=0.7, ge=0.0, le=1.0, description="Température de créativité")
     max_attempts: int = Field(default=3, ge=1, le=10, description="Nombre maximum de tentatives")
 
@@ -33,6 +34,7 @@ class StoryGenerateResponse(BaseModel):
     locations: List[Dict[str, Any]]
     scenes: List[Dict[str, Any]]
     critique: Optional[str] = None
+    alignment_report: Optional[Dict[str, Any]] = None
 
 @router.post("/generate", response_model=StoryGenerationResponse)
 async def generate_story_endpoint(req: StoryGenerateRequest, user_id: str = Depends(verify_jwt_token)):
@@ -45,6 +47,7 @@ async def generate_story_endpoint(req: StoryGenerateRequest, user_id: str = Depe
             mode=req.mode,
             length=req.length,
             with_critique=req.with_critique,
+            with_alignment_score=req.with_alignment_score,
             temperature=req.temperature,
             max_attempts=req.max_attempts
         )
@@ -75,7 +78,8 @@ async def generate_story_basic_endpoint(req: StoryGenerateRequest, user_id: str 
             structure=structure,
             mode=mode,
             length=req.length,
-            with_critique=req.with_critique
+            with_critique=req.with_critique,
+            with_alignment_score=req.with_alignment_score
         )
         
         return StoryGenerateResponse(
@@ -88,7 +92,8 @@ async def generate_story_basic_endpoint(req: StoryGenerateRequest, user_id: str 
             characters=story.characters,
             locations=story.locations,
             scenes=[vars(s) for s in story.scenes],
-            critique=story.critique
+            critique=story.critique,
+            alignment_report=story.alignment_report if hasattr(story, 'alignment_report') else None
         )
     except Exception as e:
         import traceback

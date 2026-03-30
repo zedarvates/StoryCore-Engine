@@ -1,4 +1,4 @@
-import type { LayerType, Shot, Layer } from '../types';
+import type { LayerType, Shot, Layer } from '@/types';
 
 /**
  * Track type configuration with colors and icons
@@ -42,6 +42,8 @@ export function getTrackShots(shots: Shot[], trackType: LayerType): Array<{ shot
   const result: Array<{ shot: Shot; layer: Layer }> = [];
   
   shots.forEach((shot) => {
+    if (!shot.layers) return;
+    
     shot.layers
       .filter((layer) => layer.type === trackType)
       .forEach((layer) => {
@@ -56,6 +58,8 @@ export function getTrackShots(shots: Shot[], trackType: LayerType): Array<{ shot
  * Get layer index for stacking within a shot
  */
 export function getLayerIndex(shot: Shot, trackType: LayerType, targetLayer: Layer): number {
+  if (!shot.layers) return -1;
+  
   return shot.layers
     .filter((l) => l.type === trackType)
     .indexOf(targetLayer);

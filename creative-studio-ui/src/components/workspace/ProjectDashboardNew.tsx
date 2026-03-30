@@ -24,6 +24,8 @@ import { useLLMConfig } from '@/services/llmConfigService';
 import { getEnabledWizards } from '@/data/wizardDefinitions';
 import { sequenceService } from '@/services/sequenceService';
 import { useStore } from '@/store';
+import { NarrativeLayerMapper } from '@/services/NarrativeLayerMapper';
+import { CINEMATIC_SHOT_PRESETS } from '@/constants/presets/shotPresets';
 import { logger } from '@/utils/logging';
 import { LLMAssistantSidebar } from '@/components/LLMAssistantSidebar';
 import { StoryCard } from './StoryCard';
@@ -60,6 +62,7 @@ import {
   Clapperboard,
   Wand2,
   FileText,
+  Folder,
   Sparkles,
   Plus,
   GripVertical,
@@ -1339,10 +1342,18 @@ export function ProjectDashboardNew({
                 characterIds: [],
                 subjects: [],
                 locationId: '',
-                framing: 'Medium Shot'
+                framing: (() => {
+                  const suggestedId = NarrativeLayerMapper.suggestPresetId(contentSegment);
+                  const preset = CINEMATIC_SHOT_PRESETS.find(p => p.id === suggestedId);
+                  return preset ? (preset.framing || 'Medium Shot') : 'Medium Shot';
+                })()
               },
               generation: {
-                prompt: imagePrompt,
+                prompt: (() => {
+                  const suggestedId = NarrativeLayerMapper.suggestPresetId(contentSegment);
+                  const preset = CINEMATIC_SHOT_PRESETS.find(p => p.id === suggestedId);
+                  return preset ? preset.promptTemplate : imagePrompt;
+                })(),
                 negativePrompt: '',
                 seed: -1
               }
@@ -1371,10 +1382,18 @@ export function ProjectDashboardNew({
                     characterIds: [],
                     subjects: [],
                     locationId: '',
-                    framing: 'Medium Shot'
+                    framing: (() => {
+                      const suggestedId = NarrativeLayerMapper.suggestPresetId(contentSegment);
+                      const preset = CINEMATIC_SHOT_PRESETS.find(p => p.id === suggestedId);
+                      return preset ? (preset.framing || 'Medium Shot') : 'Medium Shot';
+                    })()
                   },
                   generation: (shot.metadata as { generation?: ShotGenerationParams })?.generation || {
-                    prompt: imagePrompt,
+                    prompt: (() => {
+                      const suggestedId = NarrativeLayerMapper.suggestPresetId(contentSegment);
+                      const preset = CINEMATIC_SHOT_PRESETS.find(p => p.id === suggestedId);
+                      return preset ? preset.promptTemplate : imagePrompt;
+                    })(),
                     negativePrompt: '',
                     seed: -1
                   }
@@ -1797,6 +1816,29 @@ export function ProjectDashboardNew({
               <RefreshCw className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors" />
               <span>Force Sync</span>
             </button>
+            
+            {/* Open Folder Button */}
+            {Boolean(project?.path || project?.metadata?.path || project?.projectPath) && (
+              <button 
+                className="quick-btn glass-panel border-white/5 hover:border-primary/50 group" 
+                onClick={() => {
+                  const path = (project?.path || project?.metadata?.path || project?.projectPath) as string;
+                  if (path && window.electronAPI?.app?.openFolder) {
+                    window.electronAPI.app.openFolder(path);
+                  } else {
+                    console.error('[Dashboard] Cannot open folder: path or API missing', { 
+                      path, 
+                      api: !!window.electronAPI?.app?.openFolder 
+                    });
+                  }
+                }}
+                title={`Reveal in Explorer: ${project?.path || project?.metadata?.path || project?.projectPath}`}
+              >
+                <Folder className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors" />
+                <span>Reveal Files</span>
+              </button>
+            )}
+
             <button className="quick-btn quick-btn-primary shadow-xl shadow-primary/20" onClick={handleSyncSequences}>
               <Sparkles className="w-4 h-4" />
               <span>Intelligence Sync</span>

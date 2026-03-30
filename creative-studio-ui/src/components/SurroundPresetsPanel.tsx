@@ -14,7 +14,7 @@ export interface SurroundPreset {
   id: string;
   name: string;
   description: string;
-  mode: '5.1' | '7.1';
+  mode: 'stereo' | '5.1' | '7.1';
   channels: SurroundConfig['channels'];
   spatialPosition?: { x: number; y: number; z: number };
 }
@@ -292,6 +292,7 @@ const PresetCard: React.FC<PresetCardProps> = ({
             onDelete(preset.id);
           }}
           className="absolute top-2 right-2 p-1 text-gray-400 hover:text-red-600 rounded"
+          title="Delete preset"
         >
           <Trash2 className="w-3 h-3" />
         </button>

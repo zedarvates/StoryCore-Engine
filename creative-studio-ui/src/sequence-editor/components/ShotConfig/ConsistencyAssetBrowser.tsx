@@ -1,47 +1,58 @@
 import React from 'react';
 import { useStore } from '../../../store';
 import { Users, MapPin, Ghost } from 'lucide-react';
+import { Character } from '../../../types/character';
+import { Location as ProductionLocation } from '../../../types/location';
+import './shotConfig.css';
 
 interface ConsistencyAssetBrowserProps {
-  onSelectAsset: (asset: any, type: 'character' | 'location') => void;
+  onSelectAsset: (asset: Character | ProductionLocation, type: 'character' | 'location') => void;
 }
 
 export const ConsistencyAssetBrowser: React.FC<ConsistencyAssetBrowserProps> = ({ onSelectAsset }) => {
   const { characters, locations } = useStore();
 
-  const renderRole = (role: any) => {
+  const renderRole = (role: Character['role']) => {
     if (!role) return 'Actor';
-    if (typeof role === 'string') return role;
-    if (typeof role === 'object') {
-      return role.archetype || role.name || 'Actor';
-    }
-    return 'Actor';
+    return role.archetype || 'Actor';
   };
 
-  const renderSetting = (setting: any) => {
-    if (!setting) return 'Set';
-    if (typeof setting === 'string') return setting;
-    if (typeof setting === 'object') {
-      return setting.name || setting.type || 'Set';
-    }
-    return 'Set';
+  const renderSetting = (loc: ProductionLocation) => {
+    return loc.location_type || 'Set';
+  };
+
+  // Helper to get thumbnail from character
+  const getCharacterThumb = (char: Character): string | null => {
+    if (char.visual_identity?.generated_portrait) return char.visual_identity.generated_portrait;
+    if (char.visual_identity?.reference_sheet_images?.length > 0) return char.visual_identity.reference_sheet_images[0].url;
+    if (char.visual_identity?.reference_images?.length > 0) return char.visual_identity.reference_images[0].url;
+    return null;
+  };
+
+  // Helper to get thumbnail from location
+  const getLocationThumb = (loc: ProductionLocation): string | null => {
+    if (loc.metadata?.thumbnail_path) return loc.metadata.thumbnail_path;
+    if (loc.cube_textures?.front?.image_path) return loc.cube_textures.front.image_path;
+    return null;
   };
 
   return (
-    <div className="consistency-asset-browser p-4 bg-[#1a1a24] rounded-lg border border-[#333] mt-4">
-      <div className="flex items-center gap-2 mb-4">
-        <Ghost className="text-blue-400" size={18} />
-        <h3 className="text-sm font-bold uppercase tracking-wider text-white">Coherence Assets</h3>
+    <div className="consistency-asset-browser">
+      <div className="browser-section-header">
+        <div className="header-label-group">
+          <Ghost className="text-[#6366f1]" size={16} />
+          <h3 className="header-title">Coherence Assets</h3>
+        </div>
       </div>
 
       <div className="space-y-6">
         {/* Characters Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-400 uppercase">
-            <Users size={14} />
+        <div className="asset-category">
+          <div className="asset-category-label">
+            <Users size={12} />
             <span>Characters</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="asset-grid">
             {characters.length > 0 ? (
               characters.map((char) => (
                 <div 
@@ -52,22 +63,21 @@ export const ConsistencyAssetBrowser: React.FC<ConsistencyAssetBrowserProps> = (
                     e.dataTransfer.setData('assetType', 'character');
                   }}
                   onClick={() => onSelectAsset(char, 'character')}
-                  className="group relative cursor-pointer overflow-hidden rounded-md border border-[#333] bg-[#252530] transition-all hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10"
+                  className="asset-card-mini"
                 >
-                  <div className="aspect-square w-full bg-[#111]">
-                    {((char as any).appearance_sheet?.sheet_url || (char as any).sheet?.sheet_url) ? (
+                  <div className="asset-thumbnail-wrapper square">
+                    {getCharacterThumb(char) ? (
                       <img 
-                        src={(char as any).appearance_sheet?.sheet_url || (char as any).sheet?.sheet_url} 
+                        src={getCharacterThumb(char)!} 
                         alt={char.name} 
-                        className="h-full w-full object-cover transition-transform group-hover:scale-110"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-gray-500 italic">No Sheet</div>
+                      <div className="empty-sheet-placeholder">No Sheet</div>
                     )}
                   </div>
-                  <div className="p-2">
-                    <div className="truncate text-[10px] font-medium text-white">{char.name}</div>
-                    <div className="text-[8px] text-gray-500">{renderRole((char as any).role)}</div>
+                  <div className="asset-details">
+                    <div className="asset-name-mini">{char.name}</div>
+                    <div className="asset-role-mini">{renderRole(char.role)}</div>
                   </div>
                 </div>
               ))
@@ -78,38 +88,37 @@ export const ConsistencyAssetBrowser: React.FC<ConsistencyAssetBrowserProps> = (
         </div>
 
         {/* Locations Section */}
-        <div>
-          <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-gray-400 uppercase">
-            <MapPin size={14} />
+        <div className="asset-category">
+          <div className="asset-category-label">
+            <MapPin size={12} />
             <span>Locations</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="asset-grid">
             {locations.length > 0 ? (
               locations.map((loc) => (
                 <div 
-                  key={loc.location_id || (loc as any).id}
+                  key={loc.location_id}
                   draggable
                   onDragStart={(e) => {
                     e.dataTransfer.setData('asset', JSON.stringify(loc));
                     e.dataTransfer.setData('assetType', 'location');
                   }}
                   onClick={() => onSelectAsset(loc, 'location')}
-                  className="group relative cursor-pointer overflow-hidden rounded-md border border-[#333] bg-[#252530] transition-all hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/10"
+                  className="asset-card-mini"
                 >
-                  <div className="aspect-video w-full bg-[#111]">
-                    {((loc as any).appearance_sheet?.sheet_url || (loc as any).sheet?.sheet_url) ? (
+                  <div className="asset-thumbnail-wrapper">
+                    {getLocationThumb(loc) ? (
                       <img 
-                        src={(loc as any).appearance_sheet?.sheet_url || (loc as any).sheet?.sheet_url} 
+                        src={getLocationThumb(loc)!} 
                         alt={loc.name} 
-                        className="h-full w-full object-cover transition-transform group-hover:scale-110"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-gray-500 italic">No Sheet</div>
+                      <div className="empty-sheet-placeholder">No Sheet</div>
                     )}
                   </div>
-                  <div className="p-2">
-                    <div className="truncate text-[10px] font-medium text-white">{loc.name}</div>
-                    <div className="text-[8px] text-gray-500">{renderSetting((loc as any).setting)}</div>
+                  <div className="asset-details">
+                    <div className="asset-name-mini">{loc.name}</div>
+                    <div className="asset-role-mini">{renderSetting(loc)}</div>
                   </div>
                 </div>
               ))
@@ -126,3 +135,5 @@ export const ConsistencyAssetBrowser: React.FC<ConsistencyAssetBrowserProps> = (
     </div>
   );
 };
+
+

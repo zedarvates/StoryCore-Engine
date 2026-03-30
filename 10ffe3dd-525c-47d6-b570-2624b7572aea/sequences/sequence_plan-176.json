@@ -1,0 +1,39 @@
+{
+  "id": "plan-1768846761156-eoo9qb30r",
+  "name": "test",
+  "description": "",
+  "worldId": "",
+  "targetDuration": 0,
+  "frameRate": 30,
+  "resolution": {
+    "width": 1920,
+    "height": 1080
+  },
+  "acts": [],
+  "scenes": [],
+  "shots": [
+    {
+      "id": "c96f6af7-99cb-4495-a77a-d9d541d87b5d",
+      "name": "Sample Image 2",
+      "startTime": 19,
+      "position": 19,
+      "duration": 120,
+      "layers": [],
+      "referenceImages": [],
+      "prompt": "",
+      "parameters": {
+        "seed": -1,
+        "denoising": 0.75,
+        "steps": 20,
+        "guidance": 7,
+        "sampler": "DPM++ 2M Karras",
+        "scheduler": "karras"
+      },
+      "generationStatus": "pending"
+    }
+  ],
+  "createdAt": 1768846761156,
+  "modifiedAt": 1774876355291,
+  "status": "draft",
+  "tags": []
+}

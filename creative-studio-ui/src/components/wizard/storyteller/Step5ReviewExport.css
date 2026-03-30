@@ -1,0 +1,46 @@
+/* Step5ReviewExport.css */
+
+.alignment-score-container {
+  --alignment-bg-glow: rgba(59, 130, 246, 0.1);
+}
+
+.alignment-score-pass {
+  --alignment-bg-glow: rgba(34, 197, 94, 0.1);
+}
+
+.alignment-score-fail {
+  --alignment-bg-glow: rgba(245, 158, 11, 0.1);
+}
+
+.alignment-card-glow {
+  background: var(--alignment-bg-glow);
+}
+
+.category-progress-bar {
+  width: var(--progress-width, 0%);
+  transition: width 1s ease-in-out;
+}
+
+.score-badge-high {
+  color: #16a34a; /* green-600 */
+}
+
+.score-badge-medium {
+  color: #d97706; /* amber-600 */
+}
+
+.score-badge-low {
+  color: #dc2626; /* red-600 */
+}
+
+.progress-fill-high {
+  background-color: #22c55e; /* green-500 */
+}
+
+.progress-fill-medium {
+  background-color: #f59e0b; /* amber-500 */
+}
+
+.progress-fill-low {
+  background-color: #ef4444; /* red-500 */
+}

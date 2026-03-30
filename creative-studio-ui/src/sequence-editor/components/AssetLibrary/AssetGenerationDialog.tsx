@@ -6,9 +6,9 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { useAppDispatch } from '../../store';
-import { addAsset } from '../../store/slices/assetsSlice';
-import type { AssetType, Asset } from '../../types';
+import type { AssetType } from '../../types';
+import { generateImage } from '../../../services/imageGenerationService';
+import { useProductionStore, type ManifestedAsset } from '../../../stores/productionStore';
 import './assetLibrary.css';
 
 interface AssetGenerationDialogProps {
@@ -31,8 +31,6 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
   onClose,
   defaultCategory = 'characters',
 }) => {
-  const dispatch = useAppDispatch();
-  
   const [assetType, setAssetType] = useState<AssetType>(() => {
     if (defaultCategory === 'environments') return 'environment';
     if (defaultCategory === 'props') return 'prop';
@@ -69,48 +67,40 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
     setError(null);
 
     try {
-      // Simulate asset generation (in real implementation, this would call the AI API)
-      for (let i = 0; i <= 100; i += 10) {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        setProgress(i);
-      }
+      setIsGenerating(true);
+      setError(null);
+      
+      const resultUrl = await generateImage({
+        prompt: `cinematic ${assetType} concept: ${prompt}`,
+        width: 1024,
+        height: 1024,
+        steps: steps,
+        cfgScale: guidance,
+        sampler: 'euler',
+        scheduler: 'normal',
+        workflowType: 'z_image_turbo'
+      }, (prog, msg) => {
+        setProgress(Math.round(prog * 100));
+      });
 
-      // Create new asset
-      const newAsset: Asset = {
-        id: `asset-${Date.now()}`,
-        name: prompt.substring(0, 30) + (prompt.length > 30 ? '...' : ''),
-        type: assetType,
-        category: defaultCategory,
-        thumbnailUrl: `data:image/svg+xml,${encodeURIComponent(`
-          <svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150">
-            <rect fill="#4A90E2" width="150" height="150"/>
-            <text fill="white" font-family="sans-serif" font-size="12" x="50%" y="50%" text-anchor="middle" dy=".3em">Generated</text>
-          </svg>
-        `)}`,
-        metadata: {
-          description: prompt,
-          author: 'User',
-        },
-        tags: assetType === 'character' ? ['character', 'ai-generated'] :
-              assetType === 'environment' ? ['environment', 'ai-generated'] :
-              ['asset', 'ai-generated'],
-        source: 'ai-generated',
-        createdAt: Date.now(),
+      const newAsset: ManifestedAsset = {
+        id: crypto.randomUUID(),
+        characterName: assetType === 'character' ? prompt.split(' ')[0] : undefined,
+        generatedAt: new Date().toISOString(),
+        type: assetType === 'character' ? 'CHARACTER_REFERENCE_SHEET' : 
+              assetType === 'environment' ? 'LOCATION_REFERENCE_SHEET' : 'OBJECT_REFERENCE_SHEET',
+        url: resultUrl,
+        metadata: { prompt, seed, steps, guidance }
       };
 
-      // Add asset to store
-      dispatch(addAsset({ categoryId: defaultCategory, asset: newAsset }));
-
-      // Close dialog after success
-      setTimeout(() => {
-        onClose();
-      }, 1000);
+      useProductionStore.getState().addManifestedAsset(newAsset);
+      onClose();
     } catch (err) {
-      setError('Failed to generate asset. Please try again.');
+      setError(err instanceof Error ? err.message : 'Neural engine failure');
     } finally {
       setIsGenerating(false);
     }
-  }, [prompt, assetType, defaultCategory, dispatch, onClose]);
+  }, [prompt, assetType, steps, guidance, seed, onClose]);
 
   // Handle close
   const handleClose = useCallback(() => {

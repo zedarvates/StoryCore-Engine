@@ -462,6 +462,9 @@ export interface ShotPlan {
   transition: Transition;
   compositionNotes: string;
   order: number;
+  presetId?: string; // ID of the Krita preset
+  is3DMode?: boolean; // Whether the shot uses 3D mode
+  position: number; // For cinematic orchestration sorting
 }
 
 // Validation Types

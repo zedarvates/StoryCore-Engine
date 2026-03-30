@@ -32,9 +32,17 @@ export class RoverBackend implements StorageBackend {
                 console.warn('[RoverBackend] Rover API sync not available, using basic FS');
             }
 
+            // Ensure the project directory exists before writing
+            const dirExists = await window.electronAPI.fs.exists(this.projectPath);
+            if (!dirExists) {
+                console.error(`[RoverBackend] Project directory does not exist: ${this.projectPath}`);
+                throw new Error('ENOENT: project directory missing');
+            }
+
             // Always write the main project.json for compatibility with the rest of the app
             if (window.electronAPI?.fs?.writeFile) {
-                await window.electronAPI.fs.writeFile(pathJoin(this.projectPath, 'project.json'), data);
+                const filePath = pathJoin(this.projectPath, 'project.json');
+                await window.electronAPI.fs.writeFile(filePath, data);
             } else {
                 console.error('[RoverBackend] FS API not available for save');
                 throw new Error('No persistence available');
@@ -114,7 +122,9 @@ export class RoverBackend implements StorageBackend {
  * Helper to join paths safely in the renderer
  */
 function pathJoin(base: string, part: string): string {
-    // Simple path joining for renderer (assumes forward or backward slashes depending on OS)
-    const separator = base.includes('\\') ? '\\' : '/';
-    return base.endsWith(separator) ? base + part : base + separator + part;
+    if (!base) return part;
+    // Normalize slashes to the system preferred style
+    const normalizedBase = base.replace(/\/|\\/g, base.includes('\\') ? '\\' : '/');
+    const separator = normalizedBase.includes('\\') ? '\\' : '/';
+    return normalizedBase.endsWith(separator) ? normalizedBase + part : normalizedBase + separator + part;
 }

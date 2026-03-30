@@ -1,5 +1,21 @@
 import { logger } from '../../utils/logger';
 
+/**
+ * Helper to get authentication headers from localStorage
+ */
+function getAuthHeaders(): Record<string, string> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+}
+
 export interface StoryPrompt {
   genre: StoryGenre;
   structure: StoryStructure;
@@ -130,9 +146,7 @@ class StoryGenerationService {
       
       const response = await fetch(`${this.endpoint}/story/generate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           prompt: prompt.prompt,
           genre: typeof prompt.genre === 'string' ? prompt.genre : prompt.genre.value,
@@ -160,7 +174,9 @@ class StoryGenerationService {
   
   async getStory(storyId: string): Promise<StoryResult | null> {
     try {
-      const response = await fetch(`${this.endpoint}/story/${storyId}`);
+      const response = await fetch(`${this.endpoint}/story/${storyId}`, {
+        headers: getAuthHeaders(),
+      });
       
       if (response.status === 404) {
         return null;
@@ -189,7 +205,9 @@ class StoryGenerationService {
       if (filters?.limit) params.append('limit', String(filters.limit));
       if (filters?.offset) params.append('offset', String(filters.offset));
       
-      const response = await fetch(`${this.endpoint}/stories?${params}`);
+      const response = await fetch(`${this.endpoint}/stories?${params}`, {
+        headers: getAuthHeaders(),
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Failed to list stories`);
@@ -215,7 +233,9 @@ class StoryGenerationService {
         include_stage_directions: String(options.includeStageDirections),
       });
       
-      const response = await fetch(`${this.endpoint}/story/${storyId}/export?${params}`);
+      const response = await fetch(`${this.endpoint}/story/${storyId}/export?${params}`, {
+        headers: getAuthHeaders(),
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Export failed`);
@@ -234,7 +254,9 @@ class StoryGenerationService {
   
   async analyzeStructure(storyId: string): Promise<StructureAnalysis> {
     try {
-      const response = await fetch(`${this.endpoint}/story/${storyId}/structure`);
+      const response = await fetch(`${this.endpoint}/story/${storyId}/structure`, {
+        headers: getAuthHeaders(),
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: Structure analysis failed`);
@@ -251,9 +273,7 @@ class StoryGenerationService {
     try {
       const response = await fetch(`${this.endpoint}/story/${request.storyId}/refine`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(request.feedback),
       });
       
@@ -275,9 +295,7 @@ class StoryGenerationService {
     try {
       const response = await fetch(`${this.endpoint}/story/${storyId}/scenes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(sceneData),
       });
       
@@ -296,9 +314,7 @@ class StoryGenerationService {
     try {
       const response = await fetch(`${this.endpoint}/story/${storyId}/scenes/${sceneId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(updates),
       });
       
@@ -317,6 +333,7 @@ class StoryGenerationService {
     try {
       const response = await fetch(`${this.endpoint}/story/${storyId}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
       
       if (!response.ok) {

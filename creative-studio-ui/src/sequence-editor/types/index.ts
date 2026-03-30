@@ -17,6 +17,8 @@ export interface ProjectMetadata {
   modified: number;
   author: string;
   description: string;
+  resume?: string;
+  thumbnail?: string;
 }
 
 export interface ProjectSettings {
@@ -39,18 +41,29 @@ export interface GenerationStatus {
   error?: string;
 }
 
+export interface Sequence {
+  id: string;
+  name: string;
+  shots: Shot[];
+  duration: number;
+}
+
 export interface ProjectState {
   metadata: ProjectMetadata | null;
   settings: ProjectSettings;
   saveStatus: SaveStatus;
   generationStatus: GenerationStatus;
+  sequences?: Sequence[]; // Store sequences in the project state
+  activeSequenceId?: string;
 }
 
 // ============================================================================
 // Timeline Types
 // ============================================================================
 
-export type LayerType = 'media' | 'audio' | 'effects' | 'transitions' | 'text' | 'keyframes';
+import { Layer as GlobalLayer, LayerType as GlobalLayerType, Shot as GlobalShot, AudioTrack as GlobalAudioTrack, SurroundConfig as GlobalSurroundConfig } from '@/types';
+
+export type LayerType = GlobalLayerType;
 
 export interface Transform {
   position: { x: number; y: number };
@@ -206,18 +219,7 @@ export type LayerData =
   | KeyframeLayerData
   | SpeechLayerData;
 
-export interface Layer {
-  id: string;
-  type: LayerType;
-  startTime: number; // Relative to shot start
-  duration: number;
-  locked: boolean;
-  hidden: boolean;
-  opacity: number; // 0-1
-  blendMode: string;
-  data: LayerData;
-  animations?: Record<string, TimelineKeyframe[]>; // Property name -> keyframes
-}
+export type Layer = GlobalLayer;
 
 export interface GenerationParameters {
   seed: number;
@@ -226,6 +228,7 @@ export interface GenerationParameters {
   guidance: number;
   sampler: string;
   scheduler: string;
+  negativePrompt?: string;
 }
 
 export interface ReferenceImage {
@@ -259,42 +262,9 @@ export interface StyleParameters {
   sharpness?: number;
 }
 
-export interface Shot {
-  id: string;
-  name: string;
-  startTime: number; // Frame number
-  duration: number; // Frame count
-  layers: Layer[];
-  referenceImages: ReferenceImage[];
-  prompt: string;
-  animationPrompt?: string;
-  parameters: GenerationParameters;
-  generationStatus: 'pending' | 'processing' | 'complete' | 'error';
-  outputPath?: string; // Path to generated media
-  qaScore?: number; // Quality assessment score
-  visualStyle?: StyleApplication; // Applied visual style
-  modified?: boolean; // Track if shot has been modified
-  // Transitions (Phase 1 - R&D)
-  transitions?: {
-    in?: {
-      type: string;
-      duration: number;
-      appliedAt: number;
-    };
-    out?: {
-      type: string;
-      duration: number;
-      appliedAt: number;
-    };
-  };
-  rigPath?: string;
-  boneCount?: number;
-  hash?: string;
-
-  gltfPath?: string;
-  referenceImage?: string;
-  sheet?: unknown;
-}
+export type Shot = GlobalShot;
+export type AudioTrack = GlobalAudioTrack;
+export type SurroundConfig = GlobalSurroundConfig;
 
 export interface Track {
   id: string;
@@ -563,9 +533,18 @@ export interface PanelLayout {
 export interface PanelsState {
   layout: PanelLayout;
   activePanel: 'assetLibrary' | 'preview' | 'shotConfig' | 'timeline' | null;
+  activeAssetCategory?: string; // Currently selected asset category
   shotConfigTarget: string | null; // Currently selected shot for configuration
   showLayerManager: boolean; // Toggle between shot config and layer manager
   compactMode: boolean; // Toggle for compact director dashboard
+  libraryVisible: boolean;
+  inspectorVisible: boolean;
+  mixerVisible: boolean;
+  metadataVisible: boolean;
+  gridVisible: boolean; // Toggle for timeline grid lines
+  markersVisible: boolean; // Toggle for timeline markers
+  promptsVisible: boolean; // Toggle for shot prompts on timeline
+  showAlignmentDashboard: boolean;
 }
 
 // ============================================================================
@@ -624,10 +603,17 @@ export interface PreviewState {
 // History Types
 // ============================================================================
 
+export interface RootSnapshot {
+  project?: ProjectState;
+  timeline?: TimelineState;
+  assets?: AssetsState;
+  panels?: PanelsState;
+}
+
 export interface StateSnapshot {
   timestamp: number;
   action: string; // Action type that created this snapshot
-  state: unknown; // Partial state snapshot
+  state: RootSnapshot; // Full state snapshot
   description: string; // Human-readable description
 }
 

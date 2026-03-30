@@ -1,0 +1,94 @@
+/**
+ * BottomBar Styles - Professional Page Navigation (Point 6 of Spec)
+ */
+
+.bottom-bar {
+  height: 32px; /* Very thin footer */
+  background: #111;
+  border-top: 1px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.bottom-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bottom-nav-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #52525b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bottom-nav-btn:hover {
+  background: #2a2a2a;
+  color: #a1a1aa;
+}
+
+.bottom-nav-btn.active {
+  color: #fff;
+  background: #2a2a2a;
+}
+
+/* Assistant LLM Badge */
+.llm-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+}
+
+.status-dot.pulse {
+  box-shadow: 0 0 4px #4ade80;
+  animation: pulse-dot 2s infinite;
+}
+
+.badge-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: #818cf8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-version {
+  font-size: 8.5px;
+  color: #3f3f46;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.4); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 0.8; }
+}

@@ -321,8 +321,8 @@ export function Step4StoryGeneration() {
       // Reset state
       setProgress({
         stage: 'preparing',
-        progress: 10,
-        currentTask: 'Preparing story parameters...',
+        progress: 5,
+        currentTask: 'Establishing secure link with Narrative Weaver...',
       });
       setGeneratedStory(null);
 

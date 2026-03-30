@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy } from 'react';
 import type { Shot, StoryObject, SequencePlan } from '@/types';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -17,6 +17,7 @@ import { ToggleButton } from '@/components/ToggleButton';
 import { I18nProvider } from '@/utils/i18n';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { createDragDropManager, type DragDropManager } from 'dnd-core';
 const DetachedChatPage = lazy(() => import('@/pages/DetachedChatPage').then(m => ({ default: m.DetachedChatPage })));
 const LandingPageWithHooks = lazy(() => import('@/pages/LandingPageWithHooks').then(m => ({ default: m.LandingPageWithHooks })));
 const AdvancedGridEditorPage = lazy(() => import('@/pages/experimental/AdvancedGridEditorPage').then(m => ({ default: m.AdvancedGridEditorPage })));
@@ -50,6 +51,10 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ScreenReaderAnnouncerProvider } from '@/components/menuBar/ScreenReaderAnnouncer';
 
 
+
+import { Provider as ReduxProvider } from 'react-redux';
+import { store as reduxStore } from '@/sequence-editor/store';
+import { StoreSynchronizer } from '@/stores/StoreSynchronizer';
 
 function AppContent() {
   // Get secret mode context to check for experimental features
@@ -1239,36 +1244,51 @@ function AppContent() {
   );
 }
 
+/* 
+ * DragDropManager singleton to prevent "Cannot have two HTML5 backends" error (Req: 10.3)
+ * This ensures that the backend is only initialized once even if App re-renders or mounts twice in StrictMode.
+ */
+let globalDndManager: DragDropManager | null = null;
+const getDndManager = () => {
+  if (!globalDndManager) {
+    globalDndManager = createDragDropManager(HTML5Backend);
+  }
+  return globalDndManager;
+};
+
 // Wrapper component with LanguageProvider, NavigationProvider, SecretModeProvider, LLMProvider, ScreenReaderAnnouncerProvider and ErrorBoundary
 function App() {
   return (
     <ErrorBoundary>
-      <DndProvider backend={HTML5Backend}>
-        <I18nProvider defaultLanguage="en" enableAutoDetect={false}>
-          <LanguageProvider>
-            <NavigationProvider>
-              <SecretModeProvider>
-                <LLMProvider>
-                  <ScreenReaderAnnouncerProvider>
-                    <div className="relative min-h-screen">
-                      <AppContent />
+      <ReduxProvider store={reduxStore}>
+        <DndProvider manager={getDndManager()}>
+          <I18nProvider defaultLanguage="en" enableAutoDetect={false}>
+            <StoreSynchronizer />
+            <LanguageProvider>
+              <NavigationProvider>
+                <SecretModeProvider>
+                  <LLMProvider>
+                    <ScreenReaderAnnouncerProvider>
+                      <div className="relative min-h-screen">
+                        <AppContent />
 
-                      {/* Floating AI Assistant */}
-                      <FloatingAIAssistant />
+                        {/* Floating AI Assistant */}
+                        <FloatingAIAssistant />
 
-                      {/* Toggle Button */}
-                      <ToggleButton position="bottom-right" />
-                      
-                      {/* Toasts */}
-                      <Toaster />
-                    </div>
-                  </ScreenReaderAnnouncerProvider>
-                </LLMProvider>
-              </SecretModeProvider>
-            </NavigationProvider>
-          </LanguageProvider>
-        </I18nProvider>
-      </DndProvider>
+                        {/* Toggle Button */}
+                        <ToggleButton position="bottom-right" />
+                        
+                        {/* Toasts */}
+                        <Toaster />
+                      </div>
+                    </ScreenReaderAnnouncerProvider>
+                  </LLMProvider>
+                </SecretModeProvider>
+              </NavigationProvider>
+            </LanguageProvider>
+          </I18nProvider>
+        </DndProvider>
+      </ReduxProvider>
     </ErrorBoundary>
   );
 }

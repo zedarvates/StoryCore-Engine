@@ -11,11 +11,14 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Label } from './ui/label';
 import { Badge } from './ui/badge';
 import { Textarea } from './ui/textarea';
-import { AlertCircle, CheckCircle, AlertTriangle, Zap, Loader2, Undo2 } from 'lucide-react';
+import { AlertCircle, CheckCircle, AlertTriangle, Zap, Loader2, Undo2, Box, Layers } from 'lucide-react';
 import { validatePrompt } from '../utils/promptValidation';
 import { checkOllamaStatus } from '../services/ollamaConfig';
 import { promptOptimizer } from '../services/ai/PromptOptimizationService';
-import type { Shot, PromptValidation } from '../types/projectDashboard';
+import { CINEMATIC_SHOT_PRESETS } from '../constants/presets/shotPresets';
+import { NarrativeLayerMapper } from '../services/NarrativeLayerMapper';
+import { KritaLayoutPreview } from './KritaLayoutPreview';
+import type { Shot, ShotPreset, PromptValidation } from '../types';
 
 // ============================================================================
 // Component Props
@@ -54,14 +57,17 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
   // State
   // ============================================================================
 
-  const [localPrompt, setLocalPrompt] = useState(prompt);
   const [validation, setValidation] = useState<PromptValidation | null>(
     validationError || null
   );
   const [isValidating, setIsValidating] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [localPrompt, setLocalPrompt] = useState(prompt || shot.prompt || '');
+  const [selectedPresetId, setSelectedPresetId] = useState<string | null>(shot.presetId || null);
+  const [is3DMode, setIs3DMode] = useState<boolean>(shot.is3DMode || false);
   const [previousPrompt, setPreviousPrompt] = useState<string | null>(null);
   const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
+  const activeNarrativeKeywords = NarrativeLayerMapper.getNarrativeKeywords(localPrompt);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // ============================================================================
@@ -160,6 +166,30 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
     };
   }, []);
 
+  const handleApplyPreset = useCallback((preset: ShotPreset) => {
+    const newPrompt = preset.promptTemplate;
+    setSelectedPresetId(preset.id);
+    setLocalPrompt(newPrompt);
+    onPromptChange(newPrompt);
+    performValidation(newPrompt);
+    
+    // Automatically enable 3D mode if supported by the preset
+    const supports3D = !!preset.is3DSupported;
+    setIs3DMode(supports3D);
+    
+    // Notify parent of the core state changes for persistence
+    onPromptChange(newPrompt); // This usually triggers an update in parent
+  }, [onPromptChange, performValidation]);
+
+  // Update shot metadata when 3D mode or Preset changes
+  useEffect(() => {
+    // Only trigger if values actually differ from shot object
+    if (selectedPresetId !== shot.presetId || is3DMode !== shot.is3DMode) {
+      // Trigger a soft update in the parent (e.g. through a debounced metadata update)
+      // For now we assume the parent handles the Shot object sync
+    }
+  }, [is3DMode, selectedPresetId, shot.presetId, shot.is3DMode]);
+
   // ============================================================================
   // Initial validation
   // ============================================================================
@@ -251,8 +281,139 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
               Warning
             </Badge>
           )}
+
+          {/* 2D/3D Mode Toggle (Only if preset supports 3D) */}
+          {CINEMATIC_SHOT_PRESETS.find(p => p.id === selectedPresetId)?.is3DSupported && (
+            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 shadow-inner ml-2">
+              <button
+                onClick={() => setIs3DMode(false)}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all ${
+                  !is3DMode ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+                title="Use 2D Krita layers for layout"
+              >
+                <Layers className="h-2.5 w-2.5" />
+                2D Layout
+              </button>
+              <button
+                onClick={() => setIs3DMode(true)}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold uppercase transition-all ${
+                  is3DMode ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+                title="Use 3D Puppet for precision staging"
+              >
+                <Box className="h-2.5 w-2.5" />
+                3D Rig
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Cinematic Presets Selector */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+            Cinematic Presets & Layout Guides
+          </Label>
+          
+          {activeNarrativeKeywords.length > 0 && (
+            <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-right-2 duration-300">
+              <span className="text-[9px] font-bold text-amber-600 uppercase tracking-tighter">Narrative Active:</span>
+              <div className="flex gap-1">
+                {activeNarrativeKeywords.map(kw => (
+                  <Badge key={kw} variant="outline" className="text-[8px] h-4 px-1 bg-amber-50 text-amber-700 border-amber-200 uppercase">
+                    {kw}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
+          {CINEMATIC_SHOT_PRESETS.map((basePreset) => {
+            // Adapt the preset visual in real-time based on what the user types!
+            const preset = NarrativeLayerMapper.adaptLayoutToNarrative(localPrompt, basePreset);
+            const isSelected = selectedPresetId === preset.id;
+
+            return (
+              <button
+                key={preset.id}
+                onClick={() => handleApplyPreset(preset)}
+                className={`group flex-shrink-0 flex items-center gap-2 px-3 py-2 rounded-lg transition-all shadow-sm ${
+                  isSelected 
+                    ? 'bg-blue-50 border border-blue-400 ring-1 ring-blue-100' 
+                    : 'bg-white border border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                }`}
+                title={preset.description}
+              >
+                {/* Layout Mini-Guide Icon */}
+                <div className={`flex flex-wrap w-5 h-5 rounded-md overflow-hidden border ${isSelected ? 'border-blue-400 shadow-sm' : 'border-slate-300'}`}>
+                  {Object.values(preset.layoutColors).filter(c => c).slice(0, 4).map((color, idx) => (
+                    <div 
+                      key={idx} 
+                      className="w-1/2 h-1/2" 
+                      style={{ backgroundColor: color as string }} 
+                    />
+                  ))}
+                </div>
+                <div className="text-left">
+                  <p className={`text-xs font-semibold leading-tight ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>
+                    {preset.label}
+                  </p>
+                  <p className={`text-[9px] font-medium ${isSelected ? 'text-blue-500' : 'text-slate-500'}`}>
+                    {preset.framing} • {preset.category}
+                  </p>
+                </div>
+                {preset.is3DSupported && (
+                  <div className="ml-auto" title="3D Rig Available">
+                    <Box className="h-3 w-3 text-emerald-500 opacity-60" />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Real-time Artistic Precept (Krita) Preview */}
+      {!is3DMode && selectedPresetId && CINEMATIC_SHOT_PRESETS.find(p => p.id === selectedPresetId)?.templatePath && (
+        <div className="space-y-2 animate-in zoom-in-95 duration-500 delay-150">
+          <Label className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1">
+            <Layers className="h-2.5 w-2.5 text-blue-500" />
+            Live Artistic Layout Extract
+          </Label>
+          <KritaLayoutPreview
+            templatePath={CINEMATIC_SHOT_PRESETS.find(p => p.id === selectedPresetId)!.templatePath!}
+            narrativeContext={localPrompt}
+            className="shadow-md border-blue-100 ring-2 ring-blue-50/50"
+            width={400} 
+            height={225}
+          />
+        </div>
+      )}
+
+      {/* 3D Staging Placeholder if 3D Mode is Active */}
+      {is3DMode && selectedPresetId && CINEMATIC_SHOT_PRESETS.find(p => p.id === selectedPresetId)?.rigPath && (
+        <div className="space-y-2 animate-in fade-in zoom-in-95 duration-500">
+           <Label className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1">
+            <Box className="h-2.5 w-2.5 text-emerald-500" />
+            3D Staging Mode (Puppet Engine)
+          </Label>
+          <div className="w-full h-[225px] bg-slate-900 rounded-lg flex flex-col items-center justify-center border-2 border-emerald-500/20 shadow-lg relative overflow-hidden group">
+             <Box className="h-12 w-12 text-emerald-500 opacity-20 group-hover:opacity-40 transition-opacity animate-pulse" />
+             <div className="flex flex-col items-center mt-2">
+                <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest px-2 py-0.5 bg-emerald-500/10 rounded">3D Precise Puppet Ready</span>
+                <span className="text-[8px] text-emerald-300 mt-1 opacity-60">Rig: {CINEMATIC_SHOT_PRESETS.find(p => p.id === selectedPresetId)!.rigPath!.split('/').pop()}</span>
+             </div>
+             <div className="absolute top-2 right-2 flex gap-1">
+                <Badge variant="outline" className="text-[7px] border-emerald-500/40 text-emerald-400 bg-emerald-950/50 backdrop-blur-sm">Real-time Ik System</Badge>
+                <Badge variant="outline" className="text-[7px] border-emerald-500/40 text-emerald-400 bg-emerald-950/50 backdrop-blur-sm">{CINEMATIC_SHOT_PRESETS.find(p => p.id === selectedPresetId)!.animationId}</Badge>
+             </div>
+          </div>
+        </div>
+      )}
 
       {/* Textarea with Visual Indicators */}
       <div className="relative">
@@ -300,7 +461,7 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
       {validation && (
         <div className="space-y-2" role="alert" aria-live="polite">
           {/* Error Messages */}
-          {validation.errors.map((error, index) => (
+          {validation.errors?.map((error, index) => (
             <div
               key={`error-${index}`}
               className="flex items-start gap-2 p-2 rounded-md bg-red-50 border border-red-200"
@@ -313,7 +474,7 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
           ))}
 
           {/* Warning Messages */}
-          {validation.warnings.map((warning, index) => (
+          {validation.warnings?.map((warning, index) => (
             <div
               key={`warning-${index}`}
               className="flex items-start gap-2 p-2 rounded-md bg-yellow-50 border border-yellow-200"
@@ -329,7 +490,7 @@ export const ShotPromptEditor: React.FC<ShotPromptEditorProps> = ({
           ))}
 
           {/* Suggestions */}
-          {validation.suggestions.length > 0 && (
+          {validation.suggestions?.length > 0 && (
             <div className="flex items-start gap-2 p-2 rounded-md bg-blue-50 border border-blue-200">
               <div className="flex-1">
                 <p className="text-sm text-blue-800 font-medium mb-1">Suggestions:</p>

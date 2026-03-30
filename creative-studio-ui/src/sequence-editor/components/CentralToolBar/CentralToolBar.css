@@ -1,0 +1,150 @@
+/**
+ * CentralToolBar Styles - Professional Horizon (Point 4 of Spec)
+ */
+
+.central-tool-bar {
+  height: 36px;
+  background: #111;
+  border-top: 1px solid #2a2a2a;
+  border-bottom: 2px solid #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  z-index: 400;
+  -webkit-user-select: none;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* Left: Sequence Tabs */
+.ct-left {
+  display: flex;
+  align-items: center;
+}
+
+.ct-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ct-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 4px 4px 0 0;
+  border: 1px solid #2a2a2a;
+  border-bottom: none;
+  font-size: 10.5px;
+  color: #71717a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ct-tab.active {
+  background: #2a2a2a;
+  color: #fff;
+  border-bottom: 2px solid #6366f1;
+}
+
+.tab-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.tab-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ef4444;
+}
+
+.tab-add {
+  background: transparent;
+  border: none;
+  color: #52525b;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Center: Tools Icons */
+.ct-center {
+  display: flex;
+  align-items: center;
+}
+
+.ct-edit-tools {
+  display: flex;
+  align-items: center;
+  background: #1a1a1a;
+  padding: 2px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ct-edit-btn {
+  width: 28px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #52525b;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.ct-edit-btn:hover {
+  color: #a1a1aa;
+}
+
+.ct-edit-btn.active {
+  color: #fff;
+  background: #2a2a2a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+/* Right: Zoom Control */
+.ct-right {
+  display: flex;
+  align-items: center;
+}
+
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ct-zoom-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  background: #2a2a2a;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.ct-zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}

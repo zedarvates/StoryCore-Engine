@@ -153,6 +153,16 @@ class LLMConfigService {
    */
   private async setConfig(config: LLMConfig, save: boolean = true): Promise<void> {
     const previousConfig = this.currentConfig;
+    
+    // MIGRATION: Ensure local providers have at least 5 minute timeout
+    // Older versions might have saved a lower timeout in localStorage
+    const isLocalProvider = ['local', 'ollama', 'lmstudio', 'custom', 'diffusion'].includes(config.provider);
+    if (isLocalProvider && (!config.timeout || config.timeout < 300000)) {
+      logger.info(`[LLMConfigService] Migrating timeout for ${config.provider} provider: ${config.timeout}ms -> 300000ms`);
+      config.timeout = 300000;
+      save = true; // Force save if we migrated
+    }
+
     this.currentConfig = config;
 
     try {

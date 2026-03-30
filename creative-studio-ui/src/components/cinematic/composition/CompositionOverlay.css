@@ -1,0 +1,72 @@
+.overlay-grid, .overlay-svg, .overlay-golden, .overlay-perspective, .overlay-center, .overlay-safe-areas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Rule of Thirds */
+.overlay-grid.thirds .line-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.line-v.v1 { left: 33.333%; }
+.line-v.v2 { left: 66.666%; }
+
+.overlay-grid.thirds .line-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+.line-h.h1 { top: 33.333%; }
+.line-h.h2 { top: 66.666%; }
+
+/* Center Crosshair */
+.overlay-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cross-v, .cross-h {
+  position: absolute;
+  background-color: var(--accent-primary, #ffd700);
+}
+.cross-v { width: 1px; height: 16px; }
+.cross-h { width: 16px; height: 1px; }
+.circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--accent-primary, #ffd700);
+}
+
+/* Safe Areas */
+.overlay-safe-areas .safe-action {
+  position: absolute;
+  top: 5%; left: 5%; width: 90%; height: 90%;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+.overlay-safe-areas .safe-title {
+  position: absolute;
+  top: 10%; left: 10%; width: 80%; height: 80%;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+/* Golden Ratio */
+.overlay-golden div {
+  position: absolute;
+}
+
+/* Aspect Ratio Markers & SVGs */
+.overlay-svg, .overlay-perspective {
+    width: 100%;
+    height: 100%;
+}

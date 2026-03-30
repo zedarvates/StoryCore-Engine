@@ -1,0 +1,107 @@
+/* Timeline rendering styles to resolve technical debt regarding inline styles */
+
+.timeline-container {
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1 1 0%;
+  height: var(--timeline-height, 200px);
+}
+
+.timeline-content {
+  position: relative;
+  width: var(--timeline-width, 100%);
+  height: var(--timeline-height, 200px);
+}
+
+.time-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--marker-height, 30px);
+}
+
+.time-marker {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  left: var(--marker-left, 0px);
+}
+
+.shot-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--marker-height, 30px);
+  height: var(--track-height, 60px);
+}
+
+.audio-tracks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: #1f2937; /* gray-800 */
+  top: calc(var(--marker-height, 30px) + var(--track-height, 60px));
+  height: var(--audio-track-height, 40px);
+}
+
+.audio-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--audio-track-height, 40px);
+}
+
+.audio-track-label {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100px;
+  height: 100%;
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+  background-color: rgba(31, 41, 55, 0.8); /* gray-800/80 */
+}
+
+.playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--playhead-color, #ef4444); /* red-500 */
+  z-index: 100;
+  pointer-events: none;
+  left: var(--playhead-left, 0px);
+}
+
+.playhead-cap {
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 10px;
+  height: 10px;
+  background-color: var(--playhead-color, #ef4444);
+  border-radius: 50%;
+}
+
+.shot-container {
+  position: absolute;
+  top: 0;
+  cursor: move;
+  left: var(--shot-left, 0px);
+  width: var(--shot-width, 0px);
+  height: var(--track-height, 60px);
+}
+
+.transition-indicator {
+  position: absolute;
+  top: 0;
+  left: var(--trans-left, 0px);
+  width: var(--trans-width, 0px);
+  height: var(--track-height, 60px);
+}

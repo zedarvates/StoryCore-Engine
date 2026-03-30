@@ -195,6 +195,7 @@
   height: 32px;
   border-radius: 6px;
   border: 2px solid var(--border-color, #444);
+  background-color: var(--swatch-color, transparent);
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }

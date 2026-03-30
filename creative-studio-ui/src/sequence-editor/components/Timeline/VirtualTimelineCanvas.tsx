@@ -10,9 +10,64 @@
 
 import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { LAYER_ICONS, formatTimecode, getTrackShots, getLayerIndex } from '../../constants/timelineConstants';
-import type { Track, Shot, Layer, LayerType, ReferenceImage } from '../../types';
+import { useAppDispatch, useAppSelector } from '../../store';
+import { splitShot } from '../../store/slices/timelineSlice';
+import { LAYER_ICONS, getTrackShots, getLayerIndex } from '../../constants/timelineConstants';
+import type { Track, ToolType } from '@/sequence-editor/types';
+import type { Shot, Layer, LayerType } from '@/types';
 import './VirtualTimelineCanvas.css';
+ 
+// Canvas roundRect Polyfill for Older Browsers
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, radii) {
+    if (w < 2 * 0 || h < 2 * 0) return this;
+    
+    let r: number[] = [0, 0, 0, 0];
+    
+    if (typeof radii === 'number') {
+      r = [radii, radii, radii, radii];
+    } else if (Array.isArray(radii)) {
+      if (radii.length === 1) {
+        const val = Number(radii[0]) || 0;
+        r = [val, val, val, val];
+      } else if (radii.length === 2) {
+        const v1 = Number(radii[0]) || 0;
+        const v2 = Number(radii[1]) || 0;
+        r = [v1, v2, v1, v2];
+      } else if (radii.length === 3) {
+        const v1 = Number(radii[0]) || 0;
+        const v2 = Number(radii[1]) || 0;
+        const v3 = Number(radii[2]) || 0;
+        r = [v1, v2, v3, v2];
+      } else if (radii.length >= 4) {
+        r = [
+          Number(radii[0]) || 0,
+          Number(radii[1]) || 0,
+          Number(radii[2]) || 0,
+          Number(radii[3]) || 0
+        ];
+      }
+    }
+
+    // Ensure radii don't exceed half the width or height
+    const top = Math.min(r[0], h / 2, w / 2);
+    const right = Math.min(r[1], h / 2, w / 2);
+    const bottom = Math.min(r[2], h / 2, w / 2);
+    const left = Math.min(r[3], h / 2, w / 2);
+
+    this.moveTo(x + top, y);
+    this.lineTo(x + w - right, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + right);
+    this.lineTo(x + w, y + h - bottom);
+    this.quadraticCurveTo(x + w, y + h, x + w - bottom, y + h);
+    this.lineTo(x + left, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - left);
+    this.lineTo(x, y + top);
+    this.quadraticCurveTo(x, y, x + top, y);
+    this.closePath();
+    return this;
+  };
+}
 
 // ============================================================================
 // Constants
@@ -45,6 +100,8 @@ interface VirtualTimelineCanvasProps {
   selectedElements: string[];
   /** Timeline width in pixels */
   timelineWidth: number;
+  /** Optional scroll element for the virtualizer */
+  scrollElement?: HTMLElement | null;
   /** Function to handle shot selection */
   onShotSelect: (shotId: string, multiSelect: boolean) => void;
   /** Function to handle layer selection */
@@ -53,10 +110,20 @@ interface VirtualTimelineCanvasProps {
   onShotMove?: (shotId: string, newStartTime: number) => void;
   /** Function to handle shot resize */
   onShotResize?: (shotId: string, newDuration: number, edge: 'start' | 'end') => void;
-  /** Current scroll offset */
-  scrollLeft?: number;
+  /** Function to handle shot roll edit */
+  onShotRoll?: (shotAId: string, shotBId: string, delta: number) => void;
+  /** Function to handle shot slip edit */
+  onShotSlip?: (shotId: string, delta: number) => void;
+  /** Function to handle shot slide edit */
+  onShotSlide?: (shotId: string, delta: number) => void;
+  /** Function to handle shot double click (e.g. enter sequence) */
+  onShotDoubleClick?: (shotId: string) => void;
   /** Whether playback is active */
   isPlaying?: boolean;
+  /** Function to handle shot generation trigger */
+  onShotGenerate?: (shotId: string) => void;
+  /** Function to handle multi-shot generation */
+  onGenerateAll?: (shotIds: string[]) => void;
 }
 
 
@@ -69,8 +136,11 @@ function drawGridLines(
   width: number,
   height: number,
   zoomLevel: number,
-  fps: number = 24
+  gridVisible: boolean = true
 ): void {
+  // Skip if grid is hidden
+  if (!gridVisible) return;
+
   // Draw vertical grid lines based on zoom level
   const gridSpacing = zoomLevel >= 50 ? zoomLevel : zoomLevel >= 20 ? zoomLevel * 5 : zoomLevel * 10;
   const majorGridSpacing = gridSpacing * 10;
@@ -78,67 +148,96 @@ function drawGridLines(
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
   ctx.lineWidth = 1;
   
-  // Minor grid lines
-  for (let x = 0; x <= width; x += gridSpacing) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-  }
-  
-  // Major grid lines with time labels
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-  for (let x = 0; x <= width; x += majorGridSpacing) {
-    const frame = Math.round(x / zoomLevel);
-    const timecode = formatTimecode(frame, fps);
+    // Minor grid lines
+    for (let x = 0; x <= width; x += gridSpacing) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
     
-    // Draw line
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
-    ctx.stroke();
-    
-    // Draw time label
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = '10px SF Mono, Monaco, Consolas, monospace';
-    ctx.fillText(timecode, x + 4, 12);
+    // Major grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)'; // Slightly more visible for major lines
+    for (let x = 0; x <= width; x += majorGridSpacing) {
+      // Draw line
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
   }
-}
 
 /**
  * Draw shot thumbnail on canvas
  */
+// Image cache for thumbnails to avoid flickering and repeated loads
+const MAX_CACHE_SIZE = 500;
+const thumbnailCache = new Map<string, HTMLImageElement>();
+
 function drawThumbnail(
   ctx: CanvasRenderingContext2D,
+  url: string | undefined,
   x: number,
   y: number,
   width: number,
-  height: number,
-  thumbnailUrl?: string
+  height: number
 ): void {
-  // Draw thumbnail background
-  ctx.fillStyle = '#1a1a1a';
-  ctx.fillRect(x + 2, y + 2, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-  
-  // Draw placeholder or actual thumbnail
-  if (thumbnailUrl) {
-    // In a real implementation, this would draw the actual image
-    // For now, draw a placeholder pattern
-    ctx.fillStyle = '#333';
-    ctx.fillRect(x + 4, y + 4, THUMBNAIL_WIDTH - 8, THUMBNAIL_HEIGHT - 8);
-  } else {
-    // Draw placeholder icon
-    ctx.fillStyle = '#333';
-    ctx.fillRect(x + 4, y + 4, THUMBNAIL_WIDTH - 8, THUMBNAIL_HEIGHT - 8);
-    
-    // Draw play icon
-    ctx.fillStyle = '#666';
+  if (!url) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.fillRect(x, y, width, height);
+    return;
+  }
+
+  let img = thumbnailCache.get(url);
+  if (!img) {
+    // Limit cache size - remove first (oldest) entry
+    if (thumbnailCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = thumbnailCache.keys().next().value;
+      if (firstKey) thumbnailCache.delete(firstKey);
+    }
+
+    img = new Image();
+    img.src = url;
+    img.onload = () => {
+      // Re-verify size before saving
+      if (thumbnailCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = thumbnailCache.keys().next().value;
+        if (firstKey) thumbnailCache.delete(firstKey);
+      }
+      thumbnailCache.set(url, img!);
+    };
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(x, y, width, height);
+    return;
+  }
+
+  if (img.complete && img.naturalWidth > 0) {
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(x + THUMBNAIL_WIDTH / 2 - 4, y + THUMBNAIL_HEIGHT / 2 - 6);
-    ctx.lineTo(x + THUMBNAIL_WIDTH / 2 + 6, y + THUMBNAIL_HEIGHT / 2);
-    ctx.lineTo(x + THUMBNAIL_WIDTH / 2 - 4, y + THUMBNAIL_HEIGHT / 2 + 6);
-    ctx.closePath();
-    ctx.fill();
+    ctx.roundRect(x, y, width, height, 4);
+    ctx.clip();
+    
+    let drawW, drawH, offsetX, offsetY;
+    const imgAspect = img.naturalWidth / img.naturalHeight;
+    const canvasAspect = width / height;
+
+    if (imgAspect > canvasAspect) {
+      drawH = height;
+      drawW = height * imgAspect;
+      offsetX = (width - drawW) / 2;
+      offsetY = 0;
+    } else {
+      drawW = width;
+      drawH = width / imgAspect;
+      offsetX = 0;
+      offsetY = (height - drawH) / 2;
+    }
+    
+    ctx.drawImage(img, x + offsetX, y + offsetY, drawW, drawH);
+    ctx.restore();
+  } else {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.fillRect(x, y, width, height);
   }
 }
 
@@ -149,6 +248,7 @@ function drawLayer(
   ctx: CanvasRenderingContext2D,
   shot: Shot,
   layer: Layer,
+  layerIndex: number,
   trackType: LayerType,
   trackHeight: number,
   zoomLevel: number,
@@ -157,30 +257,40 @@ function drawLayer(
   isLocked: boolean,
   isHidden: boolean,
   dragOffset: number = 0,
-  sequenceNumber?: number,
-  hasCoherenceSheet?: { character: boolean; location: boolean }
+  sequenceNumber: number | undefined = 0,
+  showPrompt: boolean = false,
+  contentOffset: number = 0,
+  activeTool: ToolType = 'select'
 ): void {
   const x = shot.startTime * zoomLevel + dragOffset;
   const width = Math.max(shot.duration * zoomLevel, MIN_SHOT_WIDTH);
-  const layerIndex = getLayerIndex(shot, trackType, layer);
   const y = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
   const height = LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
   
-  // Skip if hidden
+  const stackOffset = layerIndex * 2; // Offset for layered rendering on the same track if applicable// Skip if hidden
   if (isHidden) return;
   
   // Calculate opacity
   let alpha = isSelected ? 1 : 0.8;
   if (isLocked) alpha = 0.5;
   
-  // Draw layer background with rounded corners
-  ctx.fillStyle = trackColor;
+  // Draw layer background with high-end gradient (Premium Aesthetics)
+  const gradient = ctx.createLinearGradient(x, y, x, y + height);
+  gradient.addColorStop(0, trackColor);
+  gradient.addColorStop(1, trackColor.replace('rgb', 'rgba').replace(')', ', 0.6)')); // Fade at bottom
+  
+  ctx.fillStyle = gradient;
   ctx.globalAlpha = alpha;
   
   // Rounded rectangle path
   ctx.beginPath();
   ctx.roundRect(x, y, width, height, SHOT_CORNER_RADIUS);
   ctx.fill();
+
+  // Subtle inner highlight/border for glassmorphism
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
   
   // Draw selection outline
   if (isSelected) {
@@ -218,11 +328,60 @@ function drawLayer(
   
   if (width > iconWidth + textPadding * 2 + 20) {
     ctx.fillText(text, nameX, y + height / 2);
+    
+    // Draw preset badge if available
+    if (shot.presetId) {
+      ctx.font = 'bold 8px -apple-system, BlinkMacSystemFont, sans-serif';
+      const presetText = shot.presetId.split('-').map(w => w[0].toUpperCase()).join('');
+      const badgeWidth = ctx.measureText(presetText).width + 6;
+      const badgeX = nameX + ctx.measureText(text).width + 8;
+      
+      if (width > badgeX + badgeWidth + 40) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.beginPath();
+        ctx.roundRect(badgeX, y + (height - 12) / 2, badgeWidth, 12, 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(presetText, badgeX + 3, y + height / 2);
+      }
+    }
   }
   
-  // Draw thumbnail if there's enough space
+  // Draw thumbnail if there's enough space (Requirement: Visual Feedback)
+  // Apply contentOffset to the interior content only
   if (width > THUMBNAIL_WIDTH + 60) {
-    drawThumbnail(ctx, x + width - THUMBNAIL_WIDTH - 4, y + (height - THUMBNAIL_HEIGHT) / 2, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+    ctx.save();
+    // Clip to shot bounds
+    ctx.beginPath();
+    ctx.rect(x, y, width, height);
+    ctx.clip();
+    
+    drawThumbnail(
+        ctx, 
+        shot.outputPath || (shot.referenceImages && shot.referenceImages.length > 0 ? shot.referenceImages[0].url : undefined), 
+        x + width - THUMBNAIL_WIDTH - 4 + contentOffset, // Shift content based on slip
+        y + (height - THUMBNAIL_HEIGHT) / 2, 
+        THUMBNAIL_WIDTH, 
+        THUMBNAIL_HEIGHT
+    );
+    ctx.restore();
+  }
+  
+  // Draw audio waveform placeholder if audio track
+  if (trackType === 'audio' && width > 40) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, width, height);
+      ctx.clip();
+      
+      ctx.strokeStyle = '#ffffff40';
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(x + contentOffset, y + height/2);
+      ctx.lineTo(x + width + contentOffset, y + height/2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
   }
   
   // Draw duration indicator
@@ -239,6 +398,19 @@ function drawLayer(
     }
   }
   
+  // Draw prompt if there's enough space (Requirement: Prompt Visibility)
+  if (showPrompt && width > 120 && shot.prompt) {
+    ctx.font = 'italic 9px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    const promptText = shot.prompt.length > 50 ? shot.prompt.substring(0, 47) + '...' : shot.prompt;
+    const promptY = y + height - 6;
+    const promptX = x + iconWidth + iconPadding;
+    
+    if (width > iconWidth + textPadding * 4 + 40) {
+        ctx.fillText(promptText, promptX, promptY);
+    }
+  }
+  
   // Draw resize handles if selected and not locked
   if (isSelected && !isLocked) {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -252,31 +424,72 @@ function drawLayer(
   if (isLocked) {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
     ctx.fillRect(x, y, width, height);
-    
-    // Lock icon
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText('🔒', x + width - 4, y + height / 2);
-    ctx.textAlign = 'left';
   }
-  
-  // Draw coherence indicators (Ghost for character, MapPin for location)
-  if (hasCoherenceSheet && (hasCoherenceSheet.character || hasCoherenceSheet.location)) {
+
+  // Draw Transition/Effect Indicators (Requirement: Feature Visibility)
+  const INDICATOR_SIZE = 12;
+  const INDICATOR_Y = y + 4;
+  let indicatorX = x + width - 14;
+
+  // Effects Icon
+  if (shot.effects && shot.effects.length > 0) {
+    ctx.fillStyle = '#9b59b6'; // Purple for effects
     ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
     ctx.textAlign = 'right';
-    
-    if (hasCoherenceSheet.character && hasCoherenceSheet.location) {
-      ctx.fillStyle = '#4ade80'; // Green for full coherence
-      ctx.fillText('👤📍', x + width - 4, y + height - 6);
-    } else if (hasCoherenceSheet.character) {
-      ctx.fillStyle = '#60a5fa'; // Blue for character only
-      ctx.fillText('👤', x + width - 4, y + height - 6);
-    } else if (hasCoherenceSheet.location) {
-      ctx.fillStyle = '#fbbf24'; // Amber for location only
-      ctx.fillText('📍', x + width - 4, y + height - 6);
-    }
-    ctx.textAlign = 'left';
+    ctx.fillText('✨', indicatorX, INDICATOR_Y + 4);
+    indicatorX -= INDICATOR_SIZE;
+  }
+
+  // Transitions Icon
+  if (shot.transitions && (shot.transitions.in || shot.transitions.out)) {
+    ctx.fillStyle = '#e67e22'; // Orange for transitions
+    ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText('⚡', indicatorX, INDICATOR_Y + 4);
+    indicatorX -= INDICATOR_SIZE + 4;
+  }
+
+  // Generation Trigger/Status Icon (Requirement: Prompt Interaction)
+  if (width > 40) {
+      const isGenerating = String(shot.generationStatus) === 'processing' || String(shot.generationStatus) === 'generating';
+      const isComplete = String(shot.generationStatus) === 'complete' || String(shot.generationStatus) === 'done';
+      
+      ctx.fillStyle = isGenerating ? '#3498db' : isComplete ? '#2ecc71' : '#f1c40f'; // Blue=Gen, Green=Done, Gold=Pending
+      ctx.font = '10px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.textAlign = 'right';
+      
+      // Sparkle emoji as "Generate" trigger indicator
+      ctx.fillText(isGenerating ? '🔄' : '✨', indicatorX, INDICATOR_Y + 4);
+      
+      // If it's a wide shot, we can even show a tiny "GEN" label
+      if (width > 150) {
+          ctx.font = 'bold 7px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx.globalAlpha = 0.6;
+          ctx.fillText(isGenerating ? 'GEN...' : 'GENERATE', indicatorX - 12, INDICATOR_Y + 4);
+          ctx.globalAlpha = 1.0;
+      }
+      indicatorX -= INDICATOR_SIZE + 20;
+  }
+  // Draw Slip/Slide Frame Offset Overlay (Requirement: Precise Feedback)
+  if (isSelected && (activeTool === 'slip' || activeTool === 'slide') && contentOffset !== 0) {
+      const deltaFrames = Math.round(contentOffset / zoomLevel);
+      const sign = deltaFrames >= 0 ? '+' : '';
+      const offsetText = `${activeTool === 'slip' ? 'Slip' : 'Slide'}: ${sign}${deltaFrames}f`;
+      
+      ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, sans-serif';
+      const textWidth = ctx.measureText(offsetText).width;
+      
+      // Draw semi-transparent background for text
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.beginPath();
+      ctx.roundRect(x + (width - textWidth - 12) / 2, y + height + 2, textWidth + 12, 16, 4);
+      ctx.fill();
+      
+      // Draw text
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.fillText(offsetText, x + width / 2, y + height + 10);
+      ctx.textAlign = 'left';
   }
 }
 
@@ -339,10 +552,24 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   onLayerSelect,
   onShotMove,
   onShotResize,
+  onShotRoll,
+  onShotSlip,
+  onShotSlide,
+  onShotDoubleClick,
   isPlaying = false,
+  onShotGenerate,
+  onGenerateAll,
+  scrollElement = null,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRefs = useRef<Map<string, HTMLCanvasElement>>(new Map());
+  const dispatch = useAppDispatch();
+  const { 
+    activeTool 
+  } = useAppSelector(state => state.tools);
+  const { 
+    gridVisible, promptsVisible
+  } = useAppSelector(state => state.panels);
   
   // Drag and Drop state
   const [isDragging, setIsDragging] = useState(false);
@@ -361,14 +588,14 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   
   // Calculate total height of all tracks
   const totalHeight = useMemo(
-    () => visibleTracks.reduce((sum, track) => sum + track.height, 0),
+    () => visibleTracks.reduce((sum, track) => sum+ track.height, 0),
     [visibleTracks]
   );
   
   // Setup virtualizer for vertical scrolling
   const rowVirtualizer = useVirtualizer({
     count: visibleTracks.length,
-    getScrollElement: () => containerRef.current,
+    getScrollElement: () => scrollElement || containerRef.current,
     estimateSize: (index) => visibleTracks[index]?.height || 40,
     overscan: 3,
     // Enable measurement for test environments
@@ -419,21 +646,37 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Draw grid lines
-      drawGridLines(ctx, canvas.width, canvas.height, zoomLevel);
+      drawGridLines(ctx, canvas.width, canvas.height, zoomLevel, gridVisible);
+      
+      // ====================================================================
+      // Horizontal Culling Logic (Audit Task 5 Optimization)
+      // ====================================================================
+      const scrollLeft = scrollElement?.scrollLeft || containerRef.current?.scrollLeft || 0;
+      const viewportWidth = scrollElement?.clientWidth || containerRef.current?.clientWidth || 800; // fallback width
+      const viewportEnd = scrollLeft + viewportWidth;
       
       // Draw layers
-      trackLayers.forEach(({ shot, layer }: { shot: Shot; layer: Layer }) => {
+      trackLayers.forEach(({ shot, layer }, index: number) => {
+        const shotWidth = shot.duration * zoomLevel;
+        const shotStart = shot.startTime * zoomLevel;
+        const shotEnd = shotStart + shotWidth;
+        
+        // Skip shots that are horizontally outside the viewport (Audit Task 5)
+        if (shotEnd < scrollLeft || shotStart > viewportEnd) {
+          return; 
+        }
+
         const isSelected = selectedElements.includes(shot.id);
-        const isDraggingThis = isDragging && draggedShotId === shot.id && dragTrackId === track.id;
+        const isDraggingThis = isDragging && draggedShotId === shot.id;
         const isResizingThis = isResizing && draggedShotId === shot.id;
         
-        const dragOffset = isDraggingThis ? currentDragX - dragStartX : 0;
-        
+        let dragOffset = 0;
+        const deltaX = currentDragX - dragStartX;
+        const deltaFrames = Math.round(deltaX / zoomLevel);
+
         // Live preview for resizing
         const previewShot = { ...shot };
         if (isResizingThis) {
-          const deltaX = currentDragX - dragStartX;
-          const deltaFrames = Math.round(deltaX / zoomLevel);
           if (resizeEdge === 'start') {
             const newStart = Math.max(0, shot.startTime + deltaFrames);
             const actualShift = newStart - shot.startTime;
@@ -444,6 +687,38 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           }
         }
         
+        if (isDraggingThis && activeTool === 'select' && dragTrackId === track.id) {
+          dragOffset = deltaX;
+          previewShot.startTime = Math.max(0, shot.startTime + deltaFrames);
+        }
+
+        let contentOffset = (Number(shot.metadata?.contentOffset) || 0) * zoomLevel;
+        
+        if (isDraggingThis && activeTool === 'slip') {
+          contentOffset += deltaX;
+          // Shot position doesn't change
+        }
+
+        // Slide preview logic: Neighbors resize visually
+        if (isDragging && activeTool === 'slide' && draggedShotId) {
+            const drShot = shots.find(s => s.id === draggedShotId);
+            if (drShot && drShot.id !== shot.id) {
+                // Check if this shot is a neighbor of the dragged shot on THIS track
+                const isPrev = drShot.startTime + drShot.duration === shot.startTime;
+                const isNext = drShot.startTime === shot.startTime + shot.duration;
+                
+                if (isPrev) {
+                    previewShot.duration = Math.max(1, shot.duration - deltaFrames);
+                    previewShot.startTime = shot.startTime + deltaFrames;
+                } else if (isNext) {
+                    previewShot.duration = Math.max(1, shot.duration + deltaFrames);
+                }
+            } else if (drShot && drShot.id === shot.id) {
+                // The shot itself moves
+                previewShot.startTime = shot.startTime + deltaFrames;
+            }
+        }
+
         ctx.save();
         if (isDraggingThis || isResizingThis) {
           ctx.globalAlpha = 0.6;
@@ -455,6 +730,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           ctx,
           previewShot,
           layer,
+          index, // Pass the index directly
           track.type,
           track.height,
           zoomLevel,
@@ -464,21 +740,14 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           layer.hidden,
           dragOffset,
           shotIndices.get(shot.id),
-          {
-            character: shot.referenceImages?.some((r: ReferenceImage) => r.id.startsWith('sheet-character')) || false,
-            location: shot.referenceImages?.some((r: ReferenceImage) => r.id.startsWith('sheet-location')) || false
-          }
+          promptsVisible,
+          contentOffset,
+          activeTool
         );
         ctx.restore();
       });
-      
-      // Draw playhead
-      const playheadX = playheadPosition * zoomLevel;
-      if (playheadX >= 0 && playheadX <= canvas.width) {
-        drawPlayhead(ctx, playheadX, canvas.height, isPlaying);
-      }
     });
-  }, [visibleTracks, shots, zoomLevel, playheadPosition, selectedElements, isPlaying, isDragging, isResizing, resizeEdge, draggedShotId, currentDragX, dragStartX, dragTrackId]);
+  }, [shots, zoomLevel, selectedElements, isDragging, draggedShotId, dragTrackId, currentDragX, dragStartX, isResizing, resizeEdge, playheadPosition, promptsVisible, gridVisible, activeTool, visibleTracks]);
   
   // Handle canvas click for shot/layer selection
   // Handle canvas mouse down for shot/layer selection and drag start
@@ -504,7 +773,30 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         
         // Check if mouse is within shot boundaries
         if (x >= shotStart && x <= shotEnd && y >= layerTop && y <= layerBottom) {
-          // Found shot to interact with
+          // INTERACTIVE ZONES HIT DETECTION (Requirement: Precise Interaction)
+          const INDICATOR_SIZE = 24; // larger hit area for fingers/precise clicks
+          const isSparkleHit = x >= shotEnd - INDICATOR_SIZE * 2 && y >= layerTop && y <= layerTop + INDICATOR_SIZE;
+          const isPromptHit = x >= shotStart + 20 && y >= layerBottom - 12;
+
+          if (isSparkleHit && onShotGenerate) {
+              onShotGenerate(shot.id);
+              return;
+          }
+          
+          if (isPromptHit && onShotDoubleClick) {
+              onShotDoubleClick(shot.id); // Typically opens the prompt editor
+              return;
+          }
+
+          // Handle Cut Tool (Point 7.2)
+          if (activeTool === 'cut') {
+            const splitTime = Math.round(x / zoomLevel);
+            console.log(`[Timeline] Cutting shot ${shot.id} at frame ${splitTime}`);
+            dispatch(splitShot({ id: shot.id, frame: Math.round(x / zoomLevel) }));
+            return;
+          }
+
+          // Regular selection or navigation
           onShotSelect(shot.id, e.ctrlKey || e.metaKey);
           if (onLayerSelect) {
             onLayerSelect(shot.id, layer.id, e.ctrlKey || e.metaKey);
@@ -513,20 +805,44 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           if (!layer.locked) {
             const handleWidth = 8; // width of the resize handle area
             
-            // Check for resize edge first
-            if (x <= shotStart + handleWidth) {
+            // Check for ripple/roll edge first
+            if ((activeTool === 'select' || activeTool === 'ripple') && x <= shotStart + handleWidth) {
               setIsResizing(true);
               setResizeEdge('start');
               setDraggedShotId(shot.id);
               setDragStartX(x);
               setCurrentDragX(x);
-            } else if (x >= shotEnd - handleWidth) {
+            } else if ((activeTool === 'select' || activeTool === 'ripple') && x >= shotEnd - handleWidth) {
               setIsResizing(true);
               setResizeEdge('end');
               setDraggedShotId(shot.id);
               setDragStartX(x);
               setCurrentDragX(x);
-            } else {
+            } else if (activeTool === 'roll' && (x <= shotStart + handleWidth || x >= shotEnd - handleWidth)) {
+               // Find adjacent shot for roll
+               const isStart = x <= shotStart + handleWidth;
+               const adjacentShot = isStart 
+                 ? trackLayers.find(tl => tl.shot.startTime + tl.shot.duration === shot.startTime)?.shot
+                 : trackLayers.find(tl => tl.shot.startTime === shot.startTime + shot.duration)?.shot;
+               
+               if (adjacentShot && onShotRoll) {
+                 setIsResizing(true);
+                 setResizeEdge(isStart ? 'start' : 'end');
+                 setDraggedShotId(shot.id);
+                 setDragStartX(x);
+                 setCurrentDragX(x);
+               }
+            } else if (activeTool === 'slip') {
+                setIsDragging(true);
+                setDraggedShotId(shot.id);
+                setDragStartX(x);
+                setCurrentDragX(x);
+              } else if (activeTool === 'slide') {
+                setIsDragging(true);
+                setDraggedShotId(shot.id);
+                setDragStartX(x);
+                setCurrentDragX(x);
+              } else if (activeTool === 'select') {
               // Regular move dragging
               setIsDragging(true);
               setDraggedShotId(shot.id);
@@ -544,8 +860,117 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         onShotSelect('', false);
       }
     },
-    [shots, zoomLevel, onShotSelect, onLayerSelect]
+    [shots, zoomLevel, activeTool, dispatch, onShotSelect, onLayerSelect, onShotRoll]
   );
+
+  // Handle double click on shot
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>, track: Track) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      const trackLayers = getTrackShots(shots, track.type);
+      
+      for (let i = trackLayers.length - 1; i >= 0; i--) {
+        const { shot, layer } = trackLayers[i];
+        const shotStart = shot.startTime * zoomLevel;
+        const shotEnd = (shot.startTime + shot.duration) * zoomLevel;
+        
+        const layerIndex = getLayerIndex(shot, track.type, layer);
+        const layerTop = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
+        const layerBottom = layerTop + LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
+        
+        if (x >= shotStart && x <= shotEnd && y >= layerTop && y <= layerBottom) {
+          if (onShotDoubleClick) {
+            onShotDoubleClick(shot.id);
+          }
+          return;
+        }
+      }
+    },
+    [shots, zoomLevel, onShotDoubleClick]
+  );
+
+// Snapping constants
+const SNAP_THRESHOLD = 10;
+
+// ... (in VirtualTimelineCanvas component)
+
+  // Calculate snap points
+  const snapPoints = useMemo(() => {
+    const points = new Set<number>();
+    // Playhead is a major snap point
+    points.add(playheadPosition * zoomLevel);
+    
+    // Every shot boundary is a snap point
+    shots.forEach(shot => {
+      if (shot.id !== draggedShotId) {
+        points.add(shot.startTime * zoomLevel);
+        points.add((shot.startTime + shot.duration) * zoomLevel);
+      }
+    });
+    
+    return Array.from(points);
+  }, [shots, zoomLevel, playheadPosition, draggedShotId]);
+
+  const [activeSnapPoint, setActiveSnapPoint] = useState<number | null>(null);
+
+  // Helper to find closest snap point
+  const findSnapPoint = useCallback((currentX: number, shotWidth: number): number | null => {
+    let closestDist = SNAP_THRESHOLD;
+    let bestPoint = null;
+
+    snapPoints.forEach(point => {
+      // Check start of shot
+      const distStart = Math.abs(currentX - point);
+      if (distStart < closestDist) {
+        closestDist = distStart;
+        bestPoint = point;
+      }
+      
+      // Check end of shot (if dragging, not resizing)
+      if (isDragging) {
+        const distEnd = Math.abs((currentX + shotWidth) - point);
+        if (distEnd < closestDist) {
+          closestDist = distEnd;
+          bestPoint = point - shotWidth;
+        }
+      }
+    });
+
+    return bestPoint;
+  }, [snapPoints, isDragging]);
+
+  // Snap line and Overlay Drawing
+  const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = overlayCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw active snap line
+    if (activeSnapPoint !== null) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.setLineDash([5, 5]);
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(activeSnapPoint, 0);
+      ctx.lineTo(activeSnapPoint, canvas.height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw global playhead
+    const playheadX = playheadPosition * zoomLevel;
+    if (playheadX >= 0 && playheadX <= canvas.width) {
+      drawPlayhead(ctx, playheadX, canvas.height, isPlaying);
+    }
+  }, [activeSnapPoint, playheadPosition, zoomLevel, isPlaying, totalHeight]);
 
   // Handle canvas mouse move for dragging, resizing, and cursor updates
   const handleMouseMove = useCallback(
@@ -555,7 +980,19 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       const y = e.clientY - rect.top;
 
       if (isDragging || isResizing) {
-        setCurrentDragX(x);
+        const currentShot = shots.find(s => s.id === draggedShotId);
+        if (currentShot) {
+          const shotWidth = currentShot.duration * zoomLevel;
+          const snappedX = findSnapPoint(x, shotWidth);
+          
+          if (snappedX !== null) {
+            setCurrentDragX(snappedX);
+            setActiveSnapPoint(snappedX);
+          } else {
+            setCurrentDragX(x);
+            setActiveSnapPoint(null);
+          }
+        }
         return;
       }
 
@@ -586,7 +1023,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         e.currentTarget.style.cursor = cursor;
       }
     },
-    [isDragging, isResizing, shots, zoomLevel]
+    [isDragging, isResizing, shots, zoomLevel, draggedShotId, findSnapPoint]
   );
 
   // Handle canvas mouse up to end dragging
@@ -625,6 +1062,24 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
                 onShotResize(draggedShotId, newDuration, 'end');
               }
             }
+          } else if (isResizing && resizeEdge && activeTool === 'roll' && onShotRoll) {
+            const deltaFrames = Math.round(deltaX / zoomLevel);
+            const isStart = resizeEdge === 'start';
+            const track = tracks.find(t => t.id === dragTrackId);
+            if (track) {
+              const trackLayers = getTrackShots(shots, track.type);
+              const adjShot = isStart
+                ? trackLayers.find(tl => tl.shot.startTime + tl.shot.duration === currentShot.startTime)?.shot
+                : trackLayers.find(tl => tl.shot.startTime === currentShot.startTime + currentShot.duration)?.shot;
+              
+              if (adjShot) {
+                onShotRoll(isStart ? adjShot.id : currentShot.id, isStart ? currentShot.id : adjShot.id, deltaFrames);
+              }
+            }
+          } else if (isDragging && activeTool === 'slip' && onShotSlip) {
+            onShotSlip(draggedShotId, deltaFrames);
+          } else if (isDragging && activeTool === 'slide' && onShotSlide) {
+            onShotSlide(draggedShotId, deltaFrames);
           } else if (isDragging && onShotMove) {
             const newStartTime = Math.max(0, currentShot.startTime + deltaFrames);
             if (newStartTime !== currentShot.startTime) {
@@ -640,7 +1095,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       setDraggedShotId(null);
       setDragTrackId(null);
     },
-    [isDragging, isResizing, resizeEdge, draggedShotId, currentDragX, dragStartX, zoomLevel, shots, onShotMove, onShotResize]
+    [dragStartX, dragTrackId, draggedShotId, isDragging, isResizing, onShotMove, onShotResize, onShotRoll, onShotSlide, onShotSlip, resizeEdge, shots, zoomLevel, activeTool, currentDragX, tracks]
   );
   
   // Resize canvas observer
@@ -663,16 +1118,19 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   }, [visibleTracks]);
   
   return (
-    <div ref={containerRef} className="virtual-timeline-canvas">
+    <div 
+      ref={containerRef} 
+      className="virtual-timeline-canvas"
+      style={{
+        '--tw': `${timelineWidth}px`,
+        '--th': `${totalHeight}px`,
+        '--vth': `${rowVirtualizer.getTotalSize()}px`
+      } as React.CSSProperties}
+    >
       {/* Canvas for drawing static elements (grid, playhead, etc.) */}
-      <div 
-        className="static-overlay-canvas-wrapper" 
-        style={{ 
-          width: timelineWidth, 
-          height: totalHeight 
-        }}
-      >
+      <div className="static-overlay-canvas-wrapper">
         <canvas
+          ref={overlayCanvasRef}
           width={timelineWidth}
           height={totalHeight}
           className="overlay-canvas"
@@ -680,10 +1138,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
       </div>
       
       {/* Virtual list of tracks */}
-      <div
-        className="timeline-track-list-container"
-        style={{ height: rowVirtualizer.getTotalSize() }}
-      >
+      <div className="timeline-track-list-container">
         {/* Render all visible tracks (fallback for test environment) */}
         {rowVirtualizer.getVirtualItems().length === 0 && visibleTracks.map((track, index) => {
           const trackLayers = getTrackShots(shots, track.type);
@@ -693,31 +1148,30 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
               key={track.id}
               className="virtual-track-row"
               style={{
-                height: track.height,
-                transform: `translateY(${visibleTracks.slice(0, index).reduce((sum, t) => sum + t.height, 0)}px)`,
-              }}
+                '--rh': `${track.height}px`,
+                '--ry': `${visibleTracks.slice(0, index).reduce((sum, t) => sum + t.height, 0)}px`,
+              } as React.CSSProperties}
             >
               <div
                 id={`track-container-${track.id}`}
                 className="track-canvas-container"
-                style={{ height: track.height }}
               >
                 <canvas
                   ref={(el) => {
                     if (el) canvasRefs.current.set(track.id, el);
                     else canvasRefs.current.delete(track.id);
                   }}
-                  className="track-canvas"
+                  className={`track-canvas tool-${activeTool}`}
                   width={timelineWidth}
                   height={track.height}
                   onMouseDown={(e) => handleMouseDown(e, track)}
                   onMouseMove={(e) => handleMouseMove(e, track)}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
+                  onDoubleClick={(e) => handleDoubleClick(e, track)}
                   style={{
                     width: timelineWidth,
                     height: track.height,
-                    cursor: isDragging ? 'grabbing' : 'pointer',
                   }}
                 />
                 
@@ -742,31 +1196,30 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
               key={track.id}
               className="virtual-track-row"
               style={{
-                height: track.height,
-                transform: `translateY(${virtualItem.start}px)`,
-              }}
+                '--rh': `${track.height}px`,
+                '--ry': `${virtualItem.start}px`,
+              } as React.CSSProperties}
             >
               <div
                 id={`track-container-${track.id}`}
                 className="track-canvas-container"
-                style={{ height: track.height }}
               >
                 <canvas
                   ref={(el) => {
                     if (el) canvasRefs.current.set(track.id, el);
                     else canvasRefs.current.delete(track.id);
                   }}
-                  className="track-canvas"
+                  className={`track-canvas tool-${activeTool}`}
                   width={timelineWidth}
                   height={track.height}
                   onMouseDown={(e) => handleMouseDown(e, track)}
                   onMouseMove={(e) => handleMouseMove(e, track)}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
+                  onDoubleClick={(e) => handleDoubleClick(e, track)}
                   style={{
                     width: timelineWidth,
                     height: track.height,
-                    cursor: isDragging ? 'grabbing' : 'pointer',
                   }}
                 />
                 
@@ -786,4 +1239,3 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
 };
 
 export default VirtualTimelineCanvas;
-

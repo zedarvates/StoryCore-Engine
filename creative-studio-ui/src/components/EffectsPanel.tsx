@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useStore, useSelectedShot } from '../store';
-import type { Effect } from '../types';
+import type { Effect, EffectParameter } from '../types';
 import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
@@ -25,8 +25,7 @@ import {
   EyeIcon,
   EyeOffIcon,
 } from 'lucide-react';
-import { useDrag, useDrop, DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { useDrag, useDrop } from 'react-dnd';
 
 // ============================================================================
 // Effect Library - Available Effects
@@ -36,9 +35,9 @@ interface EffectTemplate {
   id: string;
   name: string;
   type: Effect['type'];
-  category: 'color' | 'blur' | 'artistic' | 'adjustment';
+  category: Effect['category'];
   description: string;
-  defaultParameters: Record<string, number>;
+  defaultParameters: EffectParameter[];
 }
 
 const EFFECT_LIBRARY: EffectTemplate[] = [
@@ -49,7 +48,10 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     type: 'filter',
     category: 'color',
     description: 'Warm, nostalgic film look',
-    defaultParameters: { warmth: 50, grain: 30 },
+    defaultParameters: [
+      { id: 'warmth', name: 'Warmth', type: 'range', value: 50, min: 0, max: 100 },
+      { id: 'grain', name: 'Grain', type: 'range', value: 30, min: 0, max: 100 }
+    ],
   },
   {
     id: 'sepia',
@@ -57,7 +59,9 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     type: 'filter',
     category: 'color',
     description: 'Classic brown-toned effect',
-    defaultParameters: { intensity: 70 },
+    defaultParameters: [
+      { id: 'intensity', name: 'Intensity', type: 'range', value: 70, min: 0, max: 100 }
+    ],
   },
   {
     id: 'black-white',
@@ -65,7 +69,9 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     type: 'filter',
     category: 'color',
     description: 'Monochrome conversion',
-    defaultParameters: { contrast: 50 },
+    defaultParameters: [
+      { id: 'contrast', name: 'Contrast', type: 'range', value: 50, min: 0, max: 100 }
+    ],
   },
   {
     id: 'cool-tone',
@@ -73,15 +79,9 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     type: 'filter',
     category: 'color',
     description: 'Blue-tinted cinematic look',
-    defaultParameters: { temperature: -30 },
-  },
-  {
-    id: 'warm-tone',
-    name: 'Warm Tone',
-    type: 'filter',
-    category: 'color',
-    description: 'Orange-tinted sunset look',
-    defaultParameters: { temperature: 30 },
+    defaultParameters: [
+      { id: 'temperature', name: 'Temperature', type: 'range', value: -30, min: -100, max: 100 }
+    ],
   },
   
   // Blur Effects
@@ -91,7 +91,9 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     type: 'filter',
     category: 'blur',
     description: 'Smooth, even blur',
-    defaultParameters: { radius: 5 },
+    defaultParameters: [
+      { id: 'radius', name: 'Radius', type: 'range', value: 5, min: 0, max: 50 }
+    ],
   },
   {
     id: 'motion-blur',
@@ -99,15 +101,10 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     type: 'filter',
     category: 'blur',
     description: 'Directional motion effect',
-    defaultParameters: { angle: 0, distance: 10 },
-  },
-  {
-    id: 'radial-blur',
-    name: 'Radial Blur',
-    type: 'filter',
-    category: 'blur',
-    description: 'Zoom or spin blur',
-    defaultParameters: { amount: 5 },
+    defaultParameters: [
+      { id: 'angle', name: 'Angle', type: 'range', value: 0, min: 0, max: 360 },
+      { id: 'distance', name: 'Distance', type: 'range', value: 10, min: 0, max: 100 }
+    ],
   },
   
   // Artistic Effects
@@ -115,25 +112,23 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     id: 'vignette',
     name: 'Vignette',
     type: 'filter',
-    category: 'artistic',
+    category: 'stylize',
     description: 'Darkened edges',
-    defaultParameters: { amount: 50, softness: 50 },
+    defaultParameters: [
+      { id: 'amount', name: 'Amount', type: 'range', value: 50, min: 0, max: 100 },
+      { id: 'softness', name: 'Softness', type: 'range', value: 50, min: 0, max: 100 }
+    ],
   },
   {
     id: 'film-grain',
     name: 'Film Grain',
     type: 'filter',
-    category: 'artistic',
+    category: 'stylize',
     description: 'Analog film texture',
-    defaultParameters: { amount: 30, size: 1 },
-  },
-  {
-    id: 'light-leak',
-    name: 'Light Leak',
-    type: 'filter',
-    category: 'artistic',
-    description: 'Vintage light effects',
-    defaultParameters: { intensity: 40, color: 0 },
+    defaultParameters: [
+      { id: 'amount', name: 'Amount', type: 'range', value: 30, min: 0, max: 100 },
+      { id: 'size', name: 'Size', type: 'range', value: 1, min: 0.1, max: 5, step: 0.1 }
+    ],
   },
   
   // Adjustment Effects
@@ -141,42 +136,32 @@ const EFFECT_LIBRARY: EffectTemplate[] = [
     id: 'brightness',
     name: 'Brightness',
     type: 'color-correction',
-    category: 'adjustment',
+    category: 'color',
     description: 'Adjust overall brightness',
-    defaultParameters: { value: 0 },
+    defaultParameters: [
+      { id: 'value', name: 'Value', type: 'range', value: 0, min: -100, max: 100 }
+    ],
   },
   {
     id: 'contrast',
     name: 'Contrast',
     type: 'color-correction',
-    category: 'adjustment',
+    category: 'color',
     description: 'Adjust contrast levels',
-    defaultParameters: { value: 0 },
+    defaultParameters: [
+      { id: 'value', name: 'Value', type: 'range', value: 0, min: -100, max: 100 }
+    ],
   },
   {
     id: 'saturation',
     name: 'Saturation',
     type: 'color-correction',
-    category: 'adjustment',
+    category: 'color',
     description: 'Adjust color intensity',
-    defaultParameters: { value: 0 },
-  },
-  {
-    id: 'exposure',
-    name: 'Exposure',
-    type: 'color-correction',
-    category: 'adjustment',
-    description: 'Adjust exposure levels',
-    defaultParameters: { value: 0 },
-  },
-  {
-    id: 'sharpen',
-    name: 'Sharpen',
-    type: 'sharpen',
-    category: 'adjustment',
-    description: 'Enhance edge definition',
-    defaultParameters: { amount: 50 },
-  },
+    defaultParameters: [
+      { id: 'value', name: 'Value', type: 'range', value: 0, min: -100, max: 100 }
+    ],
+  }
 ];
 
 // DnD item types
@@ -224,8 +209,7 @@ export function EffectsPanel() {
   });
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="flex h-full flex-col bg-background">
+    <div className="flex h-full flex-col bg-background">
         {/* Header */}
         <div className="border-b p-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -305,7 +289,6 @@ export function EffectsPanel() {
           </div>
         </ScrollArea>
       </div>
-    </DndProvider>
   );
 }
 
@@ -481,10 +464,10 @@ function AppliedEffectItem({ effect, shotId, index, onReorder }: AppliedEffectIt
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-xs text-muted-foreground">Intensity</Label>
-              <span className="text-xs font-mono">{effect.intensity}%</span>
+              <span className="text-xs font-mono">{effect.intensity ?? 50}%</span>
             </div>
             <Slider
-              value={[effect.intensity]}
+              value={[effect.intensity ?? 50]}
               onValueChange={handleIntensityChange}
               min={0}
               max={100}
@@ -493,6 +476,38 @@ function AppliedEffectItem({ effect, shotId, index, onReorder }: AppliedEffectIt
               className="w-full"
             />
           </div>
+
+          {/* Individual Parameters rendering */}
+          {(effect.parameters || []).length > 0 && (
+            <div className="space-y-4 pt-2 border-t border-border/50">
+              {effect.parameters.map((param) => (
+                <div key={param.id} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {param.name}
+                    </Label>
+                    <span className="text-[10px] font-mono">{param.value}</span>
+                  </div>
+                  {param.type === 'range' && (
+                    <Slider
+                      value={[typeof param.value === 'number' ? param.value : 0]}
+                      onValueChange={(val) => {
+                        const newParams = effect.parameters.map(p => 
+                          p.id === param.id ? { ...p, value: val[0] } : p
+                        );
+                        updateEffect(shotId, effect.id, { parameters: newParams });
+                      }}
+                      min={param.min ?? 0}
+                      max={param.max ?? 100}
+                      step={param.step ?? 1}
+                      disabled={!effect.enabled}
+                      className="h-3"
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -516,6 +531,9 @@ function EffectCard({ effectTemplate, shotId }: EffectCardProps) {
       id: `effect-${Date.now()}`,
       type: effectTemplate.type,
       name: effectTemplate.name,
+      category: effectTemplate.category,
+      description: effectTemplate.description,
+      icon: null, // Default to null for templates
       enabled: true,
       intensity: 50,
       parameters: effectTemplate.defaultParameters,

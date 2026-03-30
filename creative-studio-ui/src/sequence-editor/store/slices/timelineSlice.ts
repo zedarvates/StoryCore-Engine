@@ -1,288 +1,249 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Shot, Track, Layer, TimelineKeyframe, StyleApplication, StyleParameters, MediaLayerData, TextLayerData, AudioLayerData, ReferenceImage, TimelineMarker, TimelineRegion, Annotation } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import type { 
-  TimelineState, 
-  Shot, 
-  Track, 
-  ReferenceImage, 
-  TimelineMarker, 
-  TimelineRegion, 
-  Layer, 
-  StyleApplication, 
-  StyleParameters, 
-  Annotation, 
-  AnnotationReply, 
-  TimelineKeyframe,
-  MediaLayerData,
-  TextLayerData,
-  AudioLayerData
-} from '../../types';
 
-// Default track configuration
-const DEFAULT_TRACKS: Track[] = [
-  { id: 'media', type: 'media', height: 60, locked: false, hidden: false, color: '#4A90E2', icon: 'film' },
-  { id: 'audio', type: 'audio', height: 40, locked: false, hidden: false, color: '#50C878', icon: 'volume' },
-  { id: 'effects', type: 'effects', height: 40, locked: false, hidden: false, color: '#9B59B6', icon: 'magic' },
-  { id: 'transitions', type: 'transitions', height: 30, locked: false, hidden: false, color: '#E67E22', icon: 'shuffle' },
-  { id: 'text', type: 'text', height: 40, locked: false, hidden: false, color: '#F39C12', icon: 'text' },
-  { id: 'keyframes', type: 'keyframes', height: 30, locked: false, hidden: false, color: '#E74C3C', icon: 'key' },
-];
+interface TimelineState {
+  projectId: string;
+  shots: Shot[];
+  tracks: Track[];
+  playheadPosition: number;
+  zoomLevel: number;
+  selectedElements: string[];
+  duration: number; // In frames
+  isPlaying: boolean;
+  markers: TimelineMarker[];
+  regions: TimelineRegion[];
+  annotations: Annotation[];
+  selectedMarkers: string[];
+  selectedRegions: string[];
+  activeKeyframeEditor?: {
+    shotId: string;
+    layerId: string;
+    property: string;
+  };
+}
 
 const initialState: TimelineState = {
   projectId: '',
   shots: [],
-  tracks: DEFAULT_TRACKS,
+  tracks: [
+    { id: 'track-1', type: 'media', height: 120, locked: false, hidden: false, color: '#4A90E2', icon: 'film' },
+    { id: 'track-2', type: 'media', height: 120, locked: false, hidden: false, color: '#4A90E2', icon: 'film' },
+    { id: 'track-3', type: 'audio', height: 60, locked: false, hidden: false, color: '#50E3C2', icon: 'music' },
+  ],
   playheadPosition: 0,
-  zoomLevel: 1, // 1 pixel per frame
+  zoomLevel: 10,
   selectedElements: [],
-  duration: 0,
+  duration: 2400, // 100 seconds at 24fps
+  isPlaying: false,
   markers: [],
   regions: [],
   annotations: [],
   selectedMarkers: [],
   selectedRegions: [],
+  activeKeyframeEditor: undefined,
 };
 
-const timelineSlice = createSlice({
+export const timelineSlice = createSlice({
   name: 'timeline',
   initialState,
   reducers: {
+    setProjectId: (state, action: PayloadAction<string>) => {
+      state.projectId = action.payload;
+    },
     addShot: (state, action: PayloadAction<Shot>) => {
       state.shots.push(action.payload);
-      // Update total duration
+      // Update overall duration if needed
       const shotEnd = action.payload.startTime + action.payload.duration;
       if (shotEnd > state.duration) {
-        state.duration = shotEnd;
+        state.duration = shotEnd + 240; // Add 10s buffer
       }
     },
     updateShot: (state, action: PayloadAction<{ id: string; updates: Partial<Shot> }>) => {
-      const { id, updates } = action.payload;
-      const index = state.shots.findIndex((shot) => shot.id === id);
+      const index = state.shots.findIndex((s) => s.id === action.payload.id);
       if (index !== -1) {
-        state.shots[index] = { ...state.shots[index], ...updates };
-        // Recalculate duration if needed
-        const maxEnd = Math.max(
-          ...state.shots.map((shot) => shot.startTime + shot.duration) || [0]
-        );
-        state.duration = maxEnd;
+        state.shots[index] = { ...state.shots[index], ...action.payload.updates };
       }
     },
     deleteShot: (state, action: PayloadAction<string>) => {
-      state.shots = state.shots.filter((shot) => shot.id !== action.payload);
-      state.selectedElements = state.selectedElements.filter((id) => id !== action.payload);
-      // Recalculate duration
-      const maxEnd = state.shots.length > 0
-        ? Math.max(...state.shots.map((shot) => shot.startTime + shot.duration))
-        : 0;
-      state.duration = maxEnd;
+      state.shots = state.shots.filter((s) => s.id !== action.payload);
     },
-    reorderShots: (state, action: PayloadAction<Shot[]>) => {
-      state.shots = action.payload;
+    deleteMultipleShots: (state, action: PayloadAction<string[]>) => {
+      state.shots = state.shots.filter((s) => !action.payload.includes(s.id));
     },
-    addTrack: (state, action: PayloadAction<Track>) => {
-      state.tracks.push(action.payload);
-    },
-    updateTrack: (state, action: PayloadAction<{ id: string; updates: Partial<Track> }>) => {
-      const { id, updates } = action.payload;
-      const index = state.tracks.findIndex((track) => track.id === id);
-      if (index !== -1) {
-        state.tracks[index] = { ...state.tracks[index], ...updates };
-      }
-    },
-    deleteTrack: (state, action: PayloadAction<string>) => {
-      state.tracks = state.tracks.filter((track) => track.id !== action.payload);
-    },
-    reorderTracks: (state, action: PayloadAction<Track[]>) => {
-      state.tracks = action.payload;
+    splitShot: (state, action: PayloadAction<{ id: string; frame: number }>) => {
+      const { id, frame } = action.payload;
+      const index = state.shots.findIndex((s) => s.id === id);
+      if (index === -1) return;
+
+      const shot = state.shots[index];
+      const splitOffset = frame - shot.startTime;
+      if (splitOffset <= 0 || splitOffset >= shot.duration) return;
+
+      const newShot: Shot = {
+        ...shot,
+        id: uuidv4(),
+        startTime: frame,
+        duration: shot.duration - splitOffset,
+        metadata: {
+            ...shot.metadata,
+            contentOffset: (Number(shot.metadata?.contentOffset) || 0) + splitOffset
+        }
+      };
+
+      shot.duration = splitOffset;
+      state.shots.splice(index + 1, 0, newShot);
     },
     setPlayheadPosition: (state, action: PayloadAction<number>) => {
-      state.playheadPosition = action.payload;
+      state.playheadPosition = Math.max(0, action.payload);
     },
     setZoomLevel: (state, action: PayloadAction<number>) => {
-      state.zoomLevel = action.payload;
-    },
-    selectElement: (state, action: PayloadAction<string>) => {
-      if (!state.selectedElements.includes(action.payload)) {
-        state.selectedElements.push(action.payload);
-      }
-    },
-    deselectElement: (state, action: PayloadAction<string>) => {
-      state.selectedElements = state.selectedElements.filter((id) => id !== action.payload);
+      state.zoomLevel = Math.max(0.1, Math.min(100, action.payload));
     },
     setSelectedElements: (state, action: PayloadAction<string[]>) => {
       state.selectedElements = action.payload;
     },
+    selectElement: (state, action: PayloadAction<string>) => {
+      state.selectedElements = [action.payload];
+    },
+    deselectElement: (state, action: PayloadAction<string>) => {
+      state.selectedElements = state.selectedElements.filter(id => id !== action.payload);
+    },
     clearSelection: (state) => {
       state.selectedElements = [];
     },
+    setDuration: (state, action: PayloadAction<number>) => {
+      state.duration = action.payload;
+    },
+    setIsPlaying: (state, action: PayloadAction<boolean>) => {
+      state.isPlaying = action.payload;
+    },
+    // Track Management
+    addTrack: (state, action: PayloadAction<Track>) => {
+      state.tracks.push(action.payload);
+    },
+    updateTrack: (state, action: PayloadAction<{ id: string; updates: Partial<Track> }>) => {
+      const index = state.tracks.findIndex((t) => t.id === action.payload.id);
+      if (index !== -1) {
+        state.tracks[index] = { ...state.tracks[index], ...action.payload.updates };
+      }
+    },
+    deleteTrack: (state, action: PayloadAction<string>) => {
+      state.tracks = state.tracks.filter((t) => t.id !== action.payload);
+    },
+    reorderTracks: (state, action: PayloadAction<Track[]>) => {
+      state.tracks = action.payload;
+    },
+    reorderShots: (state, action: PayloadAction<Shot[]>) => {
+      state.shots = action.payload;
+    },
     toggleTrackLock: (state, action: PayloadAction<string>) => {
       const track = state.tracks.find((t) => t.id === action.payload);
-      if (track) {
-        track.locked = !track.locked;
-      }
+      if (track) track.locked = !track.locked;
     },
     toggleTrackHidden: (state, action: PayloadAction<string>) => {
       const track = state.tracks.find((t) => t.id === action.payload);
-      if (track) {
-        track.hidden = !track.hidden;
-      }
+      if (track) track.hidden = !track.hidden;
     },
-    addReferenceImage: (state, action: PayloadAction<{ shotId: string; image: ReferenceImage }>) => {
-      const { shotId, image } = action.payload;
-      const shot = state.shots.find((s) => s.id === shotId);
-      if (shot) {
-        shot.referenceImages.push(image);
-      }
-    },
-    removeReferenceImage: (state, action: PayloadAction<{ shotId: string; imageIndex: number }>) => {
-      const { shotId, imageIndex } = action.payload;
-      const shot = state.shots.find((s) => s.id === shotId);
-      if (shot && shot.referenceImages[imageIndex]) {
-        shot.referenceImages.splice(imageIndex, 1);
-      }
-    },
-    // Marker actions
-    addMarker: (state, action: PayloadAction<TimelineMarker>) => {
-      state.markers.push(action.payload);
-    },
-    updateMarker: (state, action: PayloadAction<{ id: string; updates: Partial<TimelineMarker> }>) => {
-      const { id, updates } = action.payload;
-      const index = state.markers.findIndex((marker) => marker.id === id);
-      if (index !== -1) {
-        state.markers[index] = { ...state.markers[index], ...updates, updatedAt: Date.now() };
-      }
-    },
-    deleteMarker: (state, action: PayloadAction<string>) => {
-      state.markers = state.markers.filter((marker) => marker.id !== action.payload);
-      state.selectedMarkers = state.selectedMarkers.filter((id) => id !== action.payload);
-    },
-    selectMarker: (state, action: PayloadAction<string>) => {
-      if (!state.selectedMarkers.includes(action.payload)) {
-        state.selectedMarkers.push(action.payload);
-      }
-    },
-    deselectMarker: (state, action: PayloadAction<string>) => {
-      state.selectedMarkers = state.selectedMarkers.filter((id) => id !== action.payload);
-    },
-    setSelectedMarkers: (state, action: PayloadAction<string[]>) => {
-      state.selectedMarkers = action.payload;
-    },
-    clearMarkerSelection: (state) => {
-      state.selectedMarkers = [];
-    },
-    // Region actions
-    addRegion: (state, action: PayloadAction<TimelineRegion>) => {
-      state.regions.push(action.payload);
-    },
-    updateRegion: (state, action: PayloadAction<{ id: string; updates: Partial<TimelineRegion> }>) => {
-      const { id, updates } = action.payload;
-      const index = state.regions.findIndex((region) => region.id === id);
-      if (index !== -1) {
-        state.regions[index] = { ...state.regions[index], ...updates, updatedAt: Date.now() };
-      }
-    },
-    deleteRegion: (state, action: PayloadAction<string>) => {
-      state.regions = state.regions.filter((region) => region.id !== action.payload);
-      state.selectedRegions = state.selectedRegions.filter((id) => id !== action.payload);
-    },
-    selectRegion: (state, action: PayloadAction<string>) => {
-      if (!state.selectedRegions.includes(action.payload)) {
-        state.selectedRegions.push(action.payload);
-      }
-    },
-    deselectRegion: (state, action: PayloadAction<string>) => {
-      state.selectedRegions = state.selectedRegions.filter((id) => id !== action.payload);
-    },
-    setSelectedRegions: (state, action: PayloadAction<string[]>) => {
-      state.selectedRegions = action.payload;
-    },
-    clearRegionSelection: (state) => {
-      state.selectedRegions = [];
-    },
-    // Annotation actions
-    addAnnotation: (state, action: PayloadAction<Annotation>) => {
-      state.annotations.push(action.payload);
-    },
-    updateAnnotation: (state, action: PayloadAction<{ id: string; updates: Partial<Annotation> }>) => {
-      const { id, updates } = action.payload;
-      const index = state.annotations.findIndex((ann) => ann.id === id);
-      if (index !== -1) {
-        state.annotations[index] = { ...state.annotations[index], ...updates, updatedAt: Date.now() };
-      }
-    },
-    deleteAnnotation: (state, action: PayloadAction<string>) => {
-      state.annotations = state.annotations.filter((ann) => ann.id !== action.payload);
-    },
-    addAnnotationReply: (state, action: PayloadAction<{ annotationId: string; reply: AnnotationReply }>) => {
-      const { annotationId, reply } = action.payload;
-      const index = state.annotations.findIndex((ann) => ann.id === annotationId);
-      if (index !== -1) {
-        if (!state.annotations[index].replies) {
-          state.annotations[index].replies = [];
+    // Advanced Editing Operations
+    shiftShots: (state, action: PayloadAction<{ startTime: number; delta: number }>) => {
+      const { startTime, delta } = action.payload;
+      state.shots.forEach((shot) => {
+        if (shot.startTime >= startTime) {
+          shot.startTime += delta;
         }
-        state.annotations[index].replies!.push(reply);
-        state.annotations[index].updatedAt = Date.now();
-      }
+      });
     },
-    // Layer actions
-    addLayer: (state, action: PayloadAction<{ shotId: string; layer: Layer }>) => {
-      const { shotId, layer } = action.payload;
+    rippleEdit: (state, action: PayloadAction<{ shotId: string; delta: number; edge: 'start' | 'end' }>) => {
+      const { shotId, delta, edge } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
-      if (shot) {
-        shot.layers.push(layer);
+      if (!shot) return;
+
+      if (edge === 'end') {
+        shot.duration += delta;
+        state.shots.forEach((s) => {
+          if (s.startTime > shot.startTime) {
+            s.startTime += delta;
+          }
+        });
+      } else {
+        shot.startTime += delta;
+        shot.duration -= delta;
+        state.shots.forEach((s) => {
+          if (s.startTime > shot.startTime - delta) {
+            s.startTime += delta;
+          }
+        });
       }
     },
-    updateLayer: (state, action: PayloadAction<{ shotId: string; layerId: string; updates: Partial<Layer> }>) => {
+    rollEdit: (state, action: PayloadAction<{ shotAId: string; shotBId: string; delta: number }>) => {
+      const { shotAId, shotBId, delta } = action.payload;
+      const shotA = state.shots.find((s) => s.id === shotAId);
+      const shotB = state.shots.find((s) => s.id === shotBId);
+      if (shotA && shotB) {
+        shotA.duration += delta;
+        shotB.startTime += delta;
+        shotB.duration -= delta;
+      }
+    },
+    slipEdit: (state, action: PayloadAction<{ shotId: string; delta: number }>) => {
+        const { shotId, delta } = action.payload;
+        const shot = state.shots.find(s => s.id === shotId);
+        if (shot) {
+            if (!shot.metadata) shot.metadata = {};
+            const currentOffset = Number(shot.metadata.contentOffset) || 0;
+            shot.metadata.contentOffset = currentOffset + delta;
+            // Note: startTime and duration remain unchanged in slip edit
+        }
+    },
+    slideEdit: (state, action: PayloadAction<{ shotId: string; delta: number }>) => {
+        const { shotId, delta } = action.payload;
+        const shot = state.shots.find(s => s.id === shotId);
+        if (!shot) return;
+
+        // Slide changes startTime but opposite changes to neighbors to keep content alignment
+        // Find immediate neighbors on the same track would be ideal, but for now we do simple slide
+        shot.startTime += delta;
+        
+        // Compensate neighbors (simplified for one neighbor on each side)
+        const prevShot = state.shots.find(s => s.startTime + s.duration === shot.startTime - delta);
+        if (prevShot) prevShot.duration += delta;
+        
+        const nextShot = state.shots.find(s => s.startTime === shot.startTime + shot.duration - delta);
+        if (nextShot) {
+            nextShot.startTime += delta;
+            nextShot.duration -= delta;
+        }
+    },
+    // Sub-element management
+    addShotLayer: (state, action: PayloadAction<{ shotId: string; layer: Layer }>) => {
+      const shot = state.shots.find((s) => s.id === action.payload.shotId);
+      if (shot) {
+        shot.layers.push(action.payload.layer);
+      }
+    },
+    updateShotLayer: (state, action: PayloadAction<{ shotId: string; layerId: string; updates: Partial<Layer> }>) => {
       const { shotId, layerId, updates } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot) {
-        const layerIndex = shot.layers.findIndex((l) => l.id === layerId);
-        if (layerIndex !== -1) {
-          shot.layers[layerIndex] = { ...shot.layers[layerIndex], ...updates };
+        const index = shot.layers.findIndex((l) => l.id === layerId);
+        if (index !== -1) {
+          shot.layers[index] = { ...shot.layers[index], ...updates };
         }
       }
     },
-    splitShot: (state, action: PayloadAction<{ shotId: string; leftShot: Shot; rightShot: Shot }>) => {
-      const { shotId, leftShot, rightShot } = action.payload;
-      const index = state.shots.findIndex((s) => s.id === shotId);
-      if (index !== -1) {
-        state.shots.splice(index, 1, leftShot, rightShot);
-      }
-    },
-    deleteLayer: (state, action: PayloadAction<{ shotId: string; layerId: string }>) => {
+    deleteShotLayer: (state, action: PayloadAction<{ shotId: string; layerId: string }>) => {
       const { shotId, layerId } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot) {
         shot.layers = shot.layers.filter((l) => l.id !== layerId);
-        // Remove from selection if selected
-        state.selectedElements = state.selectedElements.filter((id) => id !== layerId);
       }
     },
-    reorderLayers: (state, action: PayloadAction<{ shotId: string; layers: Layer[] }>) => {
+    reorderShotLayers: (state, action: PayloadAction<{ shotId: string; layers: Layer[] }>) => {
       const { shotId, layers } = action.payload;
       const shot = state.shots.find((s) => s.id === shotId);
       if (shot) {
         shot.layers = layers;
-      }
-    },
-    toggleLayerLock: (state, action: PayloadAction<{ shotId: string; layerId: string }>) => {
-      const { shotId, layerId } = action.payload;
-      const shot = state.shots.find((s) => s.id === shotId);
-      if (shot) {
-        const layer = shot.layers.find((l) => l.id === layerId);
-        if (layer) {
-          layer.locked = !layer.locked;
-        }
-      }
-    },
-    toggleLayerHidden: (state, action: PayloadAction<{ shotId: string; layerId: string }>) => {
-      const { shotId, layerId } = action.payload;
-      const shot = state.shots.find((s) => s.id === shotId);
-      if (shot) {
-        const layer = shot.layers.find((l) => l.id === layerId);
-        if (layer) {
-          layer.hidden = !layer.hidden;
-        }
       }
     },
     setLayerOpacity: (state, action: PayloadAction<{ shotId: string; layerId: string; opacity: number }>) => {
@@ -303,6 +264,17 @@ const timelineSlice = createSlice({
         if (layer) {
           layer.blendMode = blendMode;
         }
+      }
+    },
+    addShotReference: (state, action: PayloadAction<{ shotId: string; image: ReferenceImage }>) => {
+      const { shotId, image } = action.payload;
+      const shot = state.shots.find((s) => s.id === shotId);
+      if (shot) {
+        if (!shot.referenceImages) {
+          shot.referenceImages = [];
+        }
+        shot.referenceImages.push(image);
+        shot.modified = true;
       }
     },
     // Visual style actions
@@ -347,7 +319,6 @@ const timelineSlice = createSlice({
         shot.modified = true;
       }
     },
-    // Transition actions
     addTransition: (state, action: PayloadAction<{ clipId: string; transitionType: string; position: 'in' | 'out'; duration: number }>) => {
       const { clipId, transitionType, position, duration } = action.payload;
       const shot = state.shots.find((s) => s.id === clipId);
@@ -424,7 +395,7 @@ const timelineSlice = createSlice({
           if (!layer.animations[property]) layer.animations[property] = [];
           
           // Add or update by ID or time
-          const existingIndex = layer.animations[property].findIndex(k => 
+          const existingIndex = layer.animations[property].findIndex((k: TimelineKeyframe) => 
             (keyframe.id && k.id === keyframe.id) || k.time === keyframe.time
           );
           
@@ -436,7 +407,7 @@ const timelineSlice = createSlice({
             };
           } else {
             layer.animations[property].push({ ...keyframe, id: keyframe.id || uuidv4() });
-            layer.animations[property].sort((a, b) => a.time - b.time);
+            layer.animations[property].sort((a: TimelineKeyframe, b: TimelineKeyframe) => a.time - b.time);
           }
         }
       }
@@ -447,7 +418,7 @@ const timelineSlice = createSlice({
       if (shot) {
         const layer = shot.layers.find((l) => l.id === layerId);
         if (layer && layer.animations && layer.animations[property]) {
-          layer.animations[property] = layer.animations[property].filter(k => k.id !== id);
+          layer.animations[property] = layer.animations[property].filter((k: TimelineKeyframe) => k.id !== id);
         }
       }
     },
@@ -457,68 +428,76 @@ const timelineSlice = createSlice({
       if (shot) {
         const layer = shot.layers.find((l) => l.id === layerId);
         if (layer && layer.animations && layer.animations[property]) {
-          const index = layer.animations[property].findIndex(k => k.id === id);
+          const index = layer.animations[property].findIndex((k: TimelineKeyframe) => k.id === id);
           if (index !== -1) {
             layer.animations[property][index] = { ...layer.animations[property][index], ...updates };
             // Sort in case time changed
             if (updates.time !== undefined) {
-               layer.animations[property].sort((a,b) => a.time - b.time);
+               layer.animations[property].sort((a: TimelineKeyframe, b: TimelineKeyframe) => a.time - b.time);
             }
           }
         }
       }
     },
+    updateAudioSettings: (state, action: PayloadAction<{ shotId: string; settings: Partial<Shot['audioSettings']> }>) => {
+      const { shotId, settings } = action.payload;
+      const shot = state.shots.find((s) => s.id === shotId);
+      if (shot) {
+        if (!shot.audioSettings) {
+          shot.audioSettings = { volume: 0, pan: 0 };
+        }
+        shot.audioSettings = { ...shot.audioSettings, ...settings };
+        shot.modified = true;
+      }
+    },
     setActiveKeyframeEditor: (state, action: PayloadAction<TimelineState['activeKeyframeEditor']>) => {
       state.activeKeyframeEditor = action.payload;
+    },
+    setTimelineState: (state, action: PayloadAction<Partial<TimelineState>>) => {
+      return { ...state, ...action.payload };
+    },
+    loadSequenceData: (state, action: PayloadAction<{ id: string; shots: Shot[]; duration: number }>) => {
+      state.projectId = action.payload.id;
+      state.shots = action.payload.shots;
+      state.duration = action.payload.duration;
+      state.playheadPosition = 0;
     },
   },
 });
 
 // Export actions
 export const {
+  setProjectId,
   addShot,
   updateShot,
   deleteShot,
-  reorderShots,
+  deleteMultipleShots,
   splitShot,
+  setPlayheadPosition,
+  setZoomLevel,
+  setSelectedElements,
+  selectElement,
+  deselectElement,
+  clearSelection,
+  setDuration,
+  setIsPlaying,
   addTrack,
   updateTrack,
   deleteTrack,
   reorderTracks,
-  setPlayheadPosition,
-  setZoomLevel,
-  selectElement,
-  deselectElement,
-  setSelectedElements,
-  clearSelection,
+  reorderShots,
   toggleTrackLock,
   toggleTrackHidden,
-  addReferenceImage,
-  removeReferenceImage,
-  addMarker,
-  updateMarker,
-  deleteMarker,
-  selectMarker,
-  deselectMarker,
-  setSelectedMarkers,
-  clearMarkerSelection,
-  addRegion,
-  updateRegion,
-  deleteRegion,
-  selectRegion,
-  deselectRegion,
-  setSelectedRegions,
-  clearRegionSelection,
-  addAnnotation,
-  updateAnnotation,
-  deleteAnnotation,
-  addAnnotationReply,
-  addLayer,
-  updateLayer,
-  deleteLayer,
-  reorderLayers,
-  toggleLayerLock,
-  toggleLayerHidden,
+  shiftShots,
+  rippleEdit,
+  rollEdit,
+  slipEdit,
+  slideEdit,
+  addShotLayer,
+  updateShotLayer,
+  deleteShotLayer,
+  reorderShotLayers,
+  addShotReference,
   setLayerOpacity,
   setLayerBlendMode,
   applyStyleToShot,
@@ -533,7 +512,10 @@ export const {
   addKeyframe,
   removeKeyframe,
   updateKeyframe,
+  updateAudioSettings,
   setActiveKeyframeEditor,
+  setTimelineState,
+  loadSequenceData,
 } = timelineSlice.actions;
 
 export default timelineSlice.reducer;

@@ -10,7 +10,8 @@
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-import { CheckCircle, AlertCircle, Circle } from 'lucide-react';
+import { CheckCircle, AlertCircle, Circle, Layers, Box, Zap } from 'lucide-react';
+import { CINEMATIC_SHOT_PRESETS } from '../constants/presets/shotPresets';
 import { ShotPromptEditor } from './ShotPromptEditor';
 import { VirtualShotList } from './VirtualShotList';
 import { GDPvalSourcePanel } from './ai/GDPvalSourcePanel';
@@ -61,9 +62,9 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
   }, [selectShot]);
 
   // Debounce prompt changes to reduce validation calls (Requirements: 10.2)
-  const debouncedUpdateShot = useDebounce((shotId: string, updates: Partial<Shot>) => {
+  const debouncedUpdateShot = useDebounce(((shotId: string, updates: Partial<Shot>) => {
     updateShot(shotId, updates);
-  }, 300);
+  }) as any, 300);
 
   const handlePromptChange = useCallback((prompt: string) => {
     if (selectedShot) {
@@ -123,12 +124,61 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
     }
   }, [selectedShot, handlePromptChange]);
 
+  const cinematicStats = useMemo(() => {
+    let kraCount = 0;
+    let rigCount = 0;
+    let sfxCount = 0;
+    
+    shots.forEach(shot => {
+      const preset = CINEMATIC_SHOT_PRESETS.find(p => p.id === shot.presetId);
+      if (preset?.templatePath) kraCount++;
+      if (preset?.rigPath) rigCount++;
+      if (preset?.category === 'sfx') sfxCount++;
+    });
+    
+    return { kraCount, rigCount, sfxCount };
+  }, [shots]);
+
   // ============================================================================
   // Render
   // ============================================================================
 
   return (
-    <div className={`grid grid-cols-1 lg:grid-cols-4 gap-6 ${className}`} role="region" aria-label="Prompt management">
+    <div className={`space-y-6 ${className}`}>
+      {/* Cinematic Production Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <Card className="bg-blue-50/30 border-blue-100 shadow-sm transition-all hover:bg-blue-50/50 group">
+          <CardContent className="pt-4 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Artistic Precepts (2D)</span>
+              <span className="text-xl font-black text-blue-700">{cinematicStats.kraCount} <span className="text-xs font-medium text-blue-400">Linked .kra</span></span>
+            </div>
+            <Layers className="h-8 w-8 text-blue-400 opacity-20 group-hover:opacity-40 transition-all group-hover:scale-110" />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-emerald-50/30 border-emerald-100 shadow-sm transition-all hover:bg-emerald-50/50 group">
+          <CardContent className="pt-4 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">Puppet Staging (3D)</span>
+              <span className="text-xl font-black text-emerald-700">{cinematicStats.rigCount} <span className="text-xs font-medium text-emerald-400">Rigs Active</span></span>
+            </div>
+            <Box className="h-8 w-8 text-emerald-400 opacity-20 group-hover:opacity-40 transition-all group-hover:rotate-12 group-hover:scale-110" />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-amber-50/30 border-amber-100 shadow-sm transition-all hover:bg-amber-50/50 group">
+          <CardContent className="pt-4 flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">SFX Explosions & FX</span>
+              <span className="text-xl font-black text-amber-700">{cinematicStats.sfxCount} <span className="text-xs font-medium text-amber-400">Dynamic Shots</span></span>
+            </div>
+            <Zap className="h-8 w-8 text-amber-400 opacity-20 group-hover:opacity-40 transition-all group-hover:animate-pulse group-hover:scale-110" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" role="region" aria-label="Prompt management">
       {/* Shot List Panel */}
       <Card className="lg:col-span-1 border-r-0 rounded-r-none">
         <CardHeader>
@@ -271,6 +321,7 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
         <GDPvalSourcePanel onSelectTemplate={handleTemplateSelect} />
       </div>
 
+      </div>
     </div>
   );
 };

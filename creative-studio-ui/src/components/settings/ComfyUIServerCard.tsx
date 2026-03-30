@@ -5,11 +5,12 @@
  */
 
 import { useState } from 'react';
-import { Server, Check, AlertCircle, Loader2, Edit, Trash2, Radio } from 'lucide-react';
+import { Server, Check, AlertCircle, Loader2, Edit, Trash2, Radio, Wrench } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { MCPToolsViewer } from './MCPToolsViewer';
 import type { ComfyUIServer } from '@/types/comfyuiServers';
 
 export interface ComfyUIServerCardProps {
@@ -101,6 +102,11 @@ export function ComfyUIServerCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h4 className="font-medium truncate">{server.name}</h4>
+              {server.authentication.type === 'mcp' && (
+                <Badge variant="outline" className="text-[10px] uppercase font-bold text-primary border-primary/30 py-0 h-4">
+                  MCP
+                </Badge>
+              )}
               {getStatusBadge()}
             </div>
             
@@ -132,6 +138,22 @@ export function ComfyUIServerCard({
 
           {/* Actions */}
           <div className="flex gap-1 flex-shrink-0">
+            {server.authentication.type === 'mcp' && (
+              <MCPToolsViewer 
+                serverId={server.id} 
+                serverName={server.name}
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    title="View MCP Tools"
+                    className="text-primary hover:text-primary hover:bg-primary/10"
+                  >
+                    <Wrench className="h-4 w-4" />
+                  </Button>
+                }
+              />
+            )}
             <Button
               variant="ghost"
               size="sm"

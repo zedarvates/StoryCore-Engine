@@ -1,4 +1,14 @@
 .transform-overlay {
+    position: absolute;
+    left: var(--posX);
+    top: var(--posY);
+    width: var(--width);
+    height: var(--height);
+    transform: rotate(var(--rotation));
+    border: 2px solid var(--primary-color, #4A90E2);
+    box-sizing: border-box;
+    cursor: move;
+    pointer-events: all;
     z-index: 100;
 }
 

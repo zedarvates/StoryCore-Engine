@@ -5,7 +5,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import {
-  Image as ImageIcon,
   Grid3X3,
   Columns,
   Rows,
@@ -16,25 +15,16 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  Plus,
   Settings,
-  Sparkles,
   Film,
   Camera,
-  Palette,
-  Zap,
-  Save,
-  Share2,
   Maximize2,
-  Layers,
-  Layout,
   Type,
-  Volume2,
   Clock,
   User,
   MapPin
 } from 'lucide-react';
-import type { Shot, Character, Location } from '@/types';
+import type { Character, Location } from '@/types';
 import type {
   EnhancedShot,
   CompleteSequence,
@@ -104,14 +94,11 @@ export function StoryboardGenerator({
   const [showSettings, setShowSettings] = useState(false);
 
   // Convert shots to storyboard frames
-  const frames = useMemo((): StoryboardFrame[] => {
-    return shots.map((shot, index) => {
+  const frames = useMemo(() => {
+    return shots.map((shot) => {
       // Helper to find character name
-      // Assuming characters and locations are improved in scope or lookup maps
-      // If props are not available in scope, we can't lookup.
-      // But props `characters` and `locations` ARE available in the component scope.
       const getCharacterName = (id: string) => characters.find(c => c.character_id === id)?.name || 'Unknown Character';
-      const getLocationName = (id?: string) => locations.find(l => l.id === id)?.name || '';
+      const getLocationName = (id?: string) => locations.find(l => l.location_id === id)?.name || '';
 
       // Generate image prompt based on shot properties
       const cameraConfig = shot.cameraMovement
@@ -143,7 +130,7 @@ export function StoryboardGenerator({
       }
 
       return {
-        id: crypto.randomUUID(),
+        id: shot.id,
         shotId: shot.id,
         title: shot.title || shot.name,
         description: shot.description,
@@ -161,9 +148,8 @@ export function StoryboardGenerator({
         style: 'cinematic',
         notes: noteContent
       };
-
     });
-  }, [shots, aspectRatio]);
+  }, [shots, aspectRatio, characters, locations, keyObjects]);
 
   // Sort frames
   const sortedFrames = useMemo(() => {
@@ -384,6 +370,8 @@ export function StoryboardGenerator({
             value={aspectRatio}
             onChange={(e) => setAspectRatio(e.target.value as AspectRatio)}
             className="aspect-select"
+            title="Aspect Ratio"
+            aria-label="Select aspect ratio"
           >
             <option value="16:9">16:9</option>
             <option value="9:16">9:16</option>
@@ -396,6 +384,8 @@ export function StoryboardGenerator({
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOrder)}
             className="sort-select"
+            title="Sort By"
+            aria-label="Select sort order"
           >
             <option value="position">Par position</option>
             <option value="duration">Par duree</option>
@@ -415,6 +405,8 @@ export function StoryboardGenerator({
           <button
             className={`btn-toggle ${showSettings ? 'active' : ''}`}
             onClick={() => setShowSettings(!showSettings)}
+            title="Settings"
+            aria-label="Open generation settings"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -637,13 +629,15 @@ function StoryboardFrameCard({
           <button
             className="btn-action"
             onClick={(e) => { e.stopPropagation(); onUpdate({ notes: prompt('Notes:', frame.notes) || '' }); }}
+            title="Edit Notes"
+            aria-label="Edit director notes"
           >
             <Type className="w-3 h-3" />
           </button>
-          <button className="btn-action">
+          <button className="btn-action" title="Copy Frame" aria-label="Copy this frame">
             <Copy className="w-3 h-3" />
           </button>
-          <button className="btn-action">
+          <button className="btn-action" title="Delete Frame" aria-label="Delete this frame">
             <Trash2 className="w-3 h-3" />
           </button>
         </div>
@@ -660,7 +654,7 @@ interface SlideshowFrameProps {
   onUpdate: (updates: Partial<StoryboardFrame>) => void;
 }
 
-function SlideshowFrame({ frame, showPrompt, onGenerate, onUpdate }: SlideshowFrameProps) {
+function SlideshowFrame({ frame, showPrompt, onGenerate }: Omit<SlideshowFrameProps, 'onUpdate'>) {
   return (
     <div className="slideshow-frame-content">
       <div className="slideshow-image">

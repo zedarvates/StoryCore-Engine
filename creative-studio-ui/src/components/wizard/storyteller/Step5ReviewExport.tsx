@@ -14,6 +14,7 @@ import { useStore } from '@/store';
 import { refineStory, generateStoryboard } from '@/services/storyGenerationService';
 import { Image as ImageIcon, Layout, Maximize2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/SkeletonLoader';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import './Step5ReviewExport.css';
 
 // ============================================================================
 // Wizard Form Data Interface
@@ -38,6 +40,7 @@ interface StoryWizardFormData {
   parts?: StoryPart[];
   assetPrompts?: Record<string, string>;
   critique?: string;
+  alignmentReport?: import('@/types/story').AlignmentReport;
 }
 
 // ============================================================================
@@ -71,6 +74,9 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
   const [isGeneratingStoryboard, setIsGeneratingStoryboard] = useState(false);
   const [storyboard, setStoryboard] = useState<Array<{ scene_index: number; scene_title: string; image_url: string }>>([]);
   const [storyboardError, setStoryboardError] = useState<string | null>(null);
+
+  // Selected Recommendations for Batch Fix
+  const [selectedRecs, setSelectedRecs] = useState<string[]>([]);
 
   // Load versions when component mounts or storyId changes
   useEffect(() => {
@@ -184,6 +190,7 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
         generatedSummary: updatedStory.summary,
         parts: updatedStory.parts,
         critique: updatedStory.critique,
+        alignmentReport: updatedStory.alignmentReport,
         title: updatedStory.title
       });
       setRefineFeedback('');
@@ -194,6 +201,43 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
     } finally {
       setIsRefining(false);
     }
+  };
+
+  const handleFixIssues = async (recs?: string[]) => {
+    const targets = recs || selectedRecs;
+    if (targets.length === 0 || !storyId || isRefining) return;
+    
+    // Combine selected recommendations into a prompt
+    const recommendations = targets.join(', ');
+    const prompt = `Applique les correctifs d'alignement suivants: ${recommendations}`;
+    
+    setIsRefining(true);
+    setRefineError(null);
+    
+    try {
+      const updatedStory = await refineStory(storyId, prompt);
+      updateFormData({
+        generatedContent: updatedStory.content,
+        generatedSummary: updatedStory.summary,
+        parts: updatedStory.parts,
+        critique: updatedStory.critique,
+        alignmentReport: updatedStory.alignmentReport,
+        title: updatedStory.title
+      });
+      setSelectedRecs([]); // Clear selection after fix
+      setHasUnsavedChanges(true);
+    } catch (error) {
+      console.error('Alignment fixing failed:', error);
+      setRefineError(error instanceof Error ? error.message : 'Failed to fix alignment issues');
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const toggleRecommendation = (rec: string) => {
+    setSelectedRecs(prev => 
+      prev.includes(rec) ? prev.filter(r => r !== rec) : [...prev, rec]
+    );
   };
 
   const handleGenerateStoryboard = async () => {
@@ -291,6 +335,141 @@ export function Step5ReviewExport({ onBack, onRegenerateAll }: Step5ReviewExport
           </p>
         </div>
       </div>
+      
+      {/* Story Alignment Score Section */}
+      {formData.alignmentReport && (
+        <div className={`space-y-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden ${formData.alignmentReport.total_score >= 70 ? 'alignment-score-pass' : 'alignment-score-fail'}`}>
+          {/* Subtle background glow based on score */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-3xl opacity-10 alignment-card-glow" />
+          
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${formData.alignmentReport.total_score >= 70 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                <CheckCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <Label className="text-base font-bold text-slate-900 dark:text-slate-100">Alignement du Récit</Label>
+                <p className="text-xs text-slate-500">Analyse quantitative de cohérence</p>
+              </div>
+            </div>
+            
+            <div className="text-right flex flex-col items-end">
+              <span className={`text-3xl font-black ${formData.alignmentReport.total_score >= 70 ? 'text-green-600' : 'text-amber-600'}`}>
+                {formData.alignmentReport.total_score}
+                <span className="text-sm font-normal text-slate-400 ml-1">/ 100</span>
+              </span>
+              {formData.alignmentReport.total_score < 85 && (
+                <Button 
+                  onClick={() => handleFixIssues(formData.alignmentReport?.recommendations)}
+                  disabled={isRefining}
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-[10px] mt-1 gap-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border border-amber-200"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Fix All Issues
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Category Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 relative z-10">
+            {Object.entries(formData.alignmentReport.categories).map(([key, data]) => (
+              <div key={key} className="bg-white dark:bg-slate-950 p-3 rounded-lg border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-slate-300 dark:hover:border-slate-700">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    {key.replace('_', ' ')}
+                  </span>
+                  <span className={`text-xs font-bold ${data.score >= 75 ? 'text-green-600' : data.score >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
+                    {Math.round(data.score)}%
+                  </span>
+                </div>
+                <Progress 
+                  value={data.score} 
+                  size="sm"
+                  variant={data.score >= 75 ? 'success' : data.score >= 50 ? 'warning' : 'error'}
+                  className="mt-1.5"
+                />
+                {data.issues && data.issues.length > 0 && (
+                  <p className="text-[9px] text-red-500 mt-2 line-clamp-1 italic">
+                    ⚠ {data.issues[0]}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Summary & Recommendations */}
+          <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800 space-y-3 relative z-10">
+            <div className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed italic">
+              "{formData.alignmentReport.summary}"
+            </div>
+            
+            {formData.alignmentReport.recommendations.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-slate-400">Recommandations Prioritaires</span>
+                  {selectedRecs.length > 0 && (
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleFixIssues()}
+                      disabled={isRefining}
+                      className="h-6 text-[9px] bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Fix Selected ({selectedRecs.length})
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {formData.alignmentReport.recommendations.map((rec, i) => (
+                    <div 
+                      key={i} 
+                      className={`flex items-center gap-2 p-2 rounded border transition-colors ${
+                        selectedRecs.includes(rec) 
+                          ? 'bg-indigo-50 border-indigo-200 dark:bg-indigo-950/30' 
+                          : 'bg-slate-50 border-slate-200 dark:bg-slate-900/50'
+                      }`}
+                    >
+                      <Checkbox 
+                        id={`rec-${i}`} 
+                        checked={selectedRecs.includes(rec)}
+                        onCheckedChange={() => toggleRecommendation(rec)}
+                        className="w-4 h-4"
+                      />
+                      <label 
+                        htmlFor={`rec-${i}`}
+                        className="text-xs flex-1 cursor-pointer text-slate-700 dark:text-slate-300"
+                      >
+                        {rec}
+                      </label>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 px-2 text-[9px] text-indigo-600"
+                          onClick={() => setRefineFeedback(`Fix alignment: ${rec}`)}
+                        >
+                          Chat
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-6 px-2 text-[9px] text-green-600 border-green-200 hover:bg-green-50"
+                          onClick={() => handleFixIssues([rec])}
+                          disabled={isRefining}
+                        >
+                          Apply Fix
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Multi-Agent Critique Section */}
       {formData.critique && (

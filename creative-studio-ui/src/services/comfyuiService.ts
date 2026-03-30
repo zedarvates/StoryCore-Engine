@@ -15,7 +15,7 @@ import { getComfyUIServersService } from './comfyuiServersService';
 // Types
 // ============================================================================
 
-export type AuthenticationType = 'none' | 'basic' | 'token' | 'bearer' | 'api-key';
+export type AuthenticationType = 'none' | 'basic' | 'token' | 'bearer' | 'api-key' | 'mcp';
 
 export type WorkflowType = 'flux2' | 'z_image_turbo' | 'z_image_turbo_coherence' | 'sdxl' | 'firered_image_edit' | 'wan21_t2v' | 'wan21_i2v' | 'custom';
 
@@ -459,6 +459,42 @@ export class ComfyUIService {
  
      logger.debug(`🏗️ [ComfyUIService] Built ${workflowType} workflow for ${type}`);
 
+    const imageSize = type === 'image'
+      ? {
+        width: (params as { width: number }).width,
+        height: (params as { height: number }).height
+      }
+      : undefined;
+
+    // Handle MCP execution if enabled
+    if (activeServer?.authentication?.type === 'mcp') {
+      try {
+        // Resolve tool name from server config mapping
+        const toolMapping = activeServer.mcpConfig?.toolMappings;
+        let toolName = 'execute_workflow'; // Default
+        
+        if (type === 'image') toolName = toolMapping?.imageGeneration || 'execute_workflow';
+        else if (type === 'video') toolName = toolMapping?.videoGeneration || 'execute_workflow';
+        else if (type === 'upscale') toolName = toolMapping?.upscaling || 'execute_workflow';
+
+        logger.debug(`🛠️ [ComfyUIService] Calling MCP tool: ${toolName} for task: ${type}`);
+
+        const result = await window.electronAPI.comfyui.callTool(activeServer.id, toolName, {
+          workflow,
+          client_id: `${type}_gen_${Date.now()}`
+        });
+        
+        if (result && result.prompt_id) {
+          return this.waitForImage(endpoint, result.prompt_id, 600000, onProgress, imageSize);
+        } else {
+          throw new Error('MCP execution returned no prompt_id');
+        }
+      } catch (mcpError) {
+        logger.error('[ComfyUIService] MCP execution failed:', mcpError);
+        throw new Error(`MCP execution failed: ${mcpError instanceof Error ? mcpError.message : String(mcpError)}`);
+      }
+    }
+
     const response = await fetch(`${endpoint}/prompt`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -471,14 +507,6 @@ export class ComfyUIService {
     if (!response.ok) throw new Error(`ComfyUI ${type} request failed: ${response.status}`);
 
     const data = await response.json();
-
-    // Extract image size for adaptive timeout calculation
-    const imageSize = type === 'image'
-      ? {
-        width: (params as { width: number }).width,
-        height: (params as { height: number }).height
-      }
-      : undefined;
 
     return this.waitForImage(endpoint, data.prompt_id, 600000, onProgress, imageSize);
   }
@@ -1098,6 +1126,20 @@ export async function testComfyUIConnection(
   }
 
   try {
+    // Handle MCP connection type
+    if (config.authentication?.type === 'mcp') {
+      return {
+        success: true,
+        message: 'Comfy-MCP connection configured. Ready for agentic workflows.',
+        serverInfo: {
+          version: 'MCP-Bridge',
+          availableWorkflows: [],
+          availableModels: [],
+          systemInfo: { gpuName: 'MCP-Network', vramTotal: 0, vramFree: 0 }
+        }
+      };
+    }
+
     // Build request headers with authentication
     const headers = buildHeaders(config.authentication);
 

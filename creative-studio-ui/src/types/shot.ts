@@ -11,18 +11,20 @@ export type ShotType =
   | 'close-up'
   | 'extreme-close-up'
   | 'over-the-shoulder'
-  | 'pov';
+  | 'pov'
+  | 'shot'
+  | 'sequence';
 
 export type TransitionType = 'cut' | 'fade' | 'dissolve' | 'wipe' | 'match-cut' | 'rewind';
 
 export interface ComfyUIParameters {
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
   seed?: number;
-  steps: number;
-  cfgScale: number;
-  sampler: SamplerType;
-  scheduler: SchedulerType;
+  steps?: number;
+  cfgScale?: number;
+  sampler?: SamplerType;
+  scheduler?: SchedulerType;
   denoisingStrength?: number;
   [key: string]: unknown;
 }

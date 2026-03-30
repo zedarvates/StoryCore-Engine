@@ -23,9 +23,9 @@ import type { AssetMetadata } from './asset';
 // Import StoryObject types
 import type { StoryObject } from './object';
 // Import Location types
-import type { Location as ProductionLocation, LocationType } from './location';
+import type { Location as ProductionLocation } from './location';
 // Import Shot and Production types
-import type { ShotType, TransitionType, ComfyUIParameters, ProductionShot } from './shot';
+import type { ShotType, TransitionType, ComfyUIParameters } from './shot';
 import type { SequencePlan } from './sequencePlan';
 import type { DialoguePhrase, GenerationRecord } from './projectDashboard';
 import type { ProjectSetupData } from './project';
@@ -55,7 +55,8 @@ export interface Shot {
   // Data Contract v1 / Dashboard Compatibility (snake_case for persistence)
   sequence_id?: string;
   start_time?: number;
-  prompt?: string;
+  prompt: string;
+  negativePrompt?: string;
   generated_image_url?: string;
   status?: ShotStatus;
   progress?: number;
@@ -64,9 +65,9 @@ export interface Shot {
   // Dashboard / Generation compatibility
   animationPrompt?: string;
   sequenceId?: string;
-  startTime?: number;
+  startTime: number;
   generatedImageUrl?: string;
-  name?: string; // alias for title
+  name: string; // alias for title
   orderIndex?: number; // alias for position
   thumbnailUrl?: string; // alias for image
 
@@ -75,12 +76,24 @@ export interface Shot {
   type?: ShotType;
   category?: ShotCategory;
   timing?: ShotTiming;
+  
+  // Cinematic Orchestration (Phase 5)
+  presetId?: string; // ID of the cinematic shot preset (e.g., 'car-interior-2char')
+  is3DMode?: boolean; // Whether for this shot the 3D Rig staging is active
+  
+  
+  // New rig and geometry metadata (Phase 2 & 3)
+  rigPath?: string; // Path to the generated rig asset
+  gltfPath?: string; // Path to exported GLTF file
+  boneCount?: number; // Number of bones in the rig
+  hash?: string; // Content hash of the rig
 
   // Generation metadata
   generation?: ShotGeneration;
 
   // Audio tracks
   audioTracks?: AudioTrack[];
+  audioLayers?: unknown[]; // For backward compatibility with AudioLayerData
 
   // Visual effects
   effects?: Effect[];
@@ -91,20 +104,101 @@ export interface Shot {
   // Keyframe animations
   animations?: Animation[];
 
-  // Transition to next shot
+  generationStatus?: ShotStatus | string;
   transitionOut?: Transition;
 
   metadata?: ShotMetadata;
+  composition?: ShotComposition;
   cinematography?: Cinematography;
-  referenceImage?: string; // Legacy/AI
   result_url?: string;
+  outputPath?: string; // Path to generated asset
+
+  // New fields for Sequence Editor Unification (Requirement Audit Task 21)
+  layers: Layer[];
+  referenceImages: ReferenceImage[];
+  parameters: GenerationParameters;
+  visualStyle?: StyleApplication;
+  modified?: boolean;
+  qaScore?: number;
+  audioSettings?: {
+    volume: number; // dB (-60 to +12)
+    pan: number; // -100 to +100
+    surroundConfig?: SurroundConfig;
+  };
+  transitions?: {
+    in?: TimelineTransition;
+    out?: TimelineTransition;
+  };
 
   // Dashboard compatibility
   promptValidation?: PromptValidation;
+  subSequenceId?: string;
+}
+
+/**
+ * Timeline Layer Types for Directorial Orchestration
+ */
+export type LayerType = 'media' | 'audio' | 'effects' | 'transitions' | 'text' | 'keyframes';
+
+export interface Layer {
+  id: string;
+  type: LayerType;
+  startTime: number; // Relative to shot start (Frames)
+  duration: number; // Frames
+  locked: boolean;
+  hidden: boolean;
+  opacity: number; // 0-1
+  blendMode: string;
+  data: unknown; // Complex layer-specific data
+  animations?: Record<string, any>;
+}
+
+export interface ReferenceImage {
+  id: string;
+  url: string;
+  weight: number; // 0-1
+  source: 'library' | 'upload' | 'generated';
+}
+
+export interface GenerationParameters {
+  seed: number;
+  denoising: number;
+  steps: number;
+  guidance: number;
+  sampler: string;
+  scheduler: string;
+  negativePrompt?: string;
+}
+
+export interface StyleApplication {
+  shotId: string;
+  styleId: string;
+  styleName: string;
+  intensity: number; // 0-100
+  appliedAt: number;
+  parameters: StyleParameters;
+}
+
+export interface StyleParameters {
+  colorPalette?: string[];
+  artisticStyle?: string;
+  saturation?: number;
+  contrast?: number;
+  brightness?: number;
+  temperature?: number;
+  vignette?: number;
+  grain?: number;
+  sharpness?: number;
+}
+
+export interface TimelineTransition {
+  type: string;
+  duration: number;
+  appliedAt: number;
 }
 
 // Type definitions for Shot properties
-export type ShotStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'draft';
+export type ShotStatus = 'pending' | 'processing' | 'complete' | 'error' | 'done' | 'failed' | 'passed' | 'draft';
 export type ShotCategory = 'establishing' | 'action' | 'dialogue' | 'reaction' | 'insert' | 'transition' | 'custom';
 
 export interface ShotTiming {
@@ -129,19 +223,35 @@ export interface ShotGeneration {
   referenceImage?: string;
 }
 
+export interface ShotComposition {
+  characterIds: string[];
+  characterPositions: Array<{
+    characterId: string;
+    position: 'left' | 'center' | 'right' | 'foreground' | 'background' | { x: number; y: number; z: number };
+    pose?: string;
+    expression?: string;
+  }>;
+  environmentId?: string;
+  props?: string[];
+  lightingMood?: string;
+  timeOfDay?: string;
+}
+
 export interface ShotMetadata {
   [key: string]: unknown;
 }
 
 export interface Cinematography {
   framing?: 'ECU' | 'CU' | 'MCU' | 'MS' | 'MLS' | 'LS' | 'ELS' | string;
-  cameraAngle?: 'Low' | 'Eye' | 'High' | 'Bird' | 'Worm' | 'Dutch' | string;
+  cameraAngle?: 'Low' | 'Eye' | 'High' | 'Bird' | ' Worm' | 'Dutch' | string;
   cameraMovement?: 'Static' | 'Pan' | 'Tilt' | 'Dolly In' | 'Dolly Out' | 'Zoom In' | 'Zoom Out' | 'Tracking' | string;
   movementSpeed?: 'Slow' | 'Normal' | 'Fast' | 'Slow-Mo' | string;
   depthOfField?: 'Shallow' | 'Deep' | 'Variable' | string;
   lighting?: 'Natural' | 'Cinematic' | 'High Key' | 'Low Key' | 'Dramatic' | string;
   aspectRatio?: '16:9' | '4:3' | '21:9' | '9:16' | string;
   motionBlur?: boolean;
+  focalLength?: string; // e.g. "50mm"
+  iris?: string; // e.g. "f/2.8"
 }
 
 export interface PromptValidation {
@@ -182,7 +292,7 @@ export interface AudioTrack {
   material_color?: [number, number, number]; // RGB 0.0-1.0
 
   // AI Consistency tracking
-  ai_coherence_data?: any;
+  ai_coherence_data?: unknown;
   reference_images?: string[]; // Generic paths or URLs
   fadeIn?: number; // seconds
   fadeOut?: number; // seconds
@@ -427,6 +537,7 @@ export interface Project {
   schema_version: string; // "1.0" for Data Contract v1
   project_name: string;
   path?: string;
+  projectPath?: string; // Legacy/Persistence alias
   shots: Shot[];
   assets: Asset[];
   worlds?: World[];
@@ -479,8 +590,9 @@ export interface Project {
     }>;
     last_modified: number;
   };
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, any>;
   global_resume?: string;
+  summary?: string;
   locations_count?: number; // Optional count for UI
 }
 
@@ -549,25 +661,6 @@ export type {
   Rectangle as GridRectangle,
   Transform,
   CropRegion,
-  BlendMode,
-  LayerType,
-  ImageContent,
-  DrawingElement,
-  TextAnnotation,
-  AnnotationContent,
-  EffectContent,
-  LayerContent,
-  Layer,
-  PanelPosition,
-  PanelMetadata,
-  Panel,
-  Preset,
-  GridMetadata,
-  GridConfiguration,
-  Tool,
-  TransformType,
-  OperationType,
-  Operation,
   ViewportState,
   PanelGenerationConfig,
   GeneratedImage,
@@ -1063,5 +1156,11 @@ export interface Episode {
   created_at?: string;
   updated_at?: string;
 }
+
+// ============================================================================
+// Shot Presets and Layout Guides
+// ============================================================================
+
+export * from './presets';
 
 

@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 import logging
 import json
+from backend.story_alignment_scorer import get_story_scorer
 
 logger = logging.getLogger(__name__)
 
@@ -124,10 +125,11 @@ class Story:
     locations: List[Dict[str, Any]] = field(default_factory=list)
     props: List[StoryProp] = field(default_factory=list)
     sfx: List[StorySFX] = field(default_factory=list)
-    critique: Optional[str] = None
+    alignment_report: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
+    critique: Optional[str] = None
 
 class StoryGenerationService:
     """Service de génération de stories avec IA"""
@@ -398,7 +400,7 @@ class StoryGenerationService:
             logger.warning(f"Could not initialize Knowledge Graph: {e}")
             self.graph = None
     
-    async def _call_llm(self, prompt: str, temperature: float = 0.7) -> str:
+    async def _call_llm(self, prompt: str, temperature: float = 0.7, max_tokens: int = 4096) -> str:
         """Appel au LLM avec fallback sur mock si nécessaire"""
         import os
         from backend.llm_api import call_llm_real, LLMRequest, get_available_llm_provider
@@ -409,7 +411,7 @@ class StoryGenerationService:
         if not use_mock:
             try:
                 # Use call_llm_real which handles provider selection (OpenAI, Anthropic, Ollama)
-                request = LLMRequest(prompt=prompt, temperature=temperature)
+                request = LLMRequest(prompt=prompt, temperature=temperature, max_tokens=max_tokens)
                 response = await call_llm_real(request, user_id="system_story_service")
                 if response and response.text:
                     return response.text
@@ -427,7 +429,8 @@ class StoryGenerationService:
         mode: ProductionMode = ProductionMode.FICTION,
         length: str = "medium",  # short, medium, long
         characters: List[Dict[str, Any]] = None,
-        with_critique: bool = False
+        with_critique: bool = False,
+        with_alignment_score: bool = True
     ) -> Story:
         """Générer une story complète à partir d'un prompt via IA"""
         
@@ -465,6 +468,9 @@ class StoryGenerationService:
         
         if with_critique:
             await self._critique_story(story)
+            
+        if with_alignment_score:
+            await self._run_alignment_scoring(story, prompt)
         
         self.stories[story.id] = story
         
@@ -561,11 +567,50 @@ class StoryGenerationService:
         if critique_res:
             story.critique = critique_res
             logger.info("Critique générée avec succès.")
-            
-            # Optionnel : On pourrait relancer une passe de correction ici.
-            # Pour l'instant on stocke juste la critique pour le feedback utilisateur.
         else:
             story.critique = "L'IA critique n'a pas pu être contactée."
+
+    async def _run_alignment_scoring(self, story: Story, original_prompt: str):
+        """Exécute le système de scoring d'alignement détaillé"""
+        logger.info(f"Exécution du scoring d'alignement pour : {story.title}")
+        try:
+            # We pass self._call_llm wrapped in a lambda to ensure the scorer uses our 
+            # centralized LLM management (including mock fallback and configuration).
+            scorer = get_story_scorer(call_llm_func=lambda p: self._call_llm(p, temperature=0.3, max_tokens=1000))
+            
+            # Prepare story data for scorer
+            story_dict = self.export_story(story.id)
+            
+            report = await scorer.score_story(
+                story_dict, 
+                original_prompt,
+                story.genre.value,
+                "Three-Act Structure" # Default or from story metadata
+            )
+            
+            # Store report in story
+            story.alignment_report = {
+                "total_score": report.total_score,
+                "summary": report.summary,
+                "recommendations": report.recommendations,
+                "is_pass": report.is_pass,
+                "categories": {
+                    cat.value: {
+                        "score": res.score,
+                        "feedback": res.feedback,
+                        "issues": res.issues
+                    } for cat, res in report.categories.items()
+                }
+            }
+            
+            # If critique is missing, use the alignment summary
+            if not story.critique:
+                story.critique = f"Base Score: {report.total_score}/100\n\n{report.summary}"
+                
+            logger.info(f"Scoring d'alignement terminé. Score total : {report.total_score}")
+        except Exception as e:
+            logger.error(f"Erreur lors du scoring d'alignement : {e}")
+            story.alignment_report = {"error": str(e), "total_score": 0}
 
     async def _populate_production_bible(self, story: Story):
         """
@@ -829,7 +874,7 @@ class StoryGenerationService:
         return arcs
     
     async def _generate_scenes(self, story: Story, length: str) -> List[StoryScene]:
-        """Générer les scènes de la story via IA"""
+        """Générer les scènes de la story via IA en plusieurs passages (chunking)"""
         scene_count = {"short": 5, "medium": 12, "long": 24}.get(length, 12)
         
         scenes = []
@@ -838,57 +883,69 @@ class StoryGenerationService:
         locations_str = ", ".join([l['name'] for l in story.locations])
         characters_str = ", ".join([c['name'] for c in story.characters])
         
-        scene_prompt = f"""
-        Generate a sequence of {scene_count} scenes for this story: '{story.synopsis}'.
-        Characters: {characters_str}
-        Locations: {locations_str}
+        # Use chunking for long generations to prevent token limit errors
+        chunk_size = 8
+        remaining = scene_count
+        iteration = 1
         
-        Return ONLY a JSON list of objects with: 'title', 'description', 'location', 'visual_direction', 'audio_mood'.
-        'location' must be one of the provided locations.
-        """
-        
-        scene_json = await self._call_llm(scene_prompt)
-        
-        try:
-            import json
-            start = scene_json.find('[')
-            end = scene_json.rfind(']') + 1
-            if start != -1 and end != -1:
-                scenes_data = json.loads(scene_json[start:end])
-                for i, s_data in enumerate(scenes_data):
+        while remaining > 0:
+            current_batch_size = min(chunk_size, remaining)
+            logger.info(f"Generating scenes batch {iteration} ({current_batch_size} scenes)...")
+            
+            scene_prompt = f"""
+            Generate scenes {scene_count - remaining + 1} to {scene_count - remaining + current_batch_size} of {scene_count} for this story: '{story.synopsis}'.
+            Characters: {characters_str}
+            Locations: {locations_str}
+            
+            Previous scenes context (titles only): {", ".join([s.title for s in scenes]) if scenes else "None"}
+            
+            Return ONLY a JSON list of {current_batch_size} objects with: 'title', 'description', 'location', 'visual_direction', 'audio_mood'.
+            'location' must be one of the provided locations.
+            DO NOT include other text.
+            """
+            
+            # Use slightly larger max_tokens for JSON output stability
+            scene_json = await self._call_llm(scene_prompt, max_tokens=4096)
+            
+            try:
+                import json
+                start = scene_json.find('[')
+                end = scene_json.rfind(']') + 1
+                if start != -1 and end != -1:
+                    scenes_data = json.loads(scene_json[start:end])
+                    # Ensure we don't accidentally add more than the requested batch size if LLM is overenthusiastic
+                    for i, s_data in enumerate(scenes_data[:current_batch_size]):
+                        scene = StoryScene(
+                            id=str(uuid.uuid4()),
+                            title=s_data.get("title", f"Scène {len(scenes) + 1}"),
+                            description=s_data.get("description", ""),
+                            location=s_data.get("location", "Inconnu"),
+                            time_of_day=self._generate_time_of_day(),
+                            visual_direction=s_data.get("visual_direction", ""),
+                            audio_mood=s_data.get("audio_mood", "")
+                        )
+                        scenes.append(scene)
+                else:
+                    raise ValueError(f"No JSON list found in batch {iteration}")
+            except Exception as e:
+                logger.error(f"LLM scene generation failed for batch {iteration}: {e}")
+                # Fallback for this specific batch
+                for i in range(current_batch_size):
+                    import random
+                    location_name = random.choice(story.locations).get("name") if story.locations else "Studio"
                     scene = StoryScene(
                         id=str(uuid.uuid4()),
-                        title=s_data.get("title", f"Scène {i+1}"),
-                        description=s_data.get("description", ""),
-                        location=s_data.get("location", "Inconnu"),
+                        title=f"Scene {len(scenes) + 1} (Fallback)",
+                        description="Generated via fallback mechanism due to AI error.",
+                        location=location_name,
                         time_of_day=self._generate_time_of_day(),
-                        visual_direction=s_data.get("visual_direction", ""),
-                        audio_mood=s_data.get("audio_mood", "")
+                        visual_direction=self._generate_visual_direction(story.genre),
+                        audio_mood=self._generate_audio_mood(story.genre)
                     )
                     scenes.append(scene)
-            else:
-                raise ValueError("No JSON list found")
-        except Exception:
-            logger.warning("LLM scene generation failed, using placeholders")
-            for i in range(scene_count):
-                location_name = "Various locations"
-                if not story.locations:
-                    location_name = "Studio"
-                else:
-                    import random
-                    loc_obj = random.choice(story.locations)
-                    location_name = loc_obj.get("name", "Unknown Location")
-                
-                scene = StoryScene(
-                    id=str(uuid.uuid4()),
-                    title=self._generate_scene_title(i + 1),
-                    description=self._generate_scene_description(i, scene_count),
-                    location=location_name,
-                    time_of_day=self._generate_time_of_day(),
-                    visual_direction=self._generate_visual_direction(story.genre),
-                    audio_mood=self._generate_audio_mood(story.genre)
-                )
-                scenes.append(scene)
+            
+            remaining -= current_batch_size
+            iteration += 1
         
         return scenes
     

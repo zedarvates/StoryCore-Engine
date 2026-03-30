@@ -18,6 +18,8 @@ import { UpdateManager } from './UpdateManager';
 import { ProjectDiscoveryService, DiscoveryResult } from './services/ProjectDiscoveryService';
 import { ComfyUIService } from './services/ComfyUIService';
 import { LLMService } from './services/LLMService';
+import { NetworkDiscoveryService } from './services/NetworkDiscoveryService';
+import { MCPClientService } from './services/MCPClientService';
 import { ConfigurationStore } from './configurationStore';
 import {
   ScanProjectsOptions,
@@ -99,6 +101,14 @@ export const IPC_CHANNELS = {
   COMFYUI_GET_CONFIG: 'comfyui:get-config',
   COMFYUI_UPDATE_CONFIG: 'comfyui:update-config',
   COMFYUI_TEST_CONNECTION: 'comfyui:test-connection',
+  COMFYUI_DISCOVER_NETWORK: 'comfyui:discover-network',
+  MCP_DISCOVER_NETWORK: 'mcp:discover-network',
+  MCP_CONNECT: 'mcp:connect',
+  MCP_DISCONNECT: 'mcp:disconnect',
+  MCP_LIST_TOOLS: 'mcp:list-tools',
+  MCP_CALL_TOOL: 'mcp:call-tool',
+  MCP_LIST_RESOURCES: 'mcp:list-resources',
+  MCP_READ_RESOURCE: 'mcp:read-resource',
 
   // Rover (Persistent Memory Layer)
   ROVER_SYNC: 'rover:sync',
@@ -145,6 +155,8 @@ export class IPCHandlers {
   private comfyuiService: ComfyUIService;
   private llmService: LLMService;
   private roverService: RoverService;
+  private networkDiscoveryService: NetworkDiscoveryService;
+  private mcpClientService: MCPClientService;
   private configurationStore: ConfigurationStore;
 
   private activeProjectPath: string | null = null;
@@ -163,6 +175,8 @@ export class IPCHandlers {
     this.comfyuiService = new ComfyUIService();
     this.llmService = new LLMService();
     this.roverService = new RoverService();
+    this.networkDiscoveryService = new NetworkDiscoveryService();
+    this.mcpClientService = new MCPClientService();
     this.configurationStore = new ConfigurationStore();
   }
 
@@ -1553,6 +1567,81 @@ registerHandlers(): void {
           success: false,
           error: error instanceof Error ? error.message : 'Failed to stop ComfyUI service',
         };
+      }
+    });
+
+    // Discover ComfyUI / MCP servers on local network
+    ipcMain.handle(IPC_CHANNELS.COMFYUI_DISCOVER_NETWORK, async () => {
+      try {
+        console.log('[IPCHandlers] Starting network discovery...');
+        const servers = await this.networkDiscoveryService.discoverServers();
+        return { success: true, servers };
+      } catch (error) {
+        console.error('Network Discovery Failed:', error);
+        return { success: false, error: error instanceof Error ? error.message : String(error) };
+      }
+    });
+
+    ipcMain.handle(IPC_CHANNELS.MCP_DISCOVER_NETWORK, async () => {
+      try {
+        const servers = await this.networkDiscoveryService.discoverServers();
+        return { success: true, servers: servers.filter(s => s.type === 'mcp') };
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    });
+
+    // MCP Interaction Handlers
+    ipcMain.handle(IPC_CHANNELS.MCP_CONNECT, async (_event, serverId: string, options: any) => {
+      try {
+        return await this.mcpClientService.connect(serverId, options);
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    });
+
+    ipcMain.handle(IPC_CHANNELS.MCP_DISCONNECT, async (_event, serverId: string) => {
+      try {
+        await this.mcpClientService.disconnect(serverId);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    });
+
+    ipcMain.handle(IPC_CHANNELS.MCP_LIST_TOOLS, async (_event, serverId: string) => {
+      try {
+        const result = await this.mcpClientService.listTools(serverId);
+        return { success: true, tools: result.tools || result };
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    });
+
+    ipcMain.handle(IPC_CHANNELS.MCP_CALL_TOOL, async (_event, serverId: string, toolName: string, args: any) => {
+      try {
+        const result = await this.mcpClientService.callTool(serverId, toolName, args);
+        return { success: true, result };
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    });
+
+    ipcMain.handle(IPC_CHANNELS.MCP_LIST_RESOURCES, async (_event, serverId: string) => {
+      try {
+        const result = await this.mcpClientService.rpcCallProxy(serverId, 'resources/list', {});
+        return { success: true, resources: result.resources || result };
+      } catch (error) {
+        return { success: false, error: String(error) };
+      }
+    });
+
+    ipcMain.handle(IPC_CHANNELS.MCP_READ_RESOURCE, async (_event, serverId: string, resourceUri: string) => {
+      try {
+        const result = await this.mcpClientService.rpcCallProxy(serverId, 'resources/read', { uri: resourceUri });
+        return { success: true, result };
+      } catch (error) {
+        return { success: false, error: String(error) };
       }
     });
 

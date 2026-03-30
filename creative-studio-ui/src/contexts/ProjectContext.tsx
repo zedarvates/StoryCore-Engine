@@ -16,8 +16,8 @@ import type {
   GenerationResults,
 } from '../types/projectDashboard';
 import type { Project } from '../types';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { Shot } from '../types';
+import { Shot } from '../types';
+import { useProjectStore } from '../stores/useProjectStore';
 import { memoizedValidatePrompt } from '../utils/performanceOptimizations';
 import {
   projectPersistence,
@@ -107,6 +107,11 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   // ============================================================================
 
   const [project, setProject] = useState<DashboardProject | null>(null);
+  
+  // Unified Store Integration (Category 4/Task 21)
+  const unifiedSetProject = useProjectStore(state => state.setProject);
+  const unifiedSetShots = useProjectStore(state => state.setShots);
+
   const [selectedShot, setSelectedShot] = useState<DashboardShot | null>(null);
   const [generationStatus, setGenerationStatus] = useState<DashboardGenerationStatus>({
     stage: 'idle',
@@ -117,6 +122,14 @@ export const ProjectProvider: React.FC<ProjectProviderProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+
+  // Sync to Unified Store whenever local project changes
+  useEffect(() => {
+    if (project) {
+        unifiedSetProject(project as unknown as Project);
+        unifiedSetShots((project as unknown as Project).shots || []);
+    }
+  }, [project, unifiedSetProject, unifiedSetShots]);
 
   // ============================================================================
   // Project Management

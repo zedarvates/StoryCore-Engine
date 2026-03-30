@@ -10,105 +10,18 @@ import React, { useCallback } from 'react';
 import { useDrop } from 'react-dnd';
 import { DND_ITEM_TYPES, type DraggedAssetItem } from '../AssetLibrary/DraggableAsset';
 import { useAppDispatch } from '../../store';
-import { addReferenceImage, updateShot } from '../../store/slices/timelineSlice';
-import type { Shot, Asset } from '../../types';
+import { AssetIntegrationService } from '../../services/assetIntegrationService';
+import type { Shot, ServiceAsset } from '../../types';
+import './shotConfigDropTarget.css';
 
 // ============================================================================
 // Types
 // ============================================================================
 
 interface ShotConfigDropTargetProps {
-  shot: Shot | null;
+  shot: Shot;
   children: React.ReactNode;
-  onAssetDrop?: (assets: Asset[], shot: Shot) => void;
-}
-
-/**
- * Applies an asset to a shot based on asset type
- */
-function applyAssetToShot(
-  asset: Asset,
-  shot: Shot,
-  dispatch: ReturnType<typeof useAppDispatch>
-): void {
-  switch (asset.type) {
-    case 'character':
-    case 'environment':
-    case 'prop':
-      // Add as reference image
-      dispatch(addReferenceImage({
-        shotId: shot.id,
-        image: {
-          id: `ref-${Date.now()}-${Math.random()}`,
-          url: asset.thumbnailUrl,
-          weight: 0.7,
-          source: 'library',
-        },
-      }));
-      break;
-
-    case 'visual-style':
-      // Apply visual style to shot
-      dispatch(updateShot({
-        id: shot.id,
-        updates: {
-          prompt: shot.prompt + ` in ${asset.name} style`,
-        },
-      }));
-      
-      // Add as reference image with lower weight
-      dispatch(addReferenceImage({
-        shotId: shot.id,
-        image: {
-          id: `ref-${Date.now()}-${Math.random()}`,
-          url: asset.thumbnailUrl,
-          weight: 0.5,
-          source: 'library',
-        },
-      }));
-      break;
-
-    case 'camera-preset':
-      // Apply camera preset parameters
-      if (asset.metadata.cameraMetadata) {
-        dispatch(updateShot({
-          id: shot.id,
-          updates: {
-            prompt: shot.prompt + ` with ${asset.name} camera movement`,
-          },
-        }));
-      }
-      break;
-
-    case 'lighting-rig':
-      // Apply lighting rig parameters
-      if (asset.metadata.lightingMetadata) {
-        dispatch(updateShot({
-          id: shot.id,
-          updates: {
-            prompt: shot.prompt + ` with ${asset.name} lighting`,
-          },
-        }));
-      }
-      break;
-
-    case 'template':
-      // Templates are handled differently (not applicable to single shots)
-      console.warn('Templates should be dropped on timeline, not shot config');
-      break;
-
-    default:
-      // Default: add as reference image
-      dispatch(addReferenceImage({
-        shotId: shot.id,
-        image: {
-          id: `ref-${Date.now()}-${Math.random()}`,
-          url: asset.thumbnailUrl,
-          weight: 0.7,
-          source: 'library',
-        },
-      }));
-  }
+  onAssetDrop?: (assets: ServiceAsset[], shot: Shot) => void;
 }
 
 // ============================================================================
@@ -141,10 +54,8 @@ export const ShotConfigDropTarget: React.FC<ShotConfigDropTargetProps> = ({
       return;
     }
 
-    // Apply each asset to the shot
-    assets.forEach((asset) => {
-      applyAssetToShot(asset, shot, dispatch);
-    });
+    // Apply each asset to the current shot
+    AssetIntegrationService.applyToShot(assets, shot, dispatch);
   }, [dispatch, shot, onAssetDrop]);
 
   // Set up drop target
@@ -174,13 +85,8 @@ export const ShotConfigDropTarget: React.FC<ShotConfigDropTargetProps> = ({
 
   return (
     <div
-      ref={drop as any}
+      ref={drop as unknown as React.RefObject<HTMLDivElement>}
       className={`shot-config-drop-target ${isActive ? 'drop-active' : ''} ${isInvalid ? 'drop-invalid' : ''} ${canDrop && !isOver ? 'drop-ready' : ''}`}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-      }}
     >
       {children}
       

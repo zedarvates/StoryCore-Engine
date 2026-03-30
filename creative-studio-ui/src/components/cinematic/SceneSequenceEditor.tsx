@@ -94,6 +94,7 @@ const SegmentItem: React.FC<SegmentItemProps> = ({
                             value={segment.title}
                             onChange={(e) => updateSegment(segment.id, { title: e.target.value })}
                             onClick={(e) => e.stopPropagation()}
+                            aria-label="Titre du plan"
                         />
                     </div>
                     <div className="segment-actions-area">
@@ -188,6 +189,7 @@ const SegmentItem: React.FC<SegmentItemProps> = ({
                                 placeholder="Décrivez l'action complexe du plan..."
                                 value={segment.prompt}
                                 onChange={(e) => updateSegment(segment.id, { prompt: e.target.value })}
+                                aria-label="Description du plan"
                             />
                         </div>
 
@@ -200,6 +202,7 @@ const SegmentItem: React.FC<SegmentItemProps> = ({
                                     placeholder="Ambiances sonores & SFX..."
                                     value={segment.sfxPrompt || ''}
                                     onChange={(e) => updateSegment(segment.id, { sfxPrompt: e.target.value })}
+                                    aria-label="Prompts SFX"
                                 />
                             </div>
                         </div>
@@ -352,8 +355,8 @@ export function SceneSequenceEditor() {
                 const videoRes = result.results.find(r => r.step === 'muxed_video') ||
                     result.results.find(r => r.step === 'video' || r.step === 'speaking_video');
 
-                if (videoRes && videoRes.output && videoRes.output.filename) {
-                    setGeneratedVideoUrl(`/output/${videoRes.output.filename}`);
+                if (videoRes && videoRes.output && (videoRes.output as { filename?: string }).filename) {
+                    setGeneratedVideoUrl(`/output/${(videoRes.output as { filename: string }).filename}`);
                 }
             }
         } catch (error) {

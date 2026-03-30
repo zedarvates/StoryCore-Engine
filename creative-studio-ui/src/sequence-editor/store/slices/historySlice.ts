@@ -33,15 +33,11 @@ const historySlice = createSlice({
       state.redoStack = [];
     },
     
-    /**
-     * Perform undo operation
-     * Requirement 18.3: Revert last action and update interface state
-     */
-    undo: (state) => {
+    undo: (state, action: PayloadAction<StateSnapshot>) => {
       if (state.undoStack.length > 0) {
         const snapshot = state.undoStack.pop();
         if (snapshot) {
-          state.redoStack.push(snapshot);
+          state.redoStack.push(action.payload);
         }
       }
     },
@@ -50,11 +46,11 @@ const historySlice = createSlice({
      * Perform redo operation
      * Requirement 18.4: Reapply last undone action
      */
-    redo: (state) => {
+    redo: (state, action: PayloadAction<StateSnapshot>) => {
       if (state.redoStack.length > 0) {
         const snapshot = state.redoStack.pop();
         if (snapshot) {
-          state.undoStack.push(snapshot);
+          state.undoStack.push(action.payload);
         }
       }
     },

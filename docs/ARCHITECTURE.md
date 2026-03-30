@@ -391,9 +391,29 @@ class AnthropicProvider implements LLMProvider { ... }
 class OllamaProvider implements LLMProvider { ... }
 ```
 
+### Model Context Protocol (MCP) Integration
+
+Le système utilise MCP pour orchestrer dynamiquement des outils d'IA externes, particulièrement via les passerelles ComfyUI.
+
+```typescript
+// Interface de découverte et d'exécution MCP
+interface MCPService {
+  discoverTools(serverId: string): Promise<MCPTool[]>;
+  callTool(serverId: string, toolName: string, args: any): Promise<any>;
+}
+
+// Mappage dynamique des outils aux tâches de production
+interface ToolMappings {
+  imageGeneration?: string;
+  videoGeneration?: string;
+  styleRefinement?: string;
+  characterConsistency?: string;
+}
+```
+
 ### ComfyUI Integration
 
-Le backend communique avec ComfyUI via son API :
+Le backend communique avec ComfyUI via son API standard ou via le protocole MCP :
 
 ```python
 class ComfyUIService:

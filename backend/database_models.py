@@ -499,6 +499,7 @@ class Story(Base, TimestampMixin):
     
     # Critique and status
     critique = Column(Text, nullable=True)
+    alignment_report = Column(JSON, nullable=True)
     status = Column(String(20), default=StoryStatus.GENERATING)
     version = Column(Integer, default=1)
     

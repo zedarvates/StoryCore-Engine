@@ -1,0 +1,22 @@
+{
+  "id": "f7017363-f8e8-4661-ad7c-34edc2607350",
+  "name": "Project f7017363-f8e8-4661-ad7c-34edc2607350",
+  "schema_version": "1.0",
+  "project_name": "Project f7017363-f8e8-4661-ad7c-34edc2607350",
+  "sequences": [],
+  "shots": [],
+  "audioPhrases": [],
+  "generationHistory": [],
+  "assets": [],
+  "capabilities": {
+    "grid_generation": true,
+    "promotion_engine": true,
+    "qa_engine": true,
+    "autofix_engine": true,
+    "voice_generation": true
+  },
+  "generation_status": {
+    "grid": "pending",
+    "promotion": "pending"
+  }
+}

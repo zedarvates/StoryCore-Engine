@@ -72,6 +72,7 @@ const ProjectSchema = z.object({
   }).optional(),
   metadata: z.record(z.string(), z.any()).optional(),
   global_resume: z.string().optional(),
+  summary: z.string().optional(),
   sequences: z.array(z.any()).optional(),
   sequencePlans: z.array(z.any()).optional(),
   locations: z.array(z.any()).optional(),

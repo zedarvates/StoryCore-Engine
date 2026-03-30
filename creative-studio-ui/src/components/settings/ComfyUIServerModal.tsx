@@ -19,6 +19,13 @@ import { cn } from '@/lib/utils';
 import type { ComfyUIServer, CreateComfyUIServerInput } from '@/types/comfyuiServers';
 import type { AuthenticationType } from '@/services/comfyuiService';
 
+interface MCPTool {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
+}
+
+
 export interface ComfyUIServerModalProps {
   server?: ComfyUIServer | null;
   isOpen: boolean;
@@ -43,6 +50,19 @@ export function ComfyUIServerModal({
   const [token, setToken] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showToken, setShowToken] = useState(false);
+  
+  // MCP settings
+  const [mcpServerPath, setMcpServerPath] = useState('');
+  const [mcpServerArgs, setMcpServerArgs] = useState('');
+  const [mcpTransport, setMcpTransport] = useState<'stdio' | 'sse' | 'websockets'>('stdio');
+  const [mcpImgTool, setMcpImgTool] = useState('');
+  const [mcpVidTool, setMcpVidTool] = useState('');
+  const [mcpUpscaleTool, setMcpUpscaleTool] = useState('');
+  const [mcpInpaintTool, setMcpInpaintTool] = useState('');
+  const [mcpCharTool, setMcpCharTool] = useState('');
+  const [availableMcpTools, setAvailableMcpTools] = useState<MCPTool[]>([]);
+  const [isFetchingTools, setIsFetchingTools] = useState(false);
+
   
   
   // Advanced settings
@@ -110,6 +130,16 @@ export function ComfyUIServerModal({
         setPrefCheckpoint(server.models?.preferredCheckpoint || '');
         setPrefVAE(server.models?.preferredVAE || '');
         setPrefCLIP(server.models?.preferredCLIP || '');
+
+        // Load MCP Config
+        setMcpServerPath(server.mcpConfig?.serverPath || '');
+        setMcpServerArgs(server.mcpConfig?.serverArgs?.join(' ') || '');
+        setMcpTransport(server.mcpConfig?.transport || 'stdio');
+        setMcpImgTool(server.mcpConfig?.toolMappings?.imageGeneration || '');
+        setMcpVidTool(server.mcpConfig?.toolMappings?.videoGeneration || '');
+        setMcpUpscaleTool(server.mcpConfig?.toolMappings?.upscaling || '');
+        setMcpInpaintTool(server.mcpConfig?.toolMappings?.inpainting || '');
+        setMcpCharTool(server.mcpConfig?.toolMappings?.characterGeneration || '');
       } else {
         // Reset form for new server
         setName('');
@@ -137,14 +167,38 @@ export function ComfyUIServerModal({
         setPrefCheckpoint('');
         setPrefVAE('');
         setPrefCLIP('');
+        setMcpServerPath('');
+        setMcpServerArgs('');
+        setMcpTransport('stdio');
+        setMcpImgTool('');
+        setMcpVidTool('');
+        setMcpUpscaleTool('');
+        setMcpInpaintTool('');
+        setMcpCharTool('');
       }
       setErrors({});
     };
 
     if (isOpen) {
       initializeForm();
+      if (server?.id && server?.authentication?.type === 'mcp') {
+        fetchMcpTools(server.id);
+      }
     }
   }, [server, isOpen]);
+
+  const fetchMcpTools = async (id: string) => {
+    if (!window.electronAPI?.comfyui?.listTools) return;
+    setIsFetchingTools(true);
+    try {
+      const tools = await window.electronAPI.comfyui.listTools(id);
+      setAvailableMcpTools(tools || []);
+    } catch (err) {
+      console.error('Failed to fetch MCP tools:', err);
+    } finally {
+      setIsFetchingTools(false);
+    }
+  };
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -153,9 +207,11 @@ export function ComfyUIServerModal({
       newErrors.name = 'Server name is required';
     }
 
-    if (!serverUrl.trim()) {
+    const isMcpStdio = authType === 'mcp' && mcpTransport === 'stdio';
+
+    if (!serverUrl.trim() && !isMcpStdio) {
       newErrors.serverUrl = 'Server URL is required';
-    } else {
+    } else if (serverUrl.trim()) {
       try {
         const url = new URL(serverUrl);
         if (!['http:', 'https:'].includes(url.protocol)) {
@@ -163,6 +219,15 @@ export function ComfyUIServerModal({
         }
       } catch {
         newErrors.serverUrl = 'Invalid URL format';
+      }
+    }
+
+    if (authType === 'mcp') {
+      if (!mcpServerPath.trim() && mcpTransport === 'stdio') {
+        newErrors.mcpServerPath = 'Server path is required for stdio transport';
+      }
+      if (!serverUrl.trim() && (mcpTransport === 'sse' || mcpTransport === 'websockets')) {
+        newErrors.serverUrl = 'Server URL (SSE/WS) is required';
       }
     }
 
@@ -194,6 +259,20 @@ export function ComfyUIServerModal({
         ...(authType === 'basic' && { username, password }),
         ...(authType === 'bearer' && { token }),
         ...(authType === 'api-key' && { token }),
+        ...(authType === 'mcp' && { type: 'mcp' }),
+      },
+      mcpConfig: {
+        enabled: authType === 'mcp',
+        serverPath: mcpServerPath.trim() || undefined,
+        serverArgs: mcpServerArgs.split(' ').filter(Boolean),
+        transport: mcpTransport,
+        toolMappings: {
+          imageGeneration: mcpImgTool || undefined,
+          videoGeneration: mcpVidTool || undefined,
+          upscaling: mcpUpscaleTool || undefined,
+          inpainting: mcpInpaintTool || undefined,
+          characterGeneration: mcpCharTool || undefined,
+        },
       },
       maxQueueSize,
       timeout,
@@ -302,6 +381,10 @@ export function ComfyUIServerModal({
                     <RadioGroupItem value="api-key" id="auth-api-key" />
                     <Label htmlFor="auth-api-key" className="font-normal cursor-pointer">API Key</Label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="mcp" id="auth-mcp" />
+                    <Label htmlFor="auth-mcp" className="font-normal cursor-pointer text-primary font-medium">Comfy-MCP (Protocol Connection)</Label>
+                  </div>
                 </RadioGroup>
 
                 {authType === 'basic' && (
@@ -358,6 +441,61 @@ export function ComfyUIServerModal({
                         {showToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </Button>
                     </div>
+                  </div>
+                )}
+
+                {authType === 'mcp' && (
+                  <div className="space-y-4 mt-4 border-t pt-4">
+                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-md mb-4">
+                      <p className="text-xs font-medium text-primary uppercase tracking-wider mb-1">Modern Protocol Integration</p>
+                      <p className="text-sm text-muted-foreground">
+                        Connect to ComfyUI using the Model Context Protocol. This allows advanced agentic workflows and tool-calling.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>MCP Transport</Label>
+                      <Select value={mcpTransport} onValueChange={(val: 'stdio' | 'sse' | 'websockets') => setMcpTransport(val)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select transport" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="stdio">StdIO (Local Process)</SelectItem>
+                          <SelectItem value="sse">SSE (Server-Sent Events)</SelectItem>
+                          <SelectItem value="websockets">WebSockets</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {mcpTransport === 'stdio' ? (
+                      <div className="space-y-3 pt-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="mcpPath">Server Command / Path</Label>
+                          <Input
+                            id="mcpPath"
+                            value={mcpServerPath}
+                            onChange={(e) => setMcpServerPath(e.target.value)}
+                            placeholder="e.g. npx, python, or absolute path"
+                            className={cn(errors.mcpServerPath && 'border-destructive')}
+                          />
+                          {errors.mcpServerPath && <p className="text-xs text-destructive">{errors.mcpServerPath}</p>}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="mcpArgs">Command Arguments</Label>
+                          <Input
+                            id="mcpArgs"
+                            value={mcpServerArgs}
+                            onChange={(e) => setMcpServerArgs(e.target.value)}
+                            placeholder="e.g. -y @joenorton/comfyui-mcp-server"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground border">
+                        <p className="font-medium text-foreground mb-1">Endpoint Configuration</p>
+                        The "Server URL" in the General tab will be used as the MCP {mcpTransport.toUpperCase()} connection string.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -500,7 +638,144 @@ export function ComfyUIServerModal({
 
             {/* Workflows & Models Tab */}
             <TabsContent value="workflows" className="space-y-6 pt-4">
-              {server?.serverInfo ? (
+              {authType === 'mcp' ? (
+                <div className="space-y-4">
+                  <div className="p-3 bg-primary/5 border border-primary/20 rounded-md">
+                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider mb-2">MCP Tool Mappings</h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Map standard generation tasks to specific tools exposed by this MCP server.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label>Image Generation Tool</Label>
+                        {availableMcpTools.length > 0 ? (
+                          <Select value={mcpImgTool} onValueChange={setMcpImgTool}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select image generation tool..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="execute_workflow">Default (execute_workflow)</SelectItem>
+                              {availableMcpTools.map(t => (
+                                <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input 
+                            placeholder="e.g. execute_workflow, generate_image" 
+                            value={mcpImgTool} 
+                            onChange={(e) => setMcpImgTool(e.target.value)}
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Video Generation Tool</Label>
+                        {availableMcpTools.length > 0 ? (
+                          <Select value={mcpVidTool} onValueChange={setMcpVidTool}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select video generation tool..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="execute_workflow">Default (execute_workflow)</SelectItem>
+                              {availableMcpTools.map(t => (
+                                <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input 
+                            placeholder="e.g. generate_video" 
+                            value={mcpVidTool} 
+                            onChange={(e) => setMcpVidTool(e.target.value)}
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Upscaling Tool</Label>
+                        {availableMcpTools.length > 0 ? (
+                          <Select value={mcpUpscaleTool} onValueChange={setMcpUpscaleTool}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select upscaling tool..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="execute_workflow">Default (execute_workflow)</SelectItem>
+                              {availableMcpTools.map(t => (
+                                <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input 
+                            placeholder="e.g. upscale_image" 
+                            value={mcpUpscaleTool} 
+                            onChange={(e) => setMcpUpscaleTool(e.target.value)}
+                          />
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Inpainting Tool</Label>
+                        {availableMcpTools.length > 0 ? (
+                          <Select value={mcpInpaintTool} onValueChange={setMcpInpaintTool}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select inpainting tool..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="execute_workflow">Default (execute_workflow)</SelectItem>
+                              {availableMcpTools.map(t => (
+                                <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input 
+                            placeholder="e.g. inpaint_workflow" 
+                            value={mcpInpaintTool} 
+                            onChange={(e) => setMcpInpaintTool(e.target.value)}
+                          />
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Character Generation Tool</Label>
+                        {availableMcpTools.length > 0 ? (
+                          <Select value={mcpCharTool} onValueChange={setMcpCharTool}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select character tool..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="execute_workflow">Default (execute_workflow)</SelectItem>
+                              {availableMcpTools.map(t => (
+                                <SelectItem key={t.name} value={t.name}>{t.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <Input 
+                            placeholder="e.g. character_portrait" 
+                            value={mcpCharTool} 
+                            onChange={(e) => setMcpCharTool(e.target.value)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  
+                  {isEditing && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full" 
+                      onClick={() => fetchMcpTools(server!.id)}
+                      disabled={isFetchingTools}
+                    >
+                      {isFetchingTools ? 'Refreshing tools...' : 'Refresh tool list from server'}
+                    </Button>
+                  )}
+                </div>
+              ) : server?.serverInfo ? (
                 <>
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium border-b pb-2">Workflow Preferences</h3>

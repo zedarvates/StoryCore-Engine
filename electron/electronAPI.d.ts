@@ -419,6 +419,40 @@ export interface ElectronAPI {
      * @throws Error if download fails
      */
     downloadOutput: (filename: string, outputPath: string) => Promise<any>;
+    /**
+     * Discover ComfyUI servers on the local network
+     * @returns Array of discovered servers
+     */
+    discoverNetwork: () => Promise<any[]>;
+    /**
+     * Discover MCP servers on the local network
+     * @returns Array of discovered MCP servers
+     */
+    discoverMcp: () => Promise<any[]>;
+    /**
+     * Connect to an MCP server
+     */
+    connect: (serverId: string, options: any) => Promise<any>;
+    /**
+     * Disconnect from an MCP server
+     */
+    disconnect: (serverId: string) => Promise<void>;
+    /**
+     * List tools available on an MCP server
+     */
+    listTools: (serverId: string) => Promise<any[]>;
+    /**
+     * Call a tool on an MCP server
+     */
+    callTool: (serverId: string, toolName: string, args: any) => Promise<any>;
+    /**
+     * List resources available on an MCP server
+     */
+    listResources: (serverId: string) => Promise<any[]>;
+    /**
+     * Read a resource from an MCP server
+     */
+    readResource: (serverId: string, resourceUri: string) => Promise<any>;
   };
 
   // File system operations

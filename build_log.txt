@@ -1,0 +1,990 @@
+
+> creative-studio-ui@0.0.0 prebuild
+> npm run clean && npm run validate
+
+
+> creative-studio-ui@0.0.0 clean
+> node scripts/clean-build-artifacts.cjs
+
+
+============================================================
+Cleanup Complete
+============================================================
+Files removed: 0
+Errors encountered: 0
+Duration: 30ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 validate
+> node scripts/validate-build-config.cjs
+
+
+============================================================
+Build Configuration Validation
+============================================================
+
+Checking for .js files in src/...
+Validating TypeScript configuration...
+Validating .gitignore patterns...
+
+============================================================
+Validation Results
+============================================================
+
+Ô£ô No .js files found in src/
+
+Ô£ô TypeScript configuration is correct
+
+Ô£ô .gitignore patterns are correct
+
+============================================================
+Ô£à Build configuration is valid
+
+Duration: 32ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 build
+> vite build
+
+2026-03-29T06:56:17.114Z vite:config config file loaded in 65.47ms
+2026-03-29T06:56:17.117Z vite:env loading env files: [
+  'C:/storycore-engine/creative-studio-ui/.env',
+  'C:/storycore-engine/creative-studio-ui/.env.local',
+  'C:/storycore-engine/creative-studio-ui/.env.production',
+  'C:/storycore-engine/creative-studio-ui/.env.production.local'
+]
+2026-03-29T06:56:17.117Z vite:env env files loaded in 0.46ms
+2026-03-29T06:56:17.117Z vite:env using resolved env: {}
+2026-03-29T06:56:17.140Z vite:config using resolved config: {
+  plugins: [
+    'vite:build-metadata',
+    'vite:watch-package-data',
+    'alias',
+    'vite:react-babel',
+    'vite:react-refresh',
+    'vite:modulepreload-polyfill',
+    'vite:resolve',
+    'vite:html-inline-proxy',
+    'vite:css',
+    'vite:esbuild',
+    'vite:json',
+    'vite:wasm-helper',
+    'vite:worker',
+    'vite:asset',
+    'visualizer',
+    'vite:wasm-fallback',
+    'vite:define',
+    'vite:css-post',
+    'vite:build-html',
+    'vite:worker-import-meta-url',
+    'vite:asset-import-meta-url',
+    'vite:force-amd-wrap-require',
+    'vite:force-systemjs-wrap-complete',
+    'vite:prepare-out-dir',
+    'commonjs',
+    'vite:data-uri',
+    'vite:rollup-options-plugins',
+    'vite:dynamic-import-vars',
+    'vite:import-glob',
+    'vite:build-import-analysis',
+    'vite:esbuild-transpile',
+    'vite:terser',
+    'vite:license',
+    'vite:manifest',
+    'vite:ssr-manifest',
+    'vite:reporter',
+    'vite:load-fallback'
+  ],
+  esbuild: {
+    jsxDev: false,
+    charset: 'utf8',
+    legalComments: 'none',
+    jsx: 'automatic',
+    tsconfigRaw: { compilerOptions: { useDefineForClassFields: true } }
+  },
+  resolve: {
+    externalConditions: [ 'node', 'module-sync' ],
+    extensions: [ '.ts', '.tsx', '.js', '.jsx', '.json' ],
+    dedupe: [ 'react', 'react-dom' ],
+    noExternal: [],
+    external: [],
+    preserveSymlinks: false,
+    alias: [
+      {
+        find: '@',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src'
+      },
+      {
+        find: '@components',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\components'
+      },
+      {
+        find: '@services',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\services'
+      },
+      {
+        find: '@hooks',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\hooks'
+      },
+      {
+        find: '@types',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\types'
+      },
+      {
+        find: '@utils',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\utils'
+      },
+      {
+        find: '@contexts',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\contexts'
+      },
+      {
+        find: '@stores',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\stores'
+      },
+      {
+        find: '@lib',
+        replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\lib'
+      },
+      {
+        find: /^\/?@vite\/env/,
+        replacement: '/@fs/C:/storycore-engine/creative-studio-ui/node_modules/vite/dist/client/env.mjs'
+      },
+      {
+        find: /^\/?@vite\/client/,
+        replacement: '/@fs/C:/storycore-engine/creative-studio-ui/node_modules/vite/dist/client/client.mjs'
+      }
+    ],
+    mainFields: [ 'browser', 'module', 'jsnext:main', 'jsnext' ],
+    conditions: [ 'module', 'browser', 'development|production' ],
+    builtins: []
+  },
+  base: './',
+  worker: { format: 'es', plugins: '() => plugins', rollupOptions: {} },
+  build: {
+    target: 'chrome120',
+    polyfillModulePreload: true,
+    modulePreload: { polyfill: true },
+    outDir: 'dist',
+    assetsDir: 'assets',
+    assetsInlineLimit: 4096,
+    sourcemap: false,
+    terserOptions: {},
+    rollupOptions: {
+      treeshake: {
+        moduleSideEffects: false,
+        propertyReadSideEffects: false,
+        tryCatchDeoptimization: false
+      },
+      output: {
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks: [Function: manualChunks]
+      },
+      onwarn: [Function: onwarn]
+    },
+    commonjsOptions: { include: [ /node_modules/ ], extensions: [ '.js', '.cjs' ] },
+    dynamicImportVarsOptions: { warnOnError: true, exclude: [ /node_modules/ ] },
+    write: true,
+    emptyOutDir: true,
+    copyPublicDir: true,
+    license: false,
+    manifest: false,
+    lib: false,
+    ssrManifest: false,
+    ssrEmitAssets: false,
+    reportCompressedSize: true,
+    chunkSizeWarningLimit: 500,
+    watch: null,
+    cssCodeSplit: true,
+    minify: 'esbuild',
+    ssr: false,
+    emitAssets: true,
+    createEnvironment: [Function: createEnvironment],
+    cssTarget: 'chrome120',
+    cssMinify: true
+  },
+  server: {
+    port: 5173,
+    strictPort: false,
+    host: 'localhost',
+    allowedHosts: [ 'localhost', 'localhost', 'localhost', 'localhost' ],
+    https: undefined,
+    open: false,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      }
+    },
+    cors: {
+      origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/
+    },
+    headers: {},
+    warmup: { clientFiles: [], ssrFiles: [] },
+    middlewareMode: false,
+    fs: {
+      strict: true,
+      deny: [ '.env', '.env.*', '*.{crt,pem}', '**/.git/**' ],
+      allow: [ 'C:/storycore-engine/creative-studio-ui' ]
+    },
+    preTransformRequests: true,
+    perEnvironmentStartEndDuringDev: false,
+    perEnvironmentWatchChangeDuringDev: false,
+    sourcemapIgnoreList: [Function: isInNodeModules],
+    hmr: { overlay: true },
+    watch: {
+      usePolling: false,
+      ignored: [ '**/node_modules/**', '**/dist/**', '**/.git/**' ]
+    }
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'zustand',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@mui/material',
+      '@mui/icons-material',
+      'react',
+      'react-dom',
+      'react/jsx-dev-runtime',
+      'react/jsx-runtime'
+    ],
+    exclude: [ '@vite/client', '@vite/env' ],
+    needsInterop: [],
+    extensions: [],
+    disabled: undefined,
+    holdUntilCrawlEnd: true,
+    force: false,
+    ignoreOutdatedRequests: false,
+    noDiscovery: false,
+    esbuildOptions: { preserveSymlinks: false, jsx: 'automatic' }
+  },
+  environments: {
+    client: {
+      define: undefined,
+      resolve: {
+        externalConditions: [ 'node', 'module-sync' ],
+        extensions: [ '.ts', '.tsx', '.js', '.jsx', '.json' ],
+        dedupe: [ 'react', 'react-dom' ],
+        noExternal: [],
+        external: [],
+        preserveSymlinks: false,
+        alias: [
+          {
+            find: '@',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src'
+          },
+          {
+            find: '@components',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\components'
+          },
+          {
+            find: '@services',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\services'
+          },
+          {
+            find: '@hooks',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\hooks'
+          },
+          {
+            find: '@types',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\types'
+          },
+          {
+            find: '@utils',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\utils'
+          },
+          {
+            find: '@contexts',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\contexts'
+          },
+          {
+            find: '@stores',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\stores'
+          },
+          {
+            find: '@lib',
+            replacement: 'C:\\storycore-engine\\creative-studio-ui\\src\\lib'
+          },
+          {
+            find: /^\/?@vite\/env/,
+            replacement: '/@fs/C:/storycore-engine/creative-studio-ui/node_modules/vite/dist/client/env.mjs'
+          },
+          {
+            find: /^\/?@vite\/client/,
+            replacement: '/@fs/C:/storycore-engine/creative-studio-ui/node_modules/vite/dist/client/client.mjs'
+          }
+        ],
+        mainFields: [ 'browser', 'module', 'jsnext:main', 'jsnext' ],
+        conditions: [ 'module', 'browser', 'development|production' ],
+        builtins: []
+      },
+      keepProcessEnv: false,
+      consumer: 'client',
+      optimizeDeps: {
+        include: [
+          'react',
+          'react-dom',
+          'zustand',
+          '@radix-ui/react-dialog',
+          '@radix-ui/react-dropdown-menu',
+          '@radix-ui/react-select',
+          '@mui/material',
+          '@mui/icons-material',
+          'react',
+          'react-dom',
+          'react/jsx-dev-runtime',
+          'react/jsx-runtime'
+        ],
+        exclude: [ '@vite/client', '@vite/env' ],
+        needsInterop: [],
+        extensions: [],
+        disabled: undefined,
+        holdUntilCrawlEnd: true,
+        force: false,
+        ignoreOutdatedRequests: false,
+        noDiscovery: false,
+        esbuildOptions: { preserveSymlinks: false, jsx: 'automatic' }
+      },
+      dev: {
+        warmup: [],
+        sourcemap: { js: true },
+        sourcemapIgnoreList: [Function: isInNodeModules],
+        preTransformRequests: true,
+        createEnvironment: [Function: defaultCreateClientDevEnvironment],
+        recoverable: true,
+        moduleRunnerTransform: false
+      },
+      build: {
+        target: 'chrome120',
+        polyfillModulePreload: true,
+        modulePreload: { polyfill: true },
+        outDir: 'dist',
+        assetsDir: 'assets',
+        assetsInlineLimit: 4096,
+        sourcemap: false,
+        terserOptions: {},
+        rollupOptions: {
+          treeshake: {
+            moduleSideEffects: false,
+            propertyReadSideEffects: false,
+            tryCatchDeoptimization: false
+          },
+          output: {
+            chunkFileNames: 'assets/[name]-[hash].js',
+            entryFileNames: 'assets/[name]-[hash].js',
+            assetFileNames: 'assets/[name]-[hash].[ext]',
+            manualChunks: [Function: manualChunks]
+          },
+          onwarn: [Function: onwarn]
+        },
+        commonjsOptions: { include: [ /node_modules/ ], extensions: [ '.js', '.cjs' ] },
+        dynamicImportVarsOptions: { warnOnError: true, exclude: [ /node_modules/ ] },
+        write: true,
+        emptyOutDir: true,
+        copyPublicDir: true,
+        license: false,
+        manifest: false,
+        lib: false,
+        ssrManifest: false,
+        ssrEmitAssets: false,
+        reportCompressedSize: true,
+        chunkSizeWarningLimit: 500,
+        watch: null,
+        cssCodeSplit: true,
+        minify: 'esbuild',
+        ssr: false,
+        emitAssets: true,
+        createEnvironment: [Function: createEnvironment],
+        cssTarget: 'chrome120',
+        cssMinify: true
+      },
+      plugins: [
+        {
+          name: 'vite:build-metadata',
+          renderChunk: [AsyncFunction: renderChunk]
+        },
+        {
+          name: 'vite:watch-package-data',
+          buildStart: [Function: buildStart],
+          buildEnd: [Function: buildEnd],
+          watchChange: [Function: watchChange]
+        },
+        {
+          name: 'alias',
+          buildStart: [AsyncFunction: buildStart],
+          resolveId: [Function: resolveId]
+        },
+        {
+          name: 'vite:react-babel',
+          enforce: 'pre',
+          config: [Function: config],
+          configResolved: [Function: configResolved],
+          transform: [AsyncFunction: transform]
+        },
+        {
+          name: 'vite:react-refresh',
+          enforce: 'pre',
+          config: [Function: config],
+          resolveId: [Function: resolveId],
+          load: [Function: load],
+          transformIndexHtml: [Function: transformIndexHtml]
+        },
+        {
+          name: 'vite:modulepreload-polyfill',
+          resolveId: {
+            filter: { id: /^vite\/modulepreload\-polyfill$/ },
+            handler: [Function: handler]
+          },
+          load: {
+            filter: { id: /^ vite\/modulepreload\-polyfill\.js$/ },
+            handler: [Function: handler]
+          }
+        },
+        {
+          name: 'vite:resolve',
+          resolveId: {
+            filter: { id: { exclude: /^(?:\0|\/?virtual:)/ } },
+            handler: [AsyncFunction: handler]
+          },
+          load: {
+            filter: {
+              id: [
+                /^__vite\-browser\-external/,
+                /^__vite\-optional\-peer\-dep/
+              ]
+            },
+            handler: [Function: handler]
+          }
+        },
+        {
+          name: 'vite:html-inline-proxy',
+          resolveId: {
+            filter: { id: /[?&]html-proxy\b/ },
+            handler: [Function: handler]
+          },
+          load: {
+            filter: { id: /[?&]html-proxy\b/ },
+            handler: [Function: handler]
+          }
+        },
+        {
+          name: 'vite:css',
+          buildStart: [Function: buildStart],
+          buildEnd: [Function: buildEnd],
+          load: {
+            filter: {
+              id: /\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)(?:$|\?)/
+            },
+            handler: [AsyncFunction: handler]
+          },
+          transform: {
+            filter: {
+              id: {
+                include: /\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)(?:$|\?)/,
+                exclude: [
+                  /[?&]commonjs-proxy/,
+                  /[?&](?:worker|sharedworker|raw|url)\b/
+                ]
+              }
+            },
+            handler: [AsyncFunction: handler]
+          }
+        },
+        {
+          name: 'vite:esbuild',
+          configureServer: [Function: configureServer],
+          transform: [AsyncFunction: transform]
+        },
+        {
+          name: 'vite:json',
+          transform: {
+            filter: {
+              id: {
+                include: /\.json(?:$|\?)(?!commonjs-(?:proxy|external))/,
+                exclude: /[?&](?:worker|sharedworker|raw|url)\b/
+              }
+            },
+            handler: [Function: handler]
+          }
+        },
+        {
+          name: 'vite:wasm-helper',
+          resolveId: {
+            filter: { id: /^ vite\/wasm\-helper\.js$/ },
+            handler: [Function: handler]
+          },
+          load: {
+            filter: {
+              id: [
+                /^ vite\/wasm\-helper\.js$/,
+                /(?<![?#].*)\.wasm\?init/
+              ]
+            },
+            handler: [AsyncFunction: handler]
+          }
+        },
+        {
+          name: 'vite:worker',
+          buildStart: [Function: buildStart],
+          load: {
+            filter: { id: /(?:\?|&)(worker|sharedworker)(?:&|$)/ },
+            handler: [AsyncFunction: handler]
+          },
+          transform: {
+            filter: { id: /(?:\?|&)worker_file&type=(\w+)(?:&|$)/ },
+            handler: [AsyncFunction: handler]
+          },
+          renderChunk: [Function: renderChunk],
+          generateBundle: [Function: generateBundle],
+          watchChange: [Function: watchChange]
+        },
+        {
+          name: 'vite:asset',
+          perEnvironmentStartEndDuringDev: true,
+          buildStart: [Function: buildStart],
+          resolveId: { handler: [Function: handler] },
+          load: {
+            filter: { id: { exclude: /^\0/ } },
+            handler: [AsyncFunction: handler]
+          },
+          renderChunk: [Function: renderChunk],
+          generateBundle: [Function: generateBundle]
+        },
+        {
+          name: 'visualizer',
+          generateBundle: [AsyncFunction: generateBundle]
+        },
+        {
+          name: 'vite:wasm-fallback',
+          load: { filter: { id: /\.wasm$/ }, handler: [Function: handler] }
+        },
+        {
+          name: 'vite:define',
+          transform: { handler: [AsyncFunction: handler] }
+        },
+        {
+          name: 'vite:css-post',
+          renderStart: [Function: renderStart],
+          transform: {
+            filter: {
+              id: {
+                include: /\.(css|less|sass|scss|styl|stylus|pcss|postcss|sss)(?:$|\?)/,
+                exclude: [
+                  /[?&]commonjs-proxy/,
+                  /[?&](?:worker|sharedworker|raw|url)\b/
+                ]
+              }
+            },
+            handler: [AsyncFunction: handler]
+          },
+          renderChunk: [AsyncFunction: renderChunk],
+          augmentChunkHash: [Function: augmentChunkHash],
+          generateBundle: [AsyncFunction: generateBundle]
+        },
+        {
+          name: 'vite:build-html',
+          transform: {
+            filter: { id: /\.html$/ },
+            handler: [AsyncFunction: handler]
+          },
+          generateBundle: [AsyncFunction: generateBundle]
+        },
+        {
+          name: 'vite:worker-import-meta-url',
+          applyToEnvironment: [Function: applyToEnvironment],
+          transform: {
+            filter: {
+              code: /new\s+(?:Worker|SharedWorker)\s*\(\s*new\s+URL.+?import\.meta\.url/s
+            },
+            handler: [AsyncFunction: handler]
+          }
+        },
+        {
+          name: 'vite:asset-import-meta-url',
+          applyToEnvironment: [Function: applyToEnvironment],
+          transform: {
+            filter: {
+              id: {
+                exclude: [
+                  /^ vite\/preload\-helper\.js$/,
+                  /^C:\\storycore\-engine\\creative\-studio\-ui\\node_modules\\vite\\dist\\client\\client\.mjs$/
+                ]
+              },
+              code: /new\s+URL.+import\.meta\.url/s
+            },
+            handler: [AsyncFunction: handler]
+          }
+        },
+        {
+          name: 'vite:force-amd-wrap-require',
+          renderChunk: [Function: renderChunk]
+        },
+        {
+          name: 'vite:force-systemjs-wrap-complete',
+          renderChunk: [Function: renderChunk]
+        },
+        {
+          name: 'vite:prepare-out-dir',
+          options: [Function: options],
+          renderStart: { order: 'pre', handler: [Function: handler] }
+        },
+        {
+          name: 'commonjs',
+          version: '29.0.0',
+          options: [Function: options],
+          buildStart: [Function: buildStart],
+          buildEnd: [Function: buildEnd],
+          load: [AsyncFunction: load],
+          shouldTransformCachedModule: [Function: shouldTransformCachedModule],
+          transform: [Function: transform]
+        },
+        {
+          name: 'vite:data-uri',
+          buildStart: [Function: buildStart],
+          resolveId: [Function: resolveId],
+          load: [Function: load]
+        },
+        {
+          name: 'vite:dynamic-import-vars',
+          resolveId: {
+            filter: { id: /^ vite\/dynamic\-import\-helper\.js$/ },
+            handler: [Function: handler]
+          },
+          load: {
+            filter: { id: /^ vite\/dynamic\-import\-helper\.js$/ },
+            handler: [Function: handler]
+          },
+          transform: {
+            filter: {
+              id: {
+                exclude: /^C:\\storycore\-engine\\creative\-studio\-ui\\node_modules\\vite\\dist\\client\\client\.mjs$/
+              },
+              code: /\bimport\s*[(/]/
+            },
+            handler: [AsyncFunction: handler]
+          }
+        },
+        {
+          name: 'vite:import-glob',
+          buildStart: [Function: buildStart],
+          transform: {
+            filter: { code: 'import.meta.glob' },
+            handler: [AsyncFunction: handler]
+          },
+          hotUpdate: [Function: hotUpdate]
+        },
+        {
+          name: 'vite:build-import-analysis',
+          resolveId: {
+            filter: { id: /^ vite\/preload\-helper\.js$/ },
+            handler: [Function: handler]
+          },
+          load: {
+            filter: { id: /^ vite\/preload\-helper\.js$/ },
+            handler: [Function: handler]
+          },
+          transform: {
+            filter: { code: /import\s*\(/ },
+            handler: [AsyncFunction: handler]
+          },
+          renderChunk: [Function: renderChunk],
+          generateBundle: [Function: generateBundle]
+        },
+        {
+          name: 'vite:esbuild-transpile',
+          applyToEnvironment: [Function: applyToEnvironment],
+          renderChunk: [AsyncFunction: renderChunk]
+        },
+        {
+          name: 'vite:terser',
+          applyToEnvironment: [Function: applyToEnvironment],
+          renderChunk: [AsyncFunction: renderChunk],
+          closeBundle: [Function: closeBundle]
+        },
+        {
+          name: 'vite:license',
+          generateBundle: [AsyncFunction: generateBundle]
+        },
+        {
+          name: 'vite:reporter',
+          sharedDuringBuild: true,
+          perEnvironmentStartEndDuringDev: true,
+          transform: [Function: transform],
+          buildStart: [Function: buildStart],
+          buildEnd: [Function: buildEnd],
+          renderStart: [Function: renderStart],
+          renderChunk: [Function: renderChunk],
+          generateBundle: [Function: generateBundle],
+          writeBundle: [AsyncFunction: writeBundle]
+        },
+        {
+          name: 'vite:load-fallback',
+          load: { handler: [AsyncFunction: handler] }
+        }
+      ]
+    }
+  },
+  configFile: 'C:/storycore-engine/creative-studio-ui/vite.config.ts',
+  configFileDependencies: [ 'C:/storycore-engine/creative-studio-ui/vite.config.ts' ],
+  inlineConfig: {
+    root: undefined,
+    base: undefined,
+    mode: undefined,
+    configFile: undefined,
+    configLoader: undefined,
+    logLevel: undefined,
+    clearScreen: undefined,
+    build: {}
+  },
+  root: 'C:/storycore-engine/creative-studio-ui',
+  decodedBase: './',
+  rawBase: './',
+  publicDir: 'C:/storycore-engine/creative-studio-ui/public',
+  cacheDir: 'C:/storycore-engine/creative-studio-ui/node_modules/.vite',
+  command: 'build',
+  mode: 'production',
+  isWorker: false,
+  mainConfig: null,
+  bundleChain: [],
+  isProduction: true,
+  css: {
+    transformer: 'postcss',
+    preprocessorMaxWorkers: true,
+    devSourcemap: false
+  },
+  json: { namedExports: true, stringify: 'auto' },
+  builder: undefined,
+  preview: {
+    port: 4173,
+    strictPort: false,
+    host: 'localhost',
+    allowedHosts: [ 'localhost', 'localhost', 'localhost', 'localhost' ],
+    https: undefined,
+    open: false,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      }
+    },
+    cors: {
+      origin: /^https?:\/\/(?:(?:[^:]+\.)?localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/
+    },
+    headers: {}
+  },
+  envDir: 'C:/storycore-engine/creative-studio-ui',
+  env: { BASE_URL: './', MODE: 'production', DEV: false, PROD: true },
+  assetsInclude: [Function: assetsInclude],
+  logger: {
+    hasWarned: false,
+    info: [Function: info],
+    warn: [Function: warn],
+    warnOnce: [Function: warnOnce],
+    error: [Function: error],
+    clearScreen: [Function: clearScreen],
+    hasErrorLogged: [Function: hasErrorLogged]
+  },
+  packageCache: Map(1) {
+    'fnpd_C:/storycore-engine/creative-studio-ui' => {
+      dir: 'C:/storycore-engine/creative-studio-ui',
+      data: {
+        name: 'creative-studio-ui',
+        private: true,
+        version: '0.0.0',
+        type: 'module',
+        scripts: {
+          clean: 'node scripts/clean-build-artifacts.cjs',
+          'clean:dist': `node -e "const fs = require('fs'); const path = require('path'); const distPath = path.join(process.cwd(), 'dist'); if (fs.existsSync(distPath)) { fs.rmSync(distPath, { recursive: true, force: true }); console.log('Ô£ô Removed dist/ directory'); } else { console.log('Ô£ô dist/ directory does not exist'); }"`,
+          validate: 'node scripts/validate-build-config.cjs',
+          predev: 'npm run clean',
+          dev: 'vite',
+          'electron:dev': 'node electron/launcher-dev.cjs',
+          'electron:start': 'npm run electron:dev',
+          prebuild: 'npm run clean && npm run validate',
+          build: 'vite build',
+          'build:check': 'tsc -b && vite build',
+          postbuild: 'npm run validate',
+          lint: 'eslint .',
+          preview: 'vite preview',
+          format: 'prettier --write "src/**/*.{ts,tsx,js,jsx,json,css,md}"',
+          'format:check': 'prettier --check "src/**/*.{ts,tsx,js,jsx,json,css,md}"',
+          test: 'vitest --run',
+          'test:watch': 'vitest',
+          'test:ui': 'vitest --run ./src/**/*.test.tsx',
+          'test:unit': 'vitest --run ./src/**/*.test.ts',
+          'test:e2e': 'playwright test',
+          'test:e2e:ui': 'playwright test --UI',
+          'test:e2e:install': 'playwright install --with-deps chromium firefox webkit'
+        },
+        dependencies: {
+          '@emotion/react': '^11.11.4',
+          '@emotion/styled': '^11.11.5',
+          axios: '^1.7.9',
+          '@hookform/resolvers': '^5.2.2',
+          '@mui/icons-material': '^7.3.7',
+          '@mui/material': '^7.3.7',
+          '@radix-ui/react-accordion': '^1.2.12',
+          '@radix-ui/react-alert-dialog': '^1.1.15',
+          '@radix-ui/react-aspect-ratio': '^1.1.8',
+          '@radix-ui/react-avatar': '^1.1.11',
+          '@radix-ui/react-checkbox': '^1.3.3',
+          '@radix-ui/react-collapsible': '^1.1.12',
+          '@radix-ui/react-context-menu': '^2.2.16',
+          '@radix-ui/react-dialog': '^1.1.2',
+          '@radix-ui/react-dropdown-menu': '^2.1.16',
+          '@radix-ui/react-hover-card': '^1.1.15',
+          '@radix-ui/react-label': '^2.1.8',
+          '@radix-ui/react-menubar': '^1.1.16',
+          '@radix-ui/react-navigation-menu': '^1.2.14',
+          '@radix-ui/react-popover': '^1.1.15',
+          '@radix-ui/react-progress': '^1.1.8',
+          '@radix-ui/react-radio-group': '^1.3.8',
+          '@radix-ui/react-scroll-area': '^1.2.10',
+          '@radix-ui/react-select': '^2.2.6',
+          '@radix-ui/react-separator': '^1.1.8',
+          '@radix-ui/react-slider': '^1.3.6',
+          '@radix-ui/react-slot': '^1.2.4',
+          '@radix-ui/react-switch': '^1.2.6',
+          '@radix-ui/react-tabs': '^1.1.13',
+          '@radix-ui/react-toast': '^1.2.15',
+          '@radix-ui/react-toggle': '^1.1.10',
+          '@radix-ui/react-toggle-group': '^1.1.11',
+          '@radix-ui/react-tooltip': '^1.2.8',
+          '@react-three/drei': '^10.7.7',
+          '@react-three/fiber': '^9.5.0',
+          '@reduxjs/toolkit': '^2.11.2',
+          '@tanstack/react-query': '^5.62.11',
+          '@tanstack/react-virtual': '^3.13.18',
+          '@types/three': '^0.182.0',
+          'class-variance-authority': '^0.7.1',
+          clsx: '^2.1.1',
+          'framer-motion': '^12.29.0',
+          'fuse.js': '^7.1.0',
+          idb: '^8.0.3',
+          jspdf: '^4.2.1',
+          'lucide-react': '^0.468.0',
+          react: '^19.2.0',
+          'react-dnd': '^16.0.1',
+          'react-dnd-html5-backend': '^16.0.1',
+          'react-dom': '^19.2.0',
+          'react-hook-form': '^7.71.1',
+          'react-markdown': '^10.1.0',
+          'react-redux': '^9.2.0',
+          'react-router-dom': '^7.13.0',
+          'react-window': '^2.2.5',
+          'tailwind-merge': '^2.6.0',
+          'tesseract.js': '^7.0.0',
+          three: '^0.182.0',
+          uuid: '^13.0.0',
+          zod: '^4.3.5',
+          zustand: '^5.0.10'
+        },
+        devDependencies: {
+          '@axe-core/react': '^4.11.0',
+          '@eslint/js': '^9.39.1',
+          '@playwright/test': '^1.52.0',
+          '@storybook/react': '^10.1.11',
+          '@testing-library/dom': '^10.4.1',
+          '@testing-library/jest-dom': '^6.9.1',
+          '@testing-library/react': '^16.3.1',
+          '@testing-library/user-event': '^14.6.1',
+          '@types/node': '^24.10.1',
+          '@types/react': '^19.2.5',
+          '@types/react-dom': '^19.2.3',
+          '@vitejs/plugin-react': '^4.3.4',
+          '@vitejs/plugin-react-swc': '^4.2.2',
+          '@vitest/coverage-v8': '^4.0.18',
+          '@vitest/ui': '^4.0.18',
+          autoprefixer: '^10.4.20',
+          'axe-core': '^4.11.1',
+          electron: '^40.4.1',
+          esbuild: '^0.27.2',
+          eslint: '^9.39.1',
+          'eslint-plugin-react-hooks': '^7.0.1',
+          'eslint-plugin-react-refresh': '^0.4.24',
+          'fast-check': '^4.5.3',
+          globals: '^16.5.0',
+          jsdom: '^27.4.0',
+          postcss: '^8.4.49',
+          prettier: '^3.4.2',
+          'prettier-plugin-tailwindcss': '^0.6.11',
+          'rollup-plugin-visualizer': '^6.0.5',
+          tailwindcss: '^3.4.17',
+          typescript: '~5.9.3',
+          'typescript-eslint': '^8.46.4',
+          vite: '^7.3.1',
+          vitest: '^4.0.18'
+        }
+      },
+      hasSideEffects: [Function: hasSideEffects],
+      setResolvedCache: [Function: setResolvedCache],
+      getResolvedCache: [Function: getResolvedCache]
+    },
+    set: [Function (anonymous)]
+  },
+  appType: 'spa',
+  experimental: {
+    importGlobRestoreExtension: false,
+    renderBuiltUrl: undefined,
+    hmrPartialAccept: false
+  },
+  future: undefined,
+  ssr: {
+    target: 'node',
+    optimizeDeps: { esbuildOptions: { preserveSymlinks: false } },
+    resolve: { conditions: undefined, externalConditions: undefined }
+  },
+  dev: {
+    warmup: [],
+    sourcemap: { js: true },
+    sourcemapIgnoreList: [Function: isInNodeModules],
+    preTransformRequests: false,
+    createEnvironment: [Function: defaultCreateDevEnvironment],
+    recoverable: false,
+    moduleRunnerTransform: false
+  },
+  webSocketToken: 'CHvLO717bMmZ',
+  getSortedPlugins: [Function: getSortedPlugins],
+  getSortedPluginHooks: [Function: getSortedPluginHooks],
+  createResolver: [Function: createResolver],
+  fsDenyGlob: [Function: arrayMatcher],
+  safeModulePaths: Set(0) {},
+  Symbol(vite:resolved-config): true
+}
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[plugin vite:resolve] Module "node:fs/promises" has been externalized for browser compatibility, imported by "C:/storycore-engine/creative-studio-ui/src/services/FileSystemService.ts". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin vite:resolve] Module "node:path" has been externalized for browser compatibility, imported by "C:/storycore-engine/creative-studio-ui/src/services/FileSystemService.ts". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[32mÔ£ô[39m 15713 modules transformed.
+Ô£ù Build failed in 16.37s
+error during build:
+src/sequence-editor/components/LayerManager/LayerManager.tsx (19:2): "reorderLayers" is not exported by "src/sequence-editor/store/slices/timelineSlice.ts", imported by "src/sequence-editor/components/LayerManager/LayerManager.tsx".
+file: C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/LayerManager/LayerManager.tsx:19:2
+
+17:   addLayer,
+18:   deleteLayer,
+19:   reorderLayers,
+      ^
+20:   selectElement,
+21:   deselectElement,
+
+    at getRollupError (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at Module.error (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:17022:16)
+    at Module.traceVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:17478:29)
+    at ModuleScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:15141:39)
+    at ReturnValueScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at FunctionBodyScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at ReturnValueScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at FunctionBodyScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at Identifier.bind (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5462:40)

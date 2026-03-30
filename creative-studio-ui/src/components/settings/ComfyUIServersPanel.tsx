@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Download, Upload, AlertCircle } from 'lucide-react';
+import { Plus, RefreshCw, Download, Upload, AlertCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -13,8 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ComfyUIServerCard } from './ComfyUIServerCard';
 import { ComfyUIServerModal } from './ComfyUIServerModal';
+import { DiscoveredServersModal } from './DiscoveredServersModal';
 import { getComfyUIServersService } from '@/services/comfyuiServersService';
-import type { ComfyUIServer, CreateComfyUIServerInput } from '@/types/comfyuiServers';
+import type { ComfyUIServer, CreateComfyUIServerInput, DiscoveredServer } from '@/types/comfyuiServers';
 import { useToast } from '@/hooks/use-toast';
 
 export interface ComfyUIServersPanelProps {
@@ -32,6 +33,9 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingServer, setEditingServer] = useState<ComfyUIServer | null>(null);
   const [isTestingAll, setIsTestingAll] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [showDiscoveryModal, setShowDiscoveryModal] = useState(false);
+  const [discoveredServers, setDiscoveredServers] = useState<DiscoveredServer[]>([]);
 
   // Load servers on mount
   useEffect(() => {
@@ -78,6 +82,54 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
         variant: 'destructive',
       });
     }
+  };
+
+  const handleSearchNetwork = async () => {
+    setIsScanning(true);
+    setShowDiscoveryModal(true);
+    setDiscoveredServers([]);
+    
+    try {
+      const electronAPI = (window as any).electronAPI;
+      if (electronAPI?.comfyui?.discoverNetwork) {
+        const results = await electronAPI.comfyui.discoverNetwork();
+        setDiscoveredServers(results || []);
+        
+        if (results && results.length > 0) {
+          toast({
+            title: 'Discovery Complete',
+            description: `Found ${results.length} potential servers on your network.`,
+          });
+        }
+      } else {
+        throw new Error('Discovery API not available');
+      }
+    } catch (error) {
+      console.error('Network Discovery Error:', error);
+      toast({
+        title: 'Discovery Error',
+        description: 'Failed to scan the local network.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleAddDiscovered = (discovered: DiscoveredServer) => {
+    const input: CreateComfyUIServerInput = {
+      name: discovered.name || discovered.type.toUpperCase(),
+      serverUrl: discovered.url,
+      authentication: {
+        type: discovered.type === 'mcp' ? 'mcp' : 'none',
+      },
+      mcpConfig: discovered.type === 'mcp' ? {
+        enabled: true,
+        transport: 'sse', // Default for network discovery
+      } : undefined
+    };
+    
+    handleAddServer(input);
   };
 
   const handleDeleteServer = (id: string) => {
@@ -278,6 +330,20 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
                 <Upload className="mr-2 h-4 w-4" />
                 Import
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSearchNetwork}
+                disabled={isScanning}
+                className="gap-2"
+              >
+                {isScanning ? (
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+                Discover Network
+              </Button>
               <Button onClick={() => setShowAddModal(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Server
@@ -337,6 +403,14 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
           setEditingServer(null);
         }}
         onSave={editingServer ? handleEditServer : handleAddServer}
+      />
+
+      <DiscoveredServersModal
+        isOpen={showDiscoveryModal}
+        onClose={() => setShowDiscoveryModal(false)}
+        servers={discoveredServers}
+        isScanning={isScanning}
+        onAdd={handleAddDiscovered}
       />
     </div>
   );

@@ -182,6 +182,9 @@ python scripts/run_e2e_demo.py --canonical --mock
   - **Multi-Angle Camera**: Instant scene variations from different cinematic angles (Low/High/Aerial).
   - **Voice-Directed 3D Controls (VDC)**: Orchestrate your 3D scene using natural language. Add objects (cars, props, NPCs), adjust camera distances, and change lighting modes (Dramatic, Night, Bright) in real-time.
   - **Automated Visual Coherence**: The engine automatically injects your project's visual style into every generation, ensuring that all 3D-to-Image and Prompt-to-Video outputs strictly follow your artistic direction.
+  - **Composition Architect (v3.5)**: Professional-grade layout system with interactive overlays (Rule of Thirds, Golden Ratio, Perspective/Vanishing lines, Safe Areas).
+  - **Shot Mockup Editor**: Layer-based spatial prototyping. Pre-visualize scenes by dragging characters, props, and background extras onto a 16:9 canvas before rendering.
+  - **Emotional Graph RAG**: Advanced narrative mapping that detects complex relationship states (Loves, Hates, Trusts, Betrayed, Rivalry) to drive deep dialogue generation.
   - **Character Consistency Sheets**: Effortless generation of Face/Profile/Back reference sheets for steady character design.
   - **Enhanced Neural Assistant (v4)**: Floating AI companion with contextual pro-active buttons (Storyteller, Style, Logic), account management shortcuts, and dynamic layout adaptation.
   - **tttLRM 3D Reconstruction (CVPR 2026)**: Transform single images or 360 videos into high-fidelity 3D Gaussian Splats at 1024 resolution. Features Test-Time Training (TTT) adaptation for superior geometry.
@@ -191,6 +194,8 @@ python scripts/run_e2e_demo.py --canonical --mock
   - **Make-It-Animatable (PuppeT)**: Native support for rigging 3D puppets directly in ComfyUI, allowing AI-driven animation and posing of character meshes.
   - **Blender-in-ComfyUI Link**: Bidirectional synchronization between Blender's 3D viewport and ComfyUI's generative nodes for real-time AI-enhanced 3D rendering.
   - **Material Modifier Sync**: Link StoryCore’s aesthetic palettes to ComfyUI material nodes (Roughness, Metallic, Emissive) for consistent look-and-feel across 3D and 2D assets.
+- **Weighted Prompt Composer (v1.0)**: Advanced semantic weighting system (0-100) for verbs and adjectives. Includes inline Hue Picker for color terms, Global Tone control (❄️/🔥), and Post-Response Compliance analysis.
+- **Stable LLM VRAM Management**: Proactive memory management for local models (Ollama/LM Studio). Features auto-purge, éphémère loading (keep_alive: 0) for analysis tasks, and automatic OOM recovery.
 
 </details>
 
@@ -246,6 +251,7 @@ The **Recursive Language Model (RLM)** engine transforms StoryCore's assistant f
 
 - **In-Process Graph Store**: Tracks characters, locations, objects, and events as nodes with directed relationship edges. Persisted as JSON per-project — zero external dependencies.
 - **Character Arc Tracking**: Traces how each character evolves across scenes — relationships formed, locations visited, status changes — enabling the AI to reason about narrative progression.
+- **Emotional Relationship Mapping**: 18+ semantic patterns detect dynamic bonds (loves, hates, trusts, betrayed, rival_of) to inject emotional subtext into AI-generated scripts.
 - **Timeline Reconstruction**: Automatically reconstructs the chronological flow of the story, grouped by scene, with per-scene character lists and event summaries.
 - **Contradiction Detection**: 12 extraction patterns (English & French) detect conflicts against the established lore (`ally_of` ↔ `enemy_of`, `alive` ↔ `dead`, betrayal, possession, etc.).
 - **Fuzzy Entity Search**: Lightweight 26-dim character-frequency vectors enable approximate entity matching even with typos or alternate spellings.
@@ -457,12 +463,12 @@ A library of cinematic transitions and specialized visual effects tailored for A
 <details>
 <summary><strong>🌐 NexRealm Marketplace</strong> — Built-in asset marketplace</summary>
 
-Built-in marketplace powered by [nexrealm.shop](https://nexrealm.shop) for discovering, buying, and one-click installing assets: characters, locations, 3D scenes, objects, audio, styles, add-ons, templates — free & paid. Supports automatic updates and community-published content.
+Built-in marketplace powered by [nexrealm.store](https://nexrealm.store) for discovering, buying, and one-click installing assets: characters, locations, 3D scenes, objects, audio, styles, add-ons, templates — free & paid. Supports automatic updates and community-published content.
 
 </details>
 
 > [!TIP]
-> **Addon Marketplace**: We are currently developing a centralized marketplace at [nexrealm.shop](https://nexrealm.shop) for one-click installation and automatic updates of official and community addons.
+> **Addon Marketplace**: We are currently developing a centralized marketplace at [nexrealm.store](https://nexrealm.store) for one-click installation and automatic updates of official and community addons.
 
 ### 🏗️ Architecture
 
@@ -499,7 +505,7 @@ graph TD
     subgraph VisualPlanning ["🎨 Visual Planning"]
         Grid["Visual Coherence Grid\n(Master Sheet)"]
         Shot["Shot Planning\n& Camera Rigging"]
-        ShotAI["AI Shot Composition\nEngine"]
+        ShotAI["Composition Architect\n(Overlays & Mockups)"]
         World["World Aesthetic\nRegistry"]
     end
 
@@ -589,8 +595,11 @@ graph TD
 | **Q1 2026** | Location & Object Reference Sheets                                     | ✅ Completed   |
 | **Q1 2026** | **Creative Studio v3.5: Bidirectional Sync**                           | ✅ Completed   |
 | **Q1 2026** | **"Bout en Bout" Production Bible Methodology**                        | ✅ Completed   |
+| **Q1 2026** | **Composition Architect (Overlays & Mockups)**                         | ✅ Completed   |
 | **Q1 2026** | **Multi-Mode Generation (Social, Music, Doc, Cinema)**                 | ✅ Completed   |
 | **Q1 2026** | **Open Project Folder Tracking**                                       | ✅ Completed   |
+| **Q1 2026** | **Weighted Prompt Composer (Semantic Weighting)**                      | ✅ Completed   |
+| **Q1 2026** | **Stable LLM VRAM Management (OOM Recovery)**                          | ✅ Completed   |
 | **Q2 2026** | Audio Mastering (Auto-Ducking/Isolation)                               | ✅ Completed   |
 | **Q2 2026** | Multi-Angle & Character Consistency                                    | ✅ Completed   |
 | **Q2 2026** | **Automated 3D Set Builder (Primitives & Blocking)**                   | ✅ Completed   |

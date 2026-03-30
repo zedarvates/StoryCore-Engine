@@ -70,7 +70,7 @@ export function convertElectronProjectToStore(electronProject: {
       promotion: 'pending',
     },
     casting: config.casting as StoreProject['casting'],
-    global_resume: config.global_resume as string,
+    global_resume: (electronProject as any).global_resume || (config.global_resume as string) || (config.metadata as any)?.description || (config.projectDescription as string) || '',
     metadata: {
       id: electronProject.id || Date.now().toString(),
       path: electronProject.path || (config.path as string) || '',
@@ -196,6 +196,7 @@ export class ProjectCreationService {
         universe: request.universe,
         genre: request.genre,
         description: request.description,
+        global_resume: request.description || '',
         initialShots: initialShots,
         initialSequences: request.initialEntities?.sequences || initialSequences,
         initialCharacters: request.initialEntities?.characters || (effectiveFormat?.id === 'music-album' ? [{
@@ -350,6 +351,7 @@ export class ProjectCreationService {
             promotion: 'pending',
           },
           characters: request.initialEntities?.characters || [],
+          global_resume: request.description || '',
           worlds: (request.initialEntities?.locations && request.initialEntities.locations.length > 0) ? [{ 
             id: 'world_default', 
             name: 'Default World', 
@@ -425,7 +427,7 @@ export class ProjectCreationService {
     const setShots = useAppStore.getState().setShots;
 
     // Load the project into useAppStore
-    setProject(project);
+    setProject({ ...project, path: projectPath });
     setShots(project.shots || []);
 
     // Also load into the main useStore to ensure all entities are synced

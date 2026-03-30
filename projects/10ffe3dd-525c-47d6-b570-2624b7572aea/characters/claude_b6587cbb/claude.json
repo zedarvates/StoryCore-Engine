@@ -1,0 +1,59 @@
+{
+  "character_id": "b6587cbb-c8c8-4bd1-9c3f-271fbf6798ff",
+  "name": "claude",
+  "creation_method": "wizard",
+  "creation_timestamp": 1774695139510,
+  "version": "1.0",
+  "last_modified": 1774695139516,
+  "version_number": 1,
+  "visual_identity": {
+    "hair_color": "Brown",
+    "hair_style": "",
+    "hair_length": "",
+    "eye_color": "Blue",
+    "eye_shape": "",
+    "skin_tone": "Light",
+    "facial_structure": "",
+    "distinctive_features": [
+      "Strong, determined gaze with a confident posture."
+    ],
+    "age_range": "Young Adult (20-29)",
+    "gender": "Male",
+    "height": "Average",
+    "build": "Athletic",
+    "posture": "",
+    "clothing_style": "Practical, well-maintained adventuring gear.",
+    "color_palette": [],
+    "reference_images": [],
+    "reference_sheet_images": []
+  },
+  "personality": {
+    "traits": [
+      "Brave",
+      "Determined",
+      "Protective"
+    ],
+    "values": [],
+    "fears": [],
+    "desires": [],
+    "flaws": [],
+    "strengths": [],
+    "temperament": "",
+    "communication_style": ""
+  },
+  "background": {
+    "origin": "",
+    "occupation": "",
+    "education": "",
+    "family": "",
+    "significant_events": [],
+    "current_situation": ""
+  },
+  "relationships": [],
+  "role": {
+    "archetype": "Protagonist",
+    "narrative_function": "",
+    "character_arc": ""
+  },
+  "prompts": []
+}

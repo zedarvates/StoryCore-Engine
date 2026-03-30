@@ -201,6 +201,45 @@ export class ComfyUIServersService {
     this.updateServer(id, { status: 'testing' });
 
     try {
+      // Handle MCP connection test
+      if (server.authentication?.type === 'mcp') {
+        try {
+          const mcpOptions = {
+            transport: server.mcpConfig?.transport || 'sse',
+            serverUrl: server.serverUrl,
+            serverPath: server.mcpConfig?.serverPath,
+            serverArgs: server.mcpConfig?.serverArgs,
+            env: server.mcpConfig?.env
+          };
+          
+          await window.electronAPI.comfyui.connect(id, mcpOptions);
+          const tools = await window.electronAPI.comfyui.listTools(id);
+          
+          if (tools && tools.length > 0) {
+            this.updateServer(id, {
+              status: 'connected',
+              lastConnected: new Date().toISOString(),
+              serverInfo: {
+                version: 'MCP Enabled',
+                availableWorkflows: [],
+                availableModels: [],
+                systemInfo: {
+                  gpuName: 'MCP Gateway',
+                  vramTotal: 0,
+                  vramFree: 0
+                }
+              }
+            });
+            return true;
+          }
+        } catch (mcpError) {
+          console.error(`MCP Connection failed for ${server.name}:`, mcpError);
+          this.updateServer(id, { status: 'error' });
+          return false;
+        }
+      }
+
+      // Default ComfyUI connection test
       const result = await testComfyUIConnection({
         serverUrl: server.serverUrl,
         authentication: server.authentication,

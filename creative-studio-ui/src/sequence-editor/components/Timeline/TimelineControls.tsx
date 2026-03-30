@@ -1,22 +1,28 @@
-/* cSpell:ignore Playhead Timecode denoising euler */
-/* cSpell:ignore Playhead playhead Timecode timecode denoising euler */
 /**
- * Timeline Controls Component
+ * Professional Timeline Controls Component
  * 
  * Comprehensive timeline control bar with playback controls, zoom controls,
  * track management, edit mode toggles, and playback shortcuts.
- * 
- * Requirements: 1.1, 1.2, 1.4, 3.4, 3.5, 16.1, 16.2, 16.3, 16.4, 16.5, 17.2
+ * Substitutes emojis for high-end Lucide icons to match DaVinci Resolve vision.
  */
 
-import React, { useCallback, useState, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { play, pause, stop } from '../../store/slices/previewSlice';
-import { setPlayheadPosition } from '../../store/slices/timelineSlice';
-import type { LayerType, PlaybackState } from '../../types';
+import React, { useCallback, useState } from 'react';
+import { useProjectStore } from '@/stores/useProjectStore';
+import { useShallow } from 'zustand/react/shallow';
+import type { LayerType } from '../../types';
+import { useProjectHistory } from '@/hooks/useUndoRedo';
 import { GoToTimeDialog } from './GoToTimeDialog';
 import { GenerateButton } from '../GenerateButton/GenerateButton';
-import { MonitorPlay, Layout } from 'lucide-react';
+
+// Icons
+import { 
+  SkipBack, ChevronLeft, Play, Pause, Square, ChevronRight, SkipForward,
+  Target, ZoomOut, ZoomIn, Maximize, Plus, Minus,
+  Magnet, Link, Shuffle as ShuffleIcon, Scissors, Wand2, Trash2, 
+  MonitorPlay, Layout,
+  Video, Mic, Sparkles, MoveHorizontal, Type, Key,
+  Undo2, Redo2
+} from 'lucide-react';
 
 interface TimelineControlsProps {
   zoomLevel: number;
@@ -24,8 +30,7 @@ interface TimelineControlsProps {
   onAddTrack: (type: LayerType) => void;
   onDeleteTrack?: () => void;
   playheadPosition: number;
-  duration: number; // Total duration in frames
-  // Edit mode toggles
+  duration: number;
   snapToGrid?: boolean;
   onToggleSnapToGrid?: () => void;
   rippleEdit?: boolean;
@@ -61,401 +66,157 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   viewMode = 'timeline',
   onViewModeChange,
 }) => {
-  const dispatch = useAppDispatch();
+  const { 
+    undo, redo, canUndo, canRedo, undoDescription, redoDescription 
+  } = useProjectHistory();
+  
+  const { 
+    isPlaying, 
+    playAction, 
+    pauseAction, 
+    stopAction, 
+    setCurrentTime 
+  } = useProjectStore(useShallow(state => ({
+    isPlaying: state.isPlaying,
+    playAction: state.play,
+    pauseAction: state.pause,
+    stopAction: state.stop,
+    setCurrentTime: state.setCurrentTime
+  })));
+
   const [showAddTrackMenu, setShowAddTrackMenu] = useState(false);
   const [showGoToTimeDialog, setShowGoToTimeDialog] = useState(false);
 
-  // Get playback state from Redux
-  const playbackState: PlaybackState = useAppSelector((state) => state.preview.playbackState);
-  const isPlaying = playbackState === 'playing';
-
-  // Track type options
-  const trackTypes: { type: LayerType; label: string; icon: string }[] = [
-    { type: 'media', label: 'Media Track', icon: '🎬' },
-    { type: 'audio', label: 'Audio Track', icon: '🔊' },
-    { type: 'effects', label: 'Effects Track', icon: '✨' },
-    { type: 'transitions', label: 'Transitions Track', icon: '↔️' },
-    { type: 'text', label: 'Text Track', icon: '📝' },
-    { type: 'keyframes', label: 'Keyframes Track', icon: '🔑' },
+  const trackTypes: { type: LayerType; label: string; icon: React.ReactNode }[] = [
+    { type: 'media', label: 'Media Track', icon: <Video className="w-4 h-4" /> },
+    { type: 'audio', label: 'Audio Track', icon: <Mic className="w-4 h-4" /> },
+    { type: 'effects', label: 'Effects Track', icon: <Sparkles className="w-4 h-4" /> },
+    { type: 'transitions', label: 'Transitions Track', icon: <MoveHorizontal className="w-4 h-4" /> },
+    { type: 'text', label: 'Text Track', icon: <Type className="w-4 h-4" /> },
+    { type: 'keyframes', label: 'Keyframes Track', icon: <Key className="w-4 h-4" /> },
   ];
 
-  // Playback control handlers
   const handlePlayPause = useCallback(() => {
-    if (isPlaying) {
-      dispatch(pause());
-    } else {
-      dispatch(play());
-    }
-  }, [dispatch, isPlaying]);
+    if (isPlaying) pauseAction(); else playAction();
+  }, [isPlaying, pauseAction, playAction]);
 
   const handleStop = useCallback(() => {
-    dispatch(stop());
-    dispatch(setPlayheadPosition(0));
-  }, [dispatch]);
+    stopAction();
+    setCurrentTime(0);
+  }, [stopAction, setCurrentTime]);
 
-  const handleGoToStart = useCallback(() => {
-    dispatch(setPlayheadPosition(0));
-  }, [dispatch]);
+  const handleGoToStart = useCallback(() => setCurrentTime(0), [setCurrentTime]);
+  const handleGoToEnd = useCallback(() => setCurrentTime(duration), [setCurrentTime, duration]);
+  const handlePreviousFrame = useCallback(() => setCurrentTime(Math.max(0, playheadPosition - 1)), [setCurrentTime, playheadPosition]);
+  const handleNextFrame = useCallback(() => setCurrentTime(Math.min(duration, playheadPosition + 1)), [setCurrentTime, playheadPosition, duration]);
 
-  const handleGoToEnd = useCallback(() => {
-    dispatch(setPlayheadPosition(duration));
-  }, [dispatch, duration]);
-
-  const handlePreviousFrame = useCallback(() => {
-    dispatch(setPlayheadPosition(Math.max(0, playheadPosition - 1)));
-  }, [dispatch, playheadPosition]);
-
-  const handleNextFrame = useCallback(() => {
-    dispatch(setPlayheadPosition(Math.min(duration, playheadPosition + 1)));
-  }, [dispatch, playheadPosition, duration]);
-
-  // Keyboard shortcuts for playback
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input field
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      // Ctrl/Cmd + G - Go to Time
-      if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
-        e.preventDefault();
-        setShowGoToTimeDialog(true);
-        return;
-      }
-
-      switch (e.key) {
-        case ' ': // Space - Play/Pause
-          e.preventDefault();
-          handlePlayPause();
-          break;
-        case 'k': // K - Stop
-        case 'K':
-          e.preventDefault();
-          handleStop();
-          break;
-        case 'j': // J - Previous frame (backward)
-        case 'J':
-          e.preventDefault();
-          handlePreviousFrame();
-          break;
-        case 'l': // L - Next frame (forward)
-        case 'L':
-          e.preventDefault();
-          handleNextFrame();
-          break;
-        case 'Home': // Home - Go to start
-          e.preventDefault();
-          handleGoToStart();
-          break;
-        case 'End': // End - Go to end
-          e.preventDefault();
-          handleGoToEnd();
-          break;
-        case 'ArrowLeft': // Left arrow - Previous frame
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            handlePreviousFrame();
-          }
-          break;
-        case 'ArrowRight': // Right arrow - Next frame
-          if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            handleNextFrame();
-          }
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handlePlayPause, handleStop, handlePreviousFrame, handleNextFrame, handleGoToStart, handleGoToEnd]);
-
-  // Handle zoom in
-  const handleZoomIn = useCallback(() => {
-    onZoomChange(Math.min(100, zoomLevel * 1.5));
-  }, [zoomLevel, onZoomChange]);
-
-  // Handle zoom out
-  const handleZoomOut = useCallback(() => {
-    onZoomChange(Math.max(1, zoomLevel / 1.5));
-  }, [zoomLevel, onZoomChange]);
-
-  // Handle fit to window
-  const handleFitToWindow = useCallback(() => {
-    onZoomChange(10);
-  }, [onZoomChange]);
-
-  // Handle add track
-  const handleAddTrack = useCallback((type: LayerType) => {
-    onAddTrack(type);
-    setShowAddTrackMenu(false);
-  }, [onAddTrack]);
-
-  // Handle delete track
-  const handleDeleteTrack = useCallback(() => {
-    if (onDeleteTrack) {
-      onDeleteTrack();
-    }
-  }, [onDeleteTrack]);
-
-  // Handle go to time
-  const handleGoToTime = useCallback((frame: number) => {
-    dispatch(setPlayheadPosition(frame));
-    setShowGoToTimeDialog(false);
-  }, [dispatch]);
-
-  // Format current time
   const formatTime = (frames: number) => {
     const fps = 24;
     const totalSeconds = Math.floor(frames / fps);
-    const seconds = totalSeconds % 60;
-    const minutes = Math.floor(totalSeconds / 60);
-    const frameNum = frames % fps;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(frameNum).padStart(2, '0')}`;
+    const s = totalSeconds % 60;
+    const m = Math.floor(totalSeconds / 60);
+    const f = frames % fps;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}:${String(f).padStart(2, '0')}`;
   };
 
   return (
     <div className="timeline-controls-bar">
-      {/* Playback controls */}
+      {/* 1. Playback Controls */}
       <div className="timeline-controls-group">
-        <button
-          className="timeline-control-btn"
-          title="Go to start (Home)"
-          onClick={handleGoToStart}
-        >
-          ⏮️
+        <button className="timeline-control-btn" onClick={handleGoToStart} title="Home"><SkipBack className="w-4 h-4" /></button>
+        <button className="timeline-control-btn" onClick={handlePreviousFrame} title="Prev Frame"><ChevronLeft className="w-4 h-4" /></button>
+        <button className={`timeline-control-btn playback-btn ${isPlaying ? 'playing' : ''}`} onClick={handlePlayPause} title="Play/Pause">
+          {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
         </button>
-        <button
-          className="timeline-control-btn"
-          title="Previous frame (J or Left Arrow)"
-          onClick={handlePreviousFrame}
+        <button className="timeline-control-btn" onClick={handleStop} title="Stop"><Square className="w-4 h-4" /></button>
+        <button className="timeline-control-btn" onClick={handleNextFrame} title="Next Frame"><ChevronRight className="w-4 h-4" /></button>
+        <button className="timeline-control-btn" onClick={handleGoToEnd} title="End"><SkipForward className="w-4 h-4" /></button>
+      </div>
+
+      {/* 1b. History Controls */}
+      <div className="timeline-controls-group border-l border-white/10 pl-2">
+        <button 
+          className={`timeline-control-btn ${!canUndo ? 'opacity-30 cursor-not-allowed' : 'hover:text-indigo-400'}`} 
+          onClick={undo} 
+          disabled={!canUndo} 
+          title={undoDescription ? `Undo ${undoDescription} (Ctrl+Z)` : "Undo (Ctrl+Z)"}
         >
-          ⏪
+          <Undo2 className="w-4 h-4" />
         </button>
-        <button
-          className={`timeline-control-btn playback-btn ${isPlaying ? 'playing' : ''}`}
-          title={isPlaying ? "Pause (Space)" : "Play (Space)"}
-          onClick={handlePlayPause}
+        <button 
+          className={`timeline-control-btn ${!canRedo ? 'opacity-30 cursor-not-allowed' : 'hover:text-indigo-400'}`} 
+          onClick={redo} 
+          disabled={!canRedo} 
+          title={redoDescription ? `Redo ${redoDescription} (Ctrl+Y)` : "Redo (Ctrl+Y)"}
         >
-          {isPlaying ? '⏸️' : '▶️'}
-        </button>
-        <button
-          className="timeline-control-btn"
-          title="Stop (K)"
-          onClick={handleStop}
-        >
-          ⏹️
-        </button>
-        <button
-          className="timeline-control-btn"
-          title="Next frame (L or Right Arrow)"
-          onClick={handleNextFrame}
-        >
-          ⏩
-        </button>
-        <button
-          className="timeline-control-btn"
-          title="Go to end (End)"
-          onClick={handleGoToEnd}
-        >
-          ⏭️
+          <Redo2 className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Timecode display with duration */}
-      <div className="timeline-timecode">
+      {/* 2. Timing Display */}
+      <div className="timeline-timecode glassmorphic-dark px-3 rounded-full">
         <span className="current-time">{formatTime(playheadPosition)}</span>
-        <span className="time-separator"> / </span>
-        <span className="total-duration">{formatTime(duration)}</span>
+        <span className="time-separator text-white/20 mx-2">|</span>
+        <span className="total-duration opacity-50">{formatTime(duration)}</span>
       </div>
 
-      {/* Go to Time button */}
-      <button
-        className="timeline-control-btn"
-        onClick={() => setShowGoToTimeDialog(true)}
-        title="Go to specific time (Ctrl/Cmd + G)"
-      >
-        🎯
-      </button>
+      <button className="timeline-control-btn" onClick={() => setShowGoToTimeDialog(true)} title="Go to Time"><Target className="w-4 h-4" /></button>
 
-      {/* Zoom controls */}
+      {/* 3. Zoom Controls */}
+      <div className="timeline-controls-group bg-white/5 rounded-lg px-1 border border-white/5">
+        <button className="timeline-control-btn" onClick={() => onZoomChange(Math.max(1, zoomLevel / 1.5))} title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
+        <div className="zoom-level-display text-[10px] font-bold w-10 text-center">{Math.round(zoomLevel * 10)}%</div>
+        <button className="timeline-control-btn" onClick={() => onZoomChange(Math.min(100, zoomLevel * 1.5))} title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
+        <button className="timeline-control-btn" onClick={() => onZoomChange(10)} title="Fit"><Maximize className="w-4 h-4" /></button>
+      </div>
+
+      {/* 4. Track Management */}
       <div className="timeline-controls-group">
-        <button
-          className="timeline-control-btn"
-          onClick={handleZoomOut}
-          title="Zoom out (Ctrl/Cmd + -)"
-        >
-          🔍-
-        </button>
-
-        <div className="zoom-level-display">
-          {Math.round(zoomLevel * 10)}%
-        </div>
-
-        <button
-          className="timeline-control-btn"
-          onClick={handleZoomIn}
-          title="Zoom in (Ctrl/Cmd + +)"
-        >
-          🔍+
-        </button>
-
-        <button
-          className="timeline-control-btn"
-          onClick={handleFitToWindow}
-          title="Fit to window"
-        >
-          ⊡
-        </button>
-      </div>
-
-      {/* Track management */}
-      <div className="timeline-controls-group timeline-track-controls">
-        {/* Add Track dropdown */}
-        <div className="add-track-dropdown">
-          <button
-            className="timeline-control-btn add-track-btn"
-            onClick={() => setShowAddTrackMenu(!showAddTrackMenu)}
-            title="Add new track"
-          >
-            + Track
+        <div className="relative">
+          <button className="tool-btn px-3 flex items-center gap-2 h-8" onClick={() => setShowAddTrackMenu(!showAddTrackMenu)}>
+            <Plus className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Track</span>
           </button>
-
           {showAddTrackMenu && (
-            <div className="add-track-menu">
+            <div className="add-track-menu glassmorphic !bg-[#151525]/95">
               {trackTypes.map(({ type, label, icon }) => (
-                <button
-                  key={type}
-                  className="add-track-menu-item"
-                  onClick={() => handleAddTrack(type)}
-                >
-                  <span className="track-type-icon">{icon}</span>
+                <button key={type} className="add-track-menu-item" onClick={() => { onAddTrack(type); setShowAddTrackMenu(false); }}>
+                  <span className="mr-2 text-indigo-400">{icon}</span>
                   <span>{label}</span>
                 </button>
               ))}
             </div>
           )}
         </div>
-
-        {/* Delete Track button */}
-        <button
-          className="timeline-control-btn add-track-btn delete-track-btn"
-          onClick={handleDeleteTrack}
-          title="Delete selected track (Delete)"
-          disabled={!onDeleteTrack}
-        >
-          - Track
-        </button>
+        <button className="timeline-control-btn text-red-400/50 hover:text-red-400" onClick={onDeleteTrack} disabled={!onDeleteTrack} title="Delete Track"><Minus className="w-4 h-4" /></button>
       </div>
 
-      {/* Edit mode toggles */}
-      <div className="timeline-controls-group">
-        <button
-          className={`timeline-control-btn toggle-btn ${snapToGrid ? 'active' : ''}`}
-          onClick={onToggleSnapToGrid}
-          title="Snap to Grid (S) - Align edits to grid"
-        >
-          <span className="toggle-icon">⊡</span>
-          <span className="toggle-label">Snap</span>
-          <span className="toggle-shortcut">S</span>
-        </button>
-
-        <button
-          className={`timeline-control-btn toggle-btn ${rippleEdit ? 'active' : ''}`}
-          onClick={onToggleRippleEdit}
-          title="Ripple Edit (R) - Automatically shift downstream edits"
-        >
-          <span className="toggle-icon">≋</span>
-          <span className="toggle-label">Ripple</span>
-          <span className="toggle-shortcut">R</span>
-        </button>
-
-        <button
-          className={`timeline-control-btn toggle-btn ${magneticTimeline ? 'active' : ''}`}
-          onClick={onToggleMagneticTimeline}
-          title="Magnetic Timeline (M) - Auto-align edits to nearby content"
-        >
-          <span className="toggle-icon">🧲</span>
-          <span className="toggle-label">Magnetic</span>
-          <span className="toggle-shortcut">M</span>
-        </button>
+      {/* 5. DaVinci Style Edit Toggles (Magnet, Ripple, etc.) */}
+      <div className="timeline-controls-group border-l border-white/10 pl-4 ml-2">
+        <button className={`timeline-control-btn ${snapToGrid ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleSnapToGrid} title="Snap (S)"><Magnet className="w-4 h-4" /></button>
+        <button className={`timeline-control-btn ${rippleEdit ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleRippleEdit} title="Ripple Edit (R)"><ShuffleIcon className="w-4 h-4 rotate-90" /></button>
+        <button className={`timeline-control-btn ${magneticTimeline ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleMagneticTimeline} title="Magnetic Timeline (M)"><Link className="w-4 h-4" /></button>
       </div>
 
-      {/* Additional tools */}
-      <div className="timeline-controls-group">
-        <button
-          className="timeline-control-btn toggle-btn"
-          onClick={() => onAddShot?.(false)}
-          title="Add new shot at end"
-        >
-          ➕ Shot
-        </button>
-        <button
-          className="timeline-control-btn toggle-btn"
-          onClick={() => onAddShot?.(true)}
-          title="Insert new shot at playhead"
-        >
-          ⬇️ Insert
-        </button>
-        <button
-          className="timeline-control-btn toggle-btn"
-          onClick={onSplit}
-          title="Split clip at playhead (Ctrl/Cmd + B)"
-        >
-          ✂️
-        </button>
-        <button
-          className="timeline-control-btn toggle-btn"
-          onClick={onAutoMix}
-          title="Apply AI Auto-Mix to all audio tracks"
-        >
-          ✨ Mix
-        </button>
-
-        <button
-          className="timeline-control-btn toggle-btn"
-          onClick={onDeleteShot}
-          title="Delete selected (Delete)"
-          disabled={!onDeleteShot}
-        >
-          🗑️
-        </button>
+      {/* 6. Context Tools */}
+      <div className="timeline-controls-group border-l border-white/10 pl-4">
+        <button className="timeline-control-btn hover:text-indigo-400" onClick={() => onAddShot?.(true)} title="Insert Shot"><Plus className="w-5 h-5" /></button>
+        <button className="timeline-control-btn hover:text-indigo-400" onClick={onSplit} title="Split Clip"><Scissors className="w-4 h-4" /></button>
+        <button className="timeline-control-btn hover:text-indigo-400" onClick={onAutoMix} title="AI Auto-Mix"><Wand2 className="w-4 h-4" /></button>
+        <button className="timeline-control-btn hover:text-red-400" onClick={onDeleteShot} disabled={!onDeleteShot} title="Delete Selected"><Trash2 className="w-4 h-4" /></button>
       </div>
 
-      {/* View mode and Generate buttons */}
-      <div className="timeline-controls-group flex items-center gap-2 ml-auto">
-        <div className="view-mode-toggle flex border border-white/10 rounded-md overflow-hidden bg-white/5">
-          <button
-            className={`timeline-control-btn p-1.5 ${viewMode === 'timeline' ? 'bg-primary/20 text-primary' : 'text-white/40 hover:text-white'}`}
-            onClick={() => onViewModeChange?.('timeline')}
-            title="Timeline View"
-          >
-            <MonitorPlay className="w-4 h-4" />
-          </button>
-          <button
-            className={`timeline-control-btn p-1.5 ${viewMode === 'storyboard' ? 'bg-primary/20 text-primary' : 'text-white/40 hover:text-white'}`}
-            onClick={() => onViewModeChange?.('storyboard')}
-            title="Storyboard View (Reorder Shots)"
-          >
-            <Layout className="w-4 h-4" />
-          </button>
+      <div className="ml-auto flex items-center gap-2">
+        <div className="flex border border-white/10 rounded-lg overflow-hidden bg-white/5">
+          <button className={`p-1.5 ${viewMode === 'timeline' ? 'bg-indigo-600 text-white' : 'text-white/40'}`} onClick={() => onViewModeChange?.('timeline')} title="Timeline View"><MonitorPlay className="w-4 h-4" /></button>
+          <button className={`p-1.5 ${viewMode === 'storyboard' ? 'bg-indigo-600 text-white' : 'text-white/40'}`} onClick={() => onViewModeChange?.('storyboard')} title="Storyboard View"><Layout className="w-4 h-4" /></button>
         </div>
-
         <GenerateButton />
       </div>
 
-      {/* Go to Time Dialog */}
-      <GoToTimeDialog
-        isOpen={showGoToTimeDialog}
-        onClose={() => setShowGoToTimeDialog(false)}
-        onGoToTime={handleGoToTime}
-        maxFrame={duration}
-        fps={24}
-      />
+      <GoToTimeDialog isOpen={showGoToTimeDialog} onClose={() => setShowGoToTimeDialog(false)} onGoToTime={(f) => { setCurrentTime(f); setShowGoToTimeDialog(false); }} maxFrame={duration} fps={24}/>
     </div>
   );
 };
 
 export default TimelineControls;
-

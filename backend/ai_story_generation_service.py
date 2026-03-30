@@ -31,6 +31,7 @@ class StoryGenerationRequest(BaseModel):
     mode: str = Field(default="FICTION", description="Production mode")
     length: str = Field(default="medium", description="Length of story")
     with_critique: bool = Field(default=False, description="Enable multi-agent critique")
+    with_alignment_score: bool = Field(default=True, description="Enable detailed alignment scoring")
     temperature: float = Field(default=0.7, ge=0.0, le=1.0, description="Creativity temperature")
     max_attempts: int = Field(default=3, ge=1, le=10, description="Maximum refinement attempts")
 
@@ -66,6 +67,7 @@ class StoryGenerationResponse(BaseModel):
     locations: List[Dict[str, Any]]
     scenes: List[Dict[str, Any]]
     critique: Optional[str] = None
+    alignment_report: Optional[Dict[str, Any]] = None
     status: str = "generating"
     version: int = 1
 
@@ -84,6 +86,7 @@ class StoryRefinementResponse(BaseModel):
     locations: List[Dict[str, Any]]
     scenes: List[Dict[str, Any]]
     critique: Optional[str] = None
+    alignment_report: Optional[Dict[str, Any]] = None
     status: str = "refining"
     version: int = 2
 
@@ -151,7 +154,8 @@ class AIDrivenStoryGenerationService:
                     structure=structure,
                     mode=mode,
                     length=current_req.length,
-                    with_critique=False  # We'll handle critique separately
+                    with_critique=False,  # We'll handle critique separately
+                    with_alignment_score=current_req.with_alignment_score
                 )
                 
                 logger.info(f"Successfully generated story: {story.title} (ID: {story_id})")
@@ -167,6 +171,7 @@ class AIDrivenStoryGenerationService:
                     characters=story.characters,
                     locations=story.locations,
                     scenes=[vars(s) for s in story.scenes],
+                    alignment_report=story.alignment_report if hasattr(story, 'alignment_report') else None
                 )
                 
                 # If critique is enabled, get feedback and refine
@@ -202,6 +207,7 @@ class AIDrivenStoryGenerationService:
                                 locations=refined_story.locations,
                                 scenes=[vars(s) for s in refined_story.scenes],
                                 critique=critique,
+                                alignment_report=refined_story.alignment_report if hasattr(refined_story, 'alignment_report') else None,
                                 status="refined"
                             )
                 
@@ -358,6 +364,7 @@ class AIDrivenStoryGenerationService:
                     locations=response.locations,
                     scenes=response.scenes,
                     critique=response.critique,
+                    alignment_report=response.alignment_report,
                     status=response.status,
                     version=response.version
                 )
@@ -406,6 +413,7 @@ class AIDrivenStoryGenerationService:
                     existing_story.locations = story.locations
                     existing_story.scenes = story.scenes
                     existing_story.critique = story.critique
+                    existing_story.alignment_report = story.alignment_report if hasattr(story, 'alignment_report') else None
                     existing_story.status = "refined"
                     existing_story.version = existing_story.version + 1
                     

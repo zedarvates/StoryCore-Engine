@@ -16,10 +16,19 @@ const DEFAULT_LAYOUT: PanelLayout = {
 
 const initialState: PanelsState = {
   layout: DEFAULT_LAYOUT,
-  activePanel: null,
+  activePanel: 'assetLibrary',
+  activeAssetCategory: 'environments', // Default to environments
   shotConfigTarget: null,
   showLayerManager: false,
   compactMode: false,
+  libraryVisible: true,
+  inspectorVisible: true,
+  mixerVisible: false,
+  metadataVisible: false,
+  gridVisible: true,
+  markersVisible: true,
+  promptsVisible: true,
+  showAlignmentDashboard: false,
 };
 
 const panelsSlice = createSlice({
@@ -53,6 +62,39 @@ const panelsSlice = createSlice({
     setCompactMode: (state, action: PayloadAction<boolean>) => {
       state.compactMode = action.payload;
     },
+    setAssetCategory: (state, action: PayloadAction<string>) => {
+      state.activeAssetCategory = action.payload;
+    },
+    setLibraryVisible: (state, action: PayloadAction<boolean>) => {
+      state.libraryVisible = action.payload;
+    },
+    setInspectorVisible: (state, action: PayloadAction<boolean>) => {
+      state.inspectorVisible = action.payload;
+    },
+    toggleLibrary: (state) => {
+      state.libraryVisible = !state.libraryVisible;
+    },
+    toggleInspector: (state) => {
+      state.inspectorVisible = !state.inspectorVisible;
+    },
+    toggleMixer: (state) => {
+      state.mixerVisible = !state.mixerVisible;
+    },
+    toggleMetadata: (state) => {
+      state.metadataVisible = !state.metadataVisible;
+    },
+    toggleGrid: (state) => {
+      state.gridVisible = !state.gridVisible;
+    },
+    toggleMarkers: (state) => {
+      state.markersVisible = !state.markersVisible;
+    },
+    togglePrompts: (state) => {
+      state.promptsVisible = !state.promptsVisible;
+    },
+    toggleAlignmentDashboard: (state) => {
+      state.showAlignmentDashboard = !state.showAlignmentDashboard;
+    },
   },
 });
 
@@ -65,6 +107,17 @@ export const {
   setShowLayerManager,
   toggleCompactMode,
   setCompactMode,
+  setAssetCategory,
+  setLibraryVisible,
+  setInspectorVisible,
+  toggleLibrary,
+  toggleInspector,
+  toggleMixer,
+  toggleMetadata,
+  toggleGrid,
+  toggleMarkers,
+  togglePrompts,
+  toggleAlignmentDashboard,
 } = panelsSlice.actions;
 
 export default panelsSlice.reducer;

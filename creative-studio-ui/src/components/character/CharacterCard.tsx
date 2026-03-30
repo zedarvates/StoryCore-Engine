@@ -6,6 +6,8 @@ import { useAppStore } from '@/stores/useAppStore';
 import { downloadAndSaveImage, getImageDisplayUrl } from '@/services/imageStorageService';
 import { devLog, devWarn } from '@/utils/devOnly';
 import { logger } from '@/utils/logger';
+import { DND_ITEM_TYPES, type CharacterDragItem } from '@/constants/dnd';
+import { useDrag } from 'react-dnd';
 import './CharacterCard.css';
 
 /**
@@ -43,6 +45,9 @@ export interface CharacterCardProps {
 
   /** Whether the card is in loading state */
   loading?: boolean;
+
+  /** Whether the card is draggable */
+  draggable?: boolean;
 }
 
 /**
@@ -69,10 +74,25 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
   onDelete,
   onImageGenerated,
   loading = false,
+  draggable = false,
 }) => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [displayImageUrl, setDisplayImageUrl] = useState<string | null>(null);
+
+  // Set up drag functionality
+  const [{ isDragging }, dragRef] = useDrag<CharacterDragItem, void, { isDragging: boolean }>({
+    type: DND_ITEM_TYPES.CHARACTER,
+    item: {
+      type: DND_ITEM_TYPES.CHARACTER,
+      id: character.character_id,
+      name: character.name,
+    },
+    canDrag: draggable,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
 
   const comfyuiService = ComfyUIService.getInstance();
   const project = useAppStore((state) => state.project);
@@ -450,7 +470,9 @@ export const CharacterCard = React.memo<CharacterCardProps>(({
         ${selectable ? 'character-card--selectable' : ''}
         ${selected ? 'character-card--selected' : ''}
         ${isClickable ? 'character-card--clickable' : ''}
+        ${isDragging ? 'character-card--dragging' : ''}
       `}
+      ref={draggable ? (node => { if (node) dragRef(node); }) : null}
     >
       {/* Selection checkbox - outside clickable area */}
       {selectable && (

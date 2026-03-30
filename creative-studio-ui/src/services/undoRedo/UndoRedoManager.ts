@@ -20,7 +20,7 @@ import { generateId as createUniqueId } from '@/utils/idGenerator';
 /**
  * History entry containing state snapshot and metadata
  */
-export interface HistoryEntry<T = any> {
+export interface HistoryEntry<T = unknown> {
   id: string;
   timestamp: number;
   description: string;
@@ -52,7 +52,7 @@ export interface UndoRedoConfig {
  * manager.undo();
  * manager.redo();
  */
-export class UndoRedoManager<T = any> {
+export class UndoRedoManager<T = unknown> {
   private undoStack: HistoryEntry<T>[] = [];
   private redoStack: HistoryEntry<T>[] = [];
   private currentState: T;
@@ -352,7 +352,25 @@ export class UndoRedoManager<T = any> {
    * @returns Deep clone of the state
    */
   private cloneState(state: T): T {
-    return JSON.parse(JSON.stringify(state));
+    if (state === undefined || state === null) return state;
+    
+    // Fallback to structuredClone for modern browsers
+    if (typeof structuredClone === 'function') {
+      try {
+        return structuredClone(state);
+      } catch (e) {
+        console.warn('UndoRedoManager: structuredClone failed, falling back to JSON', e);
+      }
+    }
+
+    try {
+      const stringified = JSON.stringify(state);
+      if (stringified === undefined) return state;
+      return JSON.parse(stringified);
+    } catch (e) {
+      console.error('UndoRedoManager: Failed to clone state', e);
+      return state;
+    }
   }
 
   /**

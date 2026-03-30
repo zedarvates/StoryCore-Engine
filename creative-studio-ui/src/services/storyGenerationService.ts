@@ -24,6 +24,90 @@ import {
 } from '../types/story';
 import type { LLMService } from './llmService';
 
+/**
+ * Helper to get authentication headers from localStorage
+ */
+export function getAuthHeaders(): Record<string, string> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
+}
+
+/**
+ * ProgressTracker - Ensures monotonic and realistic progress updates
+ * during long-running asynchronous tasks like LLM generation.
+ */
+class ProgressTracker {
+  private currentProgress: number = 0;
+  private intervalId: NodeJS.Timeout | null = null;
+  private callback: (p: GenerationProgress) => void;
+  private currentStage: string = 'initializing';
+  private currentTask: string = 'Preparing...';
+
+  constructor(onProgress: (p: GenerationProgress) => void) {
+    this.callback = onProgress;
+  }
+
+  /**
+   * Set actual progress from the backend/worker
+   */
+  setProgress(progress: number, stage?: string, task?: string) {
+    this.currentProgress = Math.max(this.currentProgress, progress);
+    if (stage) this.currentStage = stage;
+    if (task) this.currentTask = task;
+    
+    this.emit();
+  }
+
+  /**
+   * Start an automatic increment loop to keep progress moving
+   * @param targetCap The progress percentage this automatic loop shouldn't exceed
+   * @param estimatedDurationMs How long we estimate this sub-task will take
+   */
+  startHeartbeat(targetCap: number, estimatedDurationMs: number = 30000) {
+    this.stopHeartbeat();
+    
+    // Calculate increment per second to reach cap in estimated time
+    const remainingProgress = targetCap - this.currentProgress;
+    if (remainingProgress <= 0) return;
+
+    const intervalMs = 500;
+    const totalSteps = estimatedDurationMs / intervalMs;
+    const increment = remainingProgress / totalSteps;
+
+    this.intervalId = setInterval(() => {
+      if (this.currentProgress < targetCap - 1) {
+        this.currentProgress += increment;
+        this.emit();
+      } else {
+        this.stopHeartbeat();
+      }
+    }, intervalMs);
+  }
+
+  stopHeartbeat() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = null;
+    }
+  }
+
+  private emit() {
+    this.callback({
+      stage: this.currentStage as any,
+      progress: Math.min(this.currentProgress, 99.9),
+      currentTask: this.currentTask,
+    });
+  }
+}
+
 // ============================================================================
 // LLM Prompt Templates
 // ============================================================================
@@ -345,20 +429,11 @@ export async function generateStoryContent(
   // Calculate max tokens based on story length
   const maxTokens = params.length === 'short' ? 1500 : params.length === 'medium' ? 3000 : 6000;
 
-  // Call LLM service with retry logic
+  // Call LLM service - centrally retry-handled by llmService
   try {
-    const storyContent = await retryWithBackoff(async () => {
-      const response = await llmService.generateText(prompt, {
-        temperature: 0.7,
-        maxTokens,
-      });
-
-      // Validate that we got content
-      if (!response || response.trim().length === 0) {
-        throw new Error('Empty response from LLM service');
-      }
-
-      return response;
+    const storyContent = await llmService.generateText(prompt, {
+      temperature: 0.7,
+      maxTokens,
     });
 
     return storyContent;
@@ -382,20 +457,12 @@ export async function generateStorySummary(content: string): Promise<string> {
   // Substitute story content in the prompt template
   const prompt = SUMMARY_GENERATION_PROMPT.replace('{storyContent}', content);
 
-  // Call LLM service with retry logic
+  // Call LLM service - centrally retry-handled by llmService
   try {
-    const summary = await retryWithBackoff(async () => {
-      const response = await llmService.generateText(prompt, {
-        temperature: 0.5, // Lower temperature for more focused summaries
-        maxTokens: 500, // Summaries should be concise
-      });
-
-      // Validate that we got content
-      if (!response || response.trim().length === 0) {
-        throw new Error('Empty response from LLM service');
-      }
-
-      return response.trim();
+    const summary = await llmService.generateText(prompt, {
+      temperature: 0.5, // Lower temperature for more focused summaries
+      maxTokens: 500, // Summaries should be concise
+      timeout: 60000, // 60 second timeout for summaries
     });
 
     return summary;
@@ -495,20 +562,11 @@ export async function createCharacter(
     .replace('{description}', request.description)
     .replace('{worldContext}', worldContextDescription.join('\n'));
 
-  // Call LLM service with retry logic
+  // Call LLM service - centrally retry-handled by llmService
   try {
-    const characterJson = await retryWithBackoff(async () => {
-      const response = await llmService.generateText(prompt, {
-        temperature: 0.7,
-        maxTokens: 1000,
-      });
-
-      // Validate that we got content
-      if (!response || response.trim().length === 0) {
-        throw new Error('Empty response from LLM service');
-      }
-
-      return response.trim();
+    const characterJson = await llmService.generateText(prompt, {
+      temperature: 0.7,
+      maxTokens: 1000,
     });
 
     // Parse JSON response using helper function
@@ -557,20 +615,11 @@ export async function createLocation(
     .replace('{description}', request.description)
     .replace('{worldContext}', worldContextDescription.join('\n'));
 
-  // Call LLM service with retry logic
+  // Call LLM service - centrally retry-handled by llmService
   try {
-    const locationJson = await retryWithBackoff(async () => {
-      const response = await llmService.generateText(prompt, {
-        temperature: 0.7,
-        maxTokens: 1000,
-      });
-
-      // Validate that we got content
-      if (!response || response.trim().length === 0) {
-        throw new Error('Empty response from LLM service');
-      }
-
-      return response.trim();
+    const locationJson = await llmService.generateText(prompt, {
+      temperature: 0.7,
+      maxTokens: 1000,
     });
 
     // Parse JSON response using helper function
@@ -621,9 +670,7 @@ export async function generateStoryFromAdvancedBackend(
     // Call the FastAPI endpoint
     const response = await fetch('/api/story/generate', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         prompt: params.totalTitle || 'Untitled Exploration',
         genre: backendGenre,
@@ -631,6 +678,7 @@ export async function generateStoryFromAdvancedBackend(
         mode: (params.productionMode || 'fiction').toUpperCase(),
         length: backendLength,
         with_critique: params.withCritique || false,
+        with_alignment_score: true,
       }),
     });
 
@@ -673,6 +721,7 @@ export async function generateStoryFromAdvancedBackend(
       updatedAt: Date.now(),
       version: 1,
       critique: result.critique,
+      alignmentReport: result.alignment_report,
       parts: (result.scenes || []).map((s: AdvancedBackendScene, idx: number) => ({
         id: crypto.randomUUID(),
         type: 'chapter',
@@ -689,7 +738,7 @@ export async function generateStoryFromAdvancedBackend(
 }
 
 /**
- * Generate complete story with progress tracking
+ * Generate complete story with progress tracking and monotonicity
  * @param data Partial story data or generation params
  * @param onProgress Progress callback
  * @returns Complete story object
@@ -699,7 +748,10 @@ export async function generateStory(
   onProgress?: (progress: GenerationProgress) => void
 ): Promise<Story> {
   const { storyWeaver } = await import('./StoryWeaver');
-
+  
+  // Initialize monotonic tracker if callback provided
+  const tracker = onProgress ? new ProgressTracker(onProgress) : null;
+  
   // Transform data to generation params if needed
   let params: StoryGenerationParams;
 
@@ -722,12 +774,40 @@ export async function generateStory(
     };
   }
 
+  // Initial stage
+  tracker?.setProgress(5, 'generating_intro', 'Preparing narrative context and guidelines...');
+  tracker?.startHeartbeat(15, 5000); // Heartbeat until 15%
+
   // Check if we should use the advanced backend
   if (params.useAdvancedBackend) {
-    return generateStoryFromAdvancedBackend(params, onProgress);
+    tracker?.setProgress(10, 'searching_context', 'Querying advanced narrative research backend...');
+    tracker?.startHeartbeat(40, 60000); // Initial research phase: 60s
+    
+    return generateStoryFromAdvancedBackend(params, (p) => {
+        tracker?.setProgress(p.progress, p.stage, p.currentTask);
+        
+        // Dynamic heartbeat adjustment for advanced backend stages
+        if (p.stage === 'researching') tracker?.startHeartbeat(50, 45000);
+        else if (p.stage === 'generating_outline') tracker?.startHeartbeat(70, 30.000);
+        else if (p.stage === 'generating_content') tracker?.startHeartbeat(95, 120000);
+    });
   }
 
-  const generatedStory = await storyWeaver.weaveStory(params, undefined, undefined, onProgress);
+  // Sequential generation wrapper
+  const wrapOnProgress = (p: GenerationProgress) => {
+    tracker?.setProgress(p.progress, p.stage, p.currentTask);
+    
+    // Adjust heartbeat target based on current stage
+    if (p.stage === 'generating_intro') tracker?.startHeartbeat(25, 45000); // Intro takes ~45s
+    else if (p.stage === 'generating_chapter') tracker?.startHeartbeat(p.progress + 15, 60000); // Chapter takes ~60s
+    else if (p.stage === 'generating_ending') tracker?.startHeartbeat(95, 30000); // Ending takes ~30s
+  };
+
+  const generatedStory = await storyWeaver.weaveStory(params, undefined, undefined, wrapOnProgress);
+
+  // Final stage
+  tracker?.setProgress(100, 'completed', 'Story generation complete!');
+  tracker?.stopHeartbeat();
 
   // Build final story object
   const storyId = ('id' in data && data.id) ? data.id : crypto.randomUUID();
@@ -744,8 +824,8 @@ export async function generateStory(
     createdAt: new Date(),
     updatedAt: new Date(),
     version: 1,
-    charactersUsed: [],
-    locationsUsed: [],
+    charactersUsed: (data as Story)?.charactersUsed || [],
+    locationsUsed: (data as Story)?.locationsUsed || [],
     autoGeneratedElements: [],
     ...('worldContext' in data ? {} : data), // Preserve other fields if it was a Story
   } as Story;
@@ -824,9 +904,7 @@ export async function generateStoryboard(storyId: string): Promise<Array<{
   try {
     const response = await fetch(`/api/story/${storyId}/storyboard`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
@@ -851,9 +929,7 @@ export async function refineStory(storyId: string, feedback: string): Promise<St
   try {
     const response = await fetch(`/api/story/${storyId}/refine`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ feedback }),
     });
 

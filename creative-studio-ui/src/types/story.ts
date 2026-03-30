@@ -127,6 +127,21 @@ export interface Story {
   methodologyState?: MethodologyState; // State of the generation methodology
   productionMode?: ProductionMode;
   critique?: string;
+  alignmentReport?: AlignmentReport;
+}
+
+export interface AlignmentCategoryResult {
+  score: number;
+  feedback: string;
+  issues: string[];
+}
+
+export interface AlignmentReport {
+  total_score: number;
+  summary: string;
+  recommendations: string[];
+  is_pass: boolean;
+  categories: Record<string, AlignmentCategoryResult>;
 }
 
 export interface StoryAct {
@@ -227,6 +242,10 @@ export interface GenerationProgress {
   stage:
   | 'preparing'
   | 'creating_elements'
+  | 'searching_context'
+  | 'researching'
+  | 'generating_outline'
+  | 'generating_content'
   | 'generating_intro'
   | 'generating_chapter'
   | 'generating_ending'
@@ -292,6 +311,7 @@ export interface AdvancedBackendResponse {
   locations: AdvancedBackendLocation[];
   scenes: AdvancedBackendScene[];
   critique?: string;
+  alignment_report?: AlignmentReport;
 }
 
 export interface AdvancedBackendCharacter {

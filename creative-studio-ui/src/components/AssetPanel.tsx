@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AssetLibraryService, type AssetSource, ASSET_CATEGORIES } from '@/services/assetLibraryService';
+import { type Asset } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import {
   Plus,
@@ -27,18 +28,10 @@ import { ImageWithHoverButton } from '@/components/camera-angle-editor/ImageHove
 import { useLocalCameraAngleEditorModal } from '@/contexts/CameraAngleEditorContext';
 import { CameraAngleEditorModal } from '@/components/camera-angle-editor/CameraAngleEditorModal';
 
+// Props for the AssetPanel component
 interface AssetPanelProps {
   readonly projectPath?: string;
   readonly className?: string;
-}
-
-interface Asset {
-  id: string;
-  name: string;
-  type: 'image' | 'audio' | 'video' | 'template';
-  url: string;
-  thumbnail?: string;
-  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -151,6 +144,11 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     loadAssets();
   }, [projectPath, toast]);
 
+  // Get visible assets based on filters
+  const getVisibleAssets = useCallback(() => {
+    return filteredAssets;
+  }, [filteredAssets]);
+
   // Handle asset selection
   const handleAssetSelect = useCallback((
     assetId: string,
@@ -186,16 +184,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     }
 
     setSelectedAssetIds(newSelectedIds);
-  }, [selectedAssetIds, lastSelectedIndex]);
-
-  // Handle asset double-click for preview
-  const handleAssetDoubleClick = useCallback((asset: Asset) => {
-    toast({
-      title: 'Asset Preview',
-      description: `Opening preview for: ${asset.name}`,
-    });
-    // In a full implementation, this would open a modal
-  }, [toast]);
+  }, [selectedAssetIds, lastSelectedIndex, getVisibleAssets]);
 
   // Clear selection
   const clearSelection = useCallback(() => {
@@ -208,12 +197,24 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     const visibleAssets = getVisibleAssets();
     const allIds = new Set(visibleAssets.map(a => a.id));
     setSelectedAssetIds(allIds);
-  }, []);
+  }, [getVisibleAssets]);
 
-  // Get visible assets based on filters
-  const getVisibleAssets = useCallback(() => {
-    return filteredAssets;
-  }, [filteredAssets]);
+  // Handle delete selected assets
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedAssetIds.size === 0) return;
+
+    const confirmDelete = globalThis.confirm(
+      `Delete ${selectedAssetIds.size} selected asset(s)?`
+    );
+
+    if (confirmDelete) {
+      toast({
+        title: 'Assets Deleted',
+        description: `${selectedAssetIds.size} asset(s) have been removed from the library`,
+      });
+      clearSelection();
+    }
+  }, [selectedAssetIds, toast, clearSelection]);
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -234,36 +235,9 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
 
     globalThis.addEventListener('keydown', handleKeyDown);
     return () => globalThis.removeEventListener('keydown', handleKeyDown);
-  }, [selectedAssetIds, selectAll, clearSelection]);
+  }, [selectedAssetIds, selectAll, clearSelection, handleDeleteSelected]);
 
-  // Handle delete selected assets
-  const handleDeleteSelected = useCallback(() => {
-    if (selectedAssetIds.size === 0) return;
-
-    const confirmDelete = globalThis.confirm(
-      `Delete ${selectedAssetIds.size} selected asset(s)?`
-    );
-
-    if (confirmDelete) {
-      toast({
-        title: 'Assets Deleted',
-        description: `${selectedAssetIds.size} asset(s) have been removed from the library`,
-      });
-      clearSelection();
-    }
-  }, [selectedAssetIds, toast, clearSelection]);
-
-  // Handle duplicate selected assets
-  const handleDuplicateSelected = useCallback(() => {
-    if (selectedAssetIds.size === 0) return;
-
-    toast({
-      title: 'Assets Duplicated',
-      description: `${selectedAssetIds.size} asset(s) have been duplicated`,
-    });
-  }, [selectedAssetIds, toast]);
-
-  // Handle asset search with debouncing
+  // Handle asset search
   const handleAssetSearch = useCallback(async (query: string) => {
     setAssetSearchQuery(query);
 
@@ -281,25 +255,6 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
       console.error('Asset search failed:', error);
     }
   }, [selectedCategory, assetSources]);
-
-  // Handle category change
-  const handleCategoryChange = useCallback(async (categoryId: string) => {
-    setSelectedCategory(categoryId);
-
-    try {
-      const service = AssetLibraryService.getInstance();
-      const results = await service.searchAssets(
-        {
-          query: assetSearchQuery.trim() || undefined,
-          category: categoryId,
-        },
-        assetSources
-      );
-      setFilteredAssets(results);
-    } catch (error) {
-      console.error('Category filter failed:', error);
-    }
-  }, [assetSearchQuery, assetSources]);
 
   // Handle refresh assets
   const handleRefreshAssets = useCallback(async () => {
@@ -335,6 +290,44 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     }
   }, [projectPath, assetSearchQuery, selectedCategory, toast]);
 
+  // Handle category change
+  const handleCategoryChange = useCallback(async (categoryId: string) => {
+    setSelectedCategory(categoryId);
+
+    try {
+      const service = AssetLibraryService.getInstance();
+      const results = await service.searchAssets(
+        {
+          query: assetSearchQuery.trim() || undefined,
+          category: categoryId,
+        },
+        assetSources
+      );
+      setFilteredAssets(results);
+    } catch (error) {
+      console.error('Category filter failed:', error);
+    }
+  }, [assetSearchQuery, assetSources]);
+
+  // Handle asset double-click for preview
+  const handleAssetDoubleClick = useCallback((asset: Asset) => {
+    toast({
+      title: 'Asset Preview',
+      description: `Opening preview for: ${asset.name}`,
+    });
+    // In a full implementation, this would open a modal
+  }, [toast]);
+
+  // Handle duplicate selected assets
+  const handleDuplicateSelected = useCallback(() => {
+    if (selectedAssetIds.size === 0) return;
+
+    toast({
+      title: 'Assets Duplicated',
+      description: `${selectedAssetIds.size} asset(s) have been duplicated`,
+    });
+  }, [selectedAssetIds, toast]);
+
   // Handle import assets
   const handleImportAssets = useCallback(() => {
     // Create file input element
@@ -363,9 +356,10 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     const isImage = asset.type === 'image';
 
     return (
-      <button
-        type="button"
+      <div
         key={asset.id}
+        role="button"
+        tabIndex={0}
         onClick={(e) => handleAssetSelect(asset.id, index, e)}
         onDoubleClick={() => handleAssetDoubleClick(asset)}
         className={`
@@ -375,7 +369,6 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
             : 'hover:bg-muted border-border group'
           }
         `}
-        title={asset.name}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -383,7 +376,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           }
         }}
         aria-label={`Select asset ${asset.name}`}
-        aria-pressed={isSelected ? 'true' : 'false'}
+        data-selected={isSelected}
       >
         {/* Selection indicator */}
         {isSelected && (
@@ -416,7 +409,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
             </div>
           </div>
         )}
-      </button>
+      </div>
     );
   };
 
@@ -425,8 +418,9 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     const isSelected = selectedAssetIds.has(asset.id);
     
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         key={asset.id}
         onClick={(e) => handleAssetSelect(asset.id, index, e)}
         onDoubleClick={() => handleAssetDoubleClick(asset)}
@@ -437,7 +431,6 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
             : 'hover:bg-muted border-border'
           }
         `}
-        title={asset.name}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -445,8 +438,11 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           }
         }}
         aria-label={`Select asset ${asset.name}`}
-        aria-pressed={isSelected ? 'true' : 'false'}
+        data-selected={isSelected}
       >
+
+
+
         {/* Selection checkbox */}
         <div className={`
           w-4 h-4 rounded border flex items-center justify-center flex-shrink-0
@@ -460,7 +456,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
 
         {/* Thumbnail */}
         <div className="w-10 h-10 bg-muted rounded flex-shrink-0 flex items-center justify-center overflow-hidden">
-          {(() => {
+          {(() : React.ReactNode => {
             if (asset.thumbnail) {
               return (
                 <img
@@ -471,7 +467,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
               );
             }
             return renderAssetTypeIcon(asset.type) as React.ReactNode;
-          })() as React.ReactNode}
+          })()}
         </div>
 
         {/* Asset info */}
@@ -483,7 +479,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
         {/* Metadata preview */}
         {asset.metadata?.tags && Array.isArray(asset.metadata.tags) && asset.metadata.tags.length > 0 && (
           <div className="hidden md:flex items-center gap-1">
-            {(asset.metadata.tags as string[]).slice(0, 2).map((tag: string, tagIndex: number) => (
+            {(asset.metadata.tags as string[]).slice(0, 2).map((tag) => (
               <span
                 key={tag}
                 className="text-xs px-1.5 py-0.5 bg-muted rounded"
@@ -493,7 +489,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
             ))}
           </div>
         )}
-      </button>
+      </div>
     );
   };
 
@@ -505,7 +501,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">Assets</h2>
             {/* Demo Mode Indicator */}
-            {!(globalThis as any).electronAPI && (
+            {!(window as Window & { electronAPI?: unknown }).electronAPI && (
               <span className="flex items-center gap-1 px-2 py-0.5 text-xs bg-amber-100 text-amber-800 rounded-full">
                 <WifiOff className="w-3 h-3" />
                 Demo Mode
@@ -542,7 +538,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
           </div>
         </div>
         {/* Demo Mode Info */}
-        {!(globalThis as any).electronAPI && (
+        {!(window as Window & { electronAPI?: unknown }).electronAPI && (
           <div className="flex items-center gap-1 mb-3 text-xs text-muted-foreground">
             <Info className="w-3 h-3" />
             <span>Running in browser with demo assets</span>
@@ -559,7 +555,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
 
         {/* Tab Toggle */}
         <div className="mt-4">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'library' | 'vault')}>
             <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-lg">
               <TabsTrigger value="library" className="flex items-center gap-1.5 text-xs py-1.5 rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 <Cloud className="w-3.5 h-3.5" />
@@ -660,7 +656,7 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
                     if (assetSearchQuery.trim()) {
                       const query = assetSearchQuery.toLowerCase();
                       const matchesName = asset.name.toLowerCase().includes(query);
-                      const matchesTags = asset.metadata?.tags?.some((tag: string) =>
+                      const matchesTags = asset.metadata?.tags && Array.isArray(asset.metadata.tags) && asset.metadata.tags.some((tag: string) =>
                         tag.toLowerCase().includes(query)
                       );
                       if (!matchesName && !matchesTags) return false;
@@ -691,12 +687,20 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
                       {/* Grid View */}
                       {viewMode === 'grid' ? (
                         <div className="space-y-2">
-                          {sourceAssets.map((asset, index) => renderAssetGridItem(asset, index))}
+                          {sourceAssets.map((asset, index) => (
+                            <div key={asset.id}>
+                                {renderAssetGridItem(asset, index)}
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         /* List View */
                         <div className="space-y-1">
-                          {sourceAssets.map((asset, index) => renderAssetListItem(asset, index))}
+                          {sourceAssets.map((asset, index) => (
+                            <div key={asset.id}>
+                                {renderAssetListItem(asset, index)}
+                            </div>
+                          ))}
                         </div>
                       )}
                     </div>
@@ -767,4 +771,3 @@ export function AssetPanel({ projectPath, className }: AssetPanelProps) {
     </div>
   );
 }
-

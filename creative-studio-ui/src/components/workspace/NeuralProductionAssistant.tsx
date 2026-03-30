@@ -680,25 +680,38 @@ export function NeuralProductionAssistant() {
                                         <p className="text-[10px] font-bold text-white/90 truncate">{char.name}</p>
                                     </div>
                                 </div>
-                                <Button
-                                    size="sm"
-                                    variant="outline"
-                                    disabled={!!isGeneratingSheet}
-                                    onClick={() => handleManifestAsset(char.character_id, 'CHARACTER')}
-                                    className={cn(
-                                        "h-6 text-[8px] font-black uppercase border-primary/20 hover:bg-primary text-primary hover:text-black gap-1 flex-shrink-0",
-                                        manifestedAssets.some(a => a.characterId === char.character_id) && "bg-primary/20 text-white"
+                                <div className="flex gap-1 flex-shrink-0">
+                                    {manifestedAssets.some(a => a.characterId === char.character_id) && (
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => window.dispatchEvent(new CustomEvent('storycore:apply-puppet-pose', { detail: { pose: 'waving' } }))}
+                                            className="h-6 w-6 p-0 text-primary hover:bg-primary/20"
+                                            title="Neural Motor Command: Wave"
+                                        >
+                                            <Activity size={10} />
+                                        </Button>
                                     )}
-                                >
-                                    {isGeneratingSheet === char.character_id ? (
-                                        <RefreshCw className="w-2.5 h-2.5 animate-spin" />
-                                    ) : manifestedAssets.some(a => a.characterId === char.character_id) ? (
-                                        <Layers className="w-2.5 h-2.5" />
-                                    ) : (
-                                        <Zap className="w-2.5 h-2.5" />
-                                    )}
-                                    {isGeneratingSheet === char.character_id ? generationStep : manifestedAssets.some(a => a.characterId === char.character_id) ? 'Refined' : 'Gen'}
-                                </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        disabled={!!isGeneratingSheet}
+                                        onClick={() => handleManifestAsset(char.character_id, 'CHARACTER')}
+                                        className={cn(
+                                            "h-6 text-[8px] font-black uppercase border-primary/20 hover:bg-primary text-primary hover:text-black gap-1",
+                                            manifestedAssets.some(a => a.characterId === char.character_id) && "bg-primary/20 text-white"
+                                        )}
+                                    >
+                                        {isGeneratingSheet === char.character_id ? (
+                                            <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                                        ) : manifestedAssets.some(a => a.characterId === char.character_id) ? (
+                                            <Layers className="w-2.5 h-2.5" />
+                                        ) : (
+                                            <Zap className="w-2.5 h-2.5" />
+                                        )}
+                                        {isGeneratingSheet === char.character_id ? 'Wait' : manifestedAssets.some(a => a.characterId === char.character_id) ? 'Sync' : 'Gen'}
+                                    </Button>
+                                </div>
                             </div>
                         ))}
                     </div>

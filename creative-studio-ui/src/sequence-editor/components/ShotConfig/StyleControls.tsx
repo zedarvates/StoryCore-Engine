@@ -18,6 +18,9 @@ import {
   removeStyleFromShot,
 } from '../../store/slices/timelineSlice';
 import type { Shot, StyleParameters } from '../../types';
+import { getComfyUIServersService } from '@/services/comfyuiServersService';
+import { Sparkles, Loader2, Info } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import './styleControls.css';
 
 // ============================================================================
@@ -70,6 +73,34 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ shot }) => {
     setShowAdvanced((prev) => !prev);
   }, []);
 
+  const [isRefining, setIsRefining] = useState(false);
+  
+  const handleRefineStyle = async () => {
+    const activeServer = getComfyUIServersService().getActiveServer();
+    if (!activeServer || activeServer.authentication.type !== 'mcp') return;
+
+    setIsRefining(true);
+    try {
+      const toolMapping = activeServer.mcpConfig?.toolMappings;
+      const toolName = toolMapping?.styleRefinement || toolMapping?.characterGeneration || 'refine_style';
+      const result = await window.electronAPI.comfyui.callTool(activeServer.id, toolName, {
+        style_params: shot.visualStyle?.parameters,
+        shot_id: shot.id
+      });
+      
+      if (result && result.parameters) {
+        dispatch(updateStyleParameters({
+          shotId: shot.id,
+          parameters: result.parameters
+        }));
+      }
+    } catch (error) {
+      console.error('MCP Style Refinement failed:', error);
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
   if (!shot.visualStyle) {
     return (
       <div className="style-controls-empty">
@@ -96,7 +127,6 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ shot }) => {
         </button>
       </div>
 
-      {/* Style Name */}
       <div className="style-name">
         <span className="style-icon">🎨</span>
         <span className="style-name-text">{styleName}</span>
@@ -130,11 +160,11 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ shot }) => {
         <div className="style-control-group">
           <label className="control-label">Color Palette</label>
           <div className="color-palette">
-            {parameters.colorPalette.map((color, index) => (
+            {parameters.colorPalette.map((color: string, index: number) => (
               <div
                 key={index}
                 className="color-swatch"
-                style={{ backgroundColor: color }}
+                ref={(el) => { if (el) el.style.setProperty('--swatch-color', color); }}
                 title={color}
               />
             ))}
@@ -150,11 +180,38 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ shot }) => {
         </div>
       )}
 
+      {/* Refine with MCP Button */}
+      {getComfyUIServersService().getActiveServer()?.authentication.type === 'mcp' && (
+        <div className="mcp-actions mt-4 pb-2 border-b border-border/50">
+          <button
+            className={cn(
+              "mcp-refine-btn w-full flex items-center justify-center gap-2 py-2 rounded-md transition-all font-medium text-sm",
+              isRefining ? "bg-accent/50 cursor-not-allowed" : "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20"
+            )}
+            onClick={handleRefineStyle}
+            disabled={isRefining}
+          >
+            {isRefining ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            {isRefining ? 'Refining Parameters...' : 'Refine Style with MCP'}
+          </button>
+          <div className="flex items-start gap-1.5 mt-2 px-1 text-muted-foreground">
+            <Info className="h-3 w-3 mt-0.5" />
+            <p className="text-[10px] leading-tight">
+              Uses AI tool calling via Model Context Protocol to analyze and optimize your style parameters for ComfyUI.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Advanced Controls Toggle */}
       <button
         className="toggle-advanced-btn"
         onClick={toggleAdvanced}
-        aria-expanded={showAdvanced ? "true" : "false"}
+        aria-expanded={showAdvanced ? 'true' : 'false'}
       >
         {showAdvanced ? '▼' : '▶'} Advanced Parameters
       </button>

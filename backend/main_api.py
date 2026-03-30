@@ -37,6 +37,7 @@ from backend.lip_sync_api import router as lip_sync_router
 from backend.ttt_lrm_api import router as ttt_lrm_router
 from backend.story_generation_api import router as story_router
 from backend.storycore_series_api import router as series_router
+from backend.krita_api import router as krita_router
 
 # Configure logging
 logging.basicConfig(
@@ -248,7 +249,8 @@ app.include_router(location_router)
 
 # Include cine production API router
 from backend.cine_production_api import router as cine_production_router
-app.include_router(cine_production_router, prefix="/api")
+# Include Krita / Precepts API router
+app.include_router(krita_router, prefix="/api")
 
 # Include post production API router
 from backend.post_production_api import router as post_production_router

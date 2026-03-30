@@ -123,6 +123,7 @@ export function ProjectDashboardNew({
   onOpenEditor,
 }: ProjectDashboardNewProps) {
   // Store hooks
+  const project = useAppStore((state) => state.project);
   const shots = useAppStore((state) => state.shots);
   const setShowSequenceEditor = useAppStore((state) => state.setShowSequenceEditor);
 
@@ -212,6 +213,23 @@ export function ProjectDashboardNew({
 
         {/* Pipeline Status */}
         <div className="pipeline-status-compact">
+          {/* Open Folder Button */}
+          {typeof (project?.path || project?.metadata?.path) === 'string' && (
+            <button 
+              className="quick-btn glass-panel border-white/5 hover:border-primary/50 group" 
+              onClick={() => {
+                const path = (project?.path || project?.metadata?.path) as string;
+                if (path && window.electronAPI?.app?.openFolder) {
+                  window.electronAPI.app.openFolder(path);
+                }
+              }}
+              style={{ marginRight: '10px' }}
+              title="Open Project Folder in Explorer"
+            >
+              <Settings className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors" />
+              <span>Folder</span>
+            </button>
+          )}
           <div className="status-item">
             <Film className="w-4 h-4" />
             <span>Sequences: {sequences.length}</span>

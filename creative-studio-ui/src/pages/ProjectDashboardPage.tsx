@@ -14,8 +14,6 @@ import { useWorldPersistence } from '@/hooks/useWorldPersistence';
 import { useObjectStore } from '@/stores/objectStore';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 
 interface ProjectDashboardPageProps {
   onOpenEditor?: (sequenceId?: string) => void;
@@ -70,7 +68,6 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
 
   return (
     <ProjectProvider projectId={(project.metadata?.id as string) || project.project_name}>
-      <DndProvider backend={HTML5Backend}>
       <div className="flex flex-col h-screen bg-background text-foreground relative">
         {/* Main Content - New Dashboard */}
         <div className="flex-1 overflow-hidden">
@@ -79,7 +76,6 @@ export function ProjectDashboardPage({ onOpenEditor }: ProjectDashboardPageProps
           />
         </div>
       </div>
-      </DndProvider>
     </ProjectProvider>
   );
 }

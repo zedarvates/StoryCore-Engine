@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { updateLayer } from '../../store/slices/timelineSlice';
+import { useAppDispatch } from '../../store';
+import { updateShotLayer } from '../../store/slices/timelineSlice';
 import type { Shot, Layer, Transform } from '../../types';
 import './transformOverlay.css';
+
+type DragMode = 'move' | 'scale-tl' | 'scale-tr' | 'scale-bl' | 'scale-br' | 'rotate';
 
 interface TransformOverlayProps {
     shot: Shot;
@@ -19,15 +21,15 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
     canvasWidth,
     canvasHeight,
     zoom,
-    pan,
+    pan: _pan,
 }) => {
     const dispatch = useAppDispatch();
     const [isDragging, setIsDragging] = useState(false);
-    const [dragMode, setDragMode] = useState<'move' | 'scale-tl' | 'scale-tr' | 'scale-bl' | 'scale-br' | 'rotate' | null>(null);
+    const [dragMode, setDragMode] = useState<DragMode | null>(null);
     const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
     const [initialTransform, setInitialTransform] = useState<Transform | null>(null);
 
-    const transform = (layer.data as any).transform as Transform || {
+    const transform = (layer.data as unknown as { transform?: Transform }).transform as Transform || {
         position: { x: 0, y: 0 },
         scale: { x: 1, y: 1 },
         rotation: 0,
@@ -40,7 +42,7 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
     const width = transform.scale.x * canvasWidth;
     const height = transform.scale.y * canvasHeight;
 
-    const handleMouseDown = (e: React.MouseEvent, mode: typeof dragMode) => {
+    const handleMouseDown = (e: React.MouseEvent, mode: DragMode) => {
         e.stopPropagation();
         setIsDragging(true);
         setDragMode(mode);
@@ -78,7 +80,7 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
             newTransform.rotation = initialTransform.rotation + angle;
         }
 
-        dispatch(updateLayer({
+        dispatch(updateShotLayer({
             shotId: shot.id,
             layerId: layer.id,
             updates: {
@@ -88,7 +90,7 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
                 },
             },
         }));
-    }, [isDragging, initialTransform, dragMode, initialMousePos, zoom, canvasWidth, canvasHeight, dispatch, shot.id, layer.id]);
+    }, [isDragging, initialTransform, dragMode, initialMousePos, zoom, canvasWidth, canvasHeight, dispatch, shot.id, layer.id, layer.data]);
 
     const handleMouseUp = useCallback(() => {
         setIsDragging(false);
@@ -109,25 +111,24 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
         };
     }, [isDragging, handleMouseMove, handleMouseUp]);
 
-    const overlayStyle: React.CSSProperties = {
-        position: 'absolute',
-        left: posX - width / 2,
-        top: posY - height / 2,
-        width: width,
-        height: height,
-        transform: `rotate(${transform.rotation}deg)`,
-        border: '2px solid var(--primary-color, #4A90E2)',
-        boxSizing: 'border-box',
-        cursor: 'move',
-        pointerEvents: 'all',
-    };
+    const overlayRef = React.useRef<HTMLDivElement>(null);
+
+    React.useLayoutEffect(() => {
+        if (overlayRef.current) {
+            overlayRef.current.style.setProperty('--posX', `${posX - width / 2}px`);
+            overlayRef.current.style.setProperty('--posY', `${posY - height / 2}px`);
+            overlayRef.current.style.setProperty('--width', `${width}px`);
+            overlayRef.current.style.setProperty('--height', `${height}px`);
+            overlayRef.current.style.setProperty('--rotation', `${transform.rotation}deg`);
+        }
+    }, [posX, posY, width, height, transform.rotation]);
 
     if (layer.locked) return null;
 
     return (
         <div
+            ref={overlayRef}
             className="transform-overlay"
-            style={overlayStyle}
             onMouseDown={(e) => handleMouseDown(e, 'move')}
         >
             {/* Resizing handles */}

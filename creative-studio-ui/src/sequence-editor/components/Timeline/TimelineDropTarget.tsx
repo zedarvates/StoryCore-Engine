@@ -10,7 +10,7 @@ import React, { useCallback } from 'react';
 import { useDrop, DropTargetMonitor } from 'react-dnd';
 import { DND_ITEM_TYPES, type DraggedAssetItem } from '../AssetLibrary/DraggableAsset';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { addShot, addLayer } from '../../store/slices/timelineSlice';
+import { addShot, addShotLayer } from '../../store/slices/timelineSlice';
 import type { Track, LayerType, Asset, Shot, Layer, MediaLayerData, AudioLayerData, EffectsLayerData, TransitionLayerData } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import './TimelineDropTarget.css';
@@ -140,6 +140,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
             scheduler: 'normal',
           },
           generationStatus: 'pending',
+          position: shots.length, // Add missing position property
         };
         dispatch(addShot(newShot));
       } else if (track.type === 'transitions' || track.type === 'effects') {
@@ -169,7 +170,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
             } as EffectsLayerData,
           };
           
-          dispatch(addLayer({ shotId: targetShot.id, layer: newLayer }));
+          dispatch(addShotLayer({ shotId: targetShot.id, layer: newLayer }));
         } else {
           console.warn(`No shot found at position ${dropPosition} to apply ${track.type}`);
         }

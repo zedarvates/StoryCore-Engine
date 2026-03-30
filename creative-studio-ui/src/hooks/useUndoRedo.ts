@@ -10,8 +10,10 @@
  * Requirements: 7.6
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { UndoRedoManager } from '../services/undoRedo';
+import { useProjectStore } from '../stores/useProjectStore';
+import { useShallow } from 'zustand/react/shallow';
 
 // ============================================================================
 // Type Definitions
@@ -202,79 +204,86 @@ export function useUndoRedo<T>(
   };
 }
 
-// ============================================================================
-// Utility Hooks
-// ============================================================================
-
 /**
- * Hook for simple undo/redo without full state management
+ * Hook for global project undo/redo operations using the Unified Project Store
  * 
- * Useful when you just need undo/redo indicators and actions
- * without managing the state through the hook
+ * Fulfills Audit Task 21 (Consolidating State Architecture)
  * 
- * @param manager - UndoRedoManager instance
- * @returns Undo/redo actions and indicators
+ * @returns Undo/redo actions and indicators for the entire project
  * 
  * @example
- * const manager = new UndoRedoManager(initialState);
- * const { undo, redo, canUndo, canRedo } = useUndoRedoActions(manager);
+ * const { undo, redo, canUndo, canRedo } = useProjectHistory();
  */
-export function useUndoRedoActions<T>(
-  manager: UndoRedoManager<T>
-): Omit<UseUndoRedoReturn<T>, 'state' | 'execute'> {
-  const [canUndo, setCanUndo] = useState(manager.canUndo());
-  const [canRedo, setCanRedo] = useState(manager.canRedo());
-  const [undoDescription, setUndoDescription] = useState(manager.getUndoDescription());
-  const [redoDescription, setRedoDescription] = useState(manager.getRedoDescription());
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(manager.hasUnsavedChanges());
-  const [undoStackSize, setUndoStackSize] = useState(manager.getUndoStackSize());
-  const [redoStackSize, setRedoStackSize] = useState(manager.getRedoStackSize());
+export function useProjectHistory() {
+  const { 
+    undoAction, 
+    redoAction, 
+    goToHistoryIndex,
+    history, 
+    historyIndex, 
+    lastSavedIndex,
+    clearHistoryAction,
+    markAsSavedAction
+  } = useProjectStore(useShallow(state => ({
+    undoAction: state.undo,
+    redoAction: state.redo,
+    goToHistoryIndex: state.goToHistoryIndex,
+    history: state.history,
+    historyIndex: state.historyIndex,
+    lastSavedIndex: state.lastSavedIndex,
+    clearHistoryAction: state.clearHistory,
+    markAsSavedAction: state.markAsSaved
+  })));
 
-  const updateIndicators = useCallback(() => {
-    setCanUndo(manager.canUndo());
-    setCanRedo(manager.canRedo());
-    setUndoDescription(manager.getUndoDescription());
-    setRedoDescription(manager.getRedoDescription());
-    setHasUnsavedChanges(manager.hasUnsavedChanges());
-    setUndoStackSize(manager.getUndoStackSize());
-    setRedoStackSize(manager.getRedoStackSize());
-  }, [manager]);
-
-  const undo = useCallback(() => {
-    manager.undo();
-    updateIndicators();
-  }, [manager, updateIndicators]);
-
-  const redo = useCallback(() => {
-    manager.redo();
-    updateIndicators();
-  }, [manager, updateIndicators]);
-
-  const markAsSaved = useCallback(() => {
-    manager.markAsSaved();
-    updateIndicators();
-  }, [manager, updateIndicators]);
-
-  const clearHistory = useCallback(() => {
-    manager.clearHistory();
-    updateIndicators();
-  }, [manager, updateIndicators]);
-
-  useEffect(() => {
-    updateIndicators();
-  }, [updateIndicators]);
+  /**
+   * Check if undo is available
+   */
+  const canUndo = useMemo(() => historyIndex >= 0, [historyIndex]);
+  
+  /**
+   * Check if redo is available
+   */
+  const canRedo = useMemo(() => historyIndex < history.length - 1, [historyIndex, history.length]);
+  
+  /**
+   * Get description of next undo action
+   */
+  const undoDescription = useMemo(() => {
+    if (canUndo) {
+        return history[historyIndex]?.action || 'Undo Last Action';
+    }
+    return null;
+  }, [canUndo, history, historyIndex]);
+  
+  /**
+   * Get description of next redo action
+   */
+  const redoDescription = useMemo(() => {
+    if (canRedo) {
+        return history[historyIndex + 1]?.action || 'Redo Action';
+    }
+    return null;
+  }, [canRedo, history, historyIndex]);
+  
+  /**
+   * Check if there are unsaved changes
+   */
+  const hasUnsavedChanges = useMemo(() => historyIndex !== lastSavedIndex, [historyIndex, lastSavedIndex]);
 
   return {
-    undo,
-    redo,
+    undo: useCallback(() => undoAction(), [undoAction]),
+    redo: useCallback(() => redoAction(), [redoAction]),
+    goToHistoryIndex: useCallback((index: number) => goToHistoryIndex(index), [goToHistoryIndex]),
     canUndo,
     canRedo,
     undoDescription,
     redoDescription,
-    markAsSaved,
+    history,
+    historyIndex,
+    undoStackSize: historyIndex + 1,
+    redoStackSize: history.length - (historyIndex + 1),
+    clearHistory: useCallback(() => clearHistoryAction(), [clearHistoryAction]),
+    markAsSaved: useCallback(() => markAsSavedAction(), [markAsSavedAction]),
     hasUnsavedChanges,
-    clearHistory,
-    undoStackSize,
-    redoStackSize
   };
 }

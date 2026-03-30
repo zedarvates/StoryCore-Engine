@@ -19,6 +19,21 @@ export interface ComfyUIServer {
     password?: string;
     token?: string;
   };
+  mcpConfig?: {
+    enabled: boolean;
+    serverPath?: string;
+    serverArgs?: string[];
+    transport?: 'stdio' | 'sse' | 'websockets';
+    env?: Record<string, string>;
+    toolMappings?: {
+      imageGeneration?: string;
+      videoGeneration?: string;
+      upscaling?: string;
+      inpainting?: string;
+      characterGeneration?: string;
+      styleRefinement?: string;
+    };
+  };
   isActive: boolean;
   lastConnected?: string; // ISO date string
   status?: 'connected' | 'disconnected' | 'error' | 'testing';
@@ -65,6 +80,22 @@ export interface ComfyUIServersConfig {
   activeServerId: string | null;
   autoSwitchOnFailure: boolean;
   version: string;
+}
+
+export interface DiscoveredServer {
+  url: string;
+  type: 'comfyui' | 'mcp';
+  name?: string;
+  status: 'online';
+}
+
+/**
+ * MCP Tool Definition
+ */
+export interface MCPTool {
+  name: string;
+  description?: string;
+  inputSchema?: Record<string, unknown>;
 }
 
 /**

@@ -102,6 +102,9 @@ const ProjectJSONSchema = z.object({
     transition: z.enum(['cut', 'fade', 'dissolve', 'wipe', 'match-cut']),
     compositionNotes: z.string(),
     order: z.number(),
+    presetId: z.string().optional(),
+    is3DMode: z.boolean().optional(),
+    position: z.number(),
   })),
   capabilities: z.object({
     grid_generation: z.boolean(),

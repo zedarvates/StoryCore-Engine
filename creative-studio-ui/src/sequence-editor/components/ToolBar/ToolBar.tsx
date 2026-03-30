@@ -1,20 +1,35 @@
 /**
- * Tool Bar Component
+ * Professional Tool Bar Component
  * 
- * Contextual toolbar with comprehensive editing tools for the sequence editor.
- * Includes primary tools, media tools, editing tools, effects tools, and project management.
- * 
- * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 17.1, 19.4
+ * Comprehensive editing tools and context-sensitive actions for the sequence editor.
+ * Features a high-end "DaVinci Resolve" aesthetic with professional iconography.
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { useAppDispatch, useAppSelector, store, useUndoRedo } from '../../store';
 import { setActiveTool } from '../../store/slices/toolsSlice';
 import { markSaved, setSaveStatus } from '../../store/slices/projectSlice';
-import { setActivePanel, toggleLayerManager, toggleCompactMode } from '../../store/slices/panelsSlice';
+import { 
+  setActivePanel, toggleLayerManager, toggleCompactMode, 
+  setAssetCategory, setLibraryVisible 
+} from '../../store/slices/panelsSlice';
 import { saveProjectToFile, generateProjectFilename } from '../../services/projectPersistence';
 import type { ToolType } from '../../types';
+
+// Icons
+import { 
+  Database, Sparkles, List, Music, 
+  MousePointer2, Scissors, Hand, Search, 
+  Image as ImageIcon, Video as VideoIcon, Volume2, 
+  ChevronsLeftRight, ArrowRightToLine, ArrowLeftRight, 
+  MoveHorizontal, MoveVertical, 
+  Shuffle, Type, Key, 
+  Undo2, Redo2, 
+  Home, Settings, Save, Download, Box, LayoutPanelLeft,
+  Grid3X3, MapPin, AlignLeft
+} from 'lucide-react';
 import './toolBar.css';
+import { toggleGrid, toggleMarkers, togglePrompts } from '../../store/slices/panelsSlice';
 
 // ============================================================================
 // Types
@@ -23,144 +38,46 @@ import './toolBar.css';
 interface Tool {
   id: ToolType;
   name: string;
-  icon: string;
+  icon: React.ReactNode;
   shortcut?: string;
-  category: 'primary' | 'media' | 'editing' | 'effects' | 'project';
+  category: 'primary' | 'media' | 'editing' | 'effects' | 'project' | 'navigation';
   description: string;
 }
 
 // ============================================================================
-// Tool Definitions
+// Tool Definitions (Professional Icons)
 // ============================================================================
 
 const TOOLS: Tool[] = [
   // Primary Tools
-  {
-    id: 'select',
-    name: 'Select',
-    icon: '⬚',
-    shortcut: 'V',
-    category: 'primary',
-    description: 'Select and move shots',
-  },
-  {
-    id: 'cut',
-    name: 'Cut',
-    icon: '✂',
-    shortcut: 'C',
-    category: 'primary',
-    description: 'Split shots at playhead',
-  },
-  {
-    id: 'move',
-    name: 'Move',
-    icon: '✋',
-    shortcut: 'H',
-    category: 'primary',
-    description: 'Pan timeline view',
-  },
-  {
-    id: 'zoom',
-    name: 'Zoom',
-    icon: '🔍',
-    shortcut: 'Z',
-    category: 'primary',
-    description: 'Zoom timeline view',
-  },
+  { id: 'select', name: 'Select', icon: <MousePointer2 className="w-4 h-4" />, shortcut: 'V', category: 'primary', description: 'Select and move shots' },
+  { id: 'cut', name: 'Cut', icon: <Scissors className="w-4 h-4" />, shortcut: 'C', category: 'primary', description: 'Split shots at playhead' },
+  { id: 'move', name: 'Move', icon: <Hand className="w-4 h-4" />, shortcut: 'H', category: 'primary', description: 'Pan timeline view' },
+  { id: 'zoom', name: 'Zoom', icon: <Search className="w-4 h-4" />, shortcut: 'Z', category: 'primary', description: 'Zoom timeline view' },
 
   // Media Tools
-  {
-    id: 'add-image',
-    name: 'Add Image',
-    icon: '🖼',
-    shortcut: 'I',
-    category: 'media',
-    description: 'Add image to timeline',
-  },
-  {
-    id: 'add-video',
-    name: 'Add Video',
-    icon: '🎬',
-    shortcut: 'Shift+V',
-    category: 'media',
-    description: 'Add video to timeline',
-  },
-  {
-    id: 'add-audio',
-    name: 'Add Audio',
-    icon: '🎵',
-    shortcut: 'A',
-    category: 'media',
-    description: 'Add audio to timeline',
-  },
+  { id: 'add-image', name: 'Add Image', icon: <ImageIcon className="w-4 h-4" />, shortcut: 'I', category: 'media', description: 'Add image to timeline' },
+  { id: 'add-video', name: 'Add Video', icon: <VideoIcon className="w-4 h-4" />, shortcut: 'Shift+V', category: 'media', description: 'Add video to timeline' },
+  { id: 'add-audio', name: 'Add Audio', icon: <Volume2 className="w-4 h-4" />, shortcut: 'A', category: 'media', description: 'Add audio to timeline' },
 
   // Editing Tools
-  {
-    id: 'trim',
-    name: 'Trim',
-    icon: '⟷',
-    shortcut: 'T',
-    category: 'editing',
-    description: 'Trim shot edges',
-  },
-  {
-    id: 'ripple',
-    name: 'Ripple Edit',
-    icon: '⇉',
-    shortcut: 'R',
-    category: 'editing',
-    description: 'Trim and shift subsequent shots',
-  },
-  {
-    id: 'roll',
-    name: 'Roll Edit',
-    icon: '⇄',
-    shortcut: 'N',
-    category: 'editing',
-    description: 'Adjust junction between shots',
-  },
-  {
-    id: 'slip',
-    name: 'Slip',
-    icon: '⇔',
-    shortcut: 'Y',
-    category: 'editing',
-    description: 'Adjust shot content timing',
-  },
-  {
-    id: 'slide',
-    name: 'Slide',
-    icon: '⇆',
-    shortcut: 'U',
-    category: 'editing',
-    description: 'Move shot and adjust adjacent',
-  },
+  { id: 'trim', name: 'Trim', icon: <ChevronsLeftRight className="w-4 h-4" />, shortcut: 'T', category: 'editing', description: 'Trim shot edges' },
+  { id: 'ripple', name: 'Ripple', icon: <ArrowRightToLine className="w-4 h-4" />, shortcut: 'R', category: 'editing', description: 'Trim and shift subsequent' },
+  { id: 'roll', name: 'Roll', icon: <ArrowLeftRight className="w-4 h-4" />, shortcut: 'N', category: 'editing', description: 'Adjust junction between shots' },
+  { id: 'slip', name: 'Slip', icon: <MoveHorizontal className="w-4 h-4" />, shortcut: 'Y', category: 'editing', description: 'Adjust shot content timing' },
+  { id: 'slide', name: 'Slide', icon: <MoveVertical className="w-4 h-4" />, shortcut: 'U', category: 'editing', description: 'Move shot and adjust adjacent' },
 
   // Effects Tools
-  {
-    id: 'transition',
-    name: 'Transition',
-    icon: '⟿',
-    shortcut: 'Shift+T',
-    category: 'effects',
-    description: 'Add transition between shots',
-  },
-  {
-    id: 'text',
-    name: 'Text',
-    icon: 'T',
-    shortcut: 'Shift+X',
-    category: 'effects',
-    description: 'Add text overlay',
-  },
-  {
-    id: 'keyframe',
-    name: 'Keyframe',
-    icon: '◆',
-    shortcut: 'K',
-    category: 'effects',
-    description: 'Add animation keyframe',
-  },
+  { id: 'transition', name: 'Transition', icon: <Shuffle className="w-4 h-4" />, shortcut: 'Shift+T', category: 'effects', description: 'Add transition between shots' },
+  { id: 'text', name: 'Text', icon: <Type className="w-4 h-4" />, shortcut: 'Shift+X', category: 'effects', description: 'Add text overlay' },
+  { id: 'keyframe', name: 'Keyframe', icon: <Key className="w-4 h-4" />, shortcut: 'K', category: 'effects', description: 'Add animation keyframe' },
+];
+
+const NAVIGATION_TOOLS = [
+  { id: 'mediaPool', name: 'Media Pool', icon: <Database className="w-4 h-4" />, label: 'Media Pool' },
+  { id: 'effects', name: 'Effects', icon: <Sparkles className="w-4 h-4" />, label: 'Effects' },
+  { id: 'index', name: 'Index', icon: <List className="w-4 h-4" />, label: 'Index' },
+  { id: 'soundLibrary', name: 'Sound Library', icon: <Music className="w-4 h-4" />, label: 'Sound' },
 ];
 
 // ============================================================================
@@ -169,366 +86,222 @@ const TOOLS: Tool[] = [
 
 interface ToolBarProps {
   onBack?: () => void;
+  onAction?: () => void;
+  onExportToggle?: () => void;
+  onSettingsToggle?: () => void;
 }
 
-export const ToolBar: React.FC<ToolBarProps> = ({ onBack }) => {
+export const ToolBar: React.FC<ToolBarProps> = ({ 
+  onBack, onAction, onExportToggle, onSettingsToggle 
+}) => {
   const dispatch = useAppDispatch();
-
-  // Redux state
   const { activeTool } = useAppSelector((state) => state.tools);
   const { saveStatus } = useAppSelector((state) => state.project);
-  const { showLayerManager } = useAppSelector((state) => state.panels);
-
-  // Undo/Redo state
+  const { showLayerManager, activePanel, activeAssetCategory } = useAppSelector((state) => state.panels);
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
-  // Handle tool selection
+  // Handlers
   const handleToolSelect = useCallback((toolId: ToolType) => {
     dispatch(setActiveTool(toolId));
+    if (onAction) onAction();
+  }, [dispatch, onAction]);
+
+  const handlePanelToggle = useCallback((panelId: string) => {
+    console.log(`[ToolBar] Toggling panel: ${panelId}`);
+    
+    const categoryMap: Record<string, string> = {
+      mediaPool: 'environments',
+      effects: 'effects',
+      soundLibrary: 'audio-sound',
+      index: 'templates'
+    };
+
+    const category = categoryMap[panelId];
+    if (category) {
+      dispatch(setAssetCategory(category));
+      dispatch(setActivePanel('assetLibrary')); 
+      dispatch(setLibraryVisible(true));
+    } else if (panelId === 'index') {
+       dispatch(setActivePanel('timeline')); 
+    }
   }, [dispatch]);
 
-  // Handle save project
   const handleSaveProject = useCallback(() => {
-    // Set saving status
     dispatch(setSaveStatus({ state: 'saving' }));
-
-    // Use a timeout to allow the UI to update, then save
     setTimeout(() => {
       try {
-        // Get the current Redux state using the store directly
         const state = store.getState();
-
-        // Save the project to file
         const projectName = state.project.metadata?.name || 'untitled';
-        const filename = generateProjectFilename(projectName);
-        saveProjectToFile(state, filename);
-
-        // Mark as saved
+        saveProjectToFile(state, generateProjectFilename(projectName));
         dispatch(markSaved());
-
-        // Show success notification via console (toast would need additional setup)
-        console.log(`Project "${projectName}" saved successfully!`);
-      } catch (error) {
-        console.error('Failed to save project:', error);
-        dispatch(setSaveStatus({
-          state: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }));
+        if (onAction) onAction();
+      } catch (e) {
+        console.error('Save failed:', e);
+        dispatch(setSaveStatus({ state: 'error', error: 'Save failed' }));
       }
     }, 100);
-  }, [dispatch]);
+  }, [dispatch, onAction]);
 
-  // Handle export - opens a file dialog for export options
-  const handleExport = useCallback(() => {
-    // Set saving status to indicate activity
-    dispatch(setSaveStatus({ state: 'saving' }));
-
-    try {
-      // Get the current Redux state using the imported store
-      const state = store.getState();
-
-      const projectName = state.project.metadata?.name || 'untitled';
-      const filename = `${projectName}-export.json`;
-
-      // Save the project to file (export is same as save for JSON format)
-      saveProjectToFile(state, filename);
-
-      // Mark as saved
-      dispatch(markSaved());
-
-      // Log export completion
-      console.log(`Project "${projectName}" exported successfully!`);
-    } catch (error) {
-      console.error('Failed to export project:', error);
-      dispatch(setSaveStatus({
-        state: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }));
-    }
-  }, [dispatch]);
-
-  // Handle project settings - opens the settings panel
-  const handleProjectSettings = useCallback(() => {
-    // Open the project settings by activating the shotConfig panel with settings tab
-    // In a full implementation, this would open a settings modal
-    // For now, we activate the panel and log the action
-
-    console.log('Opening project settings...');
-
-    // Dispatch action to show settings (this would need a settings panel implementation)
-    // For now, we can open the shot config panel which could contain settings
-    dispatch(setActivePanel('shotConfig'));
-
-    // Log for debugging using the imported store
-    const state = store.getState();
-    const projectName = state.project.metadata?.name || 'Untitled Project';
-    const settings = state.project.settings;
-
-    console.log('Project Settings:', {
-      name: projectName,
-      resolution: `${settings.resolution.width}x${settings.resolution.height}`,
-      format: settings.format,
-      fps: settings.fps,
-      quality: settings.quality
-    });
-  }, [dispatch]);
-
-  // Handle toggle advanced mode (@)
   const handleToggleAdvanced = useCallback(() => {
     dispatch(toggleLayerManager());
-    console.log('Toggling advanced mode/layer manager');
-  }, [dispatch]);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      // Check for Ctrl/Cmd+S (Save)
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleSaveProject();
-        return;
-      }
-
-      // Check for '@' (Advanced Mode)
-      if (e.key === '@') {
-        e.preventDefault();
-        handleToggleAdvanced();
-        return;
-      }
-
-      // Check for tool shortcuts
-      const key = e.shiftKey ? `Shift+${e.key.toUpperCase()}` : e.key.toUpperCase();
-
-      const tool = TOOLS.find((t) => t.shortcut === key);
-      if (tool) {
-        e.preventDefault();
-        handleToolSelect(tool.id);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleToolSelect, handleSaveProject, handleToggleAdvanced]);
-
-  // Get cursor style for active tool
-  const getCursorClass = useCallback(() => {
-    switch (activeTool) {
-      case 'select':
-        return 'cursor-default';
-      case 'cut':
-        return 'cursor-crosshair';
-      case 'move':
-        return 'cursor-grab';
-      case 'zoom':
-        return 'cursor-zoom-in';
-      case 'trim':
-        return 'cursor-ew-resize';
-      case 'text':
-        return 'cursor-text';
-      default:
-        return 'cursor-default';
-    }
-  }, [activeTool]);
-
-  // Apply cursor to body
-  useEffect(() => {
-    const cursorClass = getCursorClass();
-    document.body.classList.add(cursorClass);
-
-    return () => {
-      document.body.classList.remove(cursorClass);
-    };
-  }, [getCursorClass]);
-
-  // Group tools by category
-  const primaryTools = TOOLS.filter((t) => t.category === 'primary');
-  const mediaTools = TOOLS.filter((t) => t.category === 'media');
-  const editingTools = TOOLS.filter((t) => t.category === 'editing');
-  const effectsTools = TOOLS.filter((t) => t.category === 'effects');
+    if (onAction) onAction();
+  }, [dispatch, onAction]);
 
   return (
     <div className="tool-bar">
-      {/* Back to Dashboard */}
-      {onBack && (
-        <div className="tool-group project-navigation">
-          <button
-            className="tool-btn back-btn"
-            onClick={onBack}
-            title="Back to Dashboard"
-            aria-label="Back to Dashboard"
-          >
-            <span className="tool-icon">🏠</span>
-            <span className="tool-label">Dashboard</span>
+      {/* 1. Dashboard Navigation */}
+      <div className="tool-group navigation-tools">
+        {onBack && (
+          <button className="tool-btn back-btn" onClick={onBack} title="Back to Dashboard">
+            <Home className="w-4 h-4" />
           </button>
-        </div>
-      )}
+        )}
+        <div className="tool-separator-v" />
+        {NAVIGATION_TOOLS.map(item => {
+          const categoryMap: Record<string, string> = {
+            mediaPool: 'environments',
+            effects: 'effects',
+            soundLibrary: 'audio-sound',
+            index: 'templates'
+          };
+          const isActive = activePanel === 'assetLibrary' && 
+                          activeAssetCategory === categoryMap[item.id];
 
-      {onBack && <div className="tool-separator" />}
+          return (
+            <button 
+              key={item.id} 
+              className={`tool-btn nav-item ${isActive ? 'active' : ''}`}
+              onClick={() => handlePanelToggle(item.id)}
+              title={item.name}
+            >
+              <div className="nav-item-content">
+                {item.icon}
+                <span className="nav-label">{item.label}</span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Primary Tools */}
-      <div className="tool-group primary-tools">
-        {primaryTools.map((tool) => (
+      <div className="tool-spacer-mini" />
+
+      {/* 2. Primary Tools */}
+      <div className="tool-group tool-group-pill">
+        {TOOLS.filter(t => t.category === 'primary').map(tool => (
           <button
             key={tool.id}
-            className={`tool-btn ${activeTool === tool.id ? 'active' : ''}`}
+            className={`tool-btn-icon ${activeTool === tool.id ? 'active' : ''}`}
             onClick={() => handleToolSelect(tool.id)}
-            title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
-            aria-label={tool.name}
-            aria-pressed={activeTool === tool.id}
+            title={`${tool.name} (${tool.shortcut})`}
           >
-            <span className="tool-icon">{tool.icon}</span>
-            <span className="tool-label">{tool.name}</span>
-            {tool.shortcut && <span className="tool-shortcut">{tool.shortcut}</span>}
+            {tool.icon}
           </button>
         ))}
       </div>
 
-      <div className="tool-separator" />
+      <div className="tool-separator-v" />
 
-      {/* Media Tools */}
-      <div className="tool-group media-tools">
-        {mediaTools.map((tool) => (
+      {/* 3. Media & Editing Tools */}
+      <div className="tool-group tool-group-pill">
+        {TOOLS.filter(t => ['media', 'editing'].includes(t.category)).map(tool => (
           <button
             key={tool.id}
-            className={`tool-btn ${activeTool === tool.id ? 'active' : ''}`}
+            className={`tool-btn-icon ${activeTool === tool.id ? 'active' : ''}`}
             onClick={() => handleToolSelect(tool.id)}
-            title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
-            aria-label={tool.name}
-            aria-pressed={activeTool === tool.id}
+            title={`${tool.name} (${tool.shortcut})`}
           >
-            <span className="tool-icon">{tool.icon}</span>
-            <span className="tool-label">{tool.name}</span>
-            {tool.shortcut && <span className="tool-shortcut">{tool.shortcut}</span>}
+            {tool.icon}
           </button>
         ))}
       </div>
 
-      <div className="tool-separator" />
+      <div className="tool-separator-v" />
 
-      {/* Editing Tools */}
-      <div className="tool-group editing-tools">
-        {editingTools.map((tool) => (
+      {/* 4. Effects Tools */}
+      <div className="tool-group tool-group-pill">
+        {TOOLS.filter(t => t.category === 'effects').map(tool => (
           <button
             key={tool.id}
-            className={`tool-btn ${activeTool === tool.id ? 'active' : ''}`}
+            className={`tool-btn-icon ${activeTool === tool.id ? 'active' : ''}`}
             onClick={() => handleToolSelect(tool.id)}
-            title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
-            aria-label={tool.name}
-            aria-pressed={activeTool === tool.id}
+            title={`${tool.name} (${tool.shortcut})`}
           >
-            <span className="tool-icon">{tool.icon}</span>
-            <span className="tool-label">{tool.name}</span>
-            {tool.shortcut && <span className="tool-shortcut">{tool.shortcut}</span>}
+            {tool.icon}
           </button>
         ))}
       </div>
 
-      <div className="tool-separator" />
-
-      {/* Effects Tools */}
-      <div className="tool-group effects-tools">
-        {effectsTools.map((tool) => (
-          <button
-            key={tool.id}
-            className={`tool-btn ${activeTool === tool.id ? 'active' : ''}`}
-            onClick={() => handleToolSelect(tool.id)}
-            title={`${tool.description}${tool.shortcut ? ` (${tool.shortcut})` : ''}`}
-            aria-label={tool.name}
-            aria-pressed={activeTool === tool.id}
-          >
-            <span className="tool-icon">{tool.icon}</span>
-            <span className="tool-label">{tool.name}</span>
-            {tool.shortcut && <span className="tool-shortcut">{tool.shortcut}</span>}
-          </button>
-        ))}
-      </div>
-
-      <div className="tool-separator" />
-
-      {/* Undo/Redo Tools */}
-      <div className="tool-group history-tools">
-        <button
-          className="tool-btn undo-btn"
-          onClick={() => undo()}
-          disabled={!canUndo}
-          title="Undo (Ctrl+Z)"
-          aria-label="Undo"
-        >
-          <span className="tool-icon">↩</span>
-          <span className="tool-label">Undo</span>
+      {/* 5. Undo/Redo */}
+      <div className="tool-group tool-group-pill ml-2">
+        <button className="tool-btn-icon" onClick={() => undo()} disabled={!canUndo} title="Undo">
+          <Undo2 className="w-4 h-4" />
         </button>
-        <button
-          className="tool-btn redo-btn"
-          onClick={() => redo()}
-          disabled={!canRedo}
-          title="Redo (Ctrl+Y)"
-          aria-label="Redo"
-        >
-          <span className="tool-icon">↪</span>
-          <span className="tool-label">Redo</span>
+        <button className="tool-btn-icon" onClick={() => redo()} disabled={!canRedo} title="Redo">
+          <Redo2 className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Spacer */}
       <div className="tool-spacer" />
 
-      {/* Project Management Tools */}
+      {/* 6. Layout & Project Management */}
       <div className="tool-group project-tools">
-        {/* Advanced Editor / Layer Manager Toggle */}
-        <button
-          className={`tool-btn project-btn ${showLayerManager ? 'active' : ''}`}
-          onClick={handleToggleAdvanced}
-          title="Advanced Mode / Layer Manager (@)"
-          aria-label="Advanced Mode"
+        <button 
+          className={`tool-btn px-3 ${showLayerManager ? 'active' : ''}`} 
+          onClick={handleToggleAdvanced} 
+          title="Advanced Mode (@)"
         >
-          <span className="tool-icon">@</span>
-          <span className="tool-label">Advanced</span>
+          <LayoutPanelLeft className="w-4 h-4 mr-2" />
+          <span className="text-xs font-bold">Advanced</span>
         </button>
 
-        <button
-          className={`tool-btn project-btn ${useAppSelector(state => state.panels.compactMode) ? 'active' : ''}`}
+        <button 
+          className={`tool-btn px-3 ${useAppSelector(state => state.panels.compactMode) ? 'active' : ''}`}
           onClick={() => dispatch(toggleCompactMode())}
-          title="Compact Mode (K)"
-          aria-label="Compact Mode"
+          title="Compact Director Dashboard (K)"
         >
-          <span className="tool-icon">📦</span>
-          <span className="tool-label">Compact</span>
+          <Box className="w-4 h-4 mr-2" />
+          <span className="text-xs font-bold">Director</span>
         </button>
 
-        <button
-          className="tool-btn project-btn"
-          onClick={handleProjectSettings}
-          title="Project Settings"
-          aria-label="Project Settings"
-        >
-          <span className="tool-icon">⚙</span>
-          <span className="tool-label">Settings</span>
+        <div className="tool-separator-v" />
+
+        {/* 7. View Toggles (Point 5.1/5.2 Grid/Marker control) */}
+        <div className="tool-group tool-group-pill bg-primary/5 mx-2">
+          <button 
+            className={`tool-btn-icon ${useAppSelector(state => state.panels.gridVisible) ? 'active text-primary' : 'opacity-40'}`} 
+            onClick={() => dispatch(toggleGrid())} 
+            title="Toggle Timeline Grid (G)"
+          >
+            <Grid3X3 className="w-3.5 h-3.5" />
+          </button>
+          <button 
+            className={`tool-btn-icon ${useAppSelector(state => state.panels.markersVisible) ? 'active text-primary' : 'opacity-40'}`} 
+            onClick={() => dispatch(toggleMarkers())} 
+            title="Toggle Timeline Markers (M)"
+          >
+            <MapPin className="w-3.5 h-3.5" />
+          </button>
+          <button 
+            className={`tool-btn-icon ${useAppSelector(state => state.panels.promptsVisible) ? 'active text-primary' : 'opacity-40'}`} 
+            onClick={() => dispatch(togglePrompts())} 
+            title="Toggle Shot Prompts (P)"
+          >
+            <AlignLeft className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        <div className="tool-separator-v" />
+
+        <button className="tool-btn-icon" onClick={handleSaveProject} title="Save Project">
+          <Save className={`w-4 h-4 ${saveStatus.state === 'modified' ? 'text-amber-400' : ''}`} />
         </button>
 
-        <button
-          className="tool-btn project-btn save-btn"
-          onClick={handleSaveProject}
-          title="Save Project (Ctrl/Cmd+S)"
-          aria-label="Save Project"
-        >
-          <span className="tool-icon">💾</span>
-          <span className="tool-label">Save</span>
-          <span className={`save-status ${saveStatus.state}`}>{saveStatus.state}</span>
+        <button className="tool-btn-icon" onClick={onExportToggle} title="Export Cinematic Bundle">
+          <Download className="w-4 h-4" />
         </button>
 
-        <button
-          className="tool-btn project-btn"
-          onClick={handleExport}
-          title="Export Project"
-          aria-label="Export Project"
-        >
-          <span className="tool-icon">📤</span>
-          <span className="tool-label">Export</span>
+        <button className="tool-btn-icon" onClick={onSettingsToggle} title="Project Settings">
+          <Settings className="w-4 h-4" />
         </button>
       </div>
     </div>

@@ -14,9 +14,9 @@ import { useDispatch } from 'react-redux';
 import { Reorder, motion, AnimatePresence } from 'framer-motion';
 import { GripVertical } from 'lucide-react';
 import {
-  addLayer,
-  deleteLayer,
-  reorderLayers,
+  addShotLayer,
+  deleteShotLayer,
+  reorderShotLayers,
   selectElement,
   deselectElement,
 } from '../../store/slices/timelineSlice';
@@ -63,16 +63,16 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
       data: getDefaultLayerData(type) as LayerData,
     };
 
-    dispatch(addLayer({ shotId: shot.id, layer: newLayer }));
+    dispatch(addShotLayer({ shotId: shot.id, layer: newLayer }));
     setShowAddMenu(false);
   }, [dispatch, shot.id, shot.duration]);
 
   const handleReorder = (newLayers: Layer[]) => {
-    dispatch(reorderLayers({ shotId: shot.id, layers: newLayers }));
+    dispatch(reorderShotLayers({ shotId: shot.id, layers: newLayers }));
   };
 
   const handleDeleteLayer = (layerId: string) => {
-    dispatch(deleteLayer({ shotId: shot.id, layerId }));
+    dispatch(deleteShotLayer({ shotId: shot.id, layerId }));
   };
 
   const handleLayerClick = (layerId: string, event: React.MouseEvent) => {
@@ -115,9 +115,8 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
             return (
               <button
                 key={type}
-                className="add-layer-menu-item"
+                className={`add-layer-menu-item type-${type}`}
                 onClick={() => handleAddLayer(type)}
-                style={{ borderLeftColor: config.color }}
               >
                 <span className="layer-icon">{config.icon}</span>
                 <span className="layer-name">{config.name}</span>
@@ -154,7 +153,7 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
                 <Reorder.Item
                   key={layer.id}
                   value={layer}
-                  className={`layer-item ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${layer.hidden ? 'hidden' : ''} ${layer.locked ? 'locked' : ''}`}
+                  className={`layer-item type-${layer.type} ${isSelected ? 'selected' : ''} ${isDragging ? 'dragging' : ''} ${layer.hidden ? 'hidden' : ''} ${layer.locked ? 'locked' : ''}`}
                   onClick={(e) => handleLayerClick(layer.id, e)}
                   whileDrag={{ 
                     scale: 1.02,
@@ -163,12 +162,11 @@ export const LayerManager: React.FC<LayerManagerProps> = ({
                   }}
                   onDragStart={() => setDraggedLayerId(layer.id)}
                   onDragEnd={() => setDraggedLayerId(null)}
-                  style={{ borderLeftColor: config.color }}
                 >
                   <div className="layer-item-drag-handle">
                     <GripVertical className="w-4 h-4 text-white/20 hover:text-white/60 transition-colors" />
                   </div>
-                  <div className="layer-item-icon" style={{ color: config.color }}>
+                  <div className="layer-item-icon">
                     {config.icon}
                   </div>
                   <div className="layer-item-content">

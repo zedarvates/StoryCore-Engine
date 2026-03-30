@@ -6,6 +6,7 @@ export const DND_ITEM_TYPES = {
   ASSET: 'ASSET',
   SHOT: 'SHOT',
   TASK: 'TASK',
+  CHARACTER: 'CHARACTER',
 } as const;
 
 export type DndItemType = typeof DND_ITEM_TYPES[keyof typeof DND_ITEM_TYPES];
@@ -13,6 +14,12 @@ export type DndItemType = typeof DND_ITEM_TYPES[keyof typeof DND_ITEM_TYPES];
 // ============================================================================
 // Drag Item Interfaces
 // ============================================================================
+
+export interface CharacterDragItem {
+  type: typeof DND_ITEM_TYPES.CHARACTER;
+  id: string;
+  name: string;
+}
 
 export interface AssetDragItem {
   type: typeof DND_ITEM_TYPES.ASSET;
@@ -38,5 +45,5 @@ export interface TaskDragItem {
   index: number;
 }
 
-export type DragItem = AssetDragItem | ShotDragItem | TaskDragItem;
+export type DragItem = AssetDragItem | ShotDragItem | TaskDragItem | CharacterDragItem;
 

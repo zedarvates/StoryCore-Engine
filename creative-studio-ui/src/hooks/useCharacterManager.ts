@@ -725,7 +725,7 @@ export function useCharacterManager() {
     (filters: {
       archetype?: string[];
       ageRange?: string[];
-      creationMethod?: ('wizard' | 'auto_generated' | 'manual')[];
+      creationMethod?: ('wizard' | 'auto_generated' | 'manual' | 'ai_vision')[];
     }): Character[] => {
       const allCharacters = getAllCharactersFromStore();
 

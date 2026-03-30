@@ -11,6 +11,7 @@ export interface SequencePlan {
   description: string;
   worldId: string;
   templateId?: string;
+  resume?: string; // Generated summary for Dashboard display
 
   // Technical specifications
   targetDuration: number; // seconds

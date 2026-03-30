@@ -1,3 +1,4 @@
+// cSpell:ignore timecode Timecode
 /**
  * TimeRuler Component
  * 
@@ -15,6 +16,7 @@
  */
 
 import React, { useCallback, useMemo, useState, useRef } from 'react';
+import { useAppSelector } from '../../store';
 
 interface TimeRulerProps {
   zoomLevel: number;
@@ -40,6 +42,8 @@ export const TimeRuler: React.FC<TimeRulerProps> = ({
   const [timeFormat, setTimeFormat] = useState<TimeFormat>('seconds');
   const [hoverPosition, setHoverPosition] = useState<number | null>(null);
   const rulerRef = useRef<HTMLDivElement>(null);
+  
+  const { markersVisible } = useAppSelector(state => state.panels);
   
   // Calculate marker interval based on zoom level
   const markerInterval = useMemo(() => {
@@ -167,25 +171,25 @@ export const TimeRuler: React.FC<TimeRulerProps> = ({
     <div 
       ref={rulerRef}
       className={`timeline-ruler ${snapToGrid ? 'snap-grid-active' : ''}`}
-      style={{ width: totalWidth }}
+      style={{ '--ruler-width': `${totalWidth}px` } as React.CSSProperties}
       onClick={handleRulerClick}
       onDoubleClick={handleDoubleClick}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       role="slider"
       aria-label="Time ruler - click to seek"
-      aria-valuenow={playheadPosition}
+      aria-valuenow={Math.round(playheadPosition)}
       aria-valuemin={0}
-      aria-valuemax={duration}
+      aria-valuemax={Math.round(duration)}
       tabIndex={0}
       title="Click to seek, double-click to change time format"
     >
       {/* Markers */}
-      {markers.map((marker) => (
+      {markersVisible && markers.map((marker) => (
         <div
           key={`marker-${marker.frame}`}
           className={`timeline-ruler-marker ${marker.isMajor ? 'major' : 'minor'}`}
-          style={{ left: marker.position }}
+          style={{ '--marker-pos': `${marker.position}px` } as React.CSSProperties}
           onClick={(e) => handleMarkerClick(marker.frame, e)}
           role="button"
           aria-label={`Go to ${marker.label}`}
@@ -209,7 +213,7 @@ export const TimeRuler: React.FC<TimeRulerProps> = ({
       {hoverPosition !== null && (
         <div 
           className="ruler-hover-indicator"
-          style={{ left: hoverPosition * zoomLevel }}
+          style={{ '--hover-pos': `${hoverPosition * zoomLevel}px` } as React.CSSProperties}
         >
           <div className="ruler-hover-line" />
           <div className="ruler-hover-tooltip">
@@ -221,7 +225,7 @@ export const TimeRuler: React.FC<TimeRulerProps> = ({
       {/* Current playhead position indicator */}
       <div 
         className="ruler-playhead-indicator"
-        style={{ left: playheadPosition * zoomLevel }}
+        style={{ '--playhead-pos': `${playheadPosition * zoomLevel}px` } as React.CSSProperties}
       />
       
       {/* Format indicator tooltip */}

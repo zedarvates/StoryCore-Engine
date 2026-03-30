@@ -67,7 +67,7 @@ const FeedbackPanel = lazy(() => import('@/components/feedback/FeedbackPanel').t
 const PendingReportsList = lazy(() => import('@/components/feedback/PendingReportsList').then(m => ({ default: m.PendingReportsList })));
 const DiscoveryLab = lazy(() => import('@/components/DiscoveryLab/DiscoveryLab').then(m => ({ default: m.DiscoveryLab })));
 const AutomationPanel = lazy(() => import('@/components/automation/AutomationPanel').then(m => ({ default: m.AutomationPanel })));
-const SequenceEditor = lazy(() => import('@/components/SequenceEditor').then(m => ({ default: m.SequenceEditor })));
+const SequenceEditor = lazy(() => import('@/sequence-editor/SequenceEditor').then(m => ({ default: m.SequenceEditor })));
 
 interface ModalManagerProps {
   onCloseInstallationWizard: () => void;
@@ -636,13 +636,8 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
       {showSequenceEditor && (
         <div className="fixed inset-0 z-[120] bg-slate-950 flex flex-col">
           <SequenceEditor 
-            projectPath={project?.path || ''}
-            onClose={closeSequenceEditor}
-            onSave={(plan) => {
-              onSequencePlanComplete(plan);
-              closeSequenceEditor();
-            }}
-            currentSequence={sequenceEditorContext?.existingSequencePlan}
+            sequenceId={sequenceEditorContext?.existingSequencePlan?.id}
+            onBack={closeSequenceEditor}
           />
         </div>
       )}

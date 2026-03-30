@@ -10,8 +10,9 @@ import React, { useCallback } from 'react';
 import { useDrop } from 'react-dnd';
 import { DND_ITEM_TYPES, type DraggedAssetItem } from '../AssetLibrary/DraggableAsset';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { addReferenceImage, updateShot } from '../../store/slices/timelineSlice';
-import type { Asset, Shot } from '../../types';
+import { AssetIntegrationService } from '../../services/assetIntegrationService';
+import type { Shot, ServiceAsset } from '../../types';
+import './previewDropTarget.css';
 
 // ============================================================================
 // Types
@@ -19,95 +20,7 @@ import type { Asset, Shot } from '../../types';
 
 interface PreviewDropTargetProps {
   children: React.ReactNode;
-  onAssetDrop?: (assets: Asset[]) => void;
-}
-
-/**
- * Applies an asset to a shot based on asset type
- */
-function applyAssetToShot(
-  asset: Asset,
-  shot: Shot,
-  dispatch: ReturnType<typeof useAppDispatch>
-): void {
-  switch (asset.type) {
-    case 'character':
-    case 'environment':
-    case 'prop':
-      // Add as reference image
-      dispatch(addReferenceImage({
-        shotId: shot.id,
-        image: {
-          id: `ref-${Date.now()}-${Math.random()}`,
-          url: asset.thumbnailUrl,
-          weight: 0.7,
-          source: 'library',
-        },
-      }));
-      break;
-
-    case 'visual-style':
-      // Apply visual style to shot
-      dispatch(updateShot({
-        id: shot.id,
-        updates: {
-          prompt: shot.prompt + ` in ${asset.name} style`,
-        },
-      }));
-      
-      // Add as reference image with lower weight
-      dispatch(addReferenceImage({
-        shotId: shot.id,
-        image: {
-          id: `ref-${Date.now()}-${Math.random()}`,
-          url: asset.thumbnailUrl,
-          weight: 0.5,
-          source: 'library',
-        },
-      }));
-      break;
-
-    case 'camera-preset':
-      // Apply camera preset parameters
-      if (asset.metadata.cameraMetadata) {
-        dispatch(updateShot({
-          id: shot.id,
-          updates: {
-            prompt: shot.prompt + ` with ${asset.name} camera movement`,
-          },
-        }));
-      }
-      break;
-
-    case 'lighting-rig':
-      // Apply lighting rig parameters
-      if (asset.metadata.lightingMetadata) {
-        dispatch(updateShot({
-          id: shot.id,
-          updates: {
-            prompt: shot.prompt + ` with ${asset.name} lighting`,
-          },
-        }));
-      }
-      break;
-
-    case 'template':
-      // Templates are handled differently (not applicable to single shots)
-      console.warn('Templates should be dropped on timeline, not preview frame');
-      break;
-
-    default:
-      // Default: add as reference image
-      dispatch(addReferenceImage({
-        shotId: shot.id,
-        image: {
-          id: `ref-${Date.now()}-${Math.random()}`,
-          url: asset.thumbnailUrl,
-          weight: 0.7,
-          source: 'library',
-        },
-      }));
-  }
+  onAssetDrop?: (assets: ServiceAsset[]) => void;
 }
 
 // ============================================================================
@@ -119,7 +32,7 @@ export const PreviewDropTarget: React.FC<PreviewDropTargetProps> = ({
   onAssetDrop,
 }) => {
   const dispatch = useAppDispatch();
-  const { shots, selectedElements, playheadPosition, zoomLevel } = useAppSelector((state) => state.timeline);
+  const { shots, selectedElements, playheadPosition } = useAppSelector((state) => state.timeline);
 
   // Get currently selected shot or shot at playhead
   const getCurrentShot = useCallback(() => {
@@ -163,9 +76,7 @@ export const PreviewDropTarget: React.FC<PreviewDropTargetProps> = ({
     }
 
     // Apply each asset to the current shot
-    assets.forEach((asset) => {
-      applyAssetToShot(asset, currentShot, dispatch);
-    });
+    AssetIntegrationService.applyToShot(assets, currentShot, dispatch);
   }, [dispatch, getCurrentShot, onAssetDrop]);
 
   // Set up drop target
@@ -196,13 +107,8 @@ export const PreviewDropTarget: React.FC<PreviewDropTargetProps> = ({
 
   return (
     <div
-      ref={drop as any}
+      ref={drop as unknown as React.RefObject<HTMLDivElement>}
       className={`preview-drop-target ${isActive ? 'drop-active' : ''} ${isInvalid ? 'drop-invalid' : ''} ${canDrop && !isOver ? 'drop-ready' : ''}`}
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-      }}
     >
       {children}
       

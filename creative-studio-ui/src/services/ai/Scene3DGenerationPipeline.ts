@@ -2,6 +2,7 @@ import { Location } from '../../types/location';
 import { backgroundRemovalService } from './BackgroundRemovalService';
 import { promptOptimizer } from './PromptOptimizationService';
 import { logger } from '@/utils/logger';
+import { BACKEND_URL } from '@/config/apiConfig';
 
 export interface Scene3DGenerationState {
   status: 'idle' | 'generating_skybox' | 'generating_terrain_textures' | 'analyzing_elements' | 'erasing_mobiles' | 'extracting_assets' | 'matching_assets' | 'generating_3d_models' | 'composing_scene' | 'complete' | 'error';
@@ -234,7 +235,7 @@ export class Scene3DGenerationPipeline {
    */
   private static async generate3DWithTTTLRM(imagePath: string, prompt: string): Promise<string> {
     try {
-      const response = await fetch('/api/ttt-lrm/reconstruct/image', {
+      const response = await fetch(`${BACKEND_URL}/api/ttt-lrm/reconstruct/image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -260,7 +261,7 @@ export class Scene3DGenerationPipeline {
    */
   public static async reconstructFullScene360(videoPath: string): Promise<string> {
     try {
-      const response = await fetch('/api/ttt-lrm/reconstruct/video', {
+      const response = await fetch(`${BACKEND_URL}/api/ttt-lrm/reconstruct/video`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

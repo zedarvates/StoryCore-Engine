@@ -3,7 +3,7 @@
  * Optimizes rendering by only displaying visible items
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 interface VirtualScrollOptions {
   itemHeight: number;
@@ -60,12 +60,12 @@ export function useVirtualScroll<T>(
   }, [items, startIndex, endIndex, itemHeight]);
 
   // Scroll to specific index
-  const scrollToIndex = (index: number) => {
+  const scrollToIndex = useCallback((index: number) => {
     if (containerRef.current) {
       const offsetTop = index * itemHeight;
       containerRef.current.scrollTop = offsetTop;
     }
-  };
+  }, [itemHeight]);
 
   return {
     virtualItems,
@@ -90,6 +90,8 @@ export function useScrollPosition(
     };
 
     element.addEventListener('scroll', handleScroll, { passive: true });
-    return () => element.removeEventListener('scroll', handleScroll);
-  }, [ref, callback]);
+    return () => {
+      element.removeEventListener('scroll', handleScroll);
+    };
+  }, [callback]); // Removed ref.current, ref is stable via useScrollPosition's scope if handleScroll is recreated on ref change, but since ref is usually a prop or result of useRef, the effect should re-run if it changes. However, ref is a React object that doesn't trigger re-renders. Better to use ref in dependency if needed or just accept it's stable. Actually, if we use it inside, we should follow rules.
 }

@@ -212,7 +212,7 @@
 }
 
 .timeline-shot.selected {
-  ring: 2px solid #8b5cf6;
+  outline: 2px solid #8b5cf6;
   box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5);
 }
 

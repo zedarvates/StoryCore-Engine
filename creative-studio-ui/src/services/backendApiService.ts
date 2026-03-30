@@ -346,6 +346,13 @@ export class BackendApiService {
     const fullUrl = `${this.config.baseUrl}${url}`;
     let lastError: Error | null = null;
 
+    // Get auth token from localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const authHeaders: Record<string, string> = {};
+    if (token) {
+      authHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
     for (let attempt = 0; attempt < this.config.retryAttempts; attempt++) {
       try {
         const controller = new AbortController();
@@ -353,6 +360,10 @@ export class BackendApiService {
 
         const response = await fetch(fullUrl, {
           ...options,
+          headers: {
+            ...authHeaders,
+            ...(options?.headers || {}),
+          },
           signal: controller.signal,
         });
 

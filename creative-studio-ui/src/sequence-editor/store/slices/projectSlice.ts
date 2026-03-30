@@ -26,14 +26,36 @@ const initialState: ProjectState = {
   generationStatus: {
     state: 'idle',
   },
+  sequences: [],
+  activeSequenceId: undefined,
 };
 
 const projectSlice = createSlice({
   name: 'project',
   initialState,
   reducers: {
-    setProject: (state, action: PayloadAction<ProjectMetadata | null>) => {
-      state.metadata = action.payload;
+    setProject: (state, action: PayloadAction<any>) => {
+      if (!action.payload) {
+        state.metadata = null;
+        state.sequences = [];
+        return;
+      }
+      
+      const p = action.payload;
+      state.metadata = {
+        id: p.id || p.metadata?.id,
+        name: p.project_name || p.metadata?.name || 'Untitled',
+        path: p.path || p.metadata?.path || '',
+        created: p.created || Date.now(),
+        modified: p.modified || Date.now(),
+        author: p.author || 'User',
+        description: p.description || ''
+      };
+      
+      state.sequences = p.sequences || p.sequencePlans || p.metadata?.sequences || [];
+    },
+    setActiveSequence: (state, action: PayloadAction<string>) => {
+      state.activeSequenceId = action.payload;
     },
     updateMetadata: (state, action: PayloadAction<Partial<ProjectMetadata>>) => {
       if (state.metadata) {
@@ -63,6 +85,7 @@ const projectSlice = createSlice({
 
 export const {
   setProject,
+  setActiveSequence,
   updateMetadata,
   updateSettings,
   setSaveStatus,

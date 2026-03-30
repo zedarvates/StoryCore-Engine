@@ -1,1058 +1,282 @@
 /**
- * Shot Configuration Panel Component
+ * Professional Inspector Panel Component - Rightmost Zone (Point 4)
  * 
- * Displays and edits configuration for the selected shot including:
- * - Reference images grid
- * - Inherited references from master/sequence
- * - Consistency indicators
- * - Prompt editor
- * - Generation parameters
- * - Apply/Revert buttons
- * 
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
+ * High-end cinematic inspector inspired by DaVinci Resolve.
+ * Features specialized tabs for:
+ * 1. Style (Visual parameters, intensity)
+ * 2. Scene (Asset configurations, environments)
+ * 3. Camera (Presets, focal length, movement)
+ * 4. Lighting (Rigs, intensity, mood)
+ * 5. Animation (Puppet controls, movement)
+ * 6. Audio (Volume, pan, EQ)
  */
 
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { useAppDispatch, useAppSelector } from '../../store';
-import { useStore as useMainStore } from '../../../store';
-import { useToast } from '@/hooks/use-toast';
-import { updateShot } from '../../store/slices/timelineSlice';
-import { ShotConfigDropTarget } from './ShotConfigDropTarget';
+import React, { useState, useCallback } from 'react';
+import { 
+  Palette, Camera, Sun, Zap, Music, 
+  Settings2, Box, Info,
+  Volume2, SlidersHorizontal, BarChart2,
+  GitMerge, Sparkles, MessageSquare
+} from 'lucide-react';
+import { useSelectedShot } from '../../store/hooks/useSelectedShot';
+import { useAppDispatch } from '../../store';
+import { updateAudioSettings, updateShot } from '../../store/slices/timelineSlice';
+
+// Specialized Controls
 import { StyleControls } from './StyleControls';
-import type { ReferenceImage, Shot } from '../../types';
-import { referenceInheritanceService } from '../../../services/referenceInheritanceService';
-import { consistencyEngine } from '../../../services/consistencyEngine';
-import type { ConsistencyIssue, ConsistencyScore } from '../../../services/consistencyEngine';
-import type { CharacterAppearanceSheet, LocationAppearanceSheet } from '../../../types/reference';
-import { Image as ImageIcon, Video as VideoIcon, Volume2 as AudioIcon } from 'lucide-react';
-import { GenerateButton } from '../GenerateButton/GenerateButton';
+import { CameraPresetControls } from './CameraPresetControls';
+import { LightingRigControls } from './LightingRigControls';
+import { NarrativeControls } from './NarrativeControls';
 import { ConsistencyAssetBrowser } from './ConsistencyAssetBrowser';
-import './shotConfigPanel.css';
+import { KritaPresetControls } from './KritaPresetControls';
+import { PuppetAnimationControls } from '../PreviewFrame/PuppetAnimationControls';
+import { TransitionsPanel } from '../TransitionsPanel/TransitionsPanel';
+import { EffectsPanel } from '../EffectsPanel/EffectsPanel';
+import { AISurroundAssistant } from '../../../components/AISurroundAssistant';
+import { NarrativeLayerMapper } from '../../../services/NarrativeLayerMapper';
 
-// ============================================================================
-// Types
-// ============================================================================
+import { CINEMATIC_SHOT_PRESETS } from '../../../constants/presets/shotPresets';
+import { ScrollArea } from '../../../components/ui/scroll-area';
 
-interface ShotModifications {
-  prompt?: string;
-  animationPrompt?: string;
-  referenceImages?: ReferenceImage[];
-  seed?: number;
-  denoising?: number;
-  steps?: number;
-  guidance?: number;
-}
+import './inspector.css';
 
-interface InheritedReference {
-  id: string;
-  name: string;
-  type: 'character' | 'location' | 'style';
-  source: 'master' | 'sequence';
-  thumbnail?: string;
-}
-
-// ============================================================================
-// Component
-// ============================================================================
+type InspectorTab = 'narrative' | 'style' | 'scene' | 'camera' | 'lighting' | 'animation' | 'audio' | 'transitions' | 'effects';
 
 export const ShotConfigPanel: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { toast } = useToast();
+  const { selectedShot } = useSelectedShot();
+  const [activeTab, setActiveTab] = useState<InspectorTab>('narrative');
 
-  // Redux state
-  const { shots, selectedElements, currentSequenceId } = useAppSelector((state) => state.timeline);
-  const mainProject = useMainStore((state) => state.project);
-  const globalStyle = mainProject?.projectSetup?.visualStyle || 'cinematic';
+  const tabs: { id: InspectorTab; icon: React.ElementType; label: string }[] = [
+    { id: 'narrative', icon: MessageSquare, label: 'Narrative' },
+    { id: 'style', icon: Palette, label: 'Style' },
+    { id: 'scene', icon: Box, label: 'Scene' },
+    { id: 'camera', icon: Camera, label: 'Camera' },
+    { id: 'lighting', icon: Sun, label: 'Lighting' },
+    { id: 'animation', icon: Zap, label: 'Animation' },
+    { id: 'audio', icon: Music, label: 'Audio' },
+    { id: 'transitions', icon: GitMerge, label: 'Transitions' },
+    { id: 'effects', icon: Sparkles, label: 'Effects' }
+  ];
 
-  // Get selected shot
-  const selectedShot = useMemo(() => {
-    if (selectedElements.length === 0) return null;
-    
-    // Try to find if any of the selected elements is a shot ID
-    const directShot = shots.find((shot: Shot) => selectedElements.includes(shot.id));
-    if (directShot) return directShot;
-    
-    // If not, try to find a shot that contains any of the selected layer IDs
-    const shotWithSelectedLayer = shots.find((shot: Shot) => 
-      shot.layers.some((layer: any) => selectedElements.includes(layer.id))
-    );
-    
-    return shotWithSelectedLayer || null;
-  }, [shots, selectedElements]);
-
-  // Local state
-  const [modifications, setModifications] = useState<ShotModifications>({});
-  const [hasModifications, setHasModifications] = useState(false);
-  const [inheritedReferences, setInheritedReferences] = useState<InheritedReference[]>([]);
-  const [consistencyIssues, setConsistencyIssues] = useState<ConsistencyIssue[]>([]);
-  const [consistencyScore, setConsistencyScore] = useState<ConsistencyScore | null>(null);
-  const [useInherited, setUseInherited] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  // State for conversion process
-  const [isConverting, setIsConverting] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
-  const [isGeneratingAudio, setIsGeneratingAudio] = useState(false);
-
-  // Handler to convert shot to puppet
-  const handleConvertToPuppet = async () => {
-    if (!selectedShot) return;
-    setIsConverting(true);
-    try {
-      const response = await fetch('/api/rigging/convert', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          shotId: selectedShot.id,
-          sheet: selectedShot.sheet,
-        }),
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Conversion failed: ${errorText}`);
-      }
-      const data = await response.json();
-      const rigPath = data?.rigPath;
-      if (rigPath) {
-        // Update the shot with the new rig
-        // Update the shot with the new rig metadata returned from the backend
-        const boneCount = data?.boneCount;
-        const hash = data?.hash;
-        dispatch(
-          updateShot({
-            id: selectedShot.id,
-            updates: {
-              rigPath,
-              boneCount,
-              hash,
-            },
-          })
-        );
-        toast({
-          title: 'Rig generated',
-          description: 'Rig successfully created and loaded.',
-          variant: 'default',
-        });
-      } else {
-        throw new Error('No rigPath returned from backend');
-      }
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: 'Conversion error',
-        description: (error as Error).message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsConverting(false);
-    }
-  };
-
-  const handleGenerateImageFrom3D = useCallback(async () => {
-    if (!selectedShot) return;
-    setIsGeneratingImage(true);
-    try {
-      toast({ title: 'Génération', description: 'Capture de la scène 3D et génération de l\'image en cours...' });
-
-      // 1. Récupérer l'image du canvas WebGL (React-Three-Fiber ou fallback 2D)
-      const canvasElement = document.getElementById('fiber-scene-canvas') as HTMLCanvasElement 
-                         || document.querySelector('.scene-view-context canvas') as HTMLCanvasElement;
-                         
-      if (!canvasElement) {
-        throw new Error("Canvas 3D introuvable dans le DOM. Veuillez ouvrir l'onglet de vue 3D.");
-      }
-
-      const base64Image = canvasElement.toDataURL('image/png');
-
-      // 2. Envoyer en img2img avec le prompt vers l'API
-      const response = await fetch('/api/addons/grok-imagine/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scene: {
-            description: modifications.prompt || selectedShot.prompt,
-            aspect_ratio: '16:9',
-            style: globalStyle,
-            reference_image_url: base64Image
-          },
-          config_overrides: {
-            model: 'grok-3.1-fast',
-            enable_motion: false,
-            image_strength: modifications.denoising || selectedShot.parameters?.denoising || 0.75
-          }
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.status === 'success' && result.images && result.images.length > 0) {
-        const newRef: ReferenceImage = {
-          id: crypto.randomUUID(),
-          url: result.images[0],
-          source: 'generated',
-          weight: 1
-        };
-        
-        setModifications(prev => ({
-          ...prev,
-          referenceImages: [...(prev.referenceImages || []), newRef]
-        }));
-        
-        dispatch(
-          updateShot({
-            id: selectedShot.id,
-            updates: {
-              referenceImages: [...(selectedShot.referenceImages || []), newRef]
-            },
-          })
-        );
-        toast({ title: 'Succès', description: 'Image de référence générée depuis la 3D.' });
-      } else {
-        throw new Error(result.error || 'No images returned');
-      }
-
-    } catch (error) {
-      console.error(error);
-      const msg = error instanceof Error ? error.message : 'Échec de la génération via 3D';
-      toast({ title: 'Erreur', description: msg, variant: 'destructive' });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  }, [selectedShot, modifications, dispatch, toast, globalStyle]);
-
-  const handleGenerateImageFromPrompt = useCallback(async () => {
-    if (!selectedShot) return;
-    setIsGeneratingImage(true);
-    try {
-      toast({ title: 'Génération', description: 'Génération de l\'image de référence via le prompt...' });
-      
-      // Extract coherence assets from reference images
-      const charSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-character'))?.url;
-      const locSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-location'))?.url;
-
-      if (charSheet || locSheet) {
-        toast({ 
-          title: 'Coherence Detected', 
-          description: `Using Character: ${charSheet ? 'YES' : 'NO'}, Location: ${locSheet ? 'YES' : 'NO'}`,
-          variant: 'default'
-        });
-      }
-
-      const response = await fetch('/api/addons/grok-imagine/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scene: {
-            description: modifications.prompt || selectedShot.prompt,
-            aspect_ratio: '16:9',
-            style: globalStyle,
-            // Coherence Integration
-            coherence_character_sheet: charSheet,
-            coherence_location_sheet: locSheet
-          },
-          config_overrides: {
-            model: 'grok-3.1-fast',
-            enable_motion: false
-          }
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.status === 'success' && result.images && result.images.length > 0) {
-        const newRef: ReferenceImage = {
-          id: crypto.randomUUID(),
-          url: result.images[0],
-          source: 'generated',
-          weight: 1
-        };
-        
-        // Add new reference image to current modifications or directly update shot
-        setModifications(prev => ({
-          ...prev,
-          referenceImages: [...(prev.referenceImages || []), newRef]
-        }));
-        
-        dispatch(
-          updateShot({
-            id: selectedShot.id,
-            updates: {
-              referenceImages: [...(selectedShot.referenceImages || []), newRef]
-            },
-          })
-        );
-        toast({ title: 'Succès', description: 'Image de référence générée depuis le prompt.' });
-      } else {
-        throw new Error(result.error || 'No images returned');
-      }
-    } catch (error) {
-      console.error(error);
-      toast({ title: 'Erreur', description: 'Échec de la génération via prompt', variant: 'destructive' });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  }, [selectedShot, modifications, dispatch, toast, globalStyle]);
-
-  const handleGenerateVideo = useCallback(async () => {
-    if (!selectedShot) return;
-    setIsGeneratingVideo(true);
-    try {
-      toast({ title: 'Vidéo', description: 'Création de la vidéo avec le prompt d\'animation...' });
-      
-      // Extract coherence assets from reference images
-      const charSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-character'))?.url;
-      const locSheet = modifications.referenceImages?.find(r => r.id.startsWith('sheet-location'))?.url;
-
-      const response = await fetch('/api/addons/grok-imagine/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          scene: {
-            description: modifications.animationPrompt || selectedShot.animationPrompt || modifications.prompt || selectedShot.prompt,
-            aspect_ratio: '16:9',
-            style: globalStyle,
-            // Coherence Integration for Video (Crucial for consistency)
-            coherence_character_sheet: charSheet,
-            coherence_location_sheet: locSheet
-          },
-          config_overrides: {
-            model: 'grok-3.1-fast',
-            enable_motion: true,
-            duration_seconds: 6
-          }
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.status === 'success' && result.video) {
-        // Enregistrer la vidéo générée dans le projet
-        toast({ title: 'Succès', description: 'Vidéo générée avec succès.' });
-      } else {
-        throw new Error(result.error || 'No video returned');
-      }
-    } catch (error) {
-      console.error(error);
-      toast({ title: 'Erreur', description: 'Échec de la génération de la vidéo', variant: 'destructive' });
-    } finally {
-      setIsGeneratingVideo(false);
-    }
-  }, [selectedShot, modifications, toast, globalStyle]);
-
-  const handleGenerateAudio = useCallback(async () => {
-    if (!selectedShot) return;
-    setIsGeneratingAudio(true);
-    try {
-      // TODO: Implement actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast({ title: 'Audio Generation', description: 'Audio generation started.' });
-    } catch {
-      toast({ title: 'Error', description: 'Failed to generate audio', variant: 'destructive' });
-    } finally {
-      setIsGeneratingAudio(false);
-    }
-  }, [selectedShot, toast]);
-
-  const handleSelectAsset = useCallback((asset: any, type: 'character' | 'location') => {
-    if (!selectedShot) return;
-
-    const sheet = asset.appearance_sheet || asset.sheet;
-    if (!sheet?.sheet_url) {
-      toast({
-        title: "Missing Sheet",
-        description: `This ${type} does not have an appearance sheet for consistency.`,
-        variant: "warning"
-      });
-      return;
-    }
-
-    const newRef: ReferenceImage = {
-      id: `sheet-${type}-${asset.character_id || asset.location_id}`,
-      url: sheet.sheet_url,
-      source: 'library',
-      weight: 1.0
-    };
-
-    setModifications(prev => ({
-      ...prev,
-      referenceImages: [...(prev.referenceImages || []).filter(r => !r.id.startsWith(`sheet-${type}`)), newRef]
-    }));
-    setHasModifications(true);
-
-    toast({
-      title: "Coherence Locked",
-      description: `${asset.name} sheet added to shot references.`,
-    });
-  }, [selectedShot, toast]);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Load inherited references
-  const loadInheritedReferences = useCallback(async () => {
-    if (!selectedShot) return;
-
-    setIsLoading(true);
-    try {
-      const result = await referenceInheritanceService.getInheritedReferencesForShot(selectedShot.id);
-
-      const refs: InheritedReference[] = [];
-
-      // Add master references
-      for (const item of result.fromMaster) {
-        if ('characterName' in item) {
-          const charSheet = item as CharacterAppearanceSheet;
-          refs.push({
-            id: charSheet.id,
-            name: charSheet.characterName,
-            type: 'character',
-            source: 'master',
-            thumbnail: charSheet.appearanceImages[0]?.url,
-          });
-        } else if ('locationName' in item) {
-          const locSheet = item as LocationAppearanceSheet;
-          refs.push({
-            id: locSheet.id,
-            name: locSheet.locationName,
-            type: 'location',
-            source: 'master',
-            thumbnail: locSheet.referenceImages[0]?.url,
-          });
-        }
-      }
-
-      // Add sequence references
-      if (result.fromSequence) {
-        refs.push({
-          id: result.fromSequence.id,
-          name: `Sequence Style`,
-          type: 'style',
-          source: 'sequence',
-        });
-      }
-
-      setInheritedReferences(refs);
-    } catch (error) {
-      console.error('Failed to load inherited references:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedShot]);
-
-  // Load consistency info
-  const loadConsistencyInfo = useCallback(async () => {
-    if (!selectedShot) return;
-
-    try {
-      const characterIssues = consistencyEngine.validateCharacterConsistency(selectedShot.id);
-      const locationIssues = consistencyEngine.validateLocationConsistency(selectedShot.id);
-      const styleIssues = consistencyEngine.validateStyleConsistency(selectedShot.id);
-      const issues = [...characterIssues, ...locationIssues, ...styleIssues];
-      setConsistencyIssues(issues);
-
-      // Calculate overall score
-      if (issues.length === 0) {
-        setConsistencyScore({
-          overallScore: 100,
-          characterScore: 100,
-          styleScore: 100,
-          colorScore: 100,
-          compositionScore: 100,
-        });
-      } else {
-        const avgScore = 100 - (issues.reduce((sum: number, i: ConsistencyIssue) => {
-          const severityMap: Record<string, number> = { critical: 30, high: 20, medium: 10, low: 5 };
-          return sum + (severityMap[i.severity] || 0);
-        }, 0) / Math.max(issues.length, 1));
-
-        setConsistencyScore({
-          overallScore: Math.max(0, avgScore),
-          characterScore: avgScore,
-          styleScore: avgScore,
-          colorScore: avgScore,
-          compositionScore: avgScore,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load consistency info:', error);
-    }
-  }, [selectedShot]);
-
-  // Load inherited references when shot changes
-  useEffect(() => {
-    if (selectedShot && currentSequenceId) {
-      loadInheritedReferences();
-      loadConsistencyInfo();
-    }
-  }, [selectedShot, currentSequenceId, loadInheritedReferences, loadConsistencyInfo]);
-
-  // Apply inherited references
-  const handleApplyInherited = useCallback(() => {
-    if (!selectedShot || inheritedReferences.length === 0) return;
-
-    // Convert inherited references to reference images
-    const inheritedImages: ReferenceImage[] = inheritedReferences
-      .filter(ref => ref.thumbnail)
-      .map(ref => ({
-        id: `inherited-${ref.id}`,
-        url: ref.thumbnail!,
-        weight: 1.0,
-        source: 'library' as const,
-      }));
-
-    setModifications((prev) => ({
-      ...prev,
-      referenceImages: [...(prev.referenceImages || []), ...inheritedImages],
-    }));
-    setHasModifications(true);
-  }, [selectedShot, inheritedReferences]);
-
-  // Initialize modifications when shot changes
-  useEffect(() => {
+  // Audio Handlers (Local for the Audio tab fallback)
+  const handleVolumeChange = useCallback((value: number) => {
     if (selectedShot) {
-      setModifications({
-        prompt: selectedShot.prompt,
-        animationPrompt: selectedShot.animationPrompt,
-        referenceImages: selectedShot.referenceImages || [],
-        seed: selectedShot.parameters.seed,
-        denoising: selectedShot.parameters.denoising,
-        steps: selectedShot.parameters.steps,
-        guidance: selectedShot.parameters.guidance,
-      });
-      setHasModifications(false);
+      dispatch(updateAudioSettings({ 
+        shotId: selectedShot.id, 
+        settings: { volume: value } 
+      }));
     }
-  }, [selectedShot]);
+  }, [selectedShot, dispatch]);
 
-  const handlePromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newPrompt = e.target.value;
-    setModifications((prev) => ({ ...prev, prompt: newPrompt }));
-    setHasModifications(true);
-  }, []);
-
-  const handleAnimationPromptChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newPrompt = e.target.value;
-    setModifications((prev) => ({ ...prev, animationPrompt: newPrompt }));
-    setHasModifications(true);
-  }, []);
-
-  // Handle parameter change
-  const handleParameterChange = useCallback((
-    param: 'seed' | 'denoising' | 'steps' | 'guidance',
-    value: number
-  ) => {
-    setModifications((prev) => ({ ...prev, [param]: value }));
-    setHasModifications(true);
-  }, []);
-
-  // Handle file upload
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const newImages: ReferenceImage[] = [];
-
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const url = event.target?.result as string;
-        newImages.push({
-          id: `uploaded-${Date.now()}-${Math.random()}`,
-          url,
-          weight: 1.0,
-          source: 'upload',
-        });
-
-        if (newImages.length === files.length) {
-          setModifications((prev) => ({
-            ...prev,
-            referenceImages: [...(prev.referenceImages || []), ...newImages],
-          }));
-          setHasModifications(true);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  }, []);
-
-  // Handle remove reference image
-  const handleRemoveImage = useCallback((imageId: string) => {
-    setModifications((prev) => ({
-      ...prev,
-      referenceImages: (prev.referenceImages || []).filter((img) => img.id !== imageId),
-    }));
-    setHasModifications(true);
-  }, []);
-
-  // Handle apply changes
-  const handleApply = useCallback(() => {
-    if (!selectedShot) return;
-
-    dispatch(updateShot({
-      id: selectedShot.id,
-      updates: {
-        prompt: modifications.prompt,
-        animationPrompt: modifications.animationPrompt,
-        referenceImages: modifications.referenceImages,
-        parameters: {
-          ...selectedShot.parameters,
-          seed: modifications.seed ?? selectedShot.parameters.seed,
-          denoising: modifications.denoising ?? selectedShot.parameters.denoising,
-          steps: modifications.steps ?? selectedShot.parameters.steps,
-          guidance: modifications.guidance ?? selectedShot.parameters.guidance,
-        },
-      },
-    }));
-
-    setHasModifications(false);
-  }, [selectedShot, modifications, dispatch]);
-
-  // Handle revert changes
-  const handleRevert = useCallback(() => {
-    if (!selectedShot) return;
-
-    setModifications({
-      prompt: selectedShot.prompt,
-      animationPrompt: selectedShot.animationPrompt,
-      referenceImages: selectedShot.referenceImages || [],
-      seed: selectedShot.parameters.seed,
-      denoising: selectedShot.parameters.denoising,
-      steps: selectedShot.parameters.steps,
-      guidance: selectedShot.parameters.guidance,
-    });
-
-    setHasModifications(false);
-  }, [selectedShot]);
-
-  // Handle drag over for file drop
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }, []);
-
-  // Handle drop for file upload
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const files = e.dataTransfer.files;
-    if (files.length === 0) return;
-
-    // Simulate file input change
-    const input = fileInputRef.current;
-    if (input) {
-      const dataTransfer = new DataTransfer();
-      Array.from(files).forEach((file) => dataTransfer.items.add(file));
-      input.files = dataTransfer.files;
-      input.dispatchEvent(new Event('change', { bubbles: true }));
+  const handlePanChange = useCallback((value: number) => {
+    if (selectedShot) {
+      dispatch(updateAudioSettings({ 
+        shotId: selectedShot.id, 
+        settings: { pan: value } 
+      }));
     }
-  }, []);
+  }, [selectedShot, dispatch]);
 
-  // Get source label
-  const getSourceLabel = (source: 'master' | 'sequence') => {
-    return source === 'master' ? 'Master' : 'Sequence';
-  };
+  // --- Render Functions ---
+  
+  const renderEmptyState = () => (
+    <div className="inspector-empty-state">
+      <div className="empty-state-content">
+        <Info className="w-8 h-8 opacity-20 mb-4" />
+        <h5>No Clip Selected</h5>
+        <p>Select a shot on the timeline to inspect its parameters.</p>
+      </div>
+    </div>
+  );
 
-  // Get consistency badge class
-  const getConsistencyBadgeClass = (score: number) => {
-    if (score >= 80) return 'consistency-good';
-    if (score >= 60) return 'consistency-warning';
-    return 'consistency-bad';
-  };
+  const renderContent = () => {
+    if (!selectedShot) return renderEmptyState();
 
-  if (!selectedShot) {
-    return (
-      <ShotConfigDropTarget shot={null}>
-        <div className="shot-config-panel empty">
-          <div className="empty-state">
-            <div className="empty-icon">🎬</div>
-            <h3>No Shot Selected</h3>
-            <p>Select a shot from the timeline to edit its configuration</p>
-          </div>
-        </div>
-      </ShotConfigDropTarget>
-    );
-  }
+    switch (activeTab) {
+      case 'narrative':
+        return <NarrativeControls shot={selectedShot} />;
+      case 'style': {
+        const detectedKeywords = NarrativeLayerMapper.getNarrativeKeywords(selectedShot.prompt || '');
+        const suggestedPresetId = NarrativeLayerMapper.suggestPresetId(selectedShot.prompt || '');
+        const suggestedPreset = CINEMATIC_SHOT_PRESETS.find(p => p.id === suggestedPresetId);
 
-  const referenceImages = modifications.referenceImages || [];
-  const promptLength = modifications.prompt?.length || 0;
-
-  return (
-    <ShotConfigDropTarget shot={selectedShot}>
-      <div className="shot-config-panel">
-        {/* Consistency Asset Browser */}
-        <ConsistencyAssetBrowser onSelectAsset={handleSelectAsset} />
-
-        {/* Header */}
-        <div className="shot-config-header">
-          <h3 className="shot-name">{selectedShot.name}</h3>
-          {hasModifications && (
-            <span className="modified-indicator" title="Unsaved changes">●</span>
-          )}
-        </div>
-
-        {/* Inherited References Section */}
-        {inheritedReferences.length > 0 && (
-          <div className="config-section inherited-references-section">
-            <div className="section-header">
-              <h4 className="section-title">Inherited References</h4>
-              <label className="toggle-inherited">
-                <input
-                  type="checkbox"
-                  checked={useInherited}
-                  onChange={(e) => setUseInherited(e.target.checked)}
-                />
-                Use Inherited
-              </label>
-            </div>
-
-            <div className="inherited-references-grid">
-              {inheritedReferences.map((ref) => (
-                <div key={ref.id} className="inherited-reference-item">
-                  {ref.thumbnail ? (
-                    <img src={ref.thumbnail} alt={ref.name} className="inherited-thumbnail" />
-                  ) : (
-                    <div className="inherited-thumbnail placeholder">
-                      {ref.type[0].toUpperCase()}
+        return (
+          <ScrollArea className="h-full">
+            <div className="tab-content style-tab p-4 pt-0">
+              {/* Narrative Analysis Section */}
+              {(detectedKeywords.length > 0 || suggestedPreset) && (
+                <div className="narrative-suggestion-box mb-6 bg-primary/5 border border-primary/20 rounded-lg p-3">
+                  <div className="suggestion-header flex items-center gap-2 mb-2">
+                    <span className="suggestion-icon">🧠</span>
+                    <span className="suggestion-title text-[10px] font-bold uppercase tracking-wider opacity-60">Narrative Intelligence</span>
+                  </div>
+                  
+                  {detectedKeywords.length > 0 && (
+                    <div className="detected-keywords flex flex-wrap gap-1 mb-3">
+                      {detectedKeywords.map(kw => (
+                        <span key={kw} className="keyword-badge bg-primary/10 text-primary text-[9px] px-1.5 py-0.5 rounded border border-primary/30">{kw}</span>
+                      ))}
                     </div>
                   )}
-                  <div className="inherited-info">
-                    <span className="inherited-name">{ref.name}</span>
-                    <span className={`inherited-source source-${ref.source}`}>
-                      {getSourceLabel(ref.source)}
-                    </span>
-                  </div>
+                  
+                  {suggestedPreset && (!selectedShot.presetId || selectedShot.presetId !== suggestedPresetId) && (
+                    <div className="preset-recommendation bg-black/20 p-2 rounded border border-white/5">
+                      <p className="text-[11px] mb-2 opacity-80">Suggested Preset: <strong className="text-primary">{suggestedPreset.label}</strong></p>
+                      <button 
+                        className="apply-recommendation-btn w-full bg-primary text-primary-foreground text-[10px] py-1 rounded font-medium hover:brightness-110 transition-all"
+                        onClick={() => dispatch(updateShot({ id: selectedShot.id, updates: { presetId: suggestedPresetId ?? undefined } }))}
+                      >
+                        Apply Recommendation
+                      </button>
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              )}
 
-            {useInherited && (
-              <button
-                className="apply-inherited-btn"
-                onClick={handleApplyInherited}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Loading...' : 'Apply Inherited References'}
-              </button>
-            )}
+              <StyleControls shot={selectedShot} />
+              <KritaPresetControls shot={selectedShot} />
+            </div>
+          </ScrollArea>
+        );
+      }
+      case 'scene':
+        return (
+          <ScrollArea className="h-full">
+            <div className="space-y-4 p-4 pt-0">
+               <ConsistencyAssetBrowser 
+                 onSelectAsset={(asset, type) => {
+                   console.log(`[Inspector] Asset Selected: ${asset.name} (${type})`);
+                 }} 
+               />
+               <KritaPresetControls shot={selectedShot} />
+            </div>
+          </ScrollArea>
+        );
+      case 'camera':
+        return <CameraPresetControls shot={selectedShot} />;
+      case 'lighting':
+        return (
+          <LightingRigControls 
+            shotId={selectedShot.id} 
+            onRigApply={() => {}} 
+            onParametersChange={() => {}} 
+          />
+        );
+      case 'animation':
+        return (
+          <PuppetAnimationControls 
+            currentFrame={0} 
+            puppetId={selectedShot.id} 
+            keyframes={[]} 
+            onKeyframeAdd={() => {}} 
+            onKeyframeRemove={() => {}} 
+          />
+        );
+      case 'audio':
+        return (
+          <div className="audio-inspector-v2">
+             <header className="section-header">
+                <Volume2 className="w-4 h-4 mr-2" />
+                <span>Audio Mixer</span>
+             </header>
+             <div className="mixer-controls-grid">
+                <div className="control-row">
+                   <label>Volume</label>
+                   <input 
+                     type="range" min="-60" max="12" step="0.1" 
+                     title="Volume Level (dB)"
+                     value={selectedShot.audioSettings?.volume || 0}
+                     onChange={(e) => handleVolumeChange(Number(e.target.value))}
+                   />
+                   <span className="value-badge">{selectedShot.audioSettings?.volume || 0} dB</span>
+                </div>
+                <div className="control-row">
+                   <label>Pan</label>
+                   <input 
+                     type="range" min="-100" max="100" 
+                     title="Pan (Left/Right)"
+                     value={selectedShot.audioSettings?.pan || 0}
+                     onChange={(e) => handlePanChange(Number(e.target.value))}
+                   />
+                   <span className="value-badge">{(selectedShot.audioSettings?.pan || 0) > 0 ? 'R' : 'L'}{Math.abs(selectedShot.audioSettings?.pan || 0)}</span>
+                </div>
+             </div>
+             
+             <div className="eq-preview-block">
+                <span className="text-[9px] uppercase font-bold opacity-30 mb-2 block">Spectral Analysis</span>
+                <div className="eq-mock-canvas">
+                   <BarChart2 className="w-full h-12 opacity-10" />
+                </div>
+             </div>
+
+             <div className="mt-6 border-t border-white/5 pt-6">
+                <AISurroundAssistant 
+                  shot={selectedShot}
+                  currentConfig={selectedShot.audioSettings?.surroundConfig || { mode: 'stereo', channels: {} }}
+                  onApplyPreset={(preset) => {
+                    dispatch(updateAudioSettings({
+                      shotId: selectedShot.id,
+                      settings: {
+                        surroundConfig: {
+                          mode: preset.mode,
+                          channels: preset.channels
+                        }
+                      }
+                    }));
+                  }}
+                />
+             </div>
           </div>
-        )}
+        );
+      case 'transitions':
+        return <TransitionsPanel clipId={selectedShot.id} />;
+      case 'effects':
+        return <EffectsPanel />;
+      default:
+        return <div className="p-4 opacity-50">Coming Soon</div>;
+    }
+  };
 
-        {/* Consistency Indicators */}
-        {consistencyScore && (
-          <div className="config-section consistency-section">
-            <h4 className="section-title">Consistency</h4>
+  return (
+    <aside className="inspector-panel-v2">
+      {/* Top Header Section */}
+      <header className="inspector-global-header">
+        <div className="active-shot-indicator">
+          <div className="shot-dot" />
+          <span className="shot-name">{selectedShot ? `Shot: ${selectedShot.id.slice(-6)}` : 'Inspector'}</span>
+        </div>
+        <div className="header-actions">
+           <button className="icon-btn-sm" title="Pin Inspector"><SlidersHorizontal className="w-3.5 h-3.5" /></button>
+           <button className="icon-btn-sm" title="More Settings"><Settings2 className="w-3.5 h-3.5" /></button>
+        </div>
+      </header>
 
-            <div className="consistency-score">
-              <div className={`consistency-badge ${getConsistencyBadgeClass(consistencyScore.overallScore)}`}>
-                {consistencyScore.overallScore}%
-              </div>
-              <span className="consistency-label">Overall Score</span>
-            </div>
-
-            <div className="consistency-breakdown">
-              <div className="consistency-item">
-                <span>Character</span>
-                <div className="consistency-bar">
-                  <div
-                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.characterScore)}`}
-                    style={{ width: `${consistencyScore.characterScore}%` }}
-                  />
-                </div>
-              </div>
-              <div className="consistency-item">
-                <span>Style</span>
-                <div className="consistency-bar">
-                  <div
-                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.styleScore)}`}
-                    style={{ width: `${consistencyScore.styleScore}%` }}
-                  />
-                </div>
-              </div>
-              <div className="consistency-item">
-                <span>Color</span>
-                <div className="consistency-bar">
-                  <div
-                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.colorScore)}`}
-                    style={{ width: `${consistencyScore.colorScore}%` }}
-                  />
-                </div>
-              </div>
-              <div className="consistency-item">
-                <span>Composition</span>
-                <div className="consistency-bar">
-                  <div
-                    className={`consistency-fill ${getConsistencyBadgeClass(consistencyScore.compositionScore)}`}
-                    style={{ width: `${consistencyScore.compositionScore}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {consistencyIssues.length > 0 && (
-              <div className="consistency-issues">
-                <h5>Issues ({consistencyIssues.length})</h5>
-                <ul className="issues-list">
-                  {consistencyIssues.slice(0, 3).map((issue) => (
-                    <li key={issue.id} className={`issue-item severity-${issue.severity}`}>
-                      <div className="issue-content">
-                        <span className="issue-type">{issue.type}</span>
-                        <span className="issue-description">{issue.description}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                {consistencyIssues.length > 3 && (
-                  <p className="more-issues">+{consistencyIssues.length - 3} more issues</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Reference Images Grid */}
-        <div className="config-section">
-          <h4 className="section-title">Reference Images</h4>
-
-          <div
-            className="reference-images-grid"
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
+      {/* Tab Navigation Area */}
+      <nav className="inspector-pro-tabs">
+        {tabs.map(tab => (
+          <button 
+            key={tab.id} 
+            className={`inspector-pro-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => setActiveTab(tab.id as InspectorTab)}
+            title={tab.label}
           >
-            {referenceImages.map((image) => (
-              <div key={image.id} className="reference-image-item">
-                <img src={image.url} alt={`Reference ${image.id}`} className="reference-image" />
-                <button
-                  className="remove-image-btn"
-                  onClick={() => handleRemoveImage(image.id)}
-                  title="Remove image"
-                >
-                  ×
-                </button>
-                <div className="image-type-badge">{image.source}</div>
-              </div>
-            ))}
-
-            {/* Upload Button */}
-            <div
-              className="upload-image-btn"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="upload-icon">+</div>
-              <div className="upload-text">Add Image</div>
-            </div>
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            aria-label="Upload reference images"
-            style={{ display: 'none' }}
-            onChange={handleFileUpload}
-          />
-
-          <p className="section-hint">
-            Drag and drop images here or click to upload
-          </p>
-        </div>
-
-        {/* Prompt Editor */}
-        <div className="config-section">
-          <div className="section-header">
-            <h4 className="section-title">Prompt Image</h4>
-            <span className="char-count">{promptLength} characters</span>
-          </div>
-
-          <textarea
-            className="prompt-editor"
-            value={modifications.prompt || ''}
-            onChange={handlePromptChange}
-            placeholder="Describe the image in detail..."
-            rows={4}
-          />
-          
-          <div className="flex justify-center mt-3 mb-4">
-             <button
-               className={`apply-btn w-full shadow-lg shadow-primary/20 flex items-center justify-center gap-2 ${isGeneratingImage ? 'opacity-50 cursor-not-allowed' : ''}`}
-               onClick={handleGenerateImageFromPrompt}
-               disabled={isGeneratingImage}
-             >
-               {isGeneratingImage ? <span className="animate-spin text-sm">↻</span> : <ImageIcon size={16} />}
-               <span>🎨 Générer l'Image</span>
-             </button>
-          </div>
-          
-          <div className="section-header" style={{ marginTop: '16px' }}>
-            <h4 className="section-title">Prompt Animation</h4>
-            <span className="char-count">{modifications.animationPrompt?.length || 0} characters</span>
-          </div>
-
-          <textarea
-            className="prompt-editor"
-            value={modifications.animationPrompt || ''}
-            onChange={handleAnimationPromptChange}
-            placeholder="Describe the animation or motion in detail..."
-            rows={4}
-          />
-
-          <div className="flex justify-center mt-3 mb-2">
-             <button
-               className={`revert-btn w-full flex items-center justify-center gap-2 ${isGeneratingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}
-               onClick={handleGenerateVideo}
-               disabled={isGeneratingVideo}
-             >
-               {isGeneratingVideo ? <span className="animate-spin text-sm">↻</span> : <VideoIcon size={16} />}
-               <span>🎬 Générer la Vidéo</span>
-             </button>
-          </div>
-        </div>
-
-        {/* Visual Style Controls */}
-        <StyleControls shot={selectedShot} />
-
-        {/* Generation Parameters */}
-        <div className="config-section">
-          <h4 className="section-title">Generation Parameters</h4>
-
-          <div className="parameters-grid">
-            {/* Seed */}
-            <div className="parameter-control">
-              <label htmlFor="seed-input">
-                Seed
-                <span className="param-hint" title="Random seed for reproducibility">ⓘ</span>
-              </label>
-              <input
-                id="seed-input"
-                type="number"
-                value={modifications.seed || 0}
-                onChange={(e) => handleParameterChange('seed', parseInt(e.target.value))}
-                min={0}
-                max={999999}
-              />
-            </div>
-
-            {/* Denoising */}
-            <div className="parameter-control">
-              <label htmlFor="denoising-input">
-                Denoising
-                <span className="param-hint" title="Strength of denoising (0.0-1.0)">ⓘ</span>
-              </label>
-              <input
-                id="denoising-input"
-                type="number"
-                value={modifications.denoising || 0.75}
-                onChange={(e) => handleParameterChange('denoising', parseFloat(e.target.value))}
-                min={0}
-                max={1}
-                step={0.05}
-              />
-            </div>
-
-            {/* Steps */}
-            <div className="parameter-control">
-              <label htmlFor="steps-input">
-                Steps
-                <span className="param-hint" title="Number of diffusion steps (10-100)">ⓘ</span>
-              </label>
-              <input
-                id="steps-input"
-                type="number"
-                value={modifications.steps || 30}
-                onChange={(e) => handleParameterChange('steps', parseInt(e.target.value))}
-                min={10}
-                max={100}
-              />
-            </div>
-
-            {/* Guidance */}
-            <div className="parameter-control">
-              <label htmlFor="guidance-input">
-                Guidance
-                <span className="param-hint" title="Classifier-free guidance scale (1-20)">ⓘ</span>
-              </label>
-              <input
-                id="guidance-input"
-                type="number"
-                value={modifications.guidance || 7.5}
-                onChange={(e) => handleParameterChange('guidance', parseFloat(e.target.value))}
-                min={1}
-                max={20}
-                step={0.5}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="config-actions">
-          <div className="generation-actions-grid">
-            <button
-              className="generation-action-btn"
-              onClick={handleGenerateImageFrom3D}
-              disabled={isGeneratingImage}
-              title="Générer l'image par rapport à la scène 3D"
-            >
-              <ImageIcon size={16} />
-              <span className="generation-action-label">Générer Image via Scène 3D</span>
-            </button>
-            <button
-              className="generation-action-btn"
-              onClick={handleGenerateImageFromPrompt}
-              disabled={isGeneratingImage}
-              title="Générer l'image de sous référence par rapport au prompt"
-            >
-              <ImageIcon size={16} />
-              <span className="generation-action-label">Générer Image via Prompt</span>
-            </button>
-            <button
-              className="generation-action-btn"
-              onClick={handleGenerateVideo}
-              disabled={isGeneratingVideo}
-              title="Générer la vidéo par rapport à l'image"
-            >
-              <VideoIcon size={16} />
-              <span className="generation-action-label">Générer Vidéo via Image</span>
-            </button>
-            <button
-              className="generation-action-btn"
-              onClick={handleGenerateAudio}
-              disabled={isGeneratingAudio}
-              title="Générer l'audio"
-            >
-              <AudioIcon size={16} />
-              <span className="generation-action-label">Audio</span>
-            </button>
-          </div>
-          {/* New button to convert shot to puppet */}
-          <button
-            className="convert-puppet-btn"
-            onClick={handleConvertToPuppet}
-            disabled={isConverting}
-            title="Convertir en marionnette"
-          >
-            {isConverting ? 'Conversion...' : 'Convertir en marionnette'}
+            <tab.icon className="w-4 h-4" />
           </button>
-          <div className="config-actions-row">
-            <button
-              className="revert-btn"
-              onClick={handleRevert}
-              disabled={!hasModifications}
-            >
-              Revert
-            </button>
-            <button
-              className="apply-btn"
-              onClick={handleApply}
-              disabled={!hasModifications}
-            >
-              Apply Changes
-            </button>
-          </div>
-        </div>
+        ))}
+      </nav>
+
+      {/* Main Content Area */}
+      <div className="inspector-tab-content">
+        {renderContent()}
       </div>
-    </ShotConfigDropTarget>
+
+      {/* Bottom Lock / State Indicator */}
+      <footer className="inspector-footer">
+          <div className="lock-indicator"><Info className="w-3 h-3 mr-1" /> Dynamic Link Active</div>
+          <div className="engine-status">Render Engine: StoryCore v1.0</div>
+      </footer>
+    </aside>
   );
 };
 

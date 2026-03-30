@@ -1,0 +1,32 @@
+=== Validation Visuelle StoryCore Cinematic Engine ===
+
+Test Case 1:
+  Narrative: A lonely cyber-punk street with neon signs and rain puddles.
+  Target Mood: kodak_vision3
+  Result: [92mSUCCESS[0m
+  Enhanced Prompt: 
+    Cinematic Visual Prompt: A high-end production shot with Natural Soft Light, Realistic Skin Tones, Soft Focus Background and Kodak Vision3 500T 5219 Emulation, Organic Halation, Rich Color Depth, 35mm Grain. Masterpiece, highly detailed, 8k resolution, cinematic composition.
+
+  [PASS] Color Science 'Kodak Vision3 500T 5219 Emulation, Organic Halation, Rich Color Depth, 35mm Grain' correctly injected.
+  [PASS] Lighting 'Natural Soft Light, Realistic Skin Tones, Soft Focus Background' correctly injected.
+--------------------------------------------------
+Test Case 2:
+  Narrative: An intense interrogation room with a single hanging bulb.
+  Target Mood: bleach_bypass
+  Result: [92mSUCCESS[0m
+  Enhanced Prompt: 
+    Cinematic Visual Prompt: A high-end production shot with Hard Top Lighting, High Contrast Shadows, Gritty Urban Light and Bleach Bypass process, Silvery Desaturated Tones, Heavy Contrast, Coarse Grain. Masterpiece, highly detailed, 8k resolution, cinematic composition.
+
+  [PASS] Color Science 'Bleach Bypass process, Silvery Desaturated Tones, Heavy Contrast, Coarse Grain' correctly injected.
+  [PASS] Lighting 'Hard Top Lighting, High Contrast Shadows, Gritty Urban Light' correctly injected.
+--------------------------------------------------
+Test Case 3:
+  Narrative: A sunset over a fantasy castle with dragons flying in the distance.
+  Target Mood: chiaroscuro
+  Result: [92mSUCCESS[0m
+  Enhanced Prompt: 
+    Cinematic Visual Prompt: A high-end production shot with Chiaroscuro lighting, Single Key Light, Deep Inky Shadows, Dramatic Highlights and Deep Contrasty Blacks, Rich Textural Detail, Rembrandt Lighting Pattern, Muted Palette. Masterpiece, highly detailed, 8k resolution, cinematic composition.
+
+  [PASS] Color Science 'Deep Contrasty Blacks, Rich Textural Detail, Rembrandt Lighting Pattern, Muted Palette' correctly injected.
+  [PASS] Lighting 'Chiaroscuro lighting, Single Key Light, Deep Inky Shadows, Dramatic Highlights' correctly injected.
+--------------------------------------------------

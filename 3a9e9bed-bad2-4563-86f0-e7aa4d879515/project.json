@@ -1,0 +1,22 @@
+{
+  "id": "c4c335de-5675-4435-ad99-f3dbef566be2",
+  "name": "Project c4c335de-5675-4435-ad99-f3dbef566be2",
+  "schema_version": "1.0",
+  "project_name": "Project c4c335de-5675-4435-ad99-f3dbef566be2",
+  "sequences": [],
+  "shots": [],
+  "audioPhrases": [],
+  "generationHistory": [],
+  "assets": [],
+  "capabilities": {
+    "grid_generation": true,
+    "promotion_engine": true,
+    "qa_engine": true,
+    "autofix_engine": true,
+    "voice_generation": true
+  },
+  "generation_status": {
+    "grid": "pending",
+    "promotion": "pending"
+  }
+}

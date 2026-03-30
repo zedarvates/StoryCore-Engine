@@ -5,7 +5,7 @@
  * Supports streaming responses, retry logic, and error handling
  */
 
-import { ollamaClient, OllamaClient } from './llm/OllamaClient';
+import { OllamaClient } from './llm/OllamaClient';
 import { OLLAMA_URL, LM_STUDIO_URL } from '../config/apiConfig';
 import { logger } from '../utils/logger';
 import { backendApiService } from './backendApiService';
@@ -336,10 +336,16 @@ const DEFAULT_CONFIG: LLMConfig = {
     characterGeneration: 'You are a character development expert...',
     dialogueGeneration: 'You are a dialogue writing specialist...',
   },
-  timeout: 300000, // 300 seconds (5 minutes) - local models like Ollama need more time for model loading and generation
-  retryAttempts: 3,
+  timeout: 600000,
+  retryAttempts: 4,
   streamingEnabled: true,
 };
+
+/**
+ * Minimum timeout for local providers (Ollama)
+ * Local models require significantly more time for loading, context processing, and large outputs
+ */
+const MIN_LOCAL_TIMEOUT = 1200000; // 1200 seconds (20 minutes) for large local models or slow hardware
 
 /**
  * Abstract LLM Provider base class
@@ -1415,14 +1421,14 @@ export class LLMService {
   /**
    * Generate completion with retry logic
    */
-  async generateCompletion(request: LLMRequest, requestId?: string): Promise<ApiResponse<LLMResponse>> {
+  async generateCompletion(request: LLMRequest, requestId?: string, timeoutOverride?: number): Promise<ApiResponse<LLMResponse>> {
     const id = requestId || this.generateRequestId();
     const abortController = new AbortController();
     this.abortControllers.set(id, abortController);
 
     // DIAGNOSTIC: Log request details and configuration
     logger.info(`[LLMService] 🚀 Starting generateCompletion (requestId: ${id})`);
-    logger.info(`[LLMService] ⚙️ Config: provider=${this.config.provider}, model=${this.config.model}, timeout=${this.config.timeout}ms, retryAttempts=${this.config.retryAttempts}`);
+    logger.info(`[LLMService] ⚙️ Config: provider=${this.config.provider}, model=${this.config.model}, timeout=${timeoutOverride || this.config.timeout}ms, retryAttempts=${this.config.retryAttempts}`);
     logger.debug(`[LLMService] 📝 Prompt length: ${request.prompt?.length || 0} chars, maxTokens: ${request.maxTokens || this.config.parameters.maxTokens}`);
 
     try {
@@ -1432,10 +1438,11 @@ export class LLMService {
         }
 
         const startTime = Date.now();
-        logger.debug(`[LLMService] 📤 Calling provider.generateCompletion (timeout: ${this.config.timeout}ms)`);
+        const effectiveTimeout = timeoutOverride || this.getEffectiveTimeout();
+        logger.debug(`[LLMService] 📤 Calling provider.generateCompletion (timeout: ${effectiveTimeout}ms)`);
 
         // Create a timeout controller that combines timeout and abort signal
-        const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
+        const timeoutController = this.createTimeoutController(effectiveTimeout, abortController.signal);
 
         // HYBRID LOGIC: If draftMode is active, use the fast local provider
         const activeProvider = this.config.parameters.draftMode ? this.draftProvider : this.provider;
@@ -1470,6 +1477,7 @@ export class LLMService {
   async generateText(prompt: string, options: {
     temperature?: number;
     maxTokens?: number;
+    timeout?: number;
   } = {}): Promise<string> {
     const request: LLMRequest = {
       prompt: prompt,
@@ -1477,7 +1485,7 @@ export class LLMService {
       maxTokens: options.maxTokens,
     };
 
-    const response = await this.generateCompletion(request);
+    const response = await this.generateCompletion(request, undefined, options.timeout);
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Failed to generate text');
     }
@@ -1495,6 +1503,7 @@ export class LLMService {
     systemPrompt?: string;
     temperature?: number;
     maxTokens?: number;
+    timeout?: number;
   } = {}): Promise<string> {
     const originalProvider = this.provider;
     const originalConfig = { ...this.config };
@@ -1516,7 +1525,7 @@ export class LLMService {
         maxTokens: options.maxTokens,
       };
 
-      const response = await this.generateCompletion(request);
+      const response = await this.generateCompletion(request, undefined, options.timeout);
       
       if (!response.success || !response.data) {
         throw new Error(response.error || 'Failed to generate response');
@@ -1552,8 +1561,9 @@ export class LLMService {
           throw new LLMError('Request cancelled', 'cancelled', false, undefined, LLMErrorCategory.UNKNOWN);
         }
 
+        const effectiveTimeout = this.getEffectiveTimeout();
         // Create a timeout controller that combines timeout and abort signal
-        const timeoutController = this.createTimeoutController(this.config.timeout, abortController.signal);
+        const timeoutController = this.createTimeoutController(effectiveTimeout, abortController.signal);
 
         // HYBRID LOGIC: If draftMode is active, use the fast local provider
         const activeProvider = this.config.parameters.draftMode ? this.draftProvider : this.provider;
@@ -1597,6 +1607,19 @@ export class LLMService {
   cancelAllRequests(): void {
     this.abortControllers.forEach((controller) => controller.abort());
     this.abortControllers.clear();
+  }
+
+  /**
+   * Get effective timeout, enforcing minimum for local providers
+   */
+  private getEffectiveTimeout(): number {
+    const timeoutMs = this.config.timeout;
+    const isLocal = ['local', 'ollama', 'lmstudio', 'custom', 'diffusion'].includes(this.config.provider);
+    
+    if (isLocal && timeoutMs < MIN_LOCAL_TIMEOUT) {
+      return MIN_LOCAL_TIMEOUT;
+    }
+    return timeoutMs;
   }
 
   /**
@@ -1683,7 +1706,7 @@ export class LLMService {
 
     logger.error('[LLMService] ❌ Request failed after all retry attempts');
     logger.error(`[LLMService] 💡 DIAGNOSTIC: Last error was: ${lastError?.message}`);
-    logger.error(`[LLMService] 💡 DIAGNOSTIC: Config - provider: ${this.config.provider}, timeout: ${this.config.timeout}ms`);
+    logger.error(`[LLMService] 💡 DIAGNOSTIC: Config - provider: ${this.config.provider}, timeout: ${this.config.timeout}ms, effectiveTimeout: ${this.getEffectiveTimeout()}ms`);
 
     return {
       success: false,
@@ -2287,14 +2310,14 @@ export async function getLLMService(): Promise<LLMService> {
           apiKey: '',
           apiEndpoint: config.apiEndpoint,
           model: config.model,
-          parameters: config.parameters as { temperature: number; maxTokens: number; topP: number; frequencyPenalty: number; presencePenalty: number },
-
+          parameters: config.parameters as any,
           streamingEnabled: config.streamingEnabled,
-          timeout: 180000,
+          timeout: DEFAULT_CONFIG.timeout,
+          retryAttempts: DEFAULT_CONFIG.retryAttempts,
           systemPrompts: {
-            worldGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.worldGeneration || 'You are a creative world-building assistant...',
-            characterGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.characterGeneration || 'You are a character development expert...',
-            dialogueGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.dialogueGeneration || 'You are a dialogue writing specialist...',
+            worldGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.worldGeneration || DEFAULT_CONFIG.systemPrompts.worldGeneration,
+            characterGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.characterGeneration || DEFAULT_CONFIG.systemPrompts.characterGeneration,
+            dialogueGeneration: ((config.systemPrompts as unknown) as Record<string, string>)?.dialogueGeneration || DEFAULT_CONFIG.systemPrompts.dialogueGeneration,
           },
         };
 

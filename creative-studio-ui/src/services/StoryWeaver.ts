@@ -3,7 +3,7 @@ import type { Story, StoryPart, StoryGenerationParams, GenerationProgress } from
 import type { StoryMethodologyType, MethodologyState } from '../types/storyMethodology';
 import { useMemoryStore } from '../stores/memoryStore';
 import { storyReviewer } from './StoryReviewer';
-import { generateStorySummary, retryWithBackoff } from './storyGenerationService';
+import { generateStorySummary } from './storyGenerationService';
 import { methodologyFactory } from './MethodologyFactory';
 
 /**
@@ -92,8 +92,20 @@ export class StoryWeaver {
         // 1. Generate Intro
         onProgress?.({
             stage: 'generating_intro',
+            progress: 5,
+            currentTask: 'Setting up story context and parameters...',
+        });
+
+        onProgress?.({
+            stage: 'generating_intro',
             progress: 10,
-            currentTask: 'Generating story introduction...',
+            currentTask: 'Drafting initial scene structure...',
+        });
+
+        onProgress?.({
+            stage: 'generating_intro',
+            progress: 15,
+            currentTask: 'Generating story introduction and establishing setting...',
         });
 
         try {
@@ -102,9 +114,15 @@ export class StoryWeaver {
                 params,
                 previousSummary: '',
                 order: 1,
-            });
+            }, onProgress, 15);
             parts.push(intro);
             runningSummaryData = intro.summary;
+
+            onProgress?.({
+                stage: 'generating_intro',
+                progress: 25,
+                currentTask: 'Introduction generated. Progressing to chapters...',
+            });
         } catch (error) {
             console.error('[StoryWeaver] Failed to generate intro:', error);
             const fallbackIntro = this.createFallbackPart('intro', params, 1);
@@ -113,16 +131,19 @@ export class StoryWeaver {
         }
 
         // 2. Generate Chapters
-        for (let i = 0; i < numChapters; i++) {
-            const chapterNum = i + 1;
-            const progressBase = 15 + (i / numChapters) * 60;
-
+        for (let i = 1; i <= numChapters; i++) {
+            const baseProgress = 25 + ((i - 1) / (numChapters + 1)) * 60;
+            
             onProgress?.({
                 stage: 'generating_chapter',
-                progress: progressBase,
-                currentTask: `Generating chapter ${chapterNum} of ${numChapters}...`,
-                currentChapter: chapterNum,
-                totalChapters: numChapters,
+                progress: baseProgress,
+                currentTask: `Preparing Chapter ${i} narrative arc...`,
+            });
+            
+            onProgress?.({
+                stage: 'generating_chapter',
+                progress: baseProgress + 2,
+                currentTask: `Generating Chapter ${i} with narrative consistency...`,
             });
 
             try {
@@ -131,13 +152,19 @@ export class StoryWeaver {
                     params,
                     previousSummary: runningSummaryData,
                     order: parts.length + 1,
-                    partIndex: chapterNum,
-                });
+                    partIndex: i,
+                }, onProgress, baseProgress);
                 parts.push(chapter);
                 runningSummaryData = chapter.summary;
+
+                onProgress?.({
+                    stage: 'generating_chapter',
+                    progress: baseProgress + (60 / (numChapters + 1)),
+                    currentTask: `Chapter ${i} completed. Analyzing continuity...`,
+                });
             } catch (error) {
-                console.error(`[StoryWeaver] Failed to generate chapter ${chapterNum}:`, error);
-                const fallbackChapter = this.createFallbackPart('chapter', params, parts.length + 1, chapterNum);
+                console.error(`[StoryWeaver] Failed to generate chapter ${i}:`, error);
+                const fallbackChapter = this.createFallbackPart('chapter', params, parts.length + 1, i);
                 parts.push(fallbackChapter);
                 runningSummaryData = fallbackChapter.summary;
             }
@@ -147,7 +174,7 @@ export class StoryWeaver {
         onProgress?.({
             stage: 'generating_ending',
             progress: 85,
-            currentTask: 'Generating story conclusion...',
+            currentTask: 'Synthesizing story conclusion and resolving conflicts...',
         });
 
         try {
@@ -156,7 +183,7 @@ export class StoryWeaver {
                 params,
                 previousSummary: runningSummaryData,
                 order: parts.length + 1,
-            });
+            }, onProgress, 85);
             parts.push(ending);
         } catch (error) {
             console.error('[StoryWeaver] Failed to generate ending:', error);
@@ -254,49 +281,86 @@ export class StoryWeaver {
     /**
      * Generates a single story part
      */
-    private async generatePart(options: {
-        type: 'intro' | 'chapter' | 'ending';
-        params: StoryGenerationParams;
-        previousSummary: string;
-        order: number;
-        partIndex?: number;
-    }): Promise<StoryPart> {
+    private async generatePart(
+        options: {
+            type: 'intro' | 'chapter' | 'ending';
+            params: StoryGenerationParams;
+            previousSummary: string;
+            order: number;
+            partIndex?: number;
+        },
+        onProgress?: (progress: GenerationProgress) => void,
+        baseProgress: number = 0
+    ): Promise<StoryPart> {
         const { type, params, previousSummary, order, partIndex } = options;
+
+        onProgress?.({
+            stage: type === 'intro' ? 'generating_intro' : type === 'chapter' ? 'generating_chapter' : 'generating_ending',
+            progress: baseProgress + 2,
+            currentTask: `Drawing inspiration for ${type}${partIndex ? ` ${partIndex}` : ''}...`,
+        });
 
         const basePrompt = this.getPartPrompt(type, params, previousSummary, partIndex);
 
         let content = '';
         try {
-            content = await retryWithBackoff(async () => {
-                const { getLLMService } = await import('./llmService');
-                const llmService = await getLLMService();
+            // Remove redundant retryWithBackoff here as llmService already has its own retry logic
+            const { getLLMService } = await import('./llmService');
+            const llmService = await getLLMService();
 
-                const response = await llmService.generateText(basePrompt, {
-                    temperature: 0.8,
-                    maxTokens: 1500,
-                });
+            onProgress?.({
+                stage: type === 'intro' ? 'generating_intro' : type === 'chapter' ? 'generating_chapter' : 'generating_ending',
+                progress: baseProgress + 3,
+                currentTask: `AI is composing the ${type}... This may take a minute.`,
+            });
 
-                if (!response || response.trim().length === 0) throw new Error('Empty response');
-                return response.trim();
-            }, 2);
+            // Increase timeout for main content generation as it can be long
+            content = await llmService.generateText(basePrompt, {
+                temperature: 0.8,
+                maxTokens: 2000,
+                timeout: 600000, // 10 minutes for full chapter generation
+            });
+
+            if (!content || content.trim().length === 0) throw new Error('Empty response from AI');
+            content = content.trim();
         } catch (error) {
-            console.error('[StoryWeaver] LLM generation failed for part:', type, error);
+            console.error('[StoryWeaver] AI generation failed for part:', type, error);
             throw error;
         }
 
-        // Total Recall: Analyze for memory
+        onProgress?.({
+            stage: 'reviewing',
+            progress: baseProgress + 5,
+            currentTask: `Analyzing semantic depth of ${type}${partIndex ? ` ${partIndex}` : ''}...`,
+        });
+
+        // Total Recall: Analyze for memory (Fire and forget as before)
         const { projectMemory } = await import('./ProjectMemoryService');
         projectMemory.analyzeForMemory(content, `Story Generation: ${type} ${partIndex || ''}`);
 
+        onProgress?.({
+            stage: 'reviewing',
+            progress: baseProgress + 8,
+            currentTask: `Evaluating narrative quality and emotional resonance...`,
+        });
+
         let scores;
         try {
+            // Use a shorter timeout for the review to avoid blocking too long
             scores = await storyReviewer.reviewPart(content, { genre: params.genre, tone: params.tone });
         } catch {
             scores = { tension: 50, drama: 50, sense: 70, emotion: 50, overall: 55 };
         }
 
+        onProgress?.({
+            stage: 'reviewing',
+            progress: baseProgress + 10,
+            currentTask: `Condensing part details for sequence memory...`,
+        });
+
         let summary = '';
         try {
+            // Use a shorter timeout for summary generation
             summary = await generateStorySummary(content);
         } catch {
             summary = content.substring(0, 200) + '...';

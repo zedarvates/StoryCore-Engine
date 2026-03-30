@@ -1,0 +1,76 @@
+
+> creative-studio-ui@0.0.0 prebuild
+> npm run clean && npm run validate
+
+
+> creative-studio-ui@0.0.0 clean
+> node scripts/clean-build-artifacts.cjs
+
+
+============================================================
+Cleanup Complete
+============================================================
+Files removed: 0
+Errors encountered: 0
+Duration: 28ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 validate
+> node scripts/validate-build-config.cjs
+
+
+============================================================
+Build Configuration Validation
+============================================================
+
+Checking for .js files in src/...
+Validating TypeScript configuration...
+Validating .gitignore patterns...
+
+============================================================
+Validation Results
+============================================================
+
+Ô£ô No .js files found in src/
+
+Ô£ô TypeScript configuration is correct
+
+Ô£ô .gitignore patterns are correct
+
+============================================================
+Ô£à Build configuration is valid
+
+Duration: 35ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[plugin vite:resolve] Module "node:fs/promises" has been externalized for browser compatibility, imported by "C:/storycore-engine/creative-studio-ui/src/services/FileSystemService.ts". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[plugin vite:resolve] Module "node:path" has been externalized for browser compatibility, imported by "C:/storycore-engine/creative-studio-ui/src/services/FileSystemService.ts". See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+[32mÔ£ô[39m 15713 modules transformed.
+Ô£ù Build failed in 17.10s
+error during build:
+src/sequence-editor/components/PreviewFrame/PreviewDropTarget.tsx (13:9): "addReferenceImage" is not exported by "src/sequence-editor/store/slices/timelineSlice.ts", imported by "src/sequence-editor/components/PreviewFrame/PreviewDropTarget.tsx".
+file: C:/storycore-engine/creative-studio-ui/src/sequence-editor/components/PreviewFrame/PreviewDropTarget.tsx:13:9
+
+11: import { DND_ITEM_TYPES, type DraggedAssetItem } from '../AssetLibrary/DraggableAsset';
+12: import { useAppDispatch, useAppSelector } from '../../store';
+13: import { addReferenceImage, updateShot } from '../../store/slices/timelineSlice';
+             ^
+14: import type { Asset, Shot } from '../../types';
+
+    at getRollupError (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+    at error (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+    at Module.error (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:17022:16)
+    at Module.traceVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:17478:29)
+    at ModuleScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:15141:39)
+    at FunctionScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at FunctionBodyScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at BlockScope.findVariable (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5688:38)
+    at Identifier.bind (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:5462:40)
+    at CallExpression.bind (file:///C:/storycore-engine/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:2829:23)
