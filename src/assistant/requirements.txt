@@ -1,10 +1,10 @@
 # StoryCore AI Assistant Requirements
 
 # Core dependencies
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-python-multipart>=0.0.6
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.6
+pydantic>=2.9.2
+python-multipart>=0.0.12
 
 # Authentication and security
 python-jose[cryptography]>=3.3.0
