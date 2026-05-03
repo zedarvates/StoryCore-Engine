@@ -350,6 +350,18 @@ export async function getModelRecommendation(): Promise<ModelRecommendation> {
  */
 export async function checkOllamaStatus(endpoint: string = DEFAULT_OLLAMA_CONFIG.endpoint): Promise<boolean> {
   try {
+    // Try via Electron API first to avoid console noise
+    if (window.electronAPI?.llm?.testConnection) {
+      const result = await window.electronAPI.llm.testConnection({
+        id: 'ollama',
+        name: 'Ollama',
+        baseUrl: endpoint,
+        type: 'ollama'
+      });
+      return result.success;
+    }
+
+    // Fallback for browser
     const response = await fetch(`${endpoint}/api/tags`, {
       method: 'GET',
       signal: AbortSignal.timeout(5000),

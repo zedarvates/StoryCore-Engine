@@ -1,9 +1,17 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import { Reorder } from 'framer-motion';
 import { toast } from '@/utils/toast';
-import { Play, Square, Film, Cpu, Zap, Star, Crown, AlertCircle, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
-import { SequenceEditor } from '@/components/SequenceEditor';
-import type { SequencePlan } from '@/types';
-import { Button, Input, InputNumber, Select, Space } from 'antd';
+import { Play, Square, Film, Cpu, Zap, Star, Crown, AlertCircle, ChevronLeft, ChevronRight, Plus, Trash2, Save, Sparkles, Wand } from 'lucide-react';
+import { SequenceEditor } from '@/sequence-editor/SequenceEditor';
+import type { SequencePlan, Shot } from '@/types';
+import { useProjectStore } from '@/stores/useProjectStore';
+import { useShallow } from 'zustand/react/shallow';
+import { bulkProductionService } from '@/services/BulkProductionService';
+import { generateId } from '@/utils/idGenerator';
+import { markdownExportService } from '@/sequence-editor/services/markdownExportService';
+import { storyInsightService } from '@/services/ai/StoryInsightService';
+import type { Character } from '@/types/character';
+import { Button, Input, Select, Space, Slider, Tooltip, Avatar, Switch } from 'antd';
 import './VideoGenerationPanel.css';
 
 // ==============================================================================
@@ -35,6 +43,7 @@ interface GenerationProgress {
   overallProgress: number;
   message: string;
 }
+// cspell:ignore upscaling
 
 // ==============================================================================
 // CONFIG
@@ -56,246 +65,413 @@ const QUALITY_MODES: { id: QualityMode; label: string; steps: number; icon: Reac
 // ==============================================================================
 
 export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
-  onGenerateVideo,
-  onCancel: _onCancel,
+  onGenerateVideo: _onGenerateVideo,
+  onCancel: _onCancelProp,
 }) => {
+  const { 
+    shots, 
+    addShot, 
+    updateShot, 
+    deleteShot,
+    selectedShotId,
+    setSelectedShotId,
+    project,
+    characters,
+    reorderShots
+  } = useProjectStore(useShallow(state => ({
+    shots: state.shots,
+    addShot: state.addShot,
+    updateShot: state.updateShot,
+    deleteShot: state.deleteShot,
+    selectedShotId: state.selectedShotId,
+    setSelectedShotId: state.setSelectedShotId,
+    project: state.project,
+    characters: state.characters || [],
+    reorderShots: state.reorderShots
+  })));
+
   // ==============================================================================
   // STATE VARIABLES
   // ==============================================================================
 
   const [engine, setEngine] = useState<VideoEngine>('ltx2');
   const [quality, setQuality] = useState<QualityMode>('standard');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [inputImage, setInputImage] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [frameCount] = useState(121);
-  const [frameRate] = useState(25);
-  const [width] = useState(1280);
-  const [height] = useState(720);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [isBackendConnected, setIsBackendConnected] = useState(true);
+  const [isBackendConnected] = useState(true);
+  const [isDraftMode, setIsDraftMode] = useState(false);
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [generatedVideoPath, setGeneratedVideoPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
-  const jobIdRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Sequence editor state
   const [showSequenceEditor, setShowSequenceEditor] = useState(false);
-  const [editingSequence, setEditingSequence] = useState<SequencePlan | null>(null);
+  const [editingSequence, _setEditingSequence] = useState<SequencePlan | null>(null);
   const [currentShotIndex, setCurrentShotIndex] = useState(0);
-   const [projectPath] = useState<string>('/tmp/project'); 
 
   // ==============================================================================
-  // BACKEND CONNECTIVITY CHECK
+  // HANDLE GENERATION AND CANCELLATION
   // ==============================================================================
-
-  const checkBackendConnection = useCallback(async (): Promise<boolean> => {
-    try {
-      const response = await fetch('/api/health', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(5000),
-      });
-      
-      if (response.ok) {
-        setIsBackendConnected(true);
-        return true;
-      } else {
-        setIsBackendConnected(false);
-        return false;
-      }
-    } catch (_err) {
-      setIsBackendConnected(false);
-      return false;
-    }
-  }, []);
-
-  useEffect(() => {
-    checkBackendConnection();
-  }, [checkBackendConnection]);
-
-  useEffect(() => { 
-    return () => { 
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current); 
-        pollingRef.current = null;
-      }
-    };
-  }, []);
-
-  // Handle sequence editor save
-  const handleSequenceSave = (sequence: SequencePlan) => {
-    setEditingSequence(sequence);
-    setShowSequenceEditor(false);
-    toast.success('Séquence mise à jour', 'Le plan de production a été synchronisé.');
-  };
 
   const handleOpenSequenceEditor = () => {
     setShowSequenceEditor(true);
   };
+
+  const handleExportPlan = useCallback(() => {
+    if (!shots || shots.length === 0) {
+      toast.error('Export Impossible', 'Aucun plan à exporter.');
+      return;
+    }
+    markdownExportService.downloadMarkdownPlan(project, shots);
+    toast.success('Plan Exporté', 'Le fichier .MD a été téléchargé.');
+  }, [shots, project]);
+
+  const handleExportStoryboard = useCallback(() => {
+    if (!shots || shots.length === 0) {
+      toast.error('Export Impossible', 'Aucun storyboard à exporter.');
+      return;
+    }
+    markdownExportService.downloadHtmlStoryboard(project, shots);
+    toast.success('Storyboard Exporté', 'Le fichier .HTML a été téléchargé.');
+  }, [shots, project]);
 
   // ==============================================================================
   // HANDLE GENERATION AND CANCELLATION
   // ==============================================================================
 
   const handleGenerate = useCallback(async () => {
-    if (!inputImage || !prompt) { 
-      setError('Veuillez fournir une image source et une description.'); 
+    if (!inputImage && !prompt) { 
+      setError('Veuillez fournir une image source ou une description.'); 
       return; 
     }
 
-    const connected = await checkBackendConnection();
-    if (!connected) {
-      setError('Impossible de se connecter au backend.');
-      toast.error('Erreur', 'Le backend n\'est pas joignable');
+    if (!project) {
+      setError('Aucun projet actif trouvé.');
       return;
     }
 
     setIsGenerating(true); 
     setError(null);
-    setProgress({ stage: 'latent', stageProgress: 0, overallProgress: 0, message: 'Démarrage de la génération...' });
+    setProgress({ stage: 'latent', stageProgress: 0, overallProgress: 0, message: 'Initialisation de l\'orchestration...' });
 
     try {
-      const genParams: VideoGenerationParams = { inputImagePath: inputImage, prompt, frameCount, frameRate, width, height, engine: engine === 'ltx2' ? 'ltx_video' : 'wan21', quality };
-      
-      if (onGenerateVideo) {
-        await onGenerateVideo(genParams);
-      } else {
-        const qualitySteps: Record<string, number> = { draft: 10, standard: 20, cinematic: 30, ultra: 40 };
-        const steps = qualitySteps[quality] || 20;
-        const duration = frameCount / frameRate;
-        const aspectRatio = width > height ? '16:9' : width === height ? '1:1' : '9:16';
-        
-        const payload = {
-          prompt: genParams.prompt,
-          negative_prompt: "blurry, low quality, distorted",
-          aspect_ratio: aspectRatio,
-          duration: Math.min(duration, 20),
-          audio_enabled: true,
-          steps: steps,
-          image_reference: genParams.inputImagePath
-        };
-        
-        const response = await fetch('/api/ltx/generate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        
-        if (!response.ok) throw new Error('API Error');
-        
-        const result = await response.json();
-        
-        if (result.output_path) {
-          setGeneratedVideoPath(result.output_path);
-          setProgress({ stage: 'complete', stageProgress: 100, overallProgress: 100, message: 'Succès !' });
-        } else if (result.job_id) {
-          const jobId = result.job_id;
-          jobIdRef.current = jobId;
-          
-          pollingRef.current = setInterval(async () => {
-            try {
-              const statusRes = await fetch(`/api/ltx/status/${jobId}`);
-              if (!statusRes.ok) return;
-              const statusData = await statusRes.json();
-              if (statusData.status === 'completed') {
-                clearInterval(pollingRef.current!);
-                setGeneratedVideoPath(statusData.output_path);
-                setIsGenerating(false);
-              } else if (statusData.status === 'error') {
-                clearInterval(pollingRef.current!);
-                setError('Erreur serveur');
-                setIsGenerating(false);
-              } else {
-                setProgress({ stage: 'latent', stageProgress: statusData.progress || 50, overallProgress: statusData.progress || 50, message: 'Génération en cours...' });
-              }
-            } catch (pollErr) { console.error(pollErr); }
-          }, 2000);
+      // Find or create current shot context
+      const currentShot = shots.find(s => s.id === selectedShotId) || shots[currentShotIndex];
+      if (!currentShot) throw new Error("Aucun plan actif pour l'orchestration.");
+
+      // Execute via bulk production (even for single shot) for coherence locking
+      const result = await bulkProductionService.generateSequenceBulk(
+        project,
+        [currentShot],
+        characters,
+        {
+          concurrency: 1,
+          coherenceLock: true,
+          onProgress: (p) => {
+            setProgress({ 
+              stage: 'latent', 
+              stageProgress: p, 
+              overallProgress: p, 
+              message: p < 100 ? 'Orchestration cinématique en cours...' : 'Finalisation...' 
+            });
+          },
+          onShotComplete: (shotId, job) => {
+             // Extract final result
+             const finalUrl = job.results.find(r => r.step === 'video' || r.step === 'image')?.output as string;
+             if (finalUrl) {
+                setGeneratedVideoPath(finalUrl);
+                updateShot(shotId, { 
+                  outputPath: finalUrl, 
+                  generationStatus: 'complete' 
+                });
+             }
+          }
         }
+      );
+
+      if (result.failed.length > 0) {
+        throw new Error(result.failed[0].error);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur');
+
+      setProgress({ stage: 'complete', stageProgress: 100, overallProgress: 100, message: 'Production terminée !' });
       setIsGenerating(false);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue pendant la production.');
+      setIsGenerating(false);
+      toast.error('Échec de la Production', 'L\'orchestrateur a renvoyé une erreur contextuelle.');
     }
-  }, [inputImage, prompt, frameCount, frameRate, width, height, engine, quality, onGenerateVideo, checkBackendConnection]);
+  }, [inputImage, prompt, selectedShotId, currentShotIndex, updateShot, project, shots, characters]);
   
   const handleCancel = useCallback(async () => {
     if (pollingRef.current) clearInterval(pollingRef.current);
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+    
     setIsGenerating(false);
     setProgress(null);
+    toast.info('Production Interrompue', 'Le rendu a été stoppé par l\'utilisateur.');
   }, []);
-
   // ==============================================================================
   // COMPACT SHOT EDITOR
   // ==============================================================================
   
   const renderCompactShotControls = () => {
-    if (!editingSequence?.shots || editingSequence.shots.length === 0) return null;
+    if (!shots || shots.length === 0) return null;
     
-    const activeShot = editingSequence.shots[currentShotIndex] || editingSequence.shots[0];
+    // Auto-sync local index with selectedShotId or project context
+    const currentShot = shots[currentShotIndex] || shots[0];
     
     return (
       <div className="shot-manager-floating">
-        <Space direction="vertical" className="w-full" size="middle">
-          <div className="shot-manager-title">SHOT MANAGER</div>
+        <Space orientation="vertical" className="w-full" size="middle">
+          <div className="shot-manager-title">DIRECTORIAL CONTROLLER</div>
+          
+          {renderMiniTimeline()}
+
           <div className="shot-manager-nav">
             <Button 
               size="small" 
               icon={<ChevronLeft className="h-3 w-3" />} 
               disabled={currentShotIndex === 0}
-              onClick={() => setCurrentShotIndex(prev => Math.max(0, prev - 1))}
+              onClick={() => {
+                const nextIndex = Math.max(0, currentShotIndex - 1);
+                setCurrentShotIndex(nextIndex);
+                const nextShot = shots[nextIndex];
+                if (nextShot) {
+                  setSelectedShotId(nextShot.id);
+                  setPrompt(nextShot.prompt || '');
+                  setInputImage(nextShot.outputPath || nextShot.thumbnailUrl || '');
+                }
+              }}
               className="shot-manager-nav-btn"
             />
-            <InputNumber
-              className="shot-manager-nav-input"
-              min={1}
-              max={editingSequence.shots.length}
-              value={currentShotIndex + 1}
-              onChange={(val) => {
-                 if (val) setCurrentShotIndex(val - 1);
-              }}
-            />
+            <div className="shot-manager-counter">
+              PLAN {currentShotIndex + 1} / {shots.length}
+            </div>
             <Button 
               size="small" 
               icon={<ChevronRight className="h-3 w-3" />} 
-              disabled={currentShotIndex === editingSequence.shots.length - 1}
-              onClick={() => setCurrentShotIndex(prev => Math.min(editingSequence.shots.length - 1, prev + 1))}
+              disabled={currentShotIndex === shots.length - 1}
+              onClick={() => {
+                const nextIndex = Math.min(shots.length - 1, currentShotIndex + 1);
+                setCurrentShotIndex(nextIndex);
+                const nextShot = shots[nextIndex];
+                if (nextShot) {
+                  setSelectedShotId(nextShot.id);
+                  setPrompt(nextShot.prompt || '');
+                  setInputImage(nextShot.outputPath || nextShot.thumbnailUrl || '');
+                }
+              }}
               className="shot-manager-nav-btn"
             />
           </div>
 
           <div className="shot-manager-prompt-box">
-            <div className="shot-manager-prompt-label">CURRENT PROMPT</div>
-            <div className="shot-manager-prompt-text">
-              "{activeShot.description || 'No description'}"
-            </div>
+            <div className="shot-manager-prompt-label">SHOT OBJECTIVE</div>
+            <Input.TextArea
+              className="shot-manager-prompt-textarea"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onBlur={() => {
+                if (currentShot) {
+                  updateShot(currentShot.id, { prompt });
+                }
+              }}
+              rows={2}
+            />
+          </div>
+
+          <div className="shot-manager-duration-box">
+            <div className="shot-manager-prompt-label">DURATION (FRAMES)</div>
+            <Slider 
+              min={24} 
+              max={240} 
+              step={24} 
+              value={currentShot?.duration || 120} 
+              onChange={(val) => {
+                if (currentShot) {
+                  updateShot(currentShot.id, { duration: val });
+                }
+              }}
+              tooltip={{ formatter: (val) => `${val} f (${(val || 0) / 24}s)` }}
+            />
+          </div>
+
+          <div className="shot-manager-ai-tools">
+            <Space orientation="vertical" className="w-full" size={8}>
+              <Button 
+                size="small" 
+                className="w-full btn-ai-unify" 
+                icon={<Sparkles size={14} />}
+                loading={isGenerating} // Using isGenerating state to prevent multiple clicks
+                onClick={async () => {
+                  if (!currentShot || !project) return;
+                  toast.info('IA en action', 'Analyse de la cohérence visuelle...');
+                  setIsGenerating(true);
+                  try {
+                    const nextPrompt = await storyInsightService.unifyVisualCoherence(currentShot, project, shots, characters);
+                    updateShot(currentShot.id, { prompt: nextPrompt });
+                    setPrompt(nextPrompt);
+                    toast.success('Cohérence Appliquée', 'Prompt harmonisé avec le reste de la séquence.');
+                  } catch (_error) {
+                    toast.error('Erreur', 'Impossible d\'unifier le prompt.');
+                  } finally {
+                    setIsGenerating(false);
+                  }
+                }}
+              >
+                UNIFY VISUAL COHERENCE
+              </Button>
+
+              <Button 
+                size="small" 
+                className="w-full btn-ai-expand" 
+                icon={<Wand size={14} />}
+                loading={isGenerating}
+                onClick={async () => {
+                  if (!currentShot || !project || !currentShot.prompt) return;
+                  toast.info('Technicien Virtuel', 'Expansion du prompt en cours...');
+                  setIsGenerating(true);
+                  try {
+                    const expandedPrompt = await storyInsightService.expandTechnicalPrompt(currentShot.prompt, project);
+                    updateShot(currentShot.id, { prompt: expandedPrompt });
+                    setPrompt(expandedPrompt);
+                    toast.success('Prompt Étendu', 'Directives cinématographiques ajoutées.');
+                  } catch (_error) {
+                    toast.error('Erreur', 'Impossible d\'étendre le prompt.');
+                  } finally {
+                    setIsGenerating(false);
+                  }
+                }}
+              >
+                EXPAND TECHNICAL PROMPT
+              </Button>
+            </Space>
           </div>
 
           <div className="shot-manager-actions">
             <Button size="small" type="primary" className="shot-manager-btn-add" icon={<Plus size={14} />} onClick={() => {
-              const updated = [...editingSequence.shots];
-              const base = updated[currentShotIndex] || updated[0];
-              const newShot = JSON.parse(JSON.stringify(base)); // Deep copy
-              newShot.id = `shot-${Date.now()}`;
-              newShot.number = updated.length + 1;
-              updated.splice(currentShotIndex + 1, 0, newShot);
-              // Re-number
-              const renumbered = updated.map((s, i) => ({ ...s, number: i + 1 }));
-              setEditingSequence({ ...editingSequence, shots: renumbered });
-              setCurrentShotIndex(currentShotIndex + 1);
-              toast.success('Shot ajouté', 'Le nouveau plan a été inséré dans la séquence.');
+              const newShot: Shot = {
+                id: generateId(),
+                name: `Plan ${shots.length + 1}`,
+                prompt: prompt,
+                startTime: currentShot ? currentShot.startTime + currentShot.duration : 0,
+                duration: 120, // 5s default
+                position: shots.length,
+                layers: [],
+                referenceImages: [],
+                // cspell:ignore euler
+                parameters: { seed: -1, denoising: 0.75, steps: 20, guidance: 3.5, sampler: 'euler', scheduler: 'normal' },
+                generationStatus: 'pending'
+              };
+              addShot(newShot);
+              setCurrentShotIndex(shots.length);
+              toast.success('Shot Ajouté', 'Nouveau plan inséré dans la timeline.');
             }}>Add</Button>
+            
             <Button size="small" danger ghost className="shot-manager-btn-remove" icon={<Trash2 size={14} />} onClick={() => {
-               if (editingSequence.shots.length > 1) {
-                 const updated = editingSequence.shots.filter((_, i) => i !== currentShotIndex);
-                 const renumbered = updated.map((s, i) => ({ ...s, number: i + 1 }));
-                 setEditingSequence({ ...editingSequence, shots: renumbered });
+               if (shots.length > 1 && currentShot) {
+                 deleteShot(currentShot.id);
                  setCurrentShotIndex(Math.max(0, currentShotIndex - 1));
-                 toast.info('Shot supprimé', 'Le plan a été retiré de la séquence.');
+                 toast.info('Shot Supprimé', 'Le plan a été retiré de la séquence.');
                }
             }}>Remove</Button>
           </div>
+          
+          <Space orientation="vertical" className="w-full" size={4}>
+            <Button 
+              size="small" 
+              className="w-full btn-export-md" 
+              icon={<Save size={14} />} 
+              onClick={handleExportPlan}
+            >
+              EXPORT .MD PLAN
+            </Button>
+            <Button 
+              size="small" 
+              className="w-full btn-export-html" 
+              icon={<Film size={14} />} 
+              onClick={handleExportStoryboard}
+            >
+              EXPORT HTML STORYBOARD
+            </Button>
+          </Space>
         </Space>
+      </div>
+    );
+  };
+
+  const renderMiniTimeline = () => {
+    if (!shots || shots.length === 0) return null;
+    
+    return (
+      <div className="mini-timeline-container">
+        <Reorder.Group 
+          axis="x" 
+          values={shots} 
+          onReorder={reorderShots}
+          className="mini-timeline"
+        >
+          {shots.map((shot, idx) => {
+            // Find characters in this shot (based on prompt or character references in shot)
+            const shotCharacters = characters.filter((char: Character) => 
+              shot.prompt?.toLowerCase().includes(char.name.toLowerCase())
+            );
+
+            return (
+              <Reorder.Item
+                key={shot.id}
+                value={shot}
+                className={`mini-timeline-shot ${idx === currentShotIndex ? 'active' : ''} ${shot.generationStatus || 'pending'}`}
+                /* hint-disable no-inline-styles */
+                style={{ '--shot-duration': shot.duration } as React.CSSProperties}
+                /* hint-enable no-inline-styles */
+                onClick={() => {
+                   setCurrentShotIndex(idx);
+                   setSelectedShotId(shot.id);
+                   setPrompt(shot.prompt || '');
+                   setInputImage(shot.outputPath || shot.thumbnailUrl || '');
+                }}
+              >
+                <Tooltip 
+                  title={
+                    <div className="mini-timeline-tooltip">
+                      <div className="tooltip-shot-name">{shot.name || `Plan ${idx + 1}`}</div>
+                      <div className="tooltip-shot-prompt">{shot.prompt}</div>
+                      {(shot.outputPath || shot.thumbnailUrl) && (
+                        <img 
+                           src={shot.outputPath || shot.thumbnailUrl} 
+                           className="tooltip-preview-img" 
+                           alt="Preview"
+                        />
+                      )}
+                    </div>
+                  }
+                  overlayClassName="mini-timeline-tooltip-overlay"
+                >
+                  <div className="mini-timeline-shot-content">
+                    {shotCharacters.length > 0 && (
+                      <div className="mini-timeline-casting">
+                        {shotCharacters.slice(0, 2).map((char: Character) => (
+                          <Avatar 
+                            key={char.character_id} 
+                            size={12} 
+                            src={char.visual_identity?.reference_images?.[0]?.url} 
+                            className="mini-casting-avatar"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {idx === currentShotIndex && <div className="mini-timeline-active-indicator" />}
+                  </div>
+                </Tooltip>
+              </Reorder.Item>
+            );
+          })}
+        </Reorder.Group>
       </div>
     );
   };
@@ -367,10 +543,12 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
              <span>{Math.round(progress.stageProgress)}%</span>
           </div>
           <div className="progress-track">
+            {/* hint-disable no-inline-styles */}
             <div 
               className="progress-fill" 
               style={{ '--progress-width': `${progress.stageProgress}%` } as React.CSSProperties} 
             />
+            {/* hint-enable no-inline-styles */}
           </div>
         </div>
       )}
@@ -384,16 +562,27 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
       
       <div className="action-buttons">
         {!isGenerating ? (
-          <Button 
-            type="primary" 
-            size="large" 
-            block
-            icon={<Play size={16} />}
-            onClick={handleGenerate}
-            className="btn-generate-cinematic"
-          >
-            GENERATE CINEMATIC
-          </Button>
+          <Space orientation="vertical" className="w-full" size="middle">
+            <Button 
+              type="primary" 
+              size="large" 
+              block
+              icon={<Play size={16} />}
+              onClick={handleGenerate}
+              className="btn-generate-cinematic"
+            >
+              GENERATE CINEMATIC
+            </Button>
+            
+            <div className="draft-mode-toggle">
+              <span className="draft-mode-label">DRAFT MODE (FASTER)</span>
+              <Switch 
+                size="small" 
+                checked={isDraftMode} 
+                onChange={setIsDraftMode} 
+              />
+            </div>
+          </Space>
         ) : (
           <Button 
             danger 
@@ -419,10 +608,7 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
         <div className="modal-overlay">
           <div className="modal-content">
             <SequenceEditor
-              projectPath={projectPath}
-              currentSequence={editingSequence || undefined}
-              onClose={() => setShowSequenceEditor(false)}
-              onSave={handleSequenceSave}
+              onBack={() => setShowSequenceEditor(false)}
             />
           </div>
         </div>

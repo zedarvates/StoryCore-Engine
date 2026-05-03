@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* cspell:ignore plex Glassmorphism */
 
 @layer base {
   :root {
@@ -602,3 +603,21 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
 }
 
+
+/* Staggered animation delays for lists */
+.stagger-delay-0 { animation-delay: 0ms; }
+.stagger-delay-1 { animation-delay: 50ms; }
+.stagger-delay-2 { animation-delay: 100ms; }
+.stagger-delay-3 { animation-delay: 150ms; }
+.stagger-delay-4 { animation-delay: 200ms; }
+.stagger-delay-5 { animation-delay: 250ms; }
+.stagger-delay-6 { animation-delay: 300ms; }
+.stagger-delay-7 { animation-delay: 350ms; }
+.stagger-delay-8 { animation-delay: 400ms; }
+.stagger-delay-9 { animation-delay: 450ms; }
+.stagger-delay-10 { animation-delay: 500ms; }
+.stagger-delay-11 { animation-delay: 550ms; }
+.stagger-delay-12 { animation-delay: 600ms; }
+.stagger-delay-13 { animation-delay: 650ms; }
+.stagger-delay-14 { animation-delay: 700ms; }
+.stagger-delay-15 { animation-delay: 750ms; }

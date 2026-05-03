@@ -1,3 +1,5 @@
+/* cspell:ignore lmstudio */
+import { LegacyAny } from '@/types/legacy';
 /* cspell:ignore Chatbox chatbox openai openai Anthropic Anthropic Italiano Português creer moodboard Moodboard protag antag alli métrage trage nums upscaler trage trace track tracking */
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Send, Paperclip, Sparkles, MessageSquare, AlertCircle, Download, Settings } from 'lucide-react';
@@ -11,6 +13,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { checkOllamaStatus } from '@/services/ollamaConfig';
+import { serviceStatusMonitor } from '@/services/ServiceStatusMonitor';
 import { StatusIndicator, ConnectionStatus } from './StatusIndicator';
 import { LanguageSelector } from './LanguageSelector';
 import { LLMConfigDialog } from './LLMConfigDialog';
@@ -288,7 +291,7 @@ export function LandingChatBox({
       // Convert back to store format
       const storeMsgs = updated.map(msg => ({
         id: msg.id,
-        role: msg.type as any,
+        role: msg.type as LegacyAny,
         content: msg.content,
         timestamp: msg.timestamp,
         attachments: msg.attachments,
@@ -299,7 +302,7 @@ export function LandingChatBox({
     } else {
       const storeMsgs = msgs.map(msg => ({
         id: msg.id,
-        role: msg.type as any,
+        role: msg.type as LegacyAny,
         content: msg.content,
         timestamp: msg.timestamp,
         attachments: msg.attachments,
@@ -312,7 +315,7 @@ export function LandingChatBox({
   const [inputValue, setInputValue] = useState('');
 
   const [attachments, setAttachments] = useState<File[]>([]);
-  const [isOllamaAvailable, setIsOllamaAvailable] = useState<boolean | null>(null);
+  const [isLocalAIAvailable, setIsLocalAIAvailable] = useState<boolean | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const [providerName, setProviderName] = useState<string>('');
   const [modelName, setModelName] = useState<string>('');
@@ -334,6 +337,12 @@ export function LandingChatBox({
   const { toast } = useToast();
   const [isListening, setIsListening] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
+
+  useEffect(() => {
+    if (containerRef.current && height) {
+      containerRef.current.style.height = height;
+    }
+  }, [height]);
 
   // Auto-save discussion to project (Requirement: Discussion persistence)
   const { 
@@ -397,7 +406,7 @@ export function LandingChatBox({
   // Helper function to add messages with history limit
   const addMessage = useCallback((newMessage: Message | Message[]) => {
     const messagesToAdd = Array.isArray(newMessage) ? newMessage : [newMessage];
-    addChatMessage(messagesToAdd as any);
+    addChatMessage(messagesToAdd as LegacyAny);
   }, [addChatMessage]);
 
 
@@ -411,7 +420,7 @@ export function LandingChatBox({
         content: getWelcomeMessage(currentLanguage),
         timestamp: new Date(),
       };
-      addChatMessage(welcomeMessage as any);
+      addChatMessage(welcomeMessage as LegacyAny);
     }
 
   }, [currentLanguage, messages.length, addChatMessage]); // Run when language changes or messages are cleared
@@ -1791,7 +1800,6 @@ export function LandingChatBox({
       ref={containerRef}
       className={`flex flex-col ${height ? 'h-full' : 'min-h-[400px] max-h-[70vh]'} ${isDetached ? 'h-full' : 'rounded-[28px] border border-white/25 dark:border-slate-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)]'} overflow-hidden transition-all duration-300 backdrop-blur-2xl backdrop-saturate-200 bg-white/70 dark:bg-slate-900/70`}
       id="landing-chatbox-container"
-      style={height ? { height } : undefined}
     >
       {/* Header */}
       <div 
@@ -1837,8 +1845,8 @@ export function LandingChatBox({
         aria-label="Chat messages"
         aria-describedby="chatbox-title"
       >
-        {/* Ollama Warning Banner */}
-        {isOllamaAvailable === false && (
+        {/* Local AI Service Detection (Ollama or LM Studio) */}
+        {isLocalAIAvailable === false && (
           <div 
             className="rounded-lg border-2 border-orange-500/50 bg-orange-900/20 p-3"
             role="alert"
@@ -1848,10 +1856,10 @@ export function LandingChatBox({
               <AlertCircle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
               <div className="flex-1">
                 <h4 className="font-semibold text-orange-300 text-sm mb-1">
-                  Ollama n'est pas détecté
+                  Services IA Locaux non détectés
                 </h4>
                 <p className="text-xs text-orange-200/80 mb-2">
-                  L'assistant AI nécessite Ollama pour fonctionner.
+                  L'assistant StoryCore recommande d'utiliser Ollama ou LM Studio pour une expérience optimale en local.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <a
@@ -1859,37 +1867,53 @@ export function LandingChatBox({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors"
-                    aria-label="Download Ollama (opens in new window)"
                   >
-                    <Download className="w-3 h-3" aria-hidden="true" />
-                    Télécharger
+                    <Download className="w-3 h-3" />
+                    Ollama
+                  </a>
+                  <a
+                    href="https://lmstudio.ai/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    LM Studio
                   </a>
                   <button
                     onClick={async () => {
                       setConnectionStatus('connecting');
-                      const available = await checkOllamaStatus();
-                      setIsOllamaAvailable(available);
-                      if (available) {
+                      const ollamaOk = await checkOllamaStatus();
+                      const lmStudioOk = await serviceStatusMonitor.checkLmStudioStatus();
+                      
+                      const ok = ollamaOk || lmStudioOk;
+                      setIsLocalAIAvailable(ok);
+                      
+                      if (ok) {
                         setConnectionStatus('online');
-                        setProviderName('Ollama');
-                        setModelName('llama2');
+                        setProviderName(ollamaOk ? 'Ollama' : 'LM Studio');
+                        setModelName(ollamaOk ? 'google/gemma-4-e2b' : 'local-model');
                         setIsFallbackMode(false);
-                        // Add system message about connection status change (Requirement 4.6)
+                        
                         addMessage({
                           id: Date.now().toString(),
                           type: 'system',
-                          content: '✅ Connection status: Online. Ollama is now connected and ready to assist.',
+                          content: `✅ Service IA détecté : ${ollamaOk ? 'Ollama' : 'LM Studio'} est maintenant prêt.`,
                           timestamp: new Date(),
                         });
                       } else {
                         setConnectionStatus('fallback');
                         setIsFallbackMode(true);
+                        toast({
+                          title: "Aucun service détecté",
+                          description: "Vérifiez que Ollama ou LM Studio est lancé.",
+                          variant: "destructive"
+                        });
                       }
                     }}
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-700 text-gray-200 text-xs rounded hover:bg-gray-600 transition-colors"
-                    aria-label="Check Ollama connection status"
                   >
-                    Vérifier
+                    Réessayer
                   </button>
                 </div>
               </div>
@@ -1898,7 +1922,7 @@ export function LandingChatBox({
         )}
 
         {/* Fallback Mode Warning Banner (Requirements 10.3, 10.4, 10.7) */}
-        {isFallbackMode && !isOllamaAvailable && (
+        {isFallbackMode && !isLocalAIAvailable && (
           <div 
             className="rounded-lg border-2 border-orange-500/50 bg-orange-900/20 p-3"
             role="alert"

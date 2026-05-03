@@ -8,7 +8,6 @@
 import { useAppStore } from '@/stores/useAppStore';
 import { ComfyUIService } from './comfyuiService';
 import { llmConfigService } from './llmConfigService';
-import { getInstalledOllamaModels } from '@/utils/ollamaModelDetection';
 
 class ServiceStatusMonitor {
     private static instance: ServiceStatusMonitor;
@@ -57,6 +56,7 @@ class ServiceStatusMonitor {
     public async checkAllServices(): Promise<void> {
         await Promise.allSettled([
             this.checkOllamaStatus(),
+            this.checkLmStudioStatus(),
             this.checkComfyUIStatus(),
         ]);
     }
@@ -70,7 +70,19 @@ class ServiceStatusMonitor {
         const endpoint = config?.apiEndpoint || 'http://localhost:11434';
 
         try {
-            // Check if Ollama is responsive
+            // Try via Electron API first to avoid console noise
+            if (window.electronAPI?.llm?.testConnection) {
+                const result = await window.electronAPI.llm.testConnection({
+                    id: 'ollama',
+                    name: 'Ollama',
+                    baseUrl: endpoint,
+                    type: 'ollama'
+                });
+                store.setOllamaStatus(result.success ? 'connected' : 'disconnected');
+                return;
+            }
+
+            // Fallback for browser (will show console error if down)
             const response = await fetch(`${endpoint}/api/tags`, {
                 method: 'GET',
                 signal: AbortSignal.timeout(2000),
@@ -81,7 +93,7 @@ class ServiceStatusMonitor {
             } else {
                 store.setOllamaStatus('error');
             }
-        } catch (error) {
+        } catch (_error) {
             store.setOllamaStatus('disconnected');
         }
     }
@@ -94,10 +106,45 @@ class ServiceStatusMonitor {
         const service = ComfyUIService.getInstance();
 
         try {
+            if (window.electronAPI?.comfyui?.testConnection) {
+                const result = await window.electronAPI.comfyui.testConnection();
+                store.setComfyUIStatus(result.success ? 'connected' : 'disconnected');
+                return;
+            }
+
             const { available } = await service.isAvailable();
             store.setComfyUIStatus(available ? 'connected' : 'disconnected');
-        } catch (error) {
+        } catch (_error) {
             store.setComfyUIStatus('disconnected');
+        }
+    }
+
+    /**
+     * Health check for LM Studio
+     */
+    private async checkLmStudioStatus(): Promise<void> {
+        const store = useAppStore.getState();
+        const endpoint = 'http://localhost:1234';
+
+        try {
+            if (window.electronAPI?.llm?.testConnection) {
+                const result = await window.electronAPI.llm.testConnection({
+                    id: 'lmstudio',
+                    name: 'LM Studio',
+                    baseUrl: endpoint,
+                    type: 'lmstudio'
+                });
+                store.setLmStudioStatus(result.success ? 'connected' : 'disconnected');
+                return;
+            }
+
+            const response = await fetch(`${endpoint}/v1/models`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(2000),
+            });
+            store.setLmStudioStatus(response.ok ? 'connected' : 'disconnected');
+        } catch (_error) {
+            store.setLmStudioStatus('disconnected');
         }
     }
 }

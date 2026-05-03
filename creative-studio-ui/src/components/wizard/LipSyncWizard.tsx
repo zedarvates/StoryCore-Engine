@@ -1,6 +1,8 @@
 /**
  * Lip Sync Wizard Component
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
@@ -8,18 +10,12 @@ import {
   Upload, 
   Mic, 
   Video, 
-  Settings, 
   ChevronRight, 
-  CheckCircle2, 
-  AlertCircle,
-  Play,
   RotateCcw,
-  FileVideo,
   Download,
   Plus
 } from 'lucide-react';
 import { useLipSyncStore } from '@/stores/lipSyncStore';
-import { useAppStore } from '@/stores/useAppStore';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
@@ -35,25 +31,26 @@ export interface LipSyncWizardProps {
     audioFile?: string;
     shotId?: string;
   };
-  updateShot?: (shotId: string, updates: any) => void;
+  updateShot?: (shotId: string, updates: LegacyAny) => void;
 }
 
 export function LipSyncWizard({ 
   isOpen, 
   onClose, 
-  projectId, 
+  projectId = 'default', 
   context,
   updateShot 
 }: LipSyncWizardProps) {
   const [step, setStep] = useState<'assets' | 'configure' | 'generate' | 'complete'>('assets');
-  const [characterImage, setCharacterImage] = useState<string | null>(context?.characterImage || null);
-  const [audioFile, setAudioFile] = useState<string | null>(context?.audioFile || null);
   
   const { 
-    isGenerating, 
     progress, 
     generateLipSync, 
-    generatedVideo,
+    currentJob,
+    characterFaceImage,
+    audioFile,
+    setCharacterFaceImage,
+    setAudioFile,
     reset 
   } = useLipSyncStore();
 
@@ -76,7 +73,9 @@ export function LipSyncWizard({
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
-      if (context?.characterImage) setCharacterImage(context.characterImage);
+      
+      // Initialize from context if provided
+      if (context?.characterImage) setCharacterFaceImage(context.characterImage);
       if (context?.audioFile) setAudioFile(context.audioFile);
     } else {
       window.removeEventListener('keydown', handleKeyDown);
@@ -87,27 +86,22 @@ export function LipSyncWizard({
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, handleKeyDown, context]);
+  }, [isOpen, handleKeyDown, context, setAudioFile, setCharacterFaceImage]);
 
-  const handleGenerate = async () => {
-    if (!characterImage || !audioFile) {
-      toast({ title: "Assets missing", description: "Please select both character and audio.", variant: "destructive" });
-      return;
-    }
-
+  const handleGenerateClick = async () => {
     setStep('generate');
     try {
-      await generateLipSync(characterImage, audioFile);
+      await generateLipSync(projectId);
       setStep('complete');
-    } catch (error) {
+    } catch (_error) {
       toast({ title: "Generation failed", description: "Error during lip sync generation.", variant: "destructive" });
       setStep('configure');
     }
   };
 
   const handleAddToTimeline = () => {
-    if (generatedVideo && context?.shotId && updateShot) {
-      updateShot(context.shotId, { video: generatedVideo });
+    if (currentJob?.output_video && context?.shotId && updateShot) {
+      updateShot(context.shotId, { video: currentJob.output_video });
       toast({ title: "Success", description: "Video added to shot." });
       handleClose();
     }
@@ -163,8 +157,8 @@ export function LipSyncWizard({
                 <div className="space-y-4">
                   <span className="text-xs font-black uppercase tracking-[0.2em] text-pink-400">Character Model</span>
                   <div className="aspect-square bg-black/40 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-pink-500/50 hover:bg-pink-500/5 transition-all overflow-hidden relative">
-                    {characterImage ? (
-                      <img src={characterImage} className="w-full h-full object-cover" alt="Avatar" />
+                    {characterFaceImage ? (
+                      <img src={characterFaceImage} className="w-full h-full object-cover" alt="Avatar" />
                     ) : (
                       <>
                         <Upload className="text-slate-600 mb-2" size={32} />
@@ -193,11 +187,49 @@ export function LipSyncWizard({
 
               <div className="mt-12 flex justify-end">
                 <Button 
-                  disabled={!characterImage || !audioFile}
+                  disabled={!characterFaceImage || !audioFile}
                   onClick={() => setStep('configure')}
                   className="bg-pink-600 hover:bg-pink-500 px-10 h-12 font-black uppercase tracking-widest text-xs"
                 >
                   Configure Sync <ChevronRight className="ml-2" size={16} />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 'configure' && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h3 className="text-2xl font-black uppercase tracking-tight text-white mb-6">Configure Generation</h3>
+              <div className="bg-black/40 p-6 rounded-2xl border border-white/5 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">Sync Accuracy</h4>
+                    <p className="text-xs text-slate-500">Highest precision neural mapping</p>
+                  </div>
+                  <div className="text-pink-500 font-black">ULTRA</div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">Face Enhancer</h4>
+                    <p className="text-xs text-slate-500">Post-process refinement</p>
+                  </div>
+                  <div className="text-emerald-500 font-black">ENABLED</div>
+                </div>
+              </div>
+
+              <div className="mt-12 flex justify-between">
+                <Button 
+                  variant="outline"
+                  onClick={() => setStep('assets')}
+                  className="border-white/10 text-slate-400 px-10 h-12 font-black uppercase tracking-widest text-xs"
+                >
+                  Back
+                </Button>
+                <Button 
+                  onClick={handleGenerateClick}
+                  className="bg-pink-600 hover:bg-pink-500 px-10 h-12 font-black uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+                >
+                  Generate Sync <Video className="ml-2" size={16} />
                 </Button>
               </div>
             </div>
@@ -212,20 +244,17 @@ export function LipSyncWizard({
                <h3 className="text-2xl font-black uppercase tracking-widest text-white mb-2">Generating Lip Sync</h3>
                <p className="text-slate-400 mb-8 max-w-sm">Synthesizing visual frames with audio waveform dynamics. Please wait...</p>
                
-               <div className="w-full max-w-md bg-black/40 h-2 rounded-full overflow-hidden mb-2">
-                 <div 
-                   className="h-full bg-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.5)] transition-all duration-300"
-                   style={{ width: `${progress}%` }}
-                 ></div>
+               <div className="w-full max-w-md mb-2">
+                 <Progress value={progress} size="md" variant="default" className="bg-pink-500/20" />
                </div>
                <span className="text-[10px] font-black text-pink-500 tracking-[0.3em]">{progress}% COMPLETE</span>
             </div>
           )}
 
-          {step === 'complete' && generatedVideo && (
+          {step === 'complete' && currentJob?.output_video && (
             <div className="animate-in zoom-in-95 duration-500">
                <div className="aspect-video bg-black rounded-2xl border border-white/10 mb-8 overflow-hidden flex items-center justify-center relative group">
-                  <video src={generatedVideo} className="w-full h-full" controls />
+                  <video src={currentJob.output_video} className="w-full h-full" controls />
                </div>
                
                <div className="flex justify-between items-center gap-4">

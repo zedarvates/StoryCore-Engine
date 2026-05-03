@@ -1,5 +1,6 @@
 /**
  * ImageGenerationModal Component
+ * cspell:ignore sdxl firered euler vram SDXL
  * 
  * A modal dialog for selecting workflow, model, and generation parameters
  * before generating images with ComfyUI.
@@ -11,8 +12,10 @@
  * - Advanced parameters (steps, CFG, sampler, scheduler)
  * - Model download integration
  */
+import { LegacyAny } from '@/types/legacy';
 
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -59,8 +62,9 @@ import {
   getDefaultParamsForWorkflow,
   type WorkflowOption,
   type GPUInfo,
-  type GenerationParams
+  type GenerationParams,
 } from '@/services/imageGenerationService';
+import { Progress } from '@/components/ui/progress';
 
 // Extend WorkflowType to include FireRed
 type ExtendedWorkflowType = 'flux2' | 'z_image_turbo' | 'z_image_turbo_coherence' | 'sdxl' | 'firered_image_edit' | 'custom';
@@ -79,7 +83,6 @@ export function ImageGenerationModal({
   onClose,
   onGenerate,
   initialPrompt = '',
-  initialImageUrl,
   title = 'Generate Image'
 }: ImageGenerationModalProps) {
   const { toast } = useToast();
@@ -128,14 +131,14 @@ export function ImageGenerationModal({
 
   // Update default parameters when workflow changes
   useEffect(() => {
-    const defaults = getDefaultParamsForWorkflow(selectedWorkflow as any);
+    const defaults = getDefaultParamsForWorkflow(selectedWorkflow as LegacyAny);
     if (defaults.width) setWidth(defaults.width);
     if (defaults.height) setHeight(defaults.height);
   }, [selectedWorkflow]);
 
   // Validate resolution when width/height/workflow changes
   useEffect(() => {
-    const validation = validateResolution(width, height, selectedWorkflow as any, gpuInfo);
+    const validation = validateResolution(width, height, selectedWorkflow as LegacyAny, gpuInfo);
     if (validation.warning) {
       setResolutionWarning(validation.warning);
     } else if (validation.error) {
@@ -197,14 +200,14 @@ export function ImageGenerationModal({
         seed: useRandomSeed ? undefined : seed,
         sampler,
         scheduler,
-        workflowType: selectedWorkflow as any,
+        workflowType: selectedWorkflow as LegacyAny,
         checkpoint: selectedCheckpoint || undefined
       };
 
       // Call the generation service
       const { generateImage } = await import('@/services/imageGenerationService');
       
-      const imageUrl = await generateImage(params, (progress, message) => {
+      const imageUrl = await generateImage(params, (progress) => {
         setGenerationProgress(progress);
       });
 
@@ -637,7 +640,6 @@ export function ImageGenerationModal({
             </div>
           )}
 
-          {/* Progress Bar */}
           {isGenerating && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
@@ -647,12 +649,7 @@ export function ImageGenerationModal({
                 </span>
                 <span>{Math.round(generationProgress)}%</span>
               </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all"
-                  style={{ width: `${generationProgress}%` }}
-                />
-              </div>
+              <Progress value={generationProgress} size="sm" />
             </div>
           )}
 

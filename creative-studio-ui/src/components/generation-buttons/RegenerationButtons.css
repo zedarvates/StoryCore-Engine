@@ -1,5 +1,6 @@
 /* ============================================================================
    Re-generation Buttons — Premium Dark UI
+   cspell:ignore regen
    ============================================================================ */
 
 /* Base Re-generation Button */
@@ -209,3 +210,34 @@
 .export-film-label {
     font-weight: 700;
 }
+
+/* Type-specific colors */
+.regen-type-portrait {
+    --regen-color: #a855f7;
+    --regen-from: #7c3aed;
+    --regen-to: #a855f7;
+}
+
+.regen-type-text {
+    --regen-color: #3b82f6;
+    --regen-from: #2563eb;
+    --regen-to: #60a5fa;
+}
+
+.regen-type-audio {
+    --regen-color: #22c55e;
+    --regen-from: #16a34a;
+    --regen-to: #4ade80;
+}
+
+.regen-type-image {
+    --regen-color: #f59e0b;
+    --regen-from: #d97706;
+    --regen-to: #fbbf24;
+}
+
+.regen-type-video {
+    --regen-color: #ef4444;
+    --regen-from: #dc2626;
+    --regen-to: #f87171;
+}

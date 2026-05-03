@@ -1,5 +1,6 @@
 /**
  * LLM Configuration Service
+ * cspell:ignore lmstudio
  *
  * Unified service for managing LLM configuration across the entire application.
  * Provides a single source of truth for LLM settings and ensures all components
@@ -10,6 +11,7 @@ import { loadLLMSettings, saveLLMSettings } from '@/utils/secureStorage';
 import { eventEmitter, WizardEventType } from './eventEmitter';
 import { LLMService, type LLMConfig } from './llmService';
 import { logger } from '@/utils/logger';
+import { LegacyAny } from '@/types/legacy';
 
 // ============================================================================
 // Types
@@ -63,25 +65,28 @@ class LLMConfigService {
 
       // If no configuration exists, create a default one with auto-detected model
       if (!config) {
-        // Try to detect available Ollama models
-        let detectedModel = 'qwen3-vl:4b'; // Use Qwen 3 VL 4B as default base model fallback
+        // Try to detect available LLM models
+        let detectedModel = 'google/gemma-4-e2b'; // Use Google Gemma 4 E2B as default base model fallback
+        let detectedProvider = 'local';
         
         try {
-          const { suggestBestModel } = await import('@/utils/ollamaModelDetection');
-          const suggestion = await suggestBestModel('http://localhost:11434');
+          const { suggestBestModel } = await import('@/utils/llmDiscovery');
+          const suggestion = await suggestBestModel();
 
           if (suggestion) {
             detectedModel = suggestion.model;
-            logger.info(`[LLMConfigService] Auto-detected best model: ${detectedModel}`);
+            detectedProvider = suggestion.provider === 'lmstudio' ? 'lmstudio' : 'local';
+            logger.info(`[LLMConfigService] Auto-detected best model: ${detectedModel} on ${suggestion.provider}`);
           } else {
             // Last resort: try to fetch any models directly if suggestBestModel failed
-            const { getInstalledOllamaModels } = await import('@/utils/ollamaModelDetection');
-            const allModels = await getInstalledOllamaModels('http://localhost:11434');
+            const { getInstalledModels } = await import('@/utils/llmDiscovery');
+            const allModels = await getInstalledModels();
             if (allModels.length > 0) {
               detectedModel = allModels[0].name;
-              logger.info(`[LLMConfigService] Using first available model as fallback: ${detectedModel}`);
+              detectedProvider = allModels[0].provider === 'lmstudio' ? 'lmstudio' : 'local';
+              logger.info(`[LLMConfigService] Using first available model as fallback: ${detectedModel} on ${allModels[0].provider}`);
             } else {
-              logger.warn('[LLMConfigService] No Ollama models found at all. Using default string:', detectedModel);
+              logger.warn('[LLMConfigService] No LLM models found at all. Using default string:', detectedModel);
             }
           }
         } catch (error) {
@@ -89,10 +94,10 @@ class LLMConfigService {
         }
         
         config = {
-          provider: 'local',
+          provider: detectedProvider as LegacyAny,
           model: detectedModel,
           apiKey: '',
-          apiEndpoint: 'http://localhost:11434',
+          apiEndpoint: detectedProvider === 'lmstudio' ? 'http://localhost:1234' : 'http://localhost:11434',
           streamingEnabled: true,
           parameters: {
             temperature: 0.7,
@@ -110,7 +115,7 @@ class LLMConfigService {
           retryAttempts: 3,
         };
         // Save the default configuration
-        await this.setConfig(config, true);
+        await this.setConfig(config as LegacyAny, true);
       } else {
         await this.setConfig(config, false); // Don't save, just load
       }
@@ -161,6 +166,19 @@ class LLMConfigService {
       logger.info(`[LLMConfigService] Migrating timeout for ${config.provider} provider: ${config.timeout}ms -> 300000ms`);
       config.timeout = 300000;
       save = true; // Force save if we migrated
+    }
+
+    // Set default endpoint if it's currently a default one and provider changed
+    const currentEndpoint = config.apiEndpoint;
+    const isDefaultOllama = currentEndpoint === 'http://localhost:11434';
+    const isDefaultLMStudio = currentEndpoint === 'http://localhost:1234';
+
+    if (config.provider === 'lmstudio' && (isDefaultOllama || !currentEndpoint)) {
+      config.apiEndpoint = 'http://localhost:1234';
+      save = true;
+    } else if (config.provider === 'local' && (isDefaultLMStudio || !currentEndpoint)) {
+      config.apiEndpoint = 'http://localhost:11434';
+      save = true;
     }
 
     this.currentConfig = config;

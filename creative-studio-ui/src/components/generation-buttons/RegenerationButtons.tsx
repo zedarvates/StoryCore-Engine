@@ -1,5 +1,6 @@
 /**
  * Re-generation Buttons Component
+ * cspell:ignore REGEN regen
  *
  * Provides contextual re-generation buttons for shots and assets.
  * Displayed inline on shot cards and in the editor preview.
@@ -10,6 +11,8 @@
  * - Audio re-generation (voice, SFX)
  * - Batch re-generation (all selected)
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useCallback } from 'react';
 import {
@@ -20,10 +23,8 @@ import {
     Layers,
     Sparkles,
     Loader2,
-    RotateCcw,
 } from 'lucide-react';
 import { useGenerationStore } from '../../stores/generationStore';
-import type { GeneratedAsset } from '../../types/generation';
 import './RegenerationButtons.css';
 
 // =============================================================================
@@ -131,7 +132,7 @@ export const RegenerationButton: React.FC<RegenerationButtonProps> = ({
                 // Default: dispatch to generation store
                 const store = useGenerationStore.getState();
                 store.addToQueue({
-                    type: type as any,
+                    type: type as LegacyAny,
                     params: { targetId, regenerate: true },
                     priority: 2,
                 });
@@ -150,15 +151,10 @@ export const RegenerationButton: React.FC<RegenerationButtonProps> = ({
 
     return (
         <button
-            className={`regen-btn ${sizeClasses[size]} ${isRegenerating ? 'regen-btn-loading' : ''}`}
+            className={`regen-btn ${sizeClasses[size]} regen-type-${type} ${isRegenerating ? 'regen-btn-loading' : ''}`}
             onClick={handleClick}
             disabled={disabled || isRegenerating}
             title={`Régénérer ${config.label}${targetLabel ? ` de ${targetLabel}` : ''}`}
-            style={{
-                '--regen-color': config.color,
-                '--regen-from': config.gradientFrom,
-                '--regen-to': config.gradientTo,
-            } as React.CSSProperties}
         >
             {isRegenerating ? (
                 <Loader2 className="regen-icon regen-spin" />
@@ -230,7 +226,7 @@ export const BatchRegenerationButton: React.FC<BatchRegenerationProps> = ({
                 const store = useGenerationStore.getState();
                 for (const id of targetIds) {
                     store.addToQueue({
-                        type: type as any,
+                        type: type as LegacyAny,
                         params: { targetId: id, regenerate: true },
                         priority: 1,
                     });
@@ -243,15 +239,10 @@ export const BatchRegenerationButton: React.FC<BatchRegenerationProps> = ({
 
     return (
         <button
-            className="batch-regen-btn"
+            className={`batch-regen-btn regen-type-${type}`}
             onClick={handleBatch}
             disabled={isRunning || targetIds.length === 0}
             title={`Régénérer ${config.label} pour ${targetIds.length} éléments`}
-            style={{
-                '--regen-color': config.color,
-                '--regen-from': config.gradientFrom,
-                '--regen-to': config.gradientTo,
-            } as React.CSSProperties}
         >
             {isRunning ? (
                 <Loader2 className="regen-icon regen-spin" />

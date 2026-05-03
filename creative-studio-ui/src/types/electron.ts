@@ -1,6 +1,7 @@
 /**
  * Electron API types for renderer process
  * Aligned with electron/electronAPI.d.ts
+ * cspell:ignore lmstudio Vram
  */
 
 export interface ProjectData {
@@ -185,40 +186,40 @@ export interface StoryCoreElectronAPI {
 
   // Character management
   character: {
-    list: (projectPath: string) => Promise<any[]>;
-    get: (projectPath: string, characterId: string) => Promise<any>;
-    create: (projectPath: string, data: any) => Promise<any>;
-    update: (projectPath: string, characterId: string, data: any) => Promise<any>;
+    list: (projectPath: string) => Promise<unknown[]>;
+    get: (projectPath: string, characterId: string) => Promise<unknown>;
+    create: (projectPath: string, data: unknown) => Promise<unknown>;
+    update: (projectPath: string, characterId: string, data: unknown) => Promise<unknown>;
     delete: (projectPath: string, characterId: string) => Promise<void>;
   };
 
   // World management
   world: {
-    list: (projectPath: string) => Promise<any[]>;
-    get: (projectPath: string, worldId: string) => Promise<any>;
-    update: (projectPath: string, worldId: string, data: any) => Promise<any>;
+    list: (projectPath: string) => Promise<unknown[]>;
+    get: (projectPath: string, worldId: string) => Promise<unknown>;
+    update: (projectPath: string, worldId: string, data: unknown) => Promise<unknown>;
   };
 
   // Location management
   location: {
-    list: (projectPath: string) => Promise<any[]>;
-    get: (projectPath: string, locationId: string) => Promise<any>;
-    update: (projectPath: string, locationId: string, data: any) => Promise<any>;
+    list: (projectPath: string) => Promise<unknown[]>;
+    get: (projectPath: string, locationId: string) => Promise<unknown>;
+    update: (projectPath: string, locationId: string, data: unknown) => Promise<unknown>;
   };
 
   // Story management
   story: {
-    list: (projectPath: string) => Promise<any[]>;
-    get: (projectPath: string, storyId: string) => Promise<any>;
-    update: (projectPath: string, storyId: string, data: any) => Promise<any>;
+    list: (projectPath: string) => Promise<unknown[]>;
+    get: (projectPath: string, storyId: string) => Promise<unknown>;
+    update: (projectPath: string, storyId: string, data: unknown) => Promise<unknown>;
   };
 
   // Sequence management
   sequence: {
     updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<void>;
     getShots: (projectPath: string, sequenceId: string) => Promise<ShotData[]>;
-    getAll: (projectPath: string) => Promise<any[]>;
-    list: (projectPath: string) => Promise<any[]>;
+    getAll: (projectPath: string) => Promise<unknown[]>;
+    list: (projectPath: string) => Promise<unknown[]>;
   };
 
   // Recent projects management
@@ -299,16 +300,16 @@ export interface StoryCoreElectronAPI {
      * Discover ComfyUI servers on the local network
      * @returns Array of discovered servers
      */
-    discoverNetwork: () => Promise<any[]>;
+    discoverNetwork: () => Promise<unknown[]>;
     /**
      * Discover MCP servers on the local network
      * @returns Array of discovered MCP servers
      */
-    discoverMcp: () => Promise<any[]>;
+    discoverMcp: () => Promise<unknown[]>;
     /**
      * Connect to an MCP server
      */
-    connect: (serverId: string, options: any) => Promise<any>;
+    connect: (serverId: string, options: unknown) => Promise<unknown>;
     /**
      * Disconnect from an MCP server
      */
@@ -316,19 +317,19 @@ export interface StoryCoreElectronAPI {
     /**
      * List tools available on an MCP server
      */
-    listTools: (serverId: string) => Promise<any[]>;
+    listTools: (serverId: string) => Promise<unknown[]>;
     /**
      * Call a tool on an MCP server
      */
-    callTool: (serverId: string, toolName: string, args: any) => Promise<any>;
+    callTool: (serverId: string, toolName: string, args: unknown) => Promise<unknown>;
     /**
      * List resources available on an MCP server
      */
-    listResources: (serverId: string) => Promise<any[]>;
+    listResources: (serverId: string) => Promise<unknown[]>;
     /**
      * Read a resource from an MCP server
      */
-    readResource: (serverId: string, resourceUri: string) => Promise<any>;
+    readResource: (serverId: string, resourceUri: string) => Promise<unknown>;
   };
 
   // Rover (Persistent Memory Layer)
@@ -363,11 +364,11 @@ export interface StoryCoreElectronAPI {
 
   // Configuration management
   config: {
-    saveProject: (projectId: string, config: any) => Promise<void>;
-    loadProject: (projectId: string) => Promise<any>;
-    saveGlobal: (config: any) => Promise<void>;
-    loadGlobal: () => Promise<any>;
-    validate: (config: any, rules: any[]) => Promise<any>;
+    saveProject: (projectId: string, config: unknown) => Promise<void>;
+    loadProject: (projectId: string) => Promise<unknown>;
+    saveGlobal: (config: unknown) => Promise<void>;
+    loadGlobal: () => Promise<unknown>;
+    validate: (config: unknown, rules: unknown[]) => Promise<unknown>;
   };
 
   // Event listening
@@ -389,7 +390,7 @@ export interface LLMProvider {
   id: string;
   name: string;
   baseUrl: string;
-  type: 'openai' | 'ollama' | 'anthropic' | 'custom';
+  type: 'openai' | 'ollama' | 'anthropic' | 'custom' | 'lmstudio' | 'local';
 }
 
 export interface ComfyUIConfig {
