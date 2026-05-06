@@ -14,6 +14,7 @@ from datetime import datetime
 @dataclass
 class ExportPackageRequest:
     """Request for project package export."""
+
     project_path: str
     output_path: Optional[str] = None
     include_source: bool = False
@@ -26,6 +27,7 @@ class ExportPackageRequest:
 @dataclass
 class ExportPackageResult:
     """Result of project package export."""
+
     export_path: str
     package_size_bytes: int
     files_included: int
@@ -39,6 +41,7 @@ class ExportPackageResult:
 @dataclass
 class FormatConversionRequest:
     """Request for format conversion."""
+
     project_path: str
     target_format: str  # "zip", "json", "mp4", "wav", "mp3", "pdf"
     source_format: Optional[str] = None
@@ -49,6 +52,7 @@ class FormatConversionRequest:
 @dataclass
 class FormatConversionResult:
     """Result of format conversion."""
+
     output_path: str
     source_format: str
     target_format: str
@@ -61,6 +65,7 @@ class FormatConversionResult:
 @dataclass
 class MetadataGenerationRequest:
     """Request for metadata generation."""
+
     project_path: str
     metadata_format: str  # "json", "xml", "yaml"
     include_technical: bool = True
@@ -72,6 +77,7 @@ class MetadataGenerationRequest:
 @dataclass
 class MetadataGenerationResult:
     """Result of metadata generation."""
+
     metadata_content: Dict[str, Any]
     metadata_format: str
     generation_time_ms: float
@@ -83,6 +89,7 @@ class MetadataGenerationResult:
 @dataclass
 class ComfyUIConnectionRequest:
     """Request for ComfyUI backend connection."""
+
     host: str = "localhost"
     port: int = 8188
     timeout_seconds: int = 30
@@ -93,6 +100,7 @@ class ComfyUIConnectionRequest:
 @dataclass
 class ComfyUIConnectionResult:
     """Result of ComfyUI connection attempt."""
+
     connected: bool
     host: str
     port: int
@@ -106,6 +114,7 @@ class ComfyUIConnectionResult:
 @dataclass
 class ComfyUIWorkflowRequest:
     """Request for ComfyUI workflow execution."""
+
     workflow_definition: Dict[str, Any]
     workflow_name: Optional[str] = None
     input_parameters: Dict[str, Any] = field(default_factory=dict)
@@ -117,6 +126,7 @@ class ComfyUIWorkflowRequest:
 @dataclass
 class ComfyUIWorkflowResult:
     """Result of ComfyUI workflow execution."""
+
     workflow_id: str
     status: str  # "pending", "running", "completed", "failed"
     output_paths: List[str] = field(default_factory=list)
@@ -129,6 +139,7 @@ class ComfyUIWorkflowResult:
 @dataclass
 class VideoGenerationRequest:
     """Request for video generation from reference image via ComfyUI."""
+
     shot_id: str
     reference_image: str  # Base64 string
     parameters: Dict[str, Any] = field(default_factory=dict)
@@ -138,6 +149,7 @@ class VideoGenerationRequest:
 @dataclass
 class VideoGenerationResult:
     """Result of video generation request."""
+
     task_id: str
     status: str  # "pending", "processing", "completed", "failed"
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -146,8 +158,11 @@ class VideoGenerationResult:
 @dataclass
 class WebhookRegistrationRequest:
     """Request for webhook registration."""
+
     url: str
-    event_types: List[str]  # e.g., ["export.completed", "qa.failed", "pipeline.finished"]
+    event_types: List[
+        str
+    ]  # e.g., ["export.completed", "qa.failed", "pipeline.finished"]
     secret: Optional[str] = None
     active: bool = True
     retry_policy: Dict[str, Any] = field(default_factory=dict)
@@ -157,6 +172,7 @@ class WebhookRegistrationRequest:
 @dataclass
 class WebhookRegistrationResult:
     """Result of webhook registration."""
+
     webhook_id: str
     url: str
     event_types: List[str]
@@ -169,6 +185,7 @@ class WebhookRegistrationResult:
 @dataclass
 class WebhookTriggerRequest:
     """Request for manual webhook trigger."""
+
     webhook_id: str
     event_type: str
     payload: Dict[str, Any]
@@ -179,6 +196,7 @@ class WebhookTriggerRequest:
 @dataclass
 class WebhookTriggerResult:
     """Result of webhook trigger."""
+
     webhook_id: str
     event_type: str
     triggered_at: datetime
@@ -243,12 +261,15 @@ def validate_webhook_event_type(event_type: str) -> bool:
 def validate_webhook_url(url: str) -> bool:
     """Validate webhook URL format."""
     import re
+
     # Simple URL validation
     url_pattern = re.compile(
-        r'^https?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        r"^https?://"  # http:// or https://
+        r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|"  # domain...
+        r"localhost|"  # localhost...
+        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+        r"(?::\d+)?"  # optional port
+        r"(?:/?|[/?]\S+)$",
+        re.IGNORECASE,
+    )
     return url_pattern.match(url) is not None

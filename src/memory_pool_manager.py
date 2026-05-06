@@ -17,27 +17,29 @@ import logging
 import threading
 import time
 import weakref
-from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Callable, Type, TypeVar, Generic
+from collections import deque
+from dataclasses import dataclass
+from typing import Dict, List, Any, Optional, Type, TypeVar, Generic
 from enum import Enum
 import psutil
 import tracemalloc
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class PoolStrategy(Enum):
     """Memory pool allocation strategies."""
-    FIXED_SIZE = "fixed_size"          # Fixed pool size
-    DYNAMIC = "dynamic"                # Dynamic pool sizing
-    ADAPTIVE = "adaptive"              # Adaptive based on usage patterns
-    LRU_EVICTION = "lru_eviction"      # LRU eviction for oversized pools
+
+    FIXED_SIZE = "fixed_size"  # Fixed pool size
+    DYNAMIC = "dynamic"  # Dynamic pool sizing
+    ADAPTIVE = "adaptive"  # Adaptive based on usage patterns
+    LRU_EVICTION = "lru_eviction"  # LRU eviction for oversized pools
 
 
 @dataclass
 class PoolConfiguration:
     """Configuration for memory pools."""
+
     initial_size: int = 10
     max_size: int = 100
     min_size: int = 5
@@ -51,6 +53,7 @@ class PoolConfiguration:
 @dataclass
 class PoolStatistics:
     """Statistics for memory pool usage."""
+
     total_allocated: int = 0
     total_released: int = 0
     current_size: int = 0
@@ -116,7 +119,9 @@ class MemoryPool(Generic[T]):
                     self.stats.total_allocated += 1
                     self.stats.miss_count += 1
                 except Exception as e:
-                    self.logger.error(f"Failed to create {self.object_type.__name__}: {e}")
+                    self.logger.error(
+                        f"Failed to create {self.object_type.__name__}: {e}"
+                    )
                     raise
 
             # Track usage
@@ -196,7 +201,9 @@ class MemoryPool(Generic[T]):
                         self.available.append(obj)
                         self.stats.total_allocated += 1
                     except Exception as e:
-                        self.logger.error(f"Failed to create {self.object_type.__name__}: {e}")
+                        self.logger.error(
+                            f"Failed to create {self.object_type.__name__}: {e}"
+                        )
                         break
             elif target_size < current_available:
                 # Shrink pool
@@ -207,30 +214,32 @@ class MemoryPool(Generic[T]):
                         self.stats.eviction_count += 1
 
             self.stats.resize_count += 1
-            self.logger.info(f"Resized {self.object_type.__name__} pool to {target_size}")
+            self.logger.info(
+                f"Resized {self.object_type.__name__} pool to {target_size}"
+            )
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get pool statistics."""
         with self.lock:
             return {
-                'object_type': self.object_type.__name__,
-                'config': {
-                    'initial_size': self.config.initial_size,
-                    'max_size': self.config.max_size,
-                    'min_size': self.config.min_size,
-                    'strategy': self.config.strategy.value
+                "object_type": self.object_type.__name__,
+                "config": {
+                    "initial_size": self.config.initial_size,
+                    "max_size": self.config.max_size,
+                    "min_size": self.config.min_size,
+                    "strategy": self.config.strategy.value,
                 },
-                'stats': {
-                    'current_size': self.stats.current_size,
-                    'available_count': len(self.available),
-                    'in_use_count': len(self.in_use),
-                    'peak_size': self.stats.peak_size,
-                    'total_allocated': self.stats.total_allocated,
-                    'total_released': self.stats.total_released,
-                    'hit_rate_percent': self.stats.get_hit_rate(),
-                    'eviction_count': self.stats.eviction_count,
-                    'resize_count': self.stats.resize_count
-                }
+                "stats": {
+                    "current_size": self.stats.current_size,
+                    "available_count": len(self.available),
+                    "in_use_count": len(self.in_use),
+                    "peak_size": self.stats.peak_size,
+                    "total_allocated": self.stats.total_allocated,
+                    "total_released": self.stats.total_released,
+                    "hit_rate_percent": self.stats.get_hit_rate(),
+                    "eviction_count": self.stats.eviction_count,
+                    "resize_count": self.stats.resize_count,
+                },
             }
 
     def optimize(self) -> List[str]:
@@ -238,19 +247,25 @@ class MemoryPool(Generic[T]):
         recommendations = []
 
         stats = self.get_statistics()
-        utilization = stats['stats']['current_size'] / self.config.max_size
+        utilization = stats["stats"]["current_size"] / self.config.max_size
 
-        if stats['stats']['hit_rate_percent'] < 50:
-            recommendations.append("Low hit rate - consider increasing pool size or reviewing object lifecycle")
+        if stats["stats"]["hit_rate_percent"] < 50:
+            recommendations.append(
+                "Low hit rate - consider increasing pool size or reviewing object lifecycle"
+            )
 
         if utilization > 0.9:
-            recommendations.append("High utilization - consider increasing max pool size")
+            recommendations.append(
+                "High utilization - consider increasing max pool size"
+            )
 
         if utilization < 0.3 and self.config.strategy == PoolStrategy.ADAPTIVE:
             recommendations.append("Low utilization - pool could be shrunk")
 
-        if stats['stats']['eviction_count'] > stats['stats']['total_allocated'] * 0.1:
-            recommendations.append("High eviction rate - objects may not be reusable or pool sizing issues")
+        if stats["stats"]["eviction_count"] > stats["stats"]["total_allocated"] * 0.1:
+            recommendations.append(
+                "High eviction rate - objects may not be reusable or pool sizing issues"
+            )
 
         return recommendations
 
@@ -258,24 +273,33 @@ class MemoryPool(Generic[T]):
 class NumpyArrayPool(MemoryPool):
     """Specialized pool for numpy arrays."""
 
-    def __init__(self, shape: tuple, dtype: str = 'float32', config: PoolConfiguration = None):
+    def __init__(
+        self, shape: tuple, dtype: str = "float32", config: PoolConfiguration = None
+    ):
         self.shape = shape
         self.dtype = dtype
 
         # Import numpy here to avoid import errors if not available
         try:
             import numpy as np
+
             self.np = np
         except ImportError:
             raise ImportError("numpy required for NumpyArrayPool")
 
-        super().__init__(lambda: self.np.zeros(shape, dtype=dtype), config or PoolConfiguration())
+        super().__init__(
+            lambda: self.np.zeros(shape, dtype=dtype), config or PoolConfiguration()
+        )
 
     def _can_reuse_object(self, obj) -> bool:
         """Check if numpy array can be reused."""
         try:
-            return (hasattr(obj, 'shape') and obj.shape == self.shape and
-                   hasattr(obj, 'dtype') and obj.dtype == self.np.dtype(self.dtype))
+            return (
+                hasattr(obj, "shape")
+                and obj.shape == self.shape
+                and hasattr(obj, "dtype")
+                and obj.dtype == self.np.dtype(self.dtype)
+            )
         except Exception:
             return False
 
@@ -300,7 +324,7 @@ class BufferPool(MemoryPool):
 
     def _reset_object(self, obj) -> None:
         """Reset buffer to zero."""
-        obj[:] = b'\x00' * self.size_bytes
+        obj[:] = b"\x00" * self.size_bytes
 
 
 class MemoryPoolManager:
@@ -324,7 +348,9 @@ class MemoryPoolManager:
         self.running = False
 
         # Memory limits
-        self.memory_limit_bytes = psutil.virtual_memory().total * 0.8  # 80% of system memory
+        self.memory_limit_bytes = (
+            psutil.virtual_memory().total * 0.8
+        )  # 80% of system memory
         self.current_memory_usage = 0
 
         self.start_cleanup_thread()
@@ -333,7 +359,9 @@ class MemoryPoolManager:
         """Start background cleanup thread."""
         if self.cleanup_thread is None or not self.cleanup_thread.is_alive():
             self.running = True
-            self.cleanup_thread = threading.Thread(target=self._cleanup_loop, daemon=True)
+            self.cleanup_thread = threading.Thread(
+                target=self._cleanup_loop, daemon=True
+            )
             self.cleanup_thread.start()
 
     def stop_cleanup_thread(self):
@@ -342,8 +370,9 @@ class MemoryPoolManager:
         if self.cleanup_thread:
             self.cleanup_thread.join(timeout=5.0)
 
-    def create_pool(self, name: str, object_type: Type[T],
-                   config: PoolConfiguration = None) -> MemoryPool[T]:
+    def create_pool(
+        self, name: str, object_type: Type[T], config: PoolConfiguration = None
+    ) -> MemoryPool[T]:
         """Create a new memory pool."""
         with self.lock:
             if name in self.pools:
@@ -395,19 +424,22 @@ class MemoryPoolManager:
                     optimizations[name] = recommendations
 
                     # Apply automatic optimizations
-                    stats = pool.get_statistics()['stats']
-                    utilization = stats['current_size'] / pool.config.max_size
+                    stats = pool.get_statistics()["stats"]
+                    utilization = stats["current_size"] / pool.config.max_size
 
                     if pool.config.strategy == PoolStrategy.ADAPTIVE:
                         if utilization < pool.config.shrink_threshold:
                             # Shrink pool
-                            new_size = max(pool.config.min_size,
-                                         int(stats['current_size'] * 1.2))
+                            new_size = max(
+                                pool.config.min_size, int(stats["current_size"] * 1.2)
+                            )
                             pool.resize_pool(new_size)
                         elif utilization > 0.9:
                             # Grow pool
-                            new_size = min(pool.config.max_size,
-                                         int(stats['current_size'] * pool.config.growth_factor))
+                            new_size = min(
+                                pool.config.max_size,
+                                int(stats["current_size"] * pool.config.growth_factor),
+                            )
                             pool.resize_pool(new_size)
 
         return optimizations
@@ -419,17 +451,17 @@ class MemoryPoolManager:
         after = gc.get_stats()
 
         return {
-            'objects_collected': collected,
-            'gc_stats_before': before,
-            'gc_stats_after': after,
-            'memory_freed_estimate': self._estimate_memory_freed(before, after)
+            "objects_collected": collected,
+            "gc_stats_before": before,
+            "gc_stats_after": after,
+            "memory_freed_estimate": self._estimate_memory_freed(before, after),
         }
 
     def _estimate_memory_freed(self, before: List[Dict], after: List[Dict]) -> int:
         """Estimate memory freed by GC."""
         # Simple estimation based on GC stats
-        total_before = sum(gen['collected'] for gen in before)
-        total_after = sum(gen['collected'] for gen in after)
+        total_before = sum(gen["collected"] for gen in before)
+        total_after = sum(gen["collected"] for gen in after)
         return max(0, total_after - total_before) * 1024  # Rough estimate
 
     def get_memory_statistics(self) -> Dict[str, Any]:
@@ -448,27 +480,27 @@ class MemoryPoolManager:
             try:
                 current, peak = tracemalloc.get_traced_memory()
                 tracing_stats = {
-                    'current_traced_mb': current / (1024 * 1024),
-                    'peak_traced_mb': peak / (1024 * 1024)
+                    "current_traced_mb": current / (1024 * 1024),
+                    "peak_traced_mb": peak / (1024 * 1024),
                 }
             except Exception:
                 pass
 
         return {
-            'process_memory': {
-                'rss_mb': memory_info.rss / (1024 * 1024),
-                'vms_mb': memory_info.vms / (1024 * 1024),
-                'percent': process.memory_percent()
+            "process_memory": {
+                "rss_mb": memory_info.rss / (1024 * 1024),
+                "vms_mb": memory_info.vms / (1024 * 1024),
+                "percent": process.memory_percent(),
             },
-            'system_memory': {
-                'total_mb': system_memory.total / (1024 * 1024),
-                'available_mb': system_memory.available / (1024 * 1024),
-                'percent': system_memory.percent
+            "system_memory": {
+                "total_mb": system_memory.total / (1024 * 1024),
+                "available_mb": system_memory.available / (1024 * 1024),
+                "percent": system_memory.percent,
             },
-            'pools': pool_stats,
-            'tracing': tracing_stats,
-            'gc_stats': gc.get_stats(),
-            'memory_limit_mb': self.memory_limit_bytes / (1024 * 1024)
+            "pools": pool_stats,
+            "tracing": tracing_stats,
+            "gc_stats": gc.get_stats(),
+            "memory_limit_mb": self.memory_limit_bytes / (1024 * 1024),
         }
 
     def _cleanup_loop(self):
@@ -486,7 +518,9 @@ class MemoryPoolManager:
                 system_memory = psutil.virtual_memory()
                 if system_memory.percent > 80:
                     gc_result = self.force_garbage_collection()
-                    self.logger.info(f"GC cleanup: {gc_result['objects_collected']} objects collected")
+                    self.logger.info(
+                        f"GC cleanup: {gc_result['objects_collected']} objects collected"
+                    )
 
                 # Update memory usage tracking
                 self.current_memory_usage = psutil.Process().memory_info().rss
@@ -511,7 +545,8 @@ def get_memory_pool_manager() -> MemoryPoolManager:
     return _memory_pool_manager
 
 
-def create_memory_pool(name: str, object_type: Type[T],
-                      config: PoolConfiguration = None) -> MemoryPool[T]:
+def create_memory_pool(
+    name: str, object_type: Type[T], config: PoolConfiguration = None
+) -> MemoryPool[T]:
     """Create a memory pool in the global manager."""
     return get_memory_pool_manager().create_pool(name, object_type, config)

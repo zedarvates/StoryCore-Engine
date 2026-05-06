@@ -1,7 +1,7 @@
 """
 TTTLRM Service for StoryCore-Engine
 
-Integration of tttLRM (Test-Time Training for Large Reconstruction Models) 
+Integration of tttLRM (Test-Time Training for Large Reconstruction Models)
 for fast, high-quality 3D reconstruction from single or multiple images.
 
 Key Features:
@@ -14,27 +14,29 @@ Key Features:
 import os
 import logging
 import asyncio
-import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
-import numpy as np
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class ReconstructionMode(str, Enum):
     FEEDFORWARD = "feedforward"  # Instant reconstruction
     TTT_ADAPTED = "ttt_adapted"  # With test-time training refinement
     AUTOREGRESSIVE = "autoregressive"  # Progressive for long video sequences
 
+
 class OutputFormat(str, Enum):
     GS = "3dgs"  # 3D Gaussian Splatting
     MESH = "mesh"  # GLB/OBJ (translated from GS)
     POINT_CLOUD = "point_cloud"
 
+
 @dataclass
 class TTTLRMConfig:
     """Configuration for tttLRM reconstruction"""
+
     input_path: str
     output_dir: str
     mode: ReconstructionMode = ReconstructionMode.FEEDFORWARD
@@ -45,9 +47,11 @@ class TTTLRMConfig:
     use_half_precision: bool = True
     save_intermediate: bool = False
 
+
 @dataclass
 class ReconstructionResult:
     """Result of a 3D reconstruction task"""
+
     id: str
     success: bool
     output_path: str
@@ -57,19 +61,21 @@ class ReconstructionResult:
     preview_url: Optional[str] = None
     log_path: Optional[str] = None
 
+
 class TTTLRMService:
     """
     Main service orchestrating the tttLRM reconstruction pipeline.
     """
-    
+
     def __init__(self, models_root: str = "models/tttLRM"):
         self.models_root = models_root
         self.device = "cuda" if self._check_gpu() else "cpu"
         self._is_ready = False
-        
+
     def _check_gpu(self) -> bool:
         try:
             import torch
+
             return torch.cuda.is_available()
         except ImportError:
             return False
@@ -78,40 +84,44 @@ class TTTLRMService:
         """Pre-load weights and initialize the TTT layer"""
         logger.info(f"Initializing tttLRM Service on device: {self.device}")
         # Simulation of model loading
-        await asyncio.sleep(1) 
+        await asyncio.sleep(1)
         self._is_ready = True
         logger.info("tttLRM Service is ready.")
 
-    async def reconstruct_single_image(self, config: TTTLRMConfig) -> ReconstructionResult:
+    async def reconstruct_single_image(
+        self, config: TTTLRMConfig
+    ) -> ReconstructionResult:
         """
         Reconstruct a 3D model from a single high-resolution image.
         Uses the FeedForward transformer or TTT refinement.
         """
         if not self._is_ready:
             await self.initialize()
-            
+
         task_id = f"recon_{os.path.basename(config.input_path)}_{int(asyncio.get_event_loop().time())}"
         logger.info(f"Starting single image reconstruction: {task_id}")
-        
+
         start_time = asyncio.get_event_loop().time()
-        
+
         try:
             # Step 1: Image Encoding into tokens
             # Step 2: Feedforward through the LaCT block
             # Step 3: Optional TTT Adaptation (fast weights update)
             if config.mode == ReconstructionMode.TTT_ADAPTED:
-                await self._run_ttt_adaptation(config.input_path, config.num_ttt_iterations)
-            
+                await self._run_ttt_adaptation(
+                    config.input_path, config.num_ttt_iterations
+                )
+
             # Step 4: Decoding to Gaussian Splats
             output_file = os.path.join(config.output_dir, f"{task_id}.ply")
-            
+
             # Simulated processing time
             process_time = 0.5 if config.mode == ReconstructionMode.FEEDFORWARD else 5.0
             await asyncio.sleep(process_time)
-            
+
             # Simulated output creation
             os.makedirs(config.output_dir, exist_ok=True)
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 f.write("ply\nformat ascii 1.0\ncomment tttLRM generated\nend_header\n")
 
             return ReconstructionResult(
@@ -120,14 +130,16 @@ class TTTLRMService:
                 output_path=output_file,
                 format=config.output_format,
                 processing_time=asyncio.get_event_loop().time() - start_time,
-                metrics={"psnr_estimate": 28.5, "res": config.resolution}
+                metrics={"psnr_estimate": 28.5, "res": config.resolution},
             )
-            
+
         except Exception as e:
             logger.error(f"Reconstruction failed: {str(e)}")
             return ReconstructionResult(id=task_id, success=False, output_path="")
 
-    async def reconstruct_video_360(self, video_path: str, config: TTTLRMConfig) -> ReconstructionResult:
+    async def reconstruct_video_360(
+        self, video_path: str, config: TTTLRMConfig
+    ) -> ReconstructionResult:
         """
         Reconstruct a full 3D scene from an omnidirectional or moving video.
         Uses the autoregressive compression capability of tttLRM.
@@ -137,23 +149,25 @@ class TTTLRMService:
 
         task_id = f"scene_{os.path.basename(video_path)}_{int(asyncio.get_event_loop().time())}"
         logger.info(f"Starting 360 scene reconstruction: {task_id}")
-        
+
         start_time = asyncio.get_event_loop().time()
-        
+
         try:
             # 1. Extract frames (simulated)
             # 2. Sequential/Autoregressive token encoding
             # 3. Progressive TTT Weight updates to compress long context
             # 4. Global Scene Gaussian Decoding
-            
+
             output_file = os.path.join(config.output_dir, f"{task_id}_scene.ply")
-            
+
             # Long sequence takes more time
             await asyncio.sleep(15.0)
-            
+
             os.makedirs(config.output_dir, exist_ok=True)
-            with open(output_file, 'w') as f:
-                f.write("ply\nformat ascii 1.0\ncomment tttLRM 360 scene generated\nend_header\n")
+            with open(output_file, "w") as f:
+                f.write(
+                    "ply\nformat ascii 1.0\ncomment tttLRM 360 scene generated\nend_header\n"
+                )
 
             return ReconstructionResult(
                 id=task_id,
@@ -161,9 +175,9 @@ class TTTLRMService:
                 output_path=output_file,
                 format=config.output_format,
                 processing_time=asyncio.get_event_loop().time() - start_time,
-                metrics={"completeness": 0.95, "coherence": 0.89}
+                metrics={"completeness": 0.95, "coherence": 0.89},
             )
-            
+
         except Exception as e:
             logger.error(f"Scene reconstruction failed: {str(e)}")
             return ReconstructionResult(id=task_id, success=False, output_path="")
@@ -181,8 +195,8 @@ class TTTLRMService:
         logger.info(f"Converting {gs_path} to GLB at {output_path}...")
         try:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            with open(output_path, 'w') as f:
-                f.write("g box\nv 0 0 0\nv 1 1 1\n") # Dummy OBJ/GLB content
+            with open(output_path, "w") as f:
+                f.write("g box\nv 0 0 0\nv 1 1 1\n")  # Dummy OBJ/GLB content
             return True
         except Exception as e:
             logger.error(f"Conversion failed: {str(e)}")
@@ -193,5 +207,5 @@ class TTTLRMService:
             "is_ready": self._is_ready,
             "device": self.device,
             "model_path": self.models_root,
-            "backend": "tttLRM-Transformer-v1"
+            "backend": "tttLRM-Transformer-v1",
         }

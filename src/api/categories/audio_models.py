@@ -6,12 +6,12 @@ This module defines all data structures used by audio production endpoints.
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
-from datetime import datetime
 
 
 @dataclass
 class VoiceGenerationRequest:
     """Request for voice generation."""
+
     text: str
     output_format: str = "wav"
     sample_rate: int = 44100
@@ -23,6 +23,7 @@ class VoiceGenerationRequest:
 @dataclass
 class VoiceGenerationResult:
     """Result of voice generation."""
+
     audio_path: str
     text: str
     duration_seconds: float
@@ -37,6 +38,7 @@ class VoiceGenerationResult:
 @dataclass
 class MusicGenerationRequest:
     """Request for music generation."""
+
     mood: str  # e.g., "upbeat", "melancholic", "tense", "peaceful"
     duration_seconds: float
     output_format: str = "wav"
@@ -51,6 +53,7 @@ class MusicGenerationRequest:
 @dataclass
 class MusicGenerationResult:
     """Result of music generation."""
+
     audio_path: str
     mood: str
     duration_seconds: float
@@ -67,6 +70,7 @@ class MusicGenerationResult:
 @dataclass
 class AudioEffectRequest:
     """Request to add audio effects."""
+
     audio_path: str
     effect_type: str  # e.g., "reverb", "echo", "fade_in", "fade_out", "normalize"
     effect_parameters: Optional[Dict[str, Any]] = None
@@ -77,6 +81,7 @@ class AudioEffectRequest:
 @dataclass
 class AudioEffectResult:
     """Result of audio effect application."""
+
     audio_path: str
     original_path: str
     effect_type: str
@@ -89,6 +94,7 @@ class AudioEffectResult:
 @dataclass
 class AudioTrack:
     """Audio track for mixing."""
+
     path: str
     name: str
     volume: float = 1.0  # 0.0 to 1.0
@@ -102,6 +108,7 @@ class AudioTrack:
 @dataclass
 class AudioMixRequest:
     """Request to mix audio tracks."""
+
     tracks: List[AudioTrack]
     output_path: str
     output_format: str = "wav"
@@ -113,6 +120,7 @@ class AudioMixRequest:
 @dataclass
 class AudioMixResult:
     """Result of audio mixing."""
+
     audio_path: str
     track_count: int
     duration_seconds: float
@@ -128,6 +136,7 @@ class AudioMixResult:
 @dataclass
 class AudioSyncRequest:
     """Request to synchronize audio with video."""
+
     audio_path: str
     video_path: str
     output_path: str
@@ -140,6 +149,7 @@ class AudioSyncRequest:
 @dataclass
 class AudioSyncResult:
     """Result of audio-video synchronization."""
+
     output_path: str
     audio_path: str
     video_path: str
@@ -154,6 +164,7 @@ class AudioSyncResult:
 @dataclass
 class AudioQualityMetrics:
     """Audio quality analysis metrics."""
+
     audio_path: str
     duration_seconds: float
     sample_rate: int
@@ -161,26 +172,26 @@ class AudioQualityMetrics:
     channels: int
     format: str
     file_size_bytes: int
-    
+
     # Quality metrics
     peak_level: float  # dB
     rms_level: float  # dB
     dynamic_range: float  # dB
     signal_to_noise_ratio: Optional[float] = None  # dB
-    
+
     # Frequency analysis
     frequency_range: Optional[Dict[str, float]] = None  # min, max, dominant
     spectral_centroid: Optional[float] = None
-    
+
     # Issues detected
     clipping_detected: bool = False
     silence_detected: bool = False
     noise_level: Optional[float] = None
-    
+
     # Overall scores
     clarity_score: float = 0.0  # 0.0 to 1.0
     quality_score: float = 0.0  # 0.0 to 1.0
-    
+
     analysis_time_ms: float = 0.0
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -188,6 +199,7 @@ class AudioQualityMetrics:
 @dataclass
 class AudioAnalysisResult:
     """Result of audio analysis."""
+
     metrics: AudioQualityMetrics
     recommendations: List[str] = field(default_factory=list)
     issues: List[Dict[str, Any]] = field(default_factory=list)

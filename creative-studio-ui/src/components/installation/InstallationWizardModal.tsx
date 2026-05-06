@@ -2,6 +2,8 @@
  * Installation Wizard Modal
  * Main container component that orchestrates the installation wizard
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { X, ChevronRight, Check, Settings, ShieldCheck, Cpu } from 'lucide-react';
@@ -112,8 +114,8 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
 
   const handleOpenFolder = async () => {
     try {
-      if ((window as any).electronAPI?.openFolder) {
-        await (window as any).electronAPI.openFolder(downloadZonePath);
+      if ((window as LegacyAny).electronAPI?.openFolder) {
+        await (window as LegacyAny).electronAPI.openFolder(downloadZonePath);
       } else {
         alert(`Please navigate to this folder:\n\n${downloadZonePath}\n\nCopy the ComfyUI Portable ZIP file into this folder.`);
         try {
@@ -166,7 +168,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
         }
       );
 
-      (window as any).__installationCleanup = cleanup;
+      (window as LegacyAny).__installationCleanup = cleanup;
 
     } catch (error) {
       console.error('Installation error:', error);
@@ -174,7 +176,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     }
   };
 
-  const performPostInstallationVerification = async (installResult: any) => {
+  const performPostInstallationVerification = async (installResult: LegacyAny) => {
     try {
       setInstallationProgress(95, 'Verifying installation...');
       const verifyResponse = await installationApi.verify();
@@ -215,7 +217,7 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
     }
   };
 
-  const updateApplicationConfiguration = async (config: any) => {
+  const updateApplicationConfiguration = async (config: LegacyAny) => {
     try {
       localStorage.setItem('comfyui_config', JSON.stringify(config));
       return true;
@@ -238,9 +240,9 @@ export const InstallationWizardModal: React.FC<InstallationWizardModalProps> = (
   };
 
   const handleClose = () => {
-    if ((window as any).__installationCleanup) {
-      (window as any).__installationCleanup();
-      delete (window as any).__installationCleanup;
+    if ((window as LegacyAny).__installationCleanup) {
+      (window as LegacyAny).__installationCleanup();
+      delete (window as LegacyAny).__installationCleanup;
     }
     
     installationApi.disconnect();

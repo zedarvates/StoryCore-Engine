@@ -80,7 +80,7 @@ interface RegenerateDialogProps {
 }
 
 const RegenerateDialog: React.FC<RegenerateDialogProps> = ({
-  imageId,
+  _imageId,
   onClose,
   onConfirm
 }) => {
@@ -163,7 +163,7 @@ const QuickEditDialog: React.FC<QuickEditDialogProps> = ({
 }) => {
   const [brightness, setBrightness] = useState(100);
   const [contrast, setContrast] = useState(100);
-  const [saturation, setSaturation] = useState(100);
+  const [_saturation, setSaturation] = useState(100);
 
   return (
     <div className={styles.dialogBackdrop} onClick={onClose}>

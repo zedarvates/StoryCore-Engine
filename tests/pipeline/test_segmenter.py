@@ -1,6 +1,4 @@
 import json
-import os
-import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -50,7 +48,13 @@ def test_successful_segmentation(tmp_path):
     assert len(result["keypoints"]) == 1
     # Verify output file exists and contains the same JSON
     img_hash = segmenter._hash_file(img_path)
-    output_file = Path(__file__).parents[2] / "src" / "pipeline" / "segmentations" / f"{img_hash}.json"
+    output_file = (
+        Path(__file__).parents[2]
+        / "src"
+        / "pipeline"
+        / "segmentations"
+        / f"{img_hash}.json"
+    )
     assert output_file.is_file()
     saved = json.loads(output_file.read_text(encoding="utf-8"))
     assert saved == result

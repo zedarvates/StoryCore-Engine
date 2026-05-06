@@ -3,6 +3,8 @@
  * 
  * Tests for LLMConfigModal and ComfyUIConfigModal components
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -11,7 +13,7 @@ import { ComfyUIConfigModal } from '../ComfyUIConfigModal';
 
 // Mock the settings panels
 vi.mock('@/components/settings/LLMSettingsPanel', () => ({
-  LLMSettingsPanel: ({ onSave, onCancel }: any) => (
+  LLMSettingsPanel: ({ onSave, onCancel }: LegacyAny) => (
     <div data-testid="llm-settings-panel">
       <button onClick={() => onSave({ provider: 'openai', model: 'gpt-4' })}>
         Save LLM Config
@@ -22,7 +24,7 @@ vi.mock('@/components/settings/LLMSettingsPanel', () => ({
 }));
 
 vi.mock('@/components/settings/ComfyUISettingsPanel', () => ({
-  ComfyUISettingsPanel: ({ onSave, onCancel }: any) => (
+  ComfyUISettingsPanel: ({ onSave, onCancel }: LegacyAny) => (
     <div data-testid="comfyui-settings-panel">
       <button onClick={() => onSave({ serverUrl: 'http://localhost:8188' })}>
         Save ComfyUI Config

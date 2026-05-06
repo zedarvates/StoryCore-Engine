@@ -7,6 +7,8 @@
  * 
  * @module utils/languageDetection
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import {
   SUPPORTED_LANGUAGES,
@@ -38,7 +40,7 @@ export function detectSystemLanguage(): string {
   return 'en';
   
   // Original auto-detection code (disabled):
-  // const browserLang = navigator.language || (navigator as any).userLanguage || 'en';
+  // const browserLang = navigator.language || (navigator as LegacyAny).userLanguage || 'en';
   // const primaryLang = browserLang.split('-')[0].toLowerCase();
   // const isSupported = SUPPORTED_LANGUAGES.some(lang => lang.code === primaryLang);
   // return isSupported ? primaryLang : 'en';

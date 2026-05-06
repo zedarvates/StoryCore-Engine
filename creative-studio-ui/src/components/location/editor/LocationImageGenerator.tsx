@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { Image, Loader2, AlertCircle, MapPin } from 'lucide-react';
 import { ComfyUIService } from '@/services/comfyuiService';
@@ -61,7 +62,7 @@ export function LocationImageGenerator({
   const project = useAppStore((state) => state.project);
 
   // Get visual style from project
-  const visualStyle = (project as any)?.visualStyle || (project as any)?.visual_style || 'realistic';
+  const visualStyle = (project as LegacyAny)?.visualStyle || (project as LegacyAny)?.visual_style || 'realistic';
 
   /**
    * Build a detailed prompt from location data

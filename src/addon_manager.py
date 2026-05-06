@@ -11,7 +11,6 @@ import importlib.util
 import logging
 import zipfile
 import shutil
-import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Set, Union
 from dataclasses import dataclass
@@ -25,6 +24,7 @@ from src.security_validation_system import SecurityValidationSystem
 
 class AddonType(Enum):
     """Types d'add-ons supportés"""
+
     WORKFLOW = "workflow_addon"
     UI = "ui_addon"
     PROCESSING = "processing_addon"
@@ -37,6 +37,7 @@ class AddonType(Enum):
 
 class AddonState(Enum):
     """États possibles d'un add-on"""
+
     DISABLED = "disabled"
     ENABLED = "enabled"
     ERROR = "error"
@@ -46,6 +47,7 @@ class AddonState(Enum):
 @dataclass
 class AddonManifest:
     """Structure du manifest d'un add-on"""
+
     name: str
     version: str
     type: AddonType
@@ -61,6 +63,7 @@ class AddonManifest:
 @dataclass
 class AddonInfo:
     """Informations complètes sur un add-on chargé"""
+
     manifest: AddonManifest
     path: Path
     state: AddonState
@@ -104,11 +107,14 @@ class AddonManager:
             "loaded": 0,
             "enabled": 0,
             "errors": 0,
-            "updates_available": 0
+            "updates_available": 0,
         }
 
         # Marketplace configuration
-        self.marketplace_url = os.getenv("STORYCORE_MARKETPLACE_API", "https://nexrealm.shop/wp-json/storycore/v1/marketplace")
+        self.marketplace_url = os.getenv(
+            "STORYCORE_MARKETPLACE_API",
+            "https://nexrealm.shop/wp-json/storycore/v1/marketplace",
+        )
         self.marketplace_addons: List[Dict[str, Any]] = []
         self.last_sync_time: Optional[float] = None
 
@@ -147,7 +153,7 @@ class AddonManager:
         manifest_file = addon_path / "addon.json"
 
         try:
-            with open(manifest_file, 'r', encoding='utf-8') as f:
+            with open(manifest_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             # Validation basique du manifest
@@ -172,13 +178,15 @@ class AddonManager:
                 permissions=data.get("permissions", []),
                 entry_points=data.get("entry_points", {}),
                 dependencies=data.get("dependencies", {}),
-                metadata=data.get("metadata", {})
+                metadata=data.get("metadata", {}),
             )
 
             return manifest
 
         except Exception as e:
-            self.logger.error(f"Erreur lors du chargement du manifest {manifest_file}: {e}")
+            self.logger.error(
+                f"Erreur lors du chargement du manifest {manifest_file}: {e}"
+            )
             return None
 
     async def validate_addon(self, manifest: AddonManifest, addon_path: Path) -> bool:
@@ -197,27 +205,35 @@ class AddonManager:
             engine_version = "2.0.0"  # À récupérer depuis la config
             if "engine_version" in manifest.compatibility:
                 required_version = manifest.compatibility["engine_version"]
-                if not self._check_version_compatibility(engine_version, required_version):
+                if not self._check_version_compatibility(
+                    engine_version, required_version
+                ):
                     self.logger.warning(f"Version incompatible pour {manifest.name}")
                     return False
 
             # Validation des permissions
             for permission in manifest.permissions:
                 if not self._validate_permission(permission):
-                    self.logger.warning(f"Permission invalide pour {manifest.name}: {permission}")
+                    self.logger.warning(
+                        f"Permission invalide pour {manifest.name}: {permission}"
+                    )
                     return False
 
             # Validation des entry points
             for entry_name, entry_path in manifest.entry_points.items():
                 entry_file = addon_path / entry_path
                 if not entry_file.exists():
-                    self.logger.warning(f"Entry point manquant pour {manifest.name}: {entry_path}")
+                    self.logger.warning(
+                        f"Entry point manquant pour {manifest.name}: {entry_path}"
+                    )
                     return False
 
             # Validation des dépendances (basique)
             for dep, version_req in manifest.dependencies.items():
                 if not self._check_dependency(dep, version_req):
-                    self.logger.warning(f"Dépendance non satisfaite pour {manifest.name}: {dep}{version_req}")
+                    self.logger.warning(
+                        f"Dépendance non satisfaite pour {manifest.name}: {dep}{version_req}"
+                    )
                     return False
 
             return True
@@ -237,6 +253,7 @@ class AddonManager:
             Informations sur l'add-on chargé ou None si erreur
         """
         import time
+
         start_time = time.time()
 
         try:
@@ -246,9 +263,7 @@ class AddonManager:
                 return None
 
             addon_info = AddonInfo(
-                manifest=manifest,
-                path=addon_path,
-                state=AddonState.LOADING
+                manifest=manifest, path=addon_path, state=AddonState.LOADING
             )
 
             # Valider l'add-on
@@ -271,7 +286,9 @@ class AddonManager:
             return addon_info
 
         except Exception as e:
-            self.logger.error(f"Erreur lors du chargement de l'add-on {addon_path}: {e}")
+            self.logger.error(
+                f"Erreur lors du chargement de l'add-on {addon_path}: {e}"
+            )
             return AddonInfo(
                 manifest=AddonManifest(
                     name=addon_path.name,
@@ -283,12 +300,12 @@ class AddonManager:
                     permissions=[],
                     entry_points={},
                     dependencies={},
-                    metadata={}
+                    metadata={},
                 ),
                 path=addon_path,
                 state=AddonState.ERROR,
                 error_message=str(e),
-                load_time=time.time() - start_time
+                load_time=time.time() - start_time,
             )
 
     async def enable_addon(self, addon_name: str) -> bool:
@@ -308,12 +325,14 @@ class AddonManager:
         addon_info = self.addons[addon_name]
 
         if addon_info.state != AddonState.DISABLED:
-            self.logger.warning(f"Impossible d'activer {addon_name} (état: {addon_info.state})")
+            self.logger.warning(
+                f"Impossible d'activer {addon_name} (état: {addon_info.state})"
+            )
             return False
 
         try:
             # Appeler l'initialisation si disponible
-            if addon_info.module and hasattr(addon_info.module, 'initialize'):
+            if addon_info.module and hasattr(addon_info.module, "initialize"):
                 await addon_info.module.initialize(self._get_addon_context(addon_name))
 
             addon_info.state = AddonState.ENABLED
@@ -351,7 +370,7 @@ class AddonManager:
 
         try:
             # Appeler la cleanup si disponible
-            if addon_info.module and hasattr(addon_info.module, 'cleanup'):
+            if addon_info.module and hasattr(addon_info.module, "cleanup"):
                 await addon_info.module.cleanup()
 
             addon_info.state = AddonState.DISABLED
@@ -390,13 +409,14 @@ class AddonManager:
     async def sync_with_marketplace(self) -> bool:
         """
         Synchronise le catalogue local avec le marketplace distant (nexrealm.shop)
-        
+
         Returns:
             True si succès
         """
         import time
+
         self.logger.info(f"Synchronisation avec le marketplace: {self.marketplace_url}")
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(self.marketplace_url, timeout=10) as response:
@@ -406,15 +426,19 @@ class AddonManager:
                             self.marketplace_addons = data
                         elif isinstance(data, dict) and "addons" in data:
                             self.marketplace_addons = data["addons"]
-                        
+
                         self.last_sync_time = time.time()
-                        self.logger.info(f"Synchronisé: {len(self.marketplace_addons)} addons trouvés sur le marketplace")
-                        
+                        self.logger.info(
+                            f"Synchronisé: {len(self.marketplace_addons)} addons trouvés sur le marketplace"
+                        )
+
                         # Vérifier les mises à jour après synchro
                         await self._refresh_update_stats()
                         return True
                     else:
-                        self.logger.error(f"Erreur marketplace (HTTP {response.status})")
+                        self.logger.error(
+                            f"Erreur marketplace (HTTP {response.status})"
+                        )
                         return False
         except Exception as e:
             self.logger.error(f"Échec de synchronisation marketplace: {e}")
@@ -435,37 +459,46 @@ class AddonManager:
 
     def get_addons_by_type(self, addon_type: AddonType) -> List[str]:
         """Retourne les add-ons d'un type spécifique"""
-        return [name for name, info in self.addons.items()
-                if info.manifest.type == addon_type]
+        return [
+            name
+            for name, info in self.addons.items()
+            if info.manifest.type == addon_type
+        ]
 
-    async def install_addon(self, source: Union[Path, str], category: str = "community") -> bool:
+    async def install_addon(
+        self, source: Union[Path, str], category: str = "community"
+    ) -> bool:
         """
         Installe un add-on depuis un fichier source ou une URL
-        
+
         Args:
             source: Chemin vers le fichier .zip ou URL de téléchargement
             category: Catégorie (official, community)
-            
+
         Returns:
             True si installation réussie
         """
         import shutil
         import tempfile
         import aiohttp
-        
+
         try:
             # Si c'est une URL, on télécharge d'abord
-            if isinstance(source, str) and (source.startswith("http://") or source.startswith("https://")):
+            if isinstance(source, str) and (
+                source.startswith("http://") or source.startswith("https://")
+            ):
                 self.logger.info(f"Téléchargement de l'addon depuis: {source}")
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp:
                     async with aiohttp.ClientSession() as session:
                         async with session.get(source) as resp:
                             if resp.status != 200:
-                                self.logger.error(f"Échec du téléchargement (HTTP {resp.status})")
+                                self.logger.error(
+                                    f"Échec du téléchargement (HTTP {resp.status})"
+                                )
                                 return False
                             tmp.write(await resp.read())
                             tmp_source = Path(tmp.name)
-                
+
                 try:
                     # On utilise la méthode install_addon_from_file pour le ZIP téléchargé
                     result = await self.install_addon_from_file(tmp_source, category)
@@ -473,68 +506,72 @@ class AddonManager:
                 finally:
                     if tmp_source.exists():
                         os.unlink(tmp_source)
-            
+
             # Sinon on traite comme un chemin local
             source_path = Path(source)
             if not source_path.exists():
                 self.logger.error(f"Fichier source introuvable: {source_path}")
                 return False
-                
+
             # Créer un répertoire temporaire pour l'extraction
             temp_dir = self.addons_path / "temp" / source.stem
             temp_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Extraire l'archive de manière sécurisée
-            with zipfile.ZipFile(source, 'r') as zip_ref:
+            with zipfile.ZipFile(source, "r") as zip_ref:
                 if not self._safe_extract_zip(zip_ref, temp_dir):
                     shutil.rmtree(temp_dir)
-                    self.logger.error("Extraction sécurisée échouée: path traversal détecté")
+                    self.logger.error(
+                        "Extraction sécurisée échouée: path traversal détecté"
+                    )
                     return False
-            
+
             # Charger et valider le manifest
             manifest = await self.load_addon_manifest(temp_dir)
             if not manifest:
                 shutil.rmtree(temp_dir)
                 return False
-            
+
             # Vérifier si l'add-on existe déjà
             target_path = self.addons_path / category / manifest.name
             if target_path.exists():
                 self.logger.error(f"Add-on {manifest.name} déjà installé")
                 shutil.rmtree(temp_dir)
                 return False
-            
+
             # Valider l'add-on
             if not await self.validate_addon(manifest, temp_dir):
                 self.logger.error(f"Validation échouée pour {manifest.name}")
                 shutil.rmtree(temp_dir)
                 return False
-            
+
             # Déplacer vers le répertoire final
             target_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(temp_dir), str(target_path))
-            
+
             # Charger l'add-on
             addon_info = await self.load_addon(target_path)
             if addon_info:
                 self.addons[manifest.name] = addon_info
                 self.logger.info(f"Add-on {manifest.name} installé avec succès")
                 return True
-            
+
             return False
-            
+
         except Exception as e:
             self.logger.error(f"Erreur lors de l'installation: {e}")
             return False
-    
-    async def install_addon_from_file(self, file_path: Path, category: str = "community") -> Optional[AddonInfo]:
+
+    async def install_addon_from_file(
+        self, file_path: Path, category: str = "community"
+    ) -> Optional[AddonInfo]:
         """
         Installe un add-on depuis un fichier ZIP
-        
+
         Args:
             file_path: Chemin vers le fichier ZIP
             category: Catégorie de destination
-            
+
         Returns:
             Info de l'add-on installé ou None
         """
@@ -542,55 +579,57 @@ class AddonManager:
             # 1. Créer un répertoire temporaire pour l'extraction
             temp_dir = self.addons_dir / "temp_install"
             temp_dir.mkdir(exist_ok=True)
-            
+
             # 2. Extraire le ZIP de manière sécurisée
-            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            with zipfile.ZipFile(file_path, "r") as zip_ref:
                 if not self._safe_extract_zip(zip_ref, temp_dir):
                     shutil.rmtree(temp_dir)
-                    self.logger.error("Extraction sécurisée échouée: path traversal détecté")
+                    self.logger.error(
+                        "Extraction sécurisée échouée: path traversal détecté"
+                    )
                     return None
-            
+
             # 3. Trouver le manifest (addon.json)
             # Il peut être à la racine ou dans un sous-répertoire
             manifest_path = None
             for p in temp_dir.rglob("addon.json"):
                 manifest_path = p
                 break
-                
+
             if not manifest_path:
                 shutil.rmtree(temp_dir)
                 self.logger.error("Aucun fichier addon.json trouvé dans le ZIP")
                 return None
-                
+
             # 4. Charger le manifest pour obtenir le nom
-            with open(manifest_path, 'r', encoding='utf-8') as f:
+            with open(manifest_path, "r", encoding="utf-8") as f:
                 manifest_data = json.load(f)
                 addon_name = manifest_data.get("name")
-                
+
             if not addon_name:
                 shutil.rmtree(temp_dir)
                 self.logger.error("Manifest invalide: nom manquant")
                 return None
-            
+
             # 5. Déplacer vers le répertoire final
             dest_dir = self.addons_dir / category / addon_name
             if dest_dir.exists():
                 shutil.rmtree(dest_dir)
-            
+
             dest_dir.parent.mkdir(parents=True, exist_ok=True)
             shutil.move(str(manifest_path.parent), str(dest_dir))
-            
+
             # 6. Nettoyage
             shutil.rmtree(temp_dir)
-            
+
             # 7. Re-découvrir et charger
             new_info = await self.load_addon(dest_dir)
             if new_info:
                 self.addons[addon_name] = new_info
                 return new_info
-                
+
             return None
-            
+
         except Exception as e:
             self.logger.error(f"Erreur lors de l'installation depuis le fichier: {e}")
             return None
@@ -598,138 +637,142 @@ class AddonManager:
     async def uninstall_addon(self, addon_name: str) -> bool:
         """
         Désinstalle un add-on
-        
+
         Args:
             addon_name: Nom de l'add-on
-            
+
         Returns:
             True si désinstallation réussie
         """
         import shutil
-        
+
         if addon_name not in self.addons:
             self.logger.error(f"Add-on inconnu: {addon_name}")
             return False
-        
+
         addon_info = self.addons[addon_name]
-        
+
         try:
             # Désactiver l'add-on s'il est activé
             if addon_info.state == AddonState.ENABLED:
                 await self.disable_addon(addon_name)
-            
+
             # Supprimer le répertoire
             if addon_info.path.exists():
                 shutil.rmtree(addon_info.path)
-            
+
             # Retirer du registre
             del self.addons[addon_name]
-            
+
             self.logger.info(f"Add-on {addon_name} désinstallé")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Erreur lors de la désinstallation de {addon_name}: {e}")
             return False
-    
+
     async def update_addon(self, addon_name: str, source: Path) -> bool:
         """
         Met à jour un add-on existant
-        
+
         Args:
             addon_name: Nom de l'add-on
             source: Chemin vers la nouvelle version
-            
+
         Returns:
             True si mise à jour réussie
         """
         if addon_name not in self.addons:
             self.logger.error(f"Add-on inconnu: {addon_name}")
             return False
-        
+
         addon_info = self.addons[addon_name]
         category = "official" if "official" in str(addon_info.path) else "community"
-        
+
         try:
             # Désinstaller l'ancienne version
             if not await self.uninstall_addon(addon_name):
                 return False
-            
+
             # Installer la nouvelle version
             return await self.install_addon(source, category)
-            
+
         except Exception as e:
             self.logger.error(f"Erreur lors de la mise à jour de {addon_name}: {e}")
             return False
-    
+
     async def reload_addon(self, addon_name: str) -> bool:
         """
         Recharge un add-on (manifest + code) sans redémarrage
-        
+
         Args:
             addon_name: Nom de l'add-on
-            
+
         Returns:
             True si recharge réussi
         """
         if addon_name not in self.addons:
             self.logger.error(f"Add-on inconnu pour recharge: {addon_name}")
             return False
-            
+
         addon_info = self.addons[addon_name]
         addon_path = addon_info.path
         was_enabled = addon_info.state == AddonState.ENABLED
-        
+
         try:
             # 1. Désactiver si nécessaire
             if was_enabled:
                 await self.disable_addon(addon_name)
-            
+
             # 2. Re-charger depuis le disque
-            self.logger.info(f"Rechargement de l'add-on: {addon_name} depuis {addon_path}")
+            self.logger.info(
+                f"Rechargement de l'add-on: {addon_name} depuis {addon_path}"
+            )
             new_info = await self.load_addon(addon_path)
-            
+
             if new_info:
                 self.addons[addon_name] = new_info
-                
+
                 # 3. Ré-activer si c'était le cas
                 if was_enabled:
                     await self.enable_addon(addon_name)
-                    
+
                 self.logger.info(f"Add-on {addon_name} rechargé avec succès")
                 return True
             else:
-                self.logger.error(f"Échec du chargement de la nouvelle version de {addon_name}")
+                self.logger.error(
+                    f"Échec du chargement de la nouvelle version de {addon_name}"
+                )
                 return False
-                
+
         except Exception as e:
             self.logger.error(f"Erreur lors du rechargement de {addon_name}: {e}")
             return False
-    
+
     async def check_compatibility(self, addon_name: str) -> Dict[str, Any]:
         """
         Vérifie la compatibilité d'un add-on
-        
+
         Args:
             addon_name: Nom de l'add-on
-            
+
         Returns:
             Rapport de compatibilité
         """
         if addon_name not in self.addons:
             return {"compatible": False, "reason": "Add-on inconnu"}
-        
+
         addon_info = self.addons[addon_name]
         manifest = addon_info.manifest
-        
+
         result = {
             "compatible": True,
             "engine_version_ok": True,
             "python_version_ok": True,
             "dependencies_ok": True,
-            "conflicts": []
+            "conflicts": [],
         }
-        
+
         # Vérifier la version du moteur
         engine_version = "2.0.0"
         if "engine_version" in manifest.compatibility:
@@ -738,56 +781,66 @@ class AddonManager:
                 result["engine_version_ok"] = False
                 result["compatible"] = False
                 result["conflicts"].append(f"Version moteur incompatible: {required}")
-        
+
         # Vérifier les dépendances
         for dep, version_req in manifest.dependencies.items():
             if dep not in self.addons:
                 result["dependencies_ok"] = False
                 result["compatible"] = False
                 result["conflicts"].append(f"Dépendance manquante: {dep}")
-        
+
         return result
-    
+
     def search_addons(self, query: str, filters: Optional[Dict] = None) -> List[str]:
         """
         Recherche des add-ons par nom ou description
-        
+
         Args:
             query: Terme de recherche
             filters: Filtres optionnels (type, category, status)
-            
+
         Returns:
             Liste des noms d'add-ons correspondants
         """
         results = []
         query_lower = query.lower()
-        
+
         for name, info in self.addons.items():
             # Recherche dans le nom et la description
-            if (query_lower in name.lower() or 
-                query_lower in info.manifest.description.lower()):
-                
+            if (
+                query_lower in name.lower()
+                or query_lower in info.manifest.description.lower()
+            ):
                 # Appliquer les filtres
                 if filters:
-                    if "type" in filters and info.manifest.type.value != filters["type"]:
+                    if (
+                        "type" in filters
+                        and info.manifest.type.value != filters["type"]
+                    ):
                         continue
                     if "status" in filters:
-                        if filters["status"] == "enabled" and name not in self.enabled_addons:
+                        if (
+                            filters["status"] == "enabled"
+                            and name not in self.enabled_addons
+                        ):
                             continue
-                        if filters["status"] == "disabled" and name in self.enabled_addons:
+                        if (
+                            filters["status"] == "disabled"
+                            and name in self.enabled_addons
+                        ):
                             continue
-                
+
                 results.append(name)
-        
+
         return results
-    
+
     def get_addons_by_category(self, category: str) -> List[str]:
         """
         Retourne les add-ons d'une catégorie
-        
+
         Args:
             category: Catégorie (official, community)
-            
+
         Returns:
             Liste des noms d'add-ons
         """
@@ -796,48 +849,51 @@ class AddonManager:
             if category in str(info.path):
                 results.append(name)
         return results
-    
+
     async def get_addon_updates(self) -> List[Dict[str, Any]]:
         """
         Vérifie les mises à jour disponibles en comparant les versions locales et distantes
-        
+
         Returns:
             Liste des add-ons avec mises à jour disponibles
         """
         updates = []
-        
+
         if not self.marketplace_addons:
             return []
 
         for remote in self.marketplace_addons:
             name = remote.get("name")
             remote_version = remote.get("version")
-            
+
             if name in self.addons:
                 local_version = self.addons[name].manifest.version
                 if self._is_newer_version(local_version, remote_version):
-                    updates.append({
-                        "name": name,
-                        "local_version": local_version,
-                        "remote_version": remote_version,
-                        "download_url": remote.get("download_url"),
-                        "description": remote.get("description", "")
-                    })
-        
+                    updates.append(
+                        {
+                            "name": name,
+                            "local_version": local_version,
+                            "remote_version": remote_version,
+                            "download_url": remote.get("download_url"),
+                            "description": remote.get("description", ""),
+                        }
+                    )
+
         return updates
 
     def _is_newer_version(self, local: str, remote: str) -> bool:
         """Détermine si la version distante est plus récente que la version locale"""
         try:
             from packaging import version
+
             return version.parse(remote) > version.parse(local)
         except ImportError:
             # Fallback basique si packaging n'est pas installé
             try:
-                l_parts = [int(p) for p in local.split('.')]
-                r_parts = [int(p) for p in remote.split('.')]
+                l_parts = [int(p) for p in local.split(".")]
+                r_parts = [int(p) for p in remote.split(".")]
                 return r_parts > l_parts
-            except:
+            except Exception:
                 return remote != local
 
     # Méthodes privées
@@ -845,13 +901,17 @@ class AddonManager:
     def _check_version_compatibility(self, current: str, required: str) -> bool:
         """Vérifie la compatibilité des versions (implémentation basique)"""
         # Pour l'instant, accepte toutes les versions commençant par les mêmes chiffres
-        return current.split('.')[0] == required.lstrip('>=')[0]
+        return current.split(".")[0] == required.lstrip(">=")[0]
 
     def _validate_permission(self, permission: str) -> bool:
         """Valide une permission (implémentation basique)"""
         valid_permissions = {
-            "model_access", "file_system_read", "file_system_write",
-            "network_access", "ui_access", "config_access"
+            "model_access",
+            "file_system_read",
+            "file_system_write",
+            "network_access",
+            "ui_access",
+            "config_access",
         }
         return permission in valid_permissions
 
@@ -861,12 +921,14 @@ class AddonManager:
         # À implémenter avec un vrai gestionnaire de dépendances
         return True
 
-    async def _load_addon_module(self, module_path: Path, addon_name: str) -> Optional[Any]:
+    async def _load_addon_module(
+        self, module_path: Path, addon_name: str
+    ) -> Optional[Any]:
         """Charge un module Python d'add-on"""
         try:
             # Nettoyer le préfixe si nécessaire pour éviter les conflits
             module_key = f"addon.{addon_name}"
-            
+
             # Si déjà chargé dans sys.modules, on tente de le recharger
             if module_key in sys.modules:
                 module = sys.modules[module_key]
@@ -874,13 +936,15 @@ class AddonManager:
                     importlib.reload(module)
                     return module
                 except Exception as e:
-                    self.logger.error(f"Erreur lors du rechargement du module {module_key}: {e}")
+                    self.logger.error(
+                        f"Erreur lors du rechargement du module {module_key}: {e}"
+                    )
                     # On continue pour tenter un chargement frais
-            
+
             spec = importlib.util.spec_from_file_location(module_key, module_path)
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
-                sys.modules[module_key] = module # Enregistrer dans sys.modules
+                sys.modules[module_key] = module  # Enregistrer dans sys.modules
                 spec.loader.exec_module(module)
                 return module
             return None
@@ -894,30 +958,30 @@ class AddonManager:
             "addon_name": addon_name,
             "engine_path": self.engine_path,
             "logger": self.logger.getChild(addon_name),
-            "permissions": self.addons[addon_name].manifest.permissions
+            "permissions": self.addons[addon_name].manifest.permissions,
         }
 
     def _safe_extract_zip(self, zip_file: zipfile.ZipFile, dest_dir: Path) -> bool:
         """
         Extract ZIP safely without path traversal (Zip Slip vulnerability fix).
-        
+
         Args:
             zip_file: Open ZIP file object
             dest_dir: Destination directory
-            
+
         Returns:
             True if extraction successful, False if path traversal detected
         """
         dest_path = dest_dir.resolve()
-        
+
         for member in zip_file.members:
             member_path = (dest_path / member.filename).resolve()
-            
+
             # Check if the extracted path would be outside the destination directory
             if not member_path.is_relative_to(dest_path):
                 self.logger.error(f"Path traversal attempt detected: {member.filename}")
                 return False
-        
+
         # All paths are safe, proceed with extraction
         zip_file.extractall(dest_dir)
         return True

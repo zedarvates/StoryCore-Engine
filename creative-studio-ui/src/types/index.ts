@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // Core Data Models for Creative Studio UI
 
 // Import World types
@@ -133,6 +134,48 @@ export interface Shot {
   // Dashboard compatibility
   promptValidation?: PromptValidation;
   subSequenceId?: string;
+
+  // NLE — Liaison video↔audio (LTX-Desktop style linked clips)
+  linkedShotIds?: string[];
+
+  // NLE — Sprite & 3D Scene clip config (Phase 10)
+  spriteConfig?: SpriteClipConfig;
+  scene3DConfig?: Scene3DClipConfig;
+}
+
+/**
+ * Configuration d'un clip sprite sur la timeline.
+ */
+export interface SpriteClipConfig {
+  spriteId?: string;
+  orientation: string;        // 'n'|'ne'|'e'|'se'|'s'|'sw'|'w'|'nw'
+  animation: string;          // 'idle'|'walk'|'run'|'jump'|'attack'|'hurt'|'die'
+  style: string;              // 'anime_japanese'|'pixel_art'|'realistic' etc.
+  frameRate: number;          // fps de l'animation
+  scale: number;              // 0.1 à 5.0
+  flipH: boolean;
+}
+
+/**
+ * Configuration d'un clip scène 3D sur la timeline.
+ */
+export interface Scene3DClipConfig {
+  sceneId?: string;
+  rigPath?: string;
+  gltfPath?: string;
+  cameraPosition?: [number, number, number];
+  cameraTarget?: [number, number, number];
+  cameraFov?: number;
+  environmentPreset?: string; // 'studio'|'outdoor'|'night'|'sunset' etc.
+  keyframes?: Scene3DKeyframe[];
+}
+
+export interface Scene3DKeyframe {
+  time: number;               // frame relative au clip
+  cameraPosition: [number, number, number];
+  cameraTarget: [number, number, number];
+  cameraFov?: number;
+  easing?: string;            // 'linear'|'ease-in'|'ease-out'|'ease-in-out'
 }
 
 /**
@@ -504,6 +547,8 @@ export interface Keyframe {
   easing: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bezier';
   bezierControlPoints?: { cp1: Point; cp2: Point }; // for bezier curves
 }
+
+export type TimelineKeyframe = Keyframe;
 
 export interface Point {
   x: number;
@@ -1131,7 +1176,7 @@ export interface ChatMessage {
   suggestions?: string[]; // Suggested follow-up actions
   isStreaming?: boolean;
   streamComplete?: boolean;
-  error?: any; // LLM error details for recovery
+  error?: LegacyAny; // LLM error details for recovery
 }
 
 export interface ChatSuggestion {
@@ -1151,8 +1196,8 @@ export interface Episode {
   title: string;
   synopsis?: string;
   status: 'draft' | 'storyboard' | 'production' | 'final';
-  storyboard_data?: any;
-  settings?: any;
+  storyboard_data?: LegacyAny;
+  settings?: LegacyAny;
   created_at?: string;
   updated_at?: string;
 }

@@ -1,6 +1,8 @@
 /**
  * Video Editor Wizard Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -13,7 +15,7 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as LegacyAny;
 
 describe('VideoEditorWizard', () => {
   const mockOnClose = jest.fn();

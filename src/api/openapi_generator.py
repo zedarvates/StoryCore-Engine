@@ -6,8 +6,7 @@ This module generates OpenAPI 3.0 specifications from registered API endpoints.
 
 import json
 import yaml
-from typing import Dict, Any, List, Optional
-from datetime import datetime
+from typing import Dict, Any, List
 
 from .router import APIRouter, EndpointDefinition
 from .config import APIConfig
@@ -17,29 +16,29 @@ from .models import ErrorCodes
 class OpenAPIGenerator:
     """
     Generates OpenAPI 3.0 specifications from registered API endpoints.
-    
+
     Features:
     - Automatic spec generation from endpoint registry
     - Request/response schema extraction
     - Example generation
     - JSON and YAML output formats
     """
-    
+
     def __init__(self, router: APIRouter, config: APIConfig):
         """
         Initialize the OpenAPI generator.
-        
+
         Args:
             router: API router with registered endpoints
             config: API configuration
         """
         self.router = router
         self.config = config
-    
+
     def generate_spec(self) -> Dict[str, Any]:
         """
         Generate complete OpenAPI 3.0 specification.
-        
+
         Returns:
             OpenAPI specification as dictionary
         """
@@ -50,32 +49,32 @@ class OpenAPIGenerator:
             "paths": self._generate_paths(),
             "components": self._generate_components(),
         }
-        
+
         return spec
-    
+
     def generate_json(self, indent: int = 2) -> str:
         """
         Generate OpenAPI specification in JSON format.
-        
+
         Args:
             indent: JSON indentation level
-            
+
         Returns:
             JSON string
         """
         spec = self.generate_spec()
         return json.dumps(spec, indent=indent)
-    
+
     def generate_yaml(self) -> str:
         """
         Generate OpenAPI specification in YAML format.
-        
+
         Returns:
             YAML string
         """
         spec = self.generate_spec()
         return yaml.dump(spec, default_flow_style=False, sort_keys=False)
-    
+
     def _generate_info(self) -> Dict[str, Any]:
         """Generate the info section."""
         return {
@@ -96,7 +95,7 @@ class OpenAPIGenerator:
                 "url": "https://opensource.org/licenses/MIT",
             },
         }
-    
+
     def _generate_servers(self) -> List[Dict[str, Any]]:
         """Generate the servers section."""
         servers = [
@@ -105,39 +104,41 @@ class OpenAPIGenerator:
                 "description": "Local development server",
             }
         ]
-        
+
         # Add production server if configured
-        if hasattr(self.config, 'production_url') and self.config.production_url:
-            servers.append({
-                "url": self.config.production_url,
-                "description": "Production server",
-            })
-        
+        if hasattr(self.config, "production_url") and self.config.production_url:
+            servers.append(
+                {
+                    "url": self.config.production_url,
+                    "description": "Production server",
+                }
+            )
+
         return servers
-    
+
     def _generate_paths(self) -> Dict[str, Any]:
         """Generate the paths section from registered endpoints."""
         paths = {}
-        
+
         # Group endpoints by path
         for endpoint in self.router.list_endpoints():
             path = f"/{endpoint.path}"
             method = endpoint.method.lower()
-            
+
             if path not in paths:
                 paths[path] = {}
-            
+
             paths[path][method] = self._generate_operation(endpoint)
-        
+
         return paths
-    
+
     def _generate_operation(self, endpoint: EndpointDefinition) -> Dict[str, Any]:
         """
         Generate an operation object for an endpoint.
-        
+
         Args:
             endpoint: Endpoint definition
-            
+
         Returns:
             OpenAPI operation object
         """
@@ -146,36 +147,40 @@ class OpenAPIGenerator:
             "operationId": endpoint.path.replace(".", "_"),
             "tags": [self._extract_category(endpoint.path)],
         }
-        
+
         # Add deprecation if applicable
         if endpoint.deprecation:
             operation["deprecated"] = True
-            
+
             # Build deprecation description
-            deprecation_desc = f"\n\n**DEPRECATED** (since {endpoint.deprecation.deprecated_date})"
-            
+            deprecation_desc = (
+                f"\n\n**DEPRECATED** (since {endpoint.deprecation.deprecated_date})"
+            )
+
             if endpoint.deprecation.removal_date:
                 deprecation_desc += f"\n\nThis endpoint will be removed on {endpoint.deprecation.removal_date}."
-            
+
             if endpoint.deprecation.alternative:
-                deprecation_desc += f"\n\nPlease use `{endpoint.deprecation.alternative}` instead."
-            
+                deprecation_desc += (
+                    f"\n\nPlease use `{endpoint.deprecation.alternative}` instead."
+                )
+
             if endpoint.deprecation.reason:
                 deprecation_desc += f"\n\nReason: {endpoint.deprecation.reason}"
-            
+
             operation["description"] = (endpoint.description or "") + deprecation_desc
-        
+
         # Add request body if POST/PUT/PATCH
         if endpoint.method in ["POST", "PUT", "PATCH"]:
             operation["requestBody"] = self._generate_request_body(endpoint)
-        
+
         # Add responses
         operation["responses"] = self._generate_responses(endpoint)
-        
+
         # Add security if required
         if endpoint.requires_auth:
             operation["security"] = [{"bearerAuth": []}]
-        
+
         # Add async indicator in description
         if endpoint.async_capable:
             async_desc = (
@@ -186,46 +191,46 @@ class OpenAPIGenerator:
                 operation["description"] += async_desc
             else:
                 operation["description"] = async_desc
-        
+
         return operation
-    
+
     def _generate_request_body(self, endpoint: EndpointDefinition) -> Dict[str, Any]:
         """
         Generate request body specification.
-        
+
         Args:
             endpoint: Endpoint definition
-            
+
         Returns:
             OpenAPI request body object
         """
         # Extract schema from endpoint if available
         schema = endpoint.schema or {"type": "object"}
-        
+
         # Add examples based on endpoint path
         examples = self._generate_request_examples(endpoint)
-        
+
         request_body = {
             "required": True,
             "content": {
                 "application/json": {
                     "schema": schema,
                 }
-            }
+            },
         }
-        
+
         if examples:
             request_body["content"]["application/json"]["examples"] = examples
-        
+
         return request_body
-    
+
     def _generate_responses(self, endpoint: EndpointDefinition) -> Dict[str, Any]:
         """
         Generate responses specification.
-        
+
         Args:
             endpoint: Endpoint definition
-            
+
         Returns:
             OpenAPI responses object
         """
@@ -237,7 +242,7 @@ class OpenAPIGenerator:
                         "schema": {"$ref": "#/components/schemas/SuccessResponse"},
                         "examples": self._generate_response_examples(endpoint),
                     }
-                }
+                },
             },
             "400": {
                 "description": "Validation error",
@@ -245,7 +250,7 @@ class OpenAPIGenerator:
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/ErrorResponse"},
                     }
-                }
+                },
             },
             "401": {
                 "description": "Authentication required",
@@ -253,7 +258,7 @@ class OpenAPIGenerator:
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/ErrorResponse"},
                     }
-                }
+                },
             },
             "404": {
                 "description": "Resource not found",
@@ -261,7 +266,7 @@ class OpenAPIGenerator:
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/ErrorResponse"},
                     }
-                }
+                },
             },
             "429": {
                 "description": "Rate limit exceeded",
@@ -269,7 +274,7 @@ class OpenAPIGenerator:
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/ErrorResponse"},
                     }
-                }
+                },
             },
             "500": {
                 "description": "Internal server error",
@@ -277,10 +282,10 @@ class OpenAPIGenerator:
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/ErrorResponse"},
                     }
-                }
+                },
             },
         }
-        
+
         # Add pending response for async endpoints
         if endpoint.async_capable:
             responses["202"] = {
@@ -289,18 +294,18 @@ class OpenAPIGenerator:
                     "application/json": {
                         "schema": {"$ref": "#/components/schemas/PendingResponse"},
                     }
-                }
+                },
             }
-        
+
         return responses
-    
+
     def _generate_components(self) -> Dict[str, Any]:
         """Generate the components section."""
         return {
             "schemas": self._generate_schemas(),
             "securitySchemes": self._generate_security_schemes(),
         }
-    
+
     def _generate_schemas(self) -> Dict[str, Any]:
         """Generate common schema definitions."""
         return {
@@ -424,11 +429,11 @@ class OpenAPIGenerator:
                 },
             },
         }
-    
+
     def _generate_security_schemes(self) -> Dict[str, Any]:
         """Generate security scheme definitions."""
         schemes = {}
-        
+
         if self.config.enable_auth:
             schemes["bearerAuth"] = {
                 "type": "http",
@@ -436,16 +441,16 @@ class OpenAPIGenerator:
                 "bearerFormat": "JWT",
                 "description": "JWT token authentication",
             }
-        
+
         return schemes
-    
+
     def _extract_category(self, path: str) -> str:
         """
         Extract category name from endpoint path.
-        
+
         Args:
             path: Endpoint path (e.g., "storycore.narration.generate")
-            
+
         Returns:
             Category name (e.g., "Narration")
         """
@@ -455,19 +460,21 @@ class OpenAPIGenerator:
             # Capitalize and format
             return category.replace("_", " ").title()
         return "General"
-    
-    def _generate_request_examples(self, endpoint: EndpointDefinition) -> Dict[str, Any]:
+
+    def _generate_request_examples(
+        self, endpoint: EndpointDefinition
+    ) -> Dict[str, Any]:
         """
         Generate request examples for an endpoint.
-        
+
         Args:
             endpoint: Endpoint definition
-            
+
         Returns:
             Examples dictionary
         """
         examples = {}
-        
+
         # Generate examples based on endpoint path
         if "narration.generate" in endpoint.path:
             examples["basic"] = {
@@ -478,8 +485,8 @@ class OpenAPIGenerator:
                         "genre": "fantasy",
                         "tone": "epic",
                         "length": 500,
-                    }
-                }
+                    },
+                },
             }
         elif "pipeline.init" in endpoint.path:
             examples["basic"] = {
@@ -487,7 +494,7 @@ class OpenAPIGenerator:
                 "value": {
                     "project_name": "my-story",
                     "path": "/path/to/projects",
-                }
+                },
             }
         elif "image.generate" in endpoint.path:
             examples["basic"] = {
@@ -497,7 +504,7 @@ class OpenAPIGenerator:
                     "width": 1024,
                     "height": 1024,
                     "seed": 42,
-                }
+                },
             }
         elif "memory.store" in endpoint.path:
             examples["basic"] = {
@@ -505,23 +512,25 @@ class OpenAPIGenerator:
                 "value": {
                     "key": "character_name",
                     "value": "Aria the Brave",
-                }
+                },
             }
-        
+
         return examples
-    
-    def _generate_response_examples(self, endpoint: EndpointDefinition) -> Dict[str, Any]:
+
+    def _generate_response_examples(
+        self, endpoint: EndpointDefinition
+    ) -> Dict[str, Any]:
         """
         Generate response examples for an endpoint.
-        
+
         Args:
             endpoint: Endpoint definition
-            
+
         Returns:
             Examples dictionary
         """
         examples = {}
-        
+
         # Success example
         if "narration.generate" in endpoint.path:
             examples["success"] = {
@@ -533,15 +542,15 @@ class OpenAPIGenerator:
                         "metadata": {
                             "prompt": "A hero embarks on a quest",
                             "model": "gpt-4",
-                        }
+                        },
                     },
                     "metadata": {
                         "request_id": "req_abc123",
                         "timestamp": "2024-01-15T10:30:00Z",
                         "duration_ms": 1250.5,
                         "api_version": "v1",
-                    }
-                }
+                    },
+                },
             }
         elif "pipeline.status" in endpoint.path:
             examples["success"] = {
@@ -560,10 +569,10 @@ class OpenAPIGenerator:
                         "timestamp": "2024-01-15T10:31:00Z",
                         "duration_ms": 15.2,
                         "api_version": "v1",
-                    }
-                }
+                    },
+                },
             }
-        
+
         # Async example for async-capable endpoints
         if endpoint.async_capable:
             examples["async"] = {
@@ -578,8 +587,8 @@ class OpenAPIGenerator:
                         "timestamp": "2024-01-15T10:32:00Z",
                         "duration_ms": 25.0,
                         "api_version": "v1",
-                    }
-                }
+                    },
+                },
             }
-        
+
         return examples

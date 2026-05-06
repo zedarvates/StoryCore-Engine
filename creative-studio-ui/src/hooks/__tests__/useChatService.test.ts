@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChatService } from '../useChatService';
@@ -14,7 +15,7 @@ describe('useChatService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       project: null,
       shots: [],
       assets: [],
@@ -116,7 +117,7 @@ describe('useChatService', () => {
     const { rerender } = renderHook(() => useChatService());
 
     // Update store mock
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       project: null,
       shots: [
         {
@@ -208,7 +209,7 @@ describe('useChatService', () => {
       },
     ];
 
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       project: null,
       shots: [],
       assets: [],
@@ -247,7 +248,7 @@ describe('useChatService', () => {
   });
 
   it('provides context-aware responses', async () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       project: null,
       shots: [],
       assets: [],

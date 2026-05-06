@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, _act } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { DndProvider } from 'react-dnd';
@@ -28,7 +28,7 @@ beforeEach(() => {
     return ++rafId;
   });
   
-  global.cancelAnimationFrame = vi.fn((id: number) => {
+  global.cancelAnimationFrame = vi.fn((_id: number) => {
     // Remove callback
   });
   
@@ -426,7 +426,7 @@ describe('PreviewFrame - Playback Engine (Task 7.3)', () => {
         },
       };
       
-      const { store } = renderWithProviders(<PreviewFrame />, initialState);
+      const { _store } = renderWithProviders(<PreviewFrame />, initialState);
       
       const pauseButton = screen.getByTitle(/Play\/Pause/i);
       fireEvent.click(pauseButton);
@@ -585,7 +585,7 @@ describe('PreviewFrame - Playback Controls UI (Task 7.4)', () => {
         },
       };
       
-      const { store } = renderWithProviders(<PreviewFrame />, initialState);
+      const { _store } = renderWithProviders(<PreviewFrame />, initialState);
       
       // Step forward
       const forwardButton = screen.getByTitle(/Next frame/i);

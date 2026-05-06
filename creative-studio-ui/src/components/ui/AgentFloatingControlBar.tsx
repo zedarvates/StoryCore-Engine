@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, MicOff, MonitorUp, MessageSquareText, PowerOff, Loader2 } from 'lucide-react';
+import { Mic, MicOff, MonitorUp, MessageSquareText, PowerOff, _Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { VoiceTextService } from '@/services/VoiceTextService';

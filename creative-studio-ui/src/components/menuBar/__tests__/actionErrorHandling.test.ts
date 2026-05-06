@@ -10,7 +10,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fileActions, editActions, projectActions, toolsActions, helpActions } from '../menuActions';
+import { fileActions, _editActions, projectActions, toolsActions, helpActions } from '../menuActions';
 import type { ActionContext } from '../../../types/menuConfig';
 import type { Project } from '../../../types';
 

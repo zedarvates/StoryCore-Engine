@@ -9,7 +9,7 @@
 import { AlertCircle, Settings, Loader2, CheckCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLLMContext } from '@/providers/LLMProvider';
-import { cn } from '@/lib/utils';
+import { _cn } from '@/lib/utils';
 
 export interface LLMStatusBannerProps {
   onConfigure: () => void;

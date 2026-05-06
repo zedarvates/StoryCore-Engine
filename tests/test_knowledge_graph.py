@@ -15,13 +15,14 @@ Tests:
   - Persistence (save/load)
 """
 
-import json
 import tempfile
 from pathlib import Path
 
 from src.assistant.knowledge_graph import (
-    StoryGraph, GraphRAG, GraphNode, GraphEdge,
-    _text_vector, _cosine_similarity
+    StoryGraph,
+    GraphRAG,
+    _text_vector,
+    _cosine_similarity,
 )
 
 
@@ -32,6 +33,7 @@ class TestVectorHelpers:
 
     def test_text_vector_normalized(self):
         import math
+
         vec = _text_vector("test")
         mag = math.sqrt(sum(v * v for v in vec))
         assert abs(mag - 1.0) < 0.001, f"Vector not normalized: {mag}"
@@ -115,20 +117,20 @@ class TestContradictionDetection:
     def test_detect_ally_enemy(self):
         g = StoryGraph()
         g.add_edge("Gandalf", "ally_of", "Frodo")
-        
-        contradictions = g.detect_contradictions([
-            {"source": "Gandalf", "relation": "enemy_of", "target": "Frodo"}
-        ])
+
+        contradictions = g.detect_contradictions(
+            [{"source": "Gandalf", "relation": "enemy_of", "target": "Frodo"}]
+        )
         assert len(contradictions) == 1
         assert "CONTRADICTION" in contradictions[0]
 
     def test_no_contradiction(self):
         g = StoryGraph()
         g.add_edge("Gandalf", "ally_of", "Frodo")
-        
-        contradictions = g.detect_contradictions([
-            {"source": "Gandalf", "relation": "ally_of", "target": "Aragorn"}
-        ])
+
+        contradictions = g.detect_contradictions(
+            [{"source": "Gandalf", "relation": "ally_of", "target": "Aragorn"}]
+        )
         assert len(contradictions) == 0
 
 
@@ -136,11 +138,23 @@ class TestCharacterArc:
     def test_arc_tracking(self):
         g = StoryGraph()
         g.add_edge("Frodo", "ally_of", "Gandalf", scene_context="scene_1")
-        g.add_edge("Frodo", "carries", "The Ring", 
-                    source_type="character", target_type="object", scene_context="scene_1")
-        g.add_edge("Frodo", "appears_in", "Mordor",
-                    source_type="character", target_type="location", scene_context="scene_3")
-        
+        g.add_edge(
+            "Frodo",
+            "carries",
+            "The Ring",
+            source_type="character",
+            target_type="object",
+            scene_context="scene_1",
+        )
+        g.add_edge(
+            "Frodo",
+            "appears_in",
+            "Mordor",
+            source_type="character",
+            target_type="location",
+            scene_context="scene_3",
+        )
+
         arc = g.get_character_arc("Frodo")
         assert len(arc) == 3, f"Expected 3 arc events, got {len(arc)}"
         # All should reference Frodo's connections
@@ -160,9 +174,11 @@ class TestTimeline:
         g.add_edge("Frodo", "appears_in", "Shire", scene_context="scene_1")
         g.add_edge("Gandalf", "appears_in", "Shire", scene_context="scene_1")
         g.add_edge("Frodo", "appears_in", "Mordor", scene_context="scene_2")
-        
+
         timeline = g.get_timeline()
-        assert len(timeline) >= 2, f"Expected at least 2 scene groups, got {len(timeline)}"
+        assert len(timeline) >= 2, (
+            f"Expected at least 2 scene groups, got {len(timeline)}"
+        )
 
 
 class TestGraphRAG:
@@ -171,8 +187,14 @@ class TestGraphRAG:
         g.add_edge("Gandalf", "ally_of", "Frodo", scene_context="scene_1")
         g.add_edge("Sauron", "enemy_of", "Gandalf", scene_context="scene_2")
         g.add_node("Rivendell", "location", {"description": "Elven city"})
-        g.add_edge("Gandalf", "located_in", "Rivendell", 
-                    source_type="character", target_type="location", scene_context="scene_1")
+        g.add_edge(
+            "Gandalf",
+            "located_in",
+            "Rivendell",
+            source_type="character",
+            target_type="location",
+            scene_context="scene_1",
+        )
         return GraphRAG(g)
 
     def test_query_with_results(self):
@@ -218,20 +240,20 @@ class TestPersistence:
     def test_save_and_load(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "test_graph.json"
-            
+
             # Create and save
             g1 = StoryGraph(persistence_path=path)
             g1.add_node("Gandalf", "character", {"role": "wizard"})
             g1.add_edge("Gandalf", "ally_of", "Frodo")
             g1.save()
-            
+
             assert path.exists(), "Graph file should exist after save"
-            
+
             # Load into new graph
             g2 = StoryGraph(persistence_path=path)
             assert g2.stats()["nodes"] == g1.stats()["nodes"]
             assert g2.stats()["edges"] == g1.stats()["edges"]
-            
+
             # Check data integrity
             node = g2._find_node_by_name("Gandalf")
             assert node is not None
@@ -243,25 +265,47 @@ class TestProjectIngestion:
         g = StoryGraph()
         project_data = {
             "characters": [
-                {"name": "Alex", "role": "protagonist", "personality": "brave", "appearance": "tall"},
-                {"name": "ARIA", "role": "antagonist", "personality": "cold", "appearance": "holographic"},
+                {
+                    "name": "Alex",
+                    "role": "protagonist",
+                    "personality": "brave",
+                    "appearance": "tall",
+                },
+                {
+                    "name": "ARIA",
+                    "role": "antagonist",
+                    "personality": "cold",
+                    "appearance": "holographic",
+                },
             ],
             "scenes": [
                 {
-                    "id": "s1", "title": "Discovery", "description": "Alex finds ARIA",
-                    "location": "Lab", "time_of_day": "night", "characters": ["Alex"]
+                    "id": "s1",
+                    "title": "Discovery",
+                    "description": "Alex finds ARIA",
+                    "location": "Lab",
+                    "time_of_day": "night",
+                    "characters": ["Alex"],
                 },
                 {
-                    "id": "s2", "title": "Confrontation", "description": "Showdown",
-                    "location": "Server Room", "time_of_day": "night", "characters": ["Alex", "ARIA"]
-                }
-            ]
+                    "id": "s2",
+                    "title": "Confrontation",
+                    "description": "Showdown",
+                    "location": "Server Room",
+                    "time_of_day": "night",
+                    "characters": ["Alex", "ARIA"],
+                },
+            ],
         }
         g.ingest_project(project_data)
 
         stats = g.stats()
-        assert stats["nodes"] >= 4, f"Should have at least 4 nodes (2 chars, 2 scenes, locations), got {stats['nodes']}"
-        assert stats["edges"] >= 2, f"Should have edges for relationships, got {stats['edges']}"
+        assert stats["nodes"] >= 4, (
+            f"Should have at least 4 nodes (2 chars, 2 scenes, locations), got {stats['nodes']}"
+        )
+        assert stats["edges"] >= 2, (
+            f"Should have edges for relationships, got {stats['edges']}"
+        )
 
         # Check characters exist
         assert g._find_node_by_name("Alex") is not None
@@ -306,13 +350,13 @@ def run_all_tests():
                 errors.append(f"  ❌ {cls.__name__}.{method_name}: {e}")
                 print(f"  ❌ {cls.__name__}.{method_name}: {e}")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Results: {passed}/{total} passed, {failed} failed")
     if errors:
         print("\nFailed tests:")
         for err in errors:
             print(err)
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     return failed == 0
 
 

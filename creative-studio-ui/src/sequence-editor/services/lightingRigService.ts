@@ -583,7 +583,7 @@ export class LightingRigService {
   /**
    * Apply lighting rig to shot parameters
    */
-  applyRigToShot(rig: LightingRig, shotId: string): LightingRigParameters {
+  applyRigToShot(rig: LightingRig, _shotId: string): LightingRigParameters {
     // Return a deep copy of the parameters to avoid mutation
     return JSON.parse(JSON.stringify(rig.parameters));
   }

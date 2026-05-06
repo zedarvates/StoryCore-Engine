@@ -4,7 +4,7 @@ Container for system validation results and metrics.
 """
 
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict
 
 
 class SystemValidationResult:
@@ -22,8 +22,9 @@ class SystemValidationResult:
         self.error_log = []
         self.warnings = []
 
-    def add_test_result(self, test_name: str, success: bool,
-                       duration: float = 0.0, details: Dict = None):
+    def add_test_result(
+        self, test_name: str, success: bool, duration: float = 0.0, details: Dict = None
+    ):
         """Add a test result"""
         self.total_tests += 1
         if success:
@@ -36,7 +37,7 @@ class SystemValidationResult:
             "success": success,
             "duration": duration,
             "timestamp": datetime.now().isoformat(),
-            "details": details or {}
+            "details": details or {},
         }
         self.test_results.append(result)
 
@@ -45,33 +46,39 @@ class SystemValidationResult:
         self.performance_metrics[metric_name] = {
             "value": value,
             "unit": unit,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
-    def add_quality_metric(self, metric_name: str, value: float, threshold: float = None):
+    def add_quality_metric(
+        self, metric_name: str, value: float, threshold: float = None
+    ):
         """Add a quality metric"""
         self.quality_metrics[metric_name] = {
             "value": value,
             "threshold": threshold,
             "passed": value >= threshold if threshold else True,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     def add_error(self, error_message: str, test_name: str = None):
         """Add an error"""
-        self.error_log.append({
-            "message": error_message,
-            "test_name": test_name,
-            "timestamp": datetime.now().isoformat()
-        })
+        self.error_log.append(
+            {
+                "message": error_message,
+                "test_name": test_name,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     def add_warning(self, warning_message: str, test_name: str = None):
         """Add a warning"""
-        self.warnings.append({
-            "message": warning_message,
-            "test_name": test_name,
-            "timestamp": datetime.now().isoformat()
-        })
+        self.warnings.append(
+            {
+                "message": warning_message,
+                "test_name": test_name,
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     def finalize(self):
         """Finalize the validation results"""

@@ -1,6 +1,6 @@
 import React, { useState } from'react';
 
-const OnePromptModal = ({ isOpen, onClose, onConfirm }) => {
+const _OnePromptModal = ({ _isOpen, onClose, onConfirm }) => {
   const [prompt, setPrompt] = useState('');
 
   const handleSubmit = (e) => {

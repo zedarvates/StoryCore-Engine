@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Search, Plus, Box } from 'lucide-react';
+import { Package, Search, _Plus, Box } from 'lucide-react';
 import { useStore } from '../../../store';
 import { StoryObject } from '@/types/object';
 import './Library.css';
@@ -10,7 +10,7 @@ export interface ObjectLibraryProps {
 }
 
 export const ObjectLibrary: React.FC<ObjectLibraryProps> = ({
-  onElementSelect,
+  _onElementSelect,
   className = ''
 }) => {
   // Load objects from store

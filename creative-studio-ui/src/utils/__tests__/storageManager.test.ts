@@ -2,7 +2,7 @@
  * StorageManager Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, _vi } from 'vitest';
 import { StorageManager } from '../storageManager';
 
 describe('StorageManager', () => {

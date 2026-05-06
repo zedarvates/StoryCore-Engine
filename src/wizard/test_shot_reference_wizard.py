@@ -2,7 +2,6 @@
 Unit tests for Shot Reference Wizard functionality.
 """
 
-import pytest
 import asyncio
 from pathlib import Path
 from unittest.mock import patch, MagicMock
@@ -13,7 +12,7 @@ from .shot_reference_wizard import (
     ReferenceImageStyle,
     ImageQuality,
     create_shot_reference_wizard,
-    generate_shot_references
+    generate_shot_references,
 )
 
 
@@ -33,7 +32,7 @@ class TestShotReferenceSpec:
             purpose="emotional",
             characters=[{"name": "Alice", "description": "young woman"}],
             environment={"type": "indoor", "time_of_day": "day"},
-            lighting={"type": "natural", "intensity": "medium"}
+            lighting={"type": "natural", "intensity": "medium"},
         )
 
         assert spec.shot_id == "shot_001"
@@ -52,7 +51,7 @@ class TestShotReferenceSpec:
             camera_movement="static",
             lens_type="normal",
             duration_seconds=2.5,
-            purpose="emotional"
+            purpose="emotional",
         )
 
         prompt = spec.generate_prompt(ReferenceImageStyle.CINEMATIC)
@@ -71,7 +70,7 @@ class TestShotReferenceSpec:
             camera_movement="dolly-in",
             lens_type="wide",
             duration_seconds=3.0,
-            purpose="establishing"
+            purpose="establishing",
         )
 
         prompt = spec.generate_prompt(ReferenceImageStyle.STORYBOARD)
@@ -90,7 +89,7 @@ class TestShotReferenceSpec:
             camera_movement="static",
             lens_type="normal",
             duration_seconds=2.5,
-            purpose="emotional"
+            purpose="emotional",
         )
 
         negative = spec.get_negative_prompt()
@@ -110,8 +109,8 @@ class TestShotReferenceWizard:
         assert wizard.generation_results == []
         assert wizard.reference_specs == []
 
-    @patch('builtins.open')
-    @patch('pathlib.Path.exists')
+    @patch("builtins.open")
+    @patch("pathlib.Path.exists")
     def test_load_shot_data(self, mock_exists, mock_open):
         """Test loading shot data from project files."""
         # Mock file existence
@@ -127,11 +126,11 @@ class TestShotReferenceWizard:
                     "camera": {
                         "angle": {"type": "eye-level"},
                         "movement": {"type": "static"},
-                        "lens": {"type": "normal"}
+                        "lens": {"type": "normal"},
                     },
                     "timing": {"duration_seconds": 2.5},
                     "narrative_function": {"primary_purpose": "emotional"},
-                    "characters": [{"name": "Alice"}]
+                    "characters": [{"name": "Alice"}],
                 }
             ]
         }
@@ -141,10 +140,7 @@ class TestShotReferenceWizard:
             "detailed_scenes": [
                 {
                     "scene_id": "scene_001",
-                    "environment": {
-                        "type": "indoor",
-                        "time_of_day": "day"
-                    }
+                    "environment": {"type": "indoor", "time_of_day": "day"},
                 }
             ]
         }
@@ -157,11 +153,12 @@ class TestShotReferenceWizard:
         # Return different data based on file path
         def mock_read_side_effect(*args, **kwargs):
             import json
-            if 'shot_planning.json' in str(args[0]):
+
+            if "shot_planning.json" in str(args[0]):
                 return json.dumps(mock_shot_data)
-            elif 'scene_breakdown.json' in str(args[0]):
+            elif "scene_breakdown.json" in str(args[0]):
                 return json.dumps(mock_scene_data)
-            return '{}'
+            return "{}"
 
         mock_file.read.side_effect = mock_read_side_effect
         mock_open.return_value = mock_file
@@ -174,8 +171,8 @@ class TestShotReferenceWizard:
         assert specs[0].shot_type == "CU"
         assert specs[0].environment["type"] == "indoor"
 
-    @patch('pathlib.Path.mkdir')
-    @patch('pathlib.Path.exists')
+    @patch("pathlib.Path.mkdir")
+    @patch("pathlib.Path.exists")
     def test_generate_reference_images_mock(self, mock_exists, mock_mkdir):
         """Test reference image generation with mock mode."""
         # Setup mock wizard with test data
@@ -190,7 +187,7 @@ class TestShotReferenceWizard:
             camera_movement="static",
             lens_type="normal",
             duration_seconds=2.5,
-            purpose="emotional"
+            purpose="emotional",
         )
         wizard.reference_specs = [spec]
 
@@ -200,7 +197,7 @@ class TestShotReferenceWizard:
             results = await wizard.generate_reference_images(
                 Path("/fake/project"),
                 ReferenceImageStyle.CINEMATIC,
-                ImageQuality.STANDARD
+                ImageQuality.STANDARD,
             )
 
             assert len(results) == 1
@@ -224,7 +221,7 @@ class TestShotReferenceWizard:
                 camera_movement="static",
                 lens_type="normal",
                 duration_seconds=2.5,
-                purpose="emotional"
+                purpose="emotional",
             ),
             ShotReferenceSpec(
                 shot_id="shot_002",
@@ -234,8 +231,8 @@ class TestShotReferenceWizard:
                 camera_movement="dolly-in",
                 lens_type="wide",
                 duration_seconds=3.0,
-                purpose="establishing"
-            )
+                purpose="establishing",
+            ),
         ]
         wizard.reference_specs = specs
 
@@ -259,16 +256,16 @@ class TestConvenienceFunctions:
         wizard = create_shot_reference_wizard()
         assert isinstance(wizard, ShotReferenceWizard)
 
-    @patch('asyncio.run')
+    @patch("asyncio.run")
     def test_generate_shot_references(self, mock_asyncio_run):
         """Test convenience generation function."""
         mock_asyncio_run.return_value = []
 
-        results = asyncio.run(generate_shot_references(
-            Path("/fake/project"),
-            style="cinematic",
-            quality="standard"
-        ))
+        asyncio.run(
+            generate_shot_references(
+                Path("/fake/project"), style="cinematic", quality="standard"
+            )
+        )
 
         mock_asyncio_run.assert_called_once()
 
@@ -306,14 +303,13 @@ class TestIntegrationScenarios:
             lens_type="normal",
             duration_seconds=2.5,
             purpose="emotional",
-            characters=[{
-                "description": "young woman with expressive eyes",
-                "visibility": "primary_focus"
-            }],
-            environment={
-                "type": "indoor",
-                "time_of_day": "afternoon"
-            }
+            characters=[
+                {
+                    "description": "young woman with expressive eyes",
+                    "visibility": "primary_focus",
+                }
+            ],
+            environment={"type": "indoor", "time_of_day": "afternoon"},
         )
 
         # Test prompt generation
@@ -328,7 +324,7 @@ class TestIntegrationScenarios:
             success=True,
             image_path="/path/to/image.png",
             prompt_used=prompt,
-            generation_time=5.2
+            generation_time=5.2,
         )
 
         assert result.shot_id == "shot_001"
@@ -342,7 +338,7 @@ class TestIntegrationScenarios:
             ("LS", "long shot, full scene view"),
             ("FS", "full shot, character full body view"),
             ("CU", "close-up, character face and expression"),
-            ("ECU", "extreme close-up, character eyes and details")
+            ("ECU", "extreme close-up, character eyes and details"),
         ]
 
         for shot_type, expected_text in test_cases:
@@ -354,7 +350,7 @@ class TestIntegrationScenarios:
                 camera_movement="static",
                 lens_type="normal",
                 duration_seconds=2.5,
-                purpose="establishing"
+                purpose="establishing",
             )
 
             prompt = spec.generate_prompt()
@@ -365,7 +361,7 @@ class TestIntegrationScenarios:
         test_cases = [
             ("eye-level", "eye level camera view, neutral perspective"),
             ("low-angle", "low angle camera view, looking up"),
-            ("high-angle", "high angle camera view, looking down")
+            ("high-angle", "high angle camera view, looking down"),
         ]
 
         for angle, expected_text in test_cases:
@@ -377,7 +373,7 @@ class TestIntegrationScenarios:
                 camera_movement="static",
                 lens_type="normal",
                 duration_seconds=2.5,
-                purpose="emotional"
+                purpose="emotional",
             )
 
             prompt = spec.generate_prompt()
@@ -387,8 +383,11 @@ class TestIntegrationScenarios:
         """Test lens type descriptions in prompts."""
         test_cases = [
             ("wide", "wide angle lens, expansive perspective"),
-            ("telephoto", "telephoto lens, compressed perspective, shallow depth of field"),
-            ("normal", "normal lens, natural perspective")
+            (
+                "telephoto",
+                "telephoto lens, compressed perspective, shallow depth of field",
+            ),
+            ("normal", "normal lens, natural perspective"),
         ]
 
         for lens, expected_text in test_cases:
@@ -400,7 +399,7 @@ class TestIntegrationScenarios:
                 camera_movement="static",
                 lens_type=lens,
                 duration_seconds=2.5,
-                purpose="emotional"
+                purpose="emotional",
             )
 
             prompt = spec.generate_prompt()

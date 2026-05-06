@@ -16,8 +16,11 @@ import aiohttp
 import webbrowser
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class StoryCoreLauncher:
     """
@@ -42,7 +45,9 @@ class StoryCoreLauncher:
             if (path / "main.py").exists():
                 return path
 
-        raise FileNotFoundError("ComfyUI installation not found. Please run the installer first.")
+        raise FileNotFoundError(
+            "ComfyUI installation not found. Please run the installer first."
+        )
 
     async def check_service_ready(self, url: str, name: str, timeout: int = 30) -> bool:
         """Wait for a service to be ready"""
@@ -70,7 +75,9 @@ class StoryCoreLauncher:
 
     async def check_api_ready(self) -> bool:
         """Wait for API server to be ready"""
-        return await self.check_service_ready("http://localhost:8000/health", "StoryCore API", 30)
+        return await self.check_service_ready(
+            "http://localhost:8000/health", "StoryCore API", 30
+        )
 
     async def check_ui_ready(self) -> bool:
         """Wait for React UI to be ready"""
@@ -86,11 +93,15 @@ class StoryCoreLauncher:
 
         # Start ComfyUI with proper arguments
         cmd = [
-            sys.executable, "main.py",
-            "--listen", "0.0.0.0",
-            "--port", "8188",
-            "--enable-cors-header", "http://localhost:3000",
-            "--cpu"  # Use CPU mode for compatibility
+            sys.executable,
+            "main.py",
+            "--listen",
+            "0.0.0.0",
+            "--port",
+            "8188",
+            "--enable-cors-header",
+            "http://localhost:3000",
+            "--cpu",  # Use CPU mode for compatibility
         ]
 
         logger.info(f"Running command: {' '.join(cmd)}")
@@ -101,7 +112,7 @@ class StoryCoreLauncher:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         return process
@@ -115,10 +126,14 @@ class StoryCoreLauncher:
         os.chdir(self.project_root)
 
         cmd = [
-            sys.executable, str(api_script),
-            "--host", "localhost",
-            "--port", "8000",
-            "--comfyui-url", "http://127.0.0.1:8188"
+            sys.executable,
+            str(api_script),
+            "--host",
+            "localhost",
+            "--port",
+            "8000",
+            "--comfyui-url",
+            "http://127.0.0.1:8188",
         ]
 
         logger.info(f"Running command: {' '.join(cmd)}")
@@ -129,7 +144,7 @@ class StoryCoreLauncher:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         return process
@@ -140,7 +155,9 @@ class StoryCoreLauncher:
         logger.info(f"Starting React UI from: {ui_dir}")
 
         if not (ui_dir / "package.json").exists():
-            raise FileNotFoundError("React UI not found. Please install dependencies first.")
+            raise FileNotFoundError(
+                "React UI not found. Please install dependencies first."
+            )
 
         os.chdir(ui_dir)
 
@@ -159,13 +176,14 @@ class StoryCoreLauncher:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         return process
 
     def monitor_process(self, process: subprocess.Popen, name: str):
         """Monitor a process and log its output"""
+
         def monitor_output():
             while True:
                 output = process.stdout.readline()
@@ -182,6 +200,7 @@ class StoryCoreLauncher:
                     break
 
         import threading
+
         thread = threading.Thread(target=monitor_output, daemon=True)
         thread.start()
 
@@ -296,7 +315,7 @@ class StoryCoreLauncher:
         processes = [
             ("ComfyUI", self.comfyui_process),
             ("API Server", self.api_process),
-            ("React UI", self.ui_process)
+            ("React UI", self.ui_process),
         ]
 
         for name, process in processes:
@@ -311,6 +330,7 @@ class StoryCoreLauncher:
 
         logger.info("✅ All services stopped")
 
+
 def main():
     """Main entry point"""
     launcher = StoryCoreLauncher()
@@ -323,6 +343,7 @@ def main():
     except Exception as e:
         logger.error(f"Failed to start: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

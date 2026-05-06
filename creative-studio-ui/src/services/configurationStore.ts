@@ -5,6 +5,8 @@
  * a hybrid approach: file system for project configs and local storage
  * for global configs.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type {
   ProjectConfiguration,
@@ -98,7 +100,7 @@ export class ConfigurationStore {
   static async loadProjectConfig(projectId: string): Promise<ProjectConfiguration> {
     try {
       let storedConfig: string | null = null;
-      let config: any = null;
+      let config: LegacyAny = null;
 
       // Try to load via Electron API
       if (window.electronAPI?.config?.loadProject) {

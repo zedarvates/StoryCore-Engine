@@ -11,15 +11,18 @@ import json
 import time
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Any, Optional
-import base64
-import hashlib
+from typing import Dict, List, Any
 
 # Import ComfyUI integration components
 try:
     # Try relative imports first (for package usage)
     from .comfyui_manager import ComfyUIManager
-    from .comfyui_config import ComfyUIConfig, ConfigManager, ControlNetConfig, IPAdapterConfig
+    from .comfyui_config import (
+        ComfyUIConfig,
+        ConfigManager,
+        ControlNetConfig,
+        IPAdapterConfig,
+    )
     from .health_monitor import HealthMonitor
     from .api_orchestrator import APIOrchestrator
     from .workflow_executor import WorkflowExecutor, StoryCorePanelConfig
@@ -30,58 +33,61 @@ try:
 except ImportError:
     # Fall back to absolute imports (for CLI usage)
     from comfyui_manager import ComfyUIManager
-    from comfyui_config import ComfyUIConfig, ConfigManager, ControlNetConfig, IPAdapterConfig
+    from comfyui_config import ConfigManager, ControlNetConfig, IPAdapterConfig
     from health_monitor import HealthMonitor
     from api_orchestrator import APIOrchestrator
     from workflow_executor import WorkflowExecutor, StoryCorePanelConfig
     from asset_retriever import AssetRetriever
     from platform_manager import PlatformManager
-    from comfyui_models import ServiceState, HealthState
+    from comfyui_models import HealthState
     from character_registry import CharacterRegistry
 
 
 class ComfyUIImageEngine:
     """Handles AI image generation using ComfyUI backend with comprehensive service management."""
-    
+
     def __init__(self, comfyui_url: str = "http://127.0.0.1:8188"):
         self.schema_version = "1.0"
-        
+
         # Initialize ComfyUI configuration
         self.config = ConfigManager().load_config()
-        
+
         # Parse URL to set host and port
         if comfyui_url != "http://127.0.0.1:8188":
             from urllib.parse import urlparse
+
             parsed = urlparse(comfyui_url)
             self.config.server_host = parsed.hostname or "127.0.0.1"
             self.config.server_port = parsed.port or 8188
-        
+
         # Initialize platform manager for cross-platform compatibility
         self.platform_manager = PlatformManager(self.config)
-        
+
         # Initialize ComfyUI Manager for service lifecycle
         self.comfyui_manager = ComfyUIManager(self.config)
-        
+
         # Initialize Health Monitor
         self.health_monitor = HealthMonitor(self.config)
         self.comfyui_manager.health_monitor = self.health_monitor
-        
+
         # Initialize API Orchestrator for communication
         self.api_orchestrator = APIOrchestrator(self.config)
-        
+
         # Initialize Workflow Executor for conversion
         self.workflow_executor = WorkflowExecutor(self.config)
-        
+
         # Initialize Asset Retriever for downloads
         self.asset_retriever = AssetRetriever(self.config)
-        
+
         # Initialize Character Registry
         self.character_registry = CharacterRegistry()
-        
+
         # Service state tracking
-        self.mock_mode = False  # Default to real mode - will fallback to mock if ComfyUI unavailable
+        self.mock_mode = (
+            False  # Default to real mode - will fallback to mock if ComfyUI unavailable
+        )
         self._service_available = False
-        
+
         # ComfyUI workflow templates
         self.workflow_templates = {
             "base_generation": {
@@ -89,57 +95,51 @@ class ComfyUIImageEngine:
                 "sampler": "dpmpp_2m_karras",
                 "scheduler": "karras",
                 "steps": 30,
-                "cfg_scale": 7.0
+                "cfg_scale": 7.0,
             },
             "controlnet_pose": {
                 "model": "control_openpose",
                 "strength": 1.0,
-                "preprocessing": True
+                "preprocessing": True,
             },
             "controlnet_depth": {
                 "model": "control_depth",
                 "strength": 0.8,
-                "preprocessing": True
+                "preprocessing": True,
             },
-            "ip_adapter": {
-                "model": "ip_adapter_plus",
-                "weight": 0.7,
-                "noise": 0.3
-            },
-            "face_id": {
-                "model": "faceid_plus",
-                "weight": 0.9,
-                "noise": 0.1
-            }
+            "ip_adapter": {"model": "ip_adapter_plus", "weight": 0.7, "noise": 0.3},
+            "face_id": {"model": "faceid_plus", "weight": 0.9, "noise": 0.1},
         }
-        
+
         # Generation quality settings
         self.quality_settings = {
             "maximum": {"width": 1536, "height": 864, "steps": 40, "cfg_scale": 8.0},
             "high": {"width": 1280, "height": 720, "steps": 35, "cfg_scale": 7.5},
             "medium": {"width": 1024, "height": 576, "steps": 30, "cfg_scale": 7.0},
-            "low": {"width": 768, "height": 432, "steps": 25, "cfg_scale": 6.0}
+            "low": {"width": 768, "height": 432, "steps": 25, "cfg_scale": 6.0},
         }
-    
+
     def process_image_generation(self, project_path: Path) -> Dict[str, Any]:
         """
         Process puppet layer metadata into final keyframe images.
-        
+
         Args:
             project_path: Path to project directory
-            
+
         Returns:
             Dict with image generation metadata
         """
         # Load puppet layer metadata
         puppet_layer_data = self._load_puppet_layer_metadata(project_path)
         if not puppet_layer_data:
-            raise FileNotFoundError("Puppet layer metadata not found. Run 'storycore puppet-layer' first.")
-        
+            raise FileNotFoundError(
+                "Puppet layer metadata not found. Run 'storycore puppet-layer' first."
+            )
+
         # Load additional context
         storyboard_data = self._load_storyboard_visual(project_path)
         scene_breakdown = self._load_scene_breakdown(project_path)
-        
+
         # Check ComfyUI availability using Health Monitor
         comfyui_available = self._check_comfyui_availability()
         if not comfyui_available:
@@ -148,28 +148,28 @@ class ComfyUIImageEngine:
         else:
             print("✅ ComfyUI service available - real mode enabled")
             self.mock_mode = False
-        
+
         # Process generation control structure
         control_structure = puppet_layer_data["generation_control_structure"]
         generation_results = []
-        
+
         # Generate images for each frame
         for frame_generation in control_structure["generation_order"]:
             frame_id = frame_generation["frame_id"]
-            
+
             print(f"🎨 Generating frame: {frame_id}")
-            
+
             # Generate frame images
             frame_result = self._generate_frame_images(
-                frame_generation, 
-                puppet_layer_data, 
+                frame_generation,
+                puppet_layer_data,
                 storyboard_data,
                 scene_breakdown,
-                project_path
+                project_path,
             )
-            
+
             generation_results.append(frame_result)
-        
+
         # Create image generation metadata
         image_generation_metadata = {
             "image_generation_id": f"images_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
@@ -183,93 +183,110 @@ class ComfyUIImageEngine:
             "quality_analysis": self._analyze_generation_quality(generation_results),
             "processing_metadata": {
                 "total_frames_generated": len(generation_results),
-                "total_images_generated": sum(len(result["generated_images"]) for result in generation_results),
-                "average_generation_time": self._calculate_average_generation_time(generation_results),
+                "total_images_generated": sum(
+                    len(result["generated_images"]) for result in generation_results
+                ),
+                "average_generation_time": self._calculate_average_generation_time(
+                    generation_results
+                ),
                 "success_rate": self._calculate_success_rate(generation_results),
-                "quality_score": self._calculate_overall_quality_score(generation_results)
-            }
+                "quality_score": self._calculate_overall_quality_score(
+                    generation_results
+                ),
+            },
         }
-        
+
         # Save image generation metadata
         image_gen_file = project_path / "image_generation_metadata.json"
-        with open(image_gen_file, 'w') as f:
+        with open(image_gen_file, "w") as f:
             json.dump(image_generation_metadata, f, indent=2)
-        
+
         # Update project.json with image generation reference
-        self._update_project_with_image_generation(project_path, image_generation_metadata)
-        
+        self._update_project_with_image_generation(
+            project_path, image_generation_metadata
+        )
+
         return image_generation_metadata
-    
+
     def _load_puppet_layer_metadata(self, project_path: Path) -> Dict[str, Any]:
         """Load puppet layer metadata."""
         puppet_layer_file = project_path / "puppet_layer_metadata.json"
         if not puppet_layer_file.exists():
             return None
-        
-        with open(puppet_layer_file, 'r') as f:
+
+        with open(puppet_layer_file, "r") as f:
             return json.load(f)
-    
+
     def _load_storyboard_visual(self, project_path: Path) -> Dict[str, Any]:
         """Load storyboard visual metadata."""
         storyboard_file = project_path / "storyboard_visual.json"
         if storyboard_file.exists():
-            with open(storyboard_file, 'r') as f:
+            with open(storyboard_file, "r") as f:
                 return json.load(f)
         return None
-    
+
     def _load_scene_breakdown(self, project_path: Path) -> Dict[str, Any]:
         """Load scene breakdown metadata."""
         scene_breakdown_file = project_path / "scene_breakdown.json"
         if scene_breakdown_file.exists():
-            with open(scene_breakdown_file, 'r') as f:
+            with open(scene_breakdown_file, "r") as f:
                 return json.load(f)
         return None
-    
+
     def _check_comfyui_availability(self) -> bool:
         """Check if ComfyUI is available using Health Monitor."""
         try:
             # Use Health Monitor for comprehensive health checking
             import asyncio
-            
+
             # Run health check
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                health_status = loop.run_until_complete(self.health_monitor.check_health())
+                health_status = loop.run_until_complete(
+                    self.health_monitor.check_health()
+                )
                 self._service_available = health_status.state == HealthState.HEALTHY
-                
+
                 if self._service_available:
-                    print(f"✅ ComfyUI service healthy - Response time: {health_status.response_time_ms}ms")
+                    print(
+                        f"✅ ComfyUI service healthy - Response time: {health_status.response_time_ms}ms"
+                    )
                 else:
-                    print(f"⚠️  ComfyUI service unhealthy - State: {health_status.state}")
-                
+                    print(
+                        f"⚠️  ComfyUI service unhealthy - State: {health_status.state}"
+                    )
+
                 return self._service_available
             finally:
                 loop.close()
-                
-        except Exception as e:
+
+        except Exception:
             # If health check fails, try direct API connection as fallback
             try:
                 import aiohttp
                 import asyncio
-                
+
                 async def check_api():
                     try:
                         async with aiohttp.ClientSession() as session:
-                            async with session.get(f"{self.config.server_url}/system_stats", timeout=aiohttp.ClientTimeout(total=5)) as response:
+                            async with session.get(
+                                f"{self.config.server_url}/system_stats",
+                                timeout=aiohttp.ClientTimeout(total=5),
+                            ) as response:
                                 return response.status == 200
                     except Exception as api_check_error:
                         print(f"⚠️  API check failed: {api_check_error}")
                         return False
-                
+
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
                     self._service_available = loop.run_until_complete(check_api())
                     if self._service_available:
-                        print(f"✅ ComfyUI API accessible directly")
+                        print("✅ ComfyUI API accessible directly")
                     else:
-                        print(f"⚠️  ComfyUI not accessible via API")
+                        print("⚠️  ComfyUI not accessible via API")
                     return self._service_available
                 finally:
                     loop.close()
@@ -277,42 +294,77 @@ class ComfyUIImageEngine:
                 print(f"⚠️  ComfyUI health check and API check failed: {api_error}")
                 self._service_available = False
                 return False
-    
-    def _generate_frame_images(self, frame_generation: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                               storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
-                               project_path: Path) -> Dict[str, Any]:
+
+    def _generate_frame_images(
+        self,
+        frame_generation: Dict[str, Any],
+        puppet_layer_data: Dict[str, Any],
+        storyboard_data: Dict[str, Any],
+        scene_breakdown: Dict[str, Any],
+        project_path: Path,
+    ) -> Dict[str, Any]:
         """Generate all images for a single frame using ComfyUI Manager orchestration."""
         frame_id = frame_generation["frame_id"]
         generation_sequence = frame_generation["generation_sequence"]
-        
+
         if self.mock_mode:
-            return self._generate_frame_images_mock(frame_generation, puppet_layer_data, storyboard_data, scene_breakdown, project_path)
-        
+            return self._generate_frame_images_mock(
+                frame_generation,
+                puppet_layer_data,
+                storyboard_data,
+                scene_breakdown,
+                project_path,
+            )
+
         # Real ComfyUI generation using new orchestration system
         generated_images = []
         generation_logs = []
-        
+
         try:
             # Process generation sequence using Workflow Executor
             for seq_item in generation_sequence:
                 if seq_item["type"] == "layer":
-                    layer_result = self._generate_layer_real(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
+                    layer_result = self._generate_layer_real(
+                        seq_item,
+                        puppet_layer_data,
+                        storyboard_data,
+                        scene_breakdown,
+                        project_path,
+                        frame_id,
+                    )
                     generated_images.append(layer_result)
-                    generation_logs.append(f"Generated layer: {seq_item['id']} using ComfyUI workflow")
-                    
+                    generation_logs.append(
+                        f"Generated layer: {seq_item['id']} using ComfyUI workflow"
+                    )
+
                 elif seq_item["type"] == "puppet":
-                    puppet_result = self._generate_puppet_real(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
+                    puppet_result = self._generate_puppet_real(
+                        seq_item,
+                        puppet_layer_data,
+                        storyboard_data,
+                        scene_breakdown,
+                        project_path,
+                        frame_id,
+                    )
                     generated_images.append(puppet_result)
-                    generation_logs.append(f"Generated puppet: {seq_item['id']} using ComfyUI workflow")
-            
+                    generation_logs.append(
+                        f"Generated puppet: {seq_item['id']} using ComfyUI workflow"
+                    )
+
             # Generate final composite using ComfyUI
             final_composite = self._generate_composite_real(generated_images, frame_id)
-            
+
         except Exception as e:
             print(f"⚠️  Real generation failed for frame {frame_id}: {e}")
             print("🔄 Falling back to mock mode for this frame")
-            return self._generate_frame_images_mock(frame_generation, puppet_layer_data, storyboard_data, scene_breakdown, project_path)
-        
+            return self._generate_frame_images_mock(
+                frame_generation,
+                puppet_layer_data,
+                storyboard_data,
+                scene_breakdown,
+                project_path,
+            )
+
         frame_result = {
             "frame_id": frame_id,
             "generation_timestamp": datetime.utcnow().isoformat() + "Z",
@@ -321,30 +373,54 @@ class ComfyUIImageEngine:
             "generation_logs": generation_logs,
             "generation_mode": "real_comfyui",
             "generation_metadata": {
-                "total_layers_generated": len([img for img in generated_images if img["type"] == "layer"]),
-                "total_puppets_generated": len([img for img in generated_images if img["type"] == "puppet"]),
-                "generation_time_seconds": sum(img["generation_result"]["generation_time"] for img in generated_images),
+                "total_layers_generated": len(
+                    [img for img in generated_images if img["type"] == "layer"]
+                ),
+                "total_puppets_generated": len(
+                    [img for img in generated_images if img["type"] == "puppet"]
+                ),
+                "generation_time_seconds": sum(
+                    img["generation_result"]["generation_time"]
+                    for img in generated_images
+                ),
                 "quality_metrics": {
-                    "overall_quality": sum(img["generation_result"]["quality_metrics"]["overall_quality"] for img in generated_images) / len(generated_images) if generated_images else 0.0,
+                    "overall_quality": sum(
+                        img["generation_result"]["quality_metrics"]["overall_quality"]
+                        for img in generated_images
+                    )
+                    / len(generated_images)
+                    if generated_images
+                    else 0.0,
                     "success_rate": 1.0,
-                    "average_sharpness": sum(img["generation_result"]["quality_metrics"]["sharpness"] for img in generated_images) / len(generated_images) if generated_images else 0.0
-                }
-            }
+                    "average_sharpness": sum(
+                        img["generation_result"]["quality_metrics"]["sharpness"]
+                        for img in generated_images
+                    )
+                    / len(generated_images)
+                    if generated_images
+                    else 0.0,
+                },
+            },
         }
-        
+
         return frame_result
-    
-    def _generate_frame_images_mock(self, frame_generation: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                                   storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
-                                   project_path: Path) -> Dict[str, Any]:
+
+    def _generate_frame_images_mock(
+        self,
+        frame_generation: Dict[str, Any],
+        puppet_layer_data: Dict[str, Any],
+        storyboard_data: Dict[str, Any],
+        scene_breakdown: Dict[str, Any],
+        project_path: Path,
+    ) -> Dict[str, Any]:
         """Generate mock images for demonstration (original implementation)."""
         frame_id = frame_generation["frame_id"]
         generation_sequence = frame_generation["generation_sequence"]
-        
+
         # Mock generation for demonstration
         generated_images = []
         generation_logs = []
-        
+
         # Process generation sequence
         for seq_item in generation_sequence:
             if seq_item["type"] == "layer":
@@ -357,12 +433,12 @@ class ComfyUIImageEngine:
                         "success": True,
                         "image_filename": f"layer_{seq_item['id']}_{int(time.time())}.jpg",
                         "generation_time": 2.5,
-                        "quality_metrics": {"overall_quality": 4.2, "sharpness": 4.0}
-                    }
+                        "quality_metrics": {"overall_quality": 4.2, "sharpness": 4.0},
+                    },
                 }
                 generated_images.append(layer_result)
                 generation_logs.append(f"Generated layer: {seq_item['id']} (mock mode)")
-                
+
             elif seq_item["type"] == "puppet":
                 # Mock puppet generation
                 puppet_result = {
@@ -373,12 +449,14 @@ class ComfyUIImageEngine:
                         "success": True,
                         "image_filename": f"puppet_{seq_item['id']}_{int(time.time())}.jpg",
                         "generation_time": 3.2,
-                        "quality_metrics": {"overall_quality": 4.0, "sharpness": 3.8}
-                    }
+                        "quality_metrics": {"overall_quality": 4.0, "sharpness": 3.8},
+                    },
                 }
                 generated_images.append(puppet_result)
-                generation_logs.append(f"Generated puppet: {seq_item['id']} (mock mode)")
-        
+                generation_logs.append(
+                    f"Generated puppet: {seq_item['id']} (mock mode)"
+                )
+
         # Mock final composite
         final_composite = {
             "composite_filename": f"composite_{frame_id}_{int(time.time())}.jpg",
@@ -386,10 +464,10 @@ class ComfyUIImageEngine:
             "composite_metadata": {
                 "total_source_images": len(generated_images),
                 "composite_quality": 4.1,
-                "final_resolution": "1920x1080"
-            }
+                "final_resolution": "1920x1080",
+            },
         }
-        
+
         frame_result = {
             "frame_id": frame_id,
             "generation_timestamp": datetime.utcnow().isoformat() + "Z",
@@ -398,19 +476,38 @@ class ComfyUIImageEngine:
             "generation_logs": generation_logs,
             "generation_mode": "mock_demo",
             "generation_metadata": {
-                "total_layers_generated": len([img for img in generated_images if img["type"] == "layer"]),
-                "total_puppets_generated": len([img for img in generated_images if img["type"] == "puppet"]),
-                "generation_time_seconds": sum(img["generation_result"]["generation_time"] for img in generated_images),
+                "total_layers_generated": len(
+                    [img for img in generated_images if img["type"] == "layer"]
+                ),
+                "total_puppets_generated": len(
+                    [img for img in generated_images if img["type"] == "puppet"]
+                ),
+                "generation_time_seconds": sum(
+                    img["generation_result"]["generation_time"]
+                    for img in generated_images
+                ),
                 "quality_metrics": {
-                    "overall_quality": sum(img["generation_result"]["quality_metrics"]["overall_quality"] for img in generated_images) / len(generated_images) if generated_images else 0.0,
+                    "overall_quality": sum(
+                        img["generation_result"]["quality_metrics"]["overall_quality"]
+                        for img in generated_images
+                    )
+                    / len(generated_images)
+                    if generated_images
+                    else 0.0,
                     "success_rate": 1.0,
-                    "average_sharpness": sum(img["generation_result"]["quality_metrics"]["sharpness"] for img in generated_images) / len(generated_images) if generated_images else 0.0
-                }
-            }
+                    "average_sharpness": sum(
+                        img["generation_result"]["quality_metrics"]["sharpness"]
+                        for img in generated_images
+                    )
+                    / len(generated_images)
+                    if generated_images
+                    else 0.0,
+                },
+            },
         }
-        
+
         return frame_result
-    
+
     def _generate_model_configuration(self) -> Dict[str, Any]:
         """Generate model configuration metadata."""
         return {
@@ -419,38 +516,49 @@ class ComfyUIImageEngine:
             "clip_model": "clip_l",
             "controlnet_models": {
                 "openpose": "control_openpose_xl.safetensors",
-                "depth": "control_depth_xl.safetensors"
+                "depth": "control_depth_xl.safetensors",
             },
             "ip_adapter_models": {
                 "plus": "ip_adapter_plus_xl.safetensors",
-                "faceid": "ip_adapter_faceid_plus_xl.safetensors"
+                "faceid": "ip_adapter_faceid_plus_xl.safetensors",
             },
             "generation_settings": self.workflow_templates["base_generation"],
-            "quality_presets": self.quality_settings
+            "quality_presets": self.quality_settings,
         }
-    
-    def _generate_workflow_metadata(self, generation_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+    def _generate_workflow_metadata(
+        self, generation_results: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Generate workflow metadata from generation results."""
-        total_workflows = sum(len(result["generated_images"]) for result in generation_results)
-        
+        total_workflows = sum(
+            len(result["generated_images"]) for result in generation_results
+        )
+
         return {
             "total_workflows_executed": total_workflows,
-            "workflow_type_distribution": {"layer_generation": total_workflows // 2, "character_generation": total_workflows // 2},
+            "workflow_type_distribution": {
+                "layer_generation": total_workflows // 2,
+                "character_generation": total_workflows // 2,
+            },
             "controlnet_usage_stats": {"openpose": 5, "depth": 3, "lineart": 2},
             "ip_adapter_usage_stats": {"character": 4, "face": 3, "style": 2},
             "average_workflow_complexity": 2.5,
-            "most_used_workflow_type": "layer_generation"
+            "most_used_workflow_type": "layer_generation",
         }
-    
-    def _analyze_generation_quality(self, generation_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+    def _analyze_generation_quality(
+        self, generation_results: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Analyze overall generation quality."""
         all_qualities = []
         for result in generation_results:
-            quality = result["generation_metadata"]["quality_metrics"]["overall_quality"]
+            quality = result["generation_metadata"]["quality_metrics"][
+                "overall_quality"
+            ]
             all_qualities.append(quality)
-        
+
         avg_quality = sum(all_qualities) / len(all_qualities) if all_qualities else 0.0
-        
+
         return {
             "overall_quality_score": avg_quality,
             "quality_consistency": 0.85,
@@ -459,121 +567,171 @@ class ComfyUIImageEngine:
                 "excellent": len([q for q in all_qualities if q >= 4.5]),
                 "good": len([q for q in all_qualities if 3.5 <= q < 4.5]),
                 "acceptable": len([q for q in all_qualities if 2.5 <= q < 3.5]),
-                "poor": len([q for q in all_qualities if q < 2.5])
+                "poor": len([q for q in all_qualities if q < 2.5]),
             },
-            "recommendations": ["Generation quality is excellent - maintain current settings"]
+            "recommendations": [
+                "Generation quality is excellent - maintain current settings"
+            ],
         }
-    
-    def _calculate_average_generation_time(self, generation_results: List[Dict[str, Any]]) -> float:
+
+    def _calculate_average_generation_time(
+        self, generation_results: List[Dict[str, Any]]
+    ) -> float:
         """Calculate average generation time across all frames."""
-        all_times = [result["generation_metadata"]["generation_time_seconds"] for result in generation_results]
+        all_times = [
+            result["generation_metadata"]["generation_time_seconds"]
+            for result in generation_results
+        ]
         return sum(all_times) / len(all_times) if all_times else 0.0
-    
-    def _calculate_success_rate(self, generation_results: List[Dict[str, Any]]) -> float:
+
+    def _calculate_success_rate(
+        self, generation_results: List[Dict[str, Any]]
+    ) -> float:
         """Calculate overall success rate."""
         return 1.0  # Mock mode always succeeds
-    
-    def _calculate_overall_quality_score(self, generation_results: List[Dict[str, Any]]) -> float:
+
+    def _calculate_overall_quality_score(
+        self, generation_results: List[Dict[str, Any]]
+    ) -> float:
         """Calculate overall quality score."""
-        all_qualities = [result["generation_metadata"]["quality_metrics"]["overall_quality"] for result in generation_results]
+        all_qualities = [
+            result["generation_metadata"]["quality_metrics"]["overall_quality"]
+            for result in generation_results
+        ]
         return sum(all_qualities) / len(all_qualities) if all_qualities else 0.0
-    
-    def _update_project_with_image_generation(self, project_path: Path, image_generation_metadata: Dict[str, Any]) -> None:
+
+    def _update_project_with_image_generation(
+        self, project_path: Path, image_generation_metadata: Dict[str, Any]
+    ) -> None:
         """Update project.json with image generation results."""
         project_file = project_path / "project.json"
-        
+
         if project_file.exists():
-            with open(project_file, 'r') as f:
+            with open(project_file, "r") as f:
                 project_data = json.load(f)
         else:
             project_data = {"schema_version": "1.0"}
-        
+
         # Update project status and metadata
         project_data["generation_status"] = project_data.get("generation_status", {})
         project_data["generation_status"]["image_generation"] = "done"
-        
+
         project_data["processing_results"] = project_data.get("processing_results", {})
         project_data["processing_results"]["image_generation"] = {
             "image_generation_id": image_generation_metadata["image_generation_id"],
-            "total_frames_generated": image_generation_metadata["processing_metadata"]["total_frames_generated"],
-            "total_images_generated": image_generation_metadata["processing_metadata"]["total_images_generated"],
-            "average_generation_time": image_generation_metadata["processing_metadata"]["average_generation_time"],
-            "success_rate": image_generation_metadata["processing_metadata"]["success_rate"],
-            "quality_score": image_generation_metadata["processing_metadata"]["quality_score"],
+            "total_frames_generated": image_generation_metadata["processing_metadata"][
+                "total_frames_generated"
+            ],
+            "total_images_generated": image_generation_metadata["processing_metadata"][
+                "total_images_generated"
+            ],
+            "average_generation_time": image_generation_metadata["processing_metadata"][
+                "average_generation_time"
+            ],
+            "success_rate": image_generation_metadata["processing_metadata"][
+                "success_rate"
+            ],
+            "quality_score": image_generation_metadata["processing_metadata"][
+                "quality_score"
+            ],
             "comfyui_mode": image_generation_metadata["comfyui_mode"],
-            "processed_at": image_generation_metadata["created_at"]
+            "processed_at": image_generation_metadata["created_at"],
         }
-        
+
         # Update capabilities
         project_data["capabilities"] = project_data.get("capabilities", {})
         project_data["capabilities"]["image_generation"] = True
         project_data["capabilities"]["comfyui_integration"] = True
-        
+
         # Save updated project data
-        with open(project_file, 'w') as f:
+        with open(project_file, "w") as f:
             json.dump(project_data, f, indent=2)
-            
-    def _generate_layer_real(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                            storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
-                            project_path: Path, frame_id: str) -> Dict[str, Any]:
+
+    def _generate_layer_real(
+        self,
+        seq_item: Dict[str, Any],
+        puppet_layer_data: Dict[str, Any],
+        storyboard_data: Dict[str, Any],
+        scene_breakdown: Dict[str, Any],
+        project_path: Path,
+        frame_id: str,
+    ) -> Dict[str, Any]:
         """Generate a layer using real ComfyUI workflow execution."""
         start_time = time.time()
-        
+
         try:
             # Create StoryCore panel configuration for layer
-            panel_config = self._create_layer_panel_config(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
-            
+            panel_config = self._create_layer_panel_config(
+                seq_item,
+                puppet_layer_data,
+                storyboard_data,
+                scene_breakdown,
+                project_path,
+                frame_id,
+            )
+
             # Convert to ComfyUI workflow
             workflow = self.workflow_executor.convert_storycore_panel(panel_config)
-            
+
             # Execute workflow via API Orchestrator
             import asyncio
+
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
                 execution_result = loop.run_until_complete(
                     self.api_orchestrator.submit_workflow(workflow)
                 )
-                
+
                 # Retrieve generated assets
                 if execution_result.success and execution_result.output_images:
                     assets = loop.run_until_complete(
                         self.asset_retriever.retrieve_execution_assets(execution_result)
                     )
-                    
+
                     # Use first asset as primary result
                     primary_asset = assets[0] if assets else None
-                    image_filename = primary_asset.filename if primary_asset else f"layer_{seq_item['id']}_failed.jpg"
-                    
+                    image_filename = (
+                        primary_asset.filename
+                        if primary_asset
+                        else f"layer_{seq_item['id']}_failed.jpg"
+                    )
+
                 else:
                     image_filename = f"layer_{seq_item['id']}_failed.jpg"
-                    
+
             finally:
                 loop.close()
-            
+
             generation_time = time.time() - start_time
-            
+
             return {
                 "type": "layer",
                 "layer_id": seq_item["id"],
                 "layer_name": f"layer_{seq_item['id']}",
                 "generation_result": {
-                    "success": execution_result.success if 'execution_result' in locals() else False,
+                    "success": execution_result.success
+                    if "execution_result" in locals()
+                    else False,
                     "image_filename": image_filename,
                     "generation_time": generation_time,
                     "quality_metrics": {
                         "overall_quality": 4.5 if execution_result.success else 2.0,
-                        "sharpness": 4.2 if execution_result.success else 1.8
+                        "sharpness": 4.2 if execution_result.success else 1.8,
                     },
-                    "workflow_id": execution_result.execution_id if 'execution_result' in locals() else None,
-                    "comfyui_metadata": execution_result.metadata if 'execution_result' in locals() else {}
-                }
+                    "workflow_id": execution_result.execution_id
+                    if "execution_result" in locals()
+                    else None,
+                    "comfyui_metadata": execution_result.metadata
+                    if "execution_result" in locals()
+                    else {},
+                },
             }
-            
+
         except Exception as e:
             generation_time = time.time() - start_time
             print(f"⚠️  Layer generation failed for {seq_item['id']}: {e}")
-            
+
             return {
                 "type": "layer",
                 "layer_id": seq_item["id"],
@@ -583,71 +741,95 @@ class ComfyUIImageEngine:
                     "image_filename": f"layer_{seq_item['id']}_error.jpg",
                     "generation_time": generation_time,
                     "quality_metrics": {"overall_quality": 1.0, "sharpness": 1.0},
-                    "error_message": str(e)
-                }
+                    "error_message": str(e),
+                },
             }
-    
-    def _generate_puppet_real(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                             storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
-                             project_path: Path, frame_id: str) -> Dict[str, Any]:
+
+    def _generate_puppet_real(
+        self,
+        seq_item: Dict[str, Any],
+        puppet_layer_data: Dict[str, Any],
+        storyboard_data: Dict[str, Any],
+        scene_breakdown: Dict[str, Any],
+        project_path: Path,
+        frame_id: str,
+    ) -> Dict[str, Any]:
         """Generate a puppet using real ComfyUI workflow execution."""
         start_time = time.time()
-        
+
         try:
             # Create StoryCore panel configuration for puppet
-            panel_config = self._create_puppet_panel_config(seq_item, puppet_layer_data, storyboard_data, scene_breakdown, project_path, frame_id)
-            
+            panel_config = self._create_puppet_panel_config(
+                seq_item,
+                puppet_layer_data,
+                storyboard_data,
+                scene_breakdown,
+                project_path,
+                frame_id,
+            )
+
             # Convert to ComfyUI workflow
             workflow = self.workflow_executor.convert_storycore_panel(panel_config)
-            
+
             # Execute workflow via API Orchestrator
             import asyncio
+
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
                 execution_result = loop.run_until_complete(
                     self.api_orchestrator.submit_workflow(workflow)
                 )
-                
+
                 # Retrieve generated assets
                 if execution_result.success and execution_result.output_images:
                     assets = loop.run_until_complete(
                         self.asset_retriever.retrieve_execution_assets(execution_result)
                     )
-                    
+
                     # Use first asset as primary result
                     primary_asset = assets[0] if assets else None
-                    image_filename = primary_asset.filename if primary_asset else f"puppet_{seq_item['id']}_failed.jpg"
-                    
+                    image_filename = (
+                        primary_asset.filename
+                        if primary_asset
+                        else f"puppet_{seq_item['id']}_failed.jpg"
+                    )
+
                 else:
                     image_filename = f"puppet_{seq_item['id']}_failed.jpg"
-                    
+
             finally:
                 loop.close()
-            
+
             generation_time = time.time() - start_time
-            
+
             return {
                 "type": "puppet",
                 "puppet_id": seq_item["id"],
                 "character_id": f"char_{seq_item['id']}",
                 "generation_result": {
-                    "success": execution_result.success if 'execution_result' in locals() else False,
+                    "success": execution_result.success
+                    if "execution_result" in locals()
+                    else False,
                     "image_filename": image_filename,
                     "generation_time": generation_time,
                     "quality_metrics": {
                         "overall_quality": 4.3 if execution_result.success else 2.0,
-                        "sharpness": 4.0 if execution_result.success else 1.8
+                        "sharpness": 4.0 if execution_result.success else 1.8,
                     },
-                    "workflow_id": execution_result.execution_id if 'execution_result' in locals() else None,
-                    "comfyui_metadata": execution_result.metadata if 'execution_result' in locals() else {}
-                }
+                    "workflow_id": execution_result.execution_id
+                    if "execution_result" in locals()
+                    else None,
+                    "comfyui_metadata": execution_result.metadata
+                    if "execution_result" in locals()
+                    else {},
+                },
             }
-            
+
         except Exception as e:
             generation_time = time.time() - start_time
             print(f"⚠️  Puppet generation failed for {seq_item['id']}: {e}")
-            
+
             return {
                 "type": "puppet",
                 "puppet_id": seq_item["id"],
@@ -657,11 +839,13 @@ class ComfyUIImageEngine:
                     "image_filename": f"puppet_{seq_item['id']}_error.jpg",
                     "generation_time": generation_time,
                     "quality_metrics": {"overall_quality": 1.0, "sharpness": 1.0},
-                    "error_message": str(e)
-                }
+                    "error_message": str(e),
+                },
             }
-    
-    def _generate_composite_real(self, generated_images: List[Dict[str, Any]], frame_id: str) -> Dict[str, Any]:
+
+    def _generate_composite_real(
+        self, generated_images: List[Dict[str, Any]], frame_id: str
+    ) -> Dict[str, Any]:
         """Generate final composite using ComfyUI compositing workflow."""
         try:
             # For now, use mock composite until ComfyUI compositing workflow is implemented
@@ -673,8 +857,8 @@ class ComfyUIImageEngine:
                     "total_source_images": len(generated_images),
                     "composite_quality": 4.3,
                     "final_resolution": "1920x1080",
-                    "compositing_method": "comfyui_real"
-                }
+                    "compositing_method": "comfyui_real",
+                },
             }
         except Exception as e:
             print(f"⚠️  Composite generation failed for frame {frame_id}: {e}")
@@ -686,27 +870,41 @@ class ComfyUIImageEngine:
                     "composite_quality": 2.0,
                     "final_resolution": "1920x1080",
                     "compositing_method": "fallback",
-                    "error_message": str(e)
-                }
+                    "error_message": str(e),
+                },
             }
-    
-    def _create_layer_panel_config(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any], 
-                                  storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
-                                  project_path: Path, frame_id: str) -> StoryCorePanelConfig:
+
+    def _create_layer_panel_config(
+        self,
+        seq_item: Dict[str, Any],
+        puppet_layer_data: Dict[str, Any],
+        storyboard_data: Dict[str, Any],
+        scene_breakdown: Dict[str, Any],
+        project_path: Path,
+        frame_id: str,
+    ) -> StoryCorePanelConfig:
         """Create panel configuration for layer generation."""
         # Extract relevant information from metadata
-        layer_prompt = f"cinematic layer, {seq_item.get('description', 'background element')}"
-        
+        layer_prompt = (
+            f"cinematic layer, {seq_item.get('description', 'background element')}"
+        )
+
         # Add scene context if available
-        if scene_breakdown and 'detailed_scenes' in scene_breakdown:
-            scene_info = scene_breakdown['detailed_scenes'][0] if scene_breakdown['detailed_scenes'] else {}
-            if 'environment' in scene_info:
-                env = scene_info['environment']
+        if scene_breakdown and "detailed_scenes" in scene_breakdown:
+            scene_info = (
+                scene_breakdown["detailed_scenes"][0]
+                if scene_breakdown["detailed_scenes"]
+                else {}
+            )
+            if "environment" in scene_info:
+                env = scene_info["environment"]
                 layer_prompt += f", {env.get('type', 'indoor')} environment, {env.get('time_of_day', 'day')} lighting"
-        
+
         # Prepare ControlNet from Blender passes
-        controlnet_configs = self._prepare_controlnet_from_blender(project_path, frame_id)
-        
+        controlnet_configs = self._prepare_controlnet_from_blender(
+            project_path, frame_id
+        )
+
         return StoryCorePanelConfig(
             prompt=layer_prompt,
             negative_prompt="blurry, low quality, distorted",
@@ -716,51 +914,63 @@ class ComfyUIImageEngine:
             cfg_scale=7.5,
             seed=-1,
             checkpoint_name="sd_xl_base_1.0.safetensors",
-            controlnet_configs=controlnet_configs
+            controlnet_configs=controlnet_configs,
         )
-    
-    def _create_puppet_panel_config(self, seq_item: Dict[str, Any], puppet_layer_data: Dict[str, Any],
-                                   storyboard_data: Dict[str, Any], scene_breakdown: Dict[str, Any],
-                                   project_path: Path, frame_id: str) -> StoryCorePanelConfig:
+
+    def _create_puppet_panel_config(
+        self,
+        seq_item: Dict[str, Any],
+        puppet_layer_data: Dict[str, Any],
+        storyboard_data: Dict[str, Any],
+        scene_breakdown: Dict[str, Any],
+        project_path: Path,
+        frame_id: str,
+    ) -> StoryCorePanelConfig:
         """Create panel configuration for puppet/character generation."""
         # Extract character information
         character_id = seq_item.get("character_id") or f"char_{seq_item.get('id')}"
-        character_prompt = f"character portrait, {seq_item.get('description', 'person')}"
-        
+        character_prompt = (
+            f"character portrait, {seq_item.get('description', 'person')}"
+        )
+
         # Try to get character identity from registry
         identity = self.character_registry.get_by_id(character_id)
         ipadapter_config = None
-        
+
         if identity:
             # 3. Intègre la description physique détaillée dans le prompt positif
             if identity.physical_description:
                 character_prompt += f", {identity.physical_description}"
-            
+
             # 2. Support IP-Adapter
             if identity.reference_image_path:
                 ref_path = Path(identity.reference_image_path)
                 if ref_path.exists():
                     ipadapter_config = IPAdapterConfig(
-                        model_name="ip-adapter-plus_sdxl_vit-h.safetensors", # Default SDXL IP-Adapter
+                        model_name="ip-adapter-plus_sdxl_vit-h.safetensors",  # Default SDXL IP-Adapter
                         reference_image_path=ref_path,
                         weight=0.7,
-                        noise=0.0
+                        noise=0.0,
                     )
                 else:
-                    print(f"WARNING: Reference image not found for character {character_id}: {ref_path}")
+                    print(
+                        f"WARNING: Reference image not found for character {character_id}: {ref_path}"
+                    )
         else:
             # Fallback on puppet_layer_data if registry doesn't have it
-            if puppet_layer_data and 'pose_metadata' in puppet_layer_data:
-                pose_meta = puppet_layer_data['pose_metadata']
-                if 'character_definitions' in pose_meta:
-                    char_defs = pose_meta['character_definitions']
+            if puppet_layer_data and "pose_metadata" in puppet_layer_data:
+                pose_meta = puppet_layer_data["pose_metadata"]
+                if "character_definitions" in pose_meta:
+                    char_defs = pose_meta["character_definitions"]
                     if char_defs:
                         char_def = char_defs[0]  # Use first character definition
                         character_prompt += f", {char_def.get('description', '')}"
-        
+
         # Prepare ControlNet from Blender passes
-        controlnet_configs = self._prepare_controlnet_from_blender(project_path, frame_id)
-        
+        controlnet_configs = self._prepare_controlnet_from_blender(
+            project_path, frame_id
+        )
+
         return StoryCorePanelConfig(
             prompt=character_prompt,
             negative_prompt="blurry, low quality, distorted, multiple people",
@@ -771,7 +981,7 @@ class ComfyUIImageEngine:
             seed=-1,
             checkpoint_name="sd_xl_base_1.0.safetensors",
             controlnet_configs=controlnet_configs,
-            ipadapter_config=ipadapter_config
+            ipadapter_config=ipadapter_config,
         )
 
     def start_comfyui_service(self) -> bool:
@@ -779,9 +989,9 @@ class ComfyUIImageEngine:
         try:
             print("🚀 Starting ComfyUI service...")
             result = self.comfyui_manager.start_service()
-            
+
             if result.success:
-                print(f"✅ ComfyUI service started successfully")
+                print("✅ ComfyUI service started successfully")
                 print(f"   Process ID: {result.process_id}")
                 print(f"   Server URL: {self.config.server_url}")
                 self._service_available = True
@@ -792,39 +1002,41 @@ class ComfyUIImageEngine:
                 self._service_available = False
                 self.mock_mode = True
                 return False
-                
+
         except Exception as e:
             print(f"❌ Error starting ComfyUI service: {e}")
             self._service_available = False
             self.mock_mode = True
             return False
-    
+
     def stop_comfyui_service(self) -> bool:
         """Stop ComfyUI service using ComfyUI Manager."""
         try:
             print("🛑 Stopping ComfyUI service...")
             result = self.comfyui_manager.stop_service()
-            
+
             if result.success:
                 print("✅ ComfyUI service stopped successfully")
                 self._service_available = False
                 self.mock_mode = True
                 return True
             else:
-                print(f"⚠️  ComfyUI service stop completed with warnings: {result.error_message}")
+                print(
+                    f"⚠️  ComfyUI service stop completed with warnings: {result.error_message}"
+                )
                 self._service_available = False
                 self.mock_mode = True
                 return True  # Consider warnings as success for stop operation
-                
+
         except Exception as e:
             print(f"❌ Error stopping ComfyUI service: {e}")
             return False
-    
+
     def get_service_status(self) -> Dict[str, Any]:
         """Get current ComfyUI service status."""
         try:
             status = self.comfyui_manager.get_service_status()
-            
+
             return {
                 "service_running": status.is_running,
                 "service_state": status.state.value,
@@ -832,10 +1044,12 @@ class ComfyUIImageEngine:
                 "port": status.port,
                 "mock_mode": self.mock_mode,
                 "service_available": self._service_available,
-                "last_health_check": status.last_health_check.isoformat() if status.last_health_check else None,
-                "uptime_seconds": status.uptime_seconds
+                "last_health_check": status.last_health_check.isoformat()
+                if status.last_health_check
+                else None,
+                "uptime_seconds": status.uptime_seconds,
             }
-            
+
         except Exception as e:
             return {
                 "service_running": False,
@@ -844,17 +1058,19 @@ class ComfyUIImageEngine:
                 "port": self.config.server_port,
                 "mock_mode": True,
                 "service_available": False,
-                "error_message": str(e)
+                "error_message": str(e),
             }
 
-    def _prepare_controlnet_from_blender(self, project_path: Path, frame_id: str) -> List[ControlNetConfig]:
+    def _prepare_controlnet_from_blender(
+        self, project_path: Path, frame_id: str
+    ) -> List[ControlNetConfig]:
         """
         Detect and prepare ControlNet configurations from Blender render passes.
-        
+
         Args:
             project_path: Path to the project directory.
             frame_id: ID of the frame being processed.
-            
+
         Returns:
             List of ControlNetConfig objects.
         """
@@ -862,33 +1078,37 @@ class ComfyUIImageEngine:
         # We use project_path.name as scene_id
         scene_id = project_path.name
         export_dir = Path("exports") / "blender" / "controlnet" / scene_id / frame_id
-        
+
         configs = []
-        
+
         # Check for Depth pass
         depth_path = export_dir / "depth.png"
         if depth_path.exists():
-            if depth_path.stat().st_size < 1024: # Basic corruption check (1KB)
+            if depth_path.stat().st_size < 1024:  # Basic corruption check (1KB)
                 print(f"⚠️  Depth pass file at {depth_path} seems corrupted (too small)")
             else:
-                configs.append(ControlNetConfig(
-                    model_name="control_depth_xl.safetensors",
-                    control_image_path=depth_path,
-                    strength=0.8,
-                    preprocessing=False # Already preprocessed by Blender
-                ))
-        
+                configs.append(
+                    ControlNetConfig(
+                        model_name="control_depth_xl.safetensors",
+                        control_image_path=depth_path,
+                        strength=0.8,
+                        preprocessing=False,  # Already preprocessed by Blender
+                    )
+                )
+
         # Check for Canny pass
         canny_path = export_dir / "canny.png"
         if canny_path.exists():
             if canny_path.stat().st_size < 1024:
                 print(f"⚠️  Canny pass file at {canny_path} seems corrupted (too small)")
             else:
-                configs.append(ControlNetConfig(
-                    model_name="control_canny_xl.safetensors",
-                    control_image_path=canny_path,
-                    strength=0.6,
-                    preprocessing=False # Already preprocessed by Blender
-                ))
-                
+                configs.append(
+                    ControlNetConfig(
+                        model_name="control_canny_xl.safetensors",
+                        control_image_path=canny_path,
+                        strength=0.6,
+                        preprocessing=False,  # Already preprocessed by Blender
+                    )
+                )
+
         return configs

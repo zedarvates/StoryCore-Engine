@@ -10,7 +10,7 @@ interface ColorWheelProps {
   onChange: (type: ColorWheelType, value: number) => void;
 }
 
-export const ColorWheel: React.FC<ColorWheelProps> = ({ type, label, color, value, onChange }) => {
+export const ColorWheel: React.FC<ColorWheelProps> = ({ _type, label, color, value, _onChange }) => {
   const [angle, setAngle] = useState(value * 360);
 
   useEffect(() => {

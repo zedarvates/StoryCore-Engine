@@ -31,7 +31,7 @@ import {
 export const GridEditorWithErrorBoundary: React.FC = () => {
   return (
     <GridEditorErrorBoundary
-      onError={(error, errorInfo) => {
+      onError={(_error, _errorInfo) => {
         // Optional: Send error to monitoring service
         ;
       }}
@@ -75,7 +75,7 @@ export const GridEditorWithNotifications: React.FC = () => {
     }
   };
 
-  const handleImport = async (file: File) => {
+  const _handleImport = async (file: File) => {
     try {
       const text = await file.text();
       const config = JSON.parse(text);
@@ -129,7 +129,7 @@ export const GridEditorWithNotifications: React.FC = () => {
     }
   };
 
-  const handleValidation = (value: number) => {
+  const _handleValidation = (value: number) => {
     if (value <= 0) {
       notifyValidationWarning('Scale value', 'Must be greater than 0');
       return false;
@@ -319,7 +319,7 @@ export const GridEditorWithCustomFallback: React.FC = () => {
  * Error monitoring service integration
  */
 const errorMonitoringService = {
-  captureError: (error: Error, context?: unknown) => {
+  captureError: (_error: Error, _context?: unknown) => {
     // Send to Sentry, LogRocket, etc.
     ;
   },

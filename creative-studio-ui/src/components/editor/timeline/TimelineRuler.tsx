@@ -7,7 +7,7 @@ interface TimelineRulerProps {
   fps?: number;
 }
 
-export function TimelineRuler({ duration, zoom, currentTime, fps = 30 }: TimelineRulerProps) {
+export function TimelineRuler({ duration, zoom, currentTime, _fps = 30 }: TimelineRulerProps) {
   // Calculate major and minor tick intervals based on zoom
   const tickIntervals = useMemo(() => {
     const totalWidth = duration * zoom * 100; // pixels per second * zoom

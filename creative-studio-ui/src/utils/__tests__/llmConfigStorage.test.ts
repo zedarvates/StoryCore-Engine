@@ -4,6 +4,8 @@
  * Validates configuration storage, encryption, and language preference management
  * Tests Requirements: 1.7, 2.3, 2.4, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
@@ -65,7 +67,7 @@ beforeEach(() => {
   sessionStorage.clear();
 
   // Mock crypto API
-  global.crypto = mockCrypto as any;
+  global.crypto = mockCrypto as LegacyAny;
 
   // Mock navigator
   Object.defineProperty(global, 'navigator', {
@@ -78,18 +80,18 @@ beforeEach(() => {
   mockCrypto.subtle.generateKey.mockResolvedValue({
     type: 'secret',
     algorithm: { name: 'AES-GCM', length: 256 },
-  } as any);
+  } as LegacyAny);
 
   mockCrypto.subtle.importKey.mockResolvedValue({
     type: 'secret',
     algorithm: { name: 'AES-GCM', length: 256 },
-  } as any);
+  } as LegacyAny);
 
   mockCrypto.subtle.exportKey.mockResolvedValue({
     kty: 'oct',
     k: 'test-key',
     alg: 'A256GCM',
-  } as any);
+  } as LegacyAny);
 
   mockCrypto.subtle.encrypt.mockImplementation(async (_algorithm, _key, data) => {
     // Simple mock encryption: just return the data
@@ -438,7 +440,7 @@ describe('Configuration Validation', () => {
 
   it('should reject invalid provider', () => {
     const result = validateConfiguration({
-      provider: 'invalid' as any,
+      provider: 'invalid' as LegacyAny,
     });
 
     expect(result.valid).toBe(false);
@@ -447,7 +449,7 @@ describe('Configuration Validation', () => {
 
   it('should reject invalid model type', () => {
     const result = validateConfiguration({
-      model: 123 as any,
+      model: 123 as LegacyAny,
     });
 
     expect(result.valid).toBe(false);
@@ -508,7 +510,7 @@ describe('Configuration Validation', () => {
 
   it('should reject invalid API key type', () => {
     const result = validateConfiguration({
-      apiKey: 123 as any,
+      apiKey: 123 as LegacyAny,
     });
 
     expect(result.valid).toBe(false);
@@ -517,7 +519,7 @@ describe('Configuration Validation', () => {
 
   it('should reject invalid streamingEnabled type', () => {
     const result = validateConfiguration({
-      streamingEnabled: 'true' as any,
+      streamingEnabled: 'true' as LegacyAny,
     });
 
     expect(result.valid).toBe(false);
@@ -526,7 +528,7 @@ describe('Configuration Validation', () => {
 
   it('should accumulate multiple errors', () => {
     const result = validateConfiguration({
-      provider: 'invalid' as any,
+      provider: 'invalid' as LegacyAny,
       temperature: 3,
       maxTokens: 50,
     });

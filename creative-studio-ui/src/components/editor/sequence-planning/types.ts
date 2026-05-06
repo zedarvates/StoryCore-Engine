@@ -122,7 +122,7 @@ export const calculateSpeakerAssignment = (position: Vector3D, surroundMode: '5.
 
   // Calculate angles
   const angle = Math.atan2(normalizedX, normalizedZ) * (180 / Math.PI);
-  const distance = Math.sqrt(normalizedX * normalizedX + normalizedZ * normalizedZ);
+  const _distance = Math.sqrt(normalizedX * normalizedX + normalizedZ * normalizedZ);
 
   // Front speakers (0° ± 30°)
   if (Math.abs(angle) <= 30 && normalizedZ > 0) {

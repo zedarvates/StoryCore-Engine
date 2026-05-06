@@ -12,7 +12,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 // Colors for console output
-const colors = {
+const _colors = {
   reset: '\x1b[0m',
   red: '\x1b[31m',
   green: '\x1b[32m',
@@ -20,14 +20,14 @@ const colors = {
   blue: '\x1b[34m',
 };
 
-function log(color: keyof typeof colors, message: string) {
+function log(_color: keyof typeof colors, _message: string) {
 }
 
 async function runCommand(command: string): Promise<boolean> {
   try {
     execSync(command, { stdio: 'pipe' });
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -74,7 +74,7 @@ async function checkBundleSize(): Promise<boolean> {
       } else {
         log('green', `✅ ${file} size OK (${sizeKB.toFixed(1)}KB)`);
       }
-    } catch (error) {
+    } catch (_error) {
       log('red', `❌ Cannot read ${file}`);
       return false;
     }
@@ -113,7 +113,7 @@ async function checkPerformance(): Promise<boolean> {
           hasIssues = true;
         }
       }
-    } catch (error) {
+    } catch (_error) {
       log('red', `❌ Cannot read ${file}`);
       hasIssues = true;
     }

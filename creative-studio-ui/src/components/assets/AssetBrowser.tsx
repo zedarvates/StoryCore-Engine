@@ -4,6 +4,8 @@
  * Displays the prompt library assets in a browsable interface
  * Allows filtering by category and searching
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useMemo } from 'react';
 import { usePromptLibrary } from '@/hooks/usePromptLibrary';
@@ -220,7 +222,7 @@ export function AssetBrowser({
 
 interface CategoryItemProps {
   categoryId: string;
-  category: any;
+  category: LegacyAny;
   isSelected: boolean;
   onClick: () => void;
 }

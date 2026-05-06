@@ -14,23 +14,26 @@ from typing import List, Dict, Optional
 @dataclass
 class ProjectMetadata:
     """Data Contract v1 metadata."""
+
     schema_version: str = "1.0"
     project_name: str = ""
-    capabilities: Dict[str, bool] = field(default_factory=lambda: {
-        "grid_generation": True,
-        "promotion_engine": True,
-        "qa_engine": True,
-        "autofix_engine": True
-    })
-    generation_status: Dict[str, str] = field(default_factory=lambda: {
-        "grid": "pending",
-        "promotion": "pending"
-    })
+    capabilities: Dict[str, bool] = field(
+        default_factory=lambda: {
+            "grid_generation": True,
+            "promotion_engine": True,
+            "qa_engine": True,
+            "autofix_engine": True,
+        }
+    )
+    generation_status: Dict[str, str] = field(
+        default_factory=lambda: {"grid": "pending", "promotion": "pending"}
+    )
 
 
 @dataclass
 class Scene:
     """Scene definition."""
+
     id: str
     number: int
     title: str
@@ -46,6 +49,7 @@ class Scene:
 @dataclass
 class Character:
     """Character profile."""
+
     id: str
     name: str
     role: str
@@ -58,6 +62,7 @@ class Character:
 @dataclass
 class Shot:
     """Individual shot configuration."""
+
     id: str
     number: int
     type: str  # "wide", "medium", "close-up", "extreme-close-up"
@@ -70,6 +75,7 @@ class Shot:
 @dataclass
 class Sequence:
     """Sequence with shots."""
+
     id: str
     scene_id: str
     shots: List[Shot]
@@ -79,6 +85,7 @@ class Sequence:
 @dataclass
 class Project:
     """Complete StoryCore project."""
+
     name: str
     path: Path
     metadata: ProjectMetadata
@@ -92,6 +99,7 @@ class Project:
 @dataclass
 class ParsedPrompt:
     """Parsed natural language prompt."""
+
     genre: str
     tone: str
     characters: List[Dict]
@@ -106,6 +114,7 @@ class ParsedPrompt:
 @dataclass
 class GeneratedProject:
     """Generated project preview."""
+
     name: str
     metadata: ProjectMetadata
     scenes: List[Scene]

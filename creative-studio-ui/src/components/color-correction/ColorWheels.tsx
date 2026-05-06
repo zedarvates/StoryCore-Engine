@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, _useEffect } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
 import { ColorWheel } from './ColorWheel';
 import { ColorWheelType } from '../../types/color-correction';
 import styles from './ColorCorrectionPanel.module.css';
 
 export const ColorWheels: React.FC = () => {
-  const { state, setPrimaryColorGrade, setSecondaryColorGrade } = useColorCorrectionStore();
+  const { state, setPrimaryColorGrade, _setSecondaryColorGrade } = useColorCorrectionStore();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleColorWheelChange = (type: ColorWheelType, value: number) => {

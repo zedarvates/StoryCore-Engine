@@ -4,6 +4,8 @@
  * Provides AI-driven directorial recommendations, tension metrics, and pacing analysis.
  * Based on March 2026 Production Roadmap (Phase 4).
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 export interface CinematicMetric {
   label: string;
@@ -47,7 +49,7 @@ export class CinematicFeedbackService {
   /**
    * Performs a comprehensive cinematic audit of a sequence
    */
-  public analyzeSequence(shots: any[], genre: string = 'action'): CinematicAuditReport {
+  public analyzeSequence(shots: LegacyAny[], genre: string = 'action'): CinematicAuditReport {
     const metrics: CinematicMetric[] = [];
     const recommendations: DirectorialRecommendation[] = [];
     const tensionCurve: TensionPoint[] = [];
@@ -130,7 +132,7 @@ export class CinematicFeedbackService {
     return Math.max(0, 100 - (repeats * 20));
   }
 
-  private calculateShotTension(shot: any, index: number, total: number): number {
+  private calculateShotTension(shot: LegacyAny, index: number, total: number): number {
     // Basic model: tension increases towards the end of a sequence
     const baseline = (index / total) * 0.7;
     const typeModifier = shot.metadata?.cameraAngle === 'Close Up' ? 0.3 : 0.1;

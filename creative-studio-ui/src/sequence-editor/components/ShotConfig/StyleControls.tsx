@@ -211,7 +211,7 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ shot }) => {
       <button
         className="toggle-advanced-btn"
         onClick={toggleAdvanced}
-        aria-expanded={showAdvanced ? 'true' : 'false'}
+        aria-expanded={showAdvanced}
       >
         {showAdvanced ? '▼' : '▶'} Advanced Parameters
       </button>

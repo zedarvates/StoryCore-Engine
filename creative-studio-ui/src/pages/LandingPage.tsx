@@ -22,9 +22,10 @@ interface LandingPageProps {
   onCreateProject: () => void;
   onOpenProject: () => void;
   recentProjects?: RecentProject[];
-  onRecentProjectClick?: (project: RecentProject) => void;
-  onRemoveRecentProject?: (projectPath: string) => void;
-  onShowDocumentation?: () => void;
+  onRecentProjectClick: (project: any) => void;
+  onRemoveRecentProject: (path: string) => void;
+  onDeleteProject?: (path: string) => void;
+  onShowDocumentation: () => void;
   onShowSupport?: () => void;
   onShowAbout?: () => void;
   version?: string;
@@ -37,6 +38,7 @@ export function LandingPage({
   recentProjects = [],
   onRecentProjectClick,
   onRemoveRecentProject,
+  onDeleteProject,
   onShowDocumentation,
   onShowSupport,
   onShowAbout,
@@ -292,6 +294,7 @@ export function LandingPage({
                 projects={displayProjects}
                 onProjectClick={onRecentProjectClick}
                 onRemoveProject={onRemoveRecentProject}
+                onDeleteProject={onDeleteProject}
                 onCreateNew={onCreateProject}
                 onRefresh={handleRefresh}
                 isLoading={isDiscovering}
@@ -306,6 +309,7 @@ export function LandingPage({
                 projects={[]}
                 onProjectClick={onRecentProjectClick}
                 onRemoveProject={onRemoveRecentProject}
+                onDeleteProject={onDeleteProject}
                 onCreateNew={onCreateProject}
                 onRefresh={handleRefresh}
                 isLoading={false}

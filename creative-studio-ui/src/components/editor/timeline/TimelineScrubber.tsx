@@ -27,8 +27,8 @@ export function TimelineScrubber({
   onLoopToggle
 }: TimelineScrubberProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragStartTime, setDragStartTime] = useState(0);
+  const [_dragStartX, setDragStartX] = useState(0);
+  const [_dragStartTime, setDragStartTime] = useState(0);
   const scrubberRef = useRef<HTMLDivElement>(null);
 
   // Format time as HH:MM:SS:FF (frames)

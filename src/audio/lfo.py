@@ -7,10 +7,11 @@ used in audio modulation effects like vibrato, tremolo, and phaser.
 
 import numpy as np
 
+
 class LFO:
     """Low-Frequency Oscillator for audio modulation effects."""
 
-    def __init__(self, sample_rate=44100, frequency=1.0, waveform='sine'):
+    def __init__(self, sample_rate=44100, frequency=1.0, waveform="sine"):
         """
         Initialize the LFO.
 
@@ -38,14 +39,24 @@ class LFO:
         num_samples = int(duration * self.sample_rate)
         time_array = np.linspace(0, duration, num_samples, endpoint=False)
 
-        if self.waveform == 'sine':
+        if self.waveform == "sine":
             signal = np.sin(2 * np.pi * self.frequency * time_array + self.phase)
-        elif self.waveform == 'square':
-            signal = np.sign(np.sin(2 * np.pi * self.frequency * time_array + self.phase))
-        elif self.waveform == 'triangle':
-            signal = 2 * np.abs(2 * (time_array * self.frequency + self.phase / (2 * np.pi)) % 1 - 1) - 1
-        elif self.waveform == 'sawtooth':
-            signal = 2 * ((time_array * self.frequency + self.phase / (2 * np.pi)) % 1 - 0.5)
+        elif self.waveform == "square":
+            signal = np.sign(
+                np.sin(2 * np.pi * self.frequency * time_array + self.phase)
+            )
+        elif self.waveform == "triangle":
+            signal = (
+                2
+                * np.abs(
+                    2 * (time_array * self.frequency + self.phase / (2 * np.pi)) % 1 - 1
+                )
+                - 1
+            )
+        elif self.waveform == "sawtooth":
+            signal = 2 * (
+                (time_array * self.frequency + self.phase / (2 * np.pi)) % 1 - 0.5
+            )
         else:
             raise ValueError(f"Unknown waveform: {self.waveform}")
 

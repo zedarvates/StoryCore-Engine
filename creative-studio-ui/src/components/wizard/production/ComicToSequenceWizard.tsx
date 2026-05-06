@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import { WizardStep } from '@/types/wizard';
-import { Image, List, ArrowRight, Music, Clock, Play, Save, Upload, Settings } from 'lucide-react';
+import { _Image, List, ArrowRight, Music, Clock, Play, _Save, Upload, Settings } from 'lucide-react';
 
 // ============================================================================
 // Wizard Steps Configuration
@@ -503,7 +503,7 @@ function Step1ImportComic({ pages, onPagesLoad }: Step1ImportComicProps) {
     }
   };
 
-  const handlePageReorder = (event: React.DragEvent, targetIndex: number) => {
+  const _handlePageReorder = (event: React.DragEvent, _targetIndex: number) => {
     event.preventDefault();
     // Implementation for reordering pages
   };
@@ -915,7 +915,7 @@ function Step6Generate({ panels, audioTrack, totalDuration }: Step6GenerateProps
       <div className="p-4 bg-accent/5 rounded-lg max-h-48 overflow-y-auto">
         <h4 className="font-medium mb-2">Sequence Preview</h4>
         <div className="flex gap-2 flex-wrap">
-          {panels.map((panel, index) => (
+          {panels.map((panel, _index) => (
             <div key={panel.id} className="relative">
               <img
                 src={panel.url}

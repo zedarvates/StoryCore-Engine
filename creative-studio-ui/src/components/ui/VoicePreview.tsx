@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Play, Pause, StopCircle, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, StopCircle, _Volume2, _VolumeX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { ChatBox } from '../ChatBox';
@@ -13,7 +14,7 @@ describe('ChatBox', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       chatMessages: [],
       addChatMessage: mockAddChatMessage,
       shots: [],
@@ -106,7 +107,7 @@ describe('ChatBox', () => {
   });
 
   it('displays user messages with correct styling', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       chatMessages: [
         {
           id: 'msg-1',
@@ -129,7 +130,7 @@ describe('ChatBox', () => {
   });
 
   it('displays assistant messages with correct styling', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       chatMessages: [
         {
           id: 'msg-1',
@@ -153,7 +154,7 @@ describe('ChatBox', () => {
 
   it('displays message timestamps', () => {
     const testDate = new Date('2024-01-01T14:30:00');
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       chatMessages: [
         {
           id: 'msg-1',
@@ -178,7 +179,7 @@ describe('ChatBox', () => {
   });
 
   it('displays suggestion chips from assistant messages', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       chatMessages: [
         {
           id: 'msg-1',

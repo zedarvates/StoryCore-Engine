@@ -15,7 +15,7 @@ import type { Shot, Sequence, GeneratedAsset } from '../../types';
  * The toolbar is positioned at the top of the editor with sticky positioning.
  */
 export function EditorContextExample() {
-  const [currentShot, setCurrentShot] = useState<Shot>({
+  const [currentShot, _setCurrentShot] = useState<Shot>({
     id: 'shot-1',
     title: 'Opening Scene',
     description: 'A wide shot of the city skyline at dawn',
@@ -28,7 +28,7 @@ export function EditorContextExample() {
     metadata: {},
   });
 
-  const [currentSequence, setCurrentSequence] = useState<Sequence>({
+  const [currentSequence, _setCurrentSequence] = useState<Sequence>({
     id: 'seq-1',
     name: 'Act 1 - Introduction',
     shots: [currentShot],

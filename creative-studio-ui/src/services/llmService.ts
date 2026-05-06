@@ -4,6 +4,8 @@
  * Handles communication with various LLM providers (OpenAI, Anthropic, local, custom)
  * Supports streaming responses, retry logic, and error handling
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { OllamaClient } from './llm/OllamaClient';
 import { OLLAMA_URL, LM_STUDIO_URL } from '../config/apiConfig';
@@ -22,7 +24,9 @@ export type LLMProvider = 'openai' | 'anthropic' | 'openrouter' | 'local' | 'lms
 export interface LLMConfig {
   provider: LLMProvider;
   apiKey: string;
-  apiEndpoint?: string; // for custom/local providers
+  apiEndpoint?: string; // for custom providers
+  ollamaEndpoint?: string; // for local Ollama provider
+  lmStudioEndpoint?: string; // for LM Studio provider
   model: string;
   parameters: {
     temperature: number; // 0-2
@@ -406,7 +410,9 @@ abstract class LLMProviderBase {
  * OpenAI Provider Implementation
  */
 class OpenAIProvider extends LLMProviderBase {
-  private readonly baseUrl = 'https://api.openai.com/v1';
+  private get baseUrl() {
+    return this.config.apiEndpoint || 'https://api.openai.com/v1';
+  }
 
   getProviderName(): string {
     return 'OpenAI';
@@ -978,7 +984,7 @@ class OpenRouterProvider extends LLMProviderBase {
   /**
    * Fetch available models from OpenRouter
    */
-  async getAvailableModels(): Promise<any[]> {
+  async getAvailableModels(): Promise<LegacyAny[]> {
     try {
       const response = await fetch(`${this.baseUrl}/models`);
       if (!response.ok) return [];
@@ -1390,9 +1396,10 @@ export class LLMService {
       case 'openrouter':
         return new OpenRouterProvider(config);
       case 'local':
-      case 'lmstudio':
       case 'custom':
         return new CustomProvider(config);
+      case 'lmstudio':
+        return new OpenAIProvider(config);
       case 'diffusion':
         return new DiffusionProvider(config);
       default:
@@ -1403,7 +1410,7 @@ export class LLMService {
   /**
    * Get available models for OpenRouter (public endpoint)
    */
-  async getOpenRouterModels(): Promise<any[]> {
+  async getOpenRouterModels(): Promise<LegacyAny[]> {
     if (this.provider instanceof OpenRouterProvider) {
       return this.provider.getAvailableModels();
     }
@@ -2310,7 +2317,7 @@ export async function getLLMService(): Promise<LLMService> {
           apiKey: '',
           apiEndpoint: config.apiEndpoint,
           model: config.model,
-          parameters: config.parameters as any,
+          parameters: config.parameters as LegacyAny,
           streamingEnabled: config.streamingEnabled,
           timeout: DEFAULT_CONFIG.timeout,
           retryAttempts: DEFAULT_CONFIG.retryAttempts,
@@ -2450,6 +2457,24 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       name: 'Local LLM',
       models: [
         {
+          id: 'gemma-4-e2b',
+          name: 'Gemma 4 Early Access (Experimental) ⭐ CUTTING EDGE',
+          contextWindow: 262144,
+          capabilities: ['chat', 'completion', 'streaming', 'advanced-reasoning'],
+        },
+        {
+          id: 'qwen2.5:14b',
+          name: 'Qwen 2.5 14B (High Quality)',
+          contextWindow: 128000,
+          capabilities: ['chat', 'completion', 'streaming', 'code', 'reasoning'],
+        },
+        {
+          id: 'qwen2.5:7b',
+          name: 'Qwen 2.5 7B (Recommended)',
+          contextWindow: 128000,
+          capabilities: ['chat', 'completion', 'streaming', 'code', 'reasoning'],
+        },
+        {
           id: 'qwen3-vl:8b',
           name: 'Qwen 3 VL 8B (Vision + Language) ⭐ HIGH QUALITY',
           contextWindow: 32768,
@@ -2462,9 +2487,9 @@ export function getAvailableProviders(): LLMProviderInfo[] {
           capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
         },
         {
-          id: 'llama3.2:3b',
-          name: 'Llama 3.2 3B (Balanced)',
-          contextWindow: 8192,
+          id: 'llama3.1:8b',
+          name: 'Llama 3.1 8B (Long Context)',
+          contextWindow: 128000,
           capabilities: ['chat', 'completion', 'streaming'],
         },
         {
@@ -2507,6 +2532,18 @@ export function getAvailableProviders(): LLMProviderInfo[] {
       name: 'LM Studio (Local Server)',
       models: [
         {
+          id: 'gemma-4-e2b',
+          name: 'Gemma 4 Early Access',
+          contextWindow: 262144,
+          capabilities: ['chat', 'completion', 'streaming', 'advanced-reasoning'],
+        },
+        {
+          id: 'qwen2.5:7b',
+          name: 'Qwen 2.5 7B',
+          contextWindow: 128000,
+          capabilities: ['chat', 'completion', 'streaming', 'code'],
+        },
+        {
           id: 'qwen3-vl:8b',
           name: 'Qwen 3 VL 8B (Vision + Language)',
           contextWindow: 32768,
@@ -2519,15 +2556,9 @@ export function getAvailableProviders(): LLMProviderInfo[] {
           capabilities: ['chat', 'completion', 'streaming', 'vision', 'multimodal'],
         },
         {
-          id: 'llama3.2:3b',
-          name: 'Llama 3.2 3B',
-          contextWindow: 8192,
-          capabilities: ['chat', 'completion', 'streaming'],
-        },
-        {
-          id: 'llama3.2:1b',
-          name: 'Llama 3.2 1B',
-          contextWindow: 8192,
+          id: 'llama3.1:8b',
+          name: 'Llama 3.1 8B',
+          contextWindow: 128000,
           capabilities: ['chat', 'completion', 'streaming'],
         },
         {

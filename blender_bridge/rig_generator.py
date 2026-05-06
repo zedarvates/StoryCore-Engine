@@ -17,7 +17,7 @@ Ils servent de PLACEHOLDER pour :
 """
 
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, Tuple
 import math
 
@@ -28,16 +28,18 @@ from blender_bridge.scene_types import CharacterRig, RigType, CameraConfig
 #  PROFILS CORPORELS PRÉDÉFINIS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class BodyProfile:
     """Proportions corporelles pour un rig humanoïde."""
-    height:         float = 1.75  # taille totale en mètres
+
+    height: float = 1.75  # taille totale en mètres
     shoulder_width: float = 0.44  # largeur épaules
-    hip_width:      float = 0.36  # largeur bassin
-    head_ratio:     float = 0.13  # taille tête / taille totale
-    torso_ratio:    float = 0.32  # torse / taille totale
-    leg_ratio:      float = 0.47  # jambes / taille totale
-    arm_ratio:      float = 0.32  # bras / taille totale
+    hip_width: float = 0.36  # largeur bassin
+    head_ratio: float = 0.13  # taille tête / taille totale
+    torso_ratio: float = 0.32  # torse / taille totale
+    leg_ratio: float = 0.47  # jambes / taille totale
+    arm_ratio: float = 0.32  # bras / taille totale
 
     @classmethod
     def standard(cls) -> "BodyProfile":
@@ -57,7 +59,13 @@ class BodyProfile:
     @classmethod
     def child(cls) -> "BodyProfile":
         """Proportions enfant (6-10 ans)."""
-        return cls(height=1.2, shoulder_width=0.28, hip_width=0.24, head_ratio=0.18, leg_ratio=0.38)
+        return cls(
+            height=1.2,
+            shoulder_width=0.28,
+            hip_width=0.24,
+            head_ratio=0.18,
+            leg_ratio=0.38,
+        )
 
     @classmethod
     def tall(cls) -> "BodyProfile":
@@ -85,6 +93,7 @@ _CHARACTER_PALETTE = [
 # ─────────────────────────────────────────────────────────────────────────────
 #  GÉNÉRATEUR DE RIGS
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class RigGenerator:
     """
@@ -232,8 +241,16 @@ class RigGenerator:
         yaw_rad = math.radians(cam_rot[2])  # rotation Z
 
         # Position devant la caméra
-        char_x = cam_pos[0] + distance_from_camera * math.sin(yaw_rad) + lateral_offset * math.cos(yaw_rad)
-        char_y = cam_pos[1] + distance_from_camera * math.cos(yaw_rad) - lateral_offset * math.sin(yaw_rad)
+        char_x = (
+            cam_pos[0]
+            + distance_from_camera * math.sin(yaw_rad)
+            + lateral_offset * math.cos(yaw_rad)
+        )
+        char_y = (
+            cam_pos[1]
+            + distance_from_camera * math.cos(yaw_rad)
+            - lateral_offset * math.sin(yaw_rad)
+        )
         char_z = 0.0  # au sol
 
         return self.create_rig(
@@ -254,7 +271,7 @@ class RigGenerator:
         h = rig.height
         pos = list(rig.position)
         mc = rig.material_color
-        color_str = f"({mc[0]:.3f}, {mc[1]:.3f}, {mc[2]:.3f}, 1.0)"
+        f"({mc[0]:.3f}, {mc[1]:.3f}, {mc[2]:.3f}, 1.0)"
 
         return f"""\
 # ═══════════════════════════════════════════════════════════════
@@ -440,22 +457,23 @@ pantin_{safe_name} = create_pantin_{safe_name}()
     def _build_to_profile(self, build: str) -> BodyProfile:
         """Convertit un type de morphologie en BodyProfile."""
         mapping = {
-            "athletic":  BodyProfile.athletic(),
-            "sportif":   BodyProfile.athletic(),
-            "musclé":    BodyProfile.athletic(),
-            "slim":      BodyProfile.slim(),
-            "svelte":    BodyProfile.slim(),
-            "mince":     BodyProfile.slim(),
-            "child":     BodyProfile.child(),
-            "enfant":    BodyProfile.child(),
-            "tall":      BodyProfile.tall(),
-            "grand":     BodyProfile.tall(),
+            "athletic": BodyProfile.athletic(),
+            "sportif": BodyProfile.athletic(),
+            "musclé": BodyProfile.athletic(),
+            "slim": BodyProfile.slim(),
+            "svelte": BodyProfile.slim(),
+            "mince": BodyProfile.slim(),
+            "child": BodyProfile.child(),
+            "enfant": BodyProfile.child(),
+            "tall": BodyProfile.tall(),
+            "grand": BodyProfile.tall(),
         }
         return mapping.get(build, BodyProfile.standard())
 
     def _parse_height(self, height_str: str) -> float:
         """Parse une hauteur depuis une chaîne ('1m75', '175cm', '1.75')."""
         import re
+
         height_str = height_str.strip().lower()
 
         # Format "1m75" ou "1,75m"
@@ -511,6 +529,7 @@ pantin_{safe_name} = create_pantin_{safe_name}()
         elif formation == "cluster":
             # Groupe semi-aléatoire
             import random
+
             random.seed(42)
             for i in range(count):
                 x = random.uniform(-spacing * count / 4, spacing * count / 4)

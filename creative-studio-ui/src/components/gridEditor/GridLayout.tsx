@@ -194,7 +194,7 @@ export const GridLayout: React.FC<GridLayoutProps> = ({
    * Distribute panels evenly
    * Exigence: 3.8
    */
-  const distributeEvenly = useCallback((selectedPanelIds: string[], direction: 'horizontal' | 'vertical') => {
+  const _distributeEvenly = useCallback((selectedPanelIds: string[], direction: 'horizontal' | 'vertical') => {
     const selectedPanels = layout.filter(panel => selectedPanelIds.includes(panel.id));
     
     if (selectedPanels.length < 2) return;

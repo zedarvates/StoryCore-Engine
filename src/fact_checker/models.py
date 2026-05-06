@@ -13,6 +13,7 @@ from enum import Enum
 
 class DomainType(str, Enum):
     """Valid domain classifications for claims."""
+
     PHYSICS = "physics"
     BIOLOGY = "biology"
     HISTORY = "history"
@@ -22,6 +23,7 @@ class DomainType(str, Enum):
 
 class RiskLevel(str, Enum):
     """Risk level classifications for verification results."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -30,6 +32,7 @@ class RiskLevel(str, Enum):
 
 class SourceType(str, Enum):
     """Types of evidence sources."""
+
     ACADEMIC = "academic"
     NEWS = "news"
     GOVERNMENT = "government"
@@ -38,6 +41,7 @@ class SourceType(str, Enum):
 
 class ManipulationType(str, Enum):
     """Types of manipulation signals in video transcripts."""
+
     LOGICAL_INCONSISTENCY = "logical_inconsistency"
     EMOTIONAL_MANIPULATION = "emotional_manipulation"
     NARRATIVE_BIAS = "narrative_bias"
@@ -45,6 +49,7 @@ class ManipulationType(str, Enum):
 
 class SeverityLevel(str, Enum):
     """Severity levels for manipulation signals."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -54,7 +59,7 @@ class SeverityLevel(str, Enum):
 class Claim:
     """
     Represents a factual claim extracted from content.
-    
+
     Attributes:
         id: Unique identifier for the claim
         text: The actual claim text
@@ -65,13 +70,14 @@ class Claim:
         evidence: List of supporting/contradicting evidence
         recommendation: Actionable recommendation for the claim
     """
+
     id: str
     text: str
     position: Tuple[int, int]
     domain: Optional[str] = None
     confidence: Optional[float] = None
     risk_level: Optional[str] = None
-    evidence: List['Evidence'] = field(default_factory=list)
+    evidence: List["Evidence"] = field(default_factory=list)
     recommendation: Optional[str] = None
 
 
@@ -79,7 +85,7 @@ class Claim:
 class Evidence:
     """
     Represents evidence for or against a claim.
-    
+
     Attributes:
         source: Name or identifier of the source
         source_type: Type of source (academic, news, etc.)
@@ -89,6 +95,7 @@ class Evidence:
         url: Optional URL to the source
         publication_date: Optional publication date
     """
+
     source: str
     source_type: str
     credibility_score: float
@@ -102,7 +109,7 @@ class Evidence:
 class VerificationResult:
     """
     Result of verifying a single claim.
-    
+
     Attributes:
         claim: The claim that was verified
         confidence: Confidence score (0-100)
@@ -112,6 +119,7 @@ class VerificationResult:
         reasoning: Explanation of the verification decision
         recommendation: Actionable recommendation
     """
+
     claim: Claim
     confidence: float
     risk_level: str
@@ -125,7 +133,7 @@ class VerificationResult:
 class ManipulationSignal:
     """
     Represents a detected manipulation signal in video transcripts.
-    
+
     Attributes:
         type: Type of manipulation detected
         severity: Severity level of the manipulation
@@ -135,6 +143,7 @@ class ManipulationSignal:
         evidence: Evidence supporting the detection
         confidence: Confidence in the detection (0-100)
     """
+
     type: str
     severity: str
     description: str
@@ -148,7 +157,7 @@ class ManipulationSignal:
 class Report:
     """
     Complete verification report.
-    
+
     Attributes:
         metadata: Report metadata (timestamp, version, etc.)
         claims: List of verification results for claims
@@ -158,6 +167,7 @@ class Report:
         recommendations: List of actionable recommendations
         disclaimer: Disclaimer about automated verification
     """
+
     metadata: Dict[str, Any]
     claims: List[VerificationResult]
     manipulation_signals: List[ManipulationSignal]
@@ -171,7 +181,7 @@ class Report:
 class Configuration:
     """
     System configuration settings.
-    
+
     Attributes:
         confidence_threshold: Minimum confidence score for acceptance
         risk_level_mappings: Mapping of confidence ranges to risk levels
@@ -182,13 +192,16 @@ class Configuration:
         max_concurrent_verifications: Maximum parallel verifications
         timeout_seconds: Timeout for verification operations
     """
+
     confidence_threshold: float = 70.0
-    risk_level_mappings: Dict[str, Tuple[float, float]] = field(default_factory=lambda: {
-        "critical": (0, 30),
-        "high": (30, 50),
-        "medium": (50, 70),
-        "low": (70, 100)
-    })
+    risk_level_mappings: Dict[str, Tuple[float, float]] = field(
+        default_factory=lambda: {
+            "critical": (0, 30),
+            "high": (30, 50),
+            "medium": (50, 70),
+            "low": (70, 100),
+        }
+    )
     trusted_sources: Dict[str, List[str]] = field(default_factory=dict)
     custom_domains: List[str] = field(default_factory=list)
     cache_enabled: bool = True

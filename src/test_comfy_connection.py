@@ -1,6 +1,7 @@
 import requests
 import sys
 
+
 def test_connection():
     url = "http://127.0.0.1:8000/system_stats"
     try:
@@ -18,6 +19,7 @@ def test_connection():
     except Exception as e:
         print(f"ERROR: {str(e)}")
         return False
+
 
 if __name__ == "__main__":
     if test_connection():

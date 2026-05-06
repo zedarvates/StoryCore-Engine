@@ -4,6 +4,8 @@
  * Tests for the video generation dialog component.
  * Validates parameter controls, validation, and integration with generation orchestrator.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -76,7 +78,7 @@ describe('VideoGenerationDialog', () => {
       completeStage: mockCompleteStage,
       failStage: mockFailStage,
       updateStageProgress: mockUpdateStageProgress,
-    } as any);
+    } as LegacyAny);
   });
   
   it('renders dialog when open', () => {
@@ -148,7 +150,7 @@ describe('VideoGenerationDialog', () => {
       completeStage: mockCompleteStage,
       failStage: mockFailStage,
       updateStageProgress: mockUpdateStageProgress,
-    } as any);
+    } as LegacyAny);
     
     render(
       <VideoGenerationDialog
@@ -454,7 +456,7 @@ describe('VideoGenerationDialog', () => {
   
   it('updates progress during generation', async () => {
     const user = userEvent.setup();
-    let progressCallback: ((progress: any) => void) | undefined;
+    let progressCallback: ((progress: LegacyAny) => void) | undefined;
     
     vi.mocked(generationOrchestrator.generateVideo).mockImplementation(
       (params, onProgress) => {

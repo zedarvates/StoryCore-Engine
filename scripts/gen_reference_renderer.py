@@ -2,6 +2,7 @@
 Generateur de blender_projection/reference_renderer.py
 Strategie: on ecrit chaque section de code comme une string litterale pure.
 """
+
 from pathlib import Path
 
 PART_IMPORTS = """\

@@ -3,6 +3,8 @@
  * 
  * Tests for frame caching system with LRU eviction and adaptive quality.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FrameCache, createCanvasRenderFunction, formatTimecode } from '../FrameCache';
@@ -170,7 +172,7 @@ describe('FrameCache', () => {
   describe('Abort Handling', () => {
     it('should cancel pending renders when requesting same frame', async () => {
       let renderCount = 0;
-      const slowRenderFn = vi.fn(async (frame: number, quality: string, signal: AbortSignal) => {
+      const sl_owRenderFn = vi.fn(async (frame: number, quality: string, signal: AbortSignal) => {
         renderCount++;
         const id = renderCount;
         
@@ -355,7 +357,7 @@ describe('FrameCache', () => {
 
 describe('createCanvasRenderFunction', () => {
   let canvas: HTMLCanvasElement;
-  let shots: any[];
+  let shots: LegacyAny[];
   
   beforeEach(() => {
     canvas = document.createElement('canvas');

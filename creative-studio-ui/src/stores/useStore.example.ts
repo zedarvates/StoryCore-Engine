@@ -18,10 +18,10 @@ import type {
   GenerationTask,
   PanelSizes,
   AudioTrack,
-  Effect,
-  TextLayer,
-  Animation,
-  Transition
+  _Effect,
+  _TextLayer,
+  _Animation,
+  _Transition
 } from '@/types';
 
 type ProjectSettings = Record<string, any>;
@@ -585,11 +585,11 @@ export const useStore = create<AppState>()(
         },
 
         saveProject: async () => {
-          const state = get();
+          const _state = get();
           // Implementation would save to backend or localStorage
         },
 
-        exportProject: async (format) => {
+        exportProject: async (_format) => {
           const state = get();
           const json = JSON.stringify(state.project, null, 2);
           return new Blob([json], { type: 'application/json' });

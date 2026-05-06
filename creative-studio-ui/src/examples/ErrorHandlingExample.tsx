@@ -3,6 +3,8 @@
  * 
  * Demonstrates the error handling and recovery system for wizards.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState } from 'react';
 import {
@@ -179,7 +181,7 @@ function StateRecoveryExample() {
  * Example of error notifications
  */
 function ErrorNotificationExample() {
-  const [errors, setErrors] = useState<any[]>([]);
+  const [errors, setErrors] = useState<LegacyAny[]>([]);
   const errorService = getErrorHandlingService();
 
   const addError = (severity: 'info' | 'warning' | 'error' | 'critical') => {

@@ -20,17 +20,17 @@ import {
   TimelineState,
   ClipboardState,
   ClipboardItem,
-  UndoRedoAction,
+  _UndoRedoAction,
   UndoActionType,
   SelectionState,
-  NestedComposition,
+  _NestedComposition,
   Duration,
   TimeStamp,
   TrackType,
   ClipType,
   VisualProperties,
   AudioProperties,
-  Keyframe,
+  _Keyframe,
   HistoryEntry,
 } from '../services/animation/CompositionTypes';
 
@@ -1149,7 +1149,7 @@ class CompositionStore {
       this.state.compositions.set(newId, newComposition);
 
       // Import tracks
-      tracks.forEach((track, index) => {
+      tracks.forEach((track, _index) => {
         const newTrackId = this.generateId<TrackId>();
         idMap.set(track.id, newTrackId);
 

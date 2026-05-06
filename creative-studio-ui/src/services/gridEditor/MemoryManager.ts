@@ -9,6 +9,8 @@
  * 
  * Requirements: 13.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 export interface MemoryManagerOptions {
   maxMemoryMB?: number;
@@ -54,7 +56,7 @@ export class MemoryManager {
     this.warningThreshold = options.warningThresholdPercent || 70;
     this.criticalThreshold = options.criticalThresholdPercent || 85;
     this.checkInterval = options.checkIntervalMs || 5000;
-    this.performance = window.performance as any;
+    this.performance = window.performance as LegacyAny;
   }
 
   /**

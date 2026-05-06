@@ -5,7 +5,6 @@ This module generates comprehensive quality validation reports in JSON and HTML 
 including visualizations, aggregate statistics, and autofix comparisons.
 """
 
-from pathlib import Path
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -14,12 +13,13 @@ import base64
 import io
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from quality_validator import QualityScore, QualityIssue, ImprovementSuggestion
-from quality_feedback import ImprovementTracking
+from quality_validator import QualityScore
 import numpy as np
+
 
 class NumpyEncoder(json.JSONEncoder):
     """Custom JSON encoder for numpy types."""
+
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -56,7 +56,9 @@ class ReportMetrics:
             "total_shots": self.total_shots,
             "passed_shots": self.passed_shots,
             "failed_shots": self.failed_shots,
-            "pass_rate": (self.passed_shots / self.total_shots * 100) if self.total_shots > 0 else 0.0,
+            "pass_rate": (self.passed_shots / self.total_shots * 100)
+            if self.total_shots > 0
+            else 0.0,
             "average_overall_score": self.average_overall_score,
             "average_sharpness_score": self.average_sharpness_score,
             "average_motion_score": self.average_motion_score,
@@ -66,9 +68,9 @@ class ReportMetrics:
                 "critical": self.critical_issues_count,
                 "high": self.high_issues_count,
                 "medium": self.medium_issues_count,
-                "low": self.low_issues_count
+                "low": self.low_issues_count,
             },
-            "total_suggestions": self.total_suggestions
+            "total_suggestions": self.total_suggestions,
         }
 
 
@@ -91,7 +93,7 @@ class AutofixComparison:
             "after": self.after_score.to_dict(),
             "applied_fixes": self.applied_fixes,
             "improvement_delta": self.improvement_delta,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
@@ -102,7 +104,7 @@ class JSONReportGenerator:
         self,
         quality_scores: List[QualityScore],
         project_name: str = "StoryCore Project",
-        generation_timestamp: Optional[float] = None
+        generation_timestamp: Optional[float] = None,
     ) -> str:
         """
         Generates comprehensive JSON report with all quality metrics and aggregate statistics.
@@ -126,16 +128,20 @@ class JSONReportGenerator:
             "report_type": "comprehensive_quality_validation",
             "project_name": project_name,
             "generation_timestamp": generation_timestamp,
-            "generation_datetime": datetime.fromtimestamp(generation_timestamp).isoformat(),
+            "generation_datetime": datetime.fromtimestamp(
+                generation_timestamp
+            ).isoformat(),
             "metrics": metrics.to_dict(),
             "quality_scores": [score.to_dict() for score in quality_scores],
             "issues_summary": self._summarize_issues(quality_scores),
-            "suggestions_summary": self._summarize_suggestions(quality_scores)
+            "suggestions_summary": self._summarize_suggestions(quality_scores),
         }
 
         return json.dumps(report, indent=2, cls=NumpyEncoder)
 
-    def _calculate_aggregate_metrics(self, quality_scores: List[QualityScore]) -> ReportMetrics:
+    def _calculate_aggregate_metrics(
+        self, quality_scores: List[QualityScore]
+    ) -> ReportMetrics:
         """Calculate aggregate metrics from quality scores."""
         if not quality_scores:
             return ReportMetrics(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0)
@@ -145,10 +151,14 @@ class JSONReportGenerator:
         failed_shots = total_shots - passed_shots
 
         avg_overall = sum(score.overall_score for score in quality_scores) / total_shots
-        avg_sharpness = sum(score.sharpness_score for score in quality_scores) / total_shots
+        avg_sharpness = (
+            sum(score.sharpness_score for score in quality_scores) / total_shots
+        )
         avg_motion = sum(score.motion_score for score in quality_scores) / total_shots
         avg_audio = sum(score.audio_score for score in quality_scores) / total_shots
-        avg_continuity = sum(score.continuity_score for score in quality_scores) / total_shots
+        avg_continuity = (
+            sum(score.continuity_score for score in quality_scores) / total_shots
+        )
 
         # Count issues by severity
         critical_count = 0
@@ -182,7 +192,7 @@ class JSONReportGenerator:
             high_issues_count=high_count,
             medium_issues_count=medium_count,
             low_issues_count=low_count,
-            total_suggestions=total_suggestions
+            total_suggestions=total_suggestions,
         )
 
     def _summarize_issues(self, quality_scores: List[QualityScore]) -> Dict[str, Any]:
@@ -205,10 +215,12 @@ class JSONReportGenerator:
         return {
             "by_type": issue_types,
             "by_severity": severity_breakdown,
-            "total_unique_types": len(issue_types)
+            "total_unique_types": len(issue_types),
         }
 
-    def _summarize_suggestions(self, quality_scores: List[QualityScore]) -> Dict[str, Any]:
+    def _summarize_suggestions(
+        self, quality_scores: List[QualityScore]
+    ) -> Dict[str, Any]:
         """Summarize suggestions by priority."""
         priority_breakdown = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         total_expected_improvement = 0.0
@@ -221,7 +233,7 @@ class JSONReportGenerator:
 
         return {
             "by_priority": priority_breakdown,
-            "total_expected_improvement": round(total_expected_improvement, 2)
+            "total_expected_improvement": round(total_expected_improvement, 2),
         }
 
 
@@ -232,7 +244,7 @@ class AutofixComparisonGenerator:
         self,
         comparisons: List[AutofixComparison],
         project_name: str = "StoryCore Project",
-        generation_timestamp: Optional[float] = None
+        generation_timestamp: Optional[float] = None,
     ) -> str:
         """
         Generates JSON report showing autofix improvements.
@@ -253,22 +265,26 @@ class AutofixComparisonGenerator:
         avg_improvement = total_improvement / len(comparisons) if comparisons else 0.0
 
         successful_fixes = sum(1 for comp in comparisons if comp.improvement_delta > 0)
-        success_rate = (successful_fixes / len(comparisons) * 100) if comparisons else 0.0
+        success_rate = (
+            (successful_fixes / len(comparisons) * 100) if comparisons else 0.0
+        )
 
         # Build report
         report = {
             "report_type": "autofix_comparison",
             "project_name": project_name,
             "generation_timestamp": generation_timestamp,
-            "generation_datetime": datetime.fromtimestamp(generation_timestamp).isoformat(),
+            "generation_datetime": datetime.fromtimestamp(
+                generation_timestamp
+            ).isoformat(),
             "summary": {
                 "total_comparisons": len(comparisons),
                 "total_improvement": round(total_improvement, 2),
                 "average_improvement": round(avg_improvement, 2),
                 "successful_fixes": successful_fixes,
-                "success_rate": round(success_rate, 2)
+                "success_rate": round(success_rate, 2),
             },
-            "comparisons": [comp.to_dict() for comp in comparisons]
+            "comparisons": [comp.to_dict() for comp in comparisons],
         }
 
         return json.dumps(report, indent=2, cls=NumpyEncoder)
@@ -280,7 +296,7 @@ class VisualizationGenerator:
     def generate_quality_trends_chart(
         self,
         quality_scores: List[QualityScore],
-        timestamps: Optional[List[float]] = None
+        timestamps: Optional[List[float]] = None,
     ) -> str:
         """
         Generates a chart showing quality metrics over time.
@@ -311,39 +327,39 @@ class VisualizationGenerator:
         continuity_scores = [score.continuity_score for score in quality_scores]
 
         # Plot overall and component scores
-        ax1.plot(x_data, overall_scores, 'k-', linewidth=2, label='Overall', marker='o')
-        ax1.plot(x_data, sharpness_scores, 'b-', label='Sharpness', alpha=0.7)
-        ax1.plot(x_data, motion_scores, 'g-', label='Motion', alpha=0.7)
-        ax1.plot(x_data, audio_scores, 'r-', label='Audio', alpha=0.7)
-        ax1.plot(x_data, continuity_scores, 'm-', label='Continuity', alpha=0.7)
+        ax1.plot(x_data, overall_scores, "k-", linewidth=2, label="Overall", marker="o")
+        ax1.plot(x_data, sharpness_scores, "b-", label="Sharpness", alpha=0.7)
+        ax1.plot(x_data, motion_scores, "g-", label="Motion", alpha=0.7)
+        ax1.plot(x_data, audio_scores, "r-", label="Audio", alpha=0.7)
+        ax1.plot(x_data, continuity_scores, "m-", label="Continuity", alpha=0.7)
 
-        ax1.set_title('Quality Metrics Over Time')
-        ax1.set_ylabel('Score (0-100)')
+        ax1.set_title("Quality Metrics Over Time")
+        ax1.set_ylabel("Score (0-100)")
         ax1.legend()
         ax1.grid(True, alpha=0.3)
 
         if timestamps:
-            ax1.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
+            ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
             plt.setp(ax1.xaxis.get_majorticklabels(), rotation=45)
 
         # Plot issues count
         issues_count = [len(score.issues) for score in quality_scores]
-        ax2.bar(x_data, issues_count, color='orange', alpha=0.7)
-        ax2.set_title('Quality Issues Count')
-        ax2.set_ylabel('Number of Issues')
+        ax2.bar(x_data, issues_count, color="orange", alpha=0.7)
+        ax2.set_title("Quality Issues Count")
+        ax2.set_ylabel("Number of Issues")
         ax2.grid(True, alpha=0.3)
 
         if timestamps:
-            ax2.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M:%S'))
+            ax2.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
             plt.setp(ax2.xaxis.get_majorticklabels(), rotation=45)
 
         plt.tight_layout()
 
         # Convert to base64
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
         buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        image_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
         plt.close(fig)
 
         return f"data:image/png;base64,{image_base64}"
@@ -372,18 +388,38 @@ class VisualizationGenerator:
         x = range(len(comparisons))
 
         # Plot before/after bars
-        ax.bar([i - 0.2 for i in x], before_scores, width=0.4, label='Before Fix', color='red', alpha=0.7)
-        ax.bar([i + 0.2 for i in x], after_scores, width=0.4, label='After Fix', color='green', alpha=0.7)
+        ax.bar(
+            [i - 0.2 for i in x],
+            before_scores,
+            width=0.4,
+            label="Before Fix",
+            color="red",
+            alpha=0.7,
+        )
+        ax.bar(
+            [i + 0.2 for i in x],
+            after_scores,
+            width=0.4,
+            label="After Fix",
+            color="green",
+            alpha=0.7,
+        )
 
         # Add improvement labels
         for i, imp in enumerate(improvements):
-            ax.text(i, max(before_scores[i], after_scores[i]) + 2, f'+{imp:.1f}',
-                   ha='center', va='bottom', fontweight='bold')
+            ax.text(
+                i,
+                max(before_scores[i], after_scores[i]) + 2,
+                f"+{imp:.1f}",
+                ha="center",
+                va="bottom",
+                fontweight="bold",
+            )
 
-        ax.set_title('Autofix Quality Improvements')
-        ax.set_ylabel('Overall Quality Score')
+        ax.set_title("Autofix Quality Improvements")
+        ax.set_ylabel("Overall Quality Score")
         ax.set_xticks(x)
-        ax.set_xticklabels(shot_ids, rotation=45, ha='right')
+        ax.set_xticklabels(shot_ids, rotation=45, ha="right")
         ax.legend()
         ax.grid(True, alpha=0.3)
 
@@ -391,9 +427,9 @@ class VisualizationGenerator:
 
         # Convert to base64
         buffer = io.BytesIO()
-        plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+        plt.savefig(buffer, format="png", dpi=100, bbox_inches="tight")
         buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        image_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
         plt.close(fig)
 
         return f"data:image/png;base64,{image_base64}"
@@ -410,7 +446,7 @@ class HTMLReportGenerator:
         quality_scores: List[QualityScore],
         project_name: str = "StoryCore Project",
         generation_timestamp: Optional[float] = None,
-        include_visualizations: bool = True
+        include_visualizations: bool = True,
     ) -> str:
         """
         Generates comprehensive HTML report with visualizations.
@@ -436,7 +472,9 @@ class HTMLReportGenerator:
         # Generate visualizations
         trends_chart = ""
         if include_visualizations and quality_scores:
-            trends_chart = self.visualization_generator.generate_quality_trends_chart(quality_scores)
+            trends_chart = self.visualization_generator.generate_quality_trends_chart(
+                quality_scores
+            )
 
         # Build HTML
         html = f"""
@@ -540,7 +578,7 @@ class HTMLReportGenerator:
         <div class="header">
             <h1>StoryCore Quality Validation Report</h1>
             <p>Project: {project_name}</p>
-            <p>Generated: {datetime.fromtimestamp(generation_timestamp).strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Generated: {datetime.fromtimestamp(generation_timestamp).strftime("%Y-%m-%d %H:%M:%S")}</p>
         </div>
 
         <div class="summary-section">
@@ -548,24 +586,24 @@ class HTMLReportGenerator:
             <div class="metrics-grid">
                 <div class="metric-card">
                     <h3>Total Shots</h3>
-                    <div class="metric-value">{report_data['metrics']['total_shots']}</div>
+                    <div class="metric-value">{report_data["metrics"]["total_shots"]}</div>
                 </div>
                 <div class="metric-card">
                     <h3>Pass Rate</h3>
-                    <div class="metric-value">{report_data['metrics']['pass_rate']:.1f}%</div>
+                    <div class="metric-value">{report_data["metrics"]["pass_rate"]:.1f}%</div>
                 </div>
                 <div class="metric-card">
                     <h3>Average Score</h3>
-                    <div class="metric-value">{report_data['metrics']['average_overall_score']:.1f}</div>
+                    <div class="metric-value">{report_data["metrics"]["average_overall_score"]:.1f}</div>
                 </div>
                 <div class="metric-card">
                     <h3>Total Issues</h3>
-                    <div class="metric-value">{sum(report_data['metrics']['issues_breakdown'].values())}</div>
+                    <div class="metric-value">{sum(report_data["metrics"]["issues_breakdown"].values())}</div>
                 </div>
             </div>
         </div>
 
-        {f'<div class="chart-container"><h2>Quality Trends</h2><img src="{trends_chart}" alt="Quality Trends Chart"></div>' if trends_chart else ''}
+        {f'<div class="chart-container"><h2>Quality Trends</h2><img src="{trends_chart}" alt="Quality Trends Chart"></div>' if trends_chart else ""}
 
         <div class="summary-section">
             <h2>Issues Breakdown</h2>
@@ -579,19 +617,19 @@ class HTMLReportGenerator:
                 <tbody>
                     <tr>
                         <td class="severity-critical">Critical</td>
-                        <td>{report_data['metrics']['issues_breakdown']['critical']}</td>
+                        <td>{report_data["metrics"]["issues_breakdown"]["critical"]}</td>
                     </tr>
                     <tr>
                         <td class="severity-high">High</td>
-                        <td>{report_data['metrics']['issues_breakdown']['high']}</td>
+                        <td>{report_data["metrics"]["issues_breakdown"]["high"]}</td>
                     </tr>
                     <tr>
                         <td class="severity-medium">Medium</td>
-                        <td>{report_data['metrics']['issues_breakdown']['medium']}</td>
+                        <td>{report_data["metrics"]["issues_breakdown"]["medium"]}</td>
                     </tr>
                     <tr>
                         <td class="severity-low">Low</td>
-                        <td>{report_data['metrics']['issues_breakdown']['low']}</td>
+                        <td>{report_data["metrics"]["issues_breakdown"]["low"]}</td>
                     </tr>
                 </tbody>
             </table>
@@ -620,7 +658,7 @@ class HTMLReportGenerator:
             status_class = "severity-low" if score.passed() else "severity-critical"
             html += f"""
                     <tr>
-                        <td>{i+1}</td>
+                        <td>{i + 1}</td>
                         <td>{score.overall_score:.1f}</td>
                         <td>{score.sharpness_score:.1f}</td>
                         <td>{score.motion_score:.1f}</td>
@@ -646,7 +684,7 @@ class HTMLReportGenerator:
         self,
         comparisons: List[AutofixComparison],
         project_name: str = "StoryCore Project",
-        generation_timestamp: Optional[float] = None
+        generation_timestamp: Optional[float] = None,
     ) -> str:
         """
         Generates HTML report for autofix comparisons.
@@ -669,7 +707,9 @@ class HTMLReportGenerator:
         report_data = json.loads(json_report)
 
         # Generate comparison chart
-        comparison_chart = self.visualization_generator.generate_comparison_chart(comparisons)
+        comparison_chart = self.visualization_generator.generate_comparison_chart(
+            comparisons
+        )
 
         # Build HTML
         html = f"""
@@ -763,29 +803,29 @@ class HTMLReportGenerator:
         <div class="header">
             <h1>StoryCore Autofix Comparison Report</h1>
             <p>Project: {project_name}</p>
-            <p>Generated: {datetime.fromtimestamp(generation_timestamp).strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Generated: {datetime.fromtimestamp(generation_timestamp).strftime("%Y-%m-%d %H:%M:%S")}</p>
         </div>
 
         <div class="summary-grid">
             <div class="summary-card">
                 <h3>Total Comparisons</h3>
-                <div class="summary-value">{report_data['summary']['total_comparisons']}</div>
+                <div class="summary-value">{report_data["summary"]["total_comparisons"]}</div>
             </div>
             <div class="summary-card">
                 <h3>Average Improvement</h3>
-                <div class="summary-value">{report_data['summary']['average_improvement']:.1f}</div>
+                <div class="summary-value">{report_data["summary"]["average_improvement"]:.1f}</div>
             </div>
             <div class="summary-card">
                 <h3>Success Rate</h3>
-                <div class="summary-value">{report_data['summary']['success_rate']:.1f}%</div>
+                <div class="summary-value">{report_data["summary"]["success_rate"]:.1f}%</div>
             </div>
             <div class="summary-card">
                 <h3>Total Improvement</h3>
-                <div class="summary-value">{report_data['summary']['total_improvement']:.1f}</div>
+                <div class="summary-value">{report_data["summary"]["total_improvement"]:.1f}</div>
             </div>
         </div>
 
-        {f'<div class="chart-container"><h2>Autofix Improvements</h2><img src="{comparison_chart}" alt="Autofix Comparison Chart"></div>' if comparison_chart else ''}
+        {f'<div class="chart-container"><h2>Autofix Improvements</h2><img src="{comparison_chart}" alt="Autofix Comparison Chart"></div>' if comparison_chart else ""}
 
         <h2>Detailed Comparisons</h2>
         <table class="comparison-table">
@@ -802,7 +842,11 @@ class HTMLReportGenerator:
 """
 
         for comp in comparisons:
-            improvement_class = "improvement-positive" if comp.improvement_delta > 0 else "improvement-negative"
+            improvement_class = (
+                "improvement-positive"
+                if comp.improvement_delta > 0
+                else "improvement-negative"
+            )
             fixes_str = ", ".join(comp.applied_fixes) if comp.applied_fixes else "None"
             html += f"""
                 <tr>

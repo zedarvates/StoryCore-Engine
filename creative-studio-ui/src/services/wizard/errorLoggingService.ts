@@ -5,6 +5,8 @@
  * 
  * Requirements: 8.1, 8.2
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { AppError } from '../errorHandlingService';
 import { generateIdWithPrefix } from '@/utils/idGenerator';
@@ -272,7 +274,7 @@ export class ErrorLoggingService {
       const data = JSON.parse(stored);
       
       // Restore logs with Date objects
-      this.logs = data.logs.map((entry: any) => ({
+      this.logs = data.logs.map((entry: LegacyAny) => ({
         ...entry,
         timestamp: new Date(entry.timestamp),
       }));

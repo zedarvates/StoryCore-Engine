@@ -17,20 +17,20 @@ import { type LanguageCode } from '@/components/launcher/LanguageSelector';
 const languages: LanguageCode[] = ['fr', 'en', 'es', 'de', 'it', 'pt', 'ja', 'zh', 'ko'];
 
 languages.forEach((lang) => {
-  const prompt = buildSystemPrompt(lang);
+  const _prompt = buildSystemPrompt(lang);
 });
 
 // Test 2: Verify all languages are supported
 
 const supportedLanguages = getSupportedLanguages();
-Object.entries(supportedLanguages).forEach(([code, instruction]) => {
+Object.entries(supportedLanguages).forEach(([_code, _instruction]) => {
 });
 
 // Test 3: Validate language codes
 
 const testCodes = ['fr', 'en', 'es', 'invalid', 'ru', ''];
 testCodes.forEach((code) => {
-  const isValid = isLanguageSupported(code);
+  const _isValid = isLanguageSupported(code);
 });
 
 // Test 4: Verify StoryCore personality is maintained

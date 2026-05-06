@@ -4,6 +4,8 @@
  * Provides comprehensive diagnostic information about LLM configuration and connectivity.
  * Helps troubleshoot issues with LLM service initialization and usage.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { loadConfiguration, hasStoredConfiguration, isCryptoAvailable } from './llmConfigStorage';
 import { LLMService, type LLMConfig } from '@/services/llmService';
@@ -117,7 +119,7 @@ async function checkConfiguration(): Promise<DiagnosticCheck> {
       issues.push('Missing API key (required for this provider)');
     }
 
-    if (config.provider === 'local' && !(config as any).apiEndpoint) {
+    if (config.provider === 'local' && !(config as LegacyAny).apiEndpoint) {
       issues.push('Missing API endpoint for local provider');
     }
 
@@ -131,7 +133,7 @@ async function checkConfiguration(): Promise<DiagnosticCheck> {
             provider: config.provider,
             model: config.model,
             hasApiKey: !!config.apiKey,
-            hasEndpoint: !!(config as any).apiEndpoint,
+            hasEndpoint: !!(config as LegacyAny).apiEndpoint,
           },
         },
       };
@@ -319,7 +321,7 @@ function generateRecommendations(checks: DiagnosticResult['checks']): string[] {
   if (checks.configuration.status === 'fail') {
     recommendations.push('Reconfigure LLM settings - current configuration is invalid');
   } else if (checks.configuration.status === 'warning') {
-    const details = checks.configuration.details as any;
+    const details = checks.configuration.details as LegacyAny;
     if (details?.issues) {
       recommendations.push(...details.issues.map((issue: string) => `Fix: ${issue}`));
     }
@@ -333,7 +335,7 @@ function generateRecommendations(checks: DiagnosticResult['checks']): string[] {
 
   // Connectivity recommendations
   if (checks.connectivity.status === 'fail') {
-    const details = checks.connectivity.details as any;
+    const details = checks.connectivity.details as LegacyAny;
     if (details?.provider === 'local') {
       recommendations.push('Start Ollama service: ollama serve');
     } else if (details?.provider === 'openai' || details?.provider === 'anthropic') {
@@ -433,7 +435,7 @@ export async function runLLMDiagnostic(): Promise<DiagnosticResult> {
 /**
  * Print diagnostic results to console in a readable format
  */
-export function printDiagnostic(result: DiagnosticResult): void {
+export function printDiagnostic(result: Di_agnosticResult): void {
 
   Object.entries(result.checks).forEach(([name, check]) => {
     const icon = check.status === 'pass' ? '✓' : check.status === 'warning' ? '⚠' : '✗';

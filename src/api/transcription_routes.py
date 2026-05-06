@@ -23,10 +23,10 @@ except ImportError:
             def __init__(self):
                 self.username = "test_user"
                 self.role = "admin"
-        
+
         def get_current_user():
             return MockUser()
-        
+
         User = MockUser
         rate_limiter = None
 
@@ -37,23 +37,17 @@ try:
         MontageRequest,
         MontageResult,
         MontageStyle,
-        SegmentType
+        SegmentType,
     )
 except ImportError:
-    from ..transcription_engine import (
-        TranscriptionEngine,
-        Transcript,
-        MontageRequest,
-        MontageResult,
-        MontageStyle,
-        SegmentType
-    )
+    from ..transcription_engine import TranscriptionEngine, MontageRequest, MontageStyle
 
 # Create router
 transcription_router = APIRouter()
 
 # Global engine instance
 _engine: Optional[TranscriptionEngine] = None
+
 
 def get_engine() -> TranscriptionEngine:
     """Get or create the transcription engine."""
@@ -125,13 +119,11 @@ async def health_check():
         return HealthResponse(
             status="healthy",
             is_initialized=engine.is_initialized,
-            available_languages=["fr", "en", "es", "de"]
+            available_languages=["fr", "en", "es", "de"],
         )
-    except Exception as e:
+    except Exception:
         return HealthResponse(
-            status="error",
-            is_initialized=False,
-            available_languages=[]
+            status="error", is_initialized=False, available_languages=[]
         )
 
 
@@ -143,7 +135,7 @@ async def get_supported_languages():
         {"code": "en", "name": "English"},
         {"code": "es", "name": "Español"},
         {"code": "de", "name": "Deutsch"},
-        {"code": "auto", "name": "Auto-detection"}
+        {"code": "auto", "name": "Auto-detection"},
     ]
     return LanguagesResponse(languages=languages)
 
@@ -152,7 +144,7 @@ async def get_supported_languages():
 async def transcribe_audio(request: TranscribeRequest):
     """
     Transcribe an audio file to text.
-    
+
     Example:
     ```
     POST /api/v1/transcription/transcribe
@@ -164,21 +156,25 @@ async def transcribe_audio(request: TranscribeRequest):
     ```
     """
     start_time = time.time()
-    
+
     try:
         engine = get_engine()
-        
+
         # Ensure audio_id has no slashes to avoid Path parsing issues
-        clean_audio_id = request.audio_url.split('/')[-1] if '/' in request.audio_url else request.audio_url
-        clean_audio_id = clean_audio_id.replace('.', '_')
-        
+        clean_audio_id = (
+            request.audio_url.split("/")[-1]
+            if "/" in request.audio_url
+            else request.audio_url
+        )
+        clean_audio_id = clean_audio_id.replace(".", "_")
+
         transcript = await engine.transcribe(
             audio_id=clean_audio_id,
             audio_url=request.audio_url,
             language=request.language,
-            enable_speaker_diarization=request.enable_speaker_diarization
+            enable_speaker_diarization=request.enable_speaker_diarization,
         )
-        
+
         return TranscribeResponse(
             transcript_id=transcript.transcript_id,
             audio_url=request.audio_url,
@@ -186,33 +182,35 @@ async def transcribe_audio(request: TranscribeRequest):
             duration=transcript.duration,
             word_count=transcript.word_count,
             speaker_count=transcript.speaker_count,
-            segments=[{
-                "segment_id": s.segment_id,
-                "start_time": s.start_time,
-                "end_time": s.end_time,
-                "text": s.text,
-                "speaker": {
-                    "speaker_id": s.speaker.speaker_id,
-                    "speaker_label": s.speaker.speaker_label
-                } if s.speaker else None,
-                "confidence": s.confidence,
-                "segment_type": s.segment_type.value if s.segment_type else None
-            } for s in transcript.segments],
-            processing_time=time.time() - start_time
+            segments=[
+                {
+                    "segment_id": s.segment_id,
+                    "start_time": s.start_time,
+                    "end_time": s.end_time,
+                    "text": s.text,
+                    "speaker": {
+                        "speaker_id": s.speaker.speaker_id,
+                        "speaker_label": s.speaker.speaker_label,
+                    }
+                    if s.speaker
+                    else None,
+                    "confidence": s.confidence,
+                    "segment_type": s.segment_type.value if s.segment_type else None,
+                }
+                for s in transcript.segments
+            ],
+            processing_time=time.time() - start_time,
         )
-        
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Transcription failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
 
 @transcription_router.get("/{transcript_id}", response_model=TranscriptResponse)
 async def get_transcript(transcript_id: str):
     """
     Get an existing transcript by ID.
-    
+
     Example:
     ```
     GET /api/v1/transcription/transcript_123
@@ -221,13 +219,12 @@ async def get_transcript(transcript_id: str):
     try:
         engine = get_engine()
         transcript = await engine.get_transcript(transcript_id)
-        
+
         if not transcript:
             raise HTTPException(
-                status_code=404,
-                detail=f"Transcript not found: {transcript_id}"
+                status_code=404, detail=f"Transcript not found: {transcript_id}"
             )
-        
+
         return TranscriptResponse(
             transcript_id=transcript.transcript_id,
             audio_url=transcript.audio_url,
@@ -235,26 +232,30 @@ async def get_transcript(transcript_id: str):
             duration=transcript.duration,
             word_count=transcript.word_count,
             speaker_count=transcript.speaker_count,
-            segments=[{
-                "segment_id": s.segment_id,
-                "start_time": s.start_time,
-                "end_time": s.end_time,
-                "text": s.text,
-                "speaker": {
-                    "speaker_id": s.speaker.speaker_id,
-                    "speaker_label": s.speaker.speaker_label
-                } if s.speaker else None,
-                "confidence": s.confidence,
-                "segment_type": s.segment_type.value if s.segment_type else None
-            } for s in transcript.segments]
+            segments=[
+                {
+                    "segment_id": s.segment_id,
+                    "start_time": s.start_time,
+                    "end_time": s.end_time,
+                    "text": s.text,
+                    "speaker": {
+                        "speaker_id": s.speaker.speaker_id,
+                        "speaker_label": s.speaker.speaker_label,
+                    }
+                    if s.speaker
+                    else None,
+                    "confidence": s.confidence,
+                    "segment_type": s.segment_type.value if s.segment_type else None,
+                }
+                for s in transcript.segments
+            ],
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get transcript: {str(e)}"
+            status_code=500, detail=f"Failed to get transcript: {str(e)}"
         )
 
 
@@ -262,7 +263,7 @@ async def get_transcript(transcript_id: str):
 async def export_srt(transcript_id: str):
     """
     Export transcript as SRT subtitle format.
-    
+
     Example:
     ```
     GET /api/v1/transcription/transcript_123/export/srt
@@ -271,76 +272,68 @@ async def export_srt(transcript_id: str):
     try:
         engine = get_engine()
         transcript = await engine.get_transcript(transcript_id)
-        
+
         if not transcript:
             raise HTTPException(
-                status_code=404,
-                detail=f"Transcript not found: {transcript_id}"
+                status_code=404, detail=f"Transcript not found: {transcript_id}"
             )
-        
+
         srt_content = engine.export_srt(transcript)
-        
+
         return Response(
             content=srt_content,
             media_type="text/plain",
             headers={
                 "Content-Disposition": f'attachment; filename="{transcript_id}.srt"'
-            }
+            },
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to export SRT: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to export SRT: {str(e)}")
 
 
 @transcription_router.get("/{transcript_id}/export/vtt")
 async def export_vtt(transcript_id: str):
     """
-    Export transcript as VTT subtitle format.
-    ```
-    GET /api/v1    
-    Example:
-/transcription/transcript_123/export/vtt
-    ```
+        Export transcript as VTT subtitle format.
+        ```
+        GET /api/v1
+        Example:
+    /transcription/transcript_123/export/vtt
+        ```
     """
     try:
         engine = get_engine()
         transcript = await engine.get_transcript(transcript_id)
-        
+
         if not transcript:
             raise HTTPException(
-                status_code=404,
-                detail=f"Transcript not found: {transcript_id}"
+                status_code=404, detail=f"Transcript not found: {transcript_id}"
             )
-        
+
         vtt_content = engine.export_vtt(transcript)
-        
+
         return Response(
             content=vtt_content,
             media_type="text/plain",
             headers={
                 "Content-Disposition": f'attachment; filename="{transcript_id}.vtt"'
-            }
+            },
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to export VTT: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to export VTT: {str(e)}")
 
 
 @transcription_router.post("/generate-montage", response_model=MontageResponse)
 async def generate_montage(request: MontageRequestModel):
     """
     Generate a video montage based on transcript text.
-    
+
     Example:
     ```
     POST /api/v1/transcription/generate-montage
@@ -362,28 +355,28 @@ async def generate_montage(request: MontageRequestModel):
             style=style,
             include_speakers=request.include_speakers,
             exclude_speakers=request.exclude_speakers,
-            max_duration=request.max_duration
+            max_duration=request.max_duration,
         )
         result = await engine.generate_montage(montage_req)
-        
+
         return MontageResponse(
             transcript_id=request.transcript_id,
             style=request.style,
             total_duration=result.total_duration,
-            shots=[{
-                "shot_id": shot.shot_id,
-                "source_start": shot.source_start,
-                "source_end": shot.source_end,
-                "text": shot.text,
-                "speaker": shot.speaker
-            } for shot in result.shots],
-            summary=result.summary
+            shots=[
+                {
+                    "shot_id": shot.shot_id,
+                    "source_start": shot.source_start,
+                    "source_end": shot.source_end,
+                    "text": shot.text,
+                    "speaker": shot.speaker,
+                }
+                for shot in result.shots
+            ],
+            summary=result.summary,
         )
-        
+
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Montage generation failed: {str(e)}"
+            status_code=500, detail=f"Montage generation failed: {str(e)}"
         )
-
-

@@ -40,7 +40,7 @@ export const TRACK_CONFIG: Record<LayerType, { color: string; icon: string; name
 
 export const TrackHeader: React.FC<TrackHeaderProps> = ({
   track,
-  index,
+  _index,
   isHovered,
   isDragging,
   isDropTarget,
@@ -48,7 +48,7 @@ export const TrackHeader: React.FC<TrackHeaderProps> = ({
   onLockToggle,
   onHideToggle,
   onResize,
-  onReorder,
+  _onReorder,
   onMuteToggle,
   onSoloToggle,
   onRecordToggle,

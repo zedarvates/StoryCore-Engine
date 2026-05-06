@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AudioEngine, getAudioEngine, destroyAudioEngine } from '../AudioEngine';
 import type { AudioTrack } from '../../types';
@@ -70,13 +71,13 @@ class MockAudioContext {
 }
 
 describe('AudioEngine', () => {
-  let originalAudioContext: any;
+  let originalAudioContext: LegacyAny;
   let mockAudioContext: MockAudioContext;
 
   beforeEach(() => {
     mockAudioContext = new MockAudioContext();
-    originalAudioContext = (window as any).AudioContext;
-    (window as any).AudioContext = vi.fn(() => mockAudioContext);
+    originalAudioContext = (window as LegacyAny).AudioContext;
+    (window as LegacyAny).AudioContext = vi.fn(() => mockAudioContext);
     
     // Mock fetch
     global.fetch = vi.fn().mockResolvedValue({
@@ -86,7 +87,7 @@ describe('AudioEngine', () => {
   });
 
   afterEach(() => {
-    (window as any).AudioContext = originalAudioContext;
+    (window as LegacyAny).AudioContext = originalAudioContext;
     vi.clearAllMocks();
   });
 
@@ -305,15 +306,15 @@ describe('AudioEngine', () => {
 });
 
 describe('getAudioEngine', () => {
-  let originalAudioContext: any;
+  let originalAudioContext: LegacyAny;
 
   beforeEach(() => {
-    originalAudioContext = (window as any).AudioContext;
-    (window as any).AudioContext = vi.fn(() => new MockAudioContext());
+    originalAudioContext = (window as LegacyAny).AudioContext;
+    (window as LegacyAny).AudioContext = vi.fn(() => new MockAudioContext());
   });
 
   afterEach(async () => {
-    (window as any).AudioContext = originalAudioContext;
+    (window as LegacyAny).AudioContext = originalAudioContext;
     await destroyAudioEngine();
     vi.clearAllMocks();
   });
@@ -327,15 +328,15 @@ describe('getAudioEngine', () => {
 });
 
 describe('destroyAudioEngine', () => {
-  let originalAudioContext: any;
+  let originalAudioContext: LegacyAny;
 
   beforeEach(() => {
-    originalAudioContext = (window as any).AudioContext;
-    (window as any).AudioContext = vi.fn(() => new MockAudioContext());
+    originalAudioContext = (window as LegacyAny).AudioContext;
+    (window as LegacyAny).AudioContext = vi.fn(() => new MockAudioContext());
   });
 
   afterEach(() => {
-    (window as any).AudioContext = originalAudioContext;
+    (window as LegacyAny).AudioContext = originalAudioContext;
     vi.clearAllMocks();
   });
 

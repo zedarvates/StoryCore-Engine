@@ -1,6 +1,5 @@
 import bpy
 import json
-import os
 
 # --- BLENDER AUTO LIP-SYNC FOR STORYCORE ---
 # This script animates mouth shape keys based on viseme data from StoryCore.
@@ -14,8 +13,9 @@ VISEME_MAP = {
     "U": "viseme_U",
     "M": "viseme_M",
     "F": "viseme_F",
-    "L": "viseme_L"
+    "L": "viseme_L",
 }
+
 
 def animate_lipsync(mesh_obj_name, viseme_data_path):
     """
@@ -25,23 +25,23 @@ def animate_lipsync(mesh_obj_name, viseme_data_path):
     if not obj or not obj.data.shape_keys:
         print("Error: Mesh does not have shape keys.")
         return
-        
+
     sk = obj.data.shape_keys
-    
+
     # Load viseme data
-    with open(viseme_data_path, 'r') as f:
+    with open(viseme_data_path, "r") as f:
         data = json.load(f)
-        
+
     fps = bpy.context.scene.render.fps
-    
+
     # Reset existing animation in keyframes range
     # (Optional: Clear only the viseme shape keys)
-    
+
     for entry in data:
         timestamp = entry["timestamp"]
         viseme = entry["viseme"]
         frame = int(timestamp * fps)
-        
+
         # Map viseme to shape key name
         sk_name = VISEME_MAP.get(viseme)
         if sk_name and sk_name in sk.key_blocks:
@@ -49,7 +49,7 @@ def animate_lipsync(mesh_obj_name, viseme_data_path):
             block = sk.key_blocks[sk_name]
             block.value = 1.0
             block.keyframe_insert(data_path="value", frame=frame)
-            
+
             # Set 0.0 for others (or blend)
             # Fast simple implementation: set others to 0 at this frame
             for other_name in VISEME_MAP.values():
@@ -57,32 +57,36 @@ def animate_lipsync(mesh_obj_name, viseme_data_path):
                     other_block = sk.key_blocks[other_name]
                     other_block.value = 0.0
                     other_block.keyframe_insert(data_path="value", frame=frame)
-                    
+
             # Set recovery frame (return to neutral shortly after)
-            next_frame = frame + 2 
+            next_frame = frame + 2
             block.value = 0.0
             block.keyframe_insert(data_path="value", frame=next_frame)
 
     print(f"Lip-Sync successfully applied to {len(data)} frames.")
 
+
 class STORYCORE_OT_ApplyLipSync(bpy.types.Operator):
     """Apply StoryCore Viseme Data to Mesh Shape Keys"""
+
     bl_idname = "storycore.apply_lipsync"
     bl_label = "Apply StoryCore Lip-Sync"
-    
+
     filepath: bpy.props.StringProperty(subtype="FILE_PATH")
     mesh_name: bpy.props.StringProperty(name="Mesh Name", default="")
 
     def execute(self, context):
         animate_lipsync(self.mesh_name, self.filepath)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return {"RUNNING_MODAL"}
+
 
 def register():
     bpy.utils.register_class(STORYCORE_OT_ApplyLipSync)
+
 
 if __name__ == "__main__":
     register()

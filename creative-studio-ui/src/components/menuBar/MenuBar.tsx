@@ -6,6 +6,8 @@
  * 
  * Requirements: 1.1-15.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Menu } from './Menu';
@@ -257,7 +259,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
                 services: {
                   persistence: {}, // Placeholder for persistence service
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  export: projectExportService as any,
+                  export: projectExportService as LegacyAny,
                   recentProjects: {}, // Placeholder for recent projects service
                   // Notification service
                   notification: {
@@ -292,6 +294,7 @@ export const MenuBar: React.FC<MenuBarProps> = (props) => {
                   },
                 },
                 onViewStateChange: props.onViewStateChange,
+                onProjectChange: props.onProjectChange,
               });
             }
           };

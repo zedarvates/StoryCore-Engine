@@ -8,12 +8,25 @@
 
 ![Hackathon 2026](https://img.shields.io/badge/Hackathon-2026-blue) ![Python](https://img.shields.io/badge/Python-3.11+-green) ![React](https://img.shields.io/badge/React-18+-blue) ![ComfyUI](https://img.shields.io/badge/ComfyUI-Ready-orange) ![Deterministic AI](https://img.shields.io/badge/Deterministic-AI-purple) ![Security](https://img.shields.io/badge/Security-Validated-green) ![Local Processing](https://img.shields.io/badge/Local-Processing-blue)
 ![License](https://img.shields.io/github/license/zedarvates/StoryCore-Engine)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue?logo=typescript) ![Ruff](https://img.shields.io/badge/Linting-Ruff-red) ![Build](https://img.shields.io/badge/Build-Passing-brightgreen)
 
 > **From Script to Screen in Minutes** - Self-correcting multimodal video pipeline with guaranteed visual coherence. 100% local processing. Data sovereignty.
 
 ---
 
 ![StoryCore-Engine Preview](assets/Screenshot-2026-02-15-060825.png)
+
+---
+
+## 📊 Recent Audit & Quality (May 2026)
+
+- **Code Quality**: 6000+ Ruff lint errors → 171 (97% reduction)
+- **Build Status**: TypeScript compilation clean (0 errors)
+- **Architecture**: Refactored App.tsx (1299→30 lines) into modular components
+- **Tests**: 170 passing, 248 failing (pre-existing test infrastructure gaps)
+- **Documentation**: 200-task audit roadmap created
+
+See [AUDIT_200_TASKS.md](AUDIT_200_TASKS.md) for the complete quality improvement plan.
 
 ---
 

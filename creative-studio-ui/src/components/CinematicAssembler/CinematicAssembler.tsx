@@ -3,6 +3,8 @@
  * 
  * Final orchestrator for Phase 4-8: Cinematic Polish, Lip-Sync, and Production Mastering.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { 
@@ -21,6 +23,7 @@ import {
   User, 
   ShieldCheck, 
   Music, 
+  Mic2,
   Sliders, 
   Scissors, 
   Sparkles
@@ -29,15 +32,20 @@ import { MagicMaskTool } from '../AITools/MagicMaskTool';
 import { SubtitleEditor } from '../AITools/SubtitleEditor';
 import { AtmosphericGradingStudio } from '../AITools/AtmosphericGradingStudio';
 import { MotionVFXPresets } from '../AITools/MotionVFXPresets';
+import { AIFoleyStudio } from '../AITools/AIFoleyStudio';
+import { DialogueMasterStudio } from '../AITools/DialogueMasterStudio';
+import { SonicMasterStudio } from '../audio/SonicMasterStudio';
+import { NeuralOrchestrationMaster } from '../NeuralOrchestrationMaster';
+import { SmartMasterRender } from '../export/SmartMasterRender';
+import { StudioPackager } from '../StudioPackager';
 import { automationService, AudioRhythmData } from '@/services/automationService';
 import { sequencePlanService, SequencePlanData } from '@/services/sequencePlanService';
 import { useAppStore } from '@/stores/useAppStore';
 import { useThemeStore } from '@/stores/themeStore';
 import { DirectorialAnnotator, type Annotation } from '../DirectorialAnnotator/DirectorialAnnotator';
-import { ExportManager } from '../export/ExportManager';
 import { collaborativeReviewService, type CollaborationSession } from '@/services/CollaborativeReviewService';
 import '@/styles/cinematic-assembler.css';
-import './CinematicAssembler.css';
+// import './CinematicAssembler.css';
 
 interface CinematicAssemblerProps {
   plan: SequencePlanData;
@@ -59,7 +67,7 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
   const [rhythmApplied, setRhythmApplied] = useState(false);
   const [smoothing, setSmoothing] = useState(false);
   const [smoothed, setSmoothed] = useState(false);
-  const [activeTool, setActiveTool] = useState<'animation' | 'mask' | 'subtitles' | 'grading' | null>(null);
+  const [activeTool, setActiveTool] = useState<'animation' | 'mask' | 'subtitles' | 'grading' | 'foley' | 'dialogue' | 'sonic' | null>(null);
   const [selectedShotId, setSelectedShotId] = useState<string | null>(null);
   const [collaborationSession, setCollaborationSession] = useState<CollaborationSession | null>(null);
   const [isHosting, setIsHosting] = useState(false);
@@ -203,7 +211,7 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                   
                   {identities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-3">
-                      {identities.map((char: any) => (
+                      {identities.map((char: LegacyAny) => (
                         <button 
                           key={char.id}
                           title={`Sélectionner l'identité de ${char.name}`}
@@ -307,7 +315,7 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                 </div>
 
                 {/* Phase 8 Tools Integration */}
-                 <div className="grid grid-cols-4 gap-4 mt-4">
+                 <div className="grid grid-cols-7 gap-4 mt-4">
                   <button 
                     onClick={() => setActiveTool(activeTool === 'animation' ? null : 'animation')}
                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
@@ -344,6 +352,33 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                     <Sun className="w-5 h-5" />
                     <span className="text-[10px] font-bold uppercase tracking-widest text-center">Atmos Grading</span>
                   </button>
+                  <button 
+                    onClick={() => setActiveTool(activeTool === 'foley' ? null : 'foley')}
+                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                      activeTool === 'foley' ? 'bg-emerald-900/20 border-emerald-500 text-emerald-300' : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <Mic2 className="w-5 h-5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-center">AI Foley</span>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTool(activeTool === 'dialogue' ? null : 'dialogue')}
+                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                      activeTool === 'dialogue' ? 'bg-amber-900/20 border-amber-500 text-amber-300' : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <User className="w-5 h-5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-center">Dialogue Master</span>
+                  </button>
+                  <button 
+                    onClick={() => setActiveTool(activeTool === 'sonic' ? null : 'sonic')}
+                     className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${
+                      activeTool === 'sonic' ? 'bg-violet-900/20 border-violet-500 text-violet-300' : 'bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300'
+                    }`}
+                  >
+                    <Layers className="w-5 h-5" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-center">Sonic Master</span>
+                  </button>
                 </div>
 
                  {/* Active Tool View */}
@@ -351,7 +386,7 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                   <div className="cinematic-card p-6 border-violet-500/30 animate-in fade-in zoom-in-95 duration-300 w-full max-w-4xl mx-auto">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-xs font-black uppercase tracking-widest cinematic-title">
-                        {activeTool === 'animation' ? 'Animation Presets Editor' : activeTool === 'mask' ? 'AI Subject Isolation (SAM)' : activeTool === 'subtitles' ? 'Cinematic Subtitle Forge' : 'Atmospheric Grading Studio'}
+                        {activeTool === 'animation' ? 'Animation Presets Editor' : activeTool === 'mask' ? 'AI Subject Isolation (SAM)' : activeTool === 'subtitles' ? 'Cinematic Subtitle Forge' : activeTool === 'grading' ? 'Atmospheric Grading Studio' : activeTool === 'foley' ? 'AI Foley Studio' : activeTool === 'dialogue' ? 'Dialogue Master Studio' : 'Sonic Master Studio'}
                       </h4>
                       <button onClick={() => setActiveTool(null)} className="text-[10px] font-bold text-slate-500 hover:text-white uppercase transition-colors">Close</button>
                     </div>
@@ -363,7 +398,7 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                     )}
                     {activeTool === 'mask' && (
                       <MagicMaskTool 
-                        inputPath={selectedShotId || "default_input.png"} 
+                        inputPath={results.find(r => r.id === selectedShotId)?.enhanced || results[0]?.enhanced || "default_input.png"} 
                         onMaskGenerated={(res) => console.log("Mask generated:", res)} 
                       />
                     )}
@@ -378,6 +413,22 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                         previewImage={results.find(r => r.id === selectedShotId)?.enhanced || results[0]?.enhanced}
                         onApply={(config) => console.log("Grading applied:", config)} 
                       />
+                    )}
+                    {activeTool === 'foley' && (
+                      <AIFoleyStudio 
+                        sceneDescription={results.find(r => r.id === selectedShotId)?.original || "Aucune description de scène."}
+                        onApply={(config) => console.log("Foley applied:", config)} 
+                      />
+                    )}
+                    {activeTool === 'dialogue' && (
+                      <DialogueMasterStudio 
+                        characters={identities.map((c: LegacyAny) => ({ id: c.character_id, name: c.name, role: c.role?.archetype || 'Character' }))}
+                        selectedCharacterId={selectedIdentityId || undefined}
+                        onApply={(config) => console.log("Dialogue applied:", config)} 
+                      />
+                    )}
+                    {activeTool === 'sonic' && (
+                      <SonicMasterStudio />
                     )}
                   </div>
                 )}
@@ -489,7 +540,10 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
           )}
           </div>
         ) : (
-          <div className="mastering-view space-y-12 animate-in fade-in slide-in-from-right-4 duration-500">
+          <div className="mastering-view space-y-12 animate-in fade-in slide-in-from-right-4 duration-500 max-w-6xl mx-auto">
+             {/* Neural Orchestration Master Centerpiece */}
+             <NeuralOrchestrationMaster />
+
              {/* Review Layer */}
              <div className="preview-container relative aspect-video bg-black rounded-3xl overflow-hidden border border-slate-800 shadow-2xl mx-auto max-w-5xl">
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -539,9 +593,14 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                 </div>
              </div>
 
-             {/* Export Engine */}
-             <div className="max-w-5xl mx-auto w-full">
-                <ExportManager />
+             {/* Smart Master Rendering Engine (Phase 10) */}
+             <div className="max-w-6xl mx-auto w-full">
+                <SmartMasterRender />
+             </div>
+
+             {/* Final Studio Packaging (Phase 10) */}
+             <div className="max-w-6xl mx-auto w-full pb-32">
+                <StudioPackager />
              </div>
           </div>
         )}

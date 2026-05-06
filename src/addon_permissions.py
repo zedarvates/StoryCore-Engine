@@ -7,14 +7,14 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Set, Any
-from pathlib import Path
+from typing import Dict, List, Optional, Any
 
 from src.addon_manager import AddonManifest
 
 
 class PermissionLevel(Enum):
     """Niveaux de permission"""
+
     NONE = "none"
     READ = "read"
     WRITE = "write"
@@ -24,15 +24,17 @@ class PermissionLevel(Enum):
 
 class PermissionScope(Enum):
     """Périmètres des permissions"""
-    GLOBAL = "global"      # Accès global au système
-    PROJECT = "project"    # Accès limité au projet courant
-    SESSION = "session"    # Accès limité à la session courante
-    SANDBOX = "sandbox"    # Accès isolé dans un environnement sécurisé
+
+    GLOBAL = "global"  # Accès global au système
+    PROJECT = "project"  # Accès limité au projet courant
+    SESSION = "session"  # Accès limité à la session courante
+    SANDBOX = "sandbox"  # Accès isolé dans un environnement sécurisé
 
 
 @dataclass
 class PermissionRequest:
     """Requête de permission"""
+
     permission: str
     level: PermissionLevel
     scope: PermissionScope
@@ -44,6 +46,7 @@ class PermissionRequest:
 @dataclass
 class PermissionGrant:
     """Octroi de permission"""
+
     request: PermissionRequest
     granted: bool
     granted_by: str  # "auto", "user", "admin"
@@ -78,7 +81,7 @@ class PermissionManager:
             "requests_total": 0,
             "requests_granted": 0,
             "requests_denied": 0,
-            "violations": 0
+            "violations": 0,
         }
 
     def _initialize_default_policies(self):
@@ -89,7 +92,7 @@ class PermissionManager:
                 "requires_user_approval": True,
                 "max_level": PermissionLevel.READ,
                 "allowed_scopes": [PermissionScope.PROJECT, PermissionScope.SESSION],
-                "risk_level": "medium"
+                "risk_level": "medium",
             },
             "file_system_read": {
                 "auto_grant": True,
@@ -97,7 +100,7 @@ class PermissionManager:
                 "max_level": PermissionLevel.READ,
                 "allowed_scopes": [PermissionScope.PROJECT],
                 "risk_level": "low",
-                "path_restrictions": ["*.json", "*.txt", "*.md", "*.yaml", "*.yml"]
+                "path_restrictions": ["*.json", "*.txt", "*.md", "*.yaml", "*.yml"],
             },
             "file_system_write": {
                 "auto_grant": False,
@@ -105,7 +108,7 @@ class PermissionManager:
                 "max_level": PermissionLevel.WRITE,
                 "allowed_scopes": [PermissionScope.PROJECT],
                 "risk_level": "high",
-                "path_restrictions": ["exports/", "temp/", "cache/"]
+                "path_restrictions": ["exports/", "temp/", "cache/"],
             },
             "network_access": {
                 "auto_grant": False,
@@ -113,39 +116,41 @@ class PermissionManager:
                 "max_level": PermissionLevel.EXECUTE,
                 "allowed_scopes": [PermissionScope.SESSION],
                 "risk_level": "high",
-                "url_whitelist": ["huggingface.co", "githubusercontent.com"]
+                "url_whitelist": ["huggingface.co", "githubusercontent.com"],
             },
             "ui_access": {
                 "auto_grant": True,
                 "requires_user_approval": False,
                 "max_level": PermissionLevel.WRITE,
                 "allowed_scopes": [PermissionScope.SESSION],
-                "risk_level": "low"
+                "risk_level": "low",
             },
             "config_access": {
                 "auto_grant": False,
                 "requires_user_approval": True,
                 "max_level": PermissionLevel.READ,
                 "allowed_scopes": [PermissionScope.PROJECT],
-                "risk_level": "medium"
+                "risk_level": "medium",
             },
             "database_access": {
                 "auto_grant": False,
                 "requires_user_approval": True,
                 "max_level": PermissionLevel.WRITE,
                 "allowed_scopes": [PermissionScope.PROJECT],
-                "risk_level": "high"
+                "risk_level": "high",
             },
             "system_info_access": {
                 "auto_grant": True,
                 "requires_user_approval": False,
                 "max_level": PermissionLevel.READ,
                 "allowed_scopes": [PermissionScope.GLOBAL],
-                "risk_level": "low"
-            }
+                "risk_level": "low",
+            },
         }
 
-    async def validate_addon_permissions(self, manifest: AddonManifest) -> Dict[str, Any]:
+    async def validate_addon_permissions(
+        self, manifest: AddonManifest
+    ) -> Dict[str, Any]:
         """
         Valide les permissions demandées par un add-on
 
@@ -160,17 +165,19 @@ class PermissionManager:
             "issues": [],
             "warnings": [],
             "auto_grantable": [],
-            "requires_approval": []
+            "requires_approval": [],
         }
 
         for permission in manifest.permissions:
             if permission not in self.permission_policies:
                 validation_result["valid"] = False
-                validation_result["issues"].append({
-                    "permission": permission,
-                    "issue": "unknown_permission",
-                    "message": f"Permission inconnue: {permission}"
-                })
+                validation_result["issues"].append(
+                    {
+                        "permission": permission,
+                        "issue": "unknown_permission",
+                        "message": f"Permission inconnue: {permission}",
+                    }
+                )
                 continue
 
             policy = self.permission_policies[permission]
@@ -179,11 +186,13 @@ class PermissionManager:
             security_check = self._check_permission_security(permission, policy)
             if not security_check["safe"]:
                 validation_result["valid"] = False
-                validation_result["issues"].append({
-                    "permission": permission,
-                    "issue": "security_violation",
-                    "message": security_check["message"]
-                })
+                validation_result["issues"].append(
+                    {
+                        "permission": permission,
+                        "issue": "security_violation",
+                        "message": security_check["message"],
+                    }
+                )
 
             # Classer les permissions
             if policy["auto_grant"]:
@@ -193,11 +202,13 @@ class PermissionManager:
 
             # Avertissements pour permissions risquées
             if policy["risk_level"] in ["high", "medium"]:
-                validation_result["warnings"].append({
-                    "permission": permission,
-                    "risk_level": policy["risk_level"],
-                    "message": f"Permission {policy['risk_level']} risk: {permission}"
-                })
+                validation_result["warnings"].append(
+                    {
+                        "permission": permission,
+                        "risk_level": policy["risk_level"],
+                        "message": f"Permission {policy['risk_level']} risk: {permission}",
+                    }
+                )
 
         return validation_result
 
@@ -220,7 +231,7 @@ class PermissionManager:
                 granted=False,
                 granted_by="system",
                 timestamp=asyncio.get_event_loop().time(),
-                conditions={"reason": "unknown_permission"}
+                conditions={"reason": "unknown_permission"},
             )
             self.stats["requests_denied"] += 1
             return grant
@@ -234,7 +245,7 @@ class PermissionManager:
                 granted=True,
                 granted_by="auto",
                 timestamp=asyncio.get_event_loop().time(),
-                conditions=self._get_auto_grant_conditions(policy)
+                conditions=self._get_auto_grant_conditions(policy),
             )
             self.stats["requests_granted"] += 1
             self._store_grant(request.addon_name, grant)
@@ -247,13 +258,18 @@ class PermissionManager:
             granted=False,
             granted_by="system",
             timestamp=asyncio.get_event_loop().time(),
-            conditions={"reason": "requires_user_approval"}
+            conditions={"reason": "requires_user_approval"},
         )
         self.stats["requests_denied"] += 1
         return grant
 
-    async def grant_permission_manually(self, request: PermissionRequest, approved: bool,
-                                      granted_by: str, conditions: Dict[str, Any] = None) -> PermissionGrant:
+    async def grant_permission_manually(
+        self,
+        request: PermissionRequest,
+        approved: bool,
+        granted_by: str,
+        conditions: Dict[str, Any] = None,
+    ) -> PermissionGrant:
         """
         Octroi manuel d'une permission (par utilisateur ou admin)
 
@@ -273,7 +289,7 @@ class PermissionManager:
             granted=approved,
             granted_by=granted_by,
             timestamp=asyncio.get_event_loop().time(),
-            conditions=conditions
+            conditions=conditions,
         )
 
         if approved:
@@ -284,9 +300,13 @@ class PermissionManager:
 
         return grant
 
-    async def check_permission(self, addon_name: str, permission: str,
-                             level: PermissionLevel = PermissionLevel.READ,
-                             scope: PermissionScope = PermissionScope.PROJECT) -> bool:
+    async def check_permission(
+        self,
+        addon_name: str,
+        permission: str,
+        level: PermissionLevel = PermissionLevel.READ,
+        scope: PermissionScope = PermissionScope.PROJECT,
+    ) -> bool:
         """
         Vérifie si un add-on a une permission
 
@@ -305,13 +325,17 @@ class PermissionManager:
         grants = self.granted_permissions[addon_name]
 
         for grant in grants:
-            if (grant.request.permission == permission and
-                grant.granted and
-                grant.request.level.value >= level.value and
-                grant.request.scope == scope):
-
+            if (
+                grant.request.permission == permission
+                and grant.granted
+                and grant.request.level.value >= level.value
+                and grant.request.scope == scope
+            ):
                 # Vérifier l'expiration
-                if grant.expires_at and asyncio.get_event_loop().time() > grant.expires_at:
+                if (
+                    grant.expires_at
+                    and asyncio.get_event_loop().time() > grant.expires_at
+                ):
                     continue
 
                 return True
@@ -337,7 +361,8 @@ class PermissionManager:
 
         # Filtrer les grants actifs pour cette permission
         self.granted_permissions[addon_name] = [
-            grant for grant in grants
+            grant
+            for grant in grants
             if not (grant.request.permission == permission and grant.granted)
         ]
 
@@ -351,12 +376,16 @@ class PermissionManager:
         """Retourne les statistiques des permissions"""
         return {
             **self.stats,
-            "active_grants": sum(len(grants) for grants in self.granted_permissions.values())
+            "active_grants": sum(
+                len(grants) for grants in self.granted_permissions.values()
+            ),
         }
 
     # Méthodes privées
 
-    def _check_permission_security(self, permission: str, policy: Dict[str, Any]) -> Dict[str, Any]:
+    def _check_permission_security(
+        self, permission: str, policy: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Vérifie les aspects de sécurité d'une permission"""
         result = {"safe": True, "message": ""}
 
@@ -372,7 +401,9 @@ class PermissionManager:
 
         return result
 
-    def _can_auto_grant(self, request: PermissionRequest, policy: Dict[str, Any]) -> bool:
+    def _can_auto_grant(
+        self, request: PermissionRequest, policy: Dict[str, Any]
+    ) -> bool:
         """Détermine si une permission peut être accordée automatiquement"""
         # Vérifications de sécurité pour l'octroi automatique
         if request.level.value > policy["max_level"].value:
@@ -383,16 +414,15 @@ class PermissionManager:
 
         # Vérifications de risque
         if policy["risk_level"] == "high":
-            return False  # Jamais d'octroi automatique pour les permissions haute risque
+            return (
+                False  # Jamais d'octroi automatique pour les permissions haute risque
+            )
 
         return True
 
     def _get_auto_grant_conditions(self, policy: Dict[str, Any]) -> Dict[str, Any]:
         """Retourne les conditions pour un octroi automatique"""
-        conditions = {
-            "auto_granted": True,
-            "risk_level": policy["risk_level"]
-        }
+        conditions = {"auto_granted": True, "risk_level": policy["risk_level"]}
 
         # Conditions spécifiques selon la politique
         if "path_restrictions" in policy:
@@ -410,11 +440,15 @@ class PermissionManager:
 
         self.granted_permissions[addon_name].append(grant)
 
-    def create_permission_request(self, addon_name: str, permission: str,
-                                level: PermissionLevel = PermissionLevel.READ,
-                                scope: PermissionScope = PermissionScope.PROJECT,
-                                justification: str = "",
-                                context: Dict[str, Any] = None) -> PermissionRequest:
+    def create_permission_request(
+        self,
+        addon_name: str,
+        permission: str,
+        level: PermissionLevel = PermissionLevel.READ,
+        scope: PermissionScope = PermissionScope.PROJECT,
+        justification: str = "",
+        context: Dict[str, Any] = None,
+    ) -> PermissionRequest:
         """Crée une requête de permission"""
         return PermissionRequest(
             permission=permission,
@@ -422,5 +456,5 @@ class PermissionManager:
             scope=scope,
             justification=justification,
             addon_name=addon_name,
-            context=context or {}
+            context=context or {},
         )

@@ -23,10 +23,10 @@ except ImportError:
             def __init__(self):
                 self.username = "test_user"
                 self.role = "admin"
-        
+
         def get_current_user():
             return MockUser()
-        
+
         User = MockUser
         rate_limiter = None
 
@@ -42,8 +42,6 @@ except ImportError:
     from ..audio_remix_engine import (
         AudioRemixEngine,
         RemixStyle,
-        RemixResult,
-        MusicStructure,
         RemixRequest as EngineRemixRequest,
     )
 
@@ -52,6 +50,7 @@ audio_router = APIRouter()
 
 # Global engine instance
 _engine: Optional[AudioRemixEngine] = None
+
 
 def get_engine() -> AudioRemixEngine:
     """Get or create the audio remix engine."""
@@ -122,15 +121,9 @@ async def health_check():
     """Health check endpoint."""
     try:
         engine = get_engine()
-        return HealthResponse(
-            status="healthy",
-            is_initialized=engine.is_initialized
-        )
-    except Exception as e:
-        return HealthResponse(
-            status="error",
-            is_initialized=False
-        )
+        return HealthResponse(status="healthy", is_initialized=engine.is_initialized)
+    except Exception:
+        return HealthResponse(status="error", is_initialized=False)
 
 
 @audio_router.get("/styles", response_model=StylesResponse)
@@ -140,23 +133,15 @@ async def get_remix_styles():
         {
             "id": "smooth",
             "name": "Smooth",
-            "description": "Crossfade fluide entre les sections"
+            "description": "Crossfade fluide entre les sections",
         },
-        {
-            "id": "beat-cut",
-            "name": "Beat Cut",
-            "description": "Coupures sur les beats"
-        },
+        {"id": "beat-cut", "name": "Beat Cut", "description": "Coupures sur les beats"},
         {
             "id": "structural",
             "name": "Structural",
-            "description": "Préserve la structure musicale"
+            "description": "Préserve la structure musicale",
         },
-        {
-            "id": "dynamic",
-            "name": "Dynamic",
-            "description": "Adaptation dynamique"
-        }
+        {"id": "dynamic", "name": "Dynamic", "description": "Adaptation dynamique"},
     ]
     return StylesResponse(styles=styles)
 
@@ -165,7 +150,7 @@ async def get_remix_styles():
 async def analyze_music_structure(request: AnalyzeStructureRequest):
     """
     Analyze the structure of a music file.
-    
+
     Example:
     ```
     POST /api/v1/audio/analyze-structure
@@ -174,12 +159,12 @@ async def analyze_music_structure(request: AnalyzeStructureRequest):
     }
     ```
     """
-    start_time = time.time()
-    
+    time.time()
+
     try:
         engine = get_engine()
         structure = await engine.analyze_structure(request.music_url)
-        
+
         return AnalyzeStructureResponse(
             music_url=request.music_url,
             duration=structure.duration,
@@ -192,20 +177,22 @@ async def analyze_music_structure(request: AnalyzeStructureRequest):
                 "bridge_duration": structure.bridge_duration,
                 "outro_duration": structure.outro_duration,
                 "has_intro": structure.has_intro,
-                "has_outro": structure.has_outro
+                "has_outro": structure.has_outro,
             },
-            sections=[{
-                "name": s.section_type.value,
-                "start_time": s.start_time,
-                "end_time": s.end_time,
-                "confidence": s.confidence
-            } for s in structure.sections]
+            sections=[
+                {
+                    "name": s.section_type.value,
+                    "start_time": s.start_time,
+                    "end_time": s.end_time,
+                    "confidence": s.confidence,
+                }
+                for s in structure.sections
+            ],
         )
-        
+
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Structure analysis failed: {str(e)}"
+            status_code=500, detail=f"Structure analysis failed: {str(e)}"
         )
 
 
@@ -213,7 +200,7 @@ async def analyze_music_structure(request: AnalyzeStructureRequest):
 async def remix_audio(request: RemixRequest):
     """
     Remix audio to match target duration.
-    
+
     Example:
     ```
     POST /api/v1/audio/remix
@@ -226,16 +213,16 @@ async def remix_audio(request: RemixRequest):
     ```
     """
     start_time = time.time()
-    
+
     # Validate style
     try:
         style = RemixStyle(request.style)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid style. Supported: smooth, beat-cut, structural, dynamic"
+            detail="Invalid style. Supported: smooth, beat-cut, structural, dynamic",
         )
-    
+
     try:
         engine = get_engine()
         result = await engine.remix(
@@ -243,40 +230,39 @@ async def remix_audio(request: RemixRequest):
             target_duration=request.target_duration,
             style=style,
             fade_duration=request.fade_duration,
-            preserve_sections=request.preserve_sections
+            preserve_sections=request.preserve_sections,
         )
-        
+
         return RemixResponse(
             music_url=request.music_url,
             original_duration=result.original_duration,
             target_duration=result.target_duration,
             remix_url=result.remix_url,
             style=request.style,
-            cuts=[{
-                "start_time": c.start_time,
-                "end_time": c.end_time,
-                "reason": c.reason
-            } for c in result.cuts],
-            crossfades=[{
-                "start_time": cf["start"],
-                "end_time": cf["end"],
-                "duration": cf["duration"]
-            } for cf in result.crossfades],
-            processing_time=time.time() - start_time
+            cuts=[
+                {"start_time": c.start_time, "end_time": c.end_time, "reason": c.reason}
+                for c in result.cuts
+            ],
+            crossfades=[
+                {
+                    "start_time": cf["start"],
+                    "end_time": cf["end"],
+                    "duration": cf["duration"],
+                }
+                for cf in result.crossfades
+            ],
+            processing_time=time.time() - start_time,
         )
-        
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Remix failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Remix failed: {str(e)}")
 
 
 @audio_router.post("/preview", response_model=PreviewResponse)
 async def preview_remix_endpoint(request: PreviewRequest):
     """
     Generate a short preview of the remix.
-    
+
     Example:
     ```
     POST /api/v1/audio/preview
@@ -290,15 +276,15 @@ async def preview_remix_endpoint(request: PreviewRequest):
     ```
     """
     start_time = time.time()
-    
+
     try:
         style = RemixStyle(request.style)
     except ValueError:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid style. Supported: smooth, beat-cut, structural, dynamic"
+            detail="Invalid style. Supported: smooth, beat-cut, structural, dynamic",
         )
-    
+
     try:
         engine = get_engine()
         engine_request = EngineRemixRequest(
@@ -307,21 +293,20 @@ async def preview_remix_endpoint(request: PreviewRequest):
             target_duration=request.target_duration,
             style=style,
         )
-        preview_data = await engine.preview_remix(engine_request)
-        
+        await engine.preview_remix(engine_request)
+
         preview_url = (
             f"/api/audio/preview/{engine_request.audio_id}"
             f"?start={request.preview_start}&duration={request.preview_duration}"
         )
-        
+
         return PreviewResponse(
             preview_url=preview_url,
             duration=request.preview_duration,
             processing_time=time.time() - start_time,
         )
-        
+
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Preview generation failed: {str(e)}"
+            status_code=500, detail=f"Preview generation failed: {str(e)}"
         )

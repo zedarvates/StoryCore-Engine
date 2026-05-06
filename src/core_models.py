@@ -4,14 +4,14 @@ Derived from JSON schemas in schemas.py and architectural design.
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any
 
 
 # Authentication-related models
 class User(BaseModel):
     user_id: str
     username: str = Field(..., min_length=1, max_length=50)
-    email: str = Field(..., pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    email: str = Field(..., pattern=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
     password_hash: str
     created_at: str
     updated_at: str

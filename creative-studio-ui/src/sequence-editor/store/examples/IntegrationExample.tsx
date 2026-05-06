@@ -4,6 +4,8 @@
  * This file demonstrates best practices for integrating the Redux store
  * with React components in the Sequence Editor Interface.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector, useUndoRedo, useProjectPersistence, store } from '../index';
@@ -100,7 +102,7 @@ export function ToolBarExample() {
         <button
           key={tool.id}
           className={activeTool === tool.id ? 'active' : ''}
-          onClick={() => dispatch(setActiveTool(tool.id as any))}
+          onClick={() => dispatch(setActiveTool(tool.id as LegacyAny))}
           title={`${tool.name} (${tool.shortcut})`}
         >
           {tool.name}

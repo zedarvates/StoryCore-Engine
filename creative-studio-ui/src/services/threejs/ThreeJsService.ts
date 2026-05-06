@@ -502,7 +502,7 @@ class ThreeJsService implements ThreeJsActions {
     }
   }
 
-  updateEffects(config: Partial<import('./ThreeJsTypes').EffectComposerConfig>): void {
+  updateEffects(_config: Partial<import('./ThreeJsTypes').EffectComposerConfig>): void {
     // Post-processing effects are handled externally or via EffectComposer
     // This is a placeholder for future post-processing implementation
   }

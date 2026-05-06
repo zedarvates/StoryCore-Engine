@@ -2,6 +2,8 @@
  * StorageBatchingManager - Optimizes storage operations by batching writes
  * Reduces storage warnings and improves performance during bulk operations
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 interface BatchEntry {
   key: string;
@@ -95,7 +97,7 @@ class StorageBatchingManager {
       const uint8Array = encoder.encode(serialized);
       // Uint8Array is supported by Electron IPC via structured clone
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await window.electronAPI.fs.writeFile(key, uint8Array as any);
+      await window.electronAPI.fs.writeFile(key, uint8Array as LegacyAny);
     } else {
       // Fallback to localStorage
       localStorage.setItem(key, serialized);

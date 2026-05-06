@@ -3,7 +3,6 @@ Unit tests for PanelForge Comic to Sequence Wizard - Comic panel to cinematic se
 """
 
 import pytest
-import asyncio
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 from .comic_to_sequence_wizard import (
@@ -16,7 +15,7 @@ from .comic_to_sequence_wizard import (
     PanelLayout,
     CameraAngle,
     create_comic_to_sequence_wizard,
-    get_transformation_preview
+    get_transformation_preview,
 )
 
 
@@ -25,27 +24,27 @@ class TestComicToSequenceWizard:
 
     def test_comic_styles_enum(self):
         """Test that comic styles are properly defined."""
-        assert hasattr(ComicStyle, 'AMERICAN_COMICS')
-        assert hasattr(ComicStyle, 'MANGA')
-        assert hasattr(ComicStyle, 'EUROPEAN_COMICS')
-        assert hasattr(ComicStyle, 'GRAPHIC_NOVEL')
-        assert hasattr(ComicStyle, 'WEB_COMICS')
+        assert hasattr(ComicStyle, "AMERICAN_COMICS")
+        assert hasattr(ComicStyle, "MANGA")
+        assert hasattr(ComicStyle, "EUROPEAN_COMICS")
+        assert hasattr(ComicStyle, "GRAPHIC_NOVEL")
+        assert hasattr(ComicStyle, "WEB_COMICS")
 
     def test_panel_layouts_enum(self):
         """Test that panel layouts are properly defined."""
-        assert hasattr(PanelLayout, 'SINGLE_PANEL')
-        assert hasattr(PanelLayout, 'MULTI_PANEL_GRID')
-        assert hasattr(PanelLayout, 'IRREGULAR_LAYOUT')
-        assert hasattr(PanelLayout, 'SPLASH_PAGE')
+        assert hasattr(PanelLayout, "SINGLE_PANEL")
+        assert hasattr(PanelLayout, "MULTI_PANEL_GRID")
+        assert hasattr(PanelLayout, "IRREGULAR_LAYOUT")
+        assert hasattr(PanelLayout, "SPLASH_PAGE")
 
     def test_camera_angles_enum(self):
         """Test that camera angles are properly defined."""
-        assert hasattr(CameraAngle, 'CLOSE_UP')
-        assert hasattr(CameraAngle, 'MEDIUM_SHOT')
-        assert hasattr(CameraAngle, 'LONG_SHOT')
-        assert hasattr(CameraAngle, 'BIRDS_EYE')
+        assert hasattr(CameraAngle, "CLOSE_UP")
+        assert hasattr(CameraAngle, "MEDIUM_SHOT")
+        assert hasattr(CameraAngle, "LONG_SHOT")
+        assert hasattr(CameraAngle, "BIRDS_EYE")
 
-    @patch('pathlib.Path.exists')
+    @patch("pathlib.Path.exists")
     async def test_comic_transformation_basic(self, mock_exists):
         """Test basic comic to sequence transformation."""
         mock_exists.return_value = True
@@ -53,31 +52,43 @@ class TestComicToSequenceWizard:
         wizard = ComicToSequenceWizard()
 
         # Test with minimal setup (mock the analysis)
-        with patch.object(wizard, '_analyze_comic_image') as mock_analyze, \
-             patch.object(wizard, '_convert_panels_to_shots') as mock_convert, \
-             patch.object(wizard, '_generate_storyboard_panels') as mock_storyboard, \
-             patch.object(wizard, '_save_transformation_result') as mock_save:
-
+        with (
+            patch.object(wizard, "_analyze_comic_image") as mock_analyze,
+            patch.object(wizard, "_convert_panels_to_shots") as mock_convert,
+            patch.object(wizard, "_generate_storyboard_panels") as mock_storyboard,
+            patch.object(wizard, "_save_transformation_result"),
+        ):
             # Mock comic sequence
             mock_sequence = ComicSequence(
                 sequence_id="test_seq",
                 comic_title="Test Comic",
                 page_number=1,
-                comic_style=ComicStyle.AMERICAN_COMICS
+                comic_style=ComicStyle.AMERICAN_COMICS,
             )
             mock_sequence.panels = [
-                ComicPanel(panel_id="panel1", position=(0, 0, 400, 300),
-                          content_description="Test panel", panel_number=1)
+                ComicPanel(
+                    panel_id="panel1",
+                    position=(0, 0, 400, 300),
+                    content_description="Test panel",
+                    panel_number=1,
+                )
             ]
 
             mock_analyze.return_value = mock_sequence
             mock_convert.return_value = [
-                CinematicShot(shot_id="shot1", panel_source="panel1",
-                            shot_type="Close-up", camera_angle=CameraAngle.CLOSE_UP,
-                            camera_movement="static", duration_seconds=3.0,
-                            description="Test shot")
+                CinematicShot(
+                    shot_id="shot1",
+                    panel_source="panel1",
+                    shot_type="Close-up",
+                    camera_angle=CameraAngle.CLOSE_UP,
+                    camera_movement="static",
+                    duration_seconds=3.0,
+                    description="Test shot",
+                )
             ]
-            mock_storyboard.return_value = [{"panel_id": "storyboard1", "description": "Test"}]
+            mock_storyboard.return_value = [
+                {"panel_id": "storyboard1", "description": "Test"}
+            ]
 
             result = await wizard.transform_comic_to_sequence(
                 Path("/fake/comic.jpg"), "Test Comic", 1, ComicStyle.AMERICAN_COMICS
@@ -91,47 +102,53 @@ class TestComicToSequenceWizard:
     def test_transformation_preview(self):
         """Test transformation preview functionality."""
         # Test with valid image
-        with patch('pathlib.Path.exists') as mock_exists, \
-             patch('pathlib.Path.stat') as mock_stat:
-
+        with (
+            patch("pathlib.Path.exists") as mock_exists,
+            patch("pathlib.Path.stat") as mock_stat,
+        ):
             mock_exists.return_value = True
             mock_stat.return_value = MagicMock(st_size=1024000)  # 1MB
 
             preview = get_transformation_preview(Path("/fake/comic.jpg"))
 
-            assert 'image_path' in preview
-            assert preview['file_size'] == 1024000
-            assert 'estimated_panels' in preview
-            assert 'supported_styles' in preview
+            assert "image_path" in preview
+            assert preview["file_size"] == 1024000
+            assert "estimated_panels" in preview
+            assert "supported_styles" in preview
 
         # Test with invalid image
-        with patch('pathlib.Path.exists') as mock_exists:
+        with patch("pathlib.Path.exists") as mock_exists:
             mock_exists.return_value = False
 
             preview = get_transformation_preview(Path("/fake/nonexistent.jpg"))
-            assert 'error' in preview
+            assert "error" in preview
 
         # Test with invalid format
-        with patch('pathlib.Path.exists') as mock_exists, \
-             patch('pathlib.Path.stat') as mock_stat:
-
+        with (
+            patch("pathlib.Path.exists") as mock_exists,
+            patch("pathlib.Path.stat") as mock_stat,
+        ):
             mock_exists.return_value = True
             mock_stat.return_value = MagicMock(st_size=1024000)
 
             preview = get_transformation_preview(Path("/fake/comic.gif"))
-            assert 'error' in preview
+            assert "error" in preview
 
     async def test_panel_analysis_simulation(self):
         """Test the panel analysis simulation."""
         wizard = ComicToSequenceWizard()
 
         # Test American comics style
-        panels = wizard._simulate_panel_detection(Path("/fake/comic.jpg"), ComicStyle.AMERICAN_COMICS)
+        panels = wizard._simulate_panel_detection(
+            Path("/fake/comic.jpg"), ComicStyle.AMERICAN_COMICS
+        )
         assert len(panels) > 0
         assert all(isinstance(panel, ComicPanel) for panel in panels)
 
         # Test Manga style (should have different layout)
-        manga_panels = wizard._simulate_panel_detection(Path("/fake/manga.jpg"), ComicStyle.MANGA)
+        manga_panels = wizard._simulate_panel_detection(
+            Path("/fake/manga.jpg"), ComicStyle.MANGA
+        )
         assert len(manga_panels) > 0
 
     async def test_content_extraction(self):
@@ -139,18 +156,26 @@ class TestComicToSequenceWizard:
         wizard = ComicToSequenceWizard()
 
         # Test character extraction
-        characters = wizard._extract_characters_from_description("The hero stands tall facing the villain")
+        characters = wizard._extract_characters_from_description(
+            "The hero stands tall facing the villain"
+        )
         assert "Character A" in characters  # Based on our simulation
 
         # Test dialogue extraction
-        dialogue = wizard._extract_dialogue_from_description("Character says something important")
+        dialogue = wizard._extract_dialogue_from_description(
+            "Character says something important"
+        )
         assert dialogue == ""  # Our simulation doesn't detect this specific pattern
 
         # Test camera angle inference
-        angle = wizard._infer_camera_angle_from_description("Close-up of the character's face")
+        angle = wizard._infer_camera_angle_from_description(
+            "Close-up of the character's face"
+        )
         assert angle == CameraAngle.CLOSE_UP
 
-        angle = wizard._infer_camera_angle_from_description("Wide establishing shot of the city")
+        angle = wizard._infer_camera_angle_from_description(
+            "Wide establishing shot of the city"
+        )
         assert angle == CameraAngle.LONG_SHOT
 
     async def test_mood_analysis(self):
@@ -158,10 +183,15 @@ class TestComicToSequenceWizard:
         wizard = ComicToSequenceWizard()
 
         # Test various mood indicators
-        assert wizard._analyze_panel_mood("The character looks angry and furious") == 'anger'
-        assert wizard._analyze_panel_mood("Sad tears streaming down the face") == 'sadness'
-        assert wizard._analyze_panel_mood("Happy celebration with joy") == 'joy'
-        assert wizard._analyze_panel_mood("Neutral everyday scene") == 'neutral'
+        assert (
+            wizard._analyze_panel_mood("The character looks angry and furious")
+            == "anger"
+        )
+        assert (
+            wizard._analyze_panel_mood("Sad tears streaming down the face") == "sadness"
+        )
+        assert wizard._analyze_panel_mood("Happy celebration with joy") == "joy"
+        assert wizard._analyze_panel_mood("Neutral everyday scene") == "neutral"
 
     async def test_shot_conversion(self):
         """Test conversion of comic panels to cinematic shots."""
@@ -174,14 +204,11 @@ class TestComicToSequenceWizard:
             content_description="Dramatic close-up of hero's face",
             panel_number=1,
             camera_angle=CameraAngle.CLOSE_UP,
-            mood_emotion="intensity"
+            mood_emotion="intensity",
         )
 
         comic_sequence = ComicSequence(
-            sequence_id="test_seq",
-            comic_title="Test",
-            page_number=1,
-            panels=[panel]
+            sequence_id="test_seq", comic_title="Test", page_number=1, panels=[panel]
         )
 
         shots = await wizard._convert_panels_to_shots(comic_sequence)
@@ -207,24 +234,22 @@ class TestComicToSequenceWizard:
                 duration_seconds=3.0,
                 description="Test shot description",
                 dialogue="Test dialogue",
-                emotional_impact="dramatic"
+                emotional_impact="dramatic",
             )
         ]
 
         comic_sequence = ComicSequence(
-            sequence_id="test",
-            comic_title="Test Comic",
-            page_number=1
+            sequence_id="test", comic_title="Test Comic", page_number=1
         )
 
         storyboard = wizard._generate_storyboard_panels(shots, comic_sequence)
 
         assert len(storyboard) == 1
         panel = storyboard[0]
-        assert panel['shot_number'] == 1
-        assert panel['description'] == "Test shot description"
-        assert panel['dialogue'] == "Test dialogue"
-        assert panel['emotional_impact'] == "dramatic"
+        assert panel["shot_number"] == 1
+        assert panel["description"] == "Test shot description"
+        assert panel["dialogue"] == "Test dialogue"
+        assert panel["emotional_impact"] == "dramatic"
 
     async def test_confidence_scoring(self):
         """Test confidence score calculation."""
@@ -236,18 +261,32 @@ class TestComicToSequenceWizard:
             comic_title="Test",
             page_number=1,
             panels=[
-                ComicPanel(panel_id="p1", position=(0,0,100,100),
-                          content_description="Test", characters_present=["Char1"]),
-                ComicPanel(panel_id="p2", position=(0,0,100,100),
-                          content_description="Test", characters_present=["Char2"])
+                ComicPanel(
+                    panel_id="p1",
+                    position=(0, 0, 100, 100),
+                    content_description="Test",
+                    characters_present=["Char1"],
+                ),
+                ComicPanel(
+                    panel_id="p2",
+                    position=(0, 0, 100, 100),
+                    content_description="Test",
+                    characters_present=["Char2"],
+                ),
             ],
-            key_themes=["heroism"]
+            key_themes=["heroism"],
         )
 
         shots = [
-            CinematicShot(shot_id="s1", panel_source="p1", shot_type="Close-up",
-                        camera_angle=CameraAngle.CLOSE_UP, camera_movement="static",
-                        duration_seconds=3.0, description="Test")
+            CinematicShot(
+                shot_id="s1",
+                panel_source="p1",
+                shot_type="Close-up",
+                camera_angle=CameraAngle.CLOSE_UP,
+                camera_movement="static",
+                duration_seconds=3.0,
+                description="Test",
+            )
         ]
 
         score = wizard._calculate_confidence_score(sequence_with_data, shots)
@@ -258,7 +297,11 @@ class TestComicToSequenceWizard:
             sequence_id="test",
             comic_title="Test",
             page_number=1,
-            panels=[ComicPanel(panel_id="p1", position=(0,0,100,100), content_description="Test")]
+            panels=[
+                ComicPanel(
+                    panel_id="p1", position=(0, 0, 100, 100), content_description="Test"
+                )
+            ],
         )
 
         low_score = wizard._calculate_confidence_score(sequence_minimal, shots)
@@ -277,19 +320,19 @@ class TestComicToSequenceWizard:
                 sequence_id="test_seq",
                 comic_title="Test Comic",
                 page_number=1,
-                panels=[]
+                panels=[],
             ),
             cinematic_shots=[],
             storyboard_panels=[],
-            generated_assets=[]
+            generated_assets=[],
         )
 
         # Mock file operations
-        with patch('builtins.open', MagicMock()) as mock_open:
+        with patch("builtins.open", MagicMock()):
             assets = wizard._generate_supporting_assets(result, Path("/fake/project"))
             assert len(assets) == 2  # Should generate shot planning and storyboard
-            assert any('shot_planning' in asset for asset in assets)
-            assert any('storyboard' in asset for asset in assets)
+            assert any("shot_planning" in asset for asset in assets)
+            assert any("storyboard" in asset for asset in assets)
 
     def test_convenience_functions(self):
         """Test convenience functions."""
@@ -298,7 +341,7 @@ class TestComicToSequenceWizard:
 
         # Test preview with error
         preview = get_transformation_preview(Path("/nonexistent.jpg"))
-        assert 'error' in preview
+        assert "error" in preview
 
 
 class TestComicPanel:
@@ -312,7 +355,7 @@ class TestComicPanel:
             content_description="Test panel content",
             panel_number=1,
             is_splash_panel=True,
-            mood_emotion="dramatic"
+            mood_emotion="dramatic",
         )
 
         assert panel.panel_id == "test_panel"
@@ -336,7 +379,7 @@ class TestComicSequence:
             page_number=1,
             comic_style=ComicStyle.AMERICAN_COMICS,
             overall_mood="dramatic",
-            story_progression="hero's journey"
+            story_progression="hero's journey",
         )
 
         assert sequence.sequence_id == "test_sequence"
@@ -362,7 +405,7 @@ class TestCinematicShot:
             duration_seconds=3.0,
             description="Test shot description",
             dialogue="Test dialogue",
-            emotional_impact="dramatic"
+            emotional_impact="dramatic",
         )
 
         assert shot.shot_id == "test_shot"
@@ -388,14 +431,12 @@ class TestComicToSequenceResult:
             creation_timestamp="2024-01-01T00:00:00Z",
             source_image="/fake/image.jpg",
             comic_sequence=ComicSequence(
-                sequence_id="test_seq",
-                comic_title="Test",
-                page_number=1
+                sequence_id="test_seq", comic_title="Test", page_number=1
             ),
             confidence_score=8.5,
             processing_time=15.2,
             panel_count=4,
-            character_count=2
+            character_count=2,
         )
 
         assert result.result_id == "test_result"

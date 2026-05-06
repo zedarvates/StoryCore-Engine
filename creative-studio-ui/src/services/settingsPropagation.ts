@@ -13,7 +13,7 @@ import type {
   LLMSettingsUpdatedPayload,
   ComfyUISettingsUpdatedPayload,
 } from './eventEmitter';
-import { llmService, setDefaultLLMService, createLLMService } from './llmService';
+import { llmService, _setDefaultLLMService, _createLLMService } from './llmService';
 import type { LLMConfig } from './llmService';
 import { backendApi } from './backendApiService';
 import type { ComfyUIConfig } from './comfyuiService';
@@ -90,7 +90,7 @@ class SettingsPropagationManager {
 
     try {
       // Get the current LLM service
-      const service = llmService;
+      const _service = llmService;
 
       // Load full configuration from storage
       const storedConfig = this.loadLLMConfigFromStorage();

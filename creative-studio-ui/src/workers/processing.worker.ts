@@ -8,20 +8,7 @@
  * 
  * Requirements: 10.2, 10.3, 10.4, 10.7
  */
-
-interface WorkerMessage<T = any> {
-  id: string;
-  type: string;
-  data: T;
-}
-
-interface WorkerResponse<R = any> {
-  id: string;
-  status: 'completed' | 'error' | 'progress';
-  result?: R;
-  error?: string;
-  progress?: number;
-}
+import type { WorkerMessage, WorkerResponse } from './processing.worker';
 
 /**
  * Sends a response to the main thread
@@ -82,7 +69,7 @@ async function generateThumbnail(
     sendProgress(id, 10);
 
     // Create video element (safe access for worker)
-    const doc = (self as any).document;
+    const doc = (self as LegacyAny).document;
     if (!doc) {
       throw new Error('DOM API not available in worker: Cannot creating video element');
     }
@@ -118,7 +105,7 @@ async function generateThumbnail(
       throw new Error('Failed to get canvas context');
     }
 
-    ctx.drawImage(video as any, 0, 0, width, height);
+    ctx.drawImage(video as LegacyAny, 0, 0, width, height);
 
     sendProgress(id, 90);
 
@@ -206,17 +193,17 @@ async function processBatch(
 /**
  * Processes a single item in a batch
  */
-async function processItem(item: unknown, operation: string, options?: unknown): Promise<any> {
+async function processItem(item: unknown, operation: string, options?: unknown): Promise<LegacyAny> {
   // Processing simulation
   await new Promise(resolve => setTimeout(resolve, 50));
 
   switch (operation) {
     case 'duplicate':
-      return { ...(item as any), id: `${(item as any).id}_copy` };
+      return { ...(item as LegacyAny), id: `${(item as LegacyAny).id}_copy` };
     case 'transform':
-      return { ...(item as any), ...(options as any) };
+      return { ...(item as LegacyAny), ...(options as LegacyAny) };
     case 'export':
-      return { ...(item as any), exported: true };
+      return { ...(item as LegacyAny), exported: true };
     default:
       return item;
   }
@@ -295,7 +282,7 @@ async function analyzeVideoQuality(
     sendProgress(id, 25);
 
     // Load video (safe access)
-    const doc = (self as any).document;
+    const doc = (self as LegacyAny).document;
     if (!doc) {
       throw new Error('DOM API not available in worker');
     }
@@ -318,7 +305,7 @@ async function analyzeVideoQuality(
       width: video.videoWidth,
       height: video.videoHeight,
       aspectRatio: video.videoWidth / video.videoHeight,
-      hasAudio: (video as any).mozHasAudio || Boolean((video as any).webkitAudioDecodedByteCount)
+      hasAudio: (video as LegacyAny).mozHasAudio || Boolean((video as LegacyAny).webkitAudioDecodedByteCount)
     };
 
     sendProgress(id, 75);

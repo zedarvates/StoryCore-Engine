@@ -1,4 +1,4 @@
-import { expect, afterEach, vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
 
@@ -15,7 +15,7 @@ vi.mock('@/hooks/useServiceStatus', () => ({
 }));
 
 // Mock hasPointerCapture for Radix UI compatibility with jsdom
-Object.defineProperty((globalThis as any).HTMLElement.prototype, 'hasPointerCapture', {
+Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'hasPointerCapture', {
   writable: true,
   value: vi.fn(() => false),
 });
@@ -32,41 +32,25 @@ if (!HTMLFormElement.prototype.requestSubmit) {
 }
 
 // Mock scrollIntoView for Radix UI Select
-Object.defineProperty((globalThis as any).HTMLElement.prototype, 'scrollIntoView', {
+Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'scrollIntoView', {
   writable: true,
   value: vi.fn(),
 });
 
 // Mock ResizeObserver for canvas-based components
-(globalThis as any).ResizeObserver = class ResizeObserver {
+(globalThis as unknown).ResizeObserver = class ResizeObserver {
   observe() { }
   unobserve() { }
   disconnect() { }
 };
 
 // Mock IntersectionObserver for lazy loading components
-(globalThis as any).IntersectionObserver = class IntersectionObserver {
+(globalThis as unknown).IntersectionObserver = class IntersectionObserver {
   constructor(callback: IntersectionObserverCallback) {
     this.callback = callback;
-  }
+  };
   callback: IntersectionObserverCallback;
-  observe() {
-    // Immediately trigger callback with isIntersecting: true for testing
-    this.callback(
-      [
-        {
-          isIntersecting: true,
-          target: document.createElement('div'),
-          boundingClientRect: {} as DOMRectReadOnly,
-          intersectionRatio: 1,
-          intersectionRect: {} as DOMRectReadOnly,
-          rootBounds: null,
-          time: Date.now(),
-        } as IntersectionObserverEntry,
-      ],
-      this as any
-    );
-  }
+  observe() { }
   unobserve() { }
   disconnect() { }
   takeRecords() {
@@ -114,7 +98,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     width: 800,
     height: 600,
   },
-})) as any;
+})) as RenderingContext2D;
 
 console.log('Vitest setup loaded successfully');
 
@@ -125,12 +109,12 @@ afterEach(() => {
 
 // Mock lucide-react icons
 vi.mock('lucide-react', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, any>;
-  const mockedIcons: Record<string, any> = {};
+  const actual = await importOriginal() as Record<string, unknown>;
+  const mockedIcons: Record<string, unknown> = {};
   Object.keys(actual).forEach(key => {
     mockedIcons[key] = () => null;
   });
-  return mockedIcons;
+  return mockedIcons as Record<string, unknown>;
 });
 
 // Mock document.createElement for file input tests
@@ -146,8 +130,26 @@ vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
 });
 
 // Mock URL.createObjectURL and URL.revokeObjectURL for export service tests
-(globalThis as any).URL = {
-  ...URL,
-  createObjectURL: vi.fn(() => 'blob:mock-url'),
-  revokeObjectURL: vi.fn(),
+const OriginalURL = (globalThis as unknown).URL;
+(globalThis as unknown).URL = class URL extends (OriginalURL as typeof URL) {
+  static createObjectURL = vi.fn(() => 'blob:mock-url');
+  static revokeObjectURL = vi.fn();
+  constructor(url: string | URL, base?: string | URL) {
+    super(url, base);
+  }
+};
+
+// Mock Worker for web worker tests
+(globalThis as unknown).Worker = class Worker {
+  constructor(_url: string | URL, _options?: WorkerOptions) {
+    this.onmessage = vi.fn();
+    this.onerror = vi.fn();
+  }
+  onmessage: (event: MessageEvent) => void;
+  onerror: (event: Event) => void;
+  postMessage(_message: unknown) { }
+  terminate() { }
+  addEventListener(_type: string, _listener: EventListenerOrEventListenerObject) { }
+  removeEventListener(_type: string, _listener: EventListenerOrEventListenerObject) { }
+  dispatchEvent(_event: Event): boolean { return true; }
 };

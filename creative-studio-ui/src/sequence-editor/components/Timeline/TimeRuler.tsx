@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // cSpell:ignore timecode Timecode
 /**
  * TimeRuler Component
@@ -197,7 +198,7 @@ export const TimeRuler: React.FC<TimeRulerProps> = ({
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              handleMarkerClick(marker.frame, e as any);
+              handleMarkerClick(marker.frame, e as LegacyAny);
             }
           }}
         >

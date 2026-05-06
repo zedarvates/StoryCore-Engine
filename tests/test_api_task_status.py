@@ -1,7 +1,8 @@
 import sys
 import types
+
 # Stub out sseclient to satisfy imports when tests run without full dependencies
-sys.modules.setdefault('sseclient', types.ModuleType('sseclient'))
+sys.modules.setdefault("sseclient", types.ModuleType("sseclient"))
 
 from fastapi.testclient import TestClient
 import pytest
@@ -24,7 +25,8 @@ def override_auth_dependency(monkeypatch):
 def test_api_task_status_not_found(monkeypatch):
     async def fake_status(job_id):
         return None
-    monkeypatch.setattr('backend.task_queue_api.get_async_task_status', fake_status)
+
+    monkeypatch.setattr("backend.task_queue_api.get_async_task_status", fake_status)
 
     response = client.get("/api/tasks/api/not-found-id")
     assert response.status_code == 404
@@ -40,7 +42,8 @@ def test_api_task_status_found(monkeypatch):
             "completed_at": None,
             "error": None,
         }
-    monkeypatch.setattr('backend.task_queue_api.get_async_task_status', fake_status)
+
+    monkeypatch.setattr("backend.task_queue_api.get_async_task_status", fake_status)
 
     response = client.get("/api/tasks/api/fake-id-1")
     assert response.status_code == 200
@@ -53,17 +56,20 @@ def test_api_task_status_found(monkeypatch):
 def test_api_task_status_forbidden(monkeypatch):
     """Ensure API returns 403 when JWT validation fails."""
     from fastapi import HTTPException
-    from fastapi import exceptions as starlette_exceptions
-    from fastapi import status as http_status
-    from fastapi import Request
-    from fastapi.responses import JSONResponse
+
     # Override the JWT dependency to raise 403
-    import importlib
     # Inject a 403 by overriding the dependency in the FastAPI app
-    app = __import__('backend.main_api', fromlist=['app']).app
-    monkeypatch.setitem(app.dependency_overrides, verify_jwt_token, lambda: (_ for _ in ()).throw(HTTPException(status_code=403, detail="Forbidden")))
+    app = __import__("backend.main_api", fromlist=["app"]).app
+    monkeypatch.setitem(
+        app.dependency_overrides,
+        verify_jwt_token,
+        lambda: (_ for _ in ()).throw(
+            HTTPException(status_code=403, detail="Forbidden")
+        ),
+    )
     response = client.get("/api/tasks/api/not-found-id")
     assert response.status_code == 403
+
 
 def test_api_task_submission_and_status(monkeypatch):
     class FakeQueue:
@@ -73,12 +79,12 @@ def test_api_task_submission_and_status(monkeypatch):
         async def submit_task(self, task_id, coroutine, priority, timeout_seconds):
             # Immediately mark as completed for test determinism
             self.store[task_id] = {
-                'state': 'COMPLETED',
-                'progress': 100,
-                'created_at': '2026-02-24T12:01:00Z',
-                'started_at': '2026-02-24T12:01:01Z',
-                'completed_at': '2026-02-24T12:01:02Z',
-                'error': None
+                "state": "COMPLETED",
+                "progress": 100,
+                "created_at": "2026-02-24T12:01:00Z",
+                "started_at": "2026-02-24T12:01:01Z",
+                "completed_at": "2026-02-24T12:01:02Z",
+                "error": None,
             }
 
         async def get_task_status(self, task_id):
@@ -89,27 +95,33 @@ def test_api_task_submission_and_status(monkeypatch):
 
     # Create a shared FakeQueue instance and patch to always return it
     fake_queue = FakeQueue()
-    monkeypatch.setattr('backend.task_queue_api.get_async_task_queue', lambda: fake_queue)
+    monkeypatch.setattr(
+        "backend.task_queue_api.get_async_task_queue", lambda: fake_queue
+    )
+
     # Also patch get_async_task_status to simulate a completed task after submission
     async def fake_status(job_id):
         return {
-            'state': 'COMPLETED',
-            'progress': 100,
-            'created_at': '2026-02-24T12:01:00Z',
-            'started_at': '2026-02-24T12:01:01Z',
-            'completed_at': '2026-02-24T12:01:02Z',
-            'error': None
+            "state": "COMPLETED",
+            "progress": 100,
+            "created_at": "2026-02-24T12:01:00Z",
+            "started_at": "2026-02-24T12:01:01Z",
+            "completed_at": "2026-02-24T12:01:02Z",
+            "error": None,
         }
-    monkeypatch.setattr('backend.task_queue_api.get_async_task_status', fake_status)
+
+    monkeypatch.setattr("backend.task_queue_api.get_async_task_status", fake_status)
 
     # Submit an API task via the backend API
     payload = {
         "job_id": "api-task-xyz",
         "payload": {"example": 1},
         "priority": 5,
-        "timeout_seconds": 300
+        "timeout_seconds": 300,
     }
-    response = client.post("/api/tasks/api", json=payload, headers={"Content-Type": "application/json"})
+    response = client.post(
+        "/api/tasks/api", json=payload, headers={"Content-Type": "application/json"}
+    )
     assert response.status_code == 200
     data = response.json()
     assert data.get("success") is True

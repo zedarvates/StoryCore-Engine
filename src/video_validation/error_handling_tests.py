@@ -4,10 +4,10 @@ Validates comprehensive error handling and recovery.
 """
 
 import time
-import json
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class ErrorHandlingTests:
     """Handles error handling validation"""
@@ -35,7 +35,9 @@ class ErrorHandlingTests:
 
             # Test 3: Corrupted input handling
             total_error_tests += 1
-            if ErrorHandlingTests._test_corrupted_input_handling(result, temp_project_dir):
+            if ErrorHandlingTests._test_corrupted_input_handling(
+                result, temp_project_dir
+            ):
                 error_tests_passed += 1
 
             # Test 4: Memory exhaustion handling
@@ -54,9 +56,13 @@ class ErrorHandlingTests:
 
             duration = time.time() - test_start
             result.add_test_result("Error Handling", error_handling_passed, duration)
-            result.add_performance_metric("error_handling_success_rate", error_handling_success_rate, "%")
+            result.add_performance_metric(
+                "error_handling_success_rate", error_handling_success_rate, "%"
+            )
 
-            logger.info(f"    📊 Error handling success rate: {error_handling_success_rate:.1f}%")
+            logger.info(
+                f"    📊 Error handling success rate: {error_handling_success_rate:.1f}%"
+            )
 
             if error_handling_passed:
                 logger.info("    ✅ Error handling validation passed")
@@ -138,7 +144,7 @@ class ErrorHandlingTests:
             corrupted_project_path.mkdir(exist_ok=True)
 
             # Write invalid JSON
-            with open(corrupted_project_path / "project.json", 'w') as f:
+            with open(corrupted_project_path / "project.json", "w") as f:
                 f.write("{ invalid json content")
 
             config = VideoConfig()
@@ -173,7 +179,7 @@ class ErrorHandlingTests:
                 frame_rate=60,
                 resolution=(3840, 2160),  # 4K resolution
                 quality="ultra",
-                parallel_processing=True
+                parallel_processing=True,
             )
 
             engine = VideoEngine(memory_stress_config)
@@ -187,14 +193,18 @@ class ErrorHandlingTests:
                 logger.info("      ✅ High memory configuration properly validated")
                 return True
             elif is_valid:
-                logger.info("      ✅ High memory configuration accepted (system capable)")
+                logger.info(
+                    "      ✅ High memory configuration accepted (system capable)"
+                )
                 return True
             else:
                 logger.error("      ❌ High memory configuration validation unclear")
                 return False
 
         except Exception as e:
-            logger.info(f"      ✅ Memory exhaustion raised exception (acceptable): {e}")
+            logger.info(
+                f"      ✅ Memory exhaustion raised exception (acceptable): {e}"
+            )
             return True
 
     @staticmethod
@@ -210,7 +220,7 @@ class ErrorHandlingTests:
                 frame_rate=24,
                 resolution=(1920, 1080),
                 quality="medium",
-                gpu_acceleration=True
+                gpu_acceleration=True,
             )
 
             engine = VideoEngine(gpu_config)
@@ -219,12 +229,16 @@ class ErrorHandlingTests:
             is_valid, issues = engine.validate_configuration()
 
             if is_valid:
-                logger.info("      ✅ GPU configuration validated (GPU available or fallback working)")
+                logger.info(
+                    "      ✅ GPU configuration validated (GPU available or fallback working)"
+                )
                 return True
             else:
                 # Check if issues mention GPU fallback
-                gpu_fallback_mentioned = any("gpu" in issue.lower() or "fallback" in issue.lower()
-                                           for issue in issues)
+                gpu_fallback_mentioned = any(
+                    "gpu" in issue.lower() or "fallback" in issue.lower()
+                    for issue in issues
+                )
 
                 if gpu_fallback_mentioned:
                     logger.info("      ✅ GPU fallback properly indicated")

@@ -208,7 +208,7 @@ cameraMovement: static|pan|tilt|dolly|tracking
 lightingStyle: high_key|low_key|natural|chiaoscuro|soft
 [RULES] No talk. Use high_speed extraction.`;
 
-    const service = llmService;
+    const _service = llmService;
     try {
       const response = await llmService.generateCompletion({
         prompt,
@@ -411,7 +411,7 @@ lightingStyle: high_key|low_key|natural|chiaoscuro|soft
     
     for (let i = 1; i <= totalSteps; i++) {
       await new Promise(resolve => setTimeout(resolve, 150));
-      const progress = (i / totalSteps) * 100;
+      const _progress = (i / totalSteps) * 100;
       // Note: progress events would be emitted here in a real implementation
     }
 
@@ -467,7 +467,7 @@ lightingStyle: high_key|low_key|natural|chiaoscuro|soft
 
   private async simulateAlternativeGeneration(
     composition: ShotComposition, 
-    config: Partial<ShotCompositionConfig>
+    _config: Partial<ShotCompositionConfig>
   ): Promise<ShotCompositionAlternative[]> {
     // Simulate alternative generation delay
     await new Promise(resolve => setTimeout(resolve, 300));
@@ -718,7 +718,7 @@ lightingStyle: high_key|low_key|natural|chiaoscuro|soft
     return movements[nextIndex];
   }
 
-  private selectAlternativeCompositionRules(currentRules: CompositionRule[]): CompositionRule[] {
+  private selectAlternativeCompositionRules(_currentRules: CompositionRule[]): CompositionRule[] {
     const allRules = Object.values(CompositionRule);
     const randomRule = allRules[Math.floor(Math.random() * allRules.length)];
     return [randomRule];

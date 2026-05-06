@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TextTemplates, TEXT_TEMPLATES } from '../TextTemplates';
@@ -15,7 +16,7 @@ describe('TextTemplates', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useStore as any).mockReturnValue(mockAddTextLayer);
+    (useStore as LegacyAny).mockReturnValue(mockAddTextLayer);
   });
 
   it('renders all text templates', () => {

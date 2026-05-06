@@ -285,7 +285,7 @@ export class ClipboardManager {
    */
   private validateCompatibility(
     shots: Shot[],
-    targetSequenceId: string
+    _targetSequenceId: string
   ): string[] {
     const errors: string[] = [];
 

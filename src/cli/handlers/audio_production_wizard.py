@@ -4,11 +4,15 @@ Audio Production Wizard command handler - Sound design and audio generation.
 
 import argparse
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, Any
 import json
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.wizard.audio_production_wizard import (
+    AudioProductionPlan,
+    get_audio_preview_for_shot,
+)
 
 
 class AudioProductionWizardHandler(BaseHandler):
@@ -22,37 +26,35 @@ class AudioProductionWizardHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
         parser.add_argument(
-            "--shots",
-            nargs="+",
-            help="Specific shot IDs to focus audio design on"
+            "--shots", nargs="+", help="Specific shot IDs to focus audio design on"
         )
 
         parser.add_argument(
             "--preview-shot",
-            help="Preview audio suggestions for a specific shot (provide shot data as JSON string)"
+            help="Preview audio suggestions for a specific shot (provide shot data as JSON string)",
         )
 
         parser.add_argument(
             "--format",
             choices=["detailed", "summary", "minimal"],
             default="detailed",
-            help="Output format (default: detailed)"
+            help="Output format (default: detailed)",
         )
 
         parser.add_argument(
             "--export-script",
             action="store_true",
-            help="Export voice over script to separate file"
+            help="Export voice over script to separate file",
         )
 
         parser.add_argument(
             "--export-music-cues",
             action="store_true",
-            help="Export music cues to separate file"
+            help="Export music cues to separate file",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -63,12 +65,12 @@ class AudioProductionWizardHandler(BaseHandler):
                 from wizard.audio_production_wizard import (
                     create_audio_production_wizard,
                     get_audio_preview_for_shot,
-                    AudioProductionPlan
+                    AudioProductionPlan,
                 )
             except ImportError as e:
                 raise SystemError(
                     f"Audio Production wizard modules not available: {e}",
-                    "Ensure wizard package is installed"
+                    "Ensure wizard package is installed",
                 )
 
             # Validate project path
@@ -76,7 +78,7 @@ class AudioProductionWizardHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             print("🎵 Audio Production Wizard - Sound Design Assistant")
@@ -90,7 +92,7 @@ class AudioProductionWizardHandler(BaseHandler):
                 except json.JSONDecodeError:
                     raise UserError(
                         "Invalid JSON format for --preview-shot",
-                        "Provide shot data as valid JSON string"
+                        "Provide shot data as valid JSON string",
                     )
 
             # Execute full audio production plan
@@ -123,14 +125,12 @@ class AudioProductionWizardHandler(BaseHandler):
         print(f"🎬 Shot: {preview['shot_id']}")
         print(f"🎭 Mood: {preview['mood'].title()}")
         print(f"⏱️ Duration: {preview['duration']:.1f}s")
-        print(f"\n🎵 Suggested Audio Elements:")
+        print("\n🎵 Suggested Audio Elements:")
 
-        for i, suggestion in enumerate(preview['suggested_audio'], 1):
-            priority_icon = {
-                'high': '🔴',
-                'medium': '🟡',
-                'low': '🟢'
-            }.get(suggestion['priority'], '⚪')
+        for i, suggestion in enumerate(preview["suggested_audio"], 1):
+            priority_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(
+                suggestion["priority"], "⚪"
+            )
 
             print(f"   {i}. {priority_icon} {suggestion['description']}")
             print(f"      Type: {suggestion['type'].replace('_', ' ').title()}")
@@ -138,9 +138,13 @@ class AudioProductionWizardHandler(BaseHandler):
 
         return 0
 
-    def _display_audio_plan(self, plan: AudioProductionPlan, format_type: str, args: argparse.Namespace) -> int:
+    def _display_audio_plan(
+        self, plan: AudioProductionPlan, format_type: str, args: argparse.Namespace
+    ) -> int:
         """Display the audio production plan."""
-        print(f"\n🎼 Audio Production Plan Complete - Quality: {plan.quality_metrics.get('overall_quality', 0):.1f}/10")
+        print(
+            f"\n🎼 Audio Production Plan Complete - Quality: {plan.quality_metrics.get('overall_quality', 0):.1f}/10"
+        )
         print("=" * 85)
 
         # Project and timing info
@@ -151,7 +155,7 @@ class AudioProductionWizardHandler(BaseHandler):
 
         # Quality metrics
         metrics = plan.quality_metrics
-        print(f"\n📊 Quality Metrics:")
+        print("\n📊 Quality Metrics:")
         print(f"   Voice Coverage: {metrics.get('voice_coverage', 0):.1%}")
         print(f"   SFX Coverage: {metrics.get('sfx_coverage', 0):.1%}")
         print(f"   Music Coverage: {metrics.get('music_coverage', 0):.1%}")
@@ -164,36 +168,54 @@ class AudioProductionWizardHandler(BaseHandler):
         else:
             return self._display_detailed_format(plan, args)
 
-    def _display_minimal_format(self, plan: AudioProductionPlan, args: argparse.Namespace) -> int:
+    def _display_minimal_format(
+        self, plan: AudioProductionPlan, args: argparse.Namespace
+    ) -> int:
         """Display minimal format output."""
         total_elements = sum(len(seq.audio_elements) for seq in plan.audio_sequences)
 
-        print(f"\n🎵 Quick Summary:")
+        print("\n🎵 Quick Summary:")
         print(f"   Sequences: {len(plan.audio_sequences)}")
         print(f"   Audio Elements: {total_elements}")
-        print(f"   Voice Overs: {len(plan.voice_over_script.split()) if plan.voice_over_script else 0} segments")
+        print(
+            f"   Voice Overs: {len(plan.voice_over_script.split()) if plan.voice_over_script else 0} segments"
+        )
         print(f"   Music Cues: {len(plan.music_cues)}")
 
-        print(f"\n💾 Plan saved to: audio_production_plan.json")
+        print("\n💾 Plan saved to: audio_production_plan.json")
         return 0
 
-    def _display_summary_format(self, plan: AudioProductionPlan, args: argparse.Namespace) -> int:
+    def _display_summary_format(
+        self, plan: AudioProductionPlan, args: argparse.Namespace
+    ) -> int:
         """Display summary format output."""
-        print(f"\n🎵 Audio Production Summary:")
+        print("\n🎵 Audio Production Summary:")
 
         # Element counts
-        voice_count = sum(1 for seq in plan.audio_sequences
-                         for elem in seq.audio_elements
-                         if elem.audio_type.value == "voice_over")
-        sfx_count = sum(1 for seq in plan.audio_sequences
-                       for elem in seq.audio_elements
-                       if elem.audio_type.value == "sound_effect")
-        foley_count = sum(1 for seq in plan.audio_sequences
-                         for elem in seq.audio_elements
-                         if elem.audio_type.value == "foley")
-        ambient_count = sum(1 for seq in plan.audio_sequences
-                           for elem in seq.audio_elements
-                           if elem.audio_type.value == "ambient_sound")
+        voice_count = sum(
+            1
+            for seq in plan.audio_sequences
+            for elem in seq.audio_elements
+            if elem.audio_type.value == "voice_over"
+        )
+        sfx_count = sum(
+            1
+            for seq in plan.audio_sequences
+            for elem in seq.audio_elements
+            if elem.audio_type.value == "sound_effect"
+        )
+        foley_count = sum(
+            1
+            for seq in plan.audio_sequences
+            for elem in seq.audio_elements
+            if elem.audio_type.value == "foley"
+        )
+        ambient_count = sum(
+            1
+            for seq in plan.audio_sequences
+            for elem in seq.audio_elements
+            if elem.audio_type.value == "ambient_sound"
+        )
         music_count = len(plan.music_cues)
 
         print(f"   🎤 Voice Over Segments: {voice_count}")
@@ -204,7 +226,7 @@ class AudioProductionWizardHandler(BaseHandler):
 
         # Top audio sequences
         if plan.audio_sequences:
-            print(f"\n🎼 Top Audio Sequences:")
+            print("\n🎼 Top Audio Sequences:")
             for seq in plan.audio_sequences[:3]:
                 elem_count = len(seq.audio_elements)
                 print(f"   • {seq.shot_id}: {elem_count} audio elements")
@@ -214,12 +236,14 @@ class AudioProductionWizardHandler(BaseHandler):
 
         return 0
 
-    def _display_detailed_format(self, plan: AudioProductionPlan, args: argparse.Namespace) -> int:
+    def _display_detailed_format(
+        self, plan: AudioProductionPlan, args: argparse.Namespace
+    ) -> int:
         """Display detailed format output."""
 
         # Audio sequences breakdown
         if plan.audio_sequences:
-            print(f"\n🎼 Audio Sequences Breakdown:")
+            print("\n🎼 Audio Sequences Breakdown:")
             for seq in plan.audio_sequences:
                 print(f"\n   📹 Shot {seq.shot_id} ({seq.duration:.1f}s):")
 
@@ -230,7 +254,7 @@ class AudioProductionWizardHandler(BaseHandler):
                         "background_music": "🎶",
                         "ambient_sound": "🌍",
                         "foley": "👣",
-                        "dialogue": "💬"
+                        "dialogue": "💬",
                     }.get(elem.audio_type.value, "🎵")
 
                     priority_icon = {
@@ -238,21 +262,29 @@ class AudioProductionWizardHandler(BaseHandler):
                         "high": "🟠",
                         "medium": "🟡",
                         "low": "🟢",
-                        "optional": "⚪"
+                        "optional": "⚪",
                     }.get(elem.priority.value, "⚪")
 
                     print(f"      {type_icon} {priority_icon} {elem.name}")
-                    print(f"         Duration: {elem.duration_seconds:.1f}s | Volume: {elem.volume_level:.1%}")
-                    print(f"         Mood: {elem.mood.value.title()} | Confidence: {elem.confidence_score:.1%}")
+                    print(
+                        f"         Duration: {elem.duration_seconds:.1f}s | Volume: {elem.volume_level:.1%}"
+                    )
+                    print(
+                        f"         Mood: {elem.mood.value.title()} | Confidence: {elem.confidence_score:.1%}"
+                    )
 
                     if elem.generation_prompt:
-                        prompt_short = elem.generation_prompt[:50] + "..." if len(elem.generation_prompt) > 50 else elem.generation_prompt
-                        print(f"         Prompt: \"{prompt_short}\"")
+                        prompt_short = (
+                            elem.generation_prompt[:50] + "..."
+                            if len(elem.generation_prompt) > 50
+                            else elem.generation_prompt
+                        )
+                        print(f'         Prompt: "{prompt_short}"')
 
         # Voice over script
         if plan.voice_over_script:
-            print(f"\n🎤 Voice Over Script:")
-            script_lines = plan.voice_over_script.split('\n\n')
+            print("\n🎤 Voice Over Script:")
+            script_lines = plan.voice_over_script.split("\n\n")
             for line in script_lines[:5]:  # Show first 5 segments
                 if line.strip():
                     print(f"   {line}")
@@ -261,33 +293,37 @@ class AudioProductionWizardHandler(BaseHandler):
 
         # Music cues
         if plan.music_cues:
-            print(f"\n🎶 Music Cues:")
+            print("\n🎶 Music Cues:")
             for cue in plan.music_cues[:3]:  # Show first 3 cues
                 print(f"   • {cue['cue_name']} ({cue['mood'].title()})")
                 print(f"     Genre: {cue['genre']} | Tempo: {cue['tempo']}")
-                instruments = ', '.join(cue['instruments'][:3])
-                if len(cue['instruments']) > 3:
+                instruments = ", ".join(cue["instruments"][:3])
+                if len(cue["instruments"]) > 3:
                     instruments += f" +{len(cue['instruments']) - 3} more"
                 print(f"     Instruments: {instruments}")
 
         # Sound effects inventory
         if plan.sound_effects_inventory:
-            print(f"\n🔊 Sound Effects Inventory:")
+            print("\n🔊 Sound Effects Inventory:")
             for category in plan.sound_effects_inventory[:3]:  # Show first 3 categories
-                print(f"   📂 {category['category'].title()}: {len(category['effects'])} effects")
-                for effect in category['effects'][:2]:  # Show first 2 effects per category
+                print(
+                    f"   📂 {category['category'].title()}: {len(category['effects'])} effects"
+                )
+                for effect in category["effects"][
+                    :2
+                ]:  # Show first 2 effects per category
                     print(f"      • {effect['name']} ({effect['shot_id']})")
 
         # Production notes
         if plan.production_notes:
-            print(f"\n📋 Production Notes:")
+            print("\n📋 Production Notes:")
             for note in plan.production_notes[:5]:  # Show first 5 notes
                 print(f"   • {note}")
 
         # Technical requirements
         tech_reqs = plan.technical_requirements
         if tech_reqs:
-            print(f"\n⚙️ Technical Requirements:")
+            print("\n⚙️ Technical Requirements:")
             print(f"   Sample Rate: {tech_reqs['sample_rate']} Hz")
             print(f"   Bit Depth: {tech_reqs['bit_depth']} bits")
             print(f"   Format: {tech_reqs['format']}")
@@ -296,53 +332,63 @@ class AudioProductionWizardHandler(BaseHandler):
         # Export information
         self._display_export_info(plan, args)
 
-        print(f"\n✅ Audio production plan completed successfully!")
-        print(f"   Use this plan to guide your sound design and audio production workflow.")
+        print("\n✅ Audio production plan completed successfully!")
+        print(
+            "   Use this plan to guide your sound design and audio production workflow."
+        )
 
         return 0
 
-    def _display_export_info(self, plan: AudioProductionPlan, args: argparse.Namespace) -> None:
+    def _display_export_info(
+        self, plan: AudioProductionPlan, args: argparse.Namespace
+    ) -> None:
         """Display export information."""
-        print(f"\n💾 Files Created/Updated:")
+        print("\n💾 Files Created/Updated:")
 
         exports = [
             ("audio_production_plan.json", "Complete audio production plan"),
             ("voice_over_script.txt", "Voice over script for recording"),
-            ("project.json", "Updated with audio plan metadata")
+            ("project.json", "Updated with audio plan metadata"),
         ]
 
         if args.export_script and plan.voice_over_script:
-            exports.append(("voice_over_script_export.txt", "Formatted voice over script"))
+            exports.append(
+                ("voice_over_script_export.txt", "Formatted voice over script")
+            )
 
         if args.export_music_cues and plan.music_cues:
-            exports.append(("music_cues_export.json", "Detailed music cue specifications"))
+            exports.append(
+                ("music_cues_export.json", "Detailed music cue specifications")
+            )
 
         for filename, description in exports:
             print(f"   • {filename} - {description}")
 
-    def _export_additional_files(self, plan: AudioProductionPlan, args: argparse.Namespace) -> None:
+    def _export_additional_files(
+        self, plan: AudioProductionPlan, args: argparse.Namespace
+    ) -> None:
         """Export additional files based on arguments."""
         # Export voice over script in formatted version
         if args.export_script and plan.voice_over_script:
             formatted_script = self._format_voice_over_script(plan.voice_over_script)
-            with open("voice_over_script_export.txt", 'w') as f:
+            with open("voice_over_script_export.txt", "w") as f:
                 f.write(formatted_script)
 
         # Export music cues in detailed format
         if args.export_music_cues and plan.music_cues:
             music_data = {
-                'music_cues_export': {
-                    'generated_at': plan.plan_timestamp,
-                    'total_cues': len(plan.music_cues),
-                    'cues': plan.music_cues
+                "music_cues_export": {
+                    "generated_at": plan.plan_timestamp,
+                    "total_cues": len(plan.music_cues),
+                    "cues": plan.music_cues,
                 }
             }
-            with open("music_cues_export.json", 'w') as f:
+            with open("music_cues_export.json", "w") as f:
                 json.dump(music_data, f, indent=2)
 
     def _format_voice_over_script(self, script: str) -> str:
         """Format voice over script for production."""
-        lines = script.split('\n')
+        lines = script.split("\n")
         formatted_lines = []
 
         for line in lines:

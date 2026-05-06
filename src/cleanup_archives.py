@@ -17,9 +17,10 @@ from datetime import datetime
 
 # Configuration
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-ARCHIVE_DIR = os.path.join(ROOT_DIR, 'archive')
-REPORTS_DIR = os.path.join(ROOT_DIR, 'reports')
-PLANS_DIR = os.path.join(ROOT_DIR, 'plans')
+ARCHIVE_DIR = os.path.join(ROOT_DIR, "archive")
+REPORTS_DIR = os.path.join(ROOT_DIR, "reports")
+PLANS_DIR = os.path.join(ROOT_DIR, "plans")
+
 
 def count_files(directory):
     """Compter le nombre de fichiers dans un répertoire"""
@@ -27,6 +28,7 @@ def count_files(directory):
     for root, dirs, files in os.walk(directory):
         count += len(files)
     return count
+
 
 def get_directory_size(directory):
     """Obtenir la taille totale d'un répertoire en octets"""
@@ -37,13 +39,15 @@ def get_directory_size(directory):
             total_size += os.path.getsize(file_path)
     return total_size
 
+
 def format_size(size):
     """Formater la taille en format lisible"""
-    for unit in ['B', 'KB', 'MB', 'GB']:
+    for unit in ["B", "KB", "MB", "GB"]:
         if size < 1024:
             return f"{size:.2f} {unit}"
         size /= 1024
     return f"{size:.2f} TB"
+
 
 def main():
     print("=" * 60)
@@ -51,19 +55,19 @@ def main():
     print("=" * 60)
     print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
-    
+
     # Analyser les dossiers avant suppression
     print("[INFO] Analyse des dossiers a supprimer:")
     print("-" * 40)
-    
+
     dirs_to_check = [
-        ('reports', REPORTS_DIR),
-        ('plans', PLANS_DIR),
+        ("reports", REPORTS_DIR),
+        ("plans", PLANS_DIR),
     ]
-    
+
     total_files = 0
     total_size = 0
-    
+
     for name, path in dirs_to_check:
         if os.path.exists(path):
             file_count = count_files(path)
@@ -77,16 +81,16 @@ def main():
         else:
             print(f"  [WARNING] {name}/ - NON TROUVE")
             print()
-    
-    print(f"[STATS] Total:")
+
+    print("[STATS] Total:")
     print(f"   Fichiers: {total_files}")
     print(f"   Taille: {format_size(total_size)}")
     print()
-    
+
     # Suppression des dossiers
     print("[DELETE] Suppression des dossiers:")
     print("-" * 40)
-    
+
     for name, path in dirs_to_check:
         if os.path.exists(path):
             try:
@@ -96,30 +100,31 @@ def main():
                 print(f"  [ERROR] {name}/ - ERREUR: {e}")
         else:
             print(f"  [WARNING] {name}/ - deja absent")
-    
+
     print()
     print("=" * 60)
     print("[DONE] Nettoyage termine!")
     print("=" * 60)
-    
+
     # Mise a jour du fichier d'audit
-    audit_file = os.path.join(ROOT_DIR, 'CODE_OPTIMIZATION_AUDIT.md')
+    audit_file = os.path.join(ROOT_DIR, "CODE_OPTIMIZATION_AUDIT.md")
     if os.path.exists(audit_file):
         print("\n[UPDATE] Mise a jour de CODE_OPTIMIZATION_AUDIT.md...")
-        with open(audit_file, 'r', encoding='utf-8') as f:
+        with open(audit_file, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         # Remplacer le statut de la tache Archive cleanup
         old_status = "[~] Week 4: Archive cleanup (in progress)"
         new_status = "[x] Week 4: Archive cleanup - DONE"
-        
+
         if old_status in content:
             content = content.replace(old_status, new_status)
-            with open(audit_file, 'w', encoding='utf-8') as f:
+            with open(audit_file, "w", encoding="utf-8") as f:
                 f.write(content)
             print("  [OK] Fichier d'audit mis a jour")
         else:
             print("  [WARNING] Statut non trouve dans le fichier d'audit")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { CreateProjectDialog, type SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
 import { useAppStore } from '@/stores/useAppStore';
@@ -20,7 +21,7 @@ export function CreateProjectDialogModal() {
     format: SerializableProjectFormat,
     options?: Record<string, any>
   ) => {
-    const electronAPI = (window as any).electronAPI;
+    const electronAPI = (window as LegacyAny).electronAPI;
     console.log('[CreateProjectDialogModal] Creating project:', {
       projectName,
       projectPath: projectPath || '(default)',
@@ -41,7 +42,7 @@ export function CreateProjectDialogModal() {
       });
 
       if (electronAPI) {
-        const createData: any = {
+        const createData: LegacyAny = {
           name: projectName,
           format: format,
           initialShots: initialShots,
@@ -58,11 +59,11 @@ export function CreateProjectDialogModal() {
         console.log('[CreateProjectDialogModal] Project created successfully:', electronProject);
 
         // Convert Electron project to Store project format using the service
-        const storeProject = convertElectronProjectToStore(electronProject as any);
+        const storeProject = convertElectronProjectToStore(electronProject as LegacyAny);
         
         // Ensure shots and sequences are properly set
         storeProject.shots = initialShots;
-        (storeProject as any).sequencePlans = template.sequences;
+        (storeProject as LegacyAny).sequencePlans = template.sequences;
 
         // Load the created project into the store via the service
         await projectCreationService.loadProjectIntoStores(storeProject, electronProject.path, template.sequences);

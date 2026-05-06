@@ -39,11 +39,11 @@ export const ToolbarWithExportImportExample: React.FC = () => {
  * (e.g., in a settings dialog or properties panel)
  */
 export const FullExportImportPanelExample: React.FC = () => {
-  const handleExportSuccess = (filename: string) => {
+  const handleExportSuccess = (_filename: string) => {
     ;
   };
 
-  const handleImportSuccess = (config: GridConfiguration) => {
+  const handleImportSuccess = (_config: GridConfiguration) => {
     ;
   };
 

@@ -7,6 +7,8 @@
  * 
  * Requirements: 9.5, 9.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { draftPersistence, DraftMetadata } from '../services/wizard/DraftPersistence';
@@ -50,7 +52,7 @@ export interface UseWizardAutoSaveResult {
   /** List all drafts */
   listDrafts: () => Promise<DraftMetadata[]>;
   /** Recover a specific draft */
-  recover: (id: string) => Promise<Partial<any> | null>;
+  recover: (id: string) => Promise<Partial<LegacyAny> | null>;
 }
 
 /**

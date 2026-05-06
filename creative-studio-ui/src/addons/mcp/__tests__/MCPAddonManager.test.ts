@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // MCP Addon Manager Tests
 // ============================================================================
@@ -95,7 +96,7 @@ describe('MCPAddonManager', () => {
 
     it('should handle errors during toggle', async () => {
       // Mock the delay function to throw an error
-      jest.spyOn(manager as any, 'delay').mockRejectedValue(new Error('Test error'));
+      jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Test error'));
       
       await expect(manager.toggleAddon(true)).rejects.toThrow('Test error');
       
@@ -139,7 +140,7 @@ describe('MCPAddonManager', () => {
       });
 
       it('should handle errors when adding server', async () => {
-        jest.spyOn(manager as any, 'delay').mockRejectedValue(new Error('Add error'));
+        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Add error'));
         
         await expect(manager.addServer(mockServerConfig)).rejects.toThrow('Add error');
         
@@ -167,7 +168,7 @@ describe('MCPAddonManager', () => {
         await manager.addServer(mockServerConfig);
         const server = manager.getState().servers[0];
         
-        jest.spyOn(manager as any, 'delay').mockRejectedValue(new Error('Update error'));
+        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Update error'));
         
         await expect(manager.updateServer(server.id, { name: 'Test' }))
           .rejects.toThrow('Update error');
@@ -201,7 +202,7 @@ describe('MCPAddonManager', () => {
         await manager.addServer(mockServerConfig);
         const server = manager.getState().servers[0];
         
-        jest.spyOn(manager as any, 'delay').mockRejectedValue(new Error('Remove error'));
+        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Remove error'));
         
         await expect(manager.removeServer(server.id)).rejects.toThrow('Remove error');
       });
@@ -220,7 +221,7 @@ describe('MCPAddonManager', () => {
       });
 
       it('should handle server test errors', async () => {
-        jest.spyOn(manager as any, 'delay').mockRejectedValue(new Error('Test error'));
+        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Test error'));
         
         await expect(manager.testServer('non-existent')).rejects.toThrow('Test error');
       });
@@ -281,7 +282,7 @@ describe('MCPAddonManager', () => {
     });
 
     it('should handle config update errors', async () => {
-      jest.spyOn(manager as any, 'delay').mockRejectedValue(new Error('Config error'));
+      jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Config error'));
       
       await expect(manager.updateConfig({})).rejects.toThrow('Config error');
     });

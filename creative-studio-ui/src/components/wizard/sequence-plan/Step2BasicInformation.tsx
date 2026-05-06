@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { Clock, Monitor, Film, Tag } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -173,7 +174,7 @@ export function Step2BasicInformation({
                   <SelectValue placeholder="Select a location..." />
                 </SelectTrigger>
                 <SelectContent className="z-[9999]">
-                  {useStore(state => state.locations || []).map((loc: any) => (
+                  {useStore(state => state.locations || []).map((loc: LegacyAny) => (
                     <SelectItem key={loc.id} value={loc.id}>
                       <div>
                         <div className="font-medium">{loc.name}</div>
@@ -235,20 +236,20 @@ export function Step2BasicInformation({
 
             {/* Genre Selection */}
             <GenreSelector
-              selectedAssetId={(formData as any).genre}
-              onSelect={(asset) => handleInputChange('genre' as any, asset.id)}
+              selectedAssetId={(formData as LegacyAny).genre}
+              onSelect={(asset) => handleInputChange('genre' as LegacyAny, asset.id)}
             />
 
             {/* Visual Style Selection */}
             <VisualStyleSelector
-              selectedAssetId={(formData as any).visualStyle}
-              onSelect={(asset) => handleInputChange('visualStyle' as any, asset.id)}
+              selectedAssetId={(formData as LegacyAny).visualStyle}
+              onSelect={(asset) => handleInputChange('visualStyle' as LegacyAny, asset.id)}
             />
 
             {/* Color Palette Selection */}
             <ColorPaletteSelector
-              selectedAssetId={(formData as any).colorPalette}
-              onSelect={(asset) => handleInputChange('colorPalette' as any, asset.id)}
+              selectedAssetId={(formData as LegacyAny).colorPalette}
+              onSelect={(asset) => handleInputChange('colorPalette' as LegacyAny, asset.id)}
             />
           </div>
         </div>

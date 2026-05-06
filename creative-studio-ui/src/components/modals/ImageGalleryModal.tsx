@@ -1,9 +1,12 @@
 /**
  * ImageGalleryModal - Project Asset Library
+ * TEST COMMENT
  *
  * Manage all generated images for characters, objects, worlds, and scenes.
  * Premium UI with category filters, favorites, and collections.
  */
+
+
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './ImageGalleryModal.css';
@@ -15,7 +18,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/stores/useAppStore';
 import { imageGalleryService, type ImageMetadata, type ImageCollection } from '@/services/ImageGalleryService';
@@ -23,32 +25,21 @@ import { notificationService } from '@/services/NotificationService';
 import { I18nContext } from '@/utils/i18nContext';
 import { useContext } from 'react';
 import { cn } from '@/lib/utils';
+import { SkeletonMediaItem } from '@/components/ui/SkeletonLoader';
+import { ImageDetailsModal } from './ImageDetailsModal';
 import {
   BookOpen as BookOpenIcon,
   Plus as PlusIcon,
-  Edit as EditIcon,
   Trash as TrashIcon,
-  Save as SaveIcon,
   X as XIcon,
   Search as SearchIcon,
   Download as DownloadIcon,
   Heart as HeartIcon,
-  Star as StarIcon,
-  Folder as FolderIcon,
   Image as ImageIcon,
-  Sparkles as SparklesIcon,
-  Filter as FilterIcon,
   Grid as GridIcon,
   List as ListIcon,
   Eye as EyeIcon,
-  Tag as TagIcon,
-  Calendar as CalendarIcon,
-  User as UserIcon,
   Globe as GlobeIcon,
-  MapPin as MapPinIcon,
-  Gem as GemIcon,
-  Target as TargetIcon,
-  Camera as CameraIcon,
   Users as UsersIcon,
   Map as MapIcon,
   Package as PackageIcon,
@@ -81,8 +72,8 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<'grid' | 'collections'>('grid');
   const [showImageDetails, setShowImageDetails] = useState<ImageMetadata | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<GalleryStats>({
     totalImages: 0,
     favoriteImages: 0,
@@ -90,13 +81,17 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
     imagesByType: {},
   });
 
-  const loadGallery = useCallback(() => {
+  const loadGallery = useCallback(async () => {
     if (!project) return;
     
+    setIsLoading(true);
     // Ensure service knows current project
     imageGalleryService.setCurrentProject(project.id);
 
     try {
+      // Simulate real load to show skeletons properly
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
       const projectImages = imageGalleryService.getProjectImages();
       const projectCollections = imageGalleryService.getProjectCollections();
       const galleryStats = imageGalleryService.getGalleryStats();
@@ -106,6 +101,9 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
       setStats(galleryStats);
     } catch (error) {
       console.error('Failed to load gallery:', error);
+      notificationService.error('Error', 'Failed to load asset library');
+    } finally {
+      setIsLoading(false);
     }
   }, [project]);
 
@@ -225,12 +223,12 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   if (!project) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-background">
           <DialogHeader>
             <DialogTitle>{t('imageGallery.title')}</DialogTitle>
           </DialogHeader>
-          <div className="p-8 text-center text-gray-500">
-            <BookOpenIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+          <div className="p-8 text-center text-muted-foreground">
+            <BookOpenIcon className="w-12 h-12 mx-auto mb-4 opacity-50 text-muted-foreground" />
             <p>{t('imageGallery.noProject')}</p>
             <p className="text-sm">{t('imageGallery.openToAccess')}</p>
           </div>
@@ -242,7 +240,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="image-gallery-dialog max-w-7xl max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0">
+        <DialogContent className="image-gallery-dialog max-w-7xl max-h-[95vh] overflow-hidden flex flex-col p-0 gap-0 bg-background">
           <DialogHeader className="p-6 pb-2 border-b">
             <DialogTitle className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -330,7 +328,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                     key={cat.id}
                     variant={selectedContext === cat.id ? "secondary" : "ghost"}
                     size="sm"
-                    onClick={() => setSelectedContext(cat.id as any)}
+                    onClick={() => setSelectedContext(cat.id as ImageMetadata['contextType'] | 'all')}
                     className={cn(
                       "rounded-full gap-2 px-4 whitespace-nowrap",
                       selectedContext === cat.id && "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -351,6 +349,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                 <div className="flex items-center gap-2 ml-4">
                   <span className="text-xs text-muted-foreground whitespace-nowrap">Collection:</span>
                   <select
+                    title="Select Collection"
                     value={selectedCollection || ''}
                     onChange={e => setSelectedCollection(e.target.value || null)}
                     className="h-8 rounded-md border bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-primary"
@@ -366,8 +365,14 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 overflow-y-auto p-6">
-            {filteredImages.length === 0 ? (
+          <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+            {isLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {Array.from({ length: 15 }).map((_, i) => (
+                  <SkeletonMediaItem key={i} aspectRatio="1/1" />
+                ))}
+              </div>
+            ) : filteredImages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground opacity-60">
                 <ImageIcon className="w-16 h-16 mb-4" />
                 <h3 className="text-lg font-medium">{t('imageGallery.noImages')}</h3>
@@ -421,7 +426,7 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
                  {filteredImages.map(image => (
                     <div key={image.id} className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors group">
                        <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                          <img src={image.url} className="w-full h-full object-cover" />
+                          <img src={image.url} alt={image.prompt || "Gallery Image"} className="w-full h-full object-cover" />
                        </div>
                        <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -459,95 +464,6 @@ export function ImageGalleryModal({ isOpen, onClose }: ImageGalleryModalProps) {
         />
       )}
     </>
-  );
-}
-
-function ImageDetailsModal({ image, collections, onAddToCollection, onRemoveFromCollection, onClose }: any) {
-  // Simple implementation redirecting to original logic
-  return (
-    <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background">
-        <div className="flex h-[80vh]">
-          <div className="flex-1 bg-black flex items-center justify-center p-4">
-             <img src={image.url} className="max-w-full max-h-full object-contain" />
-          </div>
-          <div className="w-80 border-l p-6 flex flex-col gap-6 overflow-y-auto">
-             <div className="space-y-1">
-                <h3 className="text-lg font-bold">Asset Details</h3>
-                <p className="text-xs text-muted-foreground">ID: {image.id}</p>
-             </div>
-
-             <div className="space-y-4">
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">Prompt</h4>
-                  <div className="p-3 bg-muted rounded-lg text-xs leading-relaxed max-h-40 overflow-y-auto">
-                    {image.prompt}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                   <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase">Model</span>
-                      <p className="text-xs font-medium">{image.model}</p>
-                   </div>
-                   <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase">Size</span>
-                      <p className="text-xs font-medium">{image.size}</p>
-                   </div>
-                   <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase">Date</span>
-                      <p className="text-xs font-medium">{image.createdAt.toLocaleDateString()}</p>
-                   </div>
-                   <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase">Type</span>
-                      <p className="text-xs font-medium">{image.contextType}</p>
-                   </div>
-                </div>
-
-                <div>
-                   <h4 className="text-xs font-bold uppercase text-muted-foreground mb-3">Add to Collection</h4>
-                   <div className="flex gap-2">
-                      <select 
-                        className="flex-1 h-8 rounded border bg-background text-xs px-2"
-                        onChange={e => e.target.value && onAddToCollection(image.id, e.target.value)}
-                        value=""
-                      >
-                         <option value="">Select collection...</option>
-                         {collections.filter((c:any) => !c.imageIds.includes(image.id)).map((c:any) => (
-                            <option key={c.id} value={c.id}>{c.name}</option>
-                         ))}
-                      </select>
-                   </div>
-                </div>
-                
-                {collections.filter((c:any) => c.imageIds.includes(image.id)).length > 0 && (
-                   <div>
-                      <h4 className="text-xs font-bold uppercase text-muted-foreground mb-2">In Collections</h4>
-                      <div className="flex flex-wrap gap-1">
-                         {collections.filter((c:any) => c.imageIds.includes(image.id)).map((c:any) => (
-                            <Badge key={c.id} variant="secondary" className="gap-1 px-2 py-0.5 text-[10px]">
-                               {c.name}
-                               <XIcon className="w-2 h-2 cursor-pointer hover:text-destructive" onClick={() => onRemoveFromCollection(image.id, c.id)} />
-                            </Badge>
-                         ))}
-                      </div>
-                   </div>
-                )}
-             </div>
-
-             <div className="mt-auto pt-6 flex flex-col gap-2">
-                <Button className="w-full gap-2" size="sm" onClick={() => imageGalleryService.downloadImage(image.id)}>
-                   <DownloadIcon className="w-4 h-4" />
-                   Download Original
-                </Button>
-                <Button variant="outline" className="w-full gap-2" size="sm" onClick={onClose}>
-                   Close
-                </Button>
-             </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 

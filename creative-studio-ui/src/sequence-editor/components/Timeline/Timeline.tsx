@@ -13,6 +13,7 @@ import { useDrop } from 'react-dnd';
 import { DND_ITEM_TYPES, type DraggedAssetItem } from '../AssetLibrary/DraggableAsset';
 import { v4 as uuidv4 } from 'uuid';
 import { generateImage } from '@/services/imageGenerationService';
+import { expandWithLinkedShots } from '../../utils/linkedShots';
 
 import type { Track, LayerType, Shot } from '@/sequence-editor/types';
 import { VirtualTimelineCanvas } from './VirtualTimelineCanvas';
@@ -49,8 +50,12 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
     selectedElements, 
     duration,
     activeTool,
+    isPlaying,
     setZoomLevel,
     setCurrentTime,
+    play,
+    pause,
+    stop,
     toggleRippleEdit,
     toggleSnapToGrid,
     toggleMagneticTimeline,
@@ -69,6 +74,8 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
     rollEdit,
     slipEdit,
     slideEdit,
+    splitShot,
+    setActiveTool,
     setSelectedElements
   } = useProjectStore(useShallow(state => ({
     shots: state.shots,
@@ -78,8 +85,12 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
     selectedElements: state.selectedElements,
     duration: state.timelineDuration,
     activeTool: state.activeTool,
+    isPlaying: state.isPlaying,
     setZoomLevel: state.setZoomLevel,
     setCurrentTime: state.setCurrentTime,
+    play: state.play,
+    pause: state.pause,
+    stop: state.stop,
     toggleRippleEdit: state.toggleRippleEdit,
     toggleSnapToGrid: state.toggleSnapToGrid,
     toggleMagneticTimeline: state.toggleMagneticTimeline,
@@ -98,6 +109,8 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
     rollEdit: state.rollEdit,
     slipEdit: state.slipEdit,
     slideEdit: state.slideEdit,
+    splitShot: state.splitShot,
+    setActiveTool: state.setActiveTool,
     setSelectedElements: state.setSelectedElements
   })));
 
@@ -192,6 +205,20 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
     window.addEventListener('mouseup', onMouseUp);
   }, [playheadPosition, zoomLevel, setCurrentTime]);
 
+  const handleShotSelect = useCallback((shotId: string, multiSelect: boolean) => {
+    let ids: string[];
+    if (multiSelect) {
+      ids = selectedElements.includes(shotId)
+        ? selectedElements.filter(id => id !== shotId)
+        : [...selectedElements, shotId];
+    } else {
+      ids = [shotId];
+    }
+    // Expand with linked shots
+    ids = expandWithLinkedShots(ids, shots);
+    setSelectedElements(ids);
+  }, [selectedElements, shots, setSelectedElements]);
+
   const handleRulerSeek = useCallback((frame: number) => {
     setCurrentTime(frame);
   }, [setCurrentTime]);
@@ -271,6 +298,9 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if focus is in an input/textarea
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         if (e.shiftKey) redo();
@@ -283,16 +313,67 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
         return;
       }
 
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        isPlaying ? pause() : play();
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
+        case 'j':
+          e.preventDefault();
+          stop();
+          setCurrentTime(Math.max(0, playheadPosition - 24));
+          break;
+        case 'k':
+          e.preventDefault();
+          stop();
+          break;
+        case 'l':
+          e.preventDefault();
+          if (!isPlaying) play();
+          break;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (selectedElements.length === 0) return;
+        for (const shotId of selectedElements) {
+          const shot = shots.find(s => s.id === shotId);
+          if (!shot) continue;
+          const shotStart = shot.startTime || 0;
+          const shotEnd = shotStart + (shot.duration || 0);
+          if (playheadPosition > shotStart && playheadPosition < shotEnd) {
+            splitShot(shotId, playheadPosition);
+          }
+        }
+        return;
+      }
+
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElements.length > 0) {
-        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
         e.preventDefault();
         selectedElements.forEach(id => deleteShot(id));
+        return;
+      }
+
+      // Tool switching (Phase 4 — NLE toolbar shortcuts)
+      if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+        switch (e.key.toLowerCase()) {
+          case 'v': e.preventDefault(); setActiveTool('select'); return;
+          case 'b': e.preventDefault(); setActiveTool('cut'); return;
+          case 'r': e.preventDefault(); setActiveTool('ripple'); return;
+          case 'n': e.preventDefault(); setActiveTool('roll'); return;
+          case 'y': e.preventDefault(); setActiveTool('slip'); return;
+          case 'u': e.preventDefault(); setActiveTool('slide'); return;
+          case 't': e.preventDefault(); setActiveTool('text'); return;
+          case 'k': e.preventDefault(); setActiveTool('keyframe'); return;
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedElements, deleteShot, undo, redo]);
+  }, [selectedElements, shots, playheadPosition, isPlaying, deleteShot, undo, redo, splitShot, play, pause, stop, setCurrentTime, setActiveTool]);
 
   const handleToggleLock = useCallback((id: string) => toggleTrackLock(id), [toggleTrackLock]);
   const handleToggleHide = useCallback((id: string) => toggleTrackHidden(id), [toggleTrackHidden]);
@@ -344,7 +425,18 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
         onDeleteShot={() => {
           selectedElements.forEach(id => deleteShot(id));
         }}
-        onSplit={() => {}}
+        onSplit={() => {
+          if (selectedElements.length === 0) return;
+          for (const shotId of selectedElements) {
+            const shot = shots.find(s => s.id === shotId);
+            if (!shot) continue;
+            const shotStart = shot.startTime || 0;
+            const shotEnd = shotStart + (shot.duration || 0);
+            if (playheadPosition > shotStart && playheadPosition < shotEnd) {
+              splitShot(shotId, playheadPosition);
+            }
+          }
+        }}
         onAutoMix={() => {}}
       />
       <div className="timeline-layout">
@@ -420,7 +512,7 @@ export const Timeline: React.FC<TimelineProps> = ({ onShotDoubleClick }) => {
               timelineWidth={timelineWidth}
               playheadPosition={playheadPosition}
               selectedElements={selectedElements}
-              onShotSelect={(id) => setSelectedElements([id])}
+              onShotSelect={handleShotSelect}
               onShotMove={handleShotMove}
               onShotResize={handleShotResize}
               onShotRoll={handleShotRoll}

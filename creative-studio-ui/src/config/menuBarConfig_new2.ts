@@ -6,6 +6,8 @@
  * 
  * This configuration supports Requirements 1.1-6.5 and 11.1-11.5.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { MenuBarConfig, MenuConfig } from '../types/menuConfig';
 import { fileActions, editActions, viewActions, projectActions, wizardsActions, toolsActions, helpActions } from '../components/menuBar/menuActions';
@@ -207,7 +209,7 @@ const editMenuConfig: MenuConfig = {
       type: 'action',
       enabled: (state) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = (state.project as LegacyAny).selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       },
       visible: true,
@@ -222,7 +224,7 @@ const editMenuConfig: MenuConfig = {
       type: 'action',
       enabled: (state) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = (state.project as LegacyAny).selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       },
       visible: true,

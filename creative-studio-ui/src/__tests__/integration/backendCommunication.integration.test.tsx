@@ -3,7 +3,7 @@
  * Tests project export, task submission, and progress tracking
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, _vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import {

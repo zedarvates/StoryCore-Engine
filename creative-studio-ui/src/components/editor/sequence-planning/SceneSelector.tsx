@@ -1,7 +1,7 @@
 import React from 'react';
-import { ChevronDown, Play, Film, Clock, GripVertical } from 'lucide-react';
+import { _ChevronDown, _Play, Film, Clock, GripVertical } from 'lucide-react';
 import { Scene } from '@/types/sequencePlan';
-import { Reorder, motion, AnimatePresence } from 'framer-motion';
+import { Reorder, _motion, AnimatePresence } from 'framer-motion';
 import './SceneSelector.css';
 
 export interface SceneSelectorProps {

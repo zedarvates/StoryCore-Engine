@@ -11,6 +11,7 @@ Etapes:
 
 Le puppet peut ensuite etre anime dans Blender.
 """
+
 from __future__ import annotations
 
 import time
@@ -18,7 +19,6 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 from .comfyui_client import ComfyUIClient
-from .trellis_workflows import build_workflow, get_expected_output_names
 
 
 class PuppetPipeline:
@@ -34,30 +34,45 @@ class PuppetPipeline:
 
     BONE_HIERARCHY = {
         "Hips": {
-            "pos": (0, 0, 1.0), "tail": (0, 0, 1.15),
+            "pos": (0, 0, 1.0),
+            "tail": (0, 0, 1.15),
             "children": {
                 "Spine": {
-                    "pos": (0, 0, 1.15), "tail": (0, 0, 1.35),
+                    "pos": (0, 0, 1.15),
+                    "tail": (0, 0, 1.35),
                     "children": {
                         "Chest": {
-                            "pos": (0, 0, 1.35), "tail": (0, 0, 1.55),
+                            "pos": (0, 0, 1.35),
+                            "tail": (0, 0, 1.55),
                             "children": {
                                 "Neck": {
-                                    "pos": (0, 0, 1.55), "tail": (0, 0, 1.68),
+                                    "pos": (0, 0, 1.55),
+                                    "tail": (0, 0, 1.68),
                                     "children": {
-                                        "Head": {"pos": (0, 0, 1.68), "tail": (0, 0, 1.85), "children": {}}
+                                        "Head": {
+                                            "pos": (0, 0, 1.68),
+                                            "tail": (0, 0, 1.85),
+                                            "children": {},
+                                        }
                                     },
                                 },
                                 "Shoulder.L": {
-                                    "pos": (0.08, 0, 1.52), "tail": (0.18, 0, 1.52),
+                                    "pos": (0.08, 0, 1.52),
+                                    "tail": (0.18, 0, 1.52),
                                     "children": {
                                         "UpperArm.L": {
-                                            "pos": (0.18, 0, 1.52), "tail": (0.38, 0, 1.45),
+                                            "pos": (0.18, 0, 1.52),
+                                            "tail": (0.38, 0, 1.45),
                                             "children": {
                                                 "LowerArm.L": {
-                                                    "pos": (0.38, 0, 1.45), "tail": (0.55, 0, 1.38),
+                                                    "pos": (0.38, 0, 1.45),
+                                                    "tail": (0.55, 0, 1.38),
                                                     "children": {
-                                                        "Hand.L": {"pos": (0.55, 0, 1.38), "tail": (0.65, 0, 1.35), "children": {}}
+                                                        "Hand.L": {
+                                                            "pos": (0.55, 0, 1.38),
+                                                            "tail": (0.65, 0, 1.35),
+                                                            "children": {},
+                                                        }
                                                     },
                                                 }
                                             },
@@ -65,15 +80,22 @@ class PuppetPipeline:
                                     },
                                 },
                                 "Shoulder.R": {
-                                    "pos": (-0.08, 0, 1.52), "tail": (-0.18, 0, 1.52),
+                                    "pos": (-0.08, 0, 1.52),
+                                    "tail": (-0.18, 0, 1.52),
                                     "children": {
                                         "UpperArm.R": {
-                                            "pos": (-0.18, 0, 1.52), "tail": (-0.38, 0, 1.45),
+                                            "pos": (-0.18, 0, 1.52),
+                                            "tail": (-0.38, 0, 1.45),
                                             "children": {
                                                 "LowerArm.R": {
-                                                    "pos": (-0.38, 0, 1.45), "tail": (-0.55, 0, 1.38),
+                                                    "pos": (-0.38, 0, 1.45),
+                                                    "tail": (-0.55, 0, 1.38),
                                                     "children": {
-                                                        "Hand.R": {"pos": (-0.55, 0, 1.38), "tail": (-0.65, 0, 1.35), "children": {}}
+                                                        "Hand.R": {
+                                                            "pos": (-0.55, 0, 1.38),
+                                                            "tail": (-0.65, 0, 1.35),
+                                                            "children": {},
+                                                        }
                                                     },
                                                 }
                                             },
@@ -85,23 +107,35 @@ class PuppetPipeline:
                     },
                 },
                 "UpperLeg.L": {
-                    "pos": (0.1, 0, 1.0), "tail": (0.12, 0, 0.55),
+                    "pos": (0.1, 0, 1.0),
+                    "tail": (0.12, 0, 0.55),
                     "children": {
                         "LowerLeg.L": {
-                            "pos": (0.12, 0, 0.55), "tail": (0.12, 0, 0.12),
+                            "pos": (0.12, 0, 0.55),
+                            "tail": (0.12, 0, 0.12),
                             "children": {
-                                "Foot.L": {"pos": (0.12, 0, 0.12), "tail": (0.12, 0.15, 0.02), "children": {}}
+                                "Foot.L": {
+                                    "pos": (0.12, 0, 0.12),
+                                    "tail": (0.12, 0.15, 0.02),
+                                    "children": {},
+                                }
                             },
                         }
                     },
                 },
                 "UpperLeg.R": {
-                    "pos": (-0.1, 0, 1.0), "tail": (-0.12, 0, 0.55),
+                    "pos": (-0.1, 0, 1.0),
+                    "tail": (-0.12, 0, 0.55),
                     "children": {
                         "LowerLeg.R": {
-                            "pos": (-0.12, 0, 0.55), "tail": (-0.12, 0, 0.12),
+                            "pos": (-0.12, 0, 0.55),
+                            "tail": (-0.12, 0, 0.12),
                             "children": {
-                                "Foot.R": {"pos": (-0.12, 0, 0.12), "tail": (-0.12, 0.15, 0.02), "children": {}}
+                                "Foot.R": {
+                                    "pos": (-0.12, 0, 0.12),
+                                    "tail": (-0.12, 0.15, 0.02),
+                                    "children": {},
+                                }
                             },
                         }
                     },
@@ -151,7 +185,9 @@ class PuppetPipeline:
         output_path.mkdir(parents=True, exist_ok=True)
 
         # Etape 1: Generer le mesh 3D
-        self._log(f"Etape 1/3: Generation mesh 3D pour {character_name}...", progress_callback)
+        self._log(
+            f"Etape 1/3: Generation mesh 3D pour {character_name}...", progress_callback
+        )
         from .pipeline_image_to_3d import ImageTo3DPipeline
 
         p3d = ImageTo3DPipeline(self.client.base_url.split("//")[1].split(":")[0])
@@ -169,7 +205,9 @@ class PuppetPipeline:
 
         # Etapes 2 et 3 dans Blender
         self._log("Etape 2/3: Import GLB et creation rig...", progress_callback)
-        rig_result = self.create_puppet_in_blender(glb_path, character_name, progress_callback)
+        rig_result = self.create_puppet_in_blender(
+            glb_path, character_name, progress_callback
+        )
 
         duration = time.time() - start
         self._log(f"Puppet termine en {duration:.1f}s", progress_callback)
@@ -278,4 +316,6 @@ class PuppetPipeline:
                 bone.parent = parent
                 bone.use_connect = False  # Joints libres pour marionnette
             # Recurse
-            self._create_bones_recursive(edit_bones, bone_data.get("children", {}), parent=bone)
+            self._create_bones_recursive(
+                edit_bones, bone_data.get("children", {}), parent=bone
+            )

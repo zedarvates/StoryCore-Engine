@@ -5,6 +5,8 @@
  * 
  * Requirements: 5.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -31,7 +33,7 @@ export interface UseStateRecoveryOptions {
   /**
    * Callback when corruption is detected
    */
-  onCorruptionDetected?: (result: LoadStateResult<any>) => void;
+  onCorruptionDetected?: (result: LoadStateResult<LegacyAny>) => void;
 
   /**
    * Callback when recovery is successful
@@ -58,7 +60,7 @@ export interface UseStateRecoveryReturn {
   /**
    * Load state result
    */
-  loadResult: LoadStateResult<any> | null;
+  loadResult: LoadStateResult<LegacyAny> | null;
 
   /**
    * Check for corruption
@@ -104,7 +106,7 @@ export function useStateRecovery(
 
   const [isCorrupted, setIsCorrupted] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [loadResult, setLoadResult] = useState<LoadStateResult<any> | null>(null);
+  const [loadResult, setLoadResult] = useState<LoadStateResult<LegacyAny> | null>(null);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
 
   const validationService = getStateValidationService();

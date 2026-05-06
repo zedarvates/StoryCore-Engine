@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PropertiesPanel } from '../PropertiesPanel';
@@ -91,7 +92,7 @@ describe('PropertiesPanel', () => {
       const { useSelectedShot } = require('../../store');
       
       // Mock store to return selected shot
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: mockProject,
           updateShot: mockUpdateShot,
@@ -236,7 +237,7 @@ describe('PropertiesPanel', () => {
       const { useSelectedShot } = require('../../store');
       
       // Mock store to return no selected shot
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: mockProject,
           updateShot: mockUpdateShot,
@@ -329,7 +330,7 @@ describe('PropertiesPanel', () => {
     });
 
     it('displays no project message when project is null', () => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: null,
           updateShot: mockUpdateShot,
@@ -353,7 +354,7 @@ describe('PropertiesPanel', () => {
         },
       };
 
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: projectWithMetadata,
           updateShot: mockUpdateShot,
@@ -394,7 +395,7 @@ describe('PropertiesPanel', () => {
       const { useSelectedShot } = require('../../store');
       
       // Mock store to return selected shot
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: mockProject,
           updateShot: mockUpdateShot,
@@ -490,12 +491,12 @@ describe('PropertiesPanel', () => {
       // Mock FileReader
       const mockFileReader = {
         readAsDataURL: vi.fn(),
-        onload: null as any,
-        onerror: null as any,
+        onload: null as LegacyAny,
+        onerror: null as LegacyAny,
         result: 'data:image/png;base64,testdata',
       };
 
-      vi.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader as any);
+      vi.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader as LegacyAny);
 
       // Find the hidden file input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -511,7 +512,7 @@ describe('PropertiesPanel', () => {
 
       // Simulate FileReader onload
       if (mockFileReader.onload) {
-        mockFileReader.onload({ target: mockFileReader } as any);
+        mockFileReader.onload({ target: mockFileReader } as LegacyAny);
       }
 
       // Wait for async operations
@@ -581,12 +582,12 @@ describe('PropertiesPanel', () => {
       // Mock FileReader with delayed onload
       const mockFileReader = {
         readAsDataURL: vi.fn(),
-        onload: null as any,
-        onerror: null as any,
+        onload: null as LegacyAny,
+        onerror: null as LegacyAny,
         result: 'data:image/png;base64,testdata',
       };
 
-      vi.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader as any);
+      vi.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader as LegacyAny);
 
       // Find the hidden file input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -633,12 +634,12 @@ describe('PropertiesPanel', () => {
       
       const mockFileReader = {
         readAsDataURL: vi.fn(),
-        onload: null as any,
-        onerror: null as any,
+        onload: null as LegacyAny,
+        onerror: null as LegacyAny,
         result: 'data:image/png;base64,testdata',
       };
 
-      vi.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader as any);
+      vi.spyOn(global, 'FileReader').mockImplementation(() => mockFileReader as LegacyAny);
 
       Object.defineProperty(fileInput, 'files', {
         value: [validFile],

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Character Persistence Hook (Optimized)
 // ============================================================================
@@ -19,7 +20,7 @@ import {
   PersistenceError,
   PersistenceErrorType,
   PersistedCharacter,
-  RetryConfig,
+  Retry_Config,
   type ConflictResolution,
 } from './useCharacterPersistence';
 
@@ -122,7 +123,7 @@ async function retryWithBackoff<T>(
 /**
  * Validate character schema
  */
-function validateCharacterSchema(data: any): { valid: boolean; errors: string[] } {
+function validateCharacterSchema(data: LegacyAny): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!data.character_id || typeof data.character_id !== 'string') {
@@ -255,7 +256,7 @@ export function useCharacterPersistenceOptimized() {
 
         pendingSaves.current.set(characterId, {
           character,
-          resolve: resolve as any,
+          resolve: resolve as LegacyAny,
           reject,
         });
 
@@ -498,11 +499,11 @@ export function useCharacterPersistenceOptimized() {
         version: characterData.version || '1.0',
         last_modified: Date.now(),
         version_number: currentVersionNumber + 1,
-        visual_identity: characterData.visual_identity || {} as any,
-        personality: characterData.personality || {} as any,
-        background: characterData.background || {} as any,
+        visual_identity: characterData.visual_identity || {} as LegacyAny,
+        personality: characterData.personality || {} as LegacyAny,
+        background: characterData.background || {} as LegacyAny,
         relationships: characterData.relationships || [],
-        role: characterData.role || {} as any,
+        role: characterData.role || {} as LegacyAny,
         thumbnail_url: (characterData as PersistedCharacter).thumbnail_url,
         tags: (characterData as PersistedCharacter).tags,
         notes: (characterData as PersistedCharacter).notes,

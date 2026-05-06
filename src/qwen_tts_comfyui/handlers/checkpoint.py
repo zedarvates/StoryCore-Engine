@@ -16,10 +16,10 @@ from typing import Any, Dict, List, Optional
 class TrainingResult:
     """
     Result of a TTS model training operation.
-    
+
     This class encapsulates the output from Qwen TTS training workflows,
     providing information about the training process and checkpoints.
-    
+
     Attributes:
         success: Whether the training was successful
         checkpoint_path: Path to the final model checkpoint
@@ -33,6 +33,7 @@ class TrainingResult:
         error_message: Error message if training failed
         created_at: Timestamp when the result was created
     """
+
     success: bool = True
     checkpoint_path: Optional[str] = None
     output_dir: Optional[str] = None
@@ -44,24 +45,24 @@ class TrainingResult:
     metadata: Dict[str, Any] = field(default_factory=dict)
     error_message: Optional[str] = None
     created_at: datetime = field(default_factory=datetime.now)
-    
+
     @classmethod
     def from_comfyui_output(
         cls,
         output: Dict[str, Any],
         output_dir: str = "",
         speaker_name: str = "",
-        num_epochs: int = 0
+        num_epochs: int = 0,
     ) -> "TrainingResult":
         """
         Create a TrainingResult from ComfyUI workflow output.
-        
+
         Args:
             output: ComfyUI workflow output dictionary
             output_dir: Directory where checkpoints are saved
             speaker_name: Name of the trained speaker
             num_epochs: Number of epochs trained
-            
+
         Returns:
             TrainingResult instance
         """
@@ -69,21 +70,20 @@ class TrainingResult:
             # ComfyUI training output format
             # Typically: {"checkpoint_path": "...", "metrics": {...}}
             checkpoint_path = output.get("checkpoint_path", "")
-            
+
             # Find all checkpoints in output directory
             checkpoints = []
             if output_dir and Path(output_dir).exists():
                 checkpoints = [
-                    str(p) for p in Path(output_dir).glob("checkpoint-*")
-                    if p.is_dir()
+                    str(p) for p in Path(output_dir).glob("checkpoint-*") if p.is_dir()
                 ]
                 checkpoints.sort()
-            
+
             # Get training metrics if available
             metrics = output.get("metrics", {})
             final_loss = metrics.get("final_loss")
             training_time = metrics.get("training_time", 0.0)
-            
+
             return cls(
                 success=True,
                 checkpoint_path=checkpoint_path,
@@ -93,20 +93,20 @@ class TrainingResult:
                 final_loss=final_loss,
                 training_time=training_time,
                 checkpoints=checkpoints,
-                metadata={"raw_output": output, "metrics": metrics}
+                metadata={"raw_output": output, "metrics": metrics},
             )
         except Exception as e:
             return cls(
                 success=False,
                 error_message=str(e),
                 output_dir=output_dir,
-                speaker_name=speaker_name
+                speaker_name=speaker_name,
             )
-    
+
     def get_latest_checkpoint(self) -> Optional[str]:
         """
         Get the path to the latest checkpoint.
-        
+
         Returns:
             Path to the latest checkpoint or None
         """
@@ -115,14 +115,14 @@ class TrainingResult:
         if self.checkpoints:
             return self.checkpoints[-1]
         return None
-    
+
     def get_checkpoint_epoch(self, checkpoint_path: str) -> Optional[int]:
         """
         Extract epoch number from checkpoint path.
-        
+
         Args:
             checkpoint_path: Path to checkpoint directory
-            
+
         Returns:
             Epoch number or None
         """
@@ -137,22 +137,22 @@ class TrainingResult:
         except (ValueError, IndexError):
             pass
         return None
-    
+
     def get_best_checkpoint(self) -> Optional[str]:
         """
         Get the checkpoint with the best (lowest) loss.
-        
+
         Returns:
             Path to the best checkpoint or None
         """
         # If we have loss information in metadata, use it
         # Otherwise, return the latest checkpoint
         return self.get_latest_checkpoint()
-    
+
     def get_info(self) -> Dict[str, Any]:
         """
         Get information about the training result.
-        
+
         Returns:
             Dictionary with training information
         """
@@ -170,7 +170,7 @@ class TrainingResult:
             "error_message": self.error_message,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
-    
+
     @staticmethod
     def _format_time(seconds: float) -> str:
         """Format seconds into human-readable string."""
@@ -182,7 +182,7 @@ class TrainingResult:
         else:
             hours = seconds / 3600
             return f"{hours:.1f}h"
-    
+
     def __repr__(self) -> str:
         """String representation."""
         status = "success" if self.success else "failed"
@@ -194,7 +194,7 @@ class TrainingResult:
 class TrainingRequest:
     """
     Request for model training.
-    
+
     Attributes:
         audio_folder: Path to audio dataset folder
         output_dir: Directory to save checkpoints
@@ -207,6 +207,7 @@ class TrainingRequest:
         gradient_accumulation_steps: Gradient accumulation steps
         validate_every: Validation frequency
     """
+
     audio_folder: str
     output_dir: str
     speaker_name: str
@@ -217,7 +218,7 @@ class TrainingRequest:
     batch_size: int = 1
     gradient_accumulation_steps: int = 4
     validate_every: int = 2
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -232,34 +233,34 @@ class TrainingRequest:
             "gradient_accumulation_steps": self.gradient_accumulation_steps,
             "validate_every": self.validate_every,
         }
-    
+
     def validate(self) -> List[str]:
         """
         Validate the training request.
-        
+
         Returns:
             List of validation errors (empty if valid)
         """
         errors = []
-        
+
         if not self.audio_folder:
             errors.append("audio_folder is required")
         elif not Path(self.audio_folder).exists():
             errors.append(f"audio_folder does not exist: {self.audio_folder}")
-        
+
         if not self.output_dir:
             errors.append("output_dir is required")
-        
+
         if not self.speaker_name:
             errors.append("speaker_name is required")
-        
+
         if self.num_epochs < 1:
             errors.append("num_epochs must be at least 1")
-        
+
         if self.learning_rate <= 0:
             errors.append("learning_rate must be positive")
-        
+
         if self.batch_size < 1:
             errors.append("batch_size must be at least 1")
-        
+
         return errors

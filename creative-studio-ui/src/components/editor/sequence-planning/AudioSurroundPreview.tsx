@@ -20,7 +20,7 @@ export const AudioSurroundPreview: React.FC<AudioSurroundPreviewProps> = ({
   elements,
   className = ''
 }) => {
-  const speakers = surroundMode === '5.1'
+  const _speakers = surroundMode === '5.1'
     ? ['front-left', 'front-center', 'front-right', 'surround-left', 'surround-right', 'lfe']
     : ['front-left', 'front-center', 'front-right', 'surround-left', 'surround-right', 'back-left', 'back-right', 'lfe'];
 

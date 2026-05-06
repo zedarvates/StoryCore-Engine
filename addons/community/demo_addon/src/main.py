@@ -2,11 +2,11 @@
 demo_addon - Workflow Add-on
 """
 
-import asyncio
 import logging
 from typing import Dict, Any
 
 logger = logging.getLogger(__name__)
+
 
 class demo_addonAddon:
     """Add-on de workflow personnalisé"""
@@ -26,6 +26,7 @@ class demo_addonAddon:
         # TODO: Nettoyage spécifique
 
     # TODO: Ajouter les méthodes spécifiques au workflow
+
 
 # Instance globale
 addon = demo_addonAddon()

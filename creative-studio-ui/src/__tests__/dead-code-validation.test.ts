@@ -63,7 +63,7 @@ describe('Dead Code Removal Validation', () => {
   /**
    * Check if an export is used in the codebase
    */
-  const isExportUsed = (exportName: string, filePath: string): boolean => {
+  const _isExportUsed = (exportName: string, filePath: string): boolean => {
     const sourceFiles = findSourceFiles(SRC_DIR);
     const fileDir = path.dirname(filePath);
 
@@ -84,7 +84,7 @@ describe('Dead Code Removal Validation', () => {
         if (usageRegex.test(content)) {
           return true;
         }
-      } catch (error) {
+      } catch (_error) {
         // Skip unreadable files
       }
     }
@@ -134,7 +134,7 @@ describe('Dead Code Removal Validation', () => {
               deadCodeCount++;
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // Skip problematic files
         }
       });
@@ -180,7 +180,7 @@ describe('Dead Code Removal Validation', () => {
               commentedCodeBlocks++;
             }
           });
-        } catch (error) {
+        } catch (_error) {
           // Skip
         }
       });
@@ -196,7 +196,7 @@ describe('Dead Code Removal Validation', () => {
       const testDir = path.join(SRC_DIR, '__tests__');
 
       if (fs.existsSync(componentsDir) && fs.existsSync(testDir)) {
-        const componentFiles = findSourceFiles(componentsDir).filter(file =>
+        const _componentFiles = findSourceFiles(componentsDir).filter(file =>
           !file.includes('__tests__')
         );
 

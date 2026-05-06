@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { usePanelVisibility } from '../usePanelVisibility';
@@ -12,7 +13,7 @@ describe('usePanelVisibility', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       showChat: false,
       setShowChat: mockSetShowChat,
       panelSizes: {
@@ -50,7 +51,7 @@ describe('usePanelVisibility', () => {
     });
 
     it('adjusts panel sizes when hiding chat', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: true,
         setShowChat: mockSetShowChat,
         panelSizes: {
@@ -75,7 +76,7 @@ describe('usePanelVisibility', () => {
     });
 
     it('respects minimum canvas size', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: false,
         setShowChat: mockSetShowChat,
         panelSizes: {
@@ -97,7 +98,7 @@ describe('usePanelVisibility', () => {
     });
 
     it('respects maximum propertiesOrChat size', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: false,
         setShowChat: mockSetShowChat,
         panelSizes: {
@@ -149,7 +150,7 @@ describe('usePanelVisibility', () => {
     });
 
     it('respects minimum canvas size when showing', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: false,
         setShowChat: mockSetShowChat,
         panelSizes: {
@@ -171,7 +172,7 @@ describe('usePanelVisibility', () => {
     });
 
     it('respects maximum canvas size when hiding', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: false,
         setShowChat: mockSetShowChat,
         panelSizes: {
@@ -195,7 +196,7 @@ describe('usePanelVisibility', () => {
 
   describe('resetPanelSizes', () => {
     it('resets panel sizes to defaults', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: true,
         setShowChat: mockSetShowChat,
         panelSizes: {
@@ -228,7 +229,7 @@ describe('usePanelVisibility', () => {
     });
 
     it('returns false when asset library has zero size', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         showChat: false,
         setShowChat: mockSetShowChat,
         panelSizes: {

@@ -12,8 +12,8 @@ import {
   TextAnimationConfig,
   TextAnimationType,
   TextMaskConfig,
-  MaskType,
-  MaskDirection,
+  _MaskType,
+  _MaskDirection,
   TextPreset,
   TextPresetCollection,
   TextTypographyState,
@@ -214,9 +214,9 @@ class TextTypographyService implements TextTypographyActions {
     };
   }
 
-  getAnimationCSS(config: TextAnimationConfig, text: string): string {
+  getAnimationCSS(config: TextAnimationConfig, _text: string): string {
     const { type, duration, easing, delay, direction, fillMode, iterations } = config;
-    const easeFn = easingFunctions[easing] || easingFunctions.linear;
+    const _easeFn = easingFunctions[easing] || easingFunctions.linear;
 
     let keyframes = '';
     

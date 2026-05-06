@@ -14,35 +14,48 @@ Usage :
 import secrets
 import os
 import sys
-import json
-from datetime import datetime
 
 # ─────────────────────────────────────────────
 # Couleurs terminal
 # ─────────────────────────────────────────────
 
+
 class C:
-    RESET  = "\033[0m"
-    BOLD   = "\033[1m"
-    GREEN  = "\033[92m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    GREEN = "\033[92m"
     YELLOW = "\033[93m"
-    RED    = "\033[91m"
-    CYAN   = "\033[96m"
+    RED = "\033[91m"
+    CYAN = "\033[96m"
     PURPLE = "\033[95m"
-    BLUE   = "\033[94m"
-    DIM    = "\033[2m"
+    BLUE = "\033[94m"
+    DIM = "\033[2m"
 
 
-def ok(msg):  print(f"  {C.GREEN}✅{C.RESET} {msg}")
-def warn(msg): print(f"  {C.YELLOW}⚠️ {C.RESET} {msg}")
-def err(msg):  print(f"  {C.RED}❌{C.RESET} {msg}")
-def info(msg): print(f"  {C.CYAN}ℹ️ {C.RESET} {msg}")
-def gem(msg):  print(f"  {C.PURPLE}💎{C.RESET} {msg}")
+def ok(msg):
+    print(f"  {C.GREEN}✅{C.RESET} {msg}")
+
+
+def warn(msg):
+    print(f"  {C.YELLOW}⚠️ {C.RESET} {msg}")
+
+
+def err(msg):
+    print(f"  {C.RED}❌{C.RESET} {msg}")
+
+
+def info(msg):
+    print(f"  {C.CYAN}ℹ️ {C.RESET} {msg}")
+
+
+def gem(msg):
+    print(f"  {C.PURPLE}💎{C.RESET} {msg}")
 
 
 # ─────────────────────────────────────────────
 # Génération du Webhook Secret
 # ─────────────────────────────────────────────
+
 
 def generate_webhook_secret():
     """Génère un secret HMAC fort pour le webhook GitHub."""
@@ -64,6 +77,7 @@ def generate_webhook_secret():
 # Vérification de la configuration
 # ─────────────────────────────────────────────
 
+
 def check_configuration():
     """Vérifie que toutes les variables d'environnement GemReward sont configurées."""
 
@@ -83,25 +97,27 @@ def check_configuration():
         if k not in os.environ:
             os.environ[k] = v
 
-    print(f"\n{C.BOLD}{C.PURPLE}💎 GemReward — Vérification de la configuration{C.RESET}")
+    print(
+        f"\n{C.BOLD}{C.PURPLE}💎 GemReward — Vérification de la configuration{C.RESET}"
+    )
     print("=" * 60)
 
     checks = [
         # (label, env_var, required, secret)
-        ("JWT Secret",             "JWT_SECRET",            True,  True),
-        ("GitHub API Token",        "GITHUB_API_TOKEN",      False, True),
-        ("GitHub Webhook Secret",   "GITHUB_WEBHOOK_SECRET", True,  True),
-        ("GitHub Repo Owner",       "GITHUB_REPO_OWNER",     True,  False),
-        ("GitHub Repo Name",        "GITHUB_REPO_NAME",      True,  False),
-        ("Database URL",            "DATABASE_URL",           False, True),
-        ("Rate Limit Human",        "GEM_RATE_LIMIT_HUMAN",  False, False),
-        ("Rate Limit Agent",        "GEM_RATE_LIMIT_AGENT",  False, False),
+        ("JWT Secret", "JWT_SECRET", True, True),
+        ("GitHub API Token", "GITHUB_API_TOKEN", False, True),
+        ("GitHub Webhook Secret", "GITHUB_WEBHOOK_SECRET", True, True),
+        ("GitHub Repo Owner", "GITHUB_REPO_OWNER", True, False),
+        ("GitHub Repo Name", "GITHUB_REPO_NAME", True, False),
+        ("Database URL", "DATABASE_URL", False, True),
+        ("Rate Limit Human", "GEM_RATE_LIMIT_HUMAN", False, False),
+        ("Rate Limit Agent", "GEM_RATE_LIMIT_AGENT", False, False),
     ]
 
     all_required_ok = True
 
     print(f"\n  {'Variable':<30} {'Statut':<12} {'Valeur'}")
-    print(f"  {'─'*30} {'─'*12} {'─'*20}")
+    print(f"  {'─' * 30} {'─' * 12} {'─' * 20}")
 
     for label, var, required, is_secret in checks:
         val = os.getenv(var, "")
@@ -130,11 +146,13 @@ def check_configuration():
     if all_required_ok:
         print(f"  {C.GREEN}{C.BOLD}✅ Configuration valide — GemReward prêt !{C.RESET}")
     else:
-        print(f"  {C.RED}{C.BOLD}❌ Configuration incomplète — voir les variables REQUISES ci-dessus{C.RESET}")
-        print(f"\n  Conseil : python -m backend.gem_setup --gen-secret")
+        print(
+            f"  {C.RED}{C.BOLD}❌ Configuration incomplète — voir les variables REQUISES ci-dessus{C.RESET}"
+        )
+        print("\n  Conseil : python -m backend.gem_setup --gen-secret")
 
     # Vérification modules Python
-    print(f"\n  {'─'*60}")
+    print(f"\n  {'─' * 60}")
     print(f"  {C.BOLD}Modules Python{C.RESET}")
     modules = [
         ("fastapi", "FastAPI"),
@@ -158,6 +176,7 @@ def check_configuration():
 # Guide de configuration GitHub Webhook
 # ─────────────────────────────────────────────
 
+
 def show_github_guide():
     """Affiche le guide étape par étape pour configurer le webhook GitHub."""
 
@@ -170,7 +189,7 @@ def show_github_guide():
             [
                 "Exécutez : python -m backend.gem_setup --gen-secret",
                 "Copiez la valeur générée",
-            ]
+            ],
         ),
         (
             "Configurer .env",
@@ -179,7 +198,7 @@ def show_github_guide():
                 "GITHUB_WEBHOOK_SECRET=<votre_secret>",
                 "GITHUB_REPO_OWNER=zedarvates",
                 "GITHUB_REPO_NAME=StoryCore-Engine",
-            ]
+            ],
         ),
         (
             "Exposer le serveur (développement)",
@@ -187,7 +206,7 @@ def show_github_guide():
                 "Installez ngrok : https://ngrok.com",
                 "Démarrez : ngrok http 8080",
                 "Copiez l'URL HTTPS fournie (ex: https://abc123.ngrok.io)",
-            ]
+            ],
         ),
         (
             "Ajouter le Webhook sur GitHub",
@@ -199,7 +218,7 @@ def show_github_guide():
                 "Secret       : <votre_webhook_secret>",
                 "Events       : ✅ Issues (cocher seulement 'Issues')",
                 "→ Add webhook",
-            ]
+            ],
         ),
         (
             "Tester le webhook",
@@ -207,7 +226,7 @@ def show_github_guide():
                 "Sur GitHub : Webhooks → votre webhook → Recent Deliveries",
                 "Cliquez 'Redeliver' sur le ping initial",
                 "Vous devriez voir {'status': 'pong'} dans la réponse",
-            ]
+            ],
         ),
         (
             "Configurer les labels GitHub",
@@ -220,7 +239,7 @@ def show_github_guide():
                 "  • severity:minor    (color: #FFA500) → 1 gemme",
                 "  • roadmap           (color: #9400D3) → 3 gemmes (idées)",
                 "  • accepted          (color: #1E90FF) → 2 gemmes (features)",
-            ]
+            ],
         ),
     ]
 
@@ -235,10 +254,10 @@ def show_github_guide():
             else:
                 print(f"    {substep}")
 
-    print(f"\n  {'─'*70}")
+    print(f"\n  {'─' * 70}")
     print(f"\n  {C.GREEN}{C.BOLD}🎉 Workflow complet :{C.RESET}")
-    print(f"  Utilisateur soumet un bug → Issue GitHub créée → Mainteneur valide")
-    print(f"  → Ajoute label 'gem-awarded' → Webhook → StoryCore → 💎 crédité")
+    print("  Utilisateur soumet un bug → Issue GitHub créée → Mainteneur valide")
+    print("  → Ajoute label 'gem-awarded' → Webhook → StoryCore → 💎 crédité")
     print()
     print("=" * 70)
 
@@ -246,6 +265,7 @@ def show_github_guide():
 # ─────────────────────────────────────────────
 # Test d'intégration rapide
 # ─────────────────────────────────────────────
+
 
 def run_quick_test():
     """Lance un test d'intégration rapide des composants GemReward."""
@@ -256,9 +276,11 @@ def run_quick_test():
     print(f"\n  {C.BOLD}1. Duplicate Checker{C.RESET}")
     try:
         from backend.duplicate_checker import (
-            compute_fingerprint, normalize_text,
-            extract_keywords, levenshtein_ratio
+            compute_fingerprint,
+            extract_keywords,
+            levenshtein_ratio,
         )
+
         fp1 = compute_fingerprint("Crash lors de la génération vidéo LTX2")
         fp2 = compute_fingerprint("Crash lors de la génération vidéo LTX2")  # identique
         fp3 = compute_fingerprint("Bug dans l'export MP4")
@@ -266,10 +288,14 @@ def run_quick_test():
         assert fp1 == fp2, "Même texte → même fingerprint"
         assert fp1 != fp3, "Textes différents → fingerprints différents"
 
-        score = levenshtein_ratio("crash in video generation", "crash video generation mode")
+        score = levenshtein_ratio(
+            "crash in video generation", "crash video generation mode"
+        )
         assert 0.0 < score < 1.0
 
-        keywords = extract_keywords("Crash lors de la génération vidéo avec LTX2 en mode Ultra")
+        keywords = extract_keywords(
+            "Crash lors de la génération vidéo avec LTX2 en mode Ultra"
+        )
         assert len(keywords) >= 2
 
         ok("compute_fingerprint (idempotent)")
@@ -304,13 +330,17 @@ def run_quick_test():
     # Test 3 : Contributor Auth (génération de clé)
     print(f"\n  {C.BOLD}3. Contributor Auth (API Key){C.RESET}")
     try:
-        from backend.contributor_auth import generate_agent_api_key, hash_api_key, is_agent_key
+        from backend.contributor_auth import (
+            generate_agent_api_key,
+            hash_api_key,
+            is_agent_key,
+        )
 
         full_key, prefix, key_hash = generate_agent_api_key()
 
         assert full_key.startswith("sc_agent_")
-        assert is_agent_key(full_key) == True
-        assert is_agent_key("eyJhbGci...") == False
+        assert is_agent_key(full_key)
+        assert not is_agent_key("eyJhbGci...")
         assert hash_api_key(full_key) == key_hash
         assert len(key_hash) == 64  # SHA256 hex = 64 chars
 
@@ -330,13 +360,13 @@ def run_quick_test():
 
         secret = "test_secret_123"
         body = b'{"action": "labeled", "issue": {"number": 42}}'
-        correct_sig = "sha256=" + hmac.new(
-            secret.encode(), body, hashlib.sha256
-        ).hexdigest()
+        correct_sig = (
+            "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+        )
 
-        assert verify_github_signature(body, correct_sig, secret) == True
-        assert verify_github_signature(body, "sha256=badvalue", secret) == False
-        assert verify_github_signature(body, None, secret) == False
+        assert verify_github_signature(body, correct_sig, secret)
+        assert not verify_github_signature(body, "sha256=badvalue", secret)
+        assert not verify_github_signature(body, None, secret)
 
         ok("Signature valide acceptée")
         ok("Signature invalide rejetée")
@@ -345,7 +375,7 @@ def run_quick_test():
     except Exception as e:
         err(f"Webhook : {e}")
 
-    print(f"\n  {'─'*60}")
+    print(f"\n  {'─' * 60}")
     print(f"  {C.GREEN}{C.BOLD}Tests terminés{C.RESET}")
     print("=" * 60)
 
@@ -393,10 +423,14 @@ if __name__ == "__main__":
         choice = input("  Votre choix : ").strip().lower()
         print()
 
-        if choice == "1":   generate_webhook_secret()
-        elif choice == "2": check_configuration()
-        elif choice == "3": show_github_guide()
-        elif choice == "4": run_quick_test()
+        if choice == "1":
+            generate_webhook_secret()
+        elif choice == "2":
+            check_configuration()
+        elif choice == "3":
+            show_github_guide()
+        elif choice == "4":
+            run_quick_test()
         elif choice == "5":
             generate_webhook_secret()
             check_configuration()

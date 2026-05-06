@@ -1,6 +1,8 @@
 /**
  * Tests for SequenceService
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { sequenceService, SequenceData } from '../sequenceService';
@@ -11,13 +13,13 @@ describe('SequenceService', () => {
     vi.clearAllMocks();
     
     // Clear window.electronAPI
-    (window as any).electronAPI = undefined;
+    (window as LegacyAny).electronAPI = undefined;
   });
 
   describe('Environment Detection', () => {
     it('should detect Electron environment when API is available', () => {
       // Mock Electron API
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           readdir: vi.fn(),
           readFile: vi.fn(),
@@ -26,15 +28,15 @@ describe('SequenceService', () => {
       };
 
       // Access private method via type assertion
-      const isElectron = (sequenceService as any).isElectronAvailable();
+      const isElectron = (sequenceService as LegacyAny).isElectronAvailable();
       expect(isElectron).toBe(true);
     });
 
     it('should detect Web environment when Electron API is not available', () => {
       // No Electron API
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
-      const isElectron = (sequenceService as any).isElectronAvailable();
+      const isElectron = (sequenceService as LegacyAny).isElectronAvailable();
       expect(isElectron).toBe(false);
     });
   });
@@ -42,7 +44,7 @@ describe('SequenceService', () => {
   describe('Load Sequences - Web Mode', () => {
     beforeEach(() => {
       // Ensure we're in web mode
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
       
       // Mock fetch
       global.fetch = vi.fn();
@@ -61,7 +63,7 @@ describe('SequenceService', () => {
         },
       ];
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ sequences: mockSequences, total: 1 }),
       });
@@ -75,7 +77,7 @@ describe('SequenceService', () => {
     });
 
     it('should handle API errors gracefully', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: false,
         statusText: 'Not Found',
       });
@@ -89,7 +91,7 @@ describe('SequenceService', () => {
   describe('Load Sequences - Electron Mode', () => {
     beforeEach(() => {
       // Mock Electron API
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           readdir: vi.fn(),
           readFile: vi.fn(),
@@ -109,18 +111,18 @@ describe('SequenceService', () => {
       };
 
       // Mock file system operations
-      (window as any).electronAPI.fs.readdir.mockResolvedValueOnce([
+      (window as LegacyAny).electronAPI.fs.readdir.mockResolvedValueOnce([
         'sequence_001.json',
         'other_file.txt',
       ]);
 
       const encoder = new TextEncoder();
       const buffer = encoder.encode(JSON.stringify(mockSequenceData));
-      (window as any).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
+      (window as LegacyAny).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
 
       const result = await sequenceService.loadSequences('/test/project');
 
-      expect((window as any).electronAPI.fs.readdir).toHaveBeenCalledWith(
+      expect((window as LegacyAny).electronAPI.fs.readdir).toHaveBeenCalledWith(
         '/test/project/sequences'
       );
       expect(result).toHaveLength(1);
@@ -128,7 +130,7 @@ describe('SequenceService', () => {
     });
 
     it('should filter non-sequence files', async () => {
-      (window as any).electronAPI.fs.readdir.mockResolvedValueOnce([
+      (window as LegacyAny).electronAPI.fs.readdir.mockResolvedValueOnce([
         'sequence_001.json',
         'readme.txt',
         'config.json',
@@ -146,12 +148,12 @@ describe('SequenceService', () => {
 
       const encoder = new TextEncoder();
       const buffer = encoder.encode(JSON.stringify(mockSequenceData));
-      (window as any).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
+      (window as LegacyAny).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
 
       const result = await sequenceService.loadSequences('/test/project');
 
       // Should only read sequence files
-      expect((window as any).electronAPI.fs.readFile).toHaveBeenCalledTimes(1);
+      expect((window as LegacyAny).electronAPI.fs.readFile).toHaveBeenCalledTimes(1);
       expect(result).toHaveLength(1);
     });
 
@@ -166,13 +168,13 @@ describe('SequenceService', () => {
         // Missing shot_ids
       };
 
-      (window as any).electronAPI.fs.readdir.mockResolvedValueOnce([
+      (window as LegacyAny).electronAPI.fs.readdir.mockResolvedValueOnce([
         'sequence_001.json',
       ]);
 
       const encoder = new TextEncoder();
       const buffer = encoder.encode(JSON.stringify(mockSequenceData));
-      (window as any).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
+      (window as LegacyAny).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
 
       const result = await sequenceService.loadSequences('/test/project');
 
@@ -186,7 +188,7 @@ describe('SequenceService', () => {
         { id: '2', order: 2, name: 'Seq 2', duration: 0, shots_count: 0, resume: '', shot_ids: [] },
       ];
 
-      (window as any).electronAPI.fs.readdir.mockResolvedValueOnce([
+      (window as LegacyAny).electronAPI.fs.readdir.mockResolvedValueOnce([
         'sequence_003.json',
         'sequence_001.json',
         'sequence_002.json',
@@ -195,7 +197,7 @@ describe('SequenceService', () => {
       const encoder = new TextEncoder();
       sequences.forEach((seq) => {
         const buffer = encoder.encode(JSON.stringify(seq));
-        (window as any).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
+        (window as LegacyAny).electronAPI.fs.readFile.mockResolvedValueOnce(buffer);
       });
 
       const result = await sequenceService.loadSequences('/test/project');
@@ -208,7 +210,7 @@ describe('SequenceService', () => {
 
   describe('Get Sequence', () => {
     it('should get a specific sequence in Web mode', async () => {
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
       const mockSequence: SequenceData = {
         id: '1',
@@ -231,7 +233,7 @@ describe('SequenceService', () => {
     });
 
     it('should return null when sequence not found', async () => {
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: false,
@@ -246,7 +248,7 @@ describe('SequenceService', () => {
 
   describe('Create Sequence', () => {
     it('should create a sequence in Web mode', async () => {
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
       const newSequence: SequenceData = {
         id: '1',
@@ -278,7 +280,7 @@ describe('SequenceService', () => {
 
   describe('Update Sequence', () => {
     it('should update a sequence in Web mode', async () => {
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
       const updatedSequence: SequenceData = {
         id: '1',
@@ -309,7 +311,7 @@ describe('SequenceService', () => {
 
   describe('Delete Sequence', () => {
     it('should delete a sequence in Web mode', async () => {
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
@@ -326,7 +328,7 @@ describe('SequenceService', () => {
     });
 
     it('should handle delete errors', async () => {
-      (window as any).electronAPI = undefined;
+      (window as LegacyAny).electronAPI = undefined;
 
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: false,

@@ -3,7 +3,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, _vi } from 'vitest';
 import { useModalState } from '../useModalState';
 import type { ModalSchema } from '@/types/modal';
 

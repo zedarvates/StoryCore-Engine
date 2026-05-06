@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { useAppSelector, useAppDispatch } from '../../store';
 import { setActiveKeyframeEditor, addKeyframe, removeKeyframe, updateKeyframe } from '../../store/slices/timelineSlice';
@@ -44,8 +45,8 @@ export const KeyframeEditorOverlay: React.FC = () => {
         </div>
         <div className="keyframe-editor-content">
           <KeyframeEditor
-            keyframes={keyframes as any}
-            onUpdateKeyframe={handleUpdateKeyframe as any}
+            keyframes={keyframes as LegacyAny}
+            onUpdateKeyframe={handleUpdateKeyframe as LegacyAny}
             onAddKeyframe={handleAddKeyframe}
             onRemoveKeyframe={handleRemoveKeyframe}
             propertyName={property}

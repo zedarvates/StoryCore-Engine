@@ -62,8 +62,8 @@ export interface TimelineInteractionHandlers {
   onShotMouseDown: (e: React.MouseEvent, shotId: string, layerId?: string) => void;
   onShotDoubleClick: (e: React.MouseEvent, shotId: string, layerId?: string) => void;
   onShotContextMenu: (e: React.MouseEvent, shotId: string, layerId?: string) => void;
-  onMouseMove: (e: React.MouseEvent) => void;
-  onMouseUp: (e: React.MouseEvent) => void;
+  onMouseMove: (e: React.MouseEvent | MouseEvent) => void;
+  onMouseUp: (e: React.MouseEvent | MouseEvent) => void;
   getCursorForPosition: (x: number, shotId: string) => string;
 }
 
@@ -107,9 +107,25 @@ export function useTimelineInteractions(
     dragStartX: 0,
     dragStartFrame: 0,
   });
-
-  // Track initial shot state during resize
+  
+  // Create refs for values needed in high-frequency handlers
+  const interactionStateRef = useRef(interactionState);
+  const shotsRef = useRef(shots);
+  const zoomLevelRef = useRef(zoomLevel);
   const initialShotRef = useRef<{ startTime: number; duration: number } | null>(null);
+
+  // Keep refs in sync
+  useEffect(() => {
+    interactionStateRef.current = interactionState;
+  }, [interactionState]);
+
+  useEffect(() => {
+    shotsRef.current = shots;
+  }, [shots]);
+
+  useEffect(() => {
+    zoomLevelRef.current = zoomLevel;
+  }, [zoomLevel]);
 
   // ============================================================================
   // Edge Detection
@@ -117,11 +133,12 @@ export function useTimelineInteractions(
 
   const getEdgeFromPosition = useCallback(
     (x: number, shotId: string): ResizeEdge => {
-      const shot = shots.find((s) => s.id === shotId);
+      const shot = shotsRef.current.find((s: Shot) => s.id === shotId);
       if (!shot || shot.layers.some((l) => l.locked)) return null;
 
-      const shotStartX = shot.startTime * zoomLevel;
-      const shotEndX = (shot.startTime + shot.duration) * zoomLevel;
+      const currentZoom = zoomLevelRef.current;
+      const shotStartX = shot.startTime * currentZoom;
+      const shotEndX = (shot.startTime + shot.duration) * currentZoom;
 
       // Check if near start edge
       if (Math.abs(x - shotStartX) < RESIZE_EDGE_THRESHOLD) {
@@ -135,7 +152,7 @@ export function useTimelineInteractions(
 
       return null;
     },
-    [shots, zoomLevel]
+    []
   );
 
   const getCursorForPosition = useCallback(
@@ -155,7 +172,7 @@ export function useTimelineInteractions(
     (e: React.MouseEvent, shotId: string, layerId?: string) => {
       e.stopPropagation();
 
-      const shot = shots.find((s) => s.id === shotId);
+      const shot = shotsRef.current.find((s: Shot) => s.id === shotId);
       if (!shot) return;
 
       // Check if layer is locked
@@ -164,7 +181,7 @@ export function useTimelineInteractions(
         if (layer?.locked) return;
       }
 
-      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
       const x = e.clientX - rect.left + scrollLeft;
 
       // Check for resize edge
@@ -199,14 +216,14 @@ export function useTimelineInteractions(
         });
       }
     },
-    [shots, scrollLeft, getEdgeFromPosition, dispatch]
+    [scrollLeft, getEdgeFromPosition, dispatch]
   );
 
   const onShotDoubleClick = useCallback(
     (e: React.MouseEvent, shotId: string, layerId?: string) => {
       e.stopPropagation();
 
-      const shot = shots.find((s) => s.id === shotId);
+      const shot = shotsRef.current.find((s: Shot) => s.id === shotId);
       if (!shot) return;
 
       // Find the relevant layer
@@ -232,10 +249,10 @@ export function useTimelineInteractions(
       } else if (layer.type === 'audio') {
         // Check if it's speech data
         const audioData = layer.data;
-        if ('text' in audioData) {
+        if (audioData && typeof audioData === 'object' && 'text' in audioData) {
           // It's speech/TTS
           if (onOpenSpeechConfigDialog) {
-            const speechData = audioData as SpeechLayerData;
+            const speechData = audioData as unknown as SpeechLayerData;
             onOpenSpeechConfigDialog(shotId, layer.id, {
               characterId: speechData.characterId,
               characterName: speechData.characterName,
@@ -254,7 +271,7 @@ export function useTimelineInteractions(
         console.log('[TimelineInteraction] Double-click on layer type:', layer.type);
       }
     },
-    [shots, onOpenVideoExtensionDialog, onOpenSpeechConfigDialog]
+    [onOpenVideoExtensionDialog, onOpenSpeechConfigDialog]
   );
 
   const onShotContextMenu = useCallback(
@@ -262,7 +279,7 @@ export function useTimelineInteractions(
       e.preventDefault();
       e.stopPropagation();
 
-      const shot = shots.find((s) => s.id === shotId);
+      const shot = shotsRef.current.find((s: Shot) => s.id === shotId);
       if (!shot) return;
 
       // Select the shot if not already selected
@@ -286,7 +303,7 @@ export function useTimelineInteractions(
         );
       }
     },
-    [shots, selectedElements, dispatch, onOpenContextMenu]
+    [selectedElements, dispatch, onOpenContextMenu]
   );
 
   // ============================================================================
@@ -294,15 +311,16 @@ export function useTimelineInteractions(
   // ============================================================================
 
   const onMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      if (interactionState.isResizing && interactionState.resizingShotId) {
-        const shot = shots.find((s) => s.id === interactionState.resizingShotId);
+    (e: { clientX: number }) => {
+      const state = interactionStateRef.current;
+      if (state.isResizing && state.resizingShotId) {
+        const shot = shotsRef.current.find((s: Shot) => s.id === state.resizingShotId);
         if (!shot || !initialShotRef.current) return;
 
-        const deltaX = e.clientX - interactionState.dragStartX;
-        const deltaFrames = Math.round(deltaX / zoomLevel);
+        const deltaX = e.clientX - state.dragStartX;
+        const deltaFrames = Math.round(deltaX / zoomLevelRef.current);
 
-        if (interactionState.resizeEdge === 'start') {
+        if (state.resizeEdge === 'start') {
           // Resizing start edge
           const newStartTime = Math.max(
             0,
@@ -321,7 +339,7 @@ export function useTimelineInteractions(
               })
             );
           }
-        } else if (interactionState.resizeEdge === 'end') {
+        } else if (state.resizeEdge === 'end') {
           // Resizing end edge
           const newDuration = Math.max(
             MIN_DURATION,
@@ -337,21 +355,17 @@ export function useTimelineInteractions(
             })
           );
         }
-      } else if (interactionState.isDragging) {
+      } else if (state.isDragging) {
         // Handle drag move if needed
-        const deltaX = e.clientX - interactionState.dragStartX;
-        const deltaFrames = Math.round(deltaX / zoomLevel);
-
-        // This could update shot position during drag
-        // For now, we just track the state
       }
     },
-    [interactionState, shots, zoomLevel, dispatch]
+    [dispatch]
   );
 
   const onMouseUp = useCallback(
-    (e: React.MouseEvent) => {
-      if (interactionState.isResizing || interactionState.isDragging) {
+    () => {
+      const state = interactionStateRef.current;
+      if (state.isResizing || state.isDragging) {
         setInteractionState({
           isResizing: false,
           resizeEdge: null,
@@ -364,7 +378,7 @@ export function useTimelineInteractions(
         initialShotRef.current = null;
       }
     },
-    [interactionState]
+    []
   );
 
   // ============================================================================
@@ -373,16 +387,16 @@ export function useTimelineInteractions(
 
   useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (interactionState.isResizing || interactionState.isDragging) {
-        onMouseMove(e as unknown as React.MouseEvent);
-      }
+      onMouseMove(e);
     };
 
-    const handleGlobalMouseUp = (e: MouseEvent) => {
-      onMouseUp(e as unknown as React.MouseEvent);
+    const handleGlobalMouseUp = () => {
+      onMouseUp();
     };
 
-    if (interactionState.isResizing || interactionState.isDragging) {
+    const isActive = interactionState.isResizing || interactionState.isDragging;
+    
+    if (isActive) {
       window.addEventListener('mousemove', handleGlobalMouseMove);
       window.addEventListener('mouseup', handleGlobalMouseUp);
     }

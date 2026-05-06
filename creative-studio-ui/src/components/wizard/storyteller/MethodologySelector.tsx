@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Methodology Selector Component
 // UI for selecting story creation methodology
@@ -371,8 +372,8 @@ export function MethodologySelector({
   selectedMethodology,
   onMethodologyChange,
   options,
-  onOptionsChange,
-  writingStyle,
+  _onOptionsChange,
+  _writingStyle,
   onWritingStyleChange,
   settings,
   onSettingsChange,
@@ -385,7 +386,7 @@ export function MethodologySelector({
     if (disabled) return;
     onMethodologyChange(type);
     // Reset options to defaults for new methodology
-    const defaults = methodologyFactory.getDefaultOptions(type as any);
+    const defaults = methodologyFactory.getDefaultOptions(type as LegacyAny);
     onOptionsChange(defaults);
   };
   

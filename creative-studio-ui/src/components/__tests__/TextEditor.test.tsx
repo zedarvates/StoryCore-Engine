@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TextEditor } from '../TextEditor';
@@ -50,7 +51,7 @@ describe('TextEditor', () => {
 
   describe('No Text Layer Selected', () => {
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           selectedTextLayerId: null,
           updateTextLayer: mockUpdateTextLayer,
@@ -73,7 +74,7 @@ describe('TextEditor', () => {
     const shot = createMockShot('shot-1', []);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           selectedTextLayerId: 'non-existent-layer',
           updateTextLayer: mockUpdateTextLayer,
@@ -97,7 +98,7 @@ describe('TextEditor', () => {
     const shot = createMockShot('shot-1', [textLayer]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           selectedTextLayerId: 'text-layer-1',
           updateTextLayer: mockUpdateTextLayer,
@@ -235,7 +236,7 @@ describe('TextEditor', () => {
     const shot = createMockShot('shot-1', [textLayer]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           selectedTextLayerId: 'text-layer-1',
           updateTextLayer: mockUpdateTextLayer,
@@ -281,7 +282,7 @@ describe('TextEditor', () => {
     const shot = createMockShot('shot-1', [textLayer]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           selectedTextLayerId: 'text-layer-1',
           updateTextLayer: mockUpdateTextLayer,
@@ -305,7 +306,7 @@ describe('TextEditor', () => {
     const shot = createMockShot('shot-1', [textLayer]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           selectedTextLayerId: 'text-layer-1',
           updateTextLayer: mockUpdateTextLayer,
@@ -340,7 +341,7 @@ describe('TextEditor', () => {
       const shot = createMockShot('shot-1', [textLayer]);
 
       beforeEach(() => {
-        vi.mocked(useStore).mockImplementation((selector: any) => {
+        vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
           const state = {
             selectedTextLayerId: 'text-layer-1',
             updateTextLayer: mockUpdateTextLayer,
@@ -397,7 +398,7 @@ describe('TextEditor', () => {
       const shot = createMockShot('shot-1', [textLayer]);
 
       beforeEach(() => {
-        vi.mocked(useStore).mockImplementation((selector: any) => {
+        vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
           const state = {
             selectedTextLayerId: 'text-layer-1',
             updateTextLayer: mockUpdateTextLayer,

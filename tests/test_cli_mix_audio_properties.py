@@ -4,10 +4,8 @@ Property-based tests for CLI mix-audio commands.
 Tests universal properties for audio mixing parameter handling and output formatting.
 """
 
-import pytest
-import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from hypothesis import given, strategies as st, settings, HealthCheck
 from hypothesis.strategies import composite
 import sys
@@ -23,14 +21,26 @@ from cli.handlers.mix_audio import MixAudioHandler
 @composite
 def valid_project_paths(draw):
     """Generate valid project directory paths."""
-    base_name = draw(st.text(alphabet=st.characters(whitelist_categories=['L', 'N']), min_size=1, max_size=10))
+    base_name = draw(
+        st.text(
+            alphabet=st.characters(whitelist_categories=["L", "N"]),
+            min_size=1,
+            max_size=10,
+        )
+    )
     return f"/tmp/test_project_{base_name}"
 
 
 @composite
 def audio_file_paths(draw):
     """Generate valid audio file paths."""
-    filename = draw(st.text(alphabet=st.characters(whitelist_categories=['L', 'N']), min_size=1, max_size=8))
+    filename = draw(
+        st.text(
+            alphabet=st.characters(whitelist_categories=["L", "N"]),
+            min_size=1,
+            max_size=8,
+        )
+    )
     extension = draw(st.sampled_from(["wav", "mp3", "flac"]))
     return f"/tmp/audio_{filename}.{extension}"
 
@@ -42,7 +52,7 @@ def mixing_parameters(draw):
         "music_reduction_db": draw(st.floats(min_value=-24.0, max_value=0.0)),
         "keyframe_offset": draw(st.floats(min_value=0.1, max_value=2.0)),
         "crossfade_duration": draw(st.floats(min_value=0.5, max_value=5.0)),
-        "fill_gaps": draw(st.booleans())
+        "fill_gaps": draw(st.booleans()),
     }
 
 
@@ -55,9 +65,21 @@ def output_formats(draw):
 class TestCLIMixAudioProperties:
     """Property-based tests for CLI mix-audio commands."""
 
-    @given(valid_project_paths(), st.one_of(st.none(), audio_file_paths()), st.one_of(st.none(), audio_file_paths()), mixing_parameters(), output_formats())
-    @settings(max_examples=20, deadline=5000, suppress_health_check=[HealthCheck.data_too_large])
-    def test_property_31_mix_audio_parameter_handling(self, project_path, voice_track, music_track, params, format_type):
+    @given(
+        valid_project_paths(),
+        st.one_of(st.none(), audio_file_paths()),
+        st.one_of(st.none(), audio_file_paths()),
+        mixing_parameters(),
+        output_formats(),
+    )
+    @settings(
+        max_examples=20,
+        deadline=5000,
+        suppress_health_check=[HealthCheck.data_too_large],
+    )
+    def test_property_31_mix_audio_parameter_handling(
+        self, project_path, voice_track, music_track, params, format_type
+    ):
         """
         Property 31: Mix-Audio Parameter Handling
         For any valid combination of mix-audio parameters, the command should
@@ -79,14 +101,23 @@ class TestCLIMixAudioProperties:
         args.fill_gaps = params["fill_gaps"]
 
         # Mock file system and audio processing
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.mix_audio.MixAudioHandler._load_audio_file') as mock_load, \
-             patch('cli.handlers.mix_audio.MixAudioHandler._save_audio_file') as mock_save, \
-             patch('builtins.print') as mock_print, \
-             patch('json.dumps') as mock_json_dumps:
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.mix_audio.MixAudioHandler._load_audio_file"
+            ) as mock_load,
+            patch(
+                "cli.handlers.mix_audio.MixAudioHandler._save_audio_file"
+            ) as mock_save,
+            patch("builtins.print") as mock_print,
+            patch("json.dumps") as mock_json_dumps,
+        ):
             # Mock audio loading
-            mock_load.return_value = {"samples": None, "sample_rate": 44100, "duration": 10.0}
+            mock_load.return_value = {
+                "samples": None,
+                "sample_rate": 44100,
+                "duration": 10.0,
+            }
 
             # Mock JSON output
             mock_json_dumps.return_value = '{"test": "json_output"}'
@@ -115,11 +146,15 @@ class TestCLIMixAudioProperties:
 
             except Exception as e:
                 # Parameters should not cause unhandled crashes
-                assert isinstance(e, (SystemExit, Exception)), f"Unexpected error type: {type(e)}"
+                assert isinstance(e, (SystemExit, Exception)), (
+                    f"Unexpected error type: {type(e)}"
+                )
 
     @given(valid_project_paths(), st.booleans(), output_formats())
     @settings(max_examples=15, deadline=3000)
-    def test_property_32_mix_audio_exit_codes(self, project_path, has_processing_errors, format_type):
+    def test_property_32_mix_audio_exit_codes(
+        self, project_path, has_processing_errors, format_type
+    ):
         """
         Property 32: Mix-Audio Exit Codes
         The mix-audio command should return exit code 0 for successful mixing
@@ -140,31 +175,49 @@ class TestCLIMixAudioProperties:
         args.crossfade_duration = 1.0
         args.fill_gaps = False
 
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.mix_audio.MixAudioHandler._load_audio_file') as mock_load, \
-             patch('cli.handlers.mix_audio.MixAudioHandler._save_audio_file') as mock_save, \
-             patch('builtins.print'), \
-             patch('json.dumps'):
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.mix_audio.MixAudioHandler._load_audio_file"
+            ) as mock_load,
+            patch("cli.handlers.mix_audio.MixAudioHandler._save_audio_file"),
+            patch("builtins.print"),
+            patch("json.dumps"),
+        ):
             if has_processing_errors:
                 # Simulate processing error (e.g., missing audio files)
                 mock_load.side_effect = FileNotFoundError("Audio file not found")
             else:
                 # Simulate successful processing
-                mock_load.return_value = {"samples": None, "sample_rate": 44100, "duration": 10.0}
+                mock_load.return_value = {
+                    "samples": None,
+                    "sample_rate": 44100,
+                    "duration": 10.0,
+                }
 
             # Execute handler
             exit_code = handler.execute(args)
 
             # Verify exit code logic
             if has_processing_errors:
-                assert exit_code == 1, f"Should return 1 for processing errors, got {exit_code}"
+                assert exit_code == 1, (
+                    f"Should return 1 for processing errors, got {exit_code}"
+                )
             else:
-                assert exit_code == 0, f"Should return 0 for successful mixing, got {exit_code}"
+                assert exit_code == 0, (
+                    f"Should return 0 for successful mixing, got {exit_code}"
+                )
 
-    @given(valid_project_paths(), st.sampled_from(["human", "json"]), st.booleans(), st.booleans())
+    @given(
+        valid_project_paths(),
+        st.sampled_from(["human", "json"]),
+        st.booleans(),
+        st.booleans(),
+    )
     @settings(max_examples=15, deadline=3000)
-    def test_property_33_mix_audio_output_formatting(self, project_path, format_type, has_voice_track, has_music_track):
+    def test_property_33_mix_audio_output_formatting(
+        self, project_path, format_type, has_voice_track, has_music_track
+    ):
         """
         Property 33: Mix-Audio Output Formatting
         For any mix-audio operation and format selection, the command should produce
@@ -185,14 +238,21 @@ class TestCLIMixAudioProperties:
         args.crossfade_duration = 1.0
         args.fill_gaps = False
 
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.mix_audio.MixAudioHandler._load_audio_file') as mock_load, \
-             patch('cli.handlers.mix_audio.MixAudioHandler._save_audio_file'), \
-             patch('builtins.print') as mock_print, \
-             patch('json.dumps') as mock_json_dumps:
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.mix_audio.MixAudioHandler._load_audio_file"
+            ) as mock_load,
+            patch("cli.handlers.mix_audio.MixAudioHandler._save_audio_file"),
+            patch("builtins.print") as mock_print,
+            patch("json.dumps") as mock_json_dumps,
+        ):
             # Mock successful audio processing
-            mock_load.return_value = {"samples": None, "sample_rate": 44100, "duration": 10.0}
+            mock_load.return_value = {
+                "samples": None,
+                "sample_rate": 44100,
+                "duration": 10.0,
+            }
             mock_json_dumps.return_value = '{"success": true, "operations": []}'
 
             # Execute handler
@@ -206,7 +266,9 @@ class TestCLIMixAudioProperties:
                 call_args = mock_json_dumps.call_args
                 if call_args:
                     json_data = call_args[0][0]
-                    assert isinstance(json_data, dict), "JSON output should be a dictionary"
+                    assert isinstance(json_data, dict), (
+                        "JSON output should be a dictionary"
+                    )
                     assert "success" in json_data, "JSON should contain success status"
             else:
                 # Human format should produce readable output
@@ -214,7 +276,9 @@ class TestCLIMixAudioProperties:
 
             # Verify exit code for successful operation (when tracks provided)
             if has_voice_track and has_music_track:
-                assert exit_code == 0, f"Should succeed with valid inputs, got {exit_code}"
+                assert exit_code == 0, (
+                    f"Should succeed with valid inputs, got {exit_code}"
+                )
             else:
                 # Without both tracks, might still succeed (for gap filling, etc.)
                 assert exit_code in [0, 1], f"Unexpected exit code: {exit_code}"
@@ -245,8 +309,16 @@ def test_cli_mix_audio_parameter_ranges():
 
     # Test various parameter combinations
     test_cases = [
-        {"music_reduction_db": -12.0, "keyframe_offset": 0.5, "crossfade_duration": 1.0},
-        {"music_reduction_db": -24.0, "keyframe_offset": 0.1, "crossfade_duration": 0.5},
+        {
+            "music_reduction_db": -12.0,
+            "keyframe_offset": 0.5,
+            "crossfade_duration": 1.0,
+        },
+        {
+            "music_reduction_db": -24.0,
+            "keyframe_offset": 0.1,
+            "crossfade_duration": 0.5,
+        },
         {"music_reduction_db": 0.0, "keyframe_offset": 2.0, "crossfade_duration": 5.0},
     ]
 
@@ -262,14 +334,20 @@ def test_cli_mix_audio_parameter_ranges():
         args.crossfade_duration = params["crossfade_duration"]
         args.fill_gaps = False
 
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.mix_audio.MixAudioHandler._load_audio_file', return_value={"samples": None, "sample_rate": 44100, "duration": 10.0}), \
-             patch('cli.handlers.mix_audio.MixAudioHandler._save_audio_file'), \
-             patch('builtins.print'):
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.mix_audio.MixAudioHandler._load_audio_file",
+                return_value={"samples": None, "sample_rate": 44100, "duration": 10.0},
+            ),
+            patch("cli.handlers.mix_audio.MixAudioHandler._save_audio_file"),
+            patch("builtins.print"),
+        ):
             # Should handle parameter ranges without crashing
             exit_code = handler.execute(args)
-            assert exit_code in [0, 1], f"Failed with params {params}: exit code {exit_code}"
+            assert exit_code in [0, 1], (
+                f"Failed with params {params}: exit code {exit_code}"
+            )
 
     print("✓ CLI mix-audio parameter range tests passed")
 

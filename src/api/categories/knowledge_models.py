@@ -14,6 +14,7 @@ from enum import Enum
 
 class KnowledgeType(str, Enum):
     """Types of knowledge items."""
+
     FACT = "fact"
     CONCEPT = "concept"
     RULE = "rule"
@@ -25,6 +26,7 @@ class KnowledgeType(str, Enum):
 
 class RelationshipType(str, Enum):
     """Types of relationships between knowledge items."""
+
     IS_A = "is_a"
     HAS_A = "has_a"
     PART_OF = "part_of"
@@ -37,6 +39,7 @@ class RelationshipType(str, Enum):
 
 class ConsistencyStatus(str, Enum):
     """Knowledge consistency status."""
+
     CONSISTENT = "consistent"
     INCONSISTENT = "inconsistent"
     UNKNOWN = "unknown"
@@ -45,6 +48,7 @@ class ConsistencyStatus(str, Enum):
 
 class ExportFormat(str, Enum):
     """Knowledge export formats."""
+
     JSON = "json"
     YAML = "yaml"
     MARKDOWN = "markdown"
@@ -55,6 +59,7 @@ class ExportFormat(str, Enum):
 @dataclass
 class KnowledgeItem:
     """A single knowledge item."""
+
     id: str
     content: str
     knowledge_type: str
@@ -64,7 +69,7 @@ class KnowledgeItem:
     updated_at: datetime = field(default_factory=datetime.now)
     source: Optional[str] = None
     confidence: float = 1.0  # 0.0 to 1.0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -83,12 +88,13 @@ class KnowledgeItem:
 @dataclass
 class KnowledgeRelationship:
     """A relationship between two knowledge items."""
+
     from_id: str
     to_id: str
     relationship_type: str
     strength: float = 1.0  # 0.0 to 1.0
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -103,10 +109,11 @@ class KnowledgeRelationship:
 @dataclass
 class KnowledgeGraph:
     """A knowledge graph containing items and relationships."""
+
     items: List[KnowledgeItem]
     relationships: List[KnowledgeRelationship]
     metadata: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -119,6 +126,7 @@ class KnowledgeGraph:
 @dataclass
 class KnowledgeAddRequest:
     """Request for adding knowledge items."""
+
     items: List[Dict[str, Any]]
     auto_link: bool = True  # Automatically create relationships
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -127,6 +135,7 @@ class KnowledgeAddRequest:
 @dataclass
 class KnowledgeAddResult:
     """Result of adding knowledge items."""
+
     added_count: int
     items: List[KnowledgeItem]
     auto_linked_count: int = 0
@@ -137,6 +146,7 @@ class KnowledgeAddResult:
 @dataclass
 class KnowledgeSearchRequest:
     """Request for searching knowledge base."""
+
     query: str
     knowledge_types: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
@@ -149,6 +159,7 @@ class KnowledgeSearchRequest:
 @dataclass
 class KnowledgeSearchResult:
     """Result of knowledge search."""
+
     query: str
     results: List[KnowledgeItem]
     total_count: int
@@ -159,6 +170,7 @@ class KnowledgeSearchResult:
 @dataclass
 class KnowledgeUpdateRequest:
     """Request for updating knowledge items."""
+
     item_id: str
     updates: Dict[str, Any]
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -167,6 +179,7 @@ class KnowledgeUpdateRequest:
 @dataclass
 class KnowledgeUpdateResult:
     """Result of updating knowledge item."""
+
     updated: bool
     item: Optional[KnowledgeItem] = None
     update_time_ms: float = 0.0
@@ -176,6 +189,7 @@ class KnowledgeUpdateResult:
 @dataclass
 class KnowledgeDeleteRequest:
     """Request for deleting knowledge items."""
+
     item_ids: List[str]
     cascade: bool = False  # Delete related items
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -184,6 +198,7 @@ class KnowledgeDeleteRequest:
 @dataclass
 class KnowledgeDeleteResult:
     """Result of deleting knowledge items."""
+
     deleted_count: int
     deleted_ids: List[str]
     cascaded_count: int = 0
@@ -194,6 +209,7 @@ class KnowledgeDeleteResult:
 @dataclass
 class KnowledgeGraphBuildRequest:
     """Request for building knowledge graph."""
+
     item_ids: Optional[List[str]] = None  # None = all items
     include_relationships: bool = True
     max_depth: int = 3
@@ -203,6 +219,7 @@ class KnowledgeGraphBuildRequest:
 @dataclass
 class KnowledgeGraphBuildResult:
     """Result of building knowledge graph."""
+
     graph: KnowledgeGraph
     item_count: int
     relationship_count: int
@@ -213,6 +230,7 @@ class KnowledgeGraphBuildResult:
 @dataclass
 class KnowledgeVerifyRequest:
     """Request for verifying knowledge consistency."""
+
     item_ids: Optional[List[str]] = None  # None = all items
     check_contradictions: bool = True
     check_completeness: bool = True
@@ -222,12 +240,13 @@ class KnowledgeVerifyRequest:
 @dataclass
 class ConsistencyIssue:
     """A consistency issue found during verification."""
+
     issue_type: str
     severity: str  # "critical", "warning", "info"
     description: str
     affected_items: List[str]
     suggestion: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -242,6 +261,7 @@ class ConsistencyIssue:
 @dataclass
 class KnowledgeVerifyResult:
     """Result of knowledge verification."""
+
     status: str  # "consistent", "inconsistent", "needs_review"
     issues: List[ConsistencyIssue]
     items_checked: int
@@ -252,6 +272,7 @@ class KnowledgeVerifyResult:
 @dataclass
 class KnowledgeExportRequest:
     """Request for exporting knowledge base."""
+
     format: str = "json"
     item_ids: Optional[List[str]] = None  # None = all items
     include_relationships: bool = True
@@ -262,6 +283,7 @@ class KnowledgeExportRequest:
 @dataclass
 class KnowledgeExportResult:
     """Result of knowledge export."""
+
     format: str
     content: str
     item_count: int

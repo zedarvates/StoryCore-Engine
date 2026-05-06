@@ -22,12 +22,12 @@ Exit Codes:
 
 Example Output:
     ✓ ComfyUI Connection Test PASSED
-    
+
     Connection Details:
     - URL: http://localhost:8188
     - Status: Connected
     - Response Time: 0.23s
-    
+
     Server Information:
     - System Stats Available: Yes
     - Server Responding: Yes
@@ -76,40 +76,40 @@ def print_info(label: str, value: str):
 async def test_connection(url: str, timeout: int) -> bool:
     """
     Test connection to ComfyUI server.
-    
+
     Args:
         url: ComfyUI server URL
         timeout: Connection timeout in seconds
-    
+
     Returns:
         True if connection successful, False otherwise
     """
     print_info("Testing URL", url)
     print_info("Timeout", f"{timeout}s")
     print()
-    
+
     connection = ComfyUIConnectionManager(base_url=url, timeout=timeout)
-    
+
     try:
         # Measure connection time
         start_time = time.time()
-        
+
         # Attempt connection
         print("Connecting to ComfyUI server...")
         await connection.connect()
-        
+
         connection_time = time.time() - start_time
         print_success("Connection established")
         print()
-        
+
         # Check health
         print("Checking server health...")
         health_data = await connection.check_health()
-        
+
         health_time = time.time() - start_time
         print_success("Health check passed")
         print()
-        
+
         # Print results
         print_success("ComfyUI Connection Test PASSED")
         print()
@@ -119,27 +119,27 @@ async def test_connection(url: str, timeout: int) -> bool:
         print_info("Connection Time", f"{connection_time:.2f}s")
         print_info("Total Response Time", f"{health_time:.2f}s")
         print()
-        
+
         print("Server Information:")
         print_info("System Stats Available", "Yes")
         print_info("Server Responding", "Yes")
-        
+
         if health_data:
             # Print some health data if available
             if "system" in health_data:
                 system_info = health_data["system"]
                 if "os" in system_info:
                     print_info("Operating System", system_info["os"])
-            
+
             if "devices" in health_data:
                 devices = health_data["devices"]
                 if devices:
                     print_info("GPU Devices", str(len(devices)))
-        
+
         print()
-        
+
         return True
-    
+
     except ConnectionError as e:
         print_error("Connection failed")
         print()
@@ -153,7 +153,7 @@ async def test_connection(url: str, timeout: int) -> bool:
         print("  4. Check ComfyUI logs for errors")
         print()
         return False
-    
+
     except AuthenticationError as e:
         print_error("Authentication failed")
         print()
@@ -165,7 +165,7 @@ async def test_connection(url: str, timeout: int) -> bool:
         print("  2. Verify ComfyUI authentication settings")
         print()
         return False
-    
+
     except TimeoutError as e:
         print_error("Connection timed out")
         print()
@@ -178,7 +178,7 @@ async def test_connection(url: str, timeout: int) -> bool:
         print("  3. Verify network connectivity")
         print()
         return False
-    
+
     except Exception as e:
         print_error("Unexpected error occurred")
         print()
@@ -186,7 +186,7 @@ async def test_connection(url: str, timeout: int) -> bool:
         print(f"  {type(e).__name__}: {str(e)}")
         print()
         return False
-    
+
     finally:
         # Always close connection
         await connection.close()
@@ -206,31 +206,31 @@ Examples:
 Exit Codes:
   0 - Connection successful
   1 - Connection failed
-        """
+        """,
     )
-    
+
     parser.add_argument(
         "--url",
         type=str,
         default="http://localhost:8000",
-        help="ComfyUI server URL (default: http://localhost:8000)"
+        help="ComfyUI server URL (default: http://localhost:8000)",
     )
-    
+
     parser.add_argument(
         "--timeout",
         type=int,
         default=10,
-        help="Connection timeout in seconds (default: 10)"
+        help="Connection timeout in seconds (default: 10)",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Print header
     print_header()
-    
+
     # Run test
     success = asyncio.run(test_connection(args.url, args.timeout))
-    
+
     # Exit with appropriate code
     sys.exit(0 if success else 1)
 

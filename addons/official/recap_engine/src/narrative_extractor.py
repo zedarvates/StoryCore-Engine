@@ -24,7 +24,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -34,20 +34,22 @@ logger = logging.getLogger(__name__)
 # EXTRACTED NARRATIVE TYPES
 # ============================================================================
 
+
 @dataclass
 class ExtractedCharacter:
     """
     Portrait d'un personnage extrait depuis un chapitre.
     Rassemble tout ce qu'on sait de lui APRÈS ce chapitre.
     """
+
     character_id: str
     character_name: str
 
     # Position narrative
-    role: str = "character"          # "hero" | "villain" | "ally" | "mentor" | "neutral"
-    emotional_state: str = "neutral" # État émotionnel en fin de chapitre
+    role: str = "character"  # "hero" | "villain" | "ally" | "mentor" | "neutral"
+    emotional_state: str = "neutral"  # État émotionnel en fin de chapitre
     physical_state: str = "healthy"  # État physique en fin de chapitre
-    arc_status: str = "active"       # "active" | "resolved" | "missing" | "deceased"
+    arc_status: str = "active"  # "active" | "resolved" | "missing" | "deceased"
 
     # Dernière position / contexte
     last_location: Optional[str] = None
@@ -56,7 +58,7 @@ class ExtractedCharacter:
     # Évolution narrative
     transformations: List[str] = field(default_factory=list)  # Ce qui lui est arrivé
     relationships: Dict[str, str] = field(default_factory=dict)  # char_id → description
-    active_objects: List[str] = field(default_factory=list)     # Objets portés/utilisés
+    active_objects: List[str] = field(default_factory=list)  # Objets portés/utilisés
 
     # Dialogue marquant (pour voiceover futur)
     memorable_quotes: List[str] = field(default_factory=list)
@@ -74,11 +76,12 @@ class ExtractedCharacter:
 @dataclass
 class ExtractedLocation:
     """Lieu visité dans ce chapitre avec sa charge narrative."""
+
     location_id: Optional[str]
     location_name: str
-    location_type: str = "unknown"   # "interior" | "exterior" | "virtual" | "flashback"
-    atmosphere: str = "neutral"      # "tense" | "calm" | "dramatic" | "mysterious"
-    importance: float = 0.5          # 0.0 – 1.0
+    location_type: str = "unknown"  # "interior" | "exterior" | "virtual" | "flashback"
+    atmosphere: str = "neutral"  # "tense" | "calm" | "dramatic" | "mysterious"
+    importance: float = 0.5  # 0.0 – 1.0
     visited_by: List[str] = field(default_factory=list)  # character_ids
     key_events: List[str] = field(default_factory=list)  # Événements marquants ici
     panel_count: int = 0
@@ -87,23 +90,25 @@ class ExtractedLocation:
 @dataclass
 class ExtractedObject:
     """Objet narrativement significatif mentionné dans le chapitre."""
+
     object_id: Optional[str]
     object_name: str
-    owner_id: Optional[str] = None        # Qui le possède au final
-    status: str = "present"               # "acquired" | "lost" | "destroyed" | "present"
-    narrative_role: str = "prop"          # "macguffin" | "weapon" | "symbol" | "prop"
+    owner_id: Optional[str] = None  # Qui le possède au final
+    status: str = "present"  # "acquired" | "lost" | "destroyed" | "present"
+    narrative_role: str = "prop"  # "macguffin" | "weapon" | "symbol" | "prop"
     mentioned_pages: List[int] = field(default_factory=list)
 
 
 @dataclass
 class NarrativeArc:
     """Arc narratif (ouvert, fermé, ou nouveau après ce chapitre)."""
+
     arc_id: str
     title: str
     description: str
-    status: str = "open"         # "open" | "closed" | "escalated" | "new"
+    status: str = "open"  # "open" | "closed" | "escalated" | "new"
     involved_characters: List[str] = field(default_factory=list)  # character_ids
-    tension_level: float = 0.5   # 0.0 – 1.0
+    tension_level: float = 0.5  # 0.0 – 1.0
     chapter_opened: Optional[int] = None
     chapter_resolved: Optional[int] = None
 
@@ -111,8 +116,9 @@ class NarrativeArc:
 @dataclass
 class NarrativeMemory:
     """Mémoire narrative à 3 niveaux (miroir de ComicState)."""
-    local: List[str] = field(default_factory=list)   # Événements de la dernière page
-    arc: List[str] = field(default_factory=list)      # Événements du chapitre entier
+
+    local: List[str] = field(default_factory=list)  # Événements de la dernière page
+    arc: List[str] = field(default_factory=list)  # Événements du chapitre entier
     global_: List[str] = field(default_factory=list)  # Événements de toute la série
 
 
@@ -128,10 +134,11 @@ class ChapterContinuityPackage:
         pour le début du chapitre suivant
       - affiché dans l'UI pour que l'utilisateur choisisse comment continuer
     """
+
     package_id: str
     project_id: str
-    source_type: str       # "comic_chapter" | "recap_timeline" | "manual"
-    source_id: str         # ID du chapitre ou de la timeline
+    source_type: str  # "comic_chapter" | "recap_timeline" | "manual"
+    source_id: str  # ID du chapitre ou de la timeline
     chapter_number: int
     chapter_title: str
 
@@ -144,8 +151,8 @@ class ChapterContinuityPackage:
 
     # Résumé narratif (pour l'UI et le prompt du chapitre suivant)
     chapter_summary: str = ""
-    cliffhanger: str = ""             # La dernière phrase marquante
-    opening_hook_next: str = ""       # Suggestion d'accroche pour le chapitre suivant
+    cliffhanger: str = ""  # La dernière phrase marquante
+    opening_hook_next: str = ""  # Suggestion d'accroche pour le chapitre suivant
 
     # Données de continuité visuelle
     visual_continuity: Dict[str, Any] = field(default_factory=dict)
@@ -169,6 +176,7 @@ class ExtractionResult:
 # ============================================================================
 # NARRATIVE EXTRACTOR (Comic Chapter)
 # ============================================================================
+
 
 class NarrativeExtractor:
     """
@@ -215,17 +223,23 @@ class NarrativeExtractor:
                 # Chercher les pages directement si pas de structure chapitre
                 pages = comic_data.get("pages", [])
                 if pages:
-                    chapters = [{"id": chapter_id or "chapter_1", "pages": pages,
-                                 "title": "Chapitre 1", "chapter_number": chapter_number}]
+                    chapters = [
+                        {
+                            "id": chapter_id or "chapter_1",
+                            "pages": pages,
+                            "title": "Chapitre 1",
+                            "chapter_number": chapter_number,
+                        }
+                    ]
                 else:
                     return ExtractionResult(
-                        success=False, package=None,
+                        success=False,
+                        package=None,
                         error="Aucun chapitre ou page trouvé dans les données BD.",
                     )
 
             chapter = next(
-                (c for c in chapters if c.get("id") == chapter_id),
-                chapters[0]
+                (c for c in chapters if c.get("id") == chapter_id), chapters[0]
             )
             pages = chapter.get("pages", [])
 
@@ -243,7 +257,9 @@ class NarrativeExtractor:
             cliffhanger = self._extract_cliffhanger(pages)
             next_hook = self._suggest_next_hook(arcs, characters, cliffhanger)
             visual_cont = self._build_visual_continuity(characters, comic_data)
-            progression = self._compute_progression(chapter, comic_data, previous_package)
+            progression = self._compute_progression(
+                chapter, comic_data, previous_package
+            )
 
             package = ChapterContinuityPackage(
                 package_id=str(uuid4()),
@@ -272,7 +288,9 @@ class NarrativeExtractor:
             return ExtractionResult(success=True, package=package, warnings=warnings)
 
         except Exception as e:
-            logger.error(f"[NarrativeExtractor] Extraction échouée : {e}", exc_info=True)
+            logger.error(
+                f"[NarrativeExtractor] Extraction échouée : {e}", exc_info=True
+            )
             return ExtractionResult(success=False, package=None, error=str(e))
 
     def extract_from_recap_timeline(
@@ -297,7 +315,7 @@ class NarrativeExtractor:
                 warnings.append("Aucune scène dans la timeline.")
 
             # Construire un mapping faux-page depuis les scènes recap
-            fake_pages = self._scenes_to_fake_pages(scenes)
+            self._scenes_to_fake_pages(scenes)
 
             # Extraire les personnages depuis les styles + scènes
             characters = self._extract_characters_from_recap(scenes, char_styles)
@@ -306,7 +324,9 @@ class NarrativeExtractor:
             arcs = self._extract_arcs_from_scenes(scenes, characters, previous_package)
             memory = self._build_memory_from_scenes(scenes, previous_package)
 
-            summary = timeline_data.get("subtitle", "") or self._build_summary_from_scenes(scenes)
+            summary = timeline_data.get(
+                "subtitle", ""
+            ) or self._build_summary_from_scenes(scenes)
             cliffhanger = self._extract_cliffhanger_from_scenes(scenes)
             next_hook = self._suggest_next_hook(arcs, characters, cliffhanger)
             visual_cont = self._build_visual_continuity_from_recap(char_styles)
@@ -335,7 +355,9 @@ class NarrativeExtractor:
             return ExtractionResult(success=True, package=package, warnings=warnings)
 
         except Exception as e:
-            logger.error(f"[NarrativeExtractor] Extraction recap échouée : {e}", exc_info=True)
+            logger.error(
+                f"[NarrativeExtractor] Extraction recap échouée : {e}", exc_info=True
+            )
             return ExtractionResult(success=False, package=None, error=str(e))
 
     def load_package(
@@ -363,18 +385,22 @@ class NarrativeExtractor:
         for f in sorted(project_dir.glob("chapter_*.json")):
             try:
                 data = json.loads(f.read_text(encoding="utf-8"))
-                results.append({
-                    "package_id": data.get("package_id"),
-                    "chapter_number": data.get("chapter_number"),
-                    "chapter_title": data.get("chapter_title"),
-                    "source_type": data.get("source_type"),
-                    "characters_count": len(data.get("characters", [])),
-                    "arcs_count": len(data.get("arcs", [])),
-                    "global_story_progression": data.get("global_story_progression", 0),
-                    "extracted_at": data.get("extracted_at"),
-                    "cliffhanger": data.get("cliffhanger", ""),
-                    "opening_hook_next": data.get("opening_hook_next", ""),
-                })
+                results.append(
+                    {
+                        "package_id": data.get("package_id"),
+                        "chapter_number": data.get("chapter_number"),
+                        "chapter_title": data.get("chapter_title"),
+                        "source_type": data.get("source_type"),
+                        "characters_count": len(data.get("characters", [])),
+                        "arcs_count": len(data.get("arcs", [])),
+                        "global_story_progression": data.get(
+                            "global_story_progression", 0
+                        ),
+                        "extracted_at": data.get("extracted_at"),
+                        "cliffhanger": data.get("cliffhanger", ""),
+                        "opening_hook_next": data.get("opening_hook_next", ""),
+                    }
+                )
             except Exception:
                 pass
         return results
@@ -438,6 +464,7 @@ class NarrativeExtractor:
 
         # Construire un NarrativeCheckpoint compatible
         from datetime import datetime
+
         narrative_checkpoint = {
             "checkpoint_id": package.package_id,
             "page_id": "",
@@ -457,12 +484,10 @@ class NarrativeExtractor:
                 for c in package.characters[:5]
             ],
             "revealed_secrets": [
-                arc.description for arc in package.arcs
-                if arc.status == "closed"
+                arc.description for arc in package.arcs if arc.status == "closed"
             ],
             "active_conflicts": [
-                arc.title for arc in package.arcs
-                if arc.status in ("open", "escalated")
+                arc.title for arc in package.arcs if arc.status in ("open", "escalated")
             ],
             "last_dramatic_event": package.cliffhanger or package.chapter_summary,
             "story_summary": package.chapter_summary,
@@ -517,7 +542,10 @@ class NarrativeExtractor:
 
                     # Dialogues mémorables
                     for dlg in panel.get("dialogue", []):
-                        if dlg.get("character_id") == cid and len(dlg.get("text", "")) > 20:
+                        if (
+                            dlg.get("character_id") == cid
+                            and len(dlg.get("text", "")) > 20
+                        ):
                             if dlg["text"] not in c.memorable_quotes:
                                 c.memorable_quotes.append(dlg["text"])
 
@@ -591,19 +619,37 @@ class NarrativeExtractor:
 
         # Objets définis dans les données StoryCore
         for obj in comic_data.get("objects", []):
-            objects.append(ExtractedObject(
-                object_id=obj.get("id", obj.get("object_id")),
-                object_name=obj.get("name", "Objet"),
-                owner_id=obj.get("owner_id"),
-                status=obj.get("status", "present"),
-                narrative_role=obj.get("narrative_role", "prop"),
-            ))
+            objects.append(
+                ExtractedObject(
+                    object_id=obj.get("id", obj.get("object_id")),
+                    object_name=obj.get("name", "Objet"),
+                    owner_id=obj.get("owner_id"),
+                    status=obj.get("status", "present"),
+                    narrative_role=obj.get("narrative_role", "prop"),
+                )
+            )
 
         # Détecter les objets mentionnés dans les dialogues (heuristique simple)
         object_keywords = [
-            "épée", "arme", "clé", "carte", "cristal", "artefact", "livre",
-            "journal", "lettre", "bague", "masque", "shield", "sword", "key",
-            "crystal", "artifact", "device", "weapon", "map",
+            "épée",
+            "arme",
+            "clé",
+            "carte",
+            "cristal",
+            "artefact",
+            "livre",
+            "journal",
+            "lettre",
+            "bague",
+            "masque",
+            "shield",
+            "sword",
+            "key",
+            "crystal",
+            "artifact",
+            "device",
+            "weapon",
+            "map",
         ]
         for page in pages:
             page_num = page.get("page_number", 0)
@@ -614,12 +660,14 @@ class NarrativeExtractor:
                         if kw in text_lower:
                             # Vérifier si déjà dans la liste
                             if not any(o.object_name.lower() == kw for o in objects):
-                                objects.append(ExtractedObject(
-                                    object_id=None,
-                                    object_name=kw.capitalize(),
-                                    narrative_role="mentioned",
-                                    mentioned_pages=[page_num],
-                                ))
+                                objects.append(
+                                    ExtractedObject(
+                                        object_id=None,
+                                        object_name=kw.capitalize(),
+                                        narrative_role="mentioned",
+                                        mentioned_pages=[page_num],
+                                    )
+                                )
                             break
 
         return objects
@@ -647,7 +695,9 @@ class NarrativeExtractor:
                     ]
                     if "resolution" in beats:
                         inherited.status = "closed"
-                        inherited.chapter_resolved = pages[0].get("page_number", 0) if pages else 0
+                        inherited.chapter_resolved = (
+                            pages[0].get("page_number", 0) if pages else 0
+                        )
                     elif "climax" in beats:
                         inherited.status = "escalated"
                     arcs.append(inherited)
@@ -662,26 +712,30 @@ class NarrativeExtractor:
         for panel in revelation_panels:
             arc_title = f"Révélation — {panel.get('location', 'scène inconnue')}"
             if not any(a.title == arc_title for a in arcs):
-                arcs.append(NarrativeArc(
-                    arc_id=str(uuid4())[:8],
-                    title=arc_title,
-                    description=panel.get("visual_cue", "")[:120],
-                    status="open",
-                    involved_characters=panel.get("characters", [])[:3],
-                    tension_level=0.7,
-                ))
+                arcs.append(
+                    NarrativeArc(
+                        arc_id=str(uuid4())[:8],
+                        title=arc_title,
+                        description=panel.get("visual_cue", "")[:120],
+                        status="open",
+                        involved_characters=panel.get("characters", [])[:3],
+                        tension_level=0.7,
+                    )
+                )
 
         # Arc principal (toujours présent)
         if not arcs:
             protagonist = characters[0] if characters else None
-            arcs.append(NarrativeArc(
-                arc_id=str(uuid4())[:8],
-                title="Arc principal",
-                description=f"L'histoire de {protagonist.character_name if protagonist else 'nos héros'}.",
-                status="open",
-                involved_characters=all_char_ids[:3],
-                tension_level=0.5,
-            ))
+            arcs.append(
+                NarrativeArc(
+                    arc_id=str(uuid4())[:8],
+                    title="Arc principal",
+                    description=f"L'histoire de {protagonist.character_name if protagonist else 'nos héros'}.",
+                    status="open",
+                    involved_characters=all_char_ids[:3],
+                    tension_level=0.5,
+                )
+            )
 
         return arcs
 
@@ -770,20 +824,21 @@ class NarrativeExtractor:
             text = scene.get("narration_text", "")
             # Chercher les patterns de lieu dans le texte de narration
             for match in re.finditer(
-                r'\b(?:à|dans|sur|au|en)\s+([A-Z][a-zA-Zé-àÀ-ÿ ]{3,30})',
-                text
+                r"\b(?:à|dans|sur|au|en)\s+([A-Z][a-zA-Zé-àÀ-ÿ ]{3,30})", text
             ):
                 loc = match.group(1).strip()
                 loc_names[loc] = loc_names.get(loc, 0) + 1
 
         locations = []
         for name, count in sorted(loc_names.items(), key=lambda x: -x[1])[:8]:
-            locations.append(ExtractedLocation(
-                location_id=None,
-                location_name=name,
-                panel_count=count,
-                importance=min(1.0, count / 5),
-            ))
+            locations.append(
+                ExtractedLocation(
+                    location_id=None,
+                    location_name=name,
+                    panel_count=count,
+                    importance=min(1.0, count / 5),
+                )
+            )
         return locations
 
     def _extract_arcs_from_scenes(
@@ -804,18 +859,22 @@ class NarrativeExtractor:
                     has_shake = any(s.get("camera_move") == "shake" for s in scenes)
                     if has_shake:
                         inherited.status = "escalated"
-                        inherited.tension_level = min(1.0, inherited.tension_level + 0.2)
+                        inherited.tension_level = min(
+                            1.0, inherited.tension_level + 0.2
+                        )
                     arcs.append(inherited)
 
         if not arcs:
-            arcs.append(NarrativeArc(
-                arc_id=str(uuid4())[:8],
-                title="Arc principal",
-                description="L'histoire continue…",
-                status="open",
-                involved_characters=all_char_ids[:3],
-                tension_level=0.5,
-            ))
+            arcs.append(
+                NarrativeArc(
+                    arc_id=str(uuid4())[:8],
+                    title="Arc principal",
+                    description="L'histoire continue…",
+                    status="open",
+                    involved_characters=all_char_ids[:3],
+                    tension_level=0.5,
+                )
+            )
 
         return arcs
 
@@ -824,8 +883,14 @@ class NarrativeExtractor:
         scenes: List[Dict[str, Any]],
         previous_package: Optional[ChapterContinuityPackage],
     ) -> NarrativeMemory:
-        local = [s.get("narration_text", "")[:80] for s in scenes[-2:] if s.get("narration_text")]
-        arc = [s.get("narration_text", "")[:80] for s in scenes if s.get("narration_text")][:10]
+        local = [
+            s.get("narration_text", "")[:80]
+            for s in scenes[-2:]
+            if s.get("narration_text")
+        ]
+        arc = [
+            s.get("narration_text", "")[:80] for s in scenes if s.get("narration_text")
+        ][:10]
         global_ = []
         if previous_package:
             global_ = previous_package.memory.global_[-8:]
@@ -856,20 +921,28 @@ class NarrativeExtractor:
             for cid, cs in char_styles.items()
         }
 
-    def _scenes_to_fake_pages(self, scenes: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _scenes_to_fake_pages(
+        self, scenes: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """Groupe les scènes par page pour l'extraction."""
         pages: Dict[int, Dict[str, Any]] = {}
         for scene in scenes:
             pnum = scene.get("source_page_number", 0)
             if pnum not in pages:
-                pages[pnum] = {"page_number": pnum, "panels": [], "narrative_summary": ""}
-            pages[pnum]["panels"].append({
-                "characters": [],
-                "location": "",
-                "narrative_beat": "setup",
-                "dialogue": [],
-                "visual_cue": scene.get("narration_text", ""),
-            })
+                pages[pnum] = {
+                    "page_number": pnum,
+                    "panels": [],
+                    "narrative_summary": "",
+                }
+            pages[pnum]["panels"].append(
+                {
+                    "characters": [],
+                    "location": "",
+                    "narrative_beat": "setup",
+                    "dialogue": [],
+                    "visual_cue": scene.get("narration_text", ""),
+                }
+            )
         return list(pages.values())
 
     # ------------------------------------------------------------------
@@ -901,7 +974,9 @@ class NarrativeExtractor:
         pages: List[Dict[str, Any]],
         characters: List[ExtractedCharacter],
     ) -> str:
-        summaries = [p.get("narrative_summary", "") for p in pages if p.get("narrative_summary")]
+        summaries = [
+            p.get("narrative_summary", "") for p in pages if p.get("narrative_summary")
+        ]
         if not summaries:
             return "Un chapitre de l'histoire."
         # Prendre premier + dernier résumé
@@ -950,9 +1025,9 @@ class NarrativeExtractor:
         return {
             c.character_id: {
                 "visual_identity": c.visual_identity,
-                "frame_color": comic_data.get(
-                    "character_styles", {}
-                ).get(c.character_id, {}).get("frame_color", "#ffffff"),
+                "frame_color": comic_data.get("character_styles", {})
+                .get(c.character_id, {})
+                .get("frame_color", "#ffffff"),
             }
             for c in characters
         }
@@ -976,18 +1051,18 @@ class NarrativeExtractor:
         """Construit le story_context pour le chapitre suivant."""
         lines = [
             f"Suite du chapitre {package.chapter_number} : «{package.chapter_title}».",
-            f"",
+            "",
             f"Résumé : {package.chapter_summary}",
         ]
         if package.cliffhanger:
             lines.append(f"Cliffhanger : «{package.cliffhanger}»")
         if package.memory.global_:
-            lines.append(f"\nMémoire globale de la série :")
+            lines.append("\nMémoire globale de la série :")
             for mem in package.memory.global_[-4:]:
                 lines.append(f"  - {mem}")
         open_arcs = [a for a in package.arcs if a.status in ("open", "escalated")]
         if open_arcs:
-            lines.append(f"\nArcs en suspens :")
+            lines.append("\nArcs en suspens :")
             for arc in open_arcs[:3]:
                 lines.append(f"  - {arc.title} ({arc.status}) : {arc.description[:80]}")
         return "\n".join(lines)
@@ -1021,7 +1096,8 @@ class NarrativeExtractor:
             global_=mem_data.get("global_", []),
         )
         without_nested = {
-            k: v for k, v in data.items()
+            k: v
+            for k, v in data.items()
             if k not in ("characters", "locations", "objects", "arcs", "memory")
         }
         return ChapterContinuityPackage(

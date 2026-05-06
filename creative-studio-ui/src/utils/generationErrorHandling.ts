@@ -6,6 +6,8 @@
  * 
  * Requirements: 3.7, 9.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type {
   GenerationError,
@@ -352,7 +354,7 @@ export function createGenerationError(
   retryable: boolean = true
 ): GenerationError {
   return {
-    stage: stage as any,
+    stage: stage as LegacyAny,
     message,
     shotId,
     retryable,

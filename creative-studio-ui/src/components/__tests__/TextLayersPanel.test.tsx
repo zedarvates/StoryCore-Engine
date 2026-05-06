@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TextLayersPanel } from '../TextLayersPanel';
@@ -52,7 +53,7 @@ describe('TextLayersPanel', () => {
 
   describe('No Shot Selected', () => {
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           addTextLayer: mockAddTextLayer,
           deleteTextLayer: mockDeleteTextLayer,
@@ -78,7 +79,7 @@ describe('TextLayersPanel', () => {
     const shot = createMockShot('shot-1', []);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           addTextLayer: mockAddTextLayer,
           deleteTextLayer: mockDeleteTextLayer,
@@ -167,7 +168,7 @@ describe('TextLayersPanel', () => {
     const shot = createMockShot('shot-1', [textLayer1, textLayer2]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           addTextLayer: mockAddTextLayer,
           deleteTextLayer: mockDeleteTextLayer,
@@ -253,7 +254,7 @@ describe('TextLayersPanel', () => {
     const shot = createMockShot('shot-1', [textLayer]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           addTextLayer: mockAddTextLayer,
           deleteTextLayer: mockDeleteTextLayer,
@@ -296,7 +297,7 @@ describe('TextLayersPanel', () => {
     const shot = createMockShot('shot-1', [textLayer]);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           addTextLayer: mockAddTextLayer,
           deleteTextLayer: mockDeleteTextLayer,

@@ -2,6 +2,7 @@ import unittest
 from version_manager import VersionManager
 from version_module import VersionModule
 
+
 class TestVersionSystem(unittest.TestCase):
     def setUp(self):
         self.vm = VersionManager()
@@ -12,7 +13,7 @@ class TestVersionSystem(unittest.TestCase):
             "current_date": "02.27.26",
             "is_latest": True,
             "latest_version_available": None,
-            "check_for_updates": True
+            "check_for_updates": True,
         }
 
     def test_initial_version(self):
@@ -20,7 +21,7 @@ class TestVersionSystem(unittest.TestCase):
         self.assertEqual(self.vm.get_build_number(), 1)
 
     def test_increment_build(self):
-        initial_version = self.vm.get_current_version()
+        self.vm.get_current_version()
         initial_build = self.vm.get_build_number()
 
         self.vm.increment_build()
@@ -36,12 +37,13 @@ class TestVersionSystem(unittest.TestCase):
 
     def test_update_check(self):
         self.vm.check_for_updates("02.27.26.002")
-        self.assertFalse(self.vm.data['is_latest'])
-        self.assertEqual(self.vm.data['latest_version_available'], "02.27.26.002")
+        self.assertFalse(self.vm.data["is_latest"])
+        self.assertEqual(self.vm.data["latest_version_available"], "02.27.26.002")
 
         self.vm.check_for_updates("02.27.26.001")
-        self.assertTrue(self.vm.data['is_latest'])
-        self.assertIsNone(self.vm.data['latest_version_available'])
+        self.assertTrue(self.vm.data["is_latest"])
+        self.assertIsNone(self.vm.data["latest_version_available"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -274,7 +274,7 @@ export function formatSnapshotTimestamp(timestamp: string): string {
         return date.toLocaleString();
       }
     }
-  } catch (error) {
+  } catch (_error) {
     return timestamp;
   }
 }

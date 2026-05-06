@@ -4,6 +4,8 @@
  * High-performance video rendering orchestration for Phase 7: Production-Ready Deployment.
  * Supports H.265/MP4 and 4K upscaling triggers.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { 
@@ -17,7 +19,7 @@ import {
   Monitor,
   Info
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { _Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { HighBandwidthFrameAssembler } from '@/services/HighBandwidthFrameAssembler';
 
@@ -85,7 +87,7 @@ export const ExportManager: React.FC = () => {
                    {['mp4', 'prores', 'gif'].map((f) => (
                       <button 
                         key={f}
-                        onClick={() => setFormat(f as any)}
+                        onClick={() => setFormat(f as LegacyAny)}
                         className={`flex-1 py-3 rounded-xl text-xs font-black uppercase transition-all ${
                           format === f ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-500'
                         }`}
@@ -102,7 +104,7 @@ export const ExportManager: React.FC = () => {
                    {['1080p', '1440p', '4k'].map((r) => (
                       <button 
                         key={r}
-                        onClick={() => setResolution(r as any)}
+                        onClick={() => setResolution(r as LegacyAny)}
                         className={`py-3 rounded-xl text-xs font-black uppercase transition-all ${
                           resolution === r ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-500'
                         }`}

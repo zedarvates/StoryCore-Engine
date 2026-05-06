@@ -198,7 +198,7 @@ class TranscriptionServiceImpl implements TranscriptionService {
 
   async getTranscript(transcriptId: string): Promise<Transcript | null> {
     // Check cache with TTL
-    for (const [key, cached] of this.transcriptCache.entries()) {
+    for (const [_key, cached] of this.transcriptCache.entries()) {
       if (cached.transcript.transcriptId === transcriptId || cached.transcript.audioId === transcriptId) {
         if (Date.now() - cached.timestamp < this.cacheTTL) {
           return cached.transcript;

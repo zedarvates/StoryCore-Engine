@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, _waitFor, _cleanup } from '@testing-library/react';
+import { vi, describe, it, expect, beforeEach, _afterEach } from 'vitest';
 import { FoundationsStep } from '../steps/FoundationsStep';
 import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
 

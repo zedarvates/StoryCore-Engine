@@ -8,13 +8,14 @@ import json
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Optional, Any, Callable, Awaitable, Set
+from typing import Dict, List, Optional, Any, Callable, Awaitable
 from datetime import datetime
 import uuid
 
 
 class EventPriority(Enum):
     """Priorités des événements"""
+
     LOW = "low"
     NORMAL = "normal"
     HIGH = "high"
@@ -23,14 +24,16 @@ class EventPriority(Enum):
 
 class EventScope(Enum):
     """Périmètres des événements"""
-    LOCAL = "local"      # Add-on local uniquement
+
+    LOCAL = "local"  # Add-on local uniquement
     PROJECT = "project"  # Projet courant
-    GLOBAL = "global"    # Tout le système
+    GLOBAL = "global"  # Tout le système
 
 
 @dataclass
 class Event:
     """Structure d'un événement"""
+
     id: str
     name: str
     source: str  # Add-on source ou "system"
@@ -44,6 +47,7 @@ class Event:
 @dataclass
 class EventSubscription:
     """Abonnement à un événement"""
+
     addon_name: str
     event_pattern: str
     callback: Callable[[Event], Awaitable[None]]
@@ -55,6 +59,7 @@ class EventSubscription:
 @dataclass
 class EventResult:
     """Résultat de traitement d'un événement"""
+
     event_id: str
     subscriber: str
     success: bool
@@ -82,7 +87,7 @@ class EventBus:
             EventPriority.LOW: asyncio.Queue(maxsize=max_queue_size),
             EventPriority.NORMAL: asyncio.Queue(maxsize=max_queue_size),
             EventPriority.HIGH: asyncio.Queue(maxsize=max_queue_size),
-            EventPriority.CRITICAL: asyncio.PriorityQueue()
+            EventPriority.CRITICAL: asyncio.PriorityQueue(),
         }
 
         # Abonnements
@@ -101,7 +106,7 @@ class EventBus:
             "events_published": 0,
             "events_processed": 0,
             "events_failed": 0,
-            "subscribers_active": 0
+            "subscribers_active": 0,
         }
 
     async def start(self):
@@ -128,11 +133,15 @@ class EventBus:
 
         self.logger.info("Bus d'événements arrêté")
 
-    def subscribe(self, addon_name: str, event_pattern: str,
-                 callback: Callable[[Event], Awaitable[None]],
-                 priority: EventPriority = EventPriority.NORMAL,
-                 filters: Dict[str, Any] = None,
-                 metadata: Dict[str, Any] = None) -> str:
+    def subscribe(
+        self,
+        addon_name: str,
+        event_pattern: str,
+        callback: Callable[[Event], Awaitable[None]],
+        priority: EventPriority = EventPriority.NORMAL,
+        filters: Dict[str, Any] = None,
+        metadata: Dict[str, Any] = None,
+    ) -> str:
         """
         S'abonne à un pattern d'événements
 
@@ -155,7 +164,7 @@ class EventBus:
             callback=callback,
             priority=priority,
             filters=filters or {},
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         if event_pattern not in self.subscriptions:
@@ -184,7 +193,8 @@ class EventBus:
             if event_pattern in self.subscriptions:
                 original_count = len(self.subscriptions[event_pattern])
                 self.subscriptions[event_pattern] = [
-                    sub for sub in self.subscriptions[event_pattern]
+                    sub
+                    for sub in self.subscriptions[event_pattern]
                     if sub.addon_name != addon_name
                 ]
                 removed_count = original_count - len(self.subscriptions[event_pattern])
@@ -193,13 +203,16 @@ class EventBus:
             for pattern in list(self.subscriptions.keys()):
                 original_count = len(self.subscriptions[pattern])
                 self.subscriptions[pattern] = [
-                    sub for sub in self.subscriptions[pattern]
+                    sub
+                    for sub in self.subscriptions[pattern]
                     if sub.addon_name != addon_name
                 ]
                 removed_count += original_count - len(self.subscriptions[pattern])
 
         self.stats["subscribers_active"] -= removed_count
-        self.logger.debug(f"Désabonnements supprimés: {removed_count} pour {addon_name}")
+        self.logger.debug(
+            f"Désabonnements supprimés: {removed_count} pour {addon_name}"
+        )
 
         return removed_count
 
@@ -217,7 +230,9 @@ class EventBus:
         try:
             # Ajouter à la file appropriée
             if event.priority == EventPriority.CRITICAL:
-                await self.event_queues[EventPriority.CRITICAL].put((0, event))  # PriorityQueue
+                await self.event_queues[EventPriority.CRITICAL].put(
+                    (0, event)
+                )  # PriorityQueue
             else:
                 await self.event_queues[event.priority].put(event)
 
@@ -227,18 +242,26 @@ class EventBus:
             if self.enable_persistence:
                 await self._persist_event(event)
 
-            self.logger.debug(f"Événement publié: {event.name} ({event.priority.value})")
+            self.logger.debug(
+                f"Événement publié: {event.name} ({event.priority.value})"
+            )
 
         except asyncio.QueueFull:
-            self.logger.error(f"File d'événements pleine pour priorité {event.priority.value}")
+            self.logger.error(
+                f"File d'événements pleine pour priorité {event.priority.value}"
+            )
         except Exception as e:
             self.logger.error(f"Erreur lors de la publication d'événement: {e}")
 
-    def create_event(self, name: str, source: str = "system",
-                    scope: EventScope = EventScope.GLOBAL,
-                    priority: EventPriority = EventPriority.NORMAL,
-                    data: Dict[str, Any] = None,
-                    metadata: Dict[str, Any] = None) -> Event:
+    def create_event(
+        self,
+        name: str,
+        source: str = "system",
+        scope: EventScope = EventScope.GLOBAL,
+        priority: EventPriority = EventPriority.NORMAL,
+        data: Dict[str, Any] = None,
+        metadata: Dict[str, Any] = None,
+    ) -> Event:
         """
         Crée un événement
 
@@ -261,10 +284,12 @@ class EventBus:
             priority=priority,
             timestamp=datetime.now(),
             data=data or {},
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
-    def get_subscriptions(self, addon_name: Optional[str] = None) -> Dict[str, List[str]]:
+    def get_subscriptions(
+        self, addon_name: Optional[str] = None
+    ) -> Dict[str, List[str]]:
         """
         Retourne les abonnements actifs
 
@@ -276,7 +301,9 @@ class EventBus:
         """
         if addon_name:
             return {
-                pattern: [sub.addon_name for sub in subs if sub.addon_name == addon_name]
+                pattern: [
+                    sub.addon_name for sub in subs if sub.addon_name == addon_name
+                ]
                 for pattern, subs in self.subscriptions.items()
                 if any(sub.addon_name == addon_name for sub in subs)
             }
@@ -290,7 +317,7 @@ class EventBus:
         """Retourne les statistiques des événements"""
         queue_sizes = {}
         for priority, queue in self.event_queues.items():
-            if hasattr(queue, '_queue'):  # Pour PriorityQueue
+            if hasattr(queue, "_queue"):  # Pour PriorityQueue
                 queue_sizes[priority.value] = queue.qsize()
             else:
                 queue_sizes[priority.value] = queue.qsize()
@@ -299,7 +326,9 @@ class EventBus:
             **self.stats,
             "queue_sizes": queue_sizes,
             "is_running": self.is_running,
-            "subscriptions_count": sum(len(subs) for subs in self.subscriptions.values())
+            "subscriptions_count": sum(
+                len(subs) for subs in self.subscriptions.values()
+            ),
         }
 
     # Méthodes privées
@@ -312,13 +341,19 @@ class EventBus:
             try:
                 # Traiter d'abord les événements critiques
                 if not self.event_queues[EventPriority.CRITICAL].empty():
-                    priority, event = await self.event_queues[EventPriority.CRITICAL].get()
+                    priority, event = await self.event_queues[
+                        EventPriority.CRITICAL
+                    ].get()
                     await self._route_event(event)
                     self.event_queues[EventPriority.CRITICAL].task_done()
                     continue
 
                 # Puis les autres priorités
-                for priority in [EventPriority.HIGH, EventPriority.NORMAL, EventPriority.LOW]:
+                for priority in [
+                    EventPriority.HIGH,
+                    EventPriority.NORMAL,
+                    EventPriority.LOW,
+                ]:
                     if not self.event_queues[priority].empty():
                         event = await self.event_queues[priority].get()
                         await self._route_event(event)
@@ -347,14 +382,14 @@ class EventBus:
         tasks = []
         for subscription in matching_subscriptions:
             if self._matches_filters(event, subscription):
-                task = asyncio.create_task(
-                    self._deliver_event(event, subscription)
-                )
+                task = asyncio.create_task(self._deliver_event(event, subscription))
                 tasks.append(task)
 
         if tasks:
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            successful_deliveries = sum(1 for r in results if not isinstance(r, Exception))
+            successful_deliveries = sum(
+                1 for r in results if not isinstance(r, Exception)
+            )
             self.stats["events_processed"] += successful_deliveries
 
     def _find_matching_subscriptions(self, event: Event) -> List[EventSubscription]:
@@ -370,20 +405,21 @@ class EventBus:
     def _matches_pattern(self, event_name: str, pattern: str) -> bool:
         """Vérifie si un nom d'événement correspond à un pattern"""
         # Support basique des wildcards
-        if '*' in pattern:
+        if "*" in pattern:
             import fnmatch
+
             return fnmatch.fnmatch(event_name, pattern)
 
         # Support des patterns avec séparateurs
-        if '.' in pattern:
-            pattern_parts = pattern.split('.')
-            event_parts = event_name.split('.')
+        if "." in pattern:
+            pattern_parts = pattern.split(".")
+            event_parts = event_name.split(".")
 
             if len(pattern_parts) != len(event_parts):
                 return False
 
             for p_part, e_part in zip(pattern_parts, event_parts):
-                if p_part != '*' and p_part != e_part:
+                if p_part != "*" and p_part != e_part:
                     return False
 
             return True
@@ -413,9 +449,12 @@ class EventBus:
 
         return True
 
-    async def _deliver_event(self, event: Event, subscription: EventSubscription) -> EventResult:
+    async def _deliver_event(
+        self, event: Event, subscription: EventSubscription
+    ) -> EventResult:
         """Délivre un événement à un abonné"""
         import time
+
         start_time = time.time()
 
         actions_taken = []
@@ -432,14 +471,16 @@ class EventBus:
                 success=True,
                 error=None,
                 processing_time=processing_time,
-                actions_taken=actions_taken
+                actions_taken=actions_taken,
             )
 
         except Exception as e:
             processing_time = time.time() - start_time
             error_msg = f"{type(e).__name__}: {str(e)}"
 
-            self.logger.error(f"Erreur lors de la livraison d'événement à {subscription.addon_name}: {error_msg}")
+            self.logger.error(
+                f"Erreur lors de la livraison d'événement à {subscription.addon_name}: {error_msg}"
+            )
 
             return EventResult(
                 event_id=event.id,
@@ -447,7 +488,7 @@ class EventBus:
                 success=False,
                 error=error_msg,
                 processing_time=processing_time,
-                actions_taken=actions_taken
+                actions_taken=actions_taken,
             )
 
     async def _persist_event(self, event: Event):
@@ -461,39 +502,47 @@ class EventBus:
                 "priority": event.priority.value,
                 "timestamp": event.timestamp.isoformat(),
                 "data": event.data,
-                "metadata": event.metadata
+                "metadata": event.metadata,
             }
 
-            with open(self.persistence_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(event_dict) + '\n')
+            with open(self.persistence_file, "a", encoding="utf-8") as f:
+                f.write(json.dumps(event_dict) + "\n")
 
         except Exception as e:
             self.logger.error(f"Erreur lors de la persistance d'événement: {e}")
 
     # Méthodes utilitaires
 
-    async def publish_system_event(self, name: str, data: Dict[str, Any] = None,
-                                 priority: EventPriority = EventPriority.NORMAL):
+    async def publish_system_event(
+        self,
+        name: str,
+        data: Dict[str, Any] = None,
+        priority: EventPriority = EventPriority.NORMAL,
+    ):
         """Publie un événement système"""
         event = self.create_event(
             name=name,
             source="system",
             scope=EventScope.GLOBAL,
             priority=priority,
-            data=data or {}
+            data=data or {},
         )
         await self.publish(event)
 
-    async def publish_addon_event(self, addon_name: str, name: str,
-                                data: Dict[str, Any] = None,
-                                scope: EventScope = EventScope.PROJECT,
-                                priority: EventPriority = EventPriority.NORMAL):
+    async def publish_addon_event(
+        self,
+        addon_name: str,
+        name: str,
+        data: Dict[str, Any] = None,
+        scope: EventScope = EventScope.PROJECT,
+        priority: EventPriority = EventPriority.NORMAL,
+    ):
         """Publie un événement d'add-on"""
         event = self.create_event(
             name=name,
             source=addon_name,
             scope=scope,
             priority=priority,
-            data=data or {}
+            data=data or {},
         )
         await self.publish(event)

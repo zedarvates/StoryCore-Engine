@@ -30,16 +30,16 @@ import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.story_transformer import StructuredScenario
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -48,9 +48,11 @@ logger = logging.getLogger(__name__)
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class CharacterAsset:
     """Character asset file"""
+
     id: str
     project_id: str
     nom: str
@@ -71,7 +73,7 @@ class CharacterAsset:
     apparitions_scenes: List[int]
     image_path: str = ""
     date_creation: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -93,15 +95,15 @@ class CharacterAsset:
             "relations": self.relations,
             "apparitions_scenes": self.apparitions_scenes,
             "image_path": self.image_path,
-            "date_creation": self.date_creation or datetime.utcnow().isoformat()
+            "date_creation": self.date_creation or datetime.utcnow().isoformat(),
         }
-    
+
     def save(self, project_path: str) -> bool:
         try:
             chars_dir = os.path.join(project_path, "characters")
             os.makedirs(chars_dir, exist_ok=True)
             filepath = os.path.join(chars_dir, f"{self.id}.json")
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
             logger.info(f"Character asset saved: {filepath}")
             return True
@@ -113,6 +115,7 @@ class CharacterAsset:
 @dataclass
 class LocationAsset:
     """Location asset file"""
+
     id: str
     project_id: str
     nom: str
@@ -133,7 +136,7 @@ class LocationAsset:
     scenes_apparitions: List[int]
     image_path: str = ""
     date_creation: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -155,15 +158,15 @@ class LocationAsset:
             "significance_narrative": self.significance_narrative,
             "scenes_apparitions": self.scenes_apparitions,
             "image_path": self.image_path,
-            "date_creation": self.date_creation or datetime.utcnow().isoformat()
+            "date_creation": self.date_creation or datetime.utcnow().isoformat(),
         }
-    
+
     def save(self, project_path: str) -> bool:
         try:
             locs_dir = os.path.join(project_path, "locations")
             os.makedirs(locs_dir, exist_ok=True)
             filepath = os.path.join(locs_dir, f"{self.id}.json")
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
             logger.info(f"Location asset saved: {filepath}")
             return True
@@ -175,6 +178,7 @@ class LocationAsset:
 @dataclass
 class ObjectAsset:
     """Object/Artefact asset file"""
+
     id: str
     project_id: str
     nom: str
@@ -194,7 +198,7 @@ class ObjectAsset:
     scenes_apparitions: List[int]
     image_path: str = ""
     date_creation: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -215,15 +219,15 @@ class ObjectAsset:
             "apparence": self.apparence,
             "scenes_apparitions": self.scenes_apparitions,
             "image_path": self.image_path,
-            "date_creation": self.date_creation or datetime.utcnow().isoformat()
+            "date_creation": self.date_creation or datetime.utcnow().isoformat(),
         }
-    
+
     def save(self, project_path: str) -> bool:
         try:
             objs_dir = os.path.join(project_path, "objects")
             os.makedirs(objs_dir, exist_ok=True)
             filepath = os.path.join(objs_dir, f"{self.id}.json")
-            with open(filepath, 'w', encoding='utf-8') as f:
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(self.to_dict(), f, ensure_ascii=False, indent=2)
             logger.info(f"Object asset saved: {filepath}")
             return True
@@ -235,6 +239,7 @@ class ObjectAsset:
 @dataclass
 class PromptAsset:
     """Prompt asset for image generation"""
+
     id: str
     project_id: str
     target_type: str  # character, location, object, scene
@@ -251,7 +256,7 @@ class PromptAsset:
     model: str
     seed: int
     date_creation: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -269,29 +274,29 @@ class PromptAsset:
             "sampler": self.sampler,
             "model": self.model,
             "seed": self.seed,
-            "date_creation": self.date_creation or datetime.utcnow().isoformat()
+            "date_creation": self.date_creation or datetime.utcnow().isoformat(),
         }
-    
+
     def save(self, project_path: str) -> bool:
         try:
             prompts_dir = os.path.join(project_path, "prompts")
             os.makedirs(prompts_dir, exist_ok=True)
             filepath = os.path.join(prompts_dir, f"{self.target_type}_prompts.json")
-            
+
             # Append to existing file or create new
             existing = []
             if os.path.exists(filepath):
-                with open(filepath, 'r', encoding='utf-8') as f:
+                with open(filepath, "r", encoding="utf-8") as f:
                     try:
                         existing = json.load(f)
-                    except:
+                    except Exception:
                         existing = []
-            
+
             existing.append(self.to_dict())
-            
-            with open(filepath, 'w', encoding='utf-8') as f:
+
+            with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(existing, f, ensure_ascii=False, indent=2)
-            
+
             logger.info(f"Prompt saved: {filepath}")
             return True
         except Exception as e:
@@ -303,58 +308,64 @@ class PromptAsset:
 # PROJECT BUILDER
 # =============================================================================
 
+
 class ProjectBuilder:
     """
     Builds complete project structure from structured scenario.
     Creates asset files for characters, locations, objects with image prompts.
     """
-    
-    def __init__(self, scenario: StructuredScenario, project_id: Optional[str] = None, style: str = "cinematic"):
+
+    def __init__(
+        self,
+        scenario: StructuredScenario,
+        project_id: Optional[str] = None,
+        style: str = "cinematic",
+    ):
         self.scenario = scenario
         self.project_id = project_id or str(uuid.uuid4())
         self.project_path = os.path.join("./projects", self.project_id)
         self.style = style  # Style configurable pour le projet
-        
+
         # Asset storage
         self.characters: List[CharacterAsset] = []
         self.locations: List[LocationAsset] = []
         self.objects: List[ObjectAsset] = []
         self.prompts: List[PromptAsset] = []
-    
+
     def build_project(self) -> Dict[str, Any]:
         """
         Build complete project structure.
-        
+
         Returns:
             Project summary with paths to all created files
         """
         logger.info(f"Building project: {self.project_id}")
-        
+
         # Create project directories
         self._create_directories()
-        
+
         # Save main scenario
         self._save_scenario()
-        
+
         # Build character assets
         self._build_character_assets()
-        
+
         # Build location assets
         self._build_location_assets()
-        
+
         # Build object assets
         self._build_object_assets()
-        
+
         # Build prompts for image generation
         self._build_prompts()
-        
+
         # Create project manifest
         manifest = self._create_manifest()
-        
+
         logger.info(f"Project built successfully: {self.project_path}")
-        
+
         return manifest
-    
+
     def _create_directories(self):
         """Create project directory structure"""
         dirs = [
@@ -364,30 +375,30 @@ class ProjectBuilder:
             os.path.join(self.project_path, "objects"),
             os.path.join(self.project_path, "prompts"),
             os.path.join(self.project_path, "images"),
-            os.path.join(self.project_path, "scenes")
+            os.path.join(self.project_path, "scenes"),
         ]
-        
+
         for d in dirs:
             os.makedirs(d, exist_ok=True)
             logger.debug(f"Created directory: {d}")
-    
+
     def _save_scenario(self):
         """Save main scenario file"""
         filepath = os.path.join(self.project_path, "scenario.json")
         self.scenario.save_to_file(filepath)
         logger.info(f"Scenario saved: {filepath}")
-    
+
     def _build_character_assets(self):
         """Build character assets from scenario"""
         meta = self.scenario.meta
         ton = meta.get("ton", "cinematic")
-        
+
         for char_data in self.scenario.personnages:
             char_id = f"char_{char_data.get('id', len(self.characters) + 1):03d}"
-            
+
             # Generate prompt for this character
             prompt, neg_prompt = self._generate_character_prompt(char_data, ton)
-            
+
             asset = CharacterAsset(
                 id=char_id,
                 project_id=self.project_id,
@@ -408,22 +419,22 @@ class ProjectBuilder:
                 relations=char_data.get("relations", []),
                 apparitions_scenes=char_data.get("apparitions_scenes", []),
                 image_path=f"characters/{char_id}_ref.png",
-                date_creation=datetime.utcnow().isoformat()
+                date_creation=datetime.utcnow().isoformat(),
             )
-            
+
             asset.save(self.project_path)
             self.characters.append(asset)
-    
+
     def _build_location_assets(self):
         """Build location assets from scenario"""
         meta = self.scenario.meta
         ton = meta.get("ton", "cinematic")
-        
+
         for loc_data in self.scenario.lieux:
             loc_id = f"loc_{loc_data.get('id', len(self.locations) + 1):03d}"
-            
+
             prompt, neg_prompt = self._generate_location_prompt(loc_data, ton)
-            
+
             asset = LocationAsset(
                 id=loc_id,
                 project_id=self.project_id,
@@ -444,22 +455,22 @@ class ProjectBuilder:
                 significance_narrative=loc_data.get("significance_narrative", ""),
                 scenes_apparitions=loc_data.get("apparitions_scenes", []),
                 image_path=f"locations/{loc_id}_ref.png",
-                date_creation=datetime.utcnow().isoformat()
+                date_creation=datetime.utcnow().isoformat(),
             )
-            
+
             asset.save(self.project_path)
             self.locations.append(asset)
-    
+
     def _build_object_assets(self):
         """Build object/artefact assets from scenario"""
         meta = self.scenario.meta
         ton = meta.get("ton", "cinematic")
-        
+
         for obj_data in self.scenario.objets:
             obj_id = f"obj_{obj_data.get('id', len(self.objects) + 1):03d}"
-            
+
             prompt, neg_prompt = self._generate_object_prompt(obj_data, ton)
-            
+
             asset = ObjectAsset(
                 id=obj_id,
                 project_id=self.project_id,
@@ -479,12 +490,12 @@ class ProjectBuilder:
                 apparence="",
                 scenes_apparitions=obj_data.get("apparitions_scenes", []),
                 image_path=f"objects/{obj_id}_ref.png",
-                date_creation=datetime.utcnow().isoformat()
+                date_creation=datetime.utcnow().isoformat(),
             )
-            
+
             asset.save(self.project_path)
             self.objects.append(asset)
-    
+
     def _build_prompts(self):
         """Build image generation prompts for all assets"""
         # Character prompts - 1024x1024
@@ -504,11 +515,11 @@ class ProjectBuilder:
                 steps=30,
                 sampler="Euler a",
                 model="absolutereality_v1.8",
-                seed=-1
+                seed=-1,
             )
             prompt.save(self.project_path)
             self.prompts.append(prompt)
-        
+
         # Location prompts - 1920x1080 (cinematic)
         for loc in self.locations:
             prompt = PromptAsset(
@@ -526,11 +537,11 @@ class ProjectBuilder:
                 steps=30,
                 sampler="Euler a",
                 model="absolutereality_v1.8",
-                seed=-1
+                seed=-1,
             )
             prompt.save(self.project_path)
             self.prompts.append(prompt)
-        
+
         # Object prompts - CORRIGÉ: 1024x1024 au lieu de 512x512
         for obj in self.objects:
             prompt = PromptAsset(
@@ -548,11 +559,11 @@ class ProjectBuilder:
                 steps=25,
                 sampler="Euler a",
                 model="absolutereality_v1.8",
-                seed=-1
+                seed=-1,
             )
             prompt.save(self.project_path)
             self.prompts.append(prompt)
-    
+
     def _create_manifest(self) -> Dict[str, Any]:
         """Create project manifest file"""
         manifest = {
@@ -565,7 +576,7 @@ class ProjectBuilder:
                 "locations_dir": f"{self.project_id}/locations/",
                 "objects_dir": f"{self.project_id}/objects/",
                 "prompts_dir": f"{self.project_id}/prompts/",
-                "images_dir": f"{self.project_id}/images/"
+                "images_dir": f"{self.project_id}/images/",
             },
             "stats": {
                 "characters_count": len(self.characters),
@@ -573,75 +584,75 @@ class ProjectBuilder:
                 "objects_count": len(self.objects),
                 "prompts_count": len(self.prompts),
                 "sequences_count": len(self.scenario.sequences),
-                "scenes_count": len(self.scenario.scenes)
-            }
+                "scenes_count": len(self.scenario.scenes),
+            },
         }
-        
+
         filepath = os.path.join(self.project_path, "manifest.json")
-        with open(filepath, 'w', encoding='utf-8') as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(manifest, f, ensure_ascii=False, indent=2)
-        
+
         logger.info(f"Manifest saved: {filepath}")
-        
+
         return manifest
-    
+
     # =============================================================================
     # PROMPT GENERATION HELPERS
     # =============================================================================
-    
+
     def _generate_character_prompt(self, char_data: Dict, ton: str) -> tuple:
         """Generate image prompt for character"""
         nom = char_data.get("nom", "person")
         role = char_data.get("role", "")
-        
+
         positive = f"cinematic portrait, {nom}, {role}, "
         positive += "detailed face, realistic skin texture, cinematic lighting, "
         positive += "professional photography, 8k resolution, highly detailed"
-        
+
         negative = "blurry, low quality, deformed, extra limbs, watermark, text, "
         negative += "distorted face, bad anatomy, poorly drawn face"
-        
+
         return positive, negative
-    
+
     def _generate_location_prompt(self, loc_data: Dict, ton: str) -> tuple:
         """Generate image prompt for location"""
         nom = loc_data.get("nom", "location")
         atmosphere = loc_data.get("atmosphere", "")
         eclairage = loc_data.get("eclairage", "day")
-        
+
         positive = f"cinematic wide shot, {nom}, {atmosphere} atmosphere, "
         positive += f"{eclairage} lighting, dramatic composition, "
         positive += "professional cinematography, 8k, highly detailed"
-        
+
         negative = "blurry, low quality, distortion, watermark, text"
-        
+
         return positive, negative
-    
+
     def _generate_object_prompt(self, obj_data: Dict, ton: str) -> tuple:
         """Generate image prompt for object"""
         nom = obj_data.get("nom", "object")
         obj_type = obj_data.get("type", "")
-        
+
         positive = f"cinematic product shot, {nom}, {obj_type}, "
         positive += "isolated on neutral background, studio lighting, "
         positive += "professional photography, 8k, sharp focus"
-        
+
         negative = "blurry, low quality, watermark, text, distorted"
-        
+
         return positive, negative
-    
+
     def _generate_visual_description(self, char_data: Dict) -> str:
         """Generate visual description for character"""
         return f"Character portrait of {char_data.get('nom', 'Unknown')}"
-    
+
     def _extract_couleurs(self, char_data: Dict) -> List[str]:
         """Extract color palette from character"""
         return ["blue", "white", "black"]
-    
+
     def _extract_vetements(self, char_data: Dict) -> List[str]:
         """Extract clothing from character data"""
         return ["casual"]
-    
+
     def _extract_expressions(self, char_data: Dict, ton: str) -> List[str]:
         """Extract typical expressions based on ton"""
         if ton in ["sombre", "dramatique"]:
@@ -653,16 +664,15 @@ class ProjectBuilder:
 
 
 def build_project_from_scenario(
-    scenario: StructuredScenario, 
-    project_id: Optional[str] = None
+    scenario: StructuredScenario, project_id: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Convenience function to build complete project from scenario.
-    
+
     Args:
         scenario: StructuredScenario object
         project_id: Optional custom project ID
-    
+
     Returns:
         Project manifest dictionary
     """
@@ -673,7 +683,7 @@ def build_project_from_scenario(
 if __name__ == "__main__":
     # Test with sample scenario
     from backend.story_transformer import transform_story_to_scenario
-    
+
     sample_story = """
     Marie is a young scientist who discovers a dangerous secret in her laboratory.
     She must choose between her career and the truth.
@@ -683,12 +693,11 @@ if __name__ == "__main__":
     The race against time begins.
     She must face her fears and find the strength to reveal the truth.
     """
-    
+
     scenario = transform_story_to_scenario(sample_story, "The Discovery")
     manifest = build_project_from_scenario(scenario)
-    
+
     print(f"Project created: {manifest['id']}")
     print(f"Characters: {manifest['stats']['characters_count']}")
     print(f"Locations: {manifest['stats']['locations_count']}")
     print(f"Objects: {manifest['stats']['objects_count']}")
-

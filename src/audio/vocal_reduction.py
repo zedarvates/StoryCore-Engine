@@ -6,6 +6,7 @@ This module provides functionality for reducing vocals in audio signals.
 
 import numpy as np
 
+
 class VocalReduction:
     """Vocal reduction processor for audio signals."""
 
@@ -31,17 +32,17 @@ class VocalReduction:
         """
         # Simple vocal reduction using phase cancellation
         # This assumes stereo audio where vocals are centered
-        
+
         if len(audio_data.shape) == 1:
             # Mono audio - no vocal reduction possible
             return audio_data
-        
+
         # For stereo audio
         left_channel = audio_data[0]
         right_channel = audio_data[1]
-        
+
         # Apply phase cancellation
         reduced_left = left_channel - reduction_strength * right_channel
         reduced_right = right_channel - reduction_strength * left_channel
-        
+
         return np.array([reduced_left, reduced_right])

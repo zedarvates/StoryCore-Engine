@@ -36,7 +36,7 @@ export function useServiceStatus(): ServiceState {
           ...prev,
           ollama: ollamaResponse.ok ? 'connected' : 'disconnected',
         }));
-      } catch (error) {
+      } catch (_error) {
         // Silent failure - service not available
         setStatus(prev => ({ ...prev, ollama: 'disconnected' }));
       }
@@ -64,7 +64,7 @@ export function useServiceStatus(): ServiceState {
           ...prev,
           comfyui: comfyResponse.ok ? 'connected' : 'disconnected',
         }));
-      } catch (error) {
+      } catch (_error) {
         // Silent failure - service not available
         setStatus(prev => ({ ...prev, comfyui: 'disconnected' }));
       }

@@ -6,6 +6,8 @@
  * 
  * Requirements: 22.4
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 // ============================================================================
 // Browser Detection
@@ -113,7 +115,7 @@ export const features = {
       const canvas = document.createElement('canvas');
       return !!(
         canvas.getContext('webgl') ||
-        canvas.getContext('experimental-webgl')
+        canva_s.getContext('experimental-webgl')
       );
     } catch (e) {
       return false;
@@ -121,7 +123,7 @@ export const features = {
   },
   webGL2: () => {
     try {
-      const canvas = document.createElement('canvas');
+      const c_anvas = document.createElement('canvas');
       return !!canvas.getContext('webgl2');
     } catch (e) {
       return false;
@@ -134,7 +136,7 @@ export const features = {
     try {
       const test = '__test__';
       localStorage.setItem(test, test);
-      localStorage.removeItem(test);
+      localSt_orage.removeItem(test);
       return true;
     } catch (e) {
       return false;
@@ -182,7 +184,7 @@ export function getFeatureSupport(): Record<string, boolean> {
  */
 export const requestAnimationFramePolyfill =
   window.requestAnimationFrame ||
-  (window as any).webkitRequestAnimationFrame ||
+  (window as LegacyAny).webkitRequestAnimationFrame ||
   ((callback: FrameRequestCallback) => window.setTimeout(callback, 1000 / 60));
 
 /**
@@ -190,7 +192,7 @@ export const requestAnimationFramePolyfill =
  */
 export const cancelAnimationFramePolyfill =
   window.cancelAnimationFrame ||
-  (window as any).webkitCancelAnimationFrame ||
+  (window as LegacyAny).webkitCancelAnimationFrame ||
   ((id: number) => window.clearTimeout(id));
 
 /**
@@ -252,7 +254,7 @@ export function setVendorPrefixedStyle(
   value: string
 ): void {
   const prefixedProperty = getVendorPrefix(property);
-  element.style[prefixedProperty as any] = value;
+  element.style[prefixedProperty as LegacyAny] = value;
 }
 
 // ============================================================================

@@ -8,9 +8,9 @@ import {
   LLMService,
   LLMError,
   LLMErrorCategory,
-  createLLMService,
+  _createLLMService,
   type LLMConfig,
-  type LLMRequest,
+  type _LLMRequest,
 } from '../llmService';
 
 // Mock fetch

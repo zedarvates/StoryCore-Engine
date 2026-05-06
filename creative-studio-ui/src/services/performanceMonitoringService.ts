@@ -223,7 +223,7 @@ export class PerformanceMonitoringService {
     metadata?: Record<string, unknown>
   ): Promise<{ result: T; duration: number }> {
     const timer = this.createTimer(operation);
-    const startMemory = this.getMemoryUsage();
+    const _startMemory = this.getMemoryUsage();
 
     try {
       const result = await fn();

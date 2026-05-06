@@ -6,16 +6,16 @@ Creates visual references that can be used in the sequence editor.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from enum import Enum
 import json
 from pathlib import Path
 from datetime import datetime
-import asyncio
 
 
 class ReferenceImageStyle(Enum):
     """Styles for reference image generation"""
+
     REALISTIC = "realistic"
     CINEMATIC = "cinematic"
     STORYBOARD = "storyboard"
@@ -25,6 +25,7 @@ class ReferenceImageStyle(Enum):
 
 class ImageQuality(Enum):
     """Quality levels for image generation"""
+
     DRAFT = "draft"
     STANDARD = "standard"
     HIGH = "high"
@@ -34,6 +35,7 @@ class ImageQuality(Enum):
 @dataclass
 class ShotReferenceSpec:
     """Specification for a shot reference image"""
+
     shot_id: str
     shot_number: int
     shot_type: str  # ELS, LS, MCU, CU, ECU
@@ -47,7 +49,9 @@ class ShotReferenceSpec:
     lighting: Dict[str, Any] = field(default_factory=dict)
     composition: Dict[str, Any] = field(default_factory=dict)
 
-    def generate_prompt(self, style: ReferenceImageStyle = ReferenceImageStyle.CINEMATIC) -> str:
+    def generate_prompt(
+        self, style: ReferenceImageStyle = ReferenceImageStyle.CINEMATIC
+    ) -> str:
         """Generate a detailed prompt for ComfyUI based on shot specifications"""
         prompt_parts = []
 
@@ -77,15 +81,21 @@ class ShotReferenceSpec:
         if self.camera_movement == "static":
             prompt_parts.append("static camera, fixed position")
         elif "pan" in self.camera_movement:
-            prompt_parts.append(f"camera {self.camera_movement.replace('-', ' ')} implied")
+            prompt_parts.append(
+                f"camera {self.camera_movement.replace('-', ' ')} implied"
+            )
         elif "dolly" in self.camera_movement:
-            prompt_parts.append(f"camera {self.camera_movement.replace('-', ' ')} implied")
+            prompt_parts.append(
+                f"camera {self.camera_movement.replace('-', ' ')} implied"
+            )
 
         # Lens characteristics
         if self.lens_type == "wide":
             prompt_parts.append("wide angle lens, expansive perspective")
         elif self.lens_type == "telephoto":
-            prompt_parts.append("telephoto lens, compressed perspective, shallow depth of field")
+            prompt_parts.append(
+                "telephoto lens, compressed perspective, shallow depth of field"
+            )
         elif self.lens_type == "normal":
             prompt_parts.append("normal lens, natural perspective")
 
@@ -94,10 +104,10 @@ class ShotReferenceSpec:
             char_descriptions = []
             for char in self.characters:
                 char_desc = f"{char.get('description', 'person')}"
-                visibility = char.get('visibility', 'present')
-                if visibility == 'primary_focus':
+                visibility = char.get("visibility", "present")
+                if visibility == "primary_focus":
                     char_desc += ", main subject, detailed focus"
-                elif visibility == 'prominent':
+                elif visibility == "prominent":
                     char_desc += ", prominent in frame"
                 char_descriptions.append(char_desc)
 
@@ -106,47 +116,57 @@ class ShotReferenceSpec:
 
         # Environment
         if self.environment:
-            env_type = self.environment.get('type', 'indoor')
-            time_of_day = self.environment.get('time_of_day', 'day')
+            env_type = self.environment.get("type", "indoor")
+            time_of_day = self.environment.get("time_of_day", "day")
             prompt_parts.append(f"{env_type} environment, {time_of_day} lighting")
 
         # Lighting
         if self.lighting:
-            lighting_type = self.lighting.get('type', 'natural')
-            intensity = self.lighting.get('intensity', 'medium')
+            lighting_type = self.lighting.get("type", "natural")
+            intensity = self.lighting.get("intensity", "medium")
             prompt_parts.append(f"{lighting_type} lighting, {intensity} intensity")
 
         # Style-specific elements
         if style == ReferenceImageStyle.CINEMATIC:
-            prompt_parts.extend([
-                "cinematic lighting, film still, professional cinematography",
-                "dramatic shadows, rich colors, high contrast",
-                "movie production quality, theatrical composition"
-            ])
+            prompt_parts.extend(
+                [
+                    "cinematic lighting, film still, professional cinematography",
+                    "dramatic shadows, rich colors, high contrast",
+                    "movie production quality, theatrical composition",
+                ]
+            )
         elif style == ReferenceImageStyle.STORYBOARD:
-            prompt_parts.extend([
-                "storyboard style, line art, simplified forms",
-                "clear composition, readable action, visual narrative",
-                "black and white or limited color palette"
-            ])
+            prompt_parts.extend(
+                [
+                    "storyboard style, line art, simplified forms",
+                    "clear composition, readable action, visual narrative",
+                    "black and white or limited color palette",
+                ]
+            )
         elif style == ReferenceImageStyle.CONCEPT_ART:
-            prompt_parts.extend([
-                "concept art style, detailed illustration",
-                "dramatic lighting, rich textures, artistic composition",
-                "conceptual design, visual development art"
-            ])
+            prompt_parts.extend(
+                [
+                    "concept art style, detailed illustration",
+                    "dramatic lighting, rich textures, artistic composition",
+                    "conceptual design, visual development art",
+                ]
+            )
         elif style == ReferenceImageStyle.REALISTIC:
-            prompt_parts.extend([
-                "photorealistic, highly detailed, sharp focus",
-                "professional photography, realistic lighting",
-                "ultra high resolution, photorealistic quality"
-            ])
+            prompt_parts.extend(
+                [
+                    "photorealistic, highly detailed, sharp focus",
+                    "professional photography, realistic lighting",
+                    "ultra high resolution, photorealistic quality",
+                ]
+            )
 
         # Technical quality
-        prompt_parts.extend([
-            "highly detailed, professional quality",
-            "sharp focus, clear composition, cinematic aspect ratio"
-        ])
+        prompt_parts.extend(
+            [
+                "highly detailed, professional quality",
+                "sharp focus, clear composition, cinematic aspect ratio",
+            ]
+        )
 
         return ", ".join(prompt_parts)
 
@@ -158,6 +178,7 @@ class ShotReferenceSpec:
 @dataclass
 class ShotReferenceResult:
     """Result of generating a shot reference image"""
+
     shot_id: str
     success: bool
     image_path: Optional[str] = None
@@ -196,69 +217,73 @@ class ShotReferenceWizard:
         # Load shot planning data
         shot_planning_file = project_path / "shot_planning.json"
         if not shot_planning_file.exists():
-            raise FileNotFoundError("shot_planning.json not found. Run 'storycore shot-planning' first.")
+            raise FileNotFoundError(
+                "shot_planning.json not found. Run 'storycore shot-planning' first."
+            )
 
-        with open(shot_planning_file, 'r') as f:
+        with open(shot_planning_file, "r") as f:
             shot_data = json.load(f)
 
         # Load scene breakdown for additional context
         scene_breakdown_file = project_path / "scene_breakdown.json"
         scene_context = {}
         if scene_breakdown_file.exists():
-            with open(scene_breakdown_file, 'r') as f:
+            with open(scene_breakdown_file, "r") as f:
                 scene_context = json.load(f)
 
         # Process each shot
-        for shot in shot_data.get('shot_lists', []):
+        for shot in shot_data.get("shot_lists", []):
             spec = self._create_shot_spec(shot, scene_context)
             shot_specs.append(spec)
 
         self.reference_specs = shot_specs
         return shot_specs
 
-    def _create_shot_spec(self, shot: Dict[str, Any], scene_context: Dict[str, Any]) -> ShotReferenceSpec:
+    def _create_shot_spec(
+        self, shot: Dict[str, Any], scene_context: Dict[str, Any]
+    ) -> ShotReferenceSpec:
         """Create a shot reference specification from shot data"""
         return ShotReferenceSpec(
-            shot_id=shot['shot_id'],
-            shot_number=shot['shot_number'],
-            shot_type=shot['shot_type']['code'],
-            camera_angle=shot['camera']['angle']['type'],
-            camera_movement=shot['camera']['movement']['type'],
-            lens_type=shot['camera']['lens']['type'],
-            duration_seconds=shot['timing']['duration_seconds'],
-            purpose=shot['narrative_function']['primary_purpose'],
-            characters=shot.get('characters', []),
+            shot_id=shot["shot_id"],
+            shot_number=shot["shot_number"],
+            shot_type=shot["shot_type"]["code"],
+            camera_angle=shot["camera"]["angle"]["type"],
+            camera_movement=shot["camera"]["movement"]["type"],
+            lens_type=shot["camera"]["lens"]["type"],
+            duration_seconds=shot["timing"]["duration_seconds"],
+            purpose=shot["narrative_function"]["primary_purpose"],
+            characters=shot.get("characters", []),
             environment=self._extract_environment(shot, scene_context),
-            lighting=shot.get('lighting', {}),
-            composition=shot.get('composition', {})
+            lighting=shot.get("lighting", {}),
+            composition=shot.get("composition", {}),
         )
 
-    def _extract_environment(self, shot: Dict[str, Any], scene_context: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_environment(
+        self, shot: Dict[str, Any], scene_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Extract environment information for the shot"""
         # Try to get environment from scene data
-        scene_id = shot.get('scene_id')
-        if scene_id and 'detailed_scenes' in scene_context:
-            for scene in scene_context['detailed_scenes']:
-                if scene.get('scene_id') == scene_id:
-                    environment = scene.get('environment', {})
+        scene_id = shot.get("scene_id")
+        if scene_id and "detailed_scenes" in scene_context:
+            for scene in scene_context["detailed_scenes"]:
+                if scene.get("scene_id") == scene_id:
+                    environment = scene.get("environment", {})
                     return {
-                        'type': environment.get('type', 'indoor'),
-                        'time_of_day': environment.get('time_of_day', 'day'),
-                        'location': environment.get('location', 'unspecified')
+                        "type": environment.get("type", "indoor"),
+                        "time_of_day": environment.get("time_of_day", "day"),
+                        "location": environment.get("location", "unspecified"),
                     }
 
         # Default environment
-        return {
-            'type': 'indoor',
-            'time_of_day': 'day',
-            'location': 'unspecified'
-        }
+        return {"type": "indoor", "time_of_day": "day", "location": "unspecified"}
 
-    async def generate_reference_images(self,
-                                      project_path: Path,
-                                      style: ReferenceImageStyle = ReferenceImageStyle.CINEMATIC,
-                                      quality: ImageQuality = ImageQuality.STANDARD,
-                                      shot_ids: Optional[List[str]] = None) -> List[ShotReferenceResult]:
+    async def generate_reference_images(
+        self,
+        project_path: Path,
+        style: ReferenceImageStyle = ReferenceImageStyle.CINEMATIC,
+        quality: ImageQuality = ImageQuality.STANDARD,
+        shot_ids: Optional[List[str]] = None,
+    ) -> List[ShotReferenceResult]:
         """
         Generate reference images for shots using ComfyUI
 
@@ -277,7 +302,9 @@ class ShotReferenceWizard:
         # Filter shots if specific IDs requested
         shots_to_process = self.reference_specs
         if shot_ids:
-            shots_to_process = [s for s in self.reference_specs if s.shot_id in shot_ids]
+            shots_to_process = [
+                s for s in self.reference_specs if s.shot_id in shot_ids
+            ]
 
         if not shots_to_process:
             raise ValueError("No shots found to process")
@@ -314,16 +341,19 @@ class ShotReferenceWizard:
 
         return results
 
-    async def _generate_single_reference(self,
-                                       shot_spec: ShotReferenceSpec,
-                                       output_dir: Path,
-                                       style: ReferenceImageStyle,
-                                       quality: ImageQuality,
-                                       project_path: Path) -> ShotReferenceResult:
+    async def _generate_single_reference(
+        self,
+        shot_spec: ShotReferenceSpec,
+        output_dir: Path,
+        style: ReferenceImageStyle,
+        quality: ImageQuality,
+        project_path: Path,
+    ) -> ShotReferenceResult:
         """
         Generate a single reference image for a shot
         """
         import time
+
         start_time = time.time()
 
         try:
@@ -353,22 +383,22 @@ class ShotReferenceWizard:
 
             return ShotReferenceResult(
                 shot_id=shot_spec.shot_id,
-                success=result['success'],
-                image_path=result.get('image_path'),
+                success=result["success"],
+                image_path=result.get("image_path"),
                 prompt_used=prompt,
                 generation_time=generation_time,
-                error_message=result.get('error_message'),
+                error_message=result.get("error_message"),
                 metadata={
-                    'style': style.value,
-                    'quality': quality.value,
-                    'shot_spec': {
-                        'shot_type': shot_spec.shot_type,
-                        'camera_angle': shot_spec.camera_angle,
-                        'camera_movement': shot_spec.camera_movement,
-                        'purpose': shot_spec.purpose
+                    "style": style.value,
+                    "quality": quality.value,
+                    "shot_spec": {
+                        "shot_type": shot_spec.shot_type,
+                        "camera_angle": shot_spec.camera_angle,
+                        "camera_movement": shot_spec.camera_movement,
+                        "purpose": shot_spec.purpose,
                     },
-                    'quality_settings': quality_settings
-                }
+                    "quality_settings": quality_settings,
+                },
             )
 
         except Exception as e:
@@ -377,80 +407,80 @@ class ShotReferenceWizard:
                 shot_id=shot_spec.shot_id,
                 success=False,
                 generation_time=generation_time,
-                error_message=str(e)
+                error_message=str(e),
             )
 
     def _get_quality_settings(self, quality: ImageQuality) -> Dict[str, Any]:
         """Get quality settings for image generation"""
         settings = {
             ImageQuality.DRAFT: {
-                'width': 512,
-                'height': 288,
-                'steps': 15,
-                'cfg_scale': 6.0,
-                'sampler': 'euler_ancestral'
+                "width": 512,
+                "height": 288,
+                "steps": 15,
+                "cfg_scale": 6.0,
+                "sampler": "euler_ancestral",
             },
             ImageQuality.STANDARD: {
-                'width': 768,
-                'height': 432,
-                'steps': 25,
-                'cfg_scale': 7.0,
-                'sampler': 'dpmpp_2m_karras'
+                "width": 768,
+                "height": 432,
+                "steps": 25,
+                "cfg_scale": 7.0,
+                "sampler": "dpmpp_2m_karras",
             },
             ImageQuality.HIGH: {
-                'width': 1024,
-                'height': 576,
-                'steps': 35,
-                'cfg_scale': 8.0,
-                'sampler': 'dpmpp_2m_karras'
+                "width": 1024,
+                "height": 576,
+                "steps": 35,
+                "cfg_scale": 8.0,
+                "sampler": "dpmpp_2m_karras",
             },
             ImageQuality.MAXIMUM: {
-                'width': 1536,
-                'height': 864,
-                'steps': 50,
-                'cfg_scale': 9.0,
-                'sampler': 'dpmpp_3m_karras'
-            }
+                "width": 1536,
+                "height": 864,
+                "steps": 50,
+                "cfg_scale": 9.0,
+                "sampler": "dpmpp_3m_karras",
+            },
         }
 
         return settings.get(quality, settings[ImageQuality.STANDARD])
 
-    def _create_comfyui_workflow(self, prompt: str, negative_prompt: str,
-                               quality_settings: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_comfyui_workflow(
+        self, prompt: str, negative_prompt: str, quality_settings: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Create ComfyUI workflow for image generation"""
         # This would create a proper ComfyUI workflow JSON
         # For now, return a simplified structure
         return {
-            'prompt': prompt,
-            'negative_prompt': negative_prompt,
-            'width': quality_settings['width'],
-            'height': quality_settings['height'],
-            'steps': quality_settings['steps'],
-            'cfg_scale': quality_settings['cfg_scale'],
-            'sampler': quality_settings['sampler'],
-            'seed': -1,  # Random seed
-            'model': 'sd_xl_base_1.0.safetensors'
+            "prompt": prompt,
+            "negative_prompt": negative_prompt,
+            "width": quality_settings["width"],
+            "height": quality_settings["height"],
+            "steps": quality_settings["steps"],
+            "cfg_scale": quality_settings["cfg_scale"],
+            "sampler": quality_settings["sampler"],
+            "seed": -1,  # Random seed
+            "model": "sd_xl_base_1.0.safetensors",
         }
 
-    async def _generate_with_comfyui_manager(self, workflow_data: Dict[str, Any],
-                                           project_path: Path) -> Dict[str, Any]:
+    async def _generate_with_comfyui_manager(
+        self, workflow_data: Dict[str, Any], project_path: Path
+    ) -> Dict[str, Any]:
         """Generate image using ComfyUI manager"""
         try:
             # This would integrate with the actual ComfyUI manager
             # For now, simulate successful generation
             return {
-                'success': True,
-                'image_path': f"shot_references/mock_{workflow_data.get('seed', 'random')}.png"
+                "success": True,
+                "image_path": f"shot_references/mock_{workflow_data.get('seed', 'random')}.png",
             }
         except Exception as e:
-            return {
-                'success': False,
-                'error_message': str(e)
-            }
+            return {"success": False, "error_message": str(e)}
 
-    def _generate_mock_reference(self, shot_spec: ShotReferenceSpec, output_dir: Path) -> Dict[str, Any]:
+    def _generate_mock_reference(
+        self, shot_spec: ShotReferenceSpec, output_dir: Path
+    ) -> Dict[str, Any]:
         """Generate a mock reference image for development/testing"""
-        import time
 
         # Create a placeholder image file
         image_filename = f"{shot_spec.shot_id}_reference_mock.png"
@@ -460,41 +490,49 @@ class ShotReferenceWizard:
         # For now, just create an empty file as placeholder
         image_path.touch()
 
-        return {
-            'success': True,
-            'image_path': str(image_path)
-        }
+        return {"success": True, "image_path": str(image_path)}
 
-    def _save_generation_summary(self, project_path: Path, results: List[ShotReferenceResult],
-                               style: ReferenceImageStyle, quality: ImageQuality) -> None:
+    def _save_generation_summary(
+        self,
+        project_path: Path,
+        results: List[ShotReferenceResult],
+        style: ReferenceImageStyle,
+        quality: ImageQuality,
+    ) -> None:
         """Save generation summary to project"""
         summary = {
-            'generation_summary': {
-                'timestamp': datetime.utcnow().isoformat() + "Z",
-                'style': style.value,
-                'quality': quality.value,
-                'total_shots': len(results),
-                'successful_generations': len([r for r in results if r.success]),
-                'failed_generations': len([r for r in results if not r.success]),
-                'total_generation_time': sum(r.generation_time for r in results),
-                'average_generation_time': sum(r.generation_time for r in results) / len(results) if results else 0,
-                'results': [
+            "generation_summary": {
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "style": style.value,
+                "quality": quality.value,
+                "total_shots": len(results),
+                "successful_generations": len([r for r in results if r.success]),
+                "failed_generations": len([r for r in results if not r.success]),
+                "total_generation_time": sum(r.generation_time for r in results),
+                "average_generation_time": sum(r.generation_time for r in results)
+                / len(results)
+                if results
+                else 0,
+                "results": [
                     {
-                        'shot_id': r.shot_id,
-                        'success': r.success,
-                        'image_path': r.image_path,
-                        'generation_time': r.generation_time,
-                        'error_message': r.error_message
-                    } for r in results
-                ]
+                        "shot_id": r.shot_id,
+                        "success": r.success,
+                        "image_path": r.image_path,
+                        "generation_time": r.generation_time,
+                        "error_message": r.error_message,
+                    }
+                    for r in results
+                ],
             }
         }
 
         summary_file = project_path / "shot_references_summary.json"
-        with open(summary_file, 'w') as f:
+        with open(summary_file, "w") as f:
             json.dump(summary, f, indent=2)
 
-    def get_preview_prompts(self, shot_ids: Optional[List[str]] = None) -> Dict[str, str]:
+    def get_preview_prompts(
+        self, shot_ids: Optional[List[str]] = None
+    ) -> Dict[str, str]:
         """
         Get preview of prompts that would be generated for shots
 
@@ -508,7 +546,9 @@ class ShotReferenceWizard:
 
         shots_to_preview = self.reference_specs
         if shot_ids:
-            shots_to_preview = [s for s in self.reference_specs if s.shot_id in shot_ids]
+            shots_to_preview = [
+                s for s in self.reference_specs if s.shot_id in shot_ids
+            ]
 
         for shot_spec in shots_to_preview:
             prompt = shot_spec.generate_prompt()
@@ -523,10 +563,12 @@ def create_shot_reference_wizard(comfyui_manager=None) -> ShotReferenceWizard:
     return ShotReferenceWizard(comfyui_manager)
 
 
-async def generate_shot_references(project_path: Path,
-                                 style: str = "cinematic",
-                                 quality: str = "standard",
-                                 shot_ids: Optional[List[str]] = None) -> List[ShotReferenceResult]:
+async def generate_shot_references(
+    project_path: Path,
+    style: str = "cinematic",
+    quality: str = "standard",
+    shot_ids: Optional[List[str]] = None,
+) -> List[ShotReferenceResult]:
     """
     Convenience function to generate shot reference images
 
@@ -542,7 +584,17 @@ async def generate_shot_references(project_path: Path,
     wizard = create_shot_reference_wizard()
 
     # Convert string parameters to enums
-    style_enum = ReferenceImageStyle(style.upper()) if style.upper() in ReferenceImageStyle.__members__ else ReferenceImageStyle.CINEMATIC
-    quality_enum = ImageQuality(quality.upper()) if quality.upper() in ImageQuality.__members__ else ImageQuality.STANDARD
+    style_enum = (
+        ReferenceImageStyle(style.upper())
+        if style.upper() in ReferenceImageStyle.__members__
+        else ReferenceImageStyle.CINEMATIC
+    )
+    quality_enum = (
+        ImageQuality(quality.upper())
+        if quality.upper() in ImageQuality.__members__
+        else ImageQuality.STANDARD
+    )
 
-    return await wizard.generate_reference_images(project_path, style_enum, quality_enum, shot_ids)
+    return await wizard.generate_reference_images(
+        project_path, style_enum, quality_enum, shot_ids
+    )

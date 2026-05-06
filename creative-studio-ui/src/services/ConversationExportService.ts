@@ -311,7 +311,7 @@ export class ConversationExportService {
 
     // Messages
     pdf.setFontSize(12);
-    conversation.messages.forEach((message, index) => {
+    conversation.messages.forEach((message, _index) => {
       if (yPosition > pageHeight - 40) {
         pdf.addPage();
         yPosition = margin;
@@ -377,7 +377,7 @@ export class ConversationExportService {
   private formatConversationForExport(
     conversation: Conversation,
     options: ExportOptions,
-    format: string
+    _format: string
   ): string {
     let content = `${options.title || conversation.title}\n`;
     content += `Auteur: ${options.author || 'Utilisateur'}\n`;

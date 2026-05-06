@@ -18,16 +18,16 @@ import heapq
 import logging
 import time
 import threading
-from collections import deque, defaultdict
+from collections import deque
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List, Any, Optional, Callable, Awaitable, Tuple, Set
-from datetime import datetime, timedelta
 import statistics
 
 
 class TaskPriority(Enum):
     """Task priority levels."""
+
     CRITICAL = 0
     HIGH = 1
     NORMAL = 2
@@ -37,6 +37,7 @@ class TaskPriority(Enum):
 
 class TaskState(Enum):
     """Task execution states."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -47,6 +48,7 @@ class TaskState(Enum):
 
 class CircuitBreakerState(Enum):
     """Circuit breaker states."""
+
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
@@ -55,6 +57,7 @@ class CircuitBreakerState(Enum):
 @dataclass(order=True)
 class Task:
     """Async task with priority and metadata."""
+
     priority: TaskPriority = field(compare=True)
     task_id: str = field(compare=False)
     coroutine: Callable[[], Awaitable[Any]] = field(compare=False)
@@ -102,6 +105,7 @@ class Task:
 @dataclass
 class QueueConfiguration:
     """Configuration for async task queue."""
+
     max_queue_size: int = 10000
     max_concurrent_tasks: int = 10
     worker_pool_size: int = 4
@@ -120,6 +124,7 @@ class QueueConfiguration:
 @dataclass
 class QueueStatistics:
     """Statistics for queue performance."""
+
     tasks_submitted: int = 0
     tasks_completed: int = 0
     tasks_failed: int = 0
@@ -174,8 +179,10 @@ class CircuitBreaker:
 
             if self.state == CircuitBreakerState.HALF_OPEN:
                 self.state = CircuitBreakerState.OPEN
-            elif (self.state == CircuitBreakerState.CLOSED and
-                  self.failure_count >= self.failure_threshold):
+            elif (
+                self.state == CircuitBreakerState.CLOSED
+                and self.failure_count >= self.failure_threshold
+            ):
                 self.state = CircuitBreakerState.OPEN
 
     def _should_transition_to_half_open(self) -> bool:
@@ -188,9 +195,9 @@ class CircuitBreaker:
         """Get circuit breaker status."""
         with self.lock:
             return {
-                'state': self.state.value,
-                'failure_count': self.failure_count,
-                'last_failure_time': self.last_failure_time
+                "state": self.state.value,
+                "failure_count": self.failure_count,
+                "last_failure_time": self.last_failure_time,
             }
 
 
@@ -212,8 +219,9 @@ class RateLimiter:
             self.last_update = now
 
             # Add tokens based on time passed
-            self.tokens = min(self.burst_size,
-                            self.tokens + time_passed * self.rate_per_second)
+            self.tokens = min(
+                self.burst_size, self.tokens + time_passed * self.rate_per_second
+            )
 
             if self.tokens >= tokens:
                 self.tokens -= tokens
@@ -224,9 +232,9 @@ class RateLimiter:
         """Get rate limiter status."""
         with self.lock:
             return {
-                'tokens': self.tokens,
-                'burst_size': self.burst_size,
-                'rate_per_second': self.rate_per_second
+                "tokens": self.tokens,
+                "burst_size": self.burst_size,
+                "rate_per_second": self.rate_per_second,
             }
 
 
@@ -257,14 +265,20 @@ class AsyncTaskQueue:
         self.stop_event = threading.Event()
 
         # Fault tolerance
-        self.circuit_breaker = CircuitBreaker(
-            self.config.circuit_breaker_threshold,
-            self.config.circuit_breaker_timeout
-        ) if self.config.enable_circuit_breaker else None
+        self.circuit_breaker = (
+            CircuitBreaker(
+                self.config.circuit_breaker_threshold,
+                self.config.circuit_breaker_timeout,
+            )
+            if self.config.enable_circuit_breaker
+            else None
+        )
 
-        self.rate_limiter = RateLimiter(
-            self.config.rate_limit_per_second
-        ) if self.config.enable_rate_limiting else None
+        self.rate_limiter = (
+            RateLimiter(self.config.rate_limit_per_second)
+            if self.config.enable_rate_limiting
+            else None
+        )
 
         # Statistics
         self.stats = QueueStatistics()
@@ -286,7 +300,9 @@ class AsyncTaskQueue:
         """Detect and resolve deadlocks caused by unsatisfiable dependencies."""
         with self.lock:
             # If there is no running task and there are waiting tasks, but dependencies cannot be satisfied
-            if not self.running_tasks and (self.waiting_for_dependencies or self.pending_queue):
+            if not self.running_tasks and (
+                self.waiting_for_dependencies or self.pending_queue
+            ):
                 # Mark all waiting tasks as CANCELLED to break deadlock
                 cancelled_ids = []
                 # Resolve waiting tasks first
@@ -304,7 +320,9 @@ class AsyncTaskQueue:
                     self.completed_task_ids.add(t.task_id)
                     cancelled_ids.append(t.task_id)
                 if cancelled_ids:
-                    self.logger.warning(f"Deadlock detected. Cancelled tasks: {cancelled_ids}")
+                    self.logger.warning(
+                        f"Deadlock detected. Cancelled tasks: {cancelled_ids}"
+                    )
 
     def _find_task_by_id(self, task_id: str) -> Optional[Task]:
         """Return an existing Task object by its id from any internal store, if present."""
@@ -341,7 +359,9 @@ class AsyncTaskQueue:
             self.workers.append(worker)
 
         # Start monitoring thread
-        self.monitoring_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
+        self.monitoring_thread = threading.Thread(
+            target=self._monitoring_loop, daemon=True
+        )
         self.monitoring_thread.start()
 
         self.logger.info(f"Started {self.config.worker_pool_size} workers")
@@ -364,11 +384,15 @@ class AsyncTaskQueue:
         self.workers.clear()
         self.logger.info("Task queue stopped")
 
-    async def submit_task(self, task_id: str, coroutine: Callable[[], Awaitable[Any]],
-                         priority: TaskPriority = TaskPriority.NORMAL,
-                         timeout_seconds: Optional[float] = None,
-                         dependencies: Optional[Set[str]] = None,
-                         **kwargs) -> str:
+    async def submit_task(
+        self,
+        task_id: str,
+        coroutine: Callable[[], Awaitable[Any]],
+        priority: TaskPriority = TaskPriority.NORMAL,
+        timeout_seconds: Optional[float] = None,
+        dependencies: Optional[Set[str]] = None,
+        **kwargs,
+    ) -> str:
         """Submit a task to the queue."""
         task = Task(
             priority=priority,
@@ -376,7 +400,7 @@ class AsyncTaskQueue:
             coroutine=coroutine,
             timeout_seconds=timeout_seconds or self.config.task_timeout_seconds,
             dependencies=dependencies or set(),
-            kwargs=kwargs
+            kwargs=kwargs,
         )
 
         with self.lock:
@@ -392,7 +416,9 @@ class AsyncTaskQueue:
 
             self.stats.tasks_submitted += 1
             self.stats.current_queue_size = len(self.pending_queue)
-            self.stats.max_queue_size = max(self.stats.max_queue_size, self.stats.current_queue_size)
+            self.stats.max_queue_size = max(
+                self.stats.max_queue_size, self.stats.current_queue_size
+            )
 
             self.condition.notify()
 
@@ -420,15 +446,15 @@ class AsyncTaskQueue:
                         return None
 
             return {
-                'task_id': task.task_id,
-                'state': task.state.value,
-                'priority': task.priority,
-                'created_at': task.created_at,
-                'started_at': task.started_at,
-                'completed_at': task.completed_at,
-                'execution_time': task.execution_time,
-                'retries': task.retries,
-                'error': str(task.error) if task.error else None
+                "task_id": task.task_id,
+                "state": task.state.value,
+                "priority": task.priority,
+                "created_at": task.created_at,
+                "started_at": task.started_at,
+                "completed_at": task.completed_at,
+                "execution_time": task.execution_time,
+                "retries": task.retries,
+                "error": str(task.error) if task.error else None,
             }
 
     async def cancel_task(self, task_id: str) -> bool:
@@ -457,7 +483,9 @@ class AsyncTaskQueue:
             # (would require task cancellation tokens)
             return False
 
-    async def wait_for_task(self, task_id: str, timeout: Optional[float] = None) -> Optional[Any]:
+    async def wait_for_task(
+        self, task_id: str, timeout: Optional[float] = None
+    ) -> Optional[Any]:
         """Wait for a task to complete."""
         start_time = time.time()
 
@@ -466,10 +494,16 @@ class AsyncTaskQueue:
             if status is None:
                 return None
 
-            if status['state'] in [TaskState.COMPLETED.value, TaskState.FAILED.value,
-                                 TaskState.CANCELLED.value, TaskState.TIMEOUT.value]:
+            if status["state"] in [
+                TaskState.COMPLETED.value,
+                TaskState.FAILED.value,
+                TaskState.CANCELLED.value,
+                TaskState.TIMEOUT.value,
+            ]:
                 task = self.completed_tasks.get(task_id)
-                return task.result if task and task.state == TaskState.COMPLETED else None
+                return (
+                    task.result if task and task.state == TaskState.COMPLETED else None
+                )
 
             if timeout and time.time() - start_time > timeout:
                 return None
@@ -484,27 +518,33 @@ class AsyncTaskQueue:
                 recent_times = list(self.execution_times)[-100:]  # Last 100 executions
                 if recent_times:
                     avg_time = statistics.mean(recent_times)
-                    self.stats.throughput_per_second = 1.0 / avg_time if avg_time > 0 else 0
+                    self.stats.throughput_per_second = (
+                        1.0 / avg_time if avg_time > 0 else 0
+                    )
 
             return {
-                'queue_size': len(self.pending_queue),
-                'running_tasks': len(self.running_tasks),
-                'completed_tasks': len(self.completed_tasks),
-                'waiting_for_dependencies': len(self.waiting_for_dependencies),
-                'workers_active': len([w for w in self.workers if not w.done()]),
-                'statistics': {
-                    'tasks_submitted': self.stats.tasks_submitted,
-                    'tasks_completed': self.stats.tasks_completed,
-                    'tasks_failed': self.stats.tasks_failed,
-                    'tasks_cancelled': self.stats.tasks_cancelled,
-                    'tasks_timeout': self.stats.tasks_timeout,
-                    'current_queue_size': self.stats.current_queue_size,
-                    'max_queue_size': self.stats.max_queue_size,
-                    'average_execution_time': self.stats.average_execution_time,
-                    'throughput_per_second': self.stats.throughput_per_second
+                "queue_size": len(self.pending_queue),
+                "running_tasks": len(self.running_tasks),
+                "completed_tasks": len(self.completed_tasks),
+                "waiting_for_dependencies": len(self.waiting_for_dependencies),
+                "workers_active": len([w for w in self.workers if not w.done()]),
+                "statistics": {
+                    "tasks_submitted": self.stats.tasks_submitted,
+                    "tasks_completed": self.stats.tasks_completed,
+                    "tasks_failed": self.stats.tasks_failed,
+                    "tasks_cancelled": self.stats.tasks_cancelled,
+                    "tasks_timeout": self.stats.tasks_timeout,
+                    "current_queue_size": self.stats.current_queue_size,
+                    "max_queue_size": self.stats.max_queue_size,
+                    "average_execution_time": self.stats.average_execution_time,
+                    "throughput_per_second": self.stats.throughput_per_second,
                 },
-                'circuit_breaker': self.circuit_breaker.get_status() if self.circuit_breaker else None,
-                'rate_limiter': self.rate_limiter.get_status() if self.rate_limiter else None
+                "circuit_breaker": self.circuit_breaker.get_status()
+                if self.circuit_breaker
+                else None,
+                "rate_limiter": self.rate_limiter.get_status()
+                if self.rate_limiter
+                else None,
             }
 
     async def _worker_loop(self):
@@ -573,7 +613,7 @@ class AsyncTaskQueue:
                 if task.timeout_seconds:
                     result = await asyncio.wait_for(
                         task.coroutine(*task.args, **task.kwargs),
-                        timeout=task.timeout_seconds
+                        timeout=task.timeout_seconds,
                     )
                 else:
                     result = await task.coroutine(*task.args, **task.kwargs)
@@ -603,7 +643,7 @@ class AsyncTaskQueue:
                 task.retries += 1
                 task.state = TaskState.PENDING
                 # Exponential backoff
-                backoff = self.config.retry_backoff_seconds * (2 ** task.retries)
+                backoff = self.config.retry_backoff_seconds * (2**task.retries)
                 await asyncio.sleep(backoff)
 
                 with self.lock:
@@ -650,15 +690,22 @@ class AsyncTaskQueue:
 
                 # Log queue status
                 stats = self.get_queue_statistics()
-                self.logger.debug(f"Queue status: {stats['queue_size']} pending, "
-                                f"{stats['running_tasks']} running, "
-                                f"{stats['completed_tasks']} completed")
+                self.logger.debug(
+                    f"Queue status: {stats['queue_size']} pending, "
+                    f"{stats['running_tasks']} running, "
+                    f"{stats['completed_tasks']} completed"
+                )
 
                 # Deadlock detection: if no running tasks and there are pending/waiting tasks,
                 # and no progress has been made recently, attempt to resolve.
-                if (not self.running_tasks and (self.pending_queue or self.waiting_for_dependencies)
-                        and (time.time() - self.last_progress_timestamp > 30)):
-                    self.logger.warning("Potential deadlock detected. Attempting automatic resolution...")
+                if (
+                    not self.running_tasks
+                    and (self.pending_queue or self.waiting_for_dependencies)
+                    and (time.time() - self.last_progress_timestamp > 30)
+                ):
+                    self.logger.warning(
+                        "Potential deadlock detected. Attempting automatic resolution..."
+                    )
                     self._resolve_deadlock()
 
             except Exception as e:
@@ -677,7 +724,13 @@ def get_async_task_queue() -> AsyncTaskQueue:
     return _task_queue
 
 
-async def submit_async_task(task_id: str, coroutine: Callable[[], Awaitable[Any]],
-                           priority: TaskPriority = TaskPriority.NORMAL, **kwargs) -> str:
+async def submit_async_task(
+    task_id: str,
+    coroutine: Callable[[], Awaitable[Any]],
+    priority: TaskPriority = TaskPriority.NORMAL,
+    **kwargs,
+) -> str:
     """Submit task to global queue."""
-    return await get_async_task_queue().submit_task(task_id, coroutine, priority, **kwargs)
+    return await get_async_task_queue().submit_task(
+        task_id, coroutine, priority, **kwargs
+    )

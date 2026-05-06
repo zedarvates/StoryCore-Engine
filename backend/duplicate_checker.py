@@ -19,7 +19,7 @@ import logging
 import re
 import unicodedata
 from dataclasses import dataclass, field
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List, Dict, Any
 
 import requests
 
@@ -29,19 +29,20 @@ GITHUB_REPO_OWNER = "zedarvates"
 GITHUB_REPO_NAME = "StoryCore-Engine"
 
 # Seuils de détection
-LEVENSHTEIN_DUPLICATE_THRESHOLD = 0.72   # Similarité titre ≥ 72% → doublon probable
-EMBEDDING_DUPLICATE_THRESHOLD   = 0.85   # Cosine similarity ≥ 85% → doublon sémantique
+LEVENSHTEIN_DUPLICATE_THRESHOLD = 0.72  # Similarité titre ≥ 72% → doublon probable
+EMBEDDING_DUPLICATE_THRESHOLD = 0.85  # Cosine similarity ≥ 85% → doublon sémantique
 
 
 # ─────────────────────────────────────────────
 # Résultat de la vérification de doublon
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class DuplicateResult:
     is_duplicate: bool
-    confidence: float                       # 0.0 → 1.0
-    method: str                             # "none" | "exact_hash" | "title_match" | "semantic"
+    confidence: float  # 0.0 → 1.0
+    method: str  # "none" | "exact_hash" | "title_match" | "semantic"
     existing_issue_url: Optional[str] = None
     existing_issue_number: Optional[int] = None
     existing_issue_title: Optional[str] = None
@@ -62,6 +63,7 @@ class DuplicateResult:
 # ─────────────────────────────────────────────
 # Normalisation du texte
 # ─────────────────────────────────────────────
+
 
 def normalize_text(text: str) -> str:
     """
@@ -98,11 +100,55 @@ def extract_keywords(text: str, top_n: int = 6) -> List[str]:
     Approche simple TF-based (sans NLTK pour garder les dépendances légères).
     """
     stopwords = {
-        "le", "la", "les", "de", "du", "des", "un", "une", "et", "est",
-        "en", "au", "aux", "que", "qui", "il", "elle", "on", "se", "ce",
-        "the", "a", "an", "is", "in", "on", "at", "to", "for", "of", "and",
-        "with", "this", "that", "are", "was", "be", "been", "have", "has",
-        "par", "sur", "avec", "dans", "pour", "pas", "ne", "je", "vous"
+        "le",
+        "la",
+        "les",
+        "de",
+        "du",
+        "des",
+        "un",
+        "une",
+        "et",
+        "est",
+        "en",
+        "au",
+        "aux",
+        "que",
+        "qui",
+        "il",
+        "elle",
+        "on",
+        "se",
+        "ce",
+        "the",
+        "a",
+        "an",
+        "is",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "and",
+        "with",
+        "this",
+        "that",
+        "are",
+        "was",
+        "be",
+        "been",
+        "have",
+        "has",
+        "par",
+        "sur",
+        "avec",
+        "dans",
+        "pour",
+        "pas",
+        "ne",
+        "je",
+        "vous",
     }
     words = normalize_text(text).split()
     # Filtrer stopwords et mots courts
@@ -121,6 +167,7 @@ def extract_keywords(text: str, top_n: int = 6) -> List[str]:
 # ─────────────────────────────────────────────
 # Similarité de chaînes (Levenshtein simplifié)
 # ─────────────────────────────────────────────
+
 
 def levenshtein_ratio(s1: str, s2: str) -> float:
     """
@@ -160,14 +207,19 @@ def levenshtein_ratio(s1: str, s2: str) -> float:
 # Couche 1 — Hash exact (DB locale)
 # ─────────────────────────────────────────────
 
+
 async def check_exact_duplicate(fingerprint: str, db_session=None) -> DuplicateResult:
     """
     Couche 1 : Vérifie si le fingerprint SHA256 existe déjà en DB.
     Temps : O(1) avec index.
     """
     if db_session is None:
-        return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                               details={"reason": "no_db_session"})
+        return DuplicateResult(
+            is_duplicate=False,
+            confidence=0.0,
+            method="none",
+            details={"reason": "no_db_session"},
+        )
 
     try:
         from backend.gem_models import ContributionReport
@@ -201,6 +253,7 @@ async def check_exact_duplicate(fingerprint: str, db_session=None) -> DuplicateR
 # Couche 2 — GitHub Search (mots-clés + titre)
 # ─────────────────────────────────────────────
 
+
 async def check_github_duplicate(
     description: str,
     report_type: str,
@@ -212,8 +265,12 @@ async def check_github_duplicate(
     """
     keywords = extract_keywords(description)
     if not keywords:
-        return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                               details={"reason": "no_keywords_extracted"})
+        return DuplicateResult(
+            is_duplicate=False,
+            confidence=0.0,
+            method="none",
+            details={"reason": "no_keywords_extracted"},
+        )
 
     # Requête GitHub search
     query = " ".join(keywords[:4])
@@ -235,8 +292,12 @@ async def check_github_duplicate(
         response = requests.get(search_url, headers=headers, timeout=10)
         if response.status_code != 200:
             logger.warning(f"GitHub search returned {response.status_code}")
-            return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                                   details={"github_status": response.status_code})
+            return DuplicateResult(
+                is_duplicate=False,
+                confidence=0.0,
+                method="none",
+                details={"github_status": response.status_code},
+            )
 
         data = response.json()
         items = data.get("items", [])
@@ -261,21 +322,30 @@ async def check_github_duplicate(
                 existing_issue_url=best_issue.get("html_url"),
                 existing_issue_number=best_issue.get("number"),
                 existing_issue_title=best_issue.get("title"),
-                details={"levenshtein_score": best_score, "keywords_used": keywords[:4]},
+                details={
+                    "levenshtein_score": best_score,
+                    "keywords_used": keywords[:4],
+                },
             )
 
     except requests.exceptions.RequestException as e:
         logger.warning(f"GitHub search network error: {e}")
-        return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                               details={"error": str(e)})
+        return DuplicateResult(
+            is_duplicate=False, confidence=0.0, method="none", details={"error": str(e)}
+        )
 
-    return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                           details={"keywords_tested": keywords[:4], "issues_checked": len(items)})
+    return DuplicateResult(
+        is_duplicate=False,
+        confidence=0.0,
+        method="none",
+        details={"keywords_tested": keywords[:4], "issues_checked": len(items)},
+    )
 
 
 # ─────────────────────────────────────────────
 # Couche 3 — Embedding sémantique (Jina v5)
 # ─────────────────────────────────────────────
+
 
 async def check_semantic_duplicate(
     description: str,
@@ -289,17 +359,27 @@ async def check_semantic_duplicate(
     Si le cache est vide, skip cette couche.
     """
     if not cached_embeddings:
-        return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                               details={"reason": "no_embedding_cache"})
+        return DuplicateResult(
+            is_duplicate=False,
+            confidence=0.0,
+            method="none",
+            details={"reason": "no_embedding_cache"},
+        )
 
     try:
         # Essaye d'importer le service d'embedding existant
         try:
-            from addons.official.project_translator.src.embedding_service import embed_text
+            from addons.official.project_translator.src.embedding_service import (
+                embed_text,
+            )
         except ImportError:
             logger.debug("Embedding service not available, skipping semantic check")
-            return DuplicateResult(is_duplicate=False, confidence=0.0, method="none",
-                                   details={"reason": "embedding_service_unavailable"})
+            return DuplicateResult(
+                is_duplicate=False,
+                confidence=0.0,
+                method="none",
+                details={"reason": "embedding_service_unavailable"},
+            )
 
         query_embedding = await embed_text(description)
 
@@ -337,8 +417,8 @@ def _cosine_similarity(v1: list, v2: list) -> float:
     if len(v1) != len(v2):
         return 0.0
     dot = sum(a * b for a, b in zip(v1, v2))
-    norm1 = sum(a ** 2 for a in v1) ** 0.5
-    norm2 = sum(b ** 2 for b in v2) ** 0.5
+    norm1 = sum(a**2 for a in v1) ** 0.5
+    norm2 = sum(b**2 for b in v2) ** 0.5
     if norm1 == 0 or norm2 == 0:
         return 0.0
     return dot / (norm1 * norm2)
@@ -347,6 +427,7 @@ def _cosine_similarity(v1: list, v2: list) -> float:
 # ─────────────────────────────────────────────
 # Vérification complète (point d'entrée principal)
 # ─────────────────────────────────────────────
+
 
 async def check_duplicate_full(
     description: str,
@@ -397,16 +478,20 @@ async def check_duplicate_full(
             )
             return result
 
-        logger.info(f"Duplicate detected [title_match conf={result.confidence:.2f}]: "
-                    f"{result.existing_issue_url}")
+        logger.info(
+            f"Duplicate detected [title_match conf={result.confidence:.2f}]: "
+            f"{result.existing_issue_url}"
+        )
         return result
 
     # Couche 3 — Sémantique (agents uniquement par défaut, ou si cache dispo)
     if cached_embeddings or is_agent:
         result = await check_semantic_duplicate(description, cached_embeddings)
         if result.is_duplicate:
-            logger.info(f"Duplicate detected [semantic conf={result.confidence:.2f}]: "
-                        f"#{result.existing_issue_number}")
+            logger.info(
+                f"Duplicate detected [semantic conf={result.confidence:.2f}]: "
+                f"#{result.existing_issue_number}"
+            )
             return result
 
     return DuplicateResult(

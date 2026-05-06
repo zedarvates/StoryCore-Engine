@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { Sparkles, Globe, Compass, Activity, Binary, Zap, Terminal } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
@@ -17,8 +18,8 @@ import { useAppStore } from '@/stores/useAppStore';
 import { useMemoryStore } from '@/stores/memoryStore';
 import { cn } from '@/lib/utils';
 
-// Helper function to get option label safely
-const getOptionLabel = (option: any) => option?.label || option?.value || '';
+// Hel_per function to get option label safely
+const getOptionLabel = (option: LegacyAny) => option?.label || option?.value || '';
 
 // ============================================================================
 // Step 1: Reality Anchor (Basic Information)
@@ -128,7 +129,7 @@ Format as JSON:
     });
   };
 
-  const parseLLMSuggestions = (response: string): { name?: string; description?: string; visual?: any } => {
+  const parseLLMSuggestions = (response: string): { name?: string; description?: string; visual?: LegacyAny } => {
     try {
       const jsonMatch = response.match(/\{[\s\S]*\}/);
       if (jsonMatch) {

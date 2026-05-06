@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // CharacterCard Component (Memoized)
 // ============================================================================
@@ -138,7 +139,7 @@ const CharacterCardComponent = ({
   // ============================================================================
 
   // Get thumbnail URL
-  const thumbnailUrl = (character as any).thumbnail_url || null;
+  const thumbnailUrl = (character as LegacyAny).thumbnail_url || null;
 
   // Loading skeleton
   if (loading) {

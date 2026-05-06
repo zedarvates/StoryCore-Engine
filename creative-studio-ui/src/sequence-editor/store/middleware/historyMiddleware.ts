@@ -6,6 +6,8 @@
  * 
  * Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { Middleware, AnyAction } from '@reduxjs/toolkit';
 import { pushHistory } from '../slices/historySlice';
@@ -96,7 +98,7 @@ function createSnapshot(state: Record<string, unknown>): Record<string, unknown>
  * History middleware that captures undoable actions
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const historyMiddleware: Middleware = (store) => (next) => (action: any) => {
+export const historyMiddleware: Middleware = (store) => (next) => (action: LegacyAny) => {
   // Check if this action should be captured in history
   const isUndoable = UNDOABLE_ACTIONS.includes(action?.type);
 

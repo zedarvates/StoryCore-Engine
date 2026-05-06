@@ -202,6 +202,7 @@ export enum FileSystemErrorCode {
   PATH_TOO_LONG = 'PATH_TOO_LONG',
   NOT_FOUND = 'NOT_FOUND',
   WRITE_FAILED = 'WRITE_FAILED',
+  DELETE_FAILED = 'DELETE_FAILED',
 }
 
 export class FileSystemError extends LauncherError {
@@ -227,6 +228,8 @@ export class FileSystemError extends LauncherError {
         return 'File or directory not found.';
       case FileSystemErrorCode.WRITE_FAILED:
         return 'Failed to write to file.';
+      case FileSystemErrorCode.DELETE_FAILED:
+        return 'Failed to delete file or directory.';
       default:
         return 'A file system error occurred.';
     }
@@ -269,6 +272,12 @@ export class FileSystemError extends LauncherError {
           'Check file permissions',
           'Ensure the file is not open in another program',
           'Check available disk space',
+        ];
+      case FileSystemErrorCode.DELETE_FAILED:
+        return [
+          'Check if the file or directory is open in another program',
+          'Check file permissions',
+          'Try running as administrator',
         ];
       default:
         return ['Try again', 'Choose a different location'];

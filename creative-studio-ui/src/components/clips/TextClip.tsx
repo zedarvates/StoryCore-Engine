@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Palette, Settings, Play, Pause } from 'lucide-react';
+import { _Type, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, _Palette, _Settings, _Play, _Pause } from 'lucide-react';
 
 import { TextStyle, TextAnimation } from '../../types/text-layer';
 

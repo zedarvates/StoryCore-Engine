@@ -149,7 +149,7 @@ const DialogueEditor: React.FC<DialogueEditorProps> = ({ isOpen, onClose, onDial
     setIsGenerating(true);
     try {
       // Simulation de l'appel à l'API LLM pour générer des dialogues
-      const prompt = `Génère un dialogue naturel entre ${characters.length} personnages avec ces profils:
+      const _prompt = `Génère un dialogue naturel entre ${characters.length} personnages avec ces profils:
 ${characters.map(c => `${c.name}: ${c.personality.join(', ')}`).join('\n')}
 
 Le dialogue doit être en français, naturel et engageant. Format: JSON avec character, text, emotionalState.`;
@@ -218,7 +218,7 @@ Le dialogue doit être en français, naturel et engageant. Format: JSON avec cha
 
   const generateImagePrompt = async (lineId: string, dialogueText: string, character: string) => {
     try {
-      const prompt = `Génère un prompt détaillé pour une image représentant la scène de dialogue suivante:
+      const _prompt = `Génère un prompt détaillé pour une image représentant la scène de dialogue suivante:
 
 Personnage: ${character}
 Dialogue: "${dialogueText}"
@@ -248,7 +248,7 @@ Format: Description visuelle détaillée en français.`;
 
   const generateVideoPrompt = async (lineId: string, dialogueText: string, character: string) => {
     try {
-      const prompt = `Génère un prompt détaillé pour une vidéo représentant la scène de dialogue suivante:
+      const _prompt = `Génère un prompt détaillé pour une vidéo représentant la scène de dialogue suivante:
 
 Personnage: ${character}
 Dialogue: "${dialogueText}"

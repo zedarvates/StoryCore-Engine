@@ -152,7 +152,7 @@ export function useTextTypography(): UseTextTypographyReturn {
     return textTypographyService.getAnimationCSS(config, '');
   }, []);
 
-  const getAnimationStyle = useCallback((config: TextAnimationConfig, text: string): React.CSSProperties => {
+  const getAnimationStyle = useCallback((config: TextAnimationConfig, _text: string): React.CSSProperties => {
     const progress = animationProgress;
     const easing = getEasingFunction(config.easing);
     const easedProgress = easing(progress);

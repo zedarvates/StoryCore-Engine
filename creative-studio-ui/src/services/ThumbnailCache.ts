@@ -521,7 +521,7 @@ export class ThumbnailCache {
     time: number,
     quality?: string
   ): Promise<Blob> {
-    const key = this.generateKey(videoUrl, time, quality);
+    const _key = this.generateKey(videoUrl, time, quality);
 
     // Check if already in cache
     const cached = await this.get(videoUrl, time, quality);

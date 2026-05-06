@@ -11,6 +11,8 @@
  *
  * Requirements: Phase 3 of R&D plan
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useMemo, useCallback } from 'react';
 import {
@@ -24,7 +26,7 @@ interface CompositionTemplateBrowserProps {
     /** Current playhead position in frames — templates are inserted here */
     insertionFrame: number;
     /** Called when the user wants to add layers from a template */
-    onInsertLayers: (layers: any[]) => void;
+    onInsertLayers: (layers: LegacyAny[]) => void;
 }
 
 const CATEGORY_LABELS: Record<CompositionCategory, string> = {

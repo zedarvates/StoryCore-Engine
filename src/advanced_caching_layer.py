@@ -21,14 +21,15 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from enum import Enum
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, List, Callable
-from collections import OrderedDict, deque
+from typing import Dict, Any, Optional, List
+from collections import OrderedDict
 import hashlib
-import weakref
 
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -36,6 +37,7 @@ except ImportError:
 
 try:
     import memcache
+
     MEMCACHE_AVAILABLE = True
 except ImportError:
     MEMCACHE_AVAILABLE = False
@@ -44,14 +46,16 @@ except ImportError:
 
 class CacheLevel(Enum):
     """Cache levels for hierarchical caching."""
+
     L1_MEMORY = "l1_memory"  # Fast in-memory
-    L2_DISK = "l2_disk"      # Persistent disk
+    L2_DISK = "l2_disk"  # Persistent disk
     L3_DISTRIBUTED = "l3_distributed"  # Redis/memcached
 
 
 @dataclass
 class CacheEntry:
     """Enhanced cache entry with metadata."""
+
     key: str
     data: Any
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -139,7 +143,9 @@ class MemoryCacheBackend(CacheBackend):
                 return False
 
             # Evict if necessary
-            while self.current_size + entry.data_size > self.max_size_bytes and self.cache:
+            while (
+                self.current_size + entry.data_size > self.max_size_bytes and self.cache
+            ):
                 evicted_key, evicted_entry = self.cache.popitem(last=False)
                 self.current_size -= evicted_entry.data_size
 
@@ -166,17 +172,25 @@ class MemoryCacheBackend(CacheBackend):
     async def get_stats(self) -> Dict[str, Any]:
         with self.lock:
             return {
-                'entries': len(self.cache),
-                'size_bytes': self.current_size,
-                'size_mb': self.current_size / (1024 * 1024),
-                'utilization_percent': (self.current_size / self.max_size_bytes) * 100 if self.max_size_bytes > 0 else 0
+                "entries": len(self.cache),
+                "size_bytes": self.current_size,
+                "size_mb": self.current_size / (1024 * 1024),
+                "utilization_percent": (self.current_size / self.max_size_bytes) * 100
+                if self.max_size_bytes > 0
+                else 0,
             }
 
 
 class DiskCacheBackend(CacheBackend):
     """Persistent disk cache with compression."""
 
-    def __init__(self, cache_dir: Path, max_size_mb: int = 2048, ttl_seconds: int = 86400, compression: bool = True):
+    def __init__(
+        self,
+        cache_dir: Path,
+        max_size_mb: int = 2048,
+        ttl_seconds: int = 86400,
+        compression: bool = True,
+    ):
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.max_size_bytes = max_size_mb * 1024 * 1024
@@ -192,17 +206,19 @@ class DiskCacheBackend(CacheBackend):
         """Load cache index from disk."""
         if self.index_file.exists():
             try:
-                with open(self.index_file, 'r') as f:
+                with open(self.index_file, "r") as f:
                     self.index = json.load(f)
                 # Calculate current size
-                self.current_size = sum(entry.get('data_size', 0) for entry in self.index.values())
+                self.current_size = sum(
+                    entry.get("data_size", 0) for entry in self.index.values()
+                )
             except Exception:
                 self.index = {}
 
     def _save_index(self):
         """Save cache index to disk."""
         try:
-            with open(self.index_file, 'w') as f:
+            with open(self.index_file, "w") as f:
                 json.dump(self.index, f, indent=2)
         except Exception:
             pass  # Index save failure shouldn't crash
@@ -218,7 +234,7 @@ class DiskCacheBackend(CacheBackend):
                 return None
 
             entry_meta = self.index[key]
-            if entry_meta.get('expires_at', float('inf')) < time.time():
+            if entry_meta.get("expires_at", float("inf")) < time.time():
                 # Expired, clean up
                 await self.delete(key)
                 return None
@@ -232,28 +248,28 @@ class DiskCacheBackend(CacheBackend):
 
             try:
                 # Load data
-                if entry_meta.get('compressed', False):
-                    with gzip.open(file_path, 'rb') as f:
+                if entry_meta.get("compressed", False):
+                    with gzip.open(file_path, "rb") as f:
                         data = pickle.load(f)
                 else:
-                    with open(file_path, 'rb') as f:
+                    with open(file_path, "rb") as f:
                         data = pickle.load(f)
 
                 # Update access
-                entry_meta['last_accessed'] = time.time()
-                entry_meta['access_count'] = entry_meta.get('access_count', 0) + 1
+                entry_meta["last_accessed"] = time.time()
+                entry_meta["access_count"] = entry_meta.get("access_count", 0) + 1
                 self._save_index()
 
                 return CacheEntry(
                     key=key,
                     data=data,
-                    metadata=entry_meta.get('metadata', {}),
-                    created_at=entry_meta['created_at'],
-                    last_accessed=entry_meta['last_accessed'],
-                    access_count=entry_meta['access_count'],
-                    ttl_seconds=entry_meta.get('ttl_seconds'),
-                    compressed=entry_meta.get('compressed', False),
-                    data_size=entry_meta['data_size']
+                    metadata=entry_meta.get("metadata", {}),
+                    created_at=entry_meta["created_at"],
+                    last_accessed=entry_meta["last_accessed"],
+                    access_count=entry_meta["access_count"],
+                    ttl_seconds=entry_meta.get("ttl_seconds"),
+                    compressed=entry_meta.get("compressed", False),
+                    data_size=entry_meta["data_size"],
                 )
 
             except Exception:
@@ -268,33 +284,37 @@ class DiskCacheBackend(CacheBackend):
                 return False
 
             # Evict if necessary
-            while self.current_size + entry.data_size > self.max_size_bytes and self.index:
+            while (
+                self.current_size + entry.data_size > self.max_size_bytes and self.index
+            ):
                 # Find oldest entry to evict
-                oldest_key = min(self.index.keys(),
-                               key=lambda k: self.index[k]['last_accessed'])
+                oldest_key = min(
+                    self.index.keys(), key=lambda k: self.index[k]["last_accessed"]
+                )
                 await self.delete(oldest_key)
 
             # Save data
             file_path = self._get_file_path(entry.key)
             try:
                 if self.compression and entry.data_size > 1024:  # Compress if > 1KB
-                    with gzip.open(file_path, 'wb', compresslevel=6) as f:
+                    with gzip.open(file_path, "wb", compresslevel=6) as f:
                         pickle.dump(entry.data, f)
                     entry.compressed = True
                 else:
-                    with open(file_path, 'wb') as f:
+                    with open(file_path, "wb") as f:
                         pickle.dump(entry.data, f)
 
                 # Update index
                 self.index[entry.key] = {
-                    'created_at': entry.created_at,
-                    'last_accessed': entry.last_accessed,
-                    'access_count': entry.access_count,
-                    'ttl_seconds': entry.ttl_seconds,
-                    'expires_at': entry.created_at + (entry.ttl_seconds or float('inf')),
-                    'data_size': entry.data_size,
-                    'compressed': entry.compressed,
-                    'metadata': entry.metadata
+                    "created_at": entry.created_at,
+                    "last_accessed": entry.last_accessed,
+                    "access_count": entry.access_count,
+                    "ttl_seconds": entry.ttl_seconds,
+                    "expires_at": entry.created_at
+                    + (entry.ttl_seconds or float("inf")),
+                    "data_size": entry.data_size,
+                    "compressed": entry.compressed,
+                    "metadata": entry.metadata,
                 }
 
                 self.current_size += entry.data_size
@@ -317,7 +337,7 @@ class DiskCacheBackend(CacheBackend):
                     pass
 
                 # Update index
-                self.current_size -= entry_meta['data_size']
+                self.current_size -= entry_meta["data_size"]
                 del self.index[key]
                 self._save_index()
                 return True
@@ -341,19 +361,27 @@ class DiskCacheBackend(CacheBackend):
     async def get_stats(self) -> Dict[str, Any]:
         with self.lock:
             return {
-                'entries': len(self.index),
-                'size_bytes': self.current_size,
-                'size_mb': self.current_size / (1024 * 1024),
-                'utilization_percent': (self.current_size / self.max_size_bytes) * 100 if self.max_size_bytes > 0 else 0,
-                'compression_enabled': self.compression
+                "entries": len(self.index),
+                "size_bytes": self.current_size,
+                "size_mb": self.current_size / (1024 * 1024),
+                "utilization_percent": (self.current_size / self.max_size_bytes) * 100
+                if self.max_size_bytes > 0
+                else 0,
+                "compression_enabled": self.compression,
             }
 
 
 class DistributedCacheBackend(CacheBackend):
     """Redis/memcached distributed cache backend."""
 
-    def __init__(self, backend_type: str = "redis", host: str = "localhost", port: int = 6379,
-                 ttl_seconds: int = 3600, **kwargs):
+    def __init__(
+        self,
+        backend_type: str = "redis",
+        host: str = "localhost",
+        port: int = 6379,
+        ttl_seconds: int = 3600,
+        **kwargs,
+    ):
         self.backend_type = backend_type
         self.ttl_seconds = ttl_seconds
 
@@ -362,7 +390,9 @@ class DistributedCacheBackend(CacheBackend):
         elif backend_type == "memcache" and MEMCACHE_AVAILABLE:
             self.client = memcache.Client([f"{host}:{port}"], **kwargs)
         else:
-            raise ValueError(f"Unsupported backend {backend_type} or library not available")
+            raise ValueError(
+                f"Unsupported backend {backend_type} or library not available"
+            )
 
     async def get(self, key: str) -> Optional[CacheEntry]:
         try:
@@ -416,29 +446,30 @@ class DistributedCacheBackend(CacheBackend):
             if self.backend_type == "redis":
                 info = self.client.info()
                 return {
-                    'backend': 'redis',
-                    'connected_clients': info.get('connected_clients', 0),
-                    'used_memory_mb': info.get('used_memory', 0) / (1024 * 1024),
-                    'total_keys': self.client.dbsize()
+                    "backend": "redis",
+                    "connected_clients": info.get("connected_clients", 0),
+                    "used_memory_mb": info.get("used_memory", 0) / (1024 * 1024),
+                    "total_keys": self.client.dbsize(),
                 }
             else:  # memcache
                 stats = self.client.get_stats()
                 if stats:
                     stat = stats[0][1]
                     return {
-                        'backend': 'memcache',
-                        'bytes': int(stat.get('bytes', 0)),
-                        'bytes_mb': int(stat.get('bytes', 0)) / (1024 * 1024),
-                        'curr_items': int(stat.get('curr_items', 0))
+                        "backend": "memcache",
+                        "bytes": int(stat.get("bytes", 0)),
+                        "bytes_mb": int(stat.get("bytes", 0)) / (1024 * 1024),
+                        "curr_items": int(stat.get("curr_items", 0)),
                     }
-                return {'backend': 'memcache', 'status': 'unknown'}
+                return {"backend": "memcache", "status": "unknown"}
         except Exception:
-            return {'backend': self.backend_type, 'status': 'error'}
+            return {"backend": self.backend_type, "status": "error"}
 
 
 @dataclass
 class CacheConfiguration:
     """Configuration for multi-level caching."""
+
     enable_l1: bool = True
     l1_max_size_mb: int = 512
     l1_ttl_seconds: int = 3600
@@ -474,8 +505,7 @@ class AdvancedCachingLayer:
 
         if config.enable_l1:
             self.backends[CacheLevel.L1_MEMORY] = MemoryCacheBackend(
-                max_size_mb=config.l1_max_size_mb,
-                ttl_seconds=config.l1_ttl_seconds
+                max_size_mb=config.l1_max_size_mb, ttl_seconds=config.l1_ttl_seconds
             )
 
         if config.enable_l2:
@@ -484,7 +514,7 @@ class AdvancedCachingLayer:
                 cache_dir=cache_dir,
                 max_size_mb=config.l2_max_size_mb,
                 ttl_seconds=config.l2_ttl_seconds,
-                compression=config.l2_compression
+                compression=config.l2_compression,
             )
 
         if config.enable_l3:
@@ -493,7 +523,7 @@ class AdvancedCachingLayer:
                     backend_type=config.l3_backend,
                     host=config.l3_host,
                     port=config.l3_port,
-                    ttl_seconds=config.l3_ttl_seconds
+                    ttl_seconds=config.l3_ttl_seconds,
                 )
             except Exception as e:
                 self.logger.warning(f"Failed to initialize L3 cache: {e}")
@@ -501,13 +531,13 @@ class AdvancedCachingLayer:
         # Statistics
         self.stats_lock = threading.Lock()
         self.stats = {
-            'total_requests': 0,
-            'l1_hits': 0,
-            'l2_hits': 0,
-            'l3_hits': 0,
-            'misses': 0,
-            'sets': 0,
-            'evictions': 0
+            "total_requests": 0,
+            "l1_hits": 0,
+            "l2_hits": 0,
+            "l3_hits": 0,
+            "misses": 0,
+            "sets": 0,
+            "evictions": 0,
         }
 
         # Cache warming and prefetching
@@ -540,14 +570,14 @@ class AdvancedCachingLayer:
     async def get(self, key: str) -> Optional[Any]:
         """Retrieve value from multi-level cache."""
         with self.stats_lock:
-            self.stats['total_requests'] += 1
+            self.stats["total_requests"] += 1
 
         # Try L1 first
         if CacheLevel.L1_MEMORY in self.backends:
             entry = await self.backends[CacheLevel.L1_MEMORY].get(key)
             if entry:
                 with self.stats_lock:
-                    self.stats['l1_hits'] += 1
+                    self.stats["l1_hits"] += 1
                 return entry.data
 
         # Try L2
@@ -555,7 +585,7 @@ class AdvancedCachingLayer:
             entry = await self.backends[CacheLevel.L2_DISK].get(key)
             if entry:
                 with self.stats_lock:
-                    self.stats['l2_hits'] += 1
+                    self.stats["l2_hits"] += 1
                 # Promote to L1 if enabled
                 if CacheLevel.L1_MEMORY in self.backends:
                     await self.backends[CacheLevel.L1_MEMORY].put(entry)
@@ -566,7 +596,7 @@ class AdvancedCachingLayer:
             entry = await self.backends[CacheLevel.L3_DISTRIBUTED].get(key)
             if entry:
                 with self.stats_lock:
-                    self.stats['l3_hits'] += 1
+                    self.stats["l3_hits"] += 1
                 # Promote to higher levels
                 if CacheLevel.L1_MEMORY in self.backends:
                     await self.backends[CacheLevel.L1_MEMORY].put(entry)
@@ -574,15 +604,20 @@ class AdvancedCachingLayer:
 
         # Cache miss
         with self.stats_lock:
-            self.stats['misses'] += 1
+            self.stats["misses"] += 1
 
         return None
 
-    async def set(self, key: str, value: Any, ttl_seconds: Optional[float] = None,
-                  metadata: Optional[Dict[str, Any]] = None) -> bool:
+    async def set(
+        self,
+        key: str,
+        value: Any,
+        ttl_seconds: Optional[float] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> bool:
         """Store value in multi-level cache."""
         with self.stats_lock:
-            self.stats['sets'] += 1
+            self.stats["sets"] += 1
 
         # Calculate data size
         data_size = len(pickle.dumps(value))
@@ -592,13 +627,17 @@ class AdvancedCachingLayer:
             data=value,
             metadata=metadata or {},
             ttl_seconds=ttl_seconds,
-            data_size=data_size
+            data_size=data_size,
         )
 
         success = True
 
         # Store in all enabled levels
-        for level in [CacheLevel.L1_MEMORY, CacheLevel.L2_DISK, CacheLevel.L3_DISTRIBUTED]:
+        for level in [
+            CacheLevel.L1_MEMORY,
+            CacheLevel.L2_DISK,
+            CacheLevel.L3_DISTRIBUTED,
+        ]:
             if level in self.backends:
                 level_success = await self.backends[level].put(entry)
                 if not level_success:
@@ -633,25 +672,28 @@ class AdvancedCachingLayer:
             try:
                 backend_stats[level.value] = asyncio.run(backend.get_stats())
             except Exception as e:
-                backend_stats[level.value] = {'error': str(e)}
+                backend_stats[level.value] = {"error": str(e)}
 
         # Calculate rates
-        total_requests = stats['total_requests']
+        total_requests = stats["total_requests"]
         if total_requests > 0:
-            stats['hit_rate_percent'] = ((stats['l1_hits'] + stats['l2_hits'] + stats['l3_hits']) / total_requests) * 100
-            stats['miss_rate_percent'] = (stats['misses'] / total_requests) * 100
+            stats["hit_rate_percent"] = (
+                (stats["l1_hits"] + stats["l2_hits"] + stats["l3_hits"])
+                / total_requests
+            ) * 100
+            stats["miss_rate_percent"] = (stats["misses"] / total_requests) * 100
         else:
-            stats['hit_rate_percent'] = 0.0
-            stats['miss_rate_percent'] = 0.0
+            stats["hit_rate_percent"] = 0.0
+            stats["miss_rate_percent"] = 0.0
 
         return {
-            'overall': stats,
-            'backends': backend_stats,
-            'configuration': {
-                'l1_enabled': CacheLevel.L1_MEMORY in self.backends,
-                'l2_enabled': CacheLevel.L2_DISK in self.backends,
-                'l3_enabled': CacheLevel.L3_DISTRIBUTED in self.backends
-            }
+            "overall": stats,
+            "backends": backend_stats,
+            "configuration": {
+                "l1_enabled": CacheLevel.L1_MEMORY in self.backends,
+                "l2_enabled": CacheLevel.L2_DISK in self.backends,
+                "l3_enabled": CacheLevel.L3_DISTRIBUTED in self.backends,
+            },
         }
 
     def add_warm_key(self, key: str):
@@ -711,7 +753,9 @@ class AdvancedCachingLayer:
 
 
 # Factory function
-def create_advanced_caching_layer(config: Optional[CacheConfiguration] = None) -> AdvancedCachingLayer:
+def create_advanced_caching_layer(
+    config: Optional[CacheConfiguration] = None,
+) -> AdvancedCachingLayer:
     """
     Factory function to create Advanced Caching Layer instance.
 

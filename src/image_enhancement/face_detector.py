@@ -1,4 +1,3 @@
-
 """
 Face Detector Module - High-precision face and landmark detection.
 Part of the StoryCore-Engine Image Enhancement Suite.
@@ -7,7 +6,8 @@ Part of the StoryCore-Engine Image Enhancement Suite.
 import logging
 import asyncio
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
+
 
 @dataclass
 class FaceDetection:
@@ -16,10 +16,12 @@ class FaceDetection:
     landmarks: List[Tuple[float, float]]
     metadata: Dict[str, Any]
 
+
 class FaceDetector:
     """
     Wrapper for RetinaFace or MediaPipe based face detection.
     """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -32,6 +34,6 @@ class FaceDetector:
                 bbox=(100, 100, 300, 300),
                 confidence=0.99,
                 landmarks=[(150, 150), (250, 150), (200, 200), (170, 250), (230, 250)],
-                metadata={}
+                metadata={},
             )
         ]

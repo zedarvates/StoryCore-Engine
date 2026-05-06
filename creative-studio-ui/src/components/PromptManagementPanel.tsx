@@ -6,6 +6,8 @@
  * 
  * Requirements: 1.1, 1.4, 1.5, 2.4
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -64,7 +66,7 @@ export const PromptManagementPanel: React.FC<PromptManagementPanelProps> = ({
   // Debounce prompt changes to reduce validation calls (Requirements: 10.2)
   const debouncedUpdateShot = useDebounce(((shotId: string, updates: Partial<Shot>) => {
     updateShot(shotId, updates);
-  }) as any, 300);
+  }) as LegacyAny, 300);
 
   const handlePromptChange = useCallback((prompt: string) => {
     if (selectedShot) {

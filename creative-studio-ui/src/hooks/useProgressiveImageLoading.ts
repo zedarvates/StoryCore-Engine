@@ -7,8 +7,9 @@
  * Requirements: 13.1, 13.2, 13.3
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { imageLoader, ImageData } from '../services/gridEditor/ImageLoaderService';
+import { LegacyAny } from '../types/legacy';
 
 export interface ProgressiveImageState {
   currentImage: ImageData | null;
@@ -30,43 +31,38 @@ export function useProgressiveImageLoading(
   url: string | null,
   options: UseProgressiveImageLoadingOptions = {}
 ): ProgressiveImageState {
-  const { enabled = true, zoom = 1.0 } = options;
+  const { enabled = true } = options;
 
   const [state, setState] = useState<ProgressiveImageState>({
     currentImage: null,
-    isLoading: false,
+    isLoading: enabled && !!url,
     isFullResolution: false,
     error: null,
     progress: 0,
   });
 
+  const [prevParams, setPrevParams] = useState({ url, enabled });
+  if (prevParams.url !== url || prevParams.enabled !== enabled) {
+    setPrevParams({ url, enabled });
+    setState({
+      currentImage: null,
+      isLoading: enabled && !!url,
+      isFullResolution: false,
+      error: null,
+      progress: 0,
+    });
+  }
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!url || !enabled) {
-      setState({
-        currentImage: null,
-        isLoading: false,
-        isFullResolution: false,
-        error: null,
-        progress: 0,
-      });
-      return;
-    }
-
     // Create abort controller for cleanup
     abortControllerRef.current = new AbortController();
     const abortSignal = abortControllerRef.current.signal;
 
-    setState((prev) => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-    }));
-
     // Load image progressively
     imageLoader
-      .loadImageProgressively(url, (imageData) => {
+      .loadImageProgressively(url!, (imageData) => {
         if (abortSignal.aborted) return;
 
         const isFullRes = imageData.level === 0;
@@ -114,9 +110,30 @@ export function useProgressiveImagesLoading(
   const [states, setStates] = useState<Map<string, ProgressiveImageState>>(new Map());
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  // JSON stringify for stable array dependency
+  const urlsString = JSON.stringify(urls);
+
+  // Sync states when urls change
+  const [prevUrls, setPrevUrls] = useState<string>(urlsString);
+  if (prevUrls !== urlsString) {
+    setPrevUrls(urlsString);
+    const initialMap = new Map<string, ProgressiveImageState>();
+    if (enabled) {
+      urls.forEach((u) => {
+        initialMap.set(u, {
+          currentImage: null,
+          isLoading: true,
+          isFullResolution: false,
+          error: null,
+          progress: 0,
+        });
+      });
+    }
+    setStates(initialMap);
+  }
+
   useEffect(() => {
     if (urls.length === 0 || !enabled) {
-      setStates(new Map());
       return;
     }
 
@@ -124,22 +141,8 @@ export function useProgressiveImagesLoading(
     abortControllerRef.current = new AbortController();
     const abortSignal = abortControllerRef.current.signal;
 
-    // Initialize states for all URLs
-    const initialStates = new Map<string, ProgressiveImageState>();
-    urls.forEach((url) => {
-      initialStates.set(url, {
-        currentImage: null,
-        isLoading: true,
-        isFullResolution: false,
-        error: null,
-        progress: 0,
-      });
-    });
-    setStates(initialStates);
-
-    // Load all images progressively
     imageLoader
-      .loadImagesProgressively(urls, (url, imageData) => {
+      .loadImagesProgressively(urls, (url, imageData: LegacyAny) => {
         if (abortSignal.aborted) return;
 
         const isFullRes = imageData.level === 0;
@@ -160,7 +163,6 @@ export function useProgressiveImagesLoading(
       })
       .catch((error) => {
         if (abortSignal.aborted) return;
-
         console.error('Failed to load images progressively:', error);
       });
 
@@ -168,7 +170,8 @@ export function useProgressiveImagesLoading(
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [urls.join(','), enabled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlsString, enabled]);
 
   return states;
 }
@@ -191,27 +194,26 @@ export function useZoomAwareImageLoading(
 
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const [prevUrl, setPrevUrl] = useState(url);
+  if (prevUrl !== url) {
+    setPrevUrl(url);
+    setState({
+      currentImage: null,
+      isLoading: !!url,
+      isFullResolution: false,
+      error: null,
+      progress: 0,
+    });
+  }
+
   useEffect(() => {
     if (!url) {
-      setState({
-        currentImage: null,
-        isLoading: false,
-        isFullResolution: false,
-        error: null,
-        progress: 0,
-      });
       return;
     }
 
     // Create abort controller for cleanup
     abortControllerRef.current = new AbortController();
     const abortSignal = abortControllerRef.current.signal;
-
-    setState((prev) => ({
-      ...prev,
-      isLoading: true,
-      error: null,
-    }));
 
     // Get appropriate mipmap for zoom level
     imageLoader
@@ -270,6 +272,13 @@ export function useImagePreloader(
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const urlsString = JSON.stringify(urls);
+  
+  // Sync preloading state during render
+  const shouldBePreloading = enabled && urls.length > 0;
+  if (state.isPreloading !== shouldBePreloading && !state.error && state.preloadedCount < urls.length) {
+    setState(prev => ({ ...prev, isPreloading: shouldBePreloading, totalCount: urls.length }));
+  }
 
   useEffect(() => {
     if (urls.length === 0 || !enabled) {
@@ -286,13 +295,6 @@ export function useImagePreloader(
     abortControllerRef.current = new AbortController();
     const abortSignal = abortControllerRef.current.signal;
 
-    setState({
-      isPreloading: true,
-      preloadedCount: 0,
-      totalCount: urls.length,
-      error: null,
-    });
-
     const preloadFn = progressive
       ? imageLoader.preloadImagesProgressively.bind(imageLoader)
       : imageLoader.preloadImages.bind(imageLoader);
@@ -300,7 +302,7 @@ export function useImagePreloader(
     let loadedCount = 0;
 
     const progressCallback = progressive
-      ? (url: string, imageData: unknown) => {
+      ? (_url: string, imageData: LegacyAny) => {
           if (abortSignal.aborted) return;
           if (imageData.level === 0) {
             // Only count full-resolution images
@@ -338,7 +340,8 @@ export function useImagePreloader(
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [urls.join(','), enabled, progressive]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlsString, enabled, progressive]);
 
   return state;
 }

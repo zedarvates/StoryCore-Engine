@@ -1,24 +1,20 @@
 import json
-import os
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional, Union
 from datetime import datetime
 
 from src.models.character_ccd import (
-    CharacterCoreData, 
-    VisualProfile, 
-    NarrativeProfile, 
+    CharacterCoreData,
+    VisualProfile,
+    NarrativeProfile,
     VoiceProfile,
-    ArtStyle,
-    NarrativeEra,
-    Gender,
-    VoiceIntonation,
-    CreationMethod
+    CreationMethod,
 )
 
 # LEGACY Support (V1)
 from dataclasses import dataclass, field
+
 
 @dataclass
 class LegacyVoiceProfile:
@@ -34,8 +30,9 @@ class LegacyVoiceProfile:
             "provider": self.provider,
             "base_model": self.base_model,
             "reference_audio_path": self.reference_audio_path,
-            "parameters": self.parameters
+            "parameters": self.parameters,
         }
+
 
 @dataclass
 class CharacterIdentity:
@@ -54,12 +51,14 @@ class CharacterIdentity:
             "physical_description": self.physical_description,
             "reference_image_path": self.reference_image_path,
             "lora_weights_path": self.lora_weights_path,
-            "voice_profile": self.voice_profile.to_dict() if self.voice_profile else None,
-            "consistency_seeds": self.consistency_seeds
+            "voice_profile": self.voice_profile.to_dict()
+            if self.voice_profile
+            else None,
+            "consistency_seeds": self.consistency_seeds,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'CharacterIdentity':
+    def from_dict(cls, data: Dict[str, Any]) -> "CharacterIdentity":
         voice_data = data.get("voice_profile")
         if voice_data and isinstance(voice_data, dict):
             data["voice_profile"] = LegacyVoiceProfile(**voice_data)
@@ -71,7 +70,7 @@ class CharacterRegistry:
     Manages characters persistence. Supports both Legacy (V1) and CCD (V2).
     Automatically migrates V1 to V2 on write.
     """
-    
+
     def __init__(self, storage_path: str = "data/characters"):
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -81,10 +80,10 @@ class CharacterRegistry:
     def register(self, character: Union[CharacterCoreData, CharacterIdentity]) -> None:
         """Persists a character. If it's V1, it can be saved as is or migrated."""
         character_id = character.character_id
-        
+
         # Auto-migration logic: if we register a V1, we should probably keep it V1 unless requested
         # but for the Multi-Method feature, we prefer V2.
-        
+
         if isinstance(character, CharacterIdentity):
             data = character.to_dict()
         else:
@@ -92,32 +91,34 @@ class CharacterRegistry:
             data = character.model_dump()
 
         file_path = self.storage_path / f"{character_id}.json"
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False, default=str)
-        
+
         self._cache[character_id] = character
         self.logger.info(f"Registered character: {character.name} ({character_id})")
 
-    def get_by_id(self, character_id: str) -> Optional[Union[CharacterCoreData, CharacterIdentity]]:
+    def get_by_id(
+        self, character_id: str
+    ) -> Optional[Union[CharacterCoreData, CharacterIdentity]]:
         """Retrieves a character by ID, returning V2 if available, else V1."""
         if character_id in self._cache:
             return self._cache[character_id]
-        
+
         file_path = self.storage_path / f"{character_id}.json"
         if not file_path.exists():
             return None
-        
+
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                
+
                 # Identify version
                 if data.get("version") and data.get("version").startswith("2"):
                     # Handle datetime strings from JSON
                     character = CharacterCoreData.model_validate(data)
                 else:
                     character = CharacterIdentity.from_dict(data)
-                
+
                 self._cache[character_id] = character
                 return character
         except Exception as e:
@@ -129,10 +130,10 @@ class CharacterRegistry:
         char = self.get_by_id(character_id)
         if not char:
             return None
-        
+
         if isinstance(char, CharacterCoreData):
             return char
-            
+
         # Perform migration
         v2 = CharacterCoreData(
             character_id=char.character_id,
@@ -141,18 +142,20 @@ class CharacterRegistry:
             visual=VisualProfile(
                 physical_description=char.physical_description,
                 reference_image_path=char.reference_image_path,
-                lora_weights_path=char.lora_weights_path
+                lora_weights_path=char.lora_weights_path,
             ),
-            narrative=NarrativeProfile(
-                personality_traits=[]
-            ),
+            narrative=NarrativeProfile(personality_traits=[]),
             voice=VoiceProfile(
-                kitten_voice_id=char.voice_profile.voice_id if char.voice_profile else None,
-                reference_audio_path=char.voice_profile.reference_audio_path if char.voice_profile else None
+                kitten_voice_id=char.voice_profile.voice_id
+                if char.voice_profile
+                else None,
+                reference_audio_path=char.voice_profile.reference_audio_path
+                if char.voice_profile
+                else None,
             ),
-            metadata=char.consistency_seeds
+            metadata=char.consistency_seeds,
         )
-        
+
         self.register(v2)
         return v2
 
@@ -161,7 +164,7 @@ class CharacterRegistry:
         char = self.get_by_id(character_id)
         if not char:
             return ""
-            
+
         if isinstance(char, CharacterCoreData):
             return char.visual.physical_description
         return char.physical_description
@@ -171,15 +174,15 @@ class CharacterRegistry:
         char = self.get_by_id(character_id)
         if not char:
             return {}
-            
+
         if isinstance(char, CharacterCoreData):
             return char.to_comfy_params()
-            
+
         # Legacy fallback
         if char.reference_image_path:
             return {
                 "image_path": char.reference_image_path,
                 "weight": 0.7,
-                "noise": 0.0
+                "noise": 0.0,
             }
         return {}

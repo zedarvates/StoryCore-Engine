@@ -24,6 +24,7 @@ import { addMessage, setIsOpen as setChatOpen } from './store/slices/chatSlice';
 import { AudioMixerPanel } from './components/AudioMixerPanel/AudioMixerPanel';
 import { ExportDialog } from './components/Dialogs/ExportDialog';
 import { SettingsDialog } from './components/Dialogs/SettingsDialog';
+import { VideoGenerationPanel } from '@/components/VideoGenerationPanel';
 import type { Shot } from '@/types';
 
 import './SequenceEditor.css';
@@ -49,6 +50,7 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
   const showLayerManager = useAppSelector((state) => state.panels.showLayerManager);
   const compactMode = useAppSelector((state) => state.panels.compactMode);
   const showAlignmentDashboard = useAppSelector((state) => state.panels.showAlignmentDashboard);
+  const productionStudioMode = useAppSelector((state) => state.panels.productionStudioMode);
   
   // Alignment State from Unified Project Store
   const { 
@@ -166,6 +168,10 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
 
   // Layout Calculations
   const gridTemplateColumns = React.useMemo(() => {
+    if (productionStudioMode) {
+      return `400px 1fr`; // Fixed width for Generation Panel + flexible preview
+    }
+    
     let cols = '';
     if (libraryVisible) {
       cols += `${navWidth}px ${browserWidth}px `;
@@ -175,7 +181,7 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
       cols += `${inspectorWidth}px`;
     }
     return cols;
-  }, [libraryVisible, inspectorVisible, navWidth, browserWidth, inspectorWidth]);
+  }, [libraryVisible, inspectorVisible, navWidth, browserWidth, inspectorWidth, productionStudioMode]);
 
   const [showExport, setShowExport] = React.useState(false);
   const [showSettings, setShowSettings] = React.useState(false);
@@ -222,7 +228,11 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
         }}
       >
         {/* Row 1: Panels */}
-        {libraryVisible && (
+        {productionStudioMode ? (
+          <section className="editor-cell studio-generation-cell">
+            <VideoGenerationPanel />
+          </section>
+        ) : libraryVisible && (
           <>
             <section className="editor-cell nav-cell">
               <AssetNavigator />

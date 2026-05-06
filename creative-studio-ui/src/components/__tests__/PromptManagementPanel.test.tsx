@@ -5,6 +5,8 @@
  * Note: These tests focus on component rendering and basic functionality.
  * Full integration tests with ProjectContext are in integration test suite.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -15,12 +17,12 @@ import type { Shot } from '../../types/projectDashboard';
 const mockUseProject = vi.fn();
 vi.mock('../../contexts/ProjectContext', () => ({
   useProject: () => mockUseProject(),
-  ProjectProvider: ({ children }: any) => children,
+  ProjectProvider: ({ children }: LegacyAny) => children,
 }));
 
 // Mock the ShotPromptEditor component
 vi.mock('../ShotPromptEditor', () => ({
-  ShotPromptEditor: ({ shot }: any) => (
+  ShotPromptEditor: ({ shot }: LegacyAny) => (
     <div data-testid="shot-prompt-editor">
       <div data-testid="mock-shot-id">{shot.id}</div>
     </div>

@@ -13,13 +13,14 @@ Tous les tests fonctionnent SANS Blender installé (execute=False).
 """
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from blender_bridge.story_assets_connector import StoryAssetsConnector
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  FIXTURES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def connector(tmp_path):
@@ -47,8 +48,8 @@ def connector_no_project(tmp_path):
 #  TESTS : dry_run
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestDryRun:
 
+class TestDryRun:
     def test_dry_run_basic(self, connector):
         result = connector.dry_run("Crée une ruelle cyberpunk sous pluie")
         assert "scene_id" in result
@@ -68,7 +69,15 @@ class TestDryRun:
 
     def test_dry_run_atmosphere(self, connector):
         result = connector.dry_run("Scène désert avec brouillard volumétrique")
-        assert result["atmosphere"] in ("fog", "volumetric_fog", "mist", "rain", "smoke", "dust", "none")
+        assert result["atmosphere"] in (
+            "fog",
+            "volumetric_fog",
+            "mist",
+            "rain",
+            "smoke",
+            "dust",
+            "none",
+        )
 
     def test_dry_run_shot_type(self, connector):
         result = connector.dry_run("Gros plan visage 85mm")
@@ -91,8 +100,8 @@ class TestDryRun:
 #  TESTS : get_character_objects
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestGetCharacterObjects:
 
+class TestGetCharacterObjects:
     def test_missing_inventory_returns_empty(self, connector):
         """Personnage sans inventaire → liste vide sans exception."""
         objects = connector.get_character_objects("PersonnageInexistant")
@@ -100,7 +109,9 @@ class TestGetCharacterObjects:
 
     def test_missing_inventory_with_tags(self, connector):
         """Avec tags, même comportement gracieux."""
-        objects = connector.get_character_objects("Ghost", scene_tags=["cyberpunk", "night"])
+        objects = connector.get_character_objects(
+            "Ghost", scene_tags=["cyberpunk", "night"]
+        )
         assert objects == []
 
     def test_mock_inventory(self, connector):
@@ -137,7 +148,9 @@ class TestGetCharacterObjects:
         mock_registry.get_inventory.return_value = mock_inventory
         connector._registry = mock_registry
 
-        objects = connector.get_character_objects("Alpha", scene_tags=["urban", "night"])
+        objects = connector.get_character_objects(
+            "Alpha", scene_tags=["urban", "night"]
+        )
         names = [o.name for o in objects]
         assert "Pistolet" in names
         assert "Arc" not in names
@@ -179,8 +192,8 @@ class TestGetCharacterObjects:
 #  TESTS : apply_voice_modifier
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestApplyVoiceModifier:
 
+class TestApplyVoiceModifier:
     def test_modifier_changes_atmosphere(self, connector):
         scene = connector.bridge.parse("Ruelle cyberpunk")
         original_atm = scene.atmosphere.type
@@ -188,8 +201,13 @@ class TestApplyVoiceModifier:
         scene = connector.apply_voice_modifier(scene, "Ajoute brouillard dense")
         # L'atmosphère doit avoir changé
         from blender_bridge.scene_types import AtmosphereType
-        assert scene.atmosphere.type in (AtmosphereType.FOG, AtmosphereType.VOLUMETRIC,
-                                          AtmosphereType.MIST, original_atm)
+
+        assert scene.atmosphere.type in (
+            AtmosphereType.FOG,
+            AtmosphereType.VOLUMETRIC,
+            AtmosphereType.MIST,
+            original_atm,
+        )
 
     def test_modifier_changes_camera(self, connector):
         scene = connector.bridge.parse("Scène test")
@@ -231,8 +249,8 @@ class TestApplyVoiceModifier:
 #  TESTS : voice_to_render (sans exécution Blender)
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestVoiceToRender:
 
+class TestVoiceToRender:
     def test_pipeline_no_execute(self, connector, tmp_path):
         """Pipeline complet sans lancer Blender → script généré."""
         result = connector.voice_to_render(
@@ -301,13 +319,14 @@ class TestVoiceToRender:
 #  TESTS : enrich_and_build
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestEnrichAndBuild:
 
+class TestEnrichAndBuild:
     def test_enrich_generates_script(self, connector):
         scene = connector.bridge.parse("Scène bureau intérieur")
         script_path = connector.enrich_and_build(scene, execute=False)
         assert script_path is not None
         import os
+
         assert os.path.exists(script_path)
 
     def test_enrich_no_characters_no_injection(self, connector):
@@ -323,8 +342,8 @@ class TestEnrichAndBuild:
 #  TESTS : lazy init
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestLazyInit:
 
+class TestLazyInit:
     def test_bridge_lazy(self, connector):
         assert connector._bridge is None
         bridge = connector.bridge

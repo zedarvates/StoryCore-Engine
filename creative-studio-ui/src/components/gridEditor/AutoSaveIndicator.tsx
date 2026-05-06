@@ -60,7 +60,7 @@ export interface AutoSaveIndicatorProps {
 // ============================================================================
 
 export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
-  projectId,
+  _projectId,
   author = 'User',
   initialInterval = 5,
   defaultEnabled = false,
@@ -83,7 +83,7 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
       interval: intervalMinutes * 60 * 1000,
       enabled: defaultEnabled,
       author,
-      onAutoSave: (timestamp) => {
+      onAutoSave: (_timestamp) => {
         ;
       },
       onError: (error) => {
@@ -265,7 +265,7 @@ export interface SimpleAutoSaveToggleProps {
 }
 
 export const SimpleAutoSaveToggle: React.FC<SimpleAutoSaveToggleProps> = ({
-  projectId,
+  _projectId,
   author = 'User',
   intervalMinutes = 5,
 }) => {

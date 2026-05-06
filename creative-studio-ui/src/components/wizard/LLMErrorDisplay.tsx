@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AlertCircle, RefreshCw, Edit3, X, Info, Zap } from 'lucide-react';
+import { AlertCircle, RefreshCw, Edit3, X, Info, _Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

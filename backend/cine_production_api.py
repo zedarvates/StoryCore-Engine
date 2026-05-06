@@ -1,8 +1,12 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
-from typing import List, Optional
+from fastapi import APIRouter, HTTPException, Depends
+from typing import List
 import logging
 
-from backend.cine_production_service import CineProductionService, CineProductionRequest, CineProductionJob, CineJobStatus
+from backend.cine_production_service import (
+    CineProductionService,
+    CineProductionRequest,
+    CineProductionJob,
+)
 from backend.auth import verify_jwt_token
 
 logger = logging.getLogger(__name__)
@@ -10,10 +14,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/cine-production", tags=["cine-production"])
 cine_service = CineProductionService()
 
+
 @router.post("/start")
 async def start_production(
-    request: CineProductionRequest,
-    user_id: str = Depends(verify_jwt_token)
+    request: CineProductionRequest, user_id: str = Depends(verify_jwt_token)
 ):
     """
     Starts a high-fidelity cinematic production job.
@@ -25,12 +29,10 @@ async def start_production(
         logger.error(f"Failed to start production: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/status/{job_id}", response_model=CineProductionJob)
 @router.get("/job/{job_id}", response_model=CineProductionJob)
-async def get_job_status(
-    job_id: str,
-    user_id: str = Depends(verify_jwt_token)
-):
+async def get_job_status(job_id: str, user_id: str = Depends(verify_jwt_token)):
     """
     Returns the current status of a production job.
     """
@@ -39,10 +41,9 @@ async def get_job_status(
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
+
 @router.get("/workflows", response_model=List[str])
-async def list_available_workflows(
-    user_id: str = Depends(verify_jwt_token)
-):
+async def list_available_workflows(user_id: str = Depends(verify_jwt_token)):
     """
     Lists all available high-fidelity workflows.
     """

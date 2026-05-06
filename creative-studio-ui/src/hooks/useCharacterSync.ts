@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Character Sync Hook - Unified Character State Management
 // ============================================================================
@@ -110,7 +111,7 @@ export function useCharacterSync(): CharacterSyncResult {
     );
   }, []);
 
-  // Type for reducer state
+  // Ty_pe for reducer state
   type SyncState = {
     characters: Character[];
     project: typeof project;
@@ -133,7 +134,7 @@ export function useCharacterSync(): CharacterSyncResult {
       needsSync = true;
     } else {
       // Check if any character matches by ID to detect additions/removals
-      const projectCharIds = projectChars.map(c => (c as any).character_id || '');
+      const projectCharIds = projectChars.map(c => (c as LegacyAny).character_id || '');
       for (const id of projectCharIds) {
         if (!storeCharIds.has(id)) {
           needsSync = true;
@@ -169,7 +170,7 @@ export function useCharacterSync(): CharacterSyncResult {
         if (appStoreProject) {
            setAppStoreProject({
              ...appStoreProject,
-             characters: characters as any
+             characters: characters as LegacyAny
            });
         }
         
@@ -385,13 +386,13 @@ export function useCharacterSync(): CharacterSyncResult {
    
   const isInSync = useMemo(() => {
     if (!project) return true; // No project, always in sync
-    const projectCharacters = project.characters as any[];
+    const projectCharacters = project.characters as LegacyAny[];
     if (!projectCharacters || !Array.isArray(projectCharacters)) return characters.length === 0;
     if (projectCharacters.length !== characters.length) return false;
     
     // Check if all characters match - use any to bypass type narrowing
     const charIds = new Set(characters.map(c => c.character_id));
-    const projectCharIds = new Set(projectCharacters.map((pc: any) => pc.character_id));
+    const projectCharIds = new Set(projectCharacters.map((pc: LegacyAny) => pc.character_id));
     
     if (charIds.size !== projectCharIds.size) return false;
     

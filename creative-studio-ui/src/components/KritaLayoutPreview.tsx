@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useEffect, useState } from 'react';
 import { Loader2, AlertCircle } from 'lucide-react';
 import axios from 'axios';
@@ -49,7 +50,7 @@ export const KritaLayoutPreview: React.FC<KritaLayoutPreviewProps> = ({
         if (response.data?.composition) {
           setLayers(response.data.composition);
         }
-      } catch (err: any) {
+      } catch (err: LegacyAny) {
         console.error('Failed to load Krita layers:', err);
         setError('Precept (KRA) not found or unreadable');
       } finally {

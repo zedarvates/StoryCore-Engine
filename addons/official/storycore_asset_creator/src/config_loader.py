@@ -13,6 +13,7 @@ POURQUOI:
   - ComfyUI Remote    : host + port quelconque
   Ne JAMAIS assumer un port fixe.
 """
+
 from __future__ import annotations
 
 import json
@@ -23,6 +24,7 @@ from typing import Optional
 
 # ── Chemins de recherche pour config/comfyui_config.json ──────────────────────
 # Cherche en remontant depuis le dossier de l'addon jusqu'a la racine du projet
+
 
 def _find_project_config() -> Optional[Path]:
     """
@@ -66,13 +68,13 @@ def load_comfyui_config() -> dict:
     """
     defaults = {
         "host": "127.0.0.1",
-        "port": None,              # Volontairement None = non configure
+        "port": None,  # Volontairement None = non configure
         "timeout_seconds": 300.0,
         "poll_interval_seconds": 2.0,
         "output_dirs": {
-            "assets_3d":  "./exports/assets_3d",
-            "puppets":    "./exports/puppets",
-            "organic":    "./exports/organic",
+            "assets_3d": "./exports/assets_3d",
+            "puppets": "./exports/puppets",
+            "organic": "./exports/organic",
             "references": "./exports/blender/references",
         },
     }

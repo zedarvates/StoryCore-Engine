@@ -6,7 +6,7 @@ import styles from './ColorCorrectionPanel.module.css';
 interface VideoScopesProps {}
 
 export const VideoScopes: React.FC<VideoScopesProps> = () => {
-  const { state } = useColorCorrectionStore();
+  const { _state } = useColorCorrectionStore();
   const [activeScope, setActiveScope] = useState<ColorScopeType>('waveform');
 
   useEffect(() => {
@@ -203,7 +203,7 @@ export const VideoScopes: React.FC<VideoScopesProps> = () => {
               // Draw histogram
               const data = scopeData.histogram;
               const channels = ['r', 'g', 'b', 'luma'];
-              channels.forEach((channel, index) => {
+              channels.forEach((channel, _index) => {
                 const channelData = data[channel as keyof typeof data];
                 if (!channelData) return;
 
@@ -251,7 +251,7 @@ export const VideoScopes: React.FC<VideoScopesProps> = () => {
               // Draw RGB parade
               const data = scopeData.rgbParade;
               const channels = ['r', 'g', 'b'];
-              channels.forEach((channel, index) => {
+              channels.forEach((channel, _index) => {
                 const channelData = data[channel as keyof typeof data];
                 if (!channelData) return;
 

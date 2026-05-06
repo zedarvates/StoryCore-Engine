@@ -445,7 +445,7 @@ Réponds en format JSON structuré.`;
     }
   }
 
-  private createFallbackAnalysis(object: StoryObject): ObjectAnalysis {
+  private createFallbackAnalysis(_object: StoryObject): ObjectAnalysis {
     return {
       narrativeRole: 'world_building',
       thematicConnections: ['magie', 'aventure', 'mystère'],

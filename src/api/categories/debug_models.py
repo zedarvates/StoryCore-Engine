@@ -13,6 +13,7 @@ from enum import Enum
 
 class LogLevel(str, Enum):
     """Log level enumeration."""
+
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -22,6 +23,7 @@ class LogLevel(str, Enum):
 
 class ComponentStatus(str, Enum):
     """Component health status."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -31,6 +33,7 @@ class ComponentStatus(str, Enum):
 @dataclass
 class LogEntry:
     """A single log entry."""
+
     timestamp: datetime
     level: str
     component: str
@@ -38,7 +41,7 @@ class LogEntry:
     request_id: Optional[str] = None
     user: Optional[str] = None
     details: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -55,6 +58,7 @@ class LogEntry:
 @dataclass
 class LogsGetRequest:
     """Request for retrieving log entries."""
+
     level: Optional[str] = None  # Filter by log level
     component: Optional[str] = None  # Filter by component
     start_time: Optional[datetime] = None  # Filter by time range
@@ -68,6 +72,7 @@ class LogsGetRequest:
 @dataclass
 class LogsGetResult:
     """Result of log retrieval."""
+
     entries: List[LogEntry]
     total_count: int
     filtered_count: int
@@ -79,6 +84,7 @@ class LogsGetResult:
 @dataclass
 class TraceEnableRequest:
     """Request to enable operation tracing."""
+
     components: Optional[List[str]] = None  # Specific components to trace (None = all)
     trace_level: str = "detailed"  # "basic", "detailed", "verbose"
     include_timing: bool = True
@@ -91,6 +97,7 @@ class TraceEnableRequest:
 @dataclass
 class TraceEnableResult:
     """Result of enabling tracing."""
+
     enabled: bool
     trace_id: str
     components_traced: List[str]
@@ -102,6 +109,7 @@ class TraceEnableResult:
 @dataclass
 class TraceDisableRequest:
     """Request to disable operation tracing."""
+
     trace_id: Optional[str] = None  # Specific trace to disable (None = all)
     save_trace: bool = True  # Save trace data before disabling
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -110,6 +118,7 @@ class TraceDisableRequest:
 @dataclass
 class TraceDisableResult:
     """Result of disabling tracing."""
+
     disabled: bool
     trace_saved: bool
     trace_id: Optional[str] = None
@@ -121,6 +130,7 @@ class TraceDisableResult:
 @dataclass
 class SystemMetrics:
     """System performance metrics."""
+
     cpu_usage_percent: float
     memory_usage_mb: float
     memory_total_mb: float
@@ -129,7 +139,7 @@ class SystemMetrics:
     disk_total_gb: float
     disk_percent: float
     uptime_seconds: float
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -147,6 +157,7 @@ class SystemMetrics:
 @dataclass
 class APIMetrics:
     """API performance metrics."""
+
     total_requests: int
     successful_requests: int
     failed_requests: int
@@ -156,7 +167,7 @@ class APIMetrics:
     p99_latency_ms: float
     requests_per_second: float
     error_rate: float
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -175,6 +186,7 @@ class APIMetrics:
 @dataclass
 class MetricsGetRequest:
     """Request for system metrics."""
+
     include_system: bool = True
     include_api: bool = True
     include_components: bool = True
@@ -185,6 +197,7 @@ class MetricsGetRequest:
 @dataclass
 class MetricsGetResult:
     """Result of metrics retrieval."""
+
     system_metrics: Optional[SystemMetrics] = None
     api_metrics: Optional[APIMetrics] = None
     component_metrics: Dict[str, Dict[str, Any]] = field(default_factory=dict)
@@ -196,13 +209,14 @@ class MetricsGetResult:
 @dataclass
 class ComponentHealth:
     """Health status of a system component."""
+
     component_name: str
     status: str  # "healthy", "degraded", "unhealthy", "unknown"
     response_time_ms: Optional[float] = None
     error_message: Optional[str] = None
     last_check: Optional[datetime] = None
     details: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -218,6 +232,7 @@ class ComponentHealth:
 @dataclass
 class HealthCheckRequest:
     """Request for health check."""
+
     components: Optional[List[str]] = None  # Specific components to check (None = all)
     include_details: bool = True
     timeout_seconds: int = 30
@@ -227,6 +242,7 @@ class HealthCheckRequest:
 @dataclass
 class HealthCheckResult:
     """Result of health check."""
+
     overall_status: str  # "healthy", "degraded", "unhealthy"
     components: List[ComponentHealth]
     healthy_count: int
@@ -238,6 +254,7 @@ class HealthCheckResult:
 @dataclass
 class ProfilerRunRequest:
     """Request to run profiler on an operation."""
+
     operation: str  # Operation to profile (e.g., "storycore.image.generate")
     operation_params: Dict[str, Any] = field(default_factory=dict)
     profile_type: str = "time"  # "time", "memory", "both"
@@ -249,6 +266,7 @@ class ProfilerRunRequest:
 @dataclass
 class ProfilerRunResult:
     """Result of profiler run."""
+
     operation: str
     profile_type: str
     execution_time_ms: float

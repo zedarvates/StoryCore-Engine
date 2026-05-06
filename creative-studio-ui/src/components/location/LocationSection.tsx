@@ -9,6 +9,7 @@
  */
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Map, X, Globe, RefreshCw, ExternalLink, Sparkles } from 'lucide-react';
 import { LocationList } from './LocationList';
 import { LocationEditor } from './LocationEditor';
@@ -341,7 +342,7 @@ export function LocationSection({
       />
 
       {/* Create/Edit Modal */}
-      {showCreateModal && (
+      {showCreateModal && createPortal(
         <div className="location-section__modal-overlay" onClick={handleCloseCreateModal}>
           <div className="location-section__modal" onClick={(e) => e.stopPropagation()}>
             <div className="location-section__modal-header">
@@ -358,11 +359,12 @@ export function LocationSection({
               onCancel={handleCloseCreateModal}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Full Editor Modal */}
-      {showEditor && editingLocation && (
+      {showEditor && editingLocation && createPortal(
         <div className="location-section__modal-overlay" onClick={handleCloseEditor}>
           <div className="location-section__modal location-section__modal--full" onClick={(e) => e.stopPropagation()}>
             <div className="location-section__modal-header">
@@ -380,11 +382,12 @@ export function LocationSection({
               mode="full"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Image Creator Modal */}
-      {showImageCreator && (
+      {showImageCreator && createPortal(
         <div className="location-section__modal-overlay" onClick={() => setShowImageCreator(false)}>
           <div className="location-section__modal max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <div className="location-section__modal-header">
@@ -415,11 +418,12 @@ export function LocationSection({
               />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* World Building Location Selector Modal */}
-      {showWorldSelector && (
+      {showWorldSelector && createPortal(
         <div className="location-section__modal-overlay" onClick={() => setShowWorldSelector(false)}>
           <div className="location-section__modal" onClick={(e) => e.stopPropagation()}>
             <div className="location-section__modal-header">
@@ -461,7 +465,8 @@ export function LocationSection({
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

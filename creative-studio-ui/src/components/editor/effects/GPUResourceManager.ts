@@ -1,4 +1,4 @@
-import { Effect, EffectParameter } from './EffectsLibrary';
+import { Effect, _EffectParameter } from './EffectsLibrary';
 
 interface AppliedEffect extends Effect {
   enabled: boolean;
@@ -285,7 +285,7 @@ export class GPUResourceManager {
     if (!this.gl) return;
 
     // Clean up all resources
-    for (const [key, resource] of this.resourcePool) {
+    for (const [key, _resource] of this.resourcePool) {
       this.deallocateResource(key);
     }
 

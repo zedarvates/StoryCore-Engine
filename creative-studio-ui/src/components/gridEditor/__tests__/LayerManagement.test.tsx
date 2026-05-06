@@ -4,6 +4,8 @@
  * Tests for layer operations and LayerStack component
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
@@ -34,7 +36,7 @@ describe('Layer Operations', () => {
       expect(layer.opacity).toBe(1.0);
       expect(layer.blendMode).toBe('normal');
       expect(layer.content.type).toBe('image');
-      expect((layer.content as any).url).toBe('test.jpg');
+      expect((layer.content as LegacyAny).url).toBe('test.jpg');
     });
 
     it('should create a valid annotation layer', () => {
@@ -55,7 +57,7 @@ describe('Layer Operations', () => {
       expect(layer.name).toBe('Blur Effect');
       expect(layer.type).toBe('effect');
       expect(layer.content.type).toBe('effect');
-      expect((layer.content as any).effectType).toBe('blur');
+      expect((layer.content as LegacyAny).effectType).toBe('blur');
     });
   });
 

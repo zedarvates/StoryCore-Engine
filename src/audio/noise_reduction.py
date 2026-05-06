@@ -5,7 +5,7 @@ This module provides functionality for reducing noise in audio signals.
 """
 
 import numpy as np
-from scipy import signal
+
 
 class NoiseReduction:
     """Noise reduction processor for audio signals."""
@@ -33,7 +33,7 @@ class NoiseReduction:
         """
         # Calculate RMS
         rms = np.sqrt(np.mean(audio_data**2))
-        
+
         if rms < threshold:
             # Apply compression
             gain = 1.0 / (1.0 + ratio * (threshold / (rms + 1e-10)))
@@ -59,7 +59,7 @@ class NoiseReduction:
 
         # If no noise profile provided, estimate from first part of signal
         if noise_profile is None:
-            noise_profile = np.mean(magnitude[:len(magnitude)//10], axis=0)
+            noise_profile = np.mean(magnitude[: len(magnitude) // 10], axis=0)
 
         # Apply spectral subtraction
         cleaned_magnitude = np.maximum(magnitude - noise_profile, 0)

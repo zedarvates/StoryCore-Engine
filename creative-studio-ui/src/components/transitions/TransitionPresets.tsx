@@ -2,6 +2,8 @@
  * Pre-built Transition Effects
  * Ready-to-use transition components for common use cases
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { CSSProperties, useCallback, useRef, useState } from 'react';
 import {
@@ -66,9 +68,9 @@ export const FadeTransition: React.FC<FadeTransitionProps> = ({
   onComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [key, setKey] = useState(contentKey || 'initial');
+  const [_key, setKey] = useState(contentKey || 'initial');
   const [progress, setProgress] = useState(0);
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<LegacyAny>(null);
 
   const config: FadeTransitionConfig = {
     type: 'fade',
@@ -585,7 +587,7 @@ export interface DissolveTransitionProps {
 
 export const DissolveTransition: React.FC<DissolveTransitionProps> = ({
   children,
-  pattern = 'random',
+  _pattern = 'random',
   particleSize = 4,
   noiseScale = 2,
   duration = 600,
@@ -751,7 +753,7 @@ export const TransitionPreview: React.FC<TransitionPreviewProps> = ({
   size = { width: 320, height: 180 },
   autoPreview = true,
   loop = true,
-  onPreviewComplete,
+  onPrev_iewComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPreview);

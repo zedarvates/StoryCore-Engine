@@ -12,9 +12,9 @@ Deux modes d'entree:
   - IMAGE_UPLOAD  : l'utilisateur apporte son image
   - AI_GENERATED  : utilise une image deja generee par le pipeline IA
 """
+
 from __future__ import annotations
 
-import os
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional
@@ -99,7 +99,9 @@ class ImageTo3DPipeline:
         # 1. Verifier ComfyUI
         self._log("Verification ComfyUI...", progress_callback)
         if not self.client.is_alive():
-            raise ConnectionError("ComfyUI non accessible. Verifiez qu'il est lance sur localhost:8188")
+            raise ConnectionError(
+                "ComfyUI non accessible. Verifiez qu'il est lance sur localhost:8188"
+            )
 
         # 2. Upload image
         self._log(f"Upload image: {img_path.name}", progress_callback)
@@ -139,7 +141,7 @@ class ImageTo3DPipeline:
                 local_path = self.client.download_output(filename, str(output_path))
                 all_glb_paths.append(local_path)
                 self._log(f"GLB telecharge: {filename}", progress_callback)
-            except Exception as e:
+            except Exception:
                 self._log(f"(optionnel manquant: {filename})", progress_callback)
 
         # Aussi chercher dans les outputs
@@ -164,7 +166,10 @@ class ImageTo3DPipeline:
             raise FileNotFoundError(f"Aucun GLB genere pour {asset_name}")
 
         duration = time.time() - start
-        self._log(f"Pipeline termine en {duration:.1f}s -> {Path(main_glb).name}", progress_callback)
+        self._log(
+            f"Pipeline termine en {duration:.1f}s -> {Path(main_glb).name}",
+            progress_callback,
+        )
 
         return {
             "glb_path": main_glb,

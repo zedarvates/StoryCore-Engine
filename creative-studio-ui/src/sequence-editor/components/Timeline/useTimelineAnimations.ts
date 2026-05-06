@@ -11,7 +11,7 @@ interface AnimationOptions {
 }
 
 export const useTimelineAnimations = () => {
-const animationRef = useRef<Animation | null>(null);
+const _animationRef = useRef<Animation | null>(null);
 
   const animate = useCallback((
     element: HTMLElement,

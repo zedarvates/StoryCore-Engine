@@ -9,7 +9,7 @@ import json
 import logging
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
 
@@ -18,6 +18,7 @@ from src.addon_manager import AddonManifest, AddonType
 
 class ValidationSeverity(Enum):
     """Niveaux de sévérité pour les problèmes de validation"""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -27,6 +28,7 @@ class ValidationSeverity(Enum):
 @dataclass
 class ValidationIssue:
     """Représente un problème de validation"""
+
     severity: ValidationSeverity
     category: str
     message: str
@@ -38,6 +40,7 @@ class ValidationIssue:
 @dataclass
 class ValidationResult:
     """Résultat complet de validation"""
+
     is_valid: bool
     issues: List[ValidationIssue]
     score: float  # Score de confiance (0-100)
@@ -52,77 +55,105 @@ class CodeAnalyzer(ast.NodeVisitor):
         self.file_path = file_path
         self.issues: List[ValidationIssue] = []
         self.dangerous_imports = {
-            'os', 'subprocess', 'sys', 'shutil', 'platform',
-            'socket', 'urllib', 'http', 'ftplib', 'telnetlib'
+            "os",
+            "subprocess",
+            "sys",
+            "shutil",
+            "platform",
+            "socket",
+            "urllib",
+            "http",
+            "ftplib",
+            "telnetlib",
         }
         self.dangerous_functions = {
-            'eval', 'exec', 'compile', '__import__',
-            'open', 'input', 'raw_input'
+            "eval",
+            "exec",
+            "compile",
+            "__import__",
+            "open",
+            "input",
+            "raw_input",
         }
         self.allowed_modules = {
-            'pathlib', 'json', 'logging', 'asyncio', 'typing',
-            'dataclasses', 'enum', 'functools', 'itertools'
+            "pathlib",
+            "json",
+            "logging",
+            "asyncio",
+            "typing",
+            "dataclasses",
+            "enum",
+            "functools",
+            "itertools",
         }
 
     def visit_Import(self, node: ast.Import) -> None:
         """Vérifie les imports directs"""
         for alias in node.names:
             if alias.name in self.dangerous_imports:
-                self.issues.append(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="security",
-                    message=f"Import potentiellement dangereux: {alias.name}",
-                    file_path=self.file_path,
-                    line_number=node.lineno,
-                    suggestion="Utilisez des alternatives sûres ou demandez la permission appropriée"
-                ))
+                self.issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="security",
+                        message=f"Import potentiellement dangereux: {alias.name}",
+                        file_path=self.file_path,
+                        line_number=node.lineno,
+                        suggestion="Utilisez des alternatives sûres ou demandez la permission appropriée",
+                    )
+                )
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Vérifie les imports from"""
         if node.module and node.module in self.dangerous_imports:
             for alias in node.names:
                 if alias.name in self.dangerous_functions:
-                    self.issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        category="security",
-                        message=f"Import de fonction dangereuse: {node.module}.{alias.name}",
-                        file_path=self.file_path,
-                        line_number=node.lineno,
-                        suggestion="Évitez l'usage de fonctions d'exécution dynamique"
-                    ))
+                    self.issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            category="security",
+                            message=f"Import de fonction dangereuse: {node.module}.{alias.name}",
+                            file_path=self.file_path,
+                            line_number=node.lineno,
+                            suggestion="Évitez l'usage de fonctions d'exécution dynamique",
+                        )
+                    )
 
     def visit_Call(self, node: ast.Call) -> None:
         """Vérifie les appels de fonctions"""
         if isinstance(node.func, ast.Name):
             if node.func.id in self.dangerous_functions:
-                self.issues.append(ValidationIssue(
-                    severity=ValidationSeverity.CRITICAL,
-                    category="security",
-                    message=f"Appel de fonction dangereuse: {node.func.id}()",
-                    file_path=self.file_path,
-                    line_number=node.lineno,
-                    suggestion="Supprimez cet appel ou utilisez une alternative sécurisée"
-                ))
+                self.issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.CRITICAL,
+                        category="security",
+                        message=f"Appel de fonction dangereuse: {node.func.id}()",
+                        file_path=self.file_path,
+                        line_number=node.lineno,
+                        suggestion="Supprimez cet appel ou utilisez une alternative sécurisée",
+                    )
+                )
 
     def visit_Str(self, node: ast.Str) -> None:
         """Vérifie les chaînes de caractères pour patterns suspects"""
         suspicious_patterns = [
-            r'rm\s+-rf\s+/',  # Commandes de suppression dangereuses
-            r'format\s*\(.*%.*\)',  # Format strings potentiellement vulnérables
-            r'exec\s*\(',  # Exécution de code
-            r'eval\s*\('   # Évaluation de code
+            r"rm\s+-rf\s+/",  # Commandes de suppression dangereuses
+            r"format\s*\(.*%.*\)",  # Format strings potentiellement vulnérables
+            r"exec\s*\(",  # Exécution de code
+            r"eval\s*\(",  # Évaluation de code
         ]
 
         for pattern in suspicious_patterns:
             if re.search(pattern, node.s, re.IGNORECASE):
-                self.issues.append(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="security",
-                    message=f"Pattern potentiellement dangereux dans chaîne: {node.s[:50]}...",
-                    file_path=self.file_path,
-                    line_number=node.lineno,
-                    suggestion="Vérifiez le contenu de cette chaîne"
-                ))
+                self.issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="security",
+                        message=f"Pattern potentiellement dangereux dans chaîne: {node.s[:50]}...",
+                        file_path=self.file_path,
+                        line_number=node.lineno,
+                        suggestion="Vérifiez le contenu de cette chaîne",
+                    )
+                )
 
 
 class AddonValidator:
@@ -141,14 +172,16 @@ class AddonValidator:
 
         # Seuils de validation
         self.min_score_threshold = 70.0  # Score minimum pour validation
-        self.max_critical_issues = 0     # Nombre max d'issues critiques
-        self.max_error_issues = 2        # Nombre max d'issues erreurs
+        self.max_critical_issues = 0  # Nombre max d'issues critiques
+        self.max_error_issues = 2  # Nombre max d'issues erreurs
 
         # Patterns de validation
-        self.valid_name_pattern = re.compile(r'^[a-z][a-z0-9_-]*$')
-        self.valid_version_pattern = re.compile(r'^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$')
+        self.valid_name_pattern = re.compile(r"^[a-z][a-z0-9_-]*$")
+        self.valid_version_pattern = re.compile(r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$")
 
-    async def validate_addon(self, manifest: AddonManifest, addon_path: Path) -> ValidationResult:
+    async def validate_addon(
+        self, manifest: AddonManifest, addon_path: Path
+    ) -> ValidationResult:
         """
         Validation complète d'un add-on
 
@@ -186,58 +219,70 @@ class AddonValidator:
         checksum = self._generate_checksum(manifest, addon_path, issues)
 
         return ValidationResult(
-            is_valid=is_valid,
-            issues=issues,
-            score=score,
-            checksum=checksum
+            is_valid=is_valid, issues=issues, score=score, checksum=checksum
         )
 
-    async def _validate_manifest(self, manifest: AddonManifest, addon_path: Path) -> List[ValidationIssue]:
+    async def _validate_manifest(
+        self, manifest: AddonManifest, addon_path: Path
+    ) -> List[ValidationIssue]:
         """Validation du manifest"""
         issues = []
 
         # Validation du nom
         if not self.valid_name_pattern.match(manifest.name):
-            issues.append(ValidationIssue(
-                severity=ValidationSeverity.ERROR,
-                category="manifest",
-                message=f"Nom d'add-on invalide: {manifest.name}",
-                suggestion="Utilisez uniquement lettres minuscules, chiffres, tirets et underscores"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    category="manifest",
+                    message=f"Nom d'add-on invalide: {manifest.name}",
+                    suggestion="Utilisez uniquement lettres minuscules, chiffres, tirets et underscores",
+                )
+            )
 
         # Validation de la version
         if not self.valid_version_pattern.match(manifest.version):
-            issues.append(ValidationIssue(
-                severity=ValidationSeverity.ERROR,
-                category="manifest",
-                message=f"Version invalide: {manifest.version}",
-                suggestion="Utilisez le format sémantique: x.y.z ou x.y.z-suffix"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity=ValidationSeverity.ERROR,
+                    category="manifest",
+                    message=f"Version invalide: {manifest.version}",
+                    suggestion="Utilisez le format sémantique: x.y.z ou x.y.z-suffix",
+                )
+            )
 
         # Validation de la description
         if len(manifest.description) < 10:
-            issues.append(ValidationIssue(
-                severity=ValidationSeverity.WARNING,
-                category="manifest",
-                message="Description trop courte",
-                suggestion="Fournissez une description plus détaillée (min 10 caractères)"
-            ))
+            issues.append(
+                ValidationIssue(
+                    severity=ValidationSeverity.WARNING,
+                    category="manifest",
+                    message="Description trop courte",
+                    suggestion="Fournissez une description plus détaillée (min 10 caractères)",
+                )
+            )
 
         # Validation des permissions
         valid_permissions = {
-            "model_access", "file_system_read", "file_system_write",
-            "network_access", "ui_access", "config_access",
-            "database_access", "system_info_access"
+            "model_access",
+            "file_system_read",
+            "file_system_write",
+            "network_access",
+            "ui_access",
+            "config_access",
+            "database_access",
+            "system_info_access",
         }
 
         for permission in manifest.permissions:
             if permission not in valid_permissions:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="manifest",
-                    message=f"Permission inconnue: {permission}",
-                    suggestion=f"Permissions valides: {', '.join(valid_permissions)}"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="manifest",
+                        message=f"Permission inconnue: {permission}",
+                        suggestion=f"Permissions valides: {', '.join(valid_permissions)}",
+                    )
+                )
 
         # Validation de compatibilité
         if "engine_version" in manifest.compatibility:
@@ -246,7 +291,9 @@ class AddonValidator:
 
         return issues
 
-    async def _validate_structure(self, manifest: AddonManifest, addon_path: Path) -> List[ValidationIssue]:
+    async def _validate_structure(
+        self, manifest: AddonManifest, addon_path: Path
+    ) -> List[ValidationIssue]:
         """Validation de la structure des fichiers"""
         issues = []
 
@@ -257,41 +304,49 @@ class AddonValidator:
         for dir_name in required_dirs:
             dir_path = addon_path / dir_name
             if not dir_path.exists():
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="structure",
-                    message=f"Répertoire manquant: {dir_name}/",
-                    suggestion=f"Créez le répertoire {dir_name}/ dans votre add-on"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="structure",
+                        message=f"Répertoire manquant: {dir_name}/",
+                        suggestion=f"Créez le répertoire {dir_name}/ dans votre add-on",
+                    )
+                )
 
         # Vérification des fichiers requis
         for file_name in required_files:
             file_path = addon_path / file_name
             if not file_path.exists():
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.CRITICAL,
-                    category="structure",
-                    message=f"Fichier requis manquant: {file_name}",
-                    suggestion="Assurez-vous que tous les fichiers requis sont présents"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.CRITICAL,
+                        category="structure",
+                        message=f"Fichier requis manquant: {file_name}",
+                        suggestion="Assurez-vous que tous les fichiers requis sont présents",
+                    )
+                )
 
         # Validation des entry points
         for entry_name, entry_path in manifest.entry_points.items():
             full_path = addon_path / entry_path
             if not full_path.exists():
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="structure",
-                    message=f"Entry point manquant: {entry_path}",
-                    suggestion=f"Vérifiez que le fichier {entry_path} existe"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="structure",
+                        message=f"Entry point manquant: {entry_path}",
+                        suggestion=f"Vérifiez que le fichier {entry_path} existe",
+                    )
+                )
             elif not full_path.is_file():
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="structure",
-                    message=f"Entry point n'est pas un fichier: {entry_path}",
-                    suggestion="Les entry points doivent être des fichiers"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="structure",
+                        message=f"Entry point n'est pas un fichier: {entry_path}",
+                        suggestion="Les entry points doivent être des fichiers",
+                    )
+                )
 
         # Vérification des fichiers Python dans src/
         src_dir = addon_path / "src"
@@ -299,30 +354,36 @@ class AddonValidator:
             for py_file in src_dir.rglob("*.py"):
                 # Vérification de base du fichier Python
                 try:
-                    with open(py_file, 'r', encoding='utf-8') as f:
+                    with open(py_file, "r", encoding="utf-8") as f:
                         content = f.read()
                     ast.parse(content)  # Validation syntaxique
                 except SyntaxError as e:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        category="code",
-                        message=f"Erreur de syntaxe Python: {e.msg}",
-                        file_path=py_file,
-                        line_number=e.lineno,
-                        suggestion="Corrigez l'erreur de syntaxe"
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            category="code",
+                            message=f"Erreur de syntaxe Python: {e.msg}",
+                            file_path=py_file,
+                            line_number=e.lineno,
+                            suggestion="Corrigez l'erreur de syntaxe",
+                        )
+                    )
                 except Exception as e:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.WARNING,
-                        category="code",
-                        message=f"Erreur lors de la lecture du fichier: {e}",
-                        file_path=py_file,
-                        suggestion="Vérifiez que le fichier est lisible"
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.WARNING,
+                            category="code",
+                            message=f"Erreur lors de la lecture du fichier: {e}",
+                            file_path=py_file,
+                            suggestion="Vérifiez que le fichier est lisible",
+                        )
+                    )
 
         return issues
 
-    async def _validate_code(self, manifest: AddonManifest, addon_path: Path) -> List[ValidationIssue]:
+    async def _validate_code(
+        self, manifest: AddonManifest, addon_path: Path
+    ) -> List[ValidationIssue]:
         """Validation du code Python"""
         issues = []
 
@@ -331,7 +392,7 @@ class AddonValidator:
         if src_dir.exists():
             for py_file in src_dir.rglob("*.py"):
                 try:
-                    with open(py_file, 'r', encoding='utf-8') as f:
+                    with open(py_file, "r", encoding="utf-8") as f:
                         source_code = f.read()
 
                     # Analyseur statique
@@ -342,17 +403,21 @@ class AddonValidator:
                     issues.extend(analyzer.issues)
 
                 except Exception as e:
-                    issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
-                        category="code",
-                        message=f"Erreur lors de l'analyse du code: {e}",
-                        file_path=py_file,
-                        suggestion="Vérifiez la syntaxe et la structure du fichier"
-                    ))
+                    issues.append(
+                        ValidationIssue(
+                            severity=ValidationSeverity.ERROR,
+                            category="code",
+                            message=f"Erreur lors de l'analyse du code: {e}",
+                            file_path=py_file,
+                            suggestion="Vérifiez la syntaxe et la structure du fichier",
+                        )
+                    )
 
         return issues
 
-    async def _validate_dependencies(self, manifest: AddonManifest) -> List[ValidationIssue]:
+    async def _validate_dependencies(
+        self, manifest: AddonManifest
+    ) -> List[ValidationIssue]:
         """Validation des dépendances"""
         issues = []
 
@@ -361,26 +426,30 @@ class AddonValidator:
             "requests": "Considérez utiliser aiohttp pour la compatibilité async",
             "urllib3": "Préférez les bibliothèques async natives",
             "subprocess": "Opérations système limitées",
-            "os": "Accès système restreint"
+            "os": "Accès système restreint",
         }
 
         for dep, version_req in manifest.dependencies.items():
             if dep in risky_deps:
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.WARNING,
-                    category="dependencies",
-                    message=f"Dépendance potentiellement risquée: {dep}",
-                    suggestion=risky_deps[dep]
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.WARNING,
+                        category="dependencies",
+                        message=f"Dépendance potentiellement risquée: {dep}",
+                        suggestion=risky_deps[dep],
+                    )
+                )
 
             # Validation du format de version
             if not self._validate_version_requirement(version_req):
-                issues.append(ValidationIssue(
-                    severity=ValidationSeverity.ERROR,
-                    category="dependencies",
-                    message=f"Format de version invalide pour {dep}: {version_req}",
-                    suggestion="Utilisez des spécificateurs PEP 508 valides"
-                ))
+                issues.append(
+                    ValidationIssue(
+                        severity=ValidationSeverity.ERROR,
+                        category="dependencies",
+                        message=f"Format de version invalide pour {dep}: {version_req}",
+                        suggestion="Utilisez des spécificateurs PEP 508 valides",
+                    )
+                )
 
         return issues
 
@@ -388,12 +457,12 @@ class AddonValidator:
         """Validation basique des exigences de version"""
         # Patterns simples pour les spécificateurs de version courants
         patterns = [
-            r'^==\d+\.\d+\.\d+.*$',  # ==1.0.0
-            r'^>=\d+\.\d+\.\d+.*$',  # >=1.0.0
-            r'^>\d+\.\d+\.\d+.*$',   # >1.0.0
-            r'^<=\d+\.\d+\.\d+.*$',  # <=1.0.0
-            r'^<\d+\.\d+\.\d+.*$',   # <1.0.0
-            r'^\d+\.\d+\.\d+.*$'     # 1.0.0 (implicite ==)
+            r"^==\d+\.\d+\.\d+.*$",  # ==1.0.0
+            r"^>=\d+\.\d+\.\d+.*$",  # >=1.0.0
+            r"^>\d+\.\d+\.\d+.*$",  # >1.0.0
+            r"^<=\d+\.\d+\.\d+.*$",  # <=1.0.0
+            r"^<\d+\.\d+\.\d+.*$",  # <1.0.0
+            r"^\d+\.\d+\.\d+.*$",  # 1.0.0 (implicite ==)
         ]
 
         return any(re.match(pattern, version_req) for pattern in patterns)
@@ -408,7 +477,7 @@ class AddonValidator:
             ValidationSeverity.INFO: 1,
             ValidationSeverity.WARNING: 5,
             ValidationSeverity.ERROR: 20,
-            ValidationSeverity.CRITICAL: 50
+            ValidationSeverity.CRITICAL: 50,
         }
 
         total_penalty = sum(weights[issue.severity] for issue in issues)
@@ -422,8 +491,12 @@ class AddonValidator:
             return False
 
         # Compter les issues par sévérité
-        critical_count = sum(1 for issue in issues if issue.severity == ValidationSeverity.CRITICAL)
-        error_count = sum(1 for issue in issues if issue.severity == ValidationSeverity.ERROR)
+        critical_count = sum(
+            1 for issue in issues if issue.severity == ValidationSeverity.CRITICAL
+        )
+        error_count = sum(
+            1 for issue in issues if issue.severity == ValidationSeverity.ERROR
+        )
 
         if critical_count > self.max_critical_issues:
             return False
@@ -433,14 +506,16 @@ class AddonValidator:
 
         return True
 
-    def _generate_checksum(self, manifest: AddonManifest, addon_path: Path, issues: List[ValidationIssue]) -> str:
+    def _generate_checksum(
+        self, manifest: AddonManifest, addon_path: Path, issues: List[ValidationIssue]
+    ) -> str:
         """Génère un checksum pour l'add-on"""
         # Créer une chaîne représentative de l'état de l'add-on
         checksum_data = {
             "name": manifest.name,
             "version": manifest.version,
             "files": {},
-            "issues_count": len(issues)
+            "issues_count": len(issues),
         }
 
         # Inclure les checksums des fichiers principaux
@@ -451,7 +526,7 @@ class AddonValidator:
         for file_name in important_files:
             file_path = addon_path / file_name
             if file_path.exists():
-                with open(file_path, 'rb') as f:
+                with open(file_path, "rb") as f:
                     file_hash = hashlib.sha256(f.read()).hexdigest()
                 checksum_data["files"][file_name] = file_hash
 
@@ -463,7 +538,7 @@ class AddonValidator:
         """Génère un rapport de validation lisible"""
         report = f"""
 Validation Report for Add-on
-{'='*50}
+{"=" * 50}
 Valid: {result.is_valid}
 Score: {result.score:.1f}/100
 Checksum: {result.checksum[:16]}...
@@ -488,10 +563,10 @@ Issues Found: {len(result.issues)}
     async def validate_security(self, addon_path: Path) -> Dict[str, Any]:
         """
         Validation de sécurité approfondie
-        
+
         Args:
             addon_path: Chemin vers l'add-on
-            
+
         Returns:
             Rapport de sécurité détaillé
         """
@@ -501,79 +576,75 @@ Issues Found: {len(result.issues)}
             "dangerous_patterns": [],
             "suspicious_imports": [],
             "file_access": [],
-            "network_access": []
+            "network_access": [],
         }
-        
+
         src_dir = addon_path / "src"
         if not src_dir.exists():
             return security_report
-        
+
         for py_file in src_dir.rglob("*.py"):
             try:
-                with open(py_file, 'r', encoding='utf-8') as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     source_code = f.read()
-                
+
                 # Analyse des patterns dangereux
                 dangerous_patterns = [
-                    (r'eval\s*\(', "Code execution via eval()"),
-                    (r'exec\s*\(', "Code execution via exec()"),
-                    (r'__import__\s*\(', "Dynamic import"),
-                    (r'compile\s*\(', "Code compilation"),
-                    (r'rm\s+-rf', "Dangerous file deletion"),
-                    (r'subprocess\.', "Subprocess execution"),
+                    (r"eval\s*\(", "Code execution via eval()"),
+                    (r"exec\s*\(", "Code execution via exec()"),
+                    (r"__import__\s*\(", "Dynamic import"),
+                    (r"compile\s*\(", "Code compilation"),
+                    (r"rm\s+-rf", "Dangerous file deletion"),
+                    (r"subprocess\.", "Subprocess execution"),
                 ]
-                
+
                 for pattern, description in dangerous_patterns:
                     if re.search(pattern, source_code):
-                        security_report["dangerous_patterns"].append({
-                            "file": str(py_file),
-                            "pattern": description
-                        })
+                        security_report["dangerous_patterns"].append(
+                            {"file": str(py_file), "pattern": description}
+                        )
                         security_report["safe"] = False
                         security_report["risk_level"] = "high"
-                
+
                 # Analyse des imports
                 tree = ast.parse(source_code)
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Import):
                         for alias in node.names:
-                            if alias.name in ['os', 'subprocess', 'sys', 'socket']:
-                                security_report["suspicious_imports"].append({
-                                    "file": str(py_file),
-                                    "module": alias.name
-                                })
-                    
+                            if alias.name in ["os", "subprocess", "sys", "socket"]:
+                                security_report["suspicious_imports"].append(
+                                    {"file": str(py_file), "module": alias.name}
+                                )
+
                     elif isinstance(node, ast.Call):
                         if isinstance(node.func, ast.Attribute):
-                            if node.func.attr in ['open', 'read', 'write']:
-                                security_report["file_access"].append({
-                                    "file": str(py_file),
-                                    "operation": node.func.attr
-                                })
-                            elif node.func.attr in ['connect', 'request', 'urlopen']:
-                                security_report["network_access"].append({
-                                    "file": str(py_file),
-                                    "operation": node.func.attr
-                                })
-                
+                            if node.func.attr in ["open", "read", "write"]:
+                                security_report["file_access"].append(
+                                    {"file": str(py_file), "operation": node.func.attr}
+                                )
+                            elif node.func.attr in ["connect", "request", "urlopen"]:
+                                security_report["network_access"].append(
+                                    {"file": str(py_file), "operation": node.func.attr}
+                                )
+
             except Exception as e:
                 self.logger.error(f"Error analyzing {py_file}: {e}")
-        
+
         # Déterminer le niveau de risque
         if security_report["dangerous_patterns"]:
             security_report["risk_level"] = "high"
         elif security_report["suspicious_imports"] or security_report["network_access"]:
             security_report["risk_level"] = "medium"
-        
+
         return security_report
-    
+
     async def validate_dependencies(self, manifest: AddonManifest) -> Dict[str, Any]:
         """
         Validation des dépendances avec détection de conflits
-        
+
         Args:
             manifest: Manifest de l'add-on
-            
+
         Returns:
             Rapport de dépendances
         """
@@ -582,36 +653,36 @@ Issues Found: {len(result.issues)}
             "missing": [],
             "conflicts": [],
             "circular": [],
-            "recommendations": []
+            "recommendations": [],
         }
-        
+
         # Vérifier les dépendances manquantes
         for dep, version_req in manifest.dependencies.items():
             # TODO: Vérifier si la dépendance est installée
             # Pour l'instant, on suppose qu'elles sont toutes disponibles
             pass
-        
+
         # Détecter les conflits de version
         # TODO: Implémenter la détection de conflits
-        
+
         # Détecter les dépendances circulaires
         # TODO: Implémenter la détection de cycles
-        
+
         # Recommandations
         if len(manifest.dependencies) > 10:
             dependency_report["recommendations"].append(
                 "Nombre élevé de dépendances. Considérez réduire pour améliorer la maintenabilité."
             )
-        
+
         return dependency_report
-    
+
     async def validate_code_quality(self, addon_path: Path) -> Dict[str, Any]:
         """
         Validation de la qualité du code
-        
+
         Args:
             addon_path: Chemin vers l'add-on
-            
+
         Returns:
             Rapport de qualité
         """
@@ -625,82 +696,93 @@ Issues Found: {len(result.issues)}
                 "blank_lines": 0,
                 "functions": 0,
                 "classes": 0,
-                "complexity": 0
-            }
+                "complexity": 0,
+            },
         }
-        
+
         src_dir = addon_path / "src"
         if not src_dir.exists():
             return quality_report
-        
+
         for py_file in src_dir.rglob("*.py"):
             try:
-                with open(py_file, 'r', encoding='utf-8') as f:
+                with open(py_file, "r", encoding="utf-8") as f:
                     lines = f.readlines()
-                    source_code = ''.join(lines)
-                
+                    source_code = "".join(lines)
+
                 quality_report["metrics"]["total_lines"] += len(lines)
-                
+
                 # Compter les lignes de code, commentaires et blanches
                 for line in lines:
                     stripped = line.strip()
                     if not stripped:
                         quality_report["metrics"]["blank_lines"] += 1
-                    elif stripped.startswith('#'):
+                    elif stripped.startswith("#"):
                         quality_report["metrics"]["comment_lines"] += 1
                     else:
                         quality_report["metrics"]["code_lines"] += 1
-                
+
                 # Analyser la structure
                 tree = ast.parse(source_code)
                 for node in ast.walk(tree):
                     if isinstance(node, ast.FunctionDef):
                         quality_report["metrics"]["functions"] += 1
                         # Vérifier la complexité (nombre de branches)
-                        complexity = sum(1 for _ in ast.walk(node) 
-                                       if isinstance(_, (ast.If, ast.For, ast.While, ast.Try)))
+                        complexity = sum(
+                            1
+                            for _ in ast.walk(node)
+                            if isinstance(_, (ast.If, ast.For, ast.While, ast.Try))
+                        )
                         if complexity > 10:
-                            quality_report["issues"].append({
-                                "file": str(py_file),
-                                "function": node.name,
-                                "issue": f"High complexity: {complexity}",
-                                "suggestion": "Consider refactoring into smaller functions"
-                            })
+                            quality_report["issues"].append(
+                                {
+                                    "file": str(py_file),
+                                    "function": node.name,
+                                    "issue": f"High complexity: {complexity}",
+                                    "suggestion": "Consider refactoring into smaller functions",
+                                }
+                            )
                             quality_report["score"] -= 5
-                    
+
                     elif isinstance(node, ast.ClassDef):
                         quality_report["metrics"]["classes"] += 1
-                
+
                 # Vérifier les docstrings
                 if not ast.get_docstring(tree):
-                    quality_report["issues"].append({
-                        "file": str(py_file),
-                        "issue": "Missing module docstring",
-                        "suggestion": "Add a docstring at the top of the file"
-                    })
+                    quality_report["issues"].append(
+                        {
+                            "file": str(py_file),
+                            "issue": "Missing module docstring",
+                            "suggestion": "Add a docstring at the top of the file",
+                        }
+                    )
                     quality_report["score"] -= 2
-                
+
             except Exception as e:
                 self.logger.error(f"Error analyzing quality of {py_file}: {e}")
-        
+
         # Calculer le ratio de commentaires
         if quality_report["metrics"]["code_lines"] > 0:
-            comment_ratio = (quality_report["metrics"]["comment_lines"] / 
-                           quality_report["metrics"]["code_lines"])
+            comment_ratio = (
+                quality_report["metrics"]["comment_lines"]
+                / quality_report["metrics"]["code_lines"]
+            )
             if comment_ratio < 0.1:
-                quality_report["issues"].append({
-                    "issue": "Low comment ratio",
-                    "suggestion": "Add more comments to improve code readability"
-                })
+                quality_report["issues"].append(
+                    {
+                        "issue": "Low comment ratio",
+                        "suggestion": "Add more comments to improve code readability",
+                    }
+                )
                 quality_report["score"] -= 5
-        
+
         quality_report["score"] = max(0, quality_report["score"])
         return quality_report
-    
+
     def get_validation_rules(self) -> List[Dict[str, Any]]:
         """
         Retourne les règles de validation configurables
-        
+
         Returns:
             Liste des règles de validation
         """
@@ -709,97 +791,101 @@ Issues Found: {len(result.issues)}
                 "id": "manifest_name",
                 "category": "manifest",
                 "description": "Nom d'add-on valide",
-                "pattern": r'^[a-z][a-z0-9_-]*$',
-                "severity": "error"
+                "pattern": r"^[a-z][a-z0-9_-]*$",
+                "severity": "error",
             },
             {
                 "id": "manifest_version",
                 "category": "manifest",
                 "description": "Version sémantique valide",
-                "pattern": r'^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$',
-                "severity": "error"
+                "pattern": r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$",
+                "severity": "error",
             },
             {
                 "id": "code_no_eval",
                 "category": "security",
                 "description": "Pas d'utilisation de eval()",
-                "pattern": r'eval\s*\(',
-                "severity": "critical"
+                "pattern": r"eval\s*\(",
+                "severity": "critical",
             },
             {
                 "id": "code_no_exec",
                 "category": "security",
                 "description": "Pas d'utilisation de exec()",
-                "pattern": r'exec\s*\(',
-                "severity": "critical"
+                "pattern": r"exec\s*\(",
+                "severity": "critical",
             },
             {
                 "id": "structure_src_dir",
                 "category": "structure",
                 "description": "Répertoire src/ requis",
-                "severity": "error"
+                "severity": "error",
             },
             {
                 "id": "structure_manifest",
                 "category": "structure",
                 "description": "Fichier addon.json requis",
-                "severity": "critical"
-            }
+                "severity": "critical",
+            },
         ]
-    
-    async def auto_fix_issues(self, addon_path: Path, issues: List[ValidationIssue]) -> Dict[str, Any]:
+
+    async def auto_fix_issues(
+        self, addon_path: Path, issues: List[ValidationIssue]
+    ) -> Dict[str, Any]:
         """
         Tente de corriger automatiquement les problèmes courants
-        
+
         Args:
             addon_path: Chemin vers l'add-on
             issues: Liste des problèmes détectés
-            
+
         Returns:
             Rapport de correction
         """
-        fix_report = {
-            "fixed": [],
-            "failed": [],
-            "skipped": []
-        }
-        
+        fix_report = {"fixed": [], "failed": [], "skipped": []}
+
         for issue in issues:
             # Correction automatique selon le type d'issue
-            if issue.category == "manifest" and "Description trop courte" in issue.message:
+            if (
+                issue.category == "manifest"
+                and "Description trop courte" in issue.message
+            ):
                 # Impossible de corriger automatiquement
-                fix_report["skipped"].append({
-                    "issue": issue.message,
-                    "reason": "Requires manual input"
-                })
-            
-            elif issue.category == "structure" and "Répertoire manquant" in issue.message:
+                fix_report["skipped"].append(
+                    {"issue": issue.message, "reason": "Requires manual input"}
+                )
+
+            elif (
+                issue.category == "structure" and "Répertoire manquant" in issue.message
+            ):
                 # Créer le répertoire manquant
                 try:
                     dir_name = issue.message.split(": ")[1].rstrip("/")
                     dir_path = addon_path / dir_name
                     dir_path.mkdir(parents=True, exist_ok=True)
-                    fix_report["fixed"].append({
-                        "issue": issue.message,
-                        "action": f"Created directory {dir_name}/"
-                    })
+                    fix_report["fixed"].append(
+                        {
+                            "issue": issue.message,
+                            "action": f"Created directory {dir_name}/",
+                        }
+                    )
                 except Exception as e:
-                    fix_report["failed"].append({
-                        "issue": issue.message,
-                        "error": str(e)
-                    })
-            
+                    fix_report["failed"].append(
+                        {"issue": issue.message, "error": str(e)}
+                    )
+
             elif issue.severity == ValidationSeverity.CRITICAL:
                 # Ne pas corriger automatiquement les problèmes critiques
-                fix_report["skipped"].append({
-                    "issue": issue.message,
-                    "reason": "Critical issue requires manual review"
-                })
-            
+                fix_report["skipped"].append(
+                    {
+                        "issue": issue.message,
+                        "reason": "Critical issue requires manual review",
+                    }
+                )
+
             else:
-                fix_report["skipped"].append({
-                    "issue": issue.message,
-                    "reason": "No automatic fix available"
-                })
-        
+                fix_report["skipped"].append(
+                    {"issue": issue.message, "reason": "No automatic fix available"}
+                )
+
         return fix_report

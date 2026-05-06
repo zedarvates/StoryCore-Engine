@@ -3,7 +3,7 @@ import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../st
 import { StepValidator } from '../StepValidator';
 
 export const FoundationsStep: React.FC = () => {
-  const { worldData, currentStep } = useWorldBuilderSelectors();
+  const { worldData, _currentStep } = useWorldBuilderSelectors();
   const { updateStep, markStepComplete } = useWorldBuilderActions();
 
   const [formData, setFormData] = useState(worldData?.foundations || {

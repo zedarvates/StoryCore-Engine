@@ -15,6 +15,7 @@ from enum import Enum
 
 class PromptType(Enum):
     """Types of prompts available."""
+
     CHARACTER_DESCRIPTION = "character_description"
     PERSONALITY_NARRATIVE = "personality_narrative"
     BACKSTORY = "backstory"
@@ -30,6 +31,7 @@ class PromptType(Enum):
 @dataclass
 class PromptTemplate:
     """A prompt template with variables."""
+
     template: str
     description: str
     required_vars: List[str]
@@ -81,11 +83,21 @@ Please write a comprehensive character description (150-250 words) that:
 Genre: {genre}
 Tone: {tone}""",
     description="Generate a comprehensive character description",
-    required_vars=["name", "archetype", "role", "openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism", "primary_traits"],
+    required_vars=[
+        "name",
+        "archetype",
+        "role",
+        "openness",
+        "conscientiousness",
+        "extraversion",
+        "agreeableness",
+        "neuroticism",
+        "primary_traits",
+    ],
     optional_vars=["genre", "tone"],
     system_prompt=CHARACTER_GENERATION_SYSTEM,
     max_tokens=512,
-    temperature=0.7
+    temperature=0.7,
 )
 
 
@@ -115,11 +127,20 @@ Write a first-person or close third-person internal monologue (100-200 words) th
 
 The narrative should feel authentic and consistent with the personality profile.""",
     description="Generate personality narrative revealing inner life",
-    required_vars=["name", "archetype", "primary_traits", "strengths", "flaws", "external_goal", "internal_need", "fears"],
+    required_vars=[
+        "name",
+        "archetype",
+        "primary_traits",
+        "strengths",
+        "flaws",
+        "external_goal",
+        "internal_need",
+        "fears",
+    ],
     optional_vars=[],
     system_prompt=CHARACTER_GENERATION_SYSTEM,
     max_tokens=512,
-    temperature=0.8
+    temperature=0.8,
 )
 
 
@@ -151,11 +172,22 @@ Write a backstory (200-350 words) covering:
 Genre context: {genre}
 Make the backstory emotionally resonant and consistent with their personality profile.""",
     description="Generate comprehensive character backstory",
-    required_vars=["name", "archetype", "role", "openness", "conscientiousness", "extraversion", "agreeableness", "neuroticism", "values", "skills"],
+    required_vars=[
+        "name",
+        "archetype",
+        "role",
+        "openness",
+        "conscientiousness",
+        "extraversion",
+        "agreeableness",
+        "neuroticism",
+        "values",
+        "skills",
+    ],
     optional_vars=["genre"],
     system_prompt=CHARACTER_GENERATION_SYSTEM,
     max_tokens=768,
-    temperature=0.8
+    temperature=0.8,
 )
 
 
@@ -184,11 +216,22 @@ Write a natural dialogue (80-150 words) that:
 
 Write ONLY the dialogue, no narration or stage directions.""",
     description="Generate character dialogue sample",
-    required_vars=["name", "archetype", "extraversion", "agreeableness", "neuroticism", "openness", "communication_style", "situation", "emotional_state", "conflict_style"],
+    required_vars=[
+        "name",
+        "archetype",
+        "extraversion",
+        "agreeableness",
+        "neuroticism",
+        "openness",
+        "communication_style",
+        "situation",
+        "emotional_state",
+        "conflict_style",
+    ],
     optional_vars=[],
     system_prompt="You are an expert dialogue writer. Create authentic, character-revealing dialogue.",
     max_tokens=384,
-    temperature=0.75
+    temperature=0.75,
 )
 
 
@@ -213,11 +256,18 @@ Provide:
 
 Keep analysis grounded in their personality traits and archetype.""",
     description="Generate motivation analysis",
-    required_vars=["name", "archetype", "external_goal", "internal_need", "values", "fears"],
+    required_vars=[
+        "name",
+        "archetype",
+        "external_goal",
+        "internal_need",
+        "values",
+        "fears",
+    ],
     optional_vars=[],
     system_prompt="You are an expert in character psychology and motivation.",
     max_tokens=512,
-    temperature=0.7
+    temperature=0.7,
 )
 
 
@@ -252,11 +302,23 @@ Write a vivid physical description (100-200 words) covering:
 
 Avoid overly generic descriptions - include specific, memorable details.""",
     description="Generate appearance description",
-    required_vars=["name", "archetype", "role", "age", "gender", "build", "height", "clothing_style", "color_palette", "accessories", "personality_summary"],
+    required_vars=[
+        "name",
+        "archetype",
+        "role",
+        "age",
+        "gender",
+        "build",
+        "height",
+        "clothing_style",
+        "color_palette",
+        "accessories",
+        "personality_summary",
+    ],
     optional_vars=[],
     system_prompt="You are an expert visual storyteller. Create vivid, character-revealing descriptions.",
     max_tokens=512,
-    temperature=0.7
+    temperature=0.7,
 )
 
 
@@ -285,11 +347,20 @@ Define their voice (100-150 words) covering:
 
 Provide concrete examples of how they would express different ideas.""",
     description="Define character voice and speech style",
-    required_vars=["name", "archetype", "extraversion", "agreeableness", "conscientiousness", "openness", "neuroticism", "background"],
+    required_vars=[
+        "name",
+        "archetype",
+        "extraversion",
+        "agreeableness",
+        "conscientiousness",
+        "openness",
+        "neuroticism",
+        "background",
+    ],
     optional_vars=[],
     system_prompt="You are an expert in character voice and dialogue development.",
     max_tokens=512,
-    temperature=0.7
+    temperature=0.7,
 )
 
 
@@ -308,62 +379,60 @@ PROMPT_TEMPLATES: dict[PromptType, PromptTemplate] = {
 def get_prompt(template: PromptType, **kwargs) -> str:
     """
     Get a filled-in prompt from a template.
-    
+
     Args:
         template: The type of prompt to generate
         **kwargs: Variables to fill in the template
-        
+
     Returns:
         Filled prompt string
-        
+
     Raises:
         ValueError: If required variables are missing
     """
     prompt_template = PROMPT_TEMPLATES.get(template)
     if not prompt_template:
         raise ValueError(f"Unknown prompt type: {template}")
-    
+
     # Check required variables
     for var in prompt_template.required_vars:
         if var not in kwargs:
             raise ValueError(f"Missing required variable: {var}")
-    
+
     # Fill in template
     return prompt_template.template.format(**kwargs)
 
 
 def get_prompt_with_fallbacks(
-    template: PromptType,
-    required_only: bool = False,
-    **kwargs
+    template: PromptType, required_only: bool = False, **kwargs
 ) -> str:
     """
     Get a prompt with fallback values for missing variables.
-    
+
     Args:
         template: Type of prompt
         required_only: Only use required variables
         **kwargs: Variables (some may be missing)
-        
+
     Returns:
         Filled prompt string with defaults for missing optional vars
     """
     prompt_template = PROMPT_TEMPLATES.get(template)
     if not prompt_template:
         raise ValueError(f"Unknown prompt type: {template}")
-    
+
     # Build context with defaults
     context = {}
-    
+
     # Add required variables
     for var in prompt_template.required_vars:
         context[var] = kwargs.get(var, f"[{var.upper()}]")
-    
+
     # Add optional variables if not required_only
     if not required_only:
         for var in prompt_template.optional_vars:
             context[var] = kwargs.get(var, "")
-    
+
     return prompt_template.template.format(**context)
 
 
@@ -371,4 +440,3 @@ def get_system_prompt(template: PromptType) -> str:
     """Get the system prompt for a template type."""
     prompt_template = PROMPT_TEMPLATES.get(template)
     return prompt_template.system_prompt or CHARACTER_GENERATION_SYSTEM
-

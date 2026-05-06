@@ -2,6 +2,8 @@
  * Wizard State Store using Zustand
  * Manages the complete state for the Project Setup Wizard
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
@@ -360,7 +362,7 @@ export const useWizardStore = create<WizardState>()(
           validationErrors: Array.from(state.validationErrors.entries()),
         }),
         // Custom deserialization for Set and Map with proper type handling
-        merge: (persistedState: any, currentState) => {
+        merge: (persistedState: LegacyAny, currentState) => {
           // Safely convert completedSteps to Set
           const completedSteps = Array.isArray(persistedState.completedSteps)
             ? new Set(persistedState.completedSteps)

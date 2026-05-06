@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, _within } from '@testing-library/react';
 import { AssetPreviewPanel } from '../AssetPreviewPanel';
 import type { GeneratedAsset } from '../../../types/generation';
 

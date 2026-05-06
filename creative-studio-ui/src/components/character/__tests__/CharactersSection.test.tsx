@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // CharactersSection Component Tests
 // ============================================================================
@@ -7,7 +8,7 @@
 // Requirements: 1.1, 1.5, 2.1, 3.1
 // ============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, b_eforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { CharactersSection } from '../CharactersSection';
 import type { Character } from '@/types/character';
@@ -118,7 +119,7 @@ describe('CharactersSection', () => {
     
     // Setup mocks
     vi.mocked(useCharacterManager).mockReturnValue(mockCharacterManager);
-    vi.mocked(useStore).mockImplementation((selector: any) => {
+    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
       const state = mockStore;
       return selector(state);
     });

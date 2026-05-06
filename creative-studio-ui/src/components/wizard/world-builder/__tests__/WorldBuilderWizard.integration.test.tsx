@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -16,7 +17,7 @@ vi.mock('@/hooks/useWorldPersistence', () => ({
 
 // Mock child components to simplify testing the wizard logic
 vi.mock('../steps/QuickSetupStep', () => ({
-  QuickSetupStep: ({ onUpdate, onApplyPreset }: any) => (
+  QuickSetupStep: ({ onUpdate, onApplyPreset }: LegacyAny) => (
     <div data-testid="quick-setup-step">
       <button onClick={() => onUpdate({ name: 'Test World', genre: ['Fantasy'] })}>Set Name</button>
       <button onClick={() => onApplyPreset({ name: 'Preset World', genre: ['Sci-Fi'], culturalElements: {} })}>Apply Preset</button>
@@ -25,7 +26,7 @@ vi.mock('../steps/QuickSetupStep', () => ({
 }));
 
 vi.mock('../steps/LocationsRulesStep', () => ({
-  LocationsRulesStep: ({ onAddLocation }: any) => (
+  LocationsRulesStep: ({ onAddLocation }: LegacyAny) => (
     <div data-testid="locations-rules-step">
       <button onClick={onAddLocation}>Add Location</button>
     </div>
@@ -33,7 +34,7 @@ vi.mock('../steps/LocationsRulesStep', () => ({
 }));
 
 vi.mock('../steps/CultureReviewStep', () => ({
-  CultureReviewStep: ({ onComplete }: any) => (
+  CultureReviewStep: ({ onComplete }: LegacyAny) => (
     <div data-testid="culture-review-step">
       <button onClick={onComplete}>Complete</button>
     </div>
@@ -48,8 +49,8 @@ describe('WorldBuilderWizard Integration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useStore as any).mockImplementation((selector: any) => selector({ addWorld: mockAddWorld }));
-    (useWorldPersistence as any).mockReturnValue({ saveWorld: mockSaveWorld });
+    (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => selector({ addWorld: mockAddWorld }));
+    (useWorldPersistence as LegacyAny).mockReturnValue({ saveWorld: mockSaveWorld });
   });
 
   it('renders Step 1 (Foundations) initially', () => {

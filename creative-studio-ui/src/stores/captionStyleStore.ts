@@ -10,7 +10,7 @@ import {
   CaptionStylePreset,
   CaptionTrack,
   CaptionLayer,
-  CaptionStyleLibrary,
+  _CaptionStyleLibrary,
 } from '../types/caption-style';
 
 interface CaptionStyleStore {

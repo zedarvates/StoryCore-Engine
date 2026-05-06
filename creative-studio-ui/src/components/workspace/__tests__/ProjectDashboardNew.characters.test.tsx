@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // ProjectDashboardNew Character Integration Tests
 // ============================================================================
@@ -6,7 +7,7 @@
 // Requirements: 1.1, 2.1, 3.1
 // ============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, b_eforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ProjectDashboardNew } from '../ProjectDashboardNew';
 import type { Character } from '@/types/character';
@@ -148,7 +149,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
     vi.clearAllMocks();
 
     // Setup useAppStore mock
-    vi.mocked(useAppStore).mockImplementation((selector: any) => {
+    vi.mocked(useAppStore).mockImplementation((selector: LegacyAny) => {
       const state = {
         project: mockProject,
         shots: [],
@@ -169,7 +170,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
     });
 
     // Setup useStore mock (for stories)
-    vi.mocked(useStore).mockImplementation((selector: any) => {
+    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
       const state = {
         stories: [],
         getAllStories: vi.fn(() => []),
@@ -183,7 +184,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
     });
 
     // Setup useAppStoreStore mock (for CharacterList)
-    vi.mocked(useAppStoreStore).mockImplementation((selector: any) => {
+    vi.mocked(useAppStoreStore).mockImplementation((selector: LegacyAny) => {
       const state = {
         characterSearchQuery: '',
         characterFilters: {},
@@ -285,7 +286,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
     it('should render character editor when editor is open', () => {
       // Mock editor open state
-      vi.mocked(useAppStore).mockImplementation((selector: any) => {
+      vi.mocked(useAppStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: mockProject,
           shots: [],
@@ -317,7 +318,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
     it('should close character editor when close is called', () => {
       // Mock editor open state
-      vi.mocked(useAppStore).mockImplementation((selector: any) => {
+      vi.mocked(useAppStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           project: mockProject,
           shots: [],

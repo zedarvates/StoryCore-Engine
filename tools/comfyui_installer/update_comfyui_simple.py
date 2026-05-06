@@ -11,8 +11,11 @@ import logging
 from pathlib import Path
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 def find_comfyui_path() -> Path:
     """Find the ComfyUI installation path"""
@@ -27,6 +30,7 @@ def find_comfyui_path() -> Path:
             return path
 
     raise FileNotFoundError("ComfyUI installation not found")
+
 
 def update_comfyui():
     """Update ComfyUI using the official method"""
@@ -55,7 +59,7 @@ def update_comfyui():
         if result.returncode == 0:
             logger.info("✅ Successfully updated ComfyUI!")
             logger.info("Output:")
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if line.strip():
                     logger.info(f"  {line}")
 
@@ -77,7 +81,7 @@ def update_comfyui():
             result = subprocess.run(
                 [sys.executable, "-m", "pip", "install", "-r", str(requirements_file)],
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             if result.returncode == 0:
@@ -106,6 +110,7 @@ def update_comfyui():
         # Restore original working directory
         os.chdir(original_cwd)
 
+
 def check_version():
     """Check current ComfyUI version"""
     comfyui_path = find_comfyui_path()
@@ -113,10 +118,7 @@ def check_version():
 
     try:
         result = subprocess.run(
-            ["git", "describe", "--tags"],
-            capture_output=True,
-            text=True,
-            timeout=10
+            ["git", "describe", "--tags"], capture_output=True, text=True, timeout=10
         )
 
         if result.returncode == 0:
@@ -127,12 +129,15 @@ def check_version():
     except Exception:
         print("unknown")
 
+
 def main():
     """Main entry point"""
     import argparse
 
     parser = argparse.ArgumentParser(description="Simple ComfyUI Update Script")
-    parser.add_argument("--version", action="store_true", help="Show current version only")
+    parser.add_argument(
+        "--version", action="store_true", help="Show current version only"
+    )
 
     args = parser.parse_args()
 
@@ -141,6 +146,7 @@ def main():
     else:
         success = update_comfyui()
         sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     main()

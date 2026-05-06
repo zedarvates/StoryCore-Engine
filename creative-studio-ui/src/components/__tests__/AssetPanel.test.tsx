@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AssetPanel } from '../AssetPanel';
-import { AssetLibraryService } from '@/services/assetLibraryService';
+import { _AssetLibraryService } from '@/services/assetLibraryService';
 import { vi } from 'vitest';
-import { useToast } from '@/hooks/use-toast';
+import { _useToast } from '@/hooks/use-toast';
 
 // Mock the AssetLibraryService
 vi.mock('@/services/assetLibraryService', () => ({

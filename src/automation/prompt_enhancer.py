@@ -12,78 +12,84 @@ from typing import List, Optional, Dict, Any
 
 class PromptStyle(Enum):
     """Visual style presets for image generation."""
-    CINEMATIC = "cinematic"             # Hollywood cinematic style
-    ANIME = "anime"                     # Japanese animation style
-    REALISTIC = "realistic"             # Photorealistic rendering
-    COMIC = "comic"                     # Comic book / graphic novel
-    PAINTERLY = "painterly"             # Oil/acrylic painting style
-    SKETCH = "sketch"                   # Pencil sketch / line art
-    WATERCOLOR = "watercolor"           # Watercolor illustration
-    DIGITAL_ART = "digital_art"        # Modern digital artwork
-    FANTASY = "fantasy"                 # High fantasy illustration
-    SCI_FI = "sci_fi"                   # Science fiction aesthetic
-    NOIR = "noir"                       # Dark, high-contrast noir
-    VINTAGE = "vintage"                 # Retro / vintage aesthetic
+
+    CINEMATIC = "cinematic"  # Hollywood cinematic style
+    ANIME = "anime"  # Japanese animation style
+    REALISTIC = "realistic"  # Photorealistic rendering
+    COMIC = "comic"  # Comic book / graphic novel
+    PAINTERLY = "painterly"  # Oil/acrylic painting style
+    SKETCH = "sketch"  # Pencil sketch / line art
+    WATERCOLOR = "watercolor"  # Watercolor illustration
+    DIGITAL_ART = "digital_art"  # Modern digital artwork
+    FANTASY = "fantasy"  # High fantasy illustration
+    SCI_FI = "sci_fi"  # Science fiction aesthetic
+    NOIR = "noir"  # Dark, high-contrast noir
+    VINTAGE = "vintage"  # Retro / vintage aesthetic
 
 
 class LightingType(Enum):
     """Lighting conditions for scene generation."""
-    NATURAL = "natural"                 # Soft, natural daylight
-    STUDIO = "studio"                   # Clean studio lighting
-    CINEMATIC = "cinematic"             # Dramatic cinematic lighting
-    DRAMATIC = "dramatic"               # High-contrast dramatic shadows
-    GOLDEN_HOUR = "golden_hour"         # Warm sunset/sunrise tones
-    BLUE_HOUR = "blue_hour"             # Cool twilight tones
-    NIGHT = "night"                     # Night scene with artificial lights
-    BACKLIT = "backlit"                 # Subject backlit, rim lighting
-    NEON = "neon"                       # Neon / synthwave glow
-    VOLUMETRIC = "volumetric"           # God rays, volumetric light
+
+    NATURAL = "natural"  # Soft, natural daylight
+    STUDIO = "studio"  # Clean studio lighting
+    CINEMATIC = "cinematic"  # Dramatic cinematic lighting
+    DRAMATIC = "dramatic"  # High-contrast dramatic shadows
+    GOLDEN_HOUR = "golden_hour"  # Warm sunset/sunrise tones
+    BLUE_HOUR = "blue_hour"  # Cool twilight tones
+    NIGHT = "night"  # Night scene with artificial lights
+    BACKLIT = "backlit"  # Subject backlit, rim lighting
+    NEON = "neon"  # Neon / synthwave glow
+    VOLUMETRIC = "volumetric"  # God rays, volumetric light
 
 
 class CameraAngle(Enum):
     """Camera angles and perspectives."""
-    EYE_LEVEL = "eye_level"             # Standard eye-level shot
-    LOW_ANGLE = "low_angle"             # Looking up (heroic, imposing)
-    HIGH_ANGLE = "high_angle"           # Looking down (vulnerable, overview)
-    BIRDS_EYE = "birds_eye"             # Overhead aerial view
-    WORMS_EYE = "worms_eye"             # Extreme low angle
-    DUTCH_ANGLE = "dutch_angle"         # Tilted / canted angle (tension)
-    OVER_SHOULDER = "over_shoulder"     # Behind character's shoulder
-    CLOSE_UP = "close_up"               # Close-up on face/detail
-    MEDIUM_SHOT = "medium_shot"         # Waist-up framing
-    LONG_SHOT = "long_shot"             # Full body in environment
-    EXTREME_WIDE = "extreme_wide"       # Very wide establishing shot
-    POV = "pov"                         # Point of view (first person)
+
+    EYE_LEVEL = "eye_level"  # Standard eye-level shot
+    LOW_ANGLE = "low_angle"  # Looking up (heroic, imposing)
+    HIGH_ANGLE = "high_angle"  # Looking down (vulnerable, overview)
+    BIRDS_EYE = "birds_eye"  # Overhead aerial view
+    WORMS_EYE = "worms_eye"  # Extreme low angle
+    DUTCH_ANGLE = "dutch_angle"  # Tilted / canted angle (tension)
+    OVER_SHOULDER = "over_shoulder"  # Behind character's shoulder
+    CLOSE_UP = "close_up"  # Close-up on face/detail
+    MEDIUM_SHOT = "medium_shot"  # Waist-up framing
+    LONG_SHOT = "long_shot"  # Full body in environment
+    EXTREME_WIDE = "extreme_wide"  # Very wide establishing shot
+    POV = "pov"  # Point of view (first person)
 
 
 class MoodType(Enum):
     """Emotional mood and atmosphere."""
-    NEUTRAL = "neutral"                 # No particular mood
-    EPIC = "epic"                       # Grand, heroic atmosphere
-    TENSE = "tense"                     # Suspense and tension
-    MYSTERIOUS = "mysterious"           # Enigmatic, ambiguous mood
-    ROMANTIC = "romantic"               # Warm, intimate feeling
-    MELANCHOLIC = "melancholic"         # Sad, reflective tone
-    JOYFUL = "joyful"                   # Happy, upbeat energy
-    DARK = "dark"                       # Grim, foreboding atmosphere
-    PEACEFUL = "peaceful"               # Calm, serene setting
-    CHAOTIC = "chaotic"                 # Frantic, dynamic energy
-    SURREAL = "surreal"                 # Dreamlike, surreal quality
-    NOSTALGIC = "nostalgic"             # Wistful, nostalgic feeling
+
+    NEUTRAL = "neutral"  # No particular mood
+    EPIC = "epic"  # Grand, heroic atmosphere
+    TENSE = "tense"  # Suspense and tension
+    MYSTERIOUS = "mysterious"  # Enigmatic, ambiguous mood
+    ROMANTIC = "romantic"  # Warm, intimate feeling
+    MELANCHOLIC = "melancholic"  # Sad, reflective tone
+    JOYFUL = "joyful"  # Happy, upbeat energy
+    DARK = "dark"  # Grim, foreboding atmosphere
+    PEACEFUL = "peaceful"  # Calm, serene setting
+    CHAOTIC = "chaotic"  # Frantic, dynamic energy
+    SURREAL = "surreal"  # Dreamlike, surreal quality
+    NOSTALGIC = "nostalgic"  # Wistful, nostalgic feeling
 
 
 class QualityTier(Enum):
     """Output quality tiers for generation."""
-    DRAFT = "draft"                     # Fast draft quality (low detail)
-    STANDARD = "standard"               # Balanced quality
-    HIGH = "high"                       # High detail, longer generation
-    ULTRA = "ultra"                     # Maximum quality, slowest
-    CINEMATIC = "cinematic"             # Cinema-grade quality
+
+    DRAFT = "draft"  # Fast draft quality (low detail)
+    STANDARD = "standard"  # Balanced quality
+    HIGH = "high"  # High detail, longer generation
+    ULTRA = "ultra"  # Maximum quality, slowest
+    CINEMATIC = "cinematic"  # Cinema-grade quality
 
 
 @dataclass
 class EnhancedPrompt:
     """Result of prompt enhancement with all parameters."""
+
     original_prompt: str
     enhanced_prompt: str
     style: PromptStyle = PromptStyle.CINEMATIC
@@ -116,46 +122,75 @@ class EnhancedPrompt:
 # ---------------------------------------------------------------------------
 
 STYLE_KEYWORDS: Dict[PromptStyle, List[str]] = {
-    PromptStyle.CINEMATIC:   ["cinematic", "film grain", "anamorphic lens", "depth of field"],
-    PromptStyle.ANIME:       ["anime style", "cel shaded", "vibrant colors", "manga aesthetic"],
-    PromptStyle.REALISTIC:   ["photorealistic", "ultra detailed", "8k", "hyperrealistic"],
-    PromptStyle.COMIC:       ["comic book style", "bold lines", "flat colors", "halftone"],
-    PromptStyle.PAINTERLY:   ["oil painting", "brush strokes", "impasto", "classical art"],
-    PromptStyle.SKETCH:      ["pencil sketch", "line art", "hatching", "monochrome"],
-    PromptStyle.WATERCOLOR:  ["watercolor", "soft edges", "bleeding colors", "paper texture"],
-    PromptStyle.DIGITAL_ART: ["digital art", "concept art", "artstation", "smooth shading"],
-    PromptStyle.FANTASY:     ["fantasy art", "magical", "ethereal", "mythological"],
-    PromptStyle.SCI_FI:      ["science fiction", "futuristic", "cyberpunk", "neon lights"],
-    PromptStyle.NOIR:        ["film noir", "high contrast", "shadows", "black and white"],
-    PromptStyle.VINTAGE:     ["vintage", "retro", "faded colors", "aged photo"],
+    PromptStyle.CINEMATIC: [
+        "cinematic",
+        "film grain",
+        "anamorphic lens",
+        "depth of field",
+    ],
+    PromptStyle.ANIME: [
+        "anime style",
+        "cel shaded",
+        "vibrant colors",
+        "manga aesthetic",
+    ],
+    PromptStyle.REALISTIC: ["photorealistic", "ultra detailed", "8k", "hyperrealistic"],
+    PromptStyle.COMIC: ["comic book style", "bold lines", "flat colors", "halftone"],
+    PromptStyle.PAINTERLY: [
+        "oil painting",
+        "brush strokes",
+        "impasto",
+        "classical art",
+    ],
+    PromptStyle.SKETCH: ["pencil sketch", "line art", "hatching", "monochrome"],
+    PromptStyle.WATERCOLOR: [
+        "watercolor",
+        "soft edges",
+        "bleeding colors",
+        "paper texture",
+    ],
+    PromptStyle.DIGITAL_ART: [
+        "digital art",
+        "concept art",
+        "artstation",
+        "smooth shading",
+    ],
+    PromptStyle.FANTASY: ["fantasy art", "magical", "ethereal", "mythological"],
+    PromptStyle.SCI_FI: ["science fiction", "futuristic", "cyberpunk", "neon lights"],
+    PromptStyle.NOIR: ["film noir", "high contrast", "shadows", "black and white"],
+    PromptStyle.VINTAGE: ["vintage", "retro", "faded colors", "aged photo"],
 }
 
 LIGHTING_KEYWORDS: Dict[LightingType, List[str]] = {
-    LightingType.NATURAL:     ["soft natural light", "outdoor lighting"],
-    LightingType.STUDIO:      ["studio lighting", "softbox", "even lighting"],
-    LightingType.CINEMATIC:   ["cinematic lighting", "three-point lighting", "dramatic shadows"],
-    LightingType.DRAMATIC:    ["dramatic lighting", "chiaroscuro", "hard shadows"],
+    LightingType.NATURAL: ["soft natural light", "outdoor lighting"],
+    LightingType.STUDIO: ["studio lighting", "softbox", "even lighting"],
+    LightingType.CINEMATIC: [
+        "cinematic lighting",
+        "three-point lighting",
+        "dramatic shadows",
+    ],
+    LightingType.DRAMATIC: ["dramatic lighting", "chiaroscuro", "hard shadows"],
     LightingType.GOLDEN_HOUR: ["golden hour", "warm light", "sunset glow"],
-    LightingType.BLUE_HOUR:   ["blue hour", "twilight", "cool tones"],
-    LightingType.NIGHT:       ["night lighting", "artificial light", "street lamps"],
-    LightingType.BACKLIT:     ["backlit", "rim lighting", "silhouette effect"],
-    LightingType.NEON:        ["neon lights", "cyberpunk glow", "LED lighting"],
-    LightingType.VOLUMETRIC:  ["volumetric lighting", "god rays", "light shafts"],
+    LightingType.BLUE_HOUR: ["blue hour", "twilight", "cool tones"],
+    LightingType.NIGHT: ["night lighting", "artificial light", "street lamps"],
+    LightingType.BACKLIT: ["backlit", "rim lighting", "silhouette effect"],
+    LightingType.NEON: ["neon lights", "cyberpunk glow", "LED lighting"],
+    LightingType.VOLUMETRIC: ["volumetric lighting", "god rays", "light shafts"],
 }
 
 QUALITY_SUFFIXES: Dict[QualityTier, str] = {
-    QualityTier.DRAFT:    "draft quality",
+    QualityTier.DRAFT: "draft quality",
     QualityTier.STANDARD: "detailed, high quality",
-    QualityTier.HIGH:     "highly detailed, masterpiece, best quality",
-    QualityTier.ULTRA:    "ultra detailed, 8k resolution, masterpiece, perfect",
+    QualityTier.HIGH: "highly detailed, masterpiece, best quality",
+    QualityTier.ULTRA: "ultra detailed, 8k resolution, masterpiece, perfect",
     QualityTier.CINEMATIC: "cinematic masterpiece, award winning, professional photography",
 }
 
 NEGATIVE_PROMPTS: Dict[QualityTier, str] = {
-    QualityTier.DRAFT:    "blurry",
+    QualityTier.DRAFT: "blurry",
     QualityTier.STANDARD: "blurry, low quality, watermark",
-    QualityTier.HIGH:     "blurry, low quality, watermark, text, logo, bad anatomy",
-    QualityTier.ULTRA:    (
+    QualityTier.HIGH: "blurry, low quality, watermark, text, logo, bad anatomy",
+    QualityTier.ULTRA: (
         "blurry, low quality, watermark, text, logo, bad anatomy, deformed, "
         "extra limbs, disfigured, out of frame"
     ),
@@ -247,7 +282,8 @@ class PromptEnhancer:
             mood=mood,
             quality=quality,
             negative_prompt=negative,
-            enhancement_tags=STYLE_KEYWORDS.get(style, []) + LIGHTING_KEYWORDS.get(lighting, []),
+            enhancement_tags=STYLE_KEYWORDS.get(style, [])
+            + LIGHTING_KEYWORDS.get(lighting, []),
             metadata={
                 "style": style.value,
                 "lighting": lighting.value,
@@ -268,8 +304,14 @@ class PromptEnhancer:
     ) -> List[EnhancedPrompt]:
         """Enhance a list of prompts with the same settings."""
         return [
-            self.enhance(p, style=style, lighting=lighting,
-                         camera_angle=camera_angle, mood=mood, quality=quality)
+            self.enhance(
+                p,
+                style=style,
+                lighting=lighting,
+                camera_angle=camera_angle,
+                mood=mood,
+                quality=quality,
+            )
             for p in prompts
         ]
 

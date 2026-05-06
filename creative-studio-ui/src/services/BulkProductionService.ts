@@ -102,7 +102,7 @@ export class BulkProductionService {
     mainCharacter: Character | null,
     globalSeed: number,
     persistentStyling: string,
-    options: BulkProductionOptions
+    _options: BulkProductionOptions
   ): Promise<CineProductionJob> {
     
     const request: CineProductionRequest = {

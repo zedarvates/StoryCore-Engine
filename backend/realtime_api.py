@@ -10,9 +10,8 @@ Version: 1.0.0
 """
 
 import logging
-import json
-from typing import Dict, List, Set
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+from typing import Dict, Set
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from backend.auth import decode_jwt_token
 
 logger = logging.getLogger(__name__)
@@ -23,11 +22,13 @@ router = APIRouter()
 # WebSocket Connection Manager
 # =============================================================================
 
+
 class RealtimeConnectionManager:
     """
     Manages active WebSocket connections mapped to user IDs.
     Supports targeted messaging and global broadcasting.
     """
+
     def __init__(self):
         # user_id -> set of active WebSockets
         self.active_connections: Dict[str, Set[WebSocket]] = {}
@@ -38,7 +39,9 @@ class RealtimeConnectionManager:
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
         self.active_connections[user_id].add(websocket)
-        logger.info(f"WebSocket connected: user {user_id} (connections: {len(self.active_connections[user_id])})")
+        logger.info(
+            f"WebSocket connected: user {user_id} (connections: {len(self.active_connections[user_id])})"
+        )
 
     def disconnect(self, websocket: WebSocket, user_id: str):
         """Remove a connection."""
@@ -67,12 +70,14 @@ class RealtimeConnectionManager:
         for user_id in list(self.active_connections.keys()):
             await self.send_personal_message(message, user_id)
 
+
 # Global manager instance
 manager = RealtimeConnectionManager()
 
 # =============================================================================
 # WebSocket Endpoint
 # =============================================================================
+
 
 @router.websocket("/ws/gem-updates")
 async def websocket_endpoint(websocket: WebSocket, token: str = None):
@@ -83,7 +88,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
     # Use token from query param if not in header (WS often uses query params)
     if not token:
         token = websocket.query_params.get("token")
-        
+
     if not token:
         logger.warning("WebSocket connection attempt without token")
         await websocket.close(code=4001, reason="Authentication required")
@@ -100,7 +105,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         return
 
     await manager.connect(websocket, user_id)
-    
+
     try:
         while True:
             # Keep the connection alive and listen for any client-side messages
@@ -113,9 +118,11 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         logger.error(f"WebSocket error for user {user_id}: {e}")
         manager.disconnect(websocket, user_id)
 
+
 # =============================================================================
 # Helper function for other services (like GemEngine)
 # =============================================================================
+
 
 async def notify_user_gem_update(user_id: str, event_data: dict):
     """Helper to send gem update events to a user via WebSocket."""

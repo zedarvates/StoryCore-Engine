@@ -9,6 +9,8 @@
  * 
  * Used by MenuDropdown and other menu components.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { MenuItemConfig } from '../types/menuConfig';
 import type { MenuItemProps } from '../components/menuBar/MenuItem';
@@ -96,7 +98,7 @@ export function getEnabledItems<T>(
 ): Array<{ item: T; index: number }> {
   return items
     .map((item, index) => ({ item, index }))
-    .filter(({ item }) => isMenuItemEnabled(item as any));
+    .filter(({ item }) => isMenuItemEnabled(item as LegacyAny));
 }
 
 /**
@@ -106,7 +108,7 @@ export function navigateToNextItem<T>(
   items: T[],
   currentIndex: number
 ): number {
-  return getNextEnabledItemIndex(items as any, currentIndex, 'next');
+  return getNextEnabledItemIndex(items as LegacyAny, currentIndex, 'next');
 }
 
 /**
@@ -116,21 +118,21 @@ export function navigateToPreviousItem<T>(
   items: T[],
   currentIndex: number
 ): number {
-  return getNextEnabledItemIndex(items as any, currentIndex, 'previous');
+  return getNextEnabledItemIndex(items as LegacyAny, currentIndex, 'previous');
 }
 
 /**
  * Navigate to the first enabled item
  */
 export function navigateToFirstItem<T>(items: T[]): number {
-  return getFirstEnabledItemIndex(items as any);
+  return getFirstEnabledItemIndex(items as LegacyAny);
 }
 
 /**
  * Navigate to the last enabled item
  */
 export function navigateToLastItem<T>(items: T[]): number {
-  return getLastEnabledItemIndex(items as any);
+  return getLastEnabledItemIndex(items as LegacyAny);
 }
 
 /**

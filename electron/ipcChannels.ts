@@ -41,6 +41,7 @@ export const IPC_CHANNELS = {
   PROJECT_SELECT_DIRECTORY: 'project:select-directory',
   PROJECT_LIST_DIRECTORY: 'project:list-directory',
   PROJECT_UPDATE_METADATA: 'project:update-metadata',
+  PROJECT_DELETE: 'project:delete',
 
   // Sequence management
   SEQUENCE_UPDATE_SHOT: 'sequence:update-shot',
@@ -374,6 +375,37 @@ registerHandlers(): void {
    * Register project management handlers
    */
   private registerProjectHandlers(): void {
+    // Delete project
+    ipcMain.handle(IPC_CHANNELS.PROJECT_DELETE, async (_event, projectPath: string) => {
+      try {
+        // Validate input
+        if (!projectPath || typeof projectPath !== 'string') {
+          throw new Error('Invalid project path');
+        }
+
+        // Delete project files
+        await this.projectService.deleteProject(projectPath);
+
+        // Remove from recent projects
+        this.recentProjectsManager.removeProject(projectPath);
+
+        // If this was the active project, clear it
+        if (this.activeProjectPath === projectPath) {
+          this.activeProjectPath = null;
+        }
+
+        return {
+          success: true,
+        };
+      } catch (error) {
+        console.error('Failed to delete project:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    });
+
     // Create project
     ipcMain.handle(IPC_CHANNELS.PROJECT_CREATE, async (_event, data: NewProjectData) => {
       try {

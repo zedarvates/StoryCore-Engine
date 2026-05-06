@@ -26,11 +26,12 @@ import sys
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 # Try optional imports
 try:
     import aiohttp
+
     HAS_AIOHTTP = True
 except ImportError:
     HAS_AIOHTTP = False
@@ -39,11 +40,12 @@ except ImportError:
 # Data models
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class CheckResult:
     name: str
-    category: str          # SYSTEM | COMFYUI | LLM | FFMPEG | ADDONS | DEMO
-    level: str             # CRITICAL | WARNING | OK | SKIP
+    category: str  # SYSTEM | COMFYUI | LLM | FFMPEG | ADDONS | DEMO
+    level: str  # CRITICAL | WARNING | OK | SKIP
     message: str
     detail: str = ""
     fix_hint: str = ""
@@ -68,22 +70,41 @@ class PreflightReport:
 
 USE_COLOR = sys.stdout.isatty() and platform.system() != "Windows"
 
+
 def _c(text: str, code: str) -> str:
     if not USE_COLOR:
         return text
     return f"\033[{code}m{text}\033[0m"
 
-RED    = lambda t: _c(t, "91")
-YELLOW = lambda t: _c(t, "93")
-GREEN  = lambda t: _c(t, "92")
-CYAN   = lambda t: _c(t, "96")
-BOLD   = lambda t: _c(t, "1")
-DIM    = lambda t: _c(t, "2")
+
+def RED(t):
+    return _c(t, "91")
+
+
+def YELLOW(t):
+    return _c(t, "93")
+
+
+def GREEN(t):
+    return _c(t, "92")
+
+
+def CYAN(t):
+    return _c(t, "96")
+
+
+def BOLD(t):
+    return _c(t, "1")
+
+
+def DIM(t):
+    return _c(t, "2")
 
 
 # ---------------------------------------------------------------------------
 # Individual checks
 # ---------------------------------------------------------------------------
+
 
 def check_python_version() -> CheckResult:
     v = sys.version_info
@@ -133,8 +154,7 @@ def check_ffmpeg() -> CheckResult:
 
     try:
         result = subprocess.run(
-            [ffmpeg_path, "-version"],
-            capture_output=True, text=True, timeout=5
+            [ffmpeg_path, "-version"], capture_output=True, text=True, timeout=5
         )
         version_line = result.stdout.split("\n")[0] if result.stdout else "unknown"
         return CheckResult(
@@ -161,9 +181,14 @@ def check_gpu_vram() -> CheckResult:
     t0 = time.time()
     try:
         result = subprocess.run(
-            ["nvidia-smi", "--query-gpu=name,memory.total,memory.free",
-             "--format=csv,noheader,nounits"],
-            capture_output=True, text=True, timeout=10
+            [
+                "nvidia-smi",
+                "--query-gpu=name,memory.total,memory.free",
+                "--format=csv,noheader,nounits",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode == 0:
             lines = [l.strip() for l in result.stdout.strip().split("\n") if l.strip()]
@@ -172,9 +197,9 @@ def check_gpu_vram() -> CheckResult:
                 parts = [p.strip() for p in gpu_info.split(",")]
                 name = parts[0] if len(parts) > 0 else "Unknown GPU"
                 total_mb = int(parts[1]) if len(parts) > 1 else 0
-                free_mb  = int(parts[2]) if len(parts) > 2 else 0
+                free_mb = int(parts[2]) if len(parts) > 2 else 0
                 total_gb = total_mb / 1024
-                free_gb  = free_mb / 1024
+                free_gb = free_mb / 1024
 
                 if total_gb < 8:
                     return CheckResult(
@@ -195,7 +220,7 @@ def check_gpu_vram() -> CheckResult:
                 )
     except FileNotFoundError:
         pass
-    except Exception as e:
+    except Exception:
         pass
 
     # No nvidia-smi → check CPU-only fallback
@@ -213,12 +238,12 @@ def check_pip_packages() -> CheckResult:
     """Verify critical Python packages are installed."""
     t0 = time.time()
     required = {
-        "fastapi":    "FastAPI backend",
-        "uvicorn":    "ASGI server",
-        "aiohttp":    "Async HTTP (ComfyUI communication)",
-        "PIL":        "Image processing (Pillow)",
-        "numpy":      "Numerical computing",
-        "pydantic":   "Data validation",
+        "fastapi": "FastAPI backend",
+        "uvicorn": "ASGI server",
+        "aiohttp": "Async HTTP (ComfyUI communication)",
+        "PIL": "Image processing (Pillow)",
+        "numpy": "Numerical computing",
+        "pydantic": "Data validation",
     }
     missing = []
     for pkg, purpose in required.items():
@@ -297,6 +322,7 @@ async def check_comfyui_port(host: str, port: int, label: str) -> CheckResult:
         # Fallback using urllib
         import urllib.request
         import urllib.error
+
         try:
             req = urllib.request.Request(f"{url}/system_stats", method="GET")
             with urllib.request.urlopen(req, timeout=5) as resp:
@@ -336,8 +362,7 @@ async def check_comfyui_port(host: str, port: int, label: str) -> CheckResult:
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"{url}/system_stats",
-                timeout=aiohttp.ClientTimeout(total=5)
+                f"{url}/system_stats", timeout=aiohttp.ClientTimeout(total=5)
             ) as resp:
                 if resp.status == 200:
                     data = await resp.json(content_type=None)
@@ -382,17 +407,16 @@ async def check_comfyui_models(host: str, port: int) -> CheckResult:
     required_families = ["flux", "sdxl", "hunyuan", "wan"]
 
     try:
-        fetch = aiohttp.ClientSession if HAS_AIOHTTP else None
         if not HAS_AIOHTTP:
             import urllib.request
+
             req = urllib.request.Request(f"{url}/object_info", method="GET")
             with urllib.request.urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read())
         else:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{url}/object_info",
-                    timeout=aiohttp.ClientTimeout(total=8)
+                    f"{url}/object_info", timeout=aiohttp.ClientTimeout(total=8)
                 ) as resp:
                     if resp.status != 200:
                         raise RuntimeError(f"HTTP {resp.status}")
@@ -401,9 +425,12 @@ async def check_comfyui_models(host: str, port: int) -> CheckResult:
         # Try to get model list
         checkpoints = []
         if "CheckpointLoaderSimple" in data:
-            checkpoints = data["CheckpointLoaderSimple"].get(
-                "input", {}
-            ).get("required", {}).get("ckpt_name", [[]])[0]
+            checkpoints = (
+                data["CheckpointLoaderSimple"]
+                .get("input", {})
+                .get("required", {})
+                .get("ckpt_name", [[]])[0]
+            )
 
         found = {f: any(f in m.lower() for m in checkpoints) for f in required_families}
         missing = [f for f, present in found.items() if not present]
@@ -446,8 +473,7 @@ async def check_ollama() -> CheckResult:
         if HAS_AIOHTTP:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{ollama_host}/api/tags",
-                    timeout=aiohttp.ClientTimeout(total=5)
+                    f"{ollama_host}/api/tags", timeout=aiohttp.ClientTimeout(total=5)
                 ) as resp:
                     if resp.status == 200:
                         data = await resp.json(content_type=None)
@@ -456,6 +482,7 @@ async def check_ollama() -> CheckResult:
                         raise RuntimeError(f"HTTP {resp.status}")
         else:
             import urllib.request
+
             req = urllib.request.Request(f"{ollama_host}/api/tags")
             with urllib.request.urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read())
@@ -477,11 +504,11 @@ async def check_ollama() -> CheckResult:
 
         # Check for recommended models
         recommended = ["llama3", "qwen2", "mistral", "gemma"]
-        has_recommended = any(
-            any(r in m.lower() for r in recommended) for m in models
-        )
+        has_recommended = any(any(r in m.lower() for r in recommended) for m in models)
         level = "OK" if has_recommended else "WARNING"
-        summary = ", ".join(models[:4]) + (f"... (+{len(models)-4} more)" if len(models) > 4 else "")
+        summary = ", ".join(models[:4]) + (
+            f"... (+{len(models) - 4} more)" if len(models) > 4 else ""
+        )
 
         return CheckResult(
             name="Ollama / LLM",
@@ -526,7 +553,7 @@ def check_demo_project_data() -> CheckResult:
         )
 
     project_json = demo_dir / "project.json"
-    scene_json   = demo_dir / "scene_breakdown.json"
+    scene_json = demo_dir / "scene_breakdown.json"
     video_output = demo_dir / "video_output"
 
     issues = []
@@ -543,7 +570,7 @@ def check_demo_project_data() -> CheckResult:
     if issues:
         level = "WARNING"
         msg = f"Demo data partial: {'; '.join(issues)}"
-        hint = "Run: python scripts/run_e2e_demo.py --mock \"Little Red Riding Hood in 2048\""
+        hint = 'Run: python scripts/run_e2e_demo.py --mock "Little Red Riding Hood in 2048"'
     else:
         level = "OK"
         msg = "Demo project data present and video output found"
@@ -574,9 +601,9 @@ def check_addon_scaffolds() -> CheckResult:
         "recap_engine",
         "seedance",
         "storycore_asset_creator",
-        "lip_sync",           # documented but missing
-        "casting_studio",     # documented but missing
-        "transitions_fx",     # documented but missing
+        "lip_sync",  # documented but missing
+        "casting_studio",  # documented but missing
+        "transitions_fx",  # documented but missing
     ]
 
     if not official_dir.exists():
@@ -593,8 +620,8 @@ def check_addon_scaffolds() -> CheckResult:
     if (root / "addons").exists():
         present.extend([d.name for d in (root / "addons").iterdir() if d.is_dir()])
     present.extend([d.name for d in official_dir.iterdir() if d.is_dir()])
-    missing  = [a for a in documented if not any(a in p for p in present)]
-    extra    = [p for p in present if not any(p in a for a in documented)]
+    missing = [a for a in documented if not any(a in p for p in present)]
+    [p for p in present if not any(p in a for a in documented)]
 
     if len(missing) > 3:
         level = "WARNING"
@@ -610,10 +637,13 @@ def check_addon_scaffolds() -> CheckResult:
             f"{len(missing)} documented but missing on disk"
         ),
         detail=(
-            f"Present: {', '.join(present)}\n"
-            f"Missing scaffolds: {', '.join(missing)}"
-        ) if missing else f"Present: {', '.join(present)}",
-        fix_hint="See PRESENTATION.md > Gap #4–6 for addon scaffold work" if missing else "",
+            f"Present: {', '.join(present)}\nMissing scaffolds: {', '.join(missing)}"
+        )
+        if missing
+        else f"Present: {', '.join(present)}",
+        fix_hint="See PRESENTATION.md > Gap #4–6 for addon scaffold work"
+        if missing
+        else "",
         duration_ms=(time.time() - t0) * 1000,
     )
 
@@ -622,9 +652,9 @@ def check_addon_scaffolds() -> CheckResult:
 # Main orchestration
 # ---------------------------------------------------------------------------
 
+
 async def run_preflight(
-    minimal: bool = False,
-    comfyui_host: str = "localhost"
+    minimal: bool = False, comfyui_host: str = "localhost"
 ) -> PreflightReport:
     from datetime import datetime, timezone
 
@@ -707,6 +737,7 @@ async def run_preflight(
 
 ICONS = {"CRITICAL": "❌", "WARNING": "⚠️ ", "OK": "✅", "SKIP": "⏭️ "}
 
+
 def render_report(report: PreflightReport, show_hints: bool = True) -> None:
     print()
     print(BOLD("╔══════════════════════════════════════════════════════╗"))
@@ -758,7 +789,13 @@ def render_report(report: PreflightReport, show_hints: bool = True) -> None:
     if report.demo_ready:
         print(GREEN(BOLD("  ✅  DEMO READY — all critical checks passed.")))
     else:
-        print(RED(BOLD(f"  ❌  DEMO NOT READY — {report.critical_failures} critical issue(s) must be fixed.")))
+        print(
+            RED(
+                BOLD(
+                    f"  ❌  DEMO NOT READY — {report.critical_failures} critical issue(s) must be fixed."
+                )
+            )
+        )
     print()
 
 
@@ -766,15 +803,27 @@ def render_report(report: PreflightReport, show_hints: bool = True) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main():
     import argparse
+
     parser = argparse.ArgumentParser(
         description="StoryCore Engine Pre-flight Startup Check"
     )
-    parser.add_argument("--json",    action="store_true", help="Output machine-readable JSON")
-    parser.add_argument("--minimal", action="store_true", help="Run only local system checks (skip network)")
-    parser.add_argument("--host",    default="localhost",  help="ComfyUI host to check (default: localhost)")
-    parser.add_argument("--no-hints", action="store_true", help="Suppress fix hints in output")
+    parser.add_argument(
+        "--json", action="store_true", help="Output machine-readable JSON"
+    )
+    parser.add_argument(
+        "--minimal",
+        action="store_true",
+        help="Run only local system checks (skip network)",
+    )
+    parser.add_argument(
+        "--host", default="localhost", help="ComfyUI host to check (default: localhost)"
+    )
+    parser.add_argument(
+        "--no-hints", action="store_true", help="Suppress fix hints in output"
+    )
     args = parser.parse_args()
 
     report = asyncio.run(run_preflight(minimal=args.minimal, comfyui_host=args.host))
@@ -782,13 +831,13 @@ def main():
     if args.json:
         # Convert dataclasses to dict
         output = {
-            "timestamp":         report.timestamp,
-            "platform":          report.platform,
-            "python_version":    report.python_version,
-            "demo_ready":        report.demo_ready,
+            "timestamp": report.timestamp,
+            "platform": report.platform,
+            "python_version": report.python_version,
+            "demo_ready": report.demo_ready,
             "critical_failures": report.critical_failures,
-            "warnings":          report.warnings,
-            "ok":                report.ok,
+            "warnings": report.warnings,
+            "ok": report.ok,
             "checks": [asdict(c) for c in report.checks],
         }
         print(json.dumps(output, ensure_ascii=False, indent=2))

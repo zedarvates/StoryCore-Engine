@@ -19,13 +19,13 @@ interface GridItemProps {
 export const GridItem: React.FC<GridItemProps> = ({
   item,
   onMove,
-  onResize,
+  _onResize,
   onDragEnd,
   snapToGrid
 }) => {
   const itemRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
+  const [_isResizing, _setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState<Position | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {

@@ -17,14 +17,14 @@ import {
   StructuredDraftRefineOptions,
   LinearProgressiveOptions,
   IterativeChapterOptions,
-  StorySkeleton,
-  MasterOutline,
+  _StorySkeleton,
+  _MasterOutline,
   RevisionEntry,
   IStoryMethodology,
 } from '../types/storyMethodology';
-import type { StoryGenerationParams, StoryPart, GenerationProgress, ReviewScore } from '../types/story';
+import type { StoryGenerationParams, _StoryPart, GenerationProgress, ReviewScore } from '../types/story';
 import { storyReviewer } from './StoryReviewer';
-import { generateStoryContent, generateStorySummary } from './storyGenerationService';
+import { _generateStoryContent, generateStorySummary } from './storyGenerationService';
 
 // ============================================================================
 // Base Abstract Class
@@ -1049,8 +1049,8 @@ export class SequentialMethodology extends BaseStoryMethodology {
   }
   
   protected getDefaultOptions(
-    type: StoryMethodologyType,
-    userOptions: Partial<MethodologyState['options']>
+    _type: StoryMethodologyType,
+    _userOptions: Partial<MethodologyState['options']>
   ): Record<string, never> {
     return {};
   }

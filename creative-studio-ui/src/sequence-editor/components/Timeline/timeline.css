@@ -13,8 +13,8 @@
 
 .timeline-layout {
   display: grid;
-  grid-template-columns: 200px min-content;
-  grid-template-rows: 82px min-content;
+  grid-template-columns: 240px min-content; /* CapCut typically has a wider sidebar */
+  grid-template-rows: 96px min-content;
   width: max-content;
   min-width: 100%;
 }
@@ -81,21 +81,22 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom: 2px solid #6366f1;
-  box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.1);
+  border-bottom: 2px solid #8b5cf6; /* More vibrant violet */
+  box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.15);
 }
 
 .timecode-value {
-  font-family: 'SF Mono', 'Monaco', monospace;
-  font-size: 18px;
-  font-weight: 700;
+  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-size: 20px;
+  font-weight: 800;
   color: #fff;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 .timecode-value .frames {
-  color: #6366f1;
-  opacity: 0.8;
+  color: #8b5cf6;
+  opacity: 1;
 }
 
 .timecode-label {
@@ -204,40 +205,86 @@
   width: var(--ruler-width, 100%);
 }
 
+/* Professional Track types (Point 5.3) */
+.track-layer {
+  border-radius: 4px;
+  overflow: hidden;
+  transition: transform 0.1s ease;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.track-layer.video {
+  background: linear-gradient(90deg, #1e1b4b 0%, #312e81 100%);
+  border-left: 3px solid #8b5cf6;
+}
+
+.track-layer.audio {
+  background: linear-gradient(90deg, #064e3b 0%, #065f46 100%);
+  border-left: 3px solid #10b981;
+}
+
+.track-layer.text {
+  background: linear-gradient(90deg, #701a75 0%, #86198f 100%);
+  border-left: 3px solid #f472b6;
+}
+
+.track-layer:hover {
+  filter: brightness(1.2);
+  z-index: 35;
+}
+
+.track-layer.selected {
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
 .timeline-ruler-marker {
   position: absolute;
   top: 14px;
   width: 1px;
   height: 6px;
-  background: #333;
+  background: #444;
   left: var(--marker-pos, 0);
 }
 
 .timeline-ruler-marker.major {
-  top: 8px;
-  height: 12px;
-  background: #555;
+  top: 4px;
+  height: 16px;
+  background: #888;
 }
 
 .timeline-ruler-label {
   position: absolute;
-  bottom: 0px;
+  top: 2px;
   left: 4px;
-  font-size: 9px;
-  color: #666;
-  font-family: 'SF Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ccc;
+  font-family: 'JetBrains Mono', monospace;
   pointer-events: none;
-  white-space: nowrap;
 }
 
 .ruler-playhead-indicator {
   position: absolute;
   top: 0;
-  width: 1px;
+  width: 2px;
   height: 100%;
-  background: #6366f1;
-  z-index: 10;
+  background: linear-gradient(to bottom, #8b5cf6, #d946ef);
+  z-index: 100;
   left: var(--playhead-pos, 0);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.6);
+}
+
+.ruler-playhead-indicator::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #8b5cf6;
 }
 
 .ruler-hover-indicator {
@@ -395,4 +442,213 @@
 .tool-btn:hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ========================================================================
+ * Video/Audio Track Separator (Quick Win 5 — inspired by LTX-Desktop)
+ * ======================================================================== */
+
+.track-divider {
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(139, 92, 246, 0.3) 0%,
+    rgba(139, 92, 246, 0.6) 30%,
+    rgba(16, 185, 129, 0.6) 70%,
+    rgba(16, 185, 129, 0.3) 100%
+  );
+  cursor: row-resize;
+  transition: height 0.15s ease, background 0.15s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.track-divider:hover {
+  height: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(139, 92, 246, 0.5) 0%,
+    rgba(139, 92, 246, 0.8) 30%,
+    rgba(16, 185, 129, 0.8) 70%,
+    rgba(16, 185, 129, 0.5) 100%
+  );
+}
+
+.track-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 1px;
+}
+
+/* Additional clip type colors (completing all 6 LayerType colors) */
+
+.track-layer.effects {
+  background: linear-gradient(90deg, #3b1f47 0%, #4a235a 100%);
+  border-left: 3px solid #9b59b6;
+}
+
+.track-layer.transitions {
+  background: linear-gradient(90deg, #3d2e0a 0%, #5c3d0e 100%);
+  border-left: 3px solid #e67e22;
+}
+
+.track-layer.keyframes {
+  background: linear-gradient(90deg, #3d0a0a 0%, #5c0e0e 100%);
+  border-left: 3px solid #e74c3c;
+}
+
+/* Snap indicator line (visible pendant le drag) */
+
+.snap-indicator-line {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: #4ade80;
+  z-index: 200;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+}
+
+/* Clip transition overlay (gradients sur les bords) */
+
+.clip-transition-in {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255,255,255,0.25), transparent);
+  border-radius: 3px 0 0 3px;
+  pointer-events: none;
+}
+
+.clip-transition-out {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(to left, rgba(0,0,0,0.4), transparent);
+  border-radius: 0 3px 3px 0;
+  pointer-events: none;
+}
+
+/* Resize handles on clip edges */
+
+.track-layer .resize-handle-left,
+.track-layer .resize-handle-right {
+  position: absolute;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.track-layer:hover .resize-handle-left,
+.track-layer:hover .resize-handle-right {
+  opacity: 0.6;
+}
+
+.track-layer .resize-handle-left {
+  left: -1px;
+  border-radius: 3px 0 0 3px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.track-layer .resize-handle-right {
+  right: -1px;
+  border-radius: 0 3px 3px 0;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Track kind section labels (Video / Audio) */
+
+.track-kind-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.2);
+  user-select: none;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.track-kind-label.video {
+  background: rgba(139, 92, 246, 0.05);
+  color: rgba(139, 92, 246, 0.5);
+}
+
+.track-kind-label.audio {
+  background: rgba(16, 185, 129, 0.05);
+  color: rgba(16, 185, 129, 0.5);
+}
+
+/* ========================================================================
+ * Timeline Toolbar (NLE tool switching — Phase 4)
+ * ======================================================================== */
+
+.timeline-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  background: #0a0a12;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.timeline-tool-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #71717a;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.timeline-tool-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #a1a1aa;
+}
+
+.timeline-tool-btn.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.tool-shortcut-hint {
+  position: absolute;
+  bottom: 1px;
+  right: 3px;
+  font-size: 8px;
+  font-weight: 700;
+  opacity: 0.4;
+  font-family: 'JetBrains Mono', monospace;
+  pointer-events: none;
+}
+
+.timeline-tool-btn.active .tool-shortcut-hint {
+  opacity: 0.8;
+  color: #818cf8;
 }

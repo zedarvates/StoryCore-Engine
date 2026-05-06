@@ -11,7 +11,7 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import _userEvent from '@testing-library/user-event';
 import { AnglePresetSelector } from '../AnglePresetSelector';
 import type { CameraAnglePresetMetadata, CameraAnglePreset } from '@/types/cameraAngle';
 

@@ -1355,7 +1355,7 @@ export const AutomationWizard: React.FC<AutomationWizardProps> = ({
   isOpen,
   onClose,
   onComplete,
-  projectId,
+  _projectId,
   initialData,
   className,
 }) => {

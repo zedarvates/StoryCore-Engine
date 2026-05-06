@@ -7,12 +7,14 @@
  * @version 2.0.0
  * @updated 2026-02-12 - Added generic types to reduce 'any' usage
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 // ============================================================================
 // GENERIC UTILITY TYPES - New additions to replace 'any'
 // ============================================================================
 
-/** Generic API response wrapper - replaces Promise<any> */
+/** Generic API response wrapper - replaces Promise<LegacyAny> */
 export interface ApiResponse<T> {
   data: T;
   status: number;
@@ -20,7 +22,7 @@ export interface ApiResponse<T> {
   timestamp?: string;
 }
 
-/** Generic event handler - replaces (any) => void */
+/** Generic event handler - replaces (LegacyAny) => void */
 export type EventHandler<T = unknown> = (data: T) => void;
 
 /** Generic error handler */

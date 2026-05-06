@@ -69,7 +69,7 @@ const comicGeneratorPlugin: ComicGeneratorPlugin = {
   description:
     'Génère des planches BD / Comics / Webtoon / Manga cohérentes à partir des données narratives du projet StoryCore.',
 
-  async initialize(context: AddonContext): Promise<void> {
+  async initialize(_context: AddonContext): Promise<void> {
     try {
       const status = await comicGeneratorService.getStatus();
       console.log(`[ComicGenerator] Initialized — backend version: ${status.version}`);

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { Palette, Brain, X, Plus } from 'lucide-react';
 import type { Character } from '@/types/character';
@@ -23,7 +24,7 @@ import { EnhancedCharacterAssistant } from '../../character-creator/EnhancedChar
 interface EssenceStepProps {
   data: Partial<Character>;
   onUpdate: (data: Partial<Character>) => void;
-  worldContext?: any;
+  worldContext?: LegacyAny;
   productionMode?: string;
 }
 
@@ -92,7 +93,7 @@ export function EssenceStep({ data, onUpdate, worldContext, productionMode }: Es
           </div>
           <EnhancedCharacterAssistant
             suggestionType="personality"
-            characterData={data as any}
+            characterData={data as LegacyAny}
             worldContext={worldContext}
             productionMode={productionMode}
             onSuggestion={(field, val) => {
@@ -259,7 +260,7 @@ export function EssenceStep({ data, onUpdate, worldContext, productionMode }: Es
           </div>
           <EnhancedCharacterAssistant
             suggestionType="appearance"
-            characterData={data as any}
+            characterData={data as LegacyAny}
             worldContext={worldContext}
             productionMode={productionMode}
             onSuggestion={(field, val) => {

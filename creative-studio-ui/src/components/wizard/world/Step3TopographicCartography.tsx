@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { useState } from 'react';
 import { Plus, Trash2, Sparkles, MapPin, Image as ImageIcon } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
@@ -72,7 +73,7 @@ export function Step3TopographicCartography() {
                 location.id,
                 {
                     name: location.name,
-                    type: (loc.type as any) || 'generic',
+                    type: (loc.type as LegacyAny) || 'generic',
                     description: location.description || '',
                     // Pass explicit location_type if set
                     location_type: location.location_type,

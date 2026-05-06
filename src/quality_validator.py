@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 from dataclasses import dataclass
 from enum import Enum
-import json
 import cv2
 import numpy as np
 import librosa
@@ -18,19 +17,22 @@ import logging
 
 class ValidationMode(Enum):
     """Validation modes for quality assessment."""
+
     REAL_TIME = "real_time"  # Fast validation during generation
-    BATCH = "batch"        # Comprehensive post-generation validation
+    BATCH = "batch"  # Comprehensive post-generation validation
 
 
 class QualityStandard(Enum):
     """Quality standards for video assessment."""
-    PREVIEW = "preview"      # Low quality for quick previews
-    WEB_HD = "web_hd"        # Standard web quality
+
+    PREVIEW = "preview"  # Low quality for quick previews
+    WEB_HD = "web_hd"  # Standard web quality
     BROADCAST = "broadcast"  # High quality for broadcast
 
 
 class QualityMetric(Enum):
     """Quality metrics for assessment."""
+
     VISUAL_QUALITY = "visual_quality"
     MOTION_SMOOTHNESS = "motion_smoothness"
     SHARPNESS = "sharpness"
@@ -41,13 +43,13 @@ class QualityMetric(Enum):
 @dataclass
 class QualityMetrics:
     """Quality metrics for a single assessment."""
-    
+
     sharpness: float
     noise_level: float
     contrast: float
     brightness: float
     overall_score: float
-    
+
     def to_dict(self) -> dict:
         """Serializes metrics to dictionary."""
         return {
@@ -55,40 +57,40 @@ class QualityMetrics:
             "noise_level": self.noise_level,
             "contrast": self.contrast,
             "brightness": self.brightness,
-            "overall_score": self.overall_score
+            "overall_score": self.overall_score,
         }
 
 
 @dataclass
 class QualityThresholds:
     """Quality thresholds for validation."""
-    
+
     min_sharpness: float = 50.0
     max_noise_level: float = 0.5
     min_contrast: float = 0.5
     min_brightness: float = 0.5
-    
+
     def to_dict(self) -> dict:
         """Serializes thresholds to dictionary."""
         return {
             "min_sharpness": self.min_sharpness,
             "max_noise_level": self.max_noise_level,
             "min_contrast": self.min_contrast,
-            "min_brightness": self.min_brightness
+            "min_brightness": self.min_brightness,
         }
 
 
 @dataclass
 class QualityThresholdResult:
     """Result of quality threshold validation."""
-    
+
     passes_thresholds: bool
     sharpness_pass: bool
     noise_pass: bool
     contrast_pass: bool
     brightness_pass: bool
     details: Dict[str, Any]
-    
+
     def to_dict(self) -> dict:
         """Serializes result to dictionary."""
         return {
@@ -97,41 +99,43 @@ class QualityThresholdResult:
             "noise_pass": self.noise_pass,
             "contrast_pass": self.contrast_pass,
             "brightness_pass": self.brightness_pass,
-            "details": self.details
+            "details": self.details,
         }
 
 
 @dataclass
 class BatchQualityResult:
     """Result of batch quality validation."""
-    
+
     all_pass: bool
-    individual_results: List['QualityThresholdResult']
+    individual_results: List["QualityThresholdResult"]
     pass_count: int
     fail_count: int
-    
+
     def to_dict(self) -> dict:
         """Serializes result to dictionary."""
         return {
             "all_pass": self.all_pass,
             "individual_results": [r.to_dict() for r in self.individual_results],
             "pass_count": self.pass_count,
-            "fail_count": self.fail_count
+            "fail_count": self.fail_count,
         }
 
 
 @dataclass
 class QualityIssue:
     """Specific quality issue detected."""
-    
-    issue_type: str  # "low_sharpness", "unnatural_motion", "metallic_voice", "audio_gap", etc.
+
+    issue_type: (
+        str  # "low_sharpness", "unnatural_motion", "metallic_voice", "audio_gap", etc.
+    )
     severity: str  # "low", "medium", "high", "critical"
     description: str
     timestamp: float
     frame_number: Optional[int]
     metric_value: float
     threshold_value: float
-    
+
     def to_dict(self) -> dict:
         """Serializes issue to dictionary."""
         return {
@@ -141,21 +145,21 @@ class QualityIssue:
             "timestamp": self.timestamp,
             "frame_number": self.frame_number,
             "metric_value": self.metric_value,
-            "threshold_value": self.threshold_value
+            "threshold_value": self.threshold_value,
         }
 
 
 @dataclass
 class ImprovementSuggestion:
     """Actionable suggestion for quality improvement."""
-    
+
     suggestion_id: str
     priority: int  # 1 (highest) to 5 (lowest)
     action: str  # Human-readable action description
     parameters: dict  # Specific parameter adjustments
     expected_improvement: float  # Estimated quality score improvement
     related_issue_ids: List[str]
-    
+
     def to_dict(self) -> dict:
         """Serializes suggestion to dictionary."""
         return {
@@ -164,7 +168,7 @@ class ImprovementSuggestion:
             "action": self.action,
             "parameters": self.parameters,
             "expected_improvement": self.expected_improvement,
-            "related_issues": self.related_issue_ids
+            "related_issues": self.related_issue_ids,
         }
 
 
@@ -185,7 +189,7 @@ class QualityScore:
             "confidence": self.confidence,
             "metric": self.metric.value,
             "standard": self.standard.value,
-            "details": self.details
+            "details": self.details,
         }
 
 
@@ -212,7 +216,7 @@ class QualityAssessment:
             "processing_time": self.processing_time,
             "frame_count": self.frame_count,
             "standard": self.standard.value,
-            "passes_standard": self.passes_standard
+            "passes_standard": self.passes_standard,
         }
 
 
@@ -243,14 +247,19 @@ class ComprehensiveQualityScore:
             "continuity_score": self.continuity_score,
             "passed": self.passed(),
             "issues": [i.to_dict() for i in self.issues],
-            "suggestions": [s.to_dict() for s in self.suggestions]
+            "suggestions": [s.to_dict() for s in self.suggestions],
         }
 
 
 class QualityValidator:
     """Comprehensive quality validation for video and audio."""
 
-    def __init__(self, mode: ValidationMode = ValidationMode.BATCH, quality_standard: QualityStandard = QualityStandard.WEB_HD, enable_advanced_analysis: bool = True):
+    def __init__(
+        self,
+        mode: ValidationMode = ValidationMode.BATCH,
+        quality_standard: QualityStandard = QualityStandard.WEB_HD,
+        enable_advanced_analysis: bool = True,
+    ):
         """Initialize the quality validator.
 
         Args:
@@ -290,21 +299,30 @@ class QualityValidator:
             return False, f"Path is not a file: {video_path}"
 
         # Check file extension
-        supported_extensions = {'.mp4', '.avi', '.mov', '.mkv', '.webm'}
+        supported_extensions = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
         if video_path.suffix.lower() not in supported_extensions:
-            return False, f"Unsupported video format: {video_path.suffix}. Supported: {supported_extensions}"
+            return (
+                False,
+                f"Unsupported video format: {video_path.suffix}. Supported: {supported_extensions}",
+            )
 
         try:
             # Try to open the video file
             cap = cv2.VideoCapture(str(video_path))
             if not cap.isOpened():
-                return False, f"Unable to open video file (corrupted or unsupported codec): {video_path}"
+                return (
+                    False,
+                    f"Unable to open video file (corrupted or unsupported codec): {video_path}",
+                )
 
             # Check if we can read at least one frame
             ret, frame = cap.read()
             if not ret:
                 cap.release()
-                return False, f"Unable to read frames from video file (empty or corrupted): {video_path}"
+                return (
+                    False,
+                    f"Unable to read frames from video file (empty or corrupted): {video_path}",
+                )
 
             # Check frame properties
             if frame is None or frame.size == 0:
@@ -334,9 +352,12 @@ class QualityValidator:
             return False, f"Path is not a file: {audio_path}"
 
         # Check file extension
-        supported_extensions = {'.wav', '.mp3', '.flac', '.aac', '.ogg'}
+        supported_extensions = {".wav", ".mp3", ".flac", ".aac", ".ogg"}
         if audio_path.suffix.lower() not in supported_extensions:
-            return False, f"Unsupported audio format: {audio_path.suffix}. Supported: {supported_extensions}"
+            return (
+                False,
+                f"Unsupported audio format: {audio_path.suffix}. Supported: {supported_extensions}",
+            )
 
         try:
             # Try to load audio with librosa
@@ -350,21 +371,24 @@ class QualityValidator:
 
             # Check for corrupted data (all zeros or invalid values)
             if np.all(audio_data == 0):
-                return False, f"Audio file contains only silence (possibly corrupted): {audio_path}"
+                return (
+                    False,
+                    f"Audio file contains only silence (possibly corrupted): {audio_path}",
+                )
 
             # Check for NaN or inf values
             if np.any(np.isnan(audio_data)) or np.any(np.isinf(audio_data)):
-                return False, f"Audio file contains invalid data (NaN/inf values): {audio_path}"
+                return (
+                    False,
+                    f"Audio file contains invalid data (NaN/inf values): {audio_path}",
+                )
 
             return True, ""
 
         except Exception as e:
             return False, f"Error validating audio file {audio_path}: {str(e)}"
-    
-    def calculate_sharpness(
-        self,
-        frame: np.ndarray
-    ) -> float:
+
+    def calculate_sharpness(self, frame: np.ndarray) -> float:
         """
         Calculates frame sharpness using Laplacian variance.
 
@@ -383,10 +407,7 @@ class QualityValidator:
         laplacian_var = cv2.Laplacian(gray, cv2.CV_64F).var()
         return laplacian_var
 
-    def detect_unnatural_movements(
-        self,
-        frames: List[np.ndarray]
-    ) -> List[dict]:
+    def detect_unnatural_movements(self, frames: List[np.ndarray]) -> List[dict]:
         """
         Detects unnatural movements using optical flow analysis for motion vector anomalies.
 
@@ -407,33 +428,40 @@ class QualityValidator:
             gray = cv2.cvtColor(frames[i], cv2.COLOR_BGR2GRAY)
 
             # Calculate optical flow
-            flow = cv2.calcOpticalFlowFarneback(prev_gray, gray, None, 0.5, 3, 15, 3, 5, 1.1, 0)
+            flow = cv2.calcOpticalFlowFarneback(
+                prev_gray, gray, None, 0.5, 3, 15, 3, 5, 1.1, 0
+            )
 
             # Calculate magnitude
-            mag, _ = cv2.cartToPolar(flow[...,0], flow[...,1])
+            mag, _ = cv2.cartToPolar(flow[..., 0], flow[..., 1])
             mean_mag = np.mean(mag)
 
             # Detect anomalies if mean magnitude is too high (sudden movement) or too low (unnatural stillness)
             if mean_mag > 10.0 or mean_mag < 0.1:
-                severity = "high" if mean_mag > 20.0 else "medium" if mean_mag > 10.0 else "low"
-                anomalies.append({
-                    'type': 'unnatural_movement',
-                    'severity': severity,
-                    'description': f'Unnatural motion detected at frame {i}',
-                    'timestamp': i / 30.0,  # assuming 30fps
-                    'frame_number': i,
-                    'metric_value': mean_mag,
-                    'threshold_value': 10.0 if mean_mag > 10.0 else 0.1
-                })
+                severity = (
+                    "high"
+                    if mean_mag > 20.0
+                    else "medium"
+                    if mean_mag > 10.0
+                    else "low"
+                )
+                anomalies.append(
+                    {
+                        "type": "unnatural_movement",
+                        "severity": severity,
+                        "description": f"Unnatural motion detected at frame {i}",
+                        "timestamp": i / 30.0,  # assuming 30fps
+                        "frame_number": i,
+                        "metric_value": mean_mag,
+                        "threshold_value": 10.0 if mean_mag > 10.0 else 0.1,
+                    }
+                )
 
             prev_gray = gray
 
         return anomalies
 
-    def detect_visual_anomalies(
-        self,
-        frames: List[np.ndarray]
-    ) -> List[dict]:
+    def detect_visual_anomalies(self, frames: List[np.ndarray]) -> List[dict]:
         """
         Detects visual anomalies including:
         - Character disappearances
@@ -456,23 +484,22 @@ class QualityValidator:
             mean_brightness = np.mean(frames[i])
             diff = abs(mean_brightness - prev_mean)
             if diff > 50.0:  # arbitrary threshold for sudden change
-                anomalies.append({
-                    'type': 'sudden_change',
-                    'severity': 'medium',
-                    'description': f'Sudden brightness change detected at frame {i}',
-                    'timestamp': i / 30.0,
-                    'frame_number': i,
-                    'metric_value': diff,
-                    'threshold_value': 50.0
-                })
+                anomalies.append(
+                    {
+                        "type": "sudden_change",
+                        "severity": "medium",
+                        "description": f"Sudden brightness change detected at frame {i}",
+                        "timestamp": i / 30.0,
+                        "frame_number": i,
+                        "metric_value": diff,
+                        "threshold_value": 50.0,
+                    }
+                )
             prev_mean = mean_brightness
 
         return anomalies
 
-    def detect_metallic_voice(
-        self,
-        audio_clip: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+    def detect_metallic_voice(self, audio_clip: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Detects metallic/artificial voice characteristics using spectral analysis for AI artifacts in formant structures.
 
@@ -485,8 +512,8 @@ class QualityValidator:
             List of detected metallic voice issues with timestamps and severity
         """
         issues = []
-        audio_data = audio_clip.get('data', np.array([]))
-        sample_rate = audio_clip.get('rate', 22050)
+        audio_data = audio_clip.get("data", np.array([]))
+        sample_rate = audio_clip.get("rate", 22050)
 
         if len(audio_data) == 0:
             return issues
@@ -519,22 +546,21 @@ class QualityValidator:
 
             if metallic_score > 15.0:  # overall threshold
                 severity = "high" if metallic_score > 30.0 else "medium"
-                issues.append({
-                    'issue_type': 'metallic_voice',
-                    'severity': severity,
-                    'description': f'Metallic voice artifact detected at {timestamp:.2f}s',
-                    'timestamp': timestamp,
-                    'frame_number': None,
-                    'metric_value': metallic_score,
-                    'threshold_value': 15.0
-                })
+                issues.append(
+                    {
+                        "issue_type": "metallic_voice",
+                        "severity": severity,
+                        "description": f"Metallic voice artifact detected at {timestamp:.2f}s",
+                        "timestamp": timestamp,
+                        "frame_number": None,
+                        "metric_value": metallic_score,
+                        "threshold_value": 15.0,
+                    }
+                )
 
         return issues
 
-    def measure_voice_clarity(
-        self,
-        audio_clip: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def measure_voice_clarity(self, audio_clip: Dict[str, Any]) -> Dict[str, Any]:
         """
         Measures voice clarity using SNR analysis with re-generation recommendations.
 
@@ -546,8 +572,8 @@ class QualityValidator:
         Returns:
             Clarity measurement with score, issues, and recommendations
         """
-        audio_data = audio_clip.get('data', np.array([]))
-        sample_rate = audio_clip.get('rate', 22050)
+        audio_data = audio_clip.get("data", np.array([]))
+        audio_clip.get("rate", 22050)
 
         if len(audio_data) == 0:
             return {"clarity_score": 0.0, "issues": [], "recommendations": []}
@@ -560,7 +586,7 @@ class QualityValidator:
         noise_threshold = np.percentile(np.abs(audio_data), 10)  # bottom 10% as noise
         noise_mask = np.abs(audio_data) < noise_threshold
         if np.any(noise_mask):
-            rms_noise = np.sqrt(np.mean(audio_data[noise_mask]**2))
+            rms_noise = np.sqrt(np.mean(audio_data[noise_mask] ** 2))
         else:
             rms_noise = 1e-6  # very small noise to avoid division by zero
 
@@ -570,39 +596,45 @@ class QualityValidator:
             snr = 100.0  # perfect clarity
 
         # Normalize to 0-100 score
-        clarity_score = min(100.0, max(0.0, (snr + 20) * 2.5))  # map -20dB to 0, 20dB to 100
+        clarity_score = min(
+            100.0, max(0.0, (snr + 20) * 2.5)
+        )  # map -20dB to 0, 20dB to 100
 
         issues = []
         recommendations = []
 
         if clarity_score < 30.0:
-            issues.append(QualityIssue(
-                issue_type="low_clarity",
-                severity="critical" if clarity_score < 10.0 else "high",
-                description="Low voice clarity detected",
-                timestamp=0.0,
-                frame_number=None,
-                metric_value=clarity_score,
-                threshold_value=30.0
-            ))
-            recommendations.append({
-                "action": "Regenerate audio with higher quality settings",
-                "parameters": {"quality_boost": 0.5},
-                "expected_improvement": 20.0
-            })
+            issues.append(
+                QualityIssue(
+                    issue_type="low_clarity",
+                    severity="critical" if clarity_score < 10.0 else "high",
+                    description="Low voice clarity detected",
+                    timestamp=0.0,
+                    frame_number=None,
+                    metric_value=clarity_score,
+                    threshold_value=30.0,
+                )
+            )
+            recommendations.append(
+                {
+                    "action": "Regenerate audio with higher quality settings",
+                    "parameters": {"quality_boost": 0.5},
+                    "expected_improvement": 20.0,
+                }
+            )
 
         return {
             "clarity_score": clarity_score,
             "snr": snr,
             "issues": issues,
-            "recommendations": recommendations
+            "recommendations": recommendations,
         }
 
     def detect_audio_gaps(
         self,
         audio_clip: Dict[str, Any],
         silence_threshold_db: float = -40.0,
-        min_gap_duration: float = 0.1
+        min_gap_duration: float = 0.1,
     ) -> List[Dict[str, Any]]:
         """
         Detects audio gaps with context, distinguishing intentional vs problematic silence.
@@ -618,14 +650,16 @@ class QualityValidator:
             List of detected gaps with timestamps, duration, and classification
         """
         gaps = []
-        audio_data = audio_clip.get('data', np.array([]))
-        sample_rate = audio_clip.get('rate', 22050)
+        audio_data = audio_clip.get("data", np.array([]))
+        sample_rate = audio_clip.get("rate", 22050)
 
         if len(audio_data) == 0:
             return gaps
 
         # Convert amplitude to dB
-        audio_db = 20 * np.log10(np.abs(audio_data) + 1e-6)  # add small value to avoid log(0)
+        audio_db = 20 * np.log10(
+            np.abs(audio_data) + 1e-6
+        )  # add small value to avoid log(0)
 
         # Find silence regions
         silence_mask = audio_db < silence_threshold_db
@@ -641,27 +675,33 @@ class QualityValidator:
                 timestamp = start_idx / sample_rate
 
                 # Classify gap: problematic if too long or at speech boundaries
-                is_problematic = bool(duration > 1.0)  # arbitrary threshold for problematic
-                gap_type = "problematic_silence" if is_problematic else "intentional_silence"
+                is_problematic = bool(
+                    duration > 1.0
+                )  # arbitrary threshold for problematic
+                gap_type = (
+                    "problematic_silence" if is_problematic else "intentional_silence"
+                )
 
-                severity = "high" if duration > 2.0 else "medium" if duration > 1.0 else "low"
+                severity = (
+                    "high" if duration > 2.0 else "medium" if duration > 1.0 else "low"
+                )
 
-                gaps.append({
-                    'type': gap_type,
-                    'severity': severity,
-                    'description': f'Audio gap detected: {duration:.2f}s of silence',
-                    'timestamp': timestamp,
-                    'duration': duration,
-                    'end_timestamp': timestamp + duration,
-                    'is_problematic': is_problematic
-                })
+                gaps.append(
+                    {
+                        "type": gap_type,
+                        "severity": severity,
+                        "description": f"Audio gap detected: {duration:.2f}s of silence",
+                        "timestamp": timestamp,
+                        "duration": duration,
+                        "end_timestamp": timestamp + duration,
+                        "is_problematic": is_problematic,
+                    }
+                )
 
         return gaps
 
     def generate_gap_report(
-        self,
-        gaps: List[Dict[str, Any]],
-        total_duration: float
+        self, gaps: List[Dict[str, Any]], total_duration: float
     ) -> Dict[str, Any]:
         """
         Generates gap report with total duration and timeline percentage.
@@ -680,13 +720,15 @@ class QualityValidator:
                 "gap_count": 0,
                 "problematic_gaps": 0,
                 "intentional_gaps": 0,
-                "gaps": gaps
+                "gaps": gaps,
             }
 
-        total_gap_duration = sum(gap['duration'] for gap in gaps)
-        gap_percentage = (total_gap_duration / total_duration) * 100 if total_duration > 0 else 0.0
+        total_gap_duration = sum(gap["duration"] for gap in gaps)
+        gap_percentage = (
+            (total_gap_duration / total_duration) * 100 if total_duration > 0 else 0.0
+        )
 
-        problematic_count = sum(1 for gap in gaps if gap['is_problematic'])
+        problematic_count = sum(1 for gap in gaps if gap["is_problematic"])
         intentional_count = len(gaps) - problematic_count
 
         return {
@@ -695,13 +737,10 @@ class QualityValidator:
             "gap_count": len(gaps),
             "problematic_gaps": problematic_count,
             "intentional_gaps": intentional_count,
-            "gaps": gaps
+            "gaps": gaps,
         }
 
-    def analyze_voice_quality(
-        self,
-        audio_clip: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def analyze_voice_quality(self, audio_clip: Dict[str, Any]) -> Dict[str, Any]:
         """
         Analyzes voice quality for metallic/artificial characteristics with severity scores and corrective actions.
 
@@ -721,78 +760,95 @@ class QualityValidator:
         suggestions = []
 
         # Check for missing audio data
-        audio_data = audio_clip.get('data', np.array([]))
-        sample_rate = audio_clip.get('rate', 22050)
+        audio_data = audio_clip.get("data", np.array([]))
+        sample_rate = audio_clip.get("rate", 22050)
 
         if len(audio_data) == 0:
             self.logger.warning("Empty audio data provided for voice quality analysis")
-            issues.append(QualityIssue(
-                issue_type="missing_audio",
-                severity="high",
-                description="No audio data available for voice quality analysis",
-                timestamp=0.0,
-                frame_number=None,
-                metric_value=0.0,
-                threshold_value=1.0
-            ))
+            issues.append(
+                QualityIssue(
+                    issue_type="missing_audio",
+                    severity="high",
+                    description="No audio data available for voice quality analysis",
+                    timestamp=0.0,
+                    frame_number=None,
+                    metric_value=0.0,
+                    threshold_value=1.0,
+                )
+            )
             return {
                 "quality_score": 0.0,
                 "issues": [issue.to_dict() for issue in issues],
                 "suggestions": [],
                 "metallic_issues": 0,
-                "clarity_score": 0.0
+                "clarity_score": 0.0,
             }
 
         try:
             # Detect metallic voice
             metallic_issues = self.detect_metallic_voice(audio_clip)
-            issues.extend([
-                QualityIssue(
-                    issue_type=issue['issue_type'],
-                    severity=issue['severity'],
-                    description=issue['description'],
-                    timestamp=issue['timestamp'],
-                    frame_number=issue['frame_number'],
-                    metric_value=issue['metric_value'],
-                    threshold_value=issue['threshold_value']
-                ) for issue in metallic_issues
-            ])
+            issues.extend(
+                [
+                    QualityIssue(
+                        issue_type=issue["issue_type"],
+                        severity=issue["severity"],
+                        description=issue["description"],
+                        timestamp=issue["timestamp"],
+                        frame_number=issue["frame_number"],
+                        metric_value=issue["metric_value"],
+                        threshold_value=issue["threshold_value"],
+                    )
+                    for issue in metallic_issues
+                ]
+            )
 
             if metallic_issues:
-                suggestions.append(ImprovementSuggestion(
-                    suggestion_id="regenerate_metallic_voice",
-                    priority=1,
-                    action="Regenerate voice with different AI model or parameters",
-                    parameters={"model": "alternative_tts", "metallic_reduction": 0.8},
-                    expected_improvement=25.0,
-                    related_issue_ids=[issue['issue_type'] for issue in metallic_issues]
-                ))
+                suggestions.append(
+                    ImprovementSuggestion(
+                        suggestion_id="regenerate_metallic_voice",
+                        priority=1,
+                        action="Regenerate voice with different AI model or parameters",
+                        parameters={
+                            "model": "alternative_tts",
+                            "metallic_reduction": 0.8,
+                        },
+                        expected_improvement=25.0,
+                        related_issue_ids=[
+                            issue["issue_type"] for issue in metallic_issues
+                        ],
+                    )
+                )
 
             # Measure voice clarity
             clarity_result = self.measure_voice_clarity(audio_clip)
-            issues.extend(clarity_result['issues'])
-            suggestions.extend([
-                ImprovementSuggestion(
-                    suggestion_id=f"clarity_{i}",
-                    priority=2,
-                    action=rec['action'],
-                    parameters=rec['parameters'],
-                    expected_improvement=rec['expected_improvement'],
-                    related_issue_ids=["low_clarity"]
-                ) for i, rec in enumerate(clarity_result['recommendations'])
-            ])
+            issues.extend(clarity_result["issues"])
+            suggestions.extend(
+                [
+                    ImprovementSuggestion(
+                        suggestion_id=f"clarity_{i}",
+                        priority=2,
+                        action=rec["action"],
+                        parameters=rec["parameters"],
+                        expected_improvement=rec["expected_improvement"],
+                        related_issue_ids=["low_clarity"],
+                    )
+                    for i, rec in enumerate(clarity_result["recommendations"])
+                ]
+            )
 
         except Exception as e:
             self.logger.error(f"Error during voice quality analysis: {str(e)}")
-            issues.append(QualityIssue(
-                issue_type="analysis_error",
-                severity="critical",
-                description=f"Failed to analyze voice quality: {str(e)}",
-                timestamp=0.0,
-                frame_number=None,
-                metric_value=0.0,
-                threshold_value=1.0
-            ))
+            issues.append(
+                QualityIssue(
+                    issue_type="analysis_error",
+                    severity="critical",
+                    description=f"Failed to analyze voice quality: {str(e)}",
+                    timestamp=0.0,
+                    frame_number=None,
+                    metric_value=0.0,
+                    threshold_value=1.0,
+                )
+            )
 
         # Calculate overall quality score
         base_score = 100.0
@@ -813,14 +869,15 @@ class QualityValidator:
             "quality_score": quality_score,
             "issues": [issue.to_dict() for issue in issues],
             "suggestions": [sug.to_dict() for sug in suggestions],
-            "metallic_issues": len(metallic_issues) if 'metallic_issues' in locals() else 0,
-            "clarity_score": clarity_result['clarity_score'] if 'clarity_result' in locals() else 0.0
+            "metallic_issues": len(metallic_issues)
+            if "metallic_issues" in locals()
+            else 0,
+            "clarity_score": clarity_result["clarity_score"]
+            if "clarity_result" in locals()
+            else 0.0,
         }
-    
-    def generate_quality_score(
-        self,
-        shot: dict
-    ) -> ComprehensiveQualityScore:
+
+    def generate_quality_score(self, shot: dict) -> ComprehensiveQualityScore:
         """
         Generates overall quality score (0-100) based on multiple metrics.
 
@@ -836,24 +893,26 @@ class QualityValidator:
         Returns:
             QualityScore object with overall score and metric breakdown
         """
-        frames = shot.get('frames', [])
-        audio_score = shot.get('audio_score', 50.0)  # default
-        continuity_score = shot.get('continuity_score', 50.0)  # default
+        frames = shot.get("frames", [])
+        audio_score = shot.get("audio_score", 50.0)  # default
+        continuity_score = shot.get("continuity_score", 50.0)  # default
 
         issues = []
 
         # Check for missing frames
         if not frames:
             self.logger.warning("No frames provided for quality scoring")
-            issues.append(QualityIssue(
-                issue_type="missing_frames",
-                severity="high",
-                description="No video frames available for quality analysis",
-                timestamp=0.0,
-                frame_number=None,
-                metric_value=0.0,
-                threshold_value=1.0
-            ))
+            issues.append(
+                QualityIssue(
+                    issue_type="missing_frames",
+                    severity="high",
+                    description="No video frames available for quality analysis",
+                    timestamp=0.0,
+                    frame_number=None,
+                    metric_value=0.0,
+                    threshold_value=1.0,
+                )
+            )
             sharpness_score = 0.0
             motion_score = 0.0
             visual_anomalies = []
@@ -867,15 +926,17 @@ class QualityValidator:
             except Exception as e:
                 self.logger.error(f"Error calculating sharpness: {str(e)}")
                 sharpness_score = 0.0
-                issues.append(QualityIssue(
-                    issue_type="sharpness_calculation_error",
-                    severity="critical",
-                    description=f"Failed to calculate sharpness: {str(e)}",
-                    timestamp=0.0,
-                    frame_number=None,
-                    metric_value=0.0,
-                    threshold_value=1.0
-                ))
+                issues.append(
+                    QualityIssue(
+                        issue_type="sharpness_calculation_error",
+                        severity="critical",
+                        description=f"Failed to calculate sharpness: {str(e)}",
+                        timestamp=0.0,
+                        frame_number=None,
+                        metric_value=0.0,
+                        threshold_value=1.0,
+                    )
+                )
 
             # Motion and visual anomaly detection - comprehensive in BATCH, basic in REAL_TIME
             motion_score = 80.0  # default good score
@@ -894,30 +955,38 @@ class QualityValidator:
                     motion_score = 75.0  # Conservative estimate for real-time
                     if frames and len(frames) > 0:
                         # Quick visual check on first frame only
-                        first_frame_gray = cv2.cvtColor(frames[0], cv2.COLOR_BGR2GRAY) if len(frames[0].shape) == 3 else frames[0]
+                        first_frame_gray = (
+                            cv2.cvtColor(frames[0], cv2.COLOR_BGR2GRAY)
+                            if len(frames[0].shape) == 3
+                            else frames[0]
+                        )
                         variance = np.var(first_frame_gray.astype(float))
                         if variance < 100.0:  # Simple brightness variance check
-                            visual_anomalies = [{
-                                'type': 'potential_low_contrast',
-                                'severity': 'low',
-                                'description': 'Low contrast detected (real-time estimate)',
-                                'timestamp': 0.0,
-                                'frame_number': 0,
-                                'metric_value': variance,
-                                'threshold_value': 100.0
-                            }]
+                            visual_anomalies = [
+                                {
+                                    "type": "potential_low_contrast",
+                                    "severity": "low",
+                                    "description": "Low contrast detected (real-time estimate)",
+                                    "timestamp": 0.0,
+                                    "frame_number": 0,
+                                    "metric_value": variance,
+                                    "threshold_value": 100.0,
+                                }
+                            ]
             except Exception as e:
                 self.logger.error(f"Error in motion/visual analysis: {str(e)}")
                 motion_score = 0.0
-                issues.append(QualityIssue(
-                    issue_type="motion_analysis_error",
-                    severity="high",
-                    description=f"Failed to analyze motion/visual quality: {str(e)}",
-                    timestamp=0.0,
-                    frame_number=None,
-                    metric_value=0.0,
-                    threshold_value=1.0
-                ))
+                issues.append(
+                    QualityIssue(
+                        issue_type="motion_analysis_error",
+                        severity="high",
+                        description=f"Failed to analyze motion/visual quality: {str(e)}",
+                        timestamp=0.0,
+                        frame_number=None,
+                        metric_value=0.0,
+                        threshold_value=1.0,
+                    )
+                )
 
         # Audio analysis - simplified in REAL_TIME mode
         effective_audio_score = audio_score
@@ -930,30 +999,32 @@ class QualityValidator:
             if self.mode == ValidationMode.REAL_TIME:
                 # Real-time: Focus on sharpness (50%), motion estimate (30%), audio (20%)
                 overall_score = (
-                    sharpness_score * 0.5 +
-                    motion_score * 0.3 +
-                    effective_audio_score * 0.2
+                    sharpness_score * 0.5
+                    + motion_score * 0.3
+                    + effective_audio_score * 0.2
                 )
             else:  # BATCH mode
                 # Batch: Full analysis
                 overall_score = (
-                    sharpness_score * 0.3 +
-                    motion_score * 0.25 +
-                    audio_score * 0.25 +
-                    continuity_score * 0.2
+                    sharpness_score * 0.3
+                    + motion_score * 0.25
+                    + audio_score * 0.25
+                    + continuity_score * 0.2
                 )
         except Exception as e:
             self.logger.error(f"Error calculating overall score: {str(e)}")
             overall_score = 0.0
-            issues.append(QualityIssue(
-                issue_type="overall_score_error",
-                severity="critical",
-                description=f"Failed to calculate overall quality score: {str(e)}",
-                timestamp=0.0,
-                frame_number=None,
-                metric_value=0.0,
-                threshold_value=1.0
-            ))
+            issues.append(
+                QualityIssue(
+                    issue_type="overall_score_error",
+                    severity="critical",
+                    description=f"Failed to calculate overall quality score: {str(e)}",
+                    timestamp=0.0,
+                    frame_number=None,
+                    metric_value=0.0,
+                    threshold_value=1.0,
+                )
+            )
 
         # Issues collection
 
@@ -961,52 +1032,60 @@ class QualityValidator:
         threshold = 40.0 if self.mode == ValidationMode.REAL_TIME else 50.0
         if sharpness_score < threshold:
             severity = "low" if sharpness_score > threshold * 0.4 else "medium"
-            issues.append(QualityIssue(
-                issue_type="low_sharpness",
-                severity=severity,
-                description=f"Low sharpness detected (mode: {self.mode.value})",
-                timestamp=0.0,
-                frame_number=0,
-                metric_value=sharpness_score,
-                threshold_value=threshold
-            ))
+            issues.append(
+                QualityIssue(
+                    issue_type="low_sharpness",
+                    severity=severity,
+                    description=f"Low sharpness detected (mode: {self.mode.value})",
+                    timestamp=0.0,
+                    frame_number=0,
+                    metric_value=sharpness_score,
+                    threshold_value=threshold,
+                )
+            )
 
         # Motion issues - only in BATCH mode
         if self.mode == ValidationMode.BATCH:
             for anomaly in motion_anomalies:
-                issues.append(QualityIssue(
-                    issue_type="unnatural_motion",
-                    severity=anomaly['severity'],
-                    description=anomaly['description'],
-                    timestamp=anomaly['timestamp'],
-                    frame_number=anomaly['frame_number'],
-                    metric_value=anomaly['metric_value'],
-                    threshold_value=anomaly['threshold_value']
-                ))
+                issues.append(
+                    QualityIssue(
+                        issue_type="unnatural_motion",
+                        severity=anomaly["severity"],
+                        description=anomaly["description"],
+                        timestamp=anomaly["timestamp"],
+                        frame_number=anomaly["frame_number"],
+                        metric_value=anomaly["metric_value"],
+                        threshold_value=anomaly["threshold_value"],
+                    )
+                )
 
             # Visual anomalies - only in BATCH mode
             for anomaly in visual_anomalies:
-                issues.append(QualityIssue(
-                    issue_type=anomaly['type'],
-                    severity=anomaly['severity'],
-                    description=anomaly['description'],
-                    timestamp=anomaly['timestamp'],
-                    frame_number=anomaly['frame_number'],
-                    metric_value=anomaly['metric_value'],
-                    threshold_value=anomaly['threshold_value']
-                ))
+                issues.append(
+                    QualityIssue(
+                        issue_type=anomaly["type"],
+                        severity=anomaly["severity"],
+                        description=anomaly["description"],
+                        timestamp=anomaly["timestamp"],
+                        frame_number=anomaly["frame_number"],
+                        metric_value=anomaly["metric_value"],
+                        threshold_value=anomaly["threshold_value"],
+                    )
+                )
         else:  # REAL_TIME mode
             # Add visual anomalies from simplified check
             for anomaly in visual_anomalies:
-                issues.append(QualityIssue(
-                    issue_type=anomaly['type'],
-                    severity=anomaly['severity'],
-                    description=anomaly['description'],
-                    timestamp=anomaly['timestamp'],
-                    frame_number=anomaly['frame_number'],
-                    metric_value=anomaly['metric_value'],
-                    threshold_value=anomaly['threshold_value']
-                ))
+                issues.append(
+                    QualityIssue(
+                        issue_type=anomaly["type"],
+                        severity=anomaly["severity"],
+                        description=anomaly["description"],
+                        timestamp=anomaly["timestamp"],
+                        frame_number=anomaly["frame_number"],
+                        metric_value=anomaly["metric_value"],
+                        threshold_value=anomaly["threshold_value"],
+                    )
+                )
 
         # Suggestions placeholder
         suggestions = []
@@ -1018,9 +1097,9 @@ class QualityValidator:
             audio_score=effective_audio_score,
             continuity_score=continuity_score,
             issues=issues,
-            suggestions=suggestions
+            suggestions=suggestions,
         )
-    
+
     def assess_quality(self, frames: List[List[List[int]]]) -> QualityAssessment:
         """
         Comprehensive quality assessment for video frames.
@@ -1032,6 +1111,7 @@ class QualityValidator:
             QualityAssessment with overall score and detailed metrics
         """
         import time
+
         start_time = time.time()
 
         quality_scores = []
@@ -1067,7 +1147,7 @@ class QualityValidator:
             QualityMetric.VISUAL_QUALITY: 0.3,
             QualityMetric.MOTION_SMOOTHNESS: 0.25,
             QualityMetric.SHARPNESS: 0.25,
-            QualityMetric.NOISE_LEVEL: 0.2
+            QualityMetric.NOISE_LEVEL: 0.2,
         }
         if self.enable_advanced_analysis:
             weights[QualityMetric.PROFESSIONAL_STANDARDS] = 0.1
@@ -1076,13 +1156,15 @@ class QualityValidator:
                 if metric != QualityMetric.PROFESSIONAL_STANDARDS:
                     weights[metric] -= 0.02
 
-        overall_score = sum(score.score * weights[score.metric] for score in quality_scores)
+        overall_score = sum(
+            score.score * weights[score.metric] for score in quality_scores
+        )
 
         # Determine if passes standard
         threshold = {
             QualityStandard.PREVIEW: 0.5,
             QualityStandard.WEB_HD: 0.7,
-            QualityStandard.BROADCAST: 0.9
+            QualityStandard.BROADCAST: 0.9,
         }[self.quality_standard]
 
         passes_standard = overall_score >= threshold
@@ -1097,18 +1179,20 @@ class QualityValidator:
             processing_time=processing_time,
             frame_count=len(frames),
             standard=self.quality_standard,
-            passes_standard=passes_standard
+            passes_standard=passes_standard,
         )
 
     def _calculate_visual_quality(self, frames: List[np.ndarray]) -> QualityScore:
         """Calculate visual quality score."""
         if not frames:
-            return QualityScore(0.0, 0.5, QualityMetric.VISUAL_QUALITY, self.quality_standard, {})
+            return QualityScore(
+                0.0, 0.5, QualityMetric.VISUAL_QUALITY, self.quality_standard, {}
+            )
 
         # Simple PSNR calculation between frames
         psnr_values = []
         for i in range(1, len(frames)):
-            mse = np.mean((frames[i].astype(float) - frames[i-1].astype(float)) ** 2)
+            mse = np.mean((frames[i].astype(float) - frames[i - 1].astype(float)) ** 2)
             if mse > 0:
                 psnr = 20 * np.log10(255.0 / np.sqrt(mse))
                 psnr_values.append(psnr)
@@ -1126,28 +1210,34 @@ class QualityValidator:
             confidence=0.8,
             metric=QualityMetric.VISUAL_QUALITY,
             standard=self.quality_standard,
-            details={"avg_psnr": avg_psnr, "avg_ssim": avg_ssim}
+            details={"avg_psnr": avg_psnr, "avg_ssim": avg_ssim},
         )
 
     def _calculate_motion_smoothness(self, frames: List[np.ndarray]) -> QualityScore:
         """Calculate motion smoothness score."""
         if len(frames) < 2:
-            return QualityScore(0.8, 0.5, QualityMetric.MOTION_SMOOTHNESS, self.quality_standard, {})
+            return QualityScore(
+                0.8, 0.5, QualityMetric.MOTION_SMOOTHNESS, self.quality_standard, {}
+            )
 
         smoothness_scores = []
         motion_vectors = []
 
         for i in range(1, len(frames)):
             # Simple optical flow approximation
-            prev_gray = cv2.cvtColor(frames[i-1], cv2.COLOR_BGR2GRAY)
+            prev_gray = cv2.cvtColor(frames[i - 1], cv2.COLOR_BGR2GRAY)
             curr_gray = cv2.cvtColor(frames[i], cv2.COLOR_BGR2GRAY)
 
-            flow = cv2.calcOpticalFlowFarneback(prev_gray, curr_gray, None, 0.5, 3, 15, 3, 5, 1.1, 0)
+            flow = cv2.calcOpticalFlowFarneback(
+                prev_gray, curr_gray, None, 0.5, 3, 15, 3, 5, 1.1, 0
+            )
             mag, _ = cv2.cartToPolar(flow[..., 0], flow[..., 1])
             mean_mag = np.mean(mag)
 
             motion_vectors.append({"magnitude": mean_mag, "confidence": 0.8})
-            smoothness_scores.append(min(1.0, 1.0 / (1.0 + mean_mag)))  # Higher magnitude = less smooth
+            smoothness_scores.append(
+                min(1.0, 1.0 / (1.0 + mean_mag))
+            )  # Higher magnitude = less smooth
 
         avg_smoothness = np.mean(smoothness_scores)
 
@@ -1156,13 +1246,18 @@ class QualityValidator:
             confidence=0.8,
             metric=QualityMetric.MOTION_SMOOTHNESS,
             standard=self.quality_standard,
-            details={"smoothness_scores": smoothness_scores, "motion_vectors": motion_vectors}
+            details={
+                "smoothness_scores": smoothness_scores,
+                "motion_vectors": motion_vectors,
+            },
         )
 
     def _calculate_sharpness_metric(self, frames: List[np.ndarray]) -> QualityScore:
         """Calculate sharpness score."""
         if not frames:
-            return QualityScore(0.0, 0.5, QualityMetric.SHARPNESS, self.quality_standard, {})
+            return QualityScore(
+                0.0, 0.5, QualityMetric.SHARPNESS, self.quality_standard, {}
+            )
 
         raw_scores = []
         normalized_scores = []
@@ -1180,13 +1275,15 @@ class QualityValidator:
             confidence=0.9,
             metric=QualityMetric.SHARPNESS,
             standard=self.quality_standard,
-            details={"raw_scores": raw_scores, "normalized_scores": normalized_scores}
+            details={"raw_scores": raw_scores, "normalized_scores": normalized_scores},
         )
 
     def _calculate_noise_level(self, frames: List[np.ndarray]) -> QualityScore:
         """Calculate noise level score."""
         if not frames:
-            return QualityScore(1.0, 0.5, QualityMetric.NOISE_LEVEL, self.quality_standard, {})  # Low noise = high score
+            return QualityScore(
+                1.0, 0.5, QualityMetric.NOISE_LEVEL, self.quality_standard, {}
+            )  # Low noise = high score
 
         noise_scores = []
 
@@ -1206,13 +1303,21 @@ class QualityValidator:
             confidence=0.7,
             metric=QualityMetric.NOISE_LEVEL,
             standard=self.quality_standard,
-            details={"noise_scores": noise_scores}
+            details={"noise_scores": noise_scores},
         )
 
-    def _calculate_professional_standards(self, frames: List[np.ndarray]) -> QualityScore:
+    def _calculate_professional_standards(
+        self, frames: List[np.ndarray]
+    ) -> QualityScore:
         """Calculate professional standards compliance score."""
         if not frames:
-            return QualityScore(0.5, 0.5, QualityMetric.PROFESSIONAL_STANDARDS, self.quality_standard, {})
+            return QualityScore(
+                0.5,
+                0.5,
+                QualityMetric.PROFESSIONAL_STANDARDS,
+                self.quality_standard,
+                {},
+            )
 
         frame = frames[0]
         height, width = frame.shape[:2]
@@ -1232,13 +1337,12 @@ class QualityValidator:
             details={
                 "resolution_score": resolution_score,
                 "color_depth_score": color_depth_score,
-                "compression_score": compression_score
-            }
+                "compression_score": compression_score,
+            },
         )
 
     def suggest_improvements(
-        self,
-        quality_issues: List[QualityIssue]
+        self, quality_issues: List[QualityIssue]
     ) -> List[ImprovementSuggestion]:
         """
         Generates actionable improvement suggestions prioritized by impact.
@@ -1251,11 +1355,9 @@ class QualityValidator:
         """
         # Placeholder implementation
         return []
-    
+
     def validate_quality_thresholds(
-        self,
-        metrics: QualityMetrics,
-        thresholds: QualityThresholds
+        self, metrics: QualityMetrics, thresholds: QualityThresholds
     ) -> QualityThresholdResult:
         """
         Validate quality metrics against thresholds.
@@ -1271,9 +1373,9 @@ class QualityValidator:
         noise_pass = metrics.noise_level <= thresholds.max_noise_level
         contrast_pass = metrics.contrast >= thresholds.min_contrast
         brightness_pass = metrics.brightness >= thresholds.min_brightness
-        
+
         all_pass = sharpness_pass and noise_pass and contrast_pass and brightness_pass
-        
+
         return QualityThresholdResult(
             passes_thresholds=all_pass,
             sharpness_pass=sharpness_pass,
@@ -1281,17 +1383,31 @@ class QualityValidator:
             contrast_pass=contrast_pass,
             brightness_pass=brightness_pass,
             details={
-                "sharpness": {"value": metrics.sharpness, "threshold": thresholds.min_sharpness, "pass": sharpness_pass},
-                "noise_level": {"value": metrics.noise_level, "threshold": thresholds.max_noise_level, "pass": noise_pass},
-                "contrast": {"value": metrics.contrast, "threshold": thresholds.min_contrast, "pass": contrast_pass},
-                "brightness": {"value": metrics.brightness, "threshold": thresholds.min_brightness, "pass": brightness_pass}
-            }
+                "sharpness": {
+                    "value": metrics.sharpness,
+                    "threshold": thresholds.min_sharpness,
+                    "pass": sharpness_pass,
+                },
+                "noise_level": {
+                    "value": metrics.noise_level,
+                    "threshold": thresholds.max_noise_level,
+                    "pass": noise_pass,
+                },
+                "contrast": {
+                    "value": metrics.contrast,
+                    "threshold": thresholds.min_contrast,
+                    "pass": contrast_pass,
+                },
+                "brightness": {
+                    "value": metrics.brightness,
+                    "threshold": thresholds.min_brightness,
+                    "pass": brightness_pass,
+                },
+            },
         )
-    
+
     def validate_batch_quality_thresholds(
-        self,
-        metrics_list: List[QualityMetrics],
-        thresholds: QualityThresholds
+        self, metrics_list: List[QualityMetrics], thresholds: QualityThresholds
     ) -> BatchQualityResult:
         """
         Validate a batch of quality metrics against thresholds.
@@ -1307,18 +1423,18 @@ class QualityValidator:
         for metrics in metrics_list:
             result = self.validate_quality_thresholds(metrics, thresholds)
             individual_results.append(result)
-        
+
         pass_count = sum(1 for r in individual_results if r.passes_thresholds)
         fail_count = len(individual_results) - pass_count
         all_pass = fail_count == 0
-        
+
         return BatchQualityResult(
             all_pass=all_pass,
             individual_results=individual_results,
             pass_count=pass_count,
-            fail_count=fail_count
+            fail_count=fail_count,
         )
-    
+
     def get_quality_thresholds_for_level(self, quality_level: str) -> QualityThresholds:
         """
         Get quality thresholds for a specific quality level.
@@ -1330,30 +1446,30 @@ class QualityValidator:
             QualityThresholds for the specified level
         """
         thresholds_by_level = {
-            'low': QualityThresholds(
+            "low": QualityThresholds(
                 min_sharpness=30.0,
                 max_noise_level=0.7,
                 min_contrast=0.3,
-                min_brightness=0.3
+                min_brightness=0.3,
             ),
-            'medium': QualityThresholds(
+            "medium": QualityThresholds(
                 min_sharpness=50.0,
                 max_noise_level=0.5,
                 min_contrast=0.5,
-                min_brightness=0.5
+                min_brightness=0.5,
             ),
-            'high': QualityThresholds(
+            "high": QualityThresholds(
                 min_sharpness=80.0,
                 max_noise_level=0.3,
                 min_contrast=0.7,
-                min_brightness=0.7
+                min_brightness=0.7,
             ),
-            'ultra': QualityThresholds(
+            "ultra": QualityThresholds(
                 min_sharpness=100.0,
                 max_noise_level=0.2,
                 min_contrast=0.9,
-                min_brightness=0.9
-            )
+                min_brightness=0.9,
+            ),
         }
-        
-        return thresholds_by_level.get(quality_level, thresholds_by_level['medium'])
+
+        return thresholds_by_level.get(quality_level, thresholds_by_level["medium"])

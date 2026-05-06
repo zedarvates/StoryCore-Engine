@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import styles from './AudioPanel.module.css';
 
@@ -5,7 +6,7 @@ interface FairlightPageProps {}
 
 export const FairlightPage: React.FC<FairlightPageProps> = () => {
   const [activeTab, setActiveTab] = useState<'mixer' | 'effects' | 'automation' | 'metering'>('mixer');
-  const [tracks, setTracks] = useState<any[]>([
+  const [tracks, setTracks] = useState<LegacyAny[]>([
     {
       id: 'track_1',
       name: 'Dialogue',
@@ -43,7 +44,7 @@ export const FairlightPage: React.FC<FairlightPageProps> = () => {
       automation: {}
     }
   ]);
-  const [busses, setBusses] = useState<any[]>([
+  const [busses, setBusses] = useState<LegacyAny[]>([
     {
       id: 'master',
       name: 'Master',
@@ -60,13 +61,13 @@ export const FairlightPage: React.FC<FairlightPageProps> = () => {
     }
   ]);
 
-  const handleTrackChange = (trackId: string, changes: any) => {
+  const handleTrackChange = (trackId: string, changes: LegacyAny) => {
     setTracks(tracks.map(track => 
       track.id === trackId ? { ...track, ...changes } : track
     ));
   };
 
-  const handleBusChange = (busId: string, changes: any) => {
+  const handleBusChange = (busId: string, changes: LegacyAny) => {
     setBusses(busses.map(bus => 
       bus.id === busId ? { ...bus, ...changes } : bus
     ));

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { useWorldBuilderSelectors } from '../../../stores/worldBuilderStore';
 import { WorldMap2D } from './WorldMap2D';
@@ -7,7 +8,7 @@ import { ElementInspector } from './ElementInspector';
 export const WorldPreview: React.FC = () => {
   const { worldData } = useWorldBuilderSelectors();
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-  const [selectedElement, setSelectedElement] = useState<any>(null);
+  const [selectedElement, setSelectedElement] = useState<LegacyAny>(null);
 
   if (!worldData) {
     return (

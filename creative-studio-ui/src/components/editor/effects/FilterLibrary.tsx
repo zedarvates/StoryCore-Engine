@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import { Filter, Star, Heart, Zap, Camera, Film, Palette, Sparkles, Moon, Sun, Coffee, Gamepad2 } from 'lucide-react';
 import './FilterLibrary.css';
@@ -392,7 +393,7 @@ export function FilterLibrary({ onFilterSelect, selectedFilter }: FilterLibraryP
           <button
             key={category.id}
             className={`category-tab ${activeCategory === category.id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(category.id as any)}
+            onClick={() => setActiveCategory(category.id as LegacyAny)}
           >
             {category.name}
             <span className="count">({category.count})</span>

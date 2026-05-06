@@ -13,7 +13,7 @@ Usage:
         FaceExtractionService,
         get_image_to_character_service
     )
-    
+
     # Create character from image
     service = get_image_to_character_service()
     result = await service.create_character_from_image("path/to/image.jpg")
@@ -26,7 +26,7 @@ from .face_extraction_service import (
     FacialLandmarks,
     FaceAngle,
     FaceExpression,
-    get_face_extraction_service
+    get_face_extraction_service,
 )
 
 from .vision_character_analyzer import (
@@ -35,7 +35,7 @@ from .vision_character_analyzer import (
     CharacterAnalysisResult,
     PhysicalAttributes,
     VisionProvider,
-    get_vision_analyzer
+    get_vision_analyzer,
 )
 
 from .image_to_character_service import (
@@ -43,7 +43,7 @@ from .image_to_character_service import (
     CharacterCreationConfig,
     CharacterCreationMode,
     ImageCharacterResult,
-    get_image_to_character_service
+    get_image_to_character_service,
 )
 
 from .face_swap_workflow import (
@@ -53,7 +53,7 @@ from .face_swap_workflow import (
     StyleTransferMode,
     CharacterVariation,
     FaceSwapResult,
-    get_face_swap_workflow
+    get_face_swap_workflow,
 )
 
 from .character_variation_generator import (
@@ -67,7 +67,7 @@ from .character_variation_generator import (
     PoseType,
     LightingType,
     StylePromptBuilder,
-    get_variation_generator
+    get_variation_generator,
 )
 
 
@@ -80,7 +80,6 @@ __all__ = [
     "FaceAngle",
     "FaceExpression",
     "get_face_extraction_service",
-    
     # Vision Analysis
     "VisionCharacterAnalyzer",
     "VisionAnalyzerConfig",
@@ -88,14 +87,12 @@ __all__ = [
     "PhysicalAttributes",
     "VisionProvider",
     "get_vision_analyzer",
-    
     # Image to Character
     "ImageToCharacterService",
     "CharacterCreationConfig",
     "CharacterCreationMode",
     "ImageCharacterResult",
     "get_image_to_character_service",
-    
     # Face Swap Workflow
     "FaceSwapWorkflow",
     "FaceSwapConfig",
@@ -104,7 +101,6 @@ __all__ = [
     "CharacterVariation",
     "FaceSwapResult",
     "get_face_swap_workflow",
-    
     # Character Variation Generator
     "CharacterVariationGenerator",
     "CharacterVariationConfig",
@@ -116,5 +112,5 @@ __all__ = [
     "PoseType",
     "LightingType",
     "StylePromptBuilder",
-    "get_variation_generator"
+    "get_variation_generator",
 ]

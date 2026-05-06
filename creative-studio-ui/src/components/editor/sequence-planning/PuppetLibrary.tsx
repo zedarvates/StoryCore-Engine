@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Search, Plus, UserCircle } from 'lucide-react';
+import { Users, Search, _Plus, UserCircle } from 'lucide-react';
 import { useStore } from '../../../store';
 import './Library.css';
 
@@ -10,8 +10,8 @@ export interface PuppetLibraryProps {
 }
 
 export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
-  worldId,
-  onElementSelect,
+  _worldId,
+  _onElementSelect,
   className = ''
 }) => {
   const characters = useStore((state) => state.characters);

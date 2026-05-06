@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // MCP Hooks Tests
 // ============================================================================
@@ -46,7 +47,7 @@ describe('MCP Hooks', () => {
       mcpManager: {
         getState: jest.fn(),
         subscribe: jest.fn(),
-      } as any,
+      } as LegacyAny,
       toggleMCPAddon: jest.fn(),
       addMCPServer: jest.fn(),
       updateMCPServer: jest.fn(),

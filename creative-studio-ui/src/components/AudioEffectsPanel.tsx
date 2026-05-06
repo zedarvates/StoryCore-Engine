@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -14,8 +15,8 @@ import {
   Music,
   RotateCcw,
   Play,
-  Pause,
-  Download,
+  _Pause,
+  _Download,
   Upload,
   Settings,
   X,
@@ -125,7 +126,7 @@ export function AudioEffectsPanel({
 }: AudioEffectsPanelProps) {
   const [activeCategory, setActiveCategory] = useState('basic');
   const [effectChain, setEffectChain] = useState<AudioEffect[]>([]);
-  const [selectedEffect, setSelectedEffect] = useState<AudioEffect | null>(null);
+  const [_selectedEf_f_ect, setSelectedEffect] = useState<AudioEffect | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const addEffectToChain = useCallback((effectType: string, name: string, params: Record<string, unknown>) => {
@@ -175,14 +176,14 @@ export function AudioEffectsPanel({
     }
   }, [selectedEffect]);
 
-  const renderParameterControl = (paramName: string, paramValue: any, paramType: string = 'number') => {
+  const renderParameterControl = (paramName: string, paramValue: LegacyAny, paramType: string = 'number') => {
     const commonProps = {
       className: "flex-1"
     };
 
     switch (paramType) {
       case 'range':
-        const { min = 0, max = 100, step = 1 } = getParameterConfig(selectedEffect!.type, paramName) as any;
+        const { min = 0, max = 100, step = 1 } = getParameterConfig(selectedEffect!.type, paramName) as LegacyAny;
         return (
           <Slider
             {...commonProps}
@@ -196,7 +197,7 @@ export function AudioEffectsPanel({
         );
 
       case 'select':
-        const config = getParameterConfig(selectedEffect!.type, paramName) as any;
+        const config = getParameterConfig(selectedEffect!.type, paramName) as LegacyAny;
         const options = config.options || [];
         return (
           <Select
@@ -207,7 +208,7 @@ export function AudioEffectsPanel({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {options.map((option: any) => (
+              {options.map((option: LegacyAny) => (
                 <SelectItem key={String(option)} value={String(option)}>
                   {String(option)}
                 </SelectItem>
@@ -493,7 +494,7 @@ export function AudioEffectsPanel({
               </h3>
               <div className="space-y-4">
                 {Object.entries(selectedEffect.parameters).map(([paramName, paramValue]) => {
-                  const config = getParameterConfig(selectedEffect.type, paramName) as any;
+                  const config = getParameterConfig(selectedEffect.type, paramName) as LegacyAny;
                   return (
                     <div key={paramName} className="flex items-center gap-4">
                       <label className="text-sm font-medium w-32 capitalize">

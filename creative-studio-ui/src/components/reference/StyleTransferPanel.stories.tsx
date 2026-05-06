@@ -72,9 +72,9 @@ const mockPreset3: StylePreset = {
   createdAt: new Date('2024-01-20'),
 };
 
-const mockPresets: StylePreset[] = [mockPreset, mockPreset2, mockPreset3];
+const _mockPresets: StylePreset[] = [mockPreset, mockPreset2, mockPreset3];
 
-const defaultTransferOptions: StyleTransferOptions = {
+const _defaultTransferOptions: StyleTransferOptions = {
   preserveContent: true,
   intensity: 0.8,
   blendWithOriginal: false,

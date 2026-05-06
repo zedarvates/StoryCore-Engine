@@ -21,4 +21,23 @@ export * from './advancedTools';
 
 // Animation utilities (Task 14)
 export * from './animations';
+// Drag-drop animations (Task 14)
 export * from './dragDropAnimations';
+
+// Overlap resolution (Quick Win 2 — inspired by LTX-Desktop)
+export * from './resolveOverlaps';
+
+// Linked shots video↔audio (Phase 3 — inspired by LTX-Desktop)
+export * from './linkedShots';
+
+// Transitions manager (Phase 5 — inspired by LTX-Desktop)
+export * from './transitions';
+
+// Program Monitor composite rendering (Phase 7)
+export * from './programComposite';
+
+// Flatten timeline for export (Phase 8)
+export * from './flattenTimeline';
+
+// Audio mix for export (Phase 8)
+export * from './audioMix';

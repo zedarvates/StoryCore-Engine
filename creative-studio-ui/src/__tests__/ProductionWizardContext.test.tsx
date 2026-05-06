@@ -270,7 +270,7 @@ describe('ProductionWizardProvider', () => {
 
       // Trigger validation by trying to submit or navigate
       // For this test, we'll manually call validateStep
-      const wizard = useProductionWizard<TestWizardData>();
+      const _wizard = useProductionWizard<TestWizardData>();
 
       // Note: This test would need to be structured differently to access the wizard instance
       // For now, we'll test the schema validation
@@ -352,7 +352,7 @@ describe('ProductionWizardProvider', () => {
     it('should clear draft on successful submission', async () => {
       const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
 
-      const { rerender } = render(
+      const { _rerender } = render(
         <ProductionWizardProvider
           wizardType="test-wizard"
           totalSteps={3}

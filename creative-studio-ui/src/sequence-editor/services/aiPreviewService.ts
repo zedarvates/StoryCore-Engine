@@ -142,7 +142,7 @@ class AIPreviewService {
    */
   async regenerateShots(
     shotIds: string[],
-    preserveStyle: boolean = true,
+    _preserveStyle: boolean = true,
     onProgress?: (shotId: string, progress: number) => void
   ): Promise<void> {
     for (let i = 0; i < shotIds.length; i++) {

@@ -4,6 +4,8 @@
  * Utilise Web Audio API pour générer des sons harmoniques
  * sans dépendances externes
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -116,7 +118,7 @@ export class SoundService {
   private initAudioContext(): void {
     try {
       // Create AudioContext on first user interaction
-      const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+      const AudioContextClass = (window as LegacyAny).AudioContext || (window as LegacyAny).webkitAudioContext;
       if (AudioContextClass && !this.audioContext) {
         this.audioContext = new AudioContextClass();
       }

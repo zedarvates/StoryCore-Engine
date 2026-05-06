@@ -6,6 +6,8 @@
  * 
  * Requirements: 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 8.1, 8.2, 8.3, 8.4, 9.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { SequenceGenerationService } from '../services/sequenceGenerationService';
@@ -81,7 +83,7 @@ const createMockProject = (): Project => ({
 
 describe('SequenceGenerationService', () => {
   let service: SequenceGenerationService;
-  let mockBackendApi: any;
+  let mockBackendApi: LegacyAny;
   let mockErrorHandler: GenerationErrorHandler;
   let progressCallback: Mock;
   let stageCompleteCallback: Mock;
@@ -188,7 +190,7 @@ describe('SequenceGenerationService', () => {
 
       // Verify stage completion callbacks were called in order
       expect(stageCompleteCallback).toHaveBeenCalledTimes(5);
-      const stages = stageCompleteCallback.mock.calls.map((call: any) => call[0]);
+      const stages = stageCompleteCallback.mock.calls.map((call: LegacyAny) => call[0]);
       expect(stages).toEqual(['grid', 'comfyui', 'promotion', 'qa', 'export']);
     });
 
@@ -225,14 +227,14 @@ describe('SequenceGenerationService', () => {
 
       // Check that progress went from 0 to 100
       const progressValues = progressCallback.mock.calls.map(
-        (call: any) => (call[0] as GenerationStatus).progress
+        (call: LegacyAny) => (call[0] as GenerationStatus).progress
       );
       expect(progressValues[0]).toBe(0);
       expect(progressValues[progressValues.length - 1]).toBe(100);
 
       // Verify all stages were reported
       const stages = progressCallback.mock.calls.map(
-        (call: any) => (call[0] as GenerationStatus).stage
+        (call: LegacyAny) => (call[0] as GenerationStatus).stage
       );
       expect(stages).toContain('grid');
       expect(stages).toContain('comfyui');

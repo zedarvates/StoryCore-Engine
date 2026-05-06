@@ -7,13 +7,12 @@ import json
 import tempfile
 import pytest
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 from src.addon_manager import AddonManager, AddonType, AddonManifest
 from src.addon_validator import AddonValidator, ValidationSeverity
 from src.addon_permissions import PermissionManager, PermissionLevel, PermissionScope
 from src.addon_hooks import HookManager, HookPriority
-from src.addon_events import EventBus, EventScope, EventPriority
+from src.addon_events import EventBus
 
 
 class TestAddonManager:
@@ -28,6 +27,7 @@ class TestAddonManager:
         """Nettoyage après chaque test"""
         # Supprimer le répertoire temporaire
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -43,7 +43,7 @@ class TestAddonManager:
             "version": "1.0.0",
             "type": "workflow_addon",
             "author": "Test Author",
-            "description": "Test addon"
+            "description": "Test addon",
         }
 
         # Créer un fichier manifest temporaire
@@ -51,7 +51,7 @@ class TestAddonManager:
         addon_dir.mkdir(parents=True)
         manifest_file = addon_dir / "addon.json"
 
-        with open(manifest_file, 'w') as f:
+        with open(manifest_file, "w") as f:
             json.dump(manifest_data, f)
 
         # Tester le parsing
@@ -82,7 +82,7 @@ class TestAddonValidator:
             permissions=["model_access"],
             entry_points={"main": "src/main.py"},
             dependencies={},
-            metadata={}
+            metadata={},
         )
 
         issues = asyncio.run(self.validator._validate_manifest(manifest, Path("/tmp")))
@@ -103,7 +103,7 @@ class TestAddonValidator:
             permissions=[],
             entry_points={},
             dependencies={},
-            metadata={}
+            metadata={},
         )
 
         issues = asyncio.run(self.validator._validate_manifest(manifest, Path("/tmp")))
@@ -121,34 +121,32 @@ class TestPermissionManager:
 
     def test_permission_request_auto_grant(self):
         """Test d'octroi automatique de permission"""
-        from src.addon_permissions import PermissionRequest
 
         request = self.pm.create_permission_request(
             addon_name="test_addon",
             permission="file_system_read",
             level=PermissionLevel.READ,
-            scope=PermissionScope.PROJECT
+            scope=PermissionScope.PROJECT,
         )
 
         grant = asyncio.run(self.pm.request_permission(request))
 
-        assert grant.granted == True
+        assert grant.granted
         assert grant.granted_by == "auto"
 
     def test_permission_request_deny_high_risk(self):
         """Test de refus automatique pour permissions haute risque"""
-        from src.addon_permissions import PermissionRequest
 
         request = self.pm.create_permission_request(
             addon_name="test_addon",
             permission="network_access",
             level=PermissionLevel.EXECUTE,
-            scope=PermissionScope.SESSION
+            scope=PermissionScope.SESSION,
         )
 
         grant = asyncio.run(self.pm.request_permission(request))
 
-        assert grant.granted == False
+        assert not grant.granted
         assert grant.granted_by == "system"
 
 
@@ -160,6 +158,7 @@ class TestHookManager:
 
     def test_hook_registration(self):
         """Test d'enregistrement de hook"""
+
         async def dummy_callback():
             return "test"
 
@@ -167,10 +166,10 @@ class TestHookManager:
             addon_name="test_addon",
             hook_name="test_hook",
             callback=dummy_callback,
-            priority=HookPriority.NORMAL
+            priority=HookPriority.NORMAL,
         )
 
-        assert success == True
+        assert success
         assert "test_hook" in self.hm.hooks
         assert len(self.hm.hooks["test_hook"]) == 1
 
@@ -183,12 +182,12 @@ class TestHookManager:
             return f"processed_{value}"
 
         self.hm.register_hook(
-            addon_name="test_addon",
-            hook_name="content_filter",
-            callback=test_callback
+            addon_name="test_addon", hook_name="content_filter", callback=test_callback
         )
 
-        result = asyncio.run(self.hm.execute_hook_with_filter("content_filter", "input"))
+        result = asyncio.run(
+            self.hm.execute_hook_with_filter("content_filter", "input")
+        )
 
         assert result == "processed_input"
         assert len(results) == 1
@@ -202,13 +201,12 @@ class TestEventBus:
 
     def test_event_subscription(self):
         """Test d'abonnement aux événements"""
+
         async def dummy_handler(event):
             pass
 
         subscription_id = self.bus.subscribe(
-            addon_name="test_addon",
-            event_pattern="test.*",
-            callback=dummy_handler
+            addon_name="test_addon", event_pattern="test.*", callback=dummy_handler
         )
 
         assert subscription_id is not None
@@ -223,15 +221,11 @@ class TestEventBus:
             received_events.append(event)
 
         self.bus.subscribe(
-            addon_name="test_addon",
-            event_pattern="test_event",
-            callback=event_handler
+            addon_name="test_addon", event_pattern="test_event", callback=event_handler
         )
 
         event = self.bus.create_event(
-            name="test_event",
-            source="test_source",
-            data={"key": "value"}
+            name="test_event", source="test_source", data={"key": "value"}
         )
 
         asyncio.run(self.bus.start())
@@ -254,6 +248,7 @@ class TestAddonIntegration:
 
     def teardown_method(self):
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_full_addon_lifecycle(self):
@@ -268,14 +263,14 @@ class TestAddonIntegration:
             "version": "1.0.0",
             "type": "workflow_addon",
             "author": "Test Author",
-            "description": "Test addon for integration testing"
+            "description": "Test addon for integration testing",
         }
 
-        with open(addon_dir / "addon.json", 'w') as f:
+        with open(addon_dir / "addon.json", "w") as f:
             json.dump(manifest_data, f)
 
         # Créer le fichier main.py
-        main_content = '''
+        main_content = """
 class TestAddon:
     def __init__(self):
         self.name = "test_addon"
@@ -288,9 +283,9 @@ class TestAddon:
         return True
 
 addon = TestAddon()
-'''
+"""
         (addon_dir / "src").mkdir()
-        with open(addon_dir / "src" / "main.py", 'w') as f:
+        with open(addon_dir / "src" / "main.py", "w") as f:
             f.write(main_content)
 
         # Tester le chargement
@@ -302,7 +297,7 @@ addon = TestAddon()
 
         # Tester l'activation
         success = asyncio.run(self.manager.enable_addon("test_addon"))
-        assert success == True
+        assert success
 
         # Vérifier l'état
         info = self.manager.get_addon_info("test_addon")

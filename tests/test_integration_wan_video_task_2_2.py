@@ -8,10 +8,8 @@ import asyncio
 import time
 import logging
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-import json
+from typing import Dict, List, Any, Optional
 import sys
-import os
 
 # Add src to path for imports (same as existing tests)
 sys.path.insert(0, str(Path(__file__).parent / "src"))
@@ -28,7 +26,7 @@ try:
         WanVideoIntegration,
         InpaintingMask,
         DualImageGuidance,
-        AlphaChannelMode
+        AlphaChannelMode,
     )
     from advanced_workflow_config import WanVideoConfig
 except ImportError as e:
@@ -37,10 +35,10 @@ except ImportError as e:
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 class IntegrationTestRunner:
     """Runs integration tests for Wan Video Task 2.2"""
@@ -66,7 +64,9 @@ class IntegrationTestRunner:
             test_images = (small_files + jpg_files)[:count]
 
         if len(test_images) < count:
-            logger.warning(f"Only found {len(test_images)} test images, expected {count}")
+            logger.warning(
+                f"Only found {len(test_images)} test images, expected {count}"
+            )
 
         return test_images
 
@@ -80,26 +80,28 @@ class IntegrationTestRunner:
         radius = min(width, height) // 4
 
         y, x = np.ogrid[:height, :width]
-        mask = (x - center_x) ** 2 + (y - center_y) ** 2 <= radius ** 2
+        mask = (x - center_x) ** 2 + (y - center_y) ** 2 <= radius**2
         mask_array[mask] = 0  # Black in center = keep original
 
-        mask_image = Image.fromarray(mask_array, mode='L')
+        mask_image = Image.fromarray(mask_array, mode="L")
         return InpaintingMask(mask_image=mask_image, blur_radius=2, feather_amount=1)
 
-    def create_dual_guidance(self, reference_path: Path, style_path: Optional[Path] = None) -> DualImageGuidance:
+    def create_dual_guidance(
+        self, reference_path: Path, style_path: Optional[Path] = None
+    ) -> DualImageGuidance:
         """Create dual image guidance from test images"""
-        reference_image = Image.open(reference_path).convert('RGB')
+        reference_image = Image.open(reference_path).convert("RGB")
 
         style_image = None
         if style_path:
-            style_image = Image.open(style_path).convert('RGB')
+            style_image = Image.open(style_path).convert("RGB")
 
         return DualImageGuidance(
             reference_image=reference_image,
             style_image=style_image,
             reference_strength=0.8,
             style_strength=0.5,
-            blend_mode="linear"
+            blend_mode="linear",
         )
 
     async def test_generate_video_with_inpainting(self) -> Dict[str, Any]:
@@ -112,7 +114,7 @@ class IntegrationTestRunner:
             "execution_time": 0.0,
             "frames_generated": 0,
             "output_type": None,
-            "details": {}
+            "details": {},
         }
 
         try:
@@ -121,11 +123,13 @@ class IntegrationTestRunner:
             # Find test images
             test_images = self.find_test_images(2)
             if len(test_images) < 2:
-                raise RuntimeError(f"Need at least 2 test images, found {len(test_images)}")
+                raise RuntimeError(
+                    f"Need at least 2 test images, found {len(test_images)}"
+                )
 
             # Load start and end images
-            start_image = Image.open(test_images[0]).convert('RGB').resize((832, 480))
-            end_image = Image.open(test_images[1]).convert('RGB').resize((832, 480))
+            start_image = Image.open(test_images[0]).convert("RGB").resize((832, 480))
+            end_image = Image.open(test_images[1]).convert("RGB").resize((832, 480))
 
             # Create video frames (simple interpolation between start and end)
             video_frames = []
@@ -139,17 +143,14 @@ class IntegrationTestRunner:
 
             # Create config
             config = WanVideoConfig(
-                width=832,
-                height=480,
-                num_frames=16,
-                enable_inpainting=True
+                width=832, height=480, num_frames=16, enable_inpainting=True
             )
 
             # Create integration
             integration = WanVideoIntegration(
                 config=config,
                 comfyui_base_url=self.comfyui_base_url,
-                timeout_seconds=60.0
+                timeout_seconds=60.0,
             )
 
             # Test inpainting
@@ -158,12 +159,14 @@ class IntegrationTestRunner:
                 video_frames=video_frames,
                 mask=mask,
                 use_multi_stage=True,
-                timeout=45.0
+                timeout=45.0,
             )
 
             # Validate result
             if not isinstance(inpainted_frames, list):
-                raise ValueError(f"Expected list of frames, got {type(inpainted_frames)}")
+                raise ValueError(
+                    f"Expected list of frames, got {type(inpainted_frames)}"
+                )
 
             if len(inpainted_frames) == 0:
                 raise ValueError("No frames generated")
@@ -179,7 +182,7 @@ class IntegrationTestRunner:
             result["details"] = {
                 "input_frames": len(video_frames),
                 "mask_applied": True,
-                "prompt_used": "Fill the masked area with a beautiful mountain landscape"
+                "prompt_used": "Fill the masked area with a beautiful mountain landscape",
             }
 
             await integration.cleanup()
@@ -204,7 +207,7 @@ class IntegrationTestRunner:
             "frames_generated": 0,
             "alpha_masks_generated": 0,
             "output_type": None,
-            "details": {}
+            "details": {},
         }
 
         try:
@@ -216,14 +219,14 @@ class IntegrationTestRunner:
                 height=480,
                 num_frames=16,
                 enable_alpha=True,
-                alpha_threshold=0.5
+                alpha_threshold=0.5,
             )
 
             # Create integration
             integration = WanVideoIntegration(
                 config=config,
                 comfyui_base_url=self.comfyui_base_url,
-                timeout_seconds=60.0
+                timeout_seconds=60.0,
             )
 
             # Test alpha generation
@@ -233,15 +236,19 @@ class IntegrationTestRunner:
                 height=480,
                 num_frames=16,
                 alpha_mode=AlphaChannelMode.THRESHOLD,
-                timeout=45.0
+                timeout=45.0,
             )
 
             # Validate result
             if not isinstance(rgb_frames, list) or not isinstance(alpha_masks, list):
-                raise ValueError(f"Expected tuple of lists, got {type(rgb_frames)}, {type(alpha_masks)}")
+                raise ValueError(
+                    f"Expected tuple of lists, got {type(rgb_frames)}, {type(alpha_masks)}"
+                )
 
             if len(rgb_frames) != len(alpha_masks):
-                raise ValueError(f"RGB frames ({len(rgb_frames)}) != alpha masks ({len(alpha_masks)})")
+                raise ValueError(
+                    f"RGB frames ({len(rgb_frames)}) != alpha masks ({len(alpha_masks)})"
+                )
 
             if len(rgb_frames) == 0:
                 raise ValueError("No frames generated")
@@ -249,9 +256,13 @@ class IntegrationTestRunner:
             # Check frame types
             for i, (rgb_frame, alpha_mask) in enumerate(zip(rgb_frames, alpha_masks)):
                 if not isinstance(rgb_frame, Image.Image):
-                    raise ValueError(f"RGB frame {i} is not PIL Image, got {type(rgb_frame)}")
+                    raise ValueError(
+                        f"RGB frame {i} is not PIL Image, got {type(rgb_frame)}"
+                    )
                 if not isinstance(alpha_mask, Image.Image):
-                    raise ValueError(f"Alpha mask {i} is not PIL Image, got {type(alpha_mask)}")
+                    raise ValueError(
+                        f"Alpha mask {i} is not PIL Image, got {type(alpha_mask)}"
+                    )
 
             result["success"] = True
             result["frames_generated"] = len(rgb_frames)
@@ -260,7 +271,7 @@ class IntegrationTestRunner:
             result["details"] = {
                 "prompt_used": "A floating crystal with transparent background",
                 "alpha_mode": "THRESHOLD",
-                "dimensions": f"{config.width}x{config.height}"
+                "dimensions": f"{config.width}x{config.height}",
             }
 
             await integration.cleanup()
@@ -284,7 +295,7 @@ class IntegrationTestRunner:
             "execution_time": 0.0,
             "frames_generated": 0,
             "output_type": None,
-            "details": {}
+            "details": {},
         }
 
         try:
@@ -293,23 +304,21 @@ class IntegrationTestRunner:
             # Find test images
             test_images = self.find_test_images(2)
             if len(test_images) < 2:
-                raise RuntimeError(f"Need at least 2 test images, found {len(test_images)}")
+                raise RuntimeError(
+                    f"Need at least 2 test images, found {len(test_images)}"
+                )
 
             # Create dual guidance
             guidance = self.create_dual_guidance(test_images[0], test_images[1])
 
             # Create config
-            config = WanVideoConfig(
-                width=832,
-                height=480,
-                num_frames=16
-            )
+            config = WanVideoConfig(width=832, height=480, num_frames=16)
 
             # Create integration
             integration = WanVideoIntegration(
                 config=config,
                 comfyui_base_url=self.comfyui_base_url,
-                timeout_seconds=60.0
+                timeout_seconds=60.0,
             )
 
             # Test dual guidance
@@ -319,7 +328,7 @@ class IntegrationTestRunner:
                 width=832,
                 height=480,
                 num_frames=16,
-                timeout=45.0
+                timeout=45.0,
             )
 
             # Validate result
@@ -341,7 +350,7 @@ class IntegrationTestRunner:
                 "prompt_used": "Blend these two images into a smooth video transition",
                 "reference_strength": guidance.reference_strength,
                 "style_strength": guidance.style_strength,
-                "blend_mode": guidance.blend_mode
+                "blend_mode": guidance.blend_mode,
             }
 
             await integration.cleanup()
@@ -367,7 +376,7 @@ class IntegrationTestRunner:
         successful_tests = sum(1 for r in self.results.values() if r["success"])
         total_time = sum(r["execution_time"] for r in self.results.values())
 
-        report_lines.append(f"Summary:")
+        report_lines.append("Summary:")
         report_lines.append(f"  Total Tests: {total_tests}")
         report_lines.append(f"  Successful: {successful_tests}")
         report_lines.append(f"  Failed: {total_tests - successful_tests}")
@@ -382,9 +391,13 @@ class IntegrationTestRunner:
 
             if result["success"]:
                 if "frames_generated" in result:
-                    report_lines.append(f"  Frames Generated: {result['frames_generated']}")
+                    report_lines.append(
+                        f"  Frames Generated: {result['frames_generated']}"
+                    )
                 if "alpha_masks_generated" in result:
-                    report_lines.append(f"  Alpha Masks: {result['alpha_masks_generated']}")
+                    report_lines.append(
+                        f"  Alpha Masks: {result['alpha_masks_generated']}"
+                    )
                 if result["output_type"]:
                     report_lines.append(f"  Output Type: {result['output_type']}")
 
@@ -400,11 +413,13 @@ class IntegrationTestRunner:
         # Performance analysis
         if total_time > 0:
             report_lines.append("Performance Analysis:")
-            avg_time = total_time / total_tests
+            total_time / total_tests
             report_lines.append(".2f")
 
             # Check for timeouts (>30s considered slow)
-            slow_tests = [name for name, r in self.results.items() if r["execution_time"] > 30.0]
+            slow_tests = [
+                name for name, r in self.results.items() if r["execution_time"] > 30.0
+            ]
             if slow_tests:
                 report_lines.append(f"  Slow Tests (>30s): {', '.join(slow_tests)}")
             else:
@@ -420,13 +435,17 @@ class IntegrationTestRunner:
 
         try:
             # Test 1: Inpainting
-            self.results["inpainting"] = await self.test_generate_video_with_inpainting()
+            self.results[
+                "inpainting"
+            ] = await self.test_generate_video_with_inpainting()
 
             # Test 2: Alpha channel
             self.results["alpha"] = await self.test_generate_video_with_alpha()
 
             # Test 3: Dual guidance
-            self.results["dual_guidance"] = await self.test_generate_video_with_dual_guidance()
+            self.results[
+                "dual_guidance"
+            ] = await self.test_generate_video_with_dual_guidance()
 
         except Exception as e:
             logger.error(f"Test runner failed: {e}")
@@ -434,7 +453,7 @@ class IntegrationTestRunner:
                 "test_name": "test_runner",
                 "success": False,
                 "error": str(e),
-                "execution_time": 0.0
+                "execution_time": 0.0,
             }
 
         # Generate and print report
@@ -447,8 +466,8 @@ class IntegrationTestRunner:
             "summary": {
                 "total_tests": len(self.results),
                 "successful": sum(1 for r in self.results.values() if r["success"]),
-                "total_time": sum(r["execution_time"] for r in self.results.values())
-            }
+                "total_time": sum(r["execution_time"] for r in self.results.values()),
+            },
         }
 
 
@@ -457,10 +476,12 @@ async def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="Wan Video Task 2.2 Integration Tests")
-    parser.add_argument("--comfyui-url", default="http://127.0.0.1:8188",
-                       help="ComfyUI server URL")
-    parser.add_argument("--timeout", type=float, default=60.0,
-                       help="Default timeout per test (seconds)")
+    parser.add_argument(
+        "--comfyui-url", default="http://127.0.0.1:8188", help="ComfyUI server URL"
+    )
+    parser.add_argument(
+        "--timeout", type=float, default=60.0, help="Default timeout per test (seconds)"
+    )
 
     args = parser.parse_args()
 

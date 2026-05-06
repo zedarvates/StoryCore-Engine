@@ -28,7 +28,7 @@ class AlphaChannelGenerator:
         self,
         video_frames: List[Image.Image],
         mode: AlphaChannelMode = AlphaChannelMode.THRESHOLD,
-        threshold: Optional[float] = None
+        threshold: Optional[float] = None,
     ) -> List[Image.Image]:
         """
         Generate alpha channel for video frames
@@ -53,7 +53,7 @@ class AlphaChannelGenerator:
             # In real implementation, this would use segmentation models
             if Image:
                 # Create a simple alpha mask (white = opaque, black = transparent)
-                alpha_mask = Image.new('L', frame.size, 255)
+                alpha_mask = Image.new("L", frame.size, 255)
                 alpha_masks.append(alpha_mask)
             else:
                 alpha_masks.append(None)
@@ -65,9 +65,7 @@ class AlphaChannelGenerator:
         return alpha_masks
 
     def apply_alpha_to_frames(
-        self,
-        video_frames: List[Image.Image],
-        alpha_masks: List[Image.Image]
+        self, video_frames: List[Image.Image], alpha_masks: List[Image.Image]
     ) -> List[Image.Image]:
         """
         Apply alpha channel to video frames
@@ -88,8 +86,8 @@ class AlphaChannelGenerator:
         for i, (frame, alpha) in enumerate(zip(video_frames, alpha_masks)):
             if Image:
                 # Convert to RGBA and apply alpha
-                if frame.mode != 'RGBA':
-                    frame = frame.convert('RGBA')
+                if frame.mode != "RGBA":
+                    frame = frame.convert("RGBA")
 
                 # Apply alpha mask
                 frame.putalpha(alpha)

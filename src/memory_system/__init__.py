@@ -69,10 +69,8 @@ from .data_models import (
 __all__ = [
     # Version
     "__version__",
-    
     # Core
     "MemorySystemCore",
-    
     # Managers
     "ConfigManager",
     "DirectoryManager",
@@ -87,7 +85,6 @@ __all__ = [
     "TimelineGenerator",
     "VariablesManager",
     "AutoQASystem",
-    
     # Data models
     "ProjectConfig",
     "ProjectMemory",
@@ -124,46 +121,44 @@ def create_memory_system(
     project_path: str,
     project_name: str,
     project_type: str = "video",
-    objectives: list = None
+    objectives: list = None,
 ) -> MemorySystemCore:
     """
     Factory function to create and initialize a memory system.
-    
+
     Args:
         project_path: Path to the project directory
         project_name: Name of the project
         project_type: Type of project (video, script, creative, technical)
         objectives: List of project objectives
-        
+
     Returns:
         Initialized MemorySystemCore instance
     """
     from pathlib import Path
-    
+
     core = MemorySystemCore(Path(project_path))
-    
+
     if objectives is None:
         objectives = []
-    
+
     core.initialize_project(
-        project_name=project_name,
-        project_type=project_type,
-        objectives=objectives
+        project_name=project_name, project_type=project_type, objectives=objectives
     )
-    
+
     return core
 
 
 def load_memory_system(project_path: str) -> MemorySystemCore:
     """
     Factory function to load an existing memory system.
-    
+
     Args:
         project_path: Path to the project directory
-        
+
     Returns:
         Loaded MemorySystemCore instance
     """
     from pathlib import Path
-    return MemorySystemCore(Path(project_path))
 
+    return MemorySystemCore(Path(project_path))

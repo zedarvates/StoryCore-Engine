@@ -9,7 +9,7 @@
  */
 
 import React, { useMemo } from 'react';
-import { Plus, Grid, List, Filter, Search } from 'lucide-react';
+import { Plus, Filter, Search } from 'lucide-react';
 import { LocationCard } from './LocationCard';
 import type { Location, LocationType } from '@/types/location';
 import { useLocationStore, getFilteredLocations } from '@/stores/locationStore';
@@ -88,10 +88,30 @@ export function LocationList({
     isLoading,
   } = useLocationStore();
   
-  const filteredLocations = useMemo(
-    () => getFilteredLocations(useLocationStore.getState()),
-    [locations, filterType, filterWorld, searchQuery]
-  );
+  const filteredLocations = useMemo(() => {
+    // Safety deduplication by ID to prevent React key collision warnings
+    const uniqueMap = new Map<string, Location>();
+    
+    // Using destructured values from the store hook to ensure reactivity
+    // and satisfy linter dependencies
+    const { locations: _l, filterType: _ft, filterWorld: _fw, searchQuery: _sq, ...otherState } = useLocationStore.getState();
+    const rawFiltered = getFilteredLocations({
+      locations,
+      filterType,
+      filterWorld,
+      searchQuery,
+      ...otherState
+    });
+
+    rawFiltered.forEach(loc => {
+      const id = loc.location_id || `temp-${loc.name}-${Math.random()}`;
+      if (!uniqueMap.has(id)) {
+        uniqueMap.set(id, loc);
+      }
+    });
+    
+    return Array.from(uniqueMap.values());
+  }, [locations, filterType, filterWorld, searchQuery]);
   
   /**
    * Pagination for locations

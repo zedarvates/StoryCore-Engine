@@ -6,6 +6,8 @@
  * 
  * Requirements: 15.1, 15.2, 15.3, 15.4, 15.6, 15.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useEffect } from 'react';
 import { VersionHistoryPanel } from './VersionHistoryPanel';
@@ -33,7 +35,7 @@ export const BasicVersionHistoryExample: React.FC = () => {
       {showVersionHistory && (
         <div className="version-history-sidebar">
           <VersionHistoryPanel
-            projectId={projectId}
+            projectId={p_rojectId}
             onClose={() => setShowVersionHistory(false)}
             onRestore={(version) => {
               ;
@@ -109,7 +111,7 @@ export const AutoSaveExample: React.FC = () => {
 // Example 3: Manual Version Saving with Thumbnail
 // ============================================================================
 
-export const ManualVersionSaveExample: React.FC = () => {
+export c_onst ManualVersionSaveExample: React.FC = () => {
   const { exportConfiguration } = useGridStore();
   const projectId = 'my-project-id';
 
@@ -147,7 +149,7 @@ export const ManualVersionSaveExample: React.FC = () => {
 
 export const VersionComparisonExample: React.FC = () => {
   const projectId = 'my-project-id';
-  const [versions, setVersions] = useState<any[]>([]);
+  const [versions, setVersions] = useState<LegacyAny[]>([]);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
 
   useEffect(() => {
@@ -305,7 +307,7 @@ export const CompleteVersionControlExample: React.FC = () => {
       {showVersionHistory && (
         <div className="version-history-modal">
           <VersionHistoryPanel
-            projectId={projectId}
+            projectId={p_rojectId}
             onClose={() => setShowVersionHistory(false)}
             onRestore={(version) => {
               ;

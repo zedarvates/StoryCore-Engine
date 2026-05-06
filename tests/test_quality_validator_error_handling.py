@@ -8,11 +8,10 @@ Tests cover:
 - Edge cases and graceful degradation
 """
 
-import pytest
 import numpy as np
 from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
-from src.quality_validator import QualityValidator, ValidationMode, QualityIssue
+from unittest.mock import patch
+from src.quality_validator import QualityValidator, ValidationMode
 
 
 class TestInputValidation:
@@ -42,7 +41,7 @@ class TestInputValidation:
         assert not is_valid
         assert "not a file" in error.lower()
 
-    @patch('cv2.VideoCapture')
+    @patch("cv2.VideoCapture")
     def test_validate_video_file_corrupted(self, mock_cap):
         """Test validation of corrupted video file."""
         # Mock VideoCapture to return invalid
@@ -53,7 +52,7 @@ class TestInputValidation:
         assert not is_valid
         assert "unable to open" in error.lower()
 
-    @patch('cv2.VideoCapture')
+    @patch("cv2.VideoCapture")
     def test_validate_video_file_empty(self, mock_cap):
         """Test validation of video file with no readable frames."""
         # Mock VideoCapture to open but return no frames
@@ -79,7 +78,7 @@ class TestInputValidation:
         assert not is_valid
         assert "unsupported audio format" in error.lower()
 
-    @patch('librosa.load')
+    @patch("librosa.load")
     def test_validate_audio_file_corrupted(self, mock_load):
         """Test validation of corrupted audio file."""
         mock_load.side_effect = Exception("Corrupted file")
@@ -89,7 +88,7 @@ class TestInputValidation:
         assert not is_valid
         assert "error validating" in error.lower()
 
-    @patch('librosa.load')
+    @patch("librosa.load")
     def test_validate_audio_file_empty(self, mock_load):
         """Test validation of empty audio file."""
         mock_load.return_value = (np.array([]), 22050)
@@ -99,7 +98,7 @@ class TestInputValidation:
         assert not is_valid
         assert "audio file is empty" in error.lower()
 
-    @patch('librosa.load')
+    @patch("librosa.load")
     def test_validate_audio_file_silence(self, mock_load):
         """Test validation of audio file with only silence."""
         # Return array of zeros
@@ -119,44 +118,44 @@ class TestMissingDataHandling:
 
     def test_analyze_voice_quality_empty_audio(self):
         """Test voice quality analysis with empty audio data."""
-        audio_clip = {'data': np.array([]), 'rate': 22050}
+        audio_clip = {"data": np.array([]), "rate": 22050}
 
         result = self.validator.analyze_voice_quality(audio_clip)
 
-        assert result['quality_score'] == 0.0
-        assert len(result['issues']) == 1
-        assert result['issues'][0]['type'] == 'missing_audio'
-        assert result['issues'][0]['severity'] == 'high'
+        assert result["quality_score"] == 0.0
+        assert len(result["issues"]) == 1
+        assert result["issues"][0]["type"] == "missing_audio"
+        assert result["issues"][0]["severity"] == "high"
 
     def test_generate_quality_score_no_frames(self):
         """Test quality score generation with no frames."""
-        shot = {'frames': [], 'audio_score': 50.0, 'continuity_score': 50.0}
+        shot = {"frames": [], "audio_score": 50.0, "continuity_score": 50.0}
 
         score = self.validator.generate_quality_score(shot)
 
         assert score.overall_score == 0.0  # Due to error recovery
         assert len(score.issues) >= 1
-        assert any(issue.issue_type == 'missing_frames' for issue in score.issues)
+        assert any(issue.issue_type == "missing_frames" for issue in score.issues)
 
     def test_detect_metallic_voice_empty_data(self):
         """Test metallic voice detection with empty data."""
-        audio_clip = {'data': np.array([]), 'rate': 22050}
+        audio_clip = {"data": np.array([]), "rate": 22050}
 
         issues = self.validator.detect_metallic_voice(audio_clip)
         assert issues == []
 
     def test_measure_voice_clarity_empty_data(self):
         """Test voice clarity measurement with empty data."""
-        audio_clip = {'data': np.array([]), 'rate': 22050}
+        audio_clip = {"data": np.array([]), "rate": 22050}
 
         result = self.validator.measure_voice_clarity(audio_clip)
-        assert result['clarity_score'] == 0.0
-        assert result['issues'] == []
-        assert result['recommendations'] == []
+        assert result["clarity_score"] == 0.0
+        assert result["issues"] == []
+        assert result["recommendations"] == []
 
     def test_detect_audio_gaps_empty_data(self):
         """Test audio gap detection with empty data."""
-        audio_clip = {'data': np.array([]), 'rate': 22050}
+        audio_clip = {"data": np.array([]), "rate": 22050}
 
         gaps = self.validator.detect_audio_gaps(audio_clip)
         assert gaps == []
@@ -168,19 +167,19 @@ class TestErrorRecovery:
     def setup_method(self):
         self.validator = QualityValidator()
 
-    @patch('cv2.Laplacian')
+    @patch("cv2.Laplacian")
     def test_calculate_sharpness_error_recovery(self, mock_laplacian):
         """Test sharpness calculation error recovery."""
         mock_laplacian.side_effect = Exception("OpenCV error")
 
         frame = np.random.rand(100, 100, 3).astype(np.uint8)
 
-        with patch.object(self.validator.logger, 'error') as mock_log:
-            sharpness = self.validator.calculate_sharpness(frame)
+        with patch.object(self.validator.logger, "error") as mock_log:
+            self.validator.calculate_sharpness(frame)
             # Should return 0 or handle gracefully
             mock_log.assert_called_once()
 
-    @patch('cv2.calcOpticalFlowFarneback')
+    @patch("cv2.calcOpticalFlowFarneback")
     def test_detect_unnatural_movements_error_recovery(self, mock_flow):
         """Test motion detection error recovery."""
         mock_flow.side_effect = Exception("Optical flow error")
@@ -191,12 +190,12 @@ class TestErrorRecovery:
         # Should return empty list or handle gracefully
         assert isinstance(anomalies, list)
 
-    @patch('librosa.stft')
+    @patch("librosa.stft")
     def test_detect_metallic_voice_error_recovery(self, mock_stft):
         """Test metallic voice detection error recovery."""
         mock_stft.side_effect = Exception("Librosa error")
 
-        audio_clip = {'data': np.random.rand(1000), 'rate': 22050}
+        audio_clip = {"data": np.random.rand(1000), "rate": 22050}
 
         issues = self.validator.detect_metallic_voice(audio_clip)
         # Should return empty list
@@ -205,31 +204,42 @@ class TestErrorRecovery:
     def test_analyze_voice_quality_error_recovery(self):
         """Test voice quality analysis with processing errors."""
         # Create audio clip that might cause issues
-        audio_clip = {'data': np.random.rand(100), 'rate': 22050}
+        audio_clip = {"data": np.random.rand(100), "rate": 22050}
 
         # Mock detect_metallic_voice to raise exception
-        with patch.object(self.validator, 'detect_metallic_voice', side_effect=Exception("Processing error")):
+        with patch.object(
+            self.validator,
+            "detect_metallic_voice",
+            side_effect=Exception("Processing error"),
+        ):
             result = self.validator.analyze_voice_quality(audio_clip)
 
             # Should still return a result with error issue
-            assert 'issues' in result
-            assert len(result['issues']) >= 1
-            assert any('analysis_error' in issue['type'] for issue in result['issues'])
+            assert "issues" in result
+            assert len(result["issues"]) >= 1
+            assert any("analysis_error" in issue["type"] for issue in result["issues"])
 
     def test_generate_quality_score_error_recovery(self):
         """Test quality score generation with multiple processing errors."""
         # Create shot that might cause issues
         frames = [np.random.rand(10, 10, 3).astype(np.uint8)]
-        shot = {'frames': frames, 'audio_score': 50.0, 'continuity_score': 50.0}
+        shot = {"frames": frames, "audio_score": 50.0, "continuity_score": 50.0}
 
         # Mock calculate_sharpness to raise exception
-        with patch.object(self.validator, 'calculate_sharpness', side_effect=Exception("Sharpness error")):
+        with patch.object(
+            self.validator,
+            "calculate_sharpness",
+            side_effect=Exception("Sharpness error"),
+        ):
             score = self.validator.generate_quality_score(shot)
 
             # Should still return a QualityScore object
-            assert hasattr(score, 'overall_score')
+            assert hasattr(score, "overall_score")
             assert len(score.issues) >= 1
-            assert any('sharpness_calculation_error' in issue.issue_type for issue in score.issues)
+            assert any(
+                "sharpness_calculation_error" in issue.issue_type
+                for issue in score.issues
+            )
 
 
 class TestEdgeCases:
@@ -250,12 +260,12 @@ class TestEdgeCases:
     def test_very_short_audio(self):
         """Test processing with very short audio."""
         audio_data = np.random.rand(10)  # Very short
-        audio_clip = {'data': audio_data, 'rate': 22050}
+        audio_clip = {"data": audio_data, "rate": 22050}
 
         result = self.validator.measure_voice_clarity(audio_clip)
         # Should handle gracefully
         assert isinstance(result, dict)
-        assert 'clarity_score' in result
+        assert "clarity_score" in result
 
     def test_grayscale_frame(self):
         """Test sharpness calculation with grayscale frame."""
@@ -271,7 +281,7 @@ class TestEdgeCases:
         assert isinstance(sharpness, float)
         assert sharpness >= 0
 
-    @patch('librosa.load')
+    @patch("librosa.load")
     def test_audio_with_invalid_sample_rate(self, mock_load):
         """Test audio validation with invalid sample rate."""
         mock_load.return_value = (np.random.rand(1000), 0)  # Invalid sample rate
@@ -281,7 +291,7 @@ class TestEdgeCases:
         assert not is_valid
         assert "invalid sample rate" in error.lower()
 
-    @patch('librosa.load')
+    @patch("librosa.load")
     def test_audio_with_nan_values(self, mock_load):
         """Test audio validation with NaN values."""
         audio_with_nan = np.random.rand(1000)
@@ -293,7 +303,7 @@ class TestEdgeCases:
         assert not is_valid
         assert "invalid data" in error.lower()
 
-    @patch('librosa.load')
+    @patch("librosa.load")
     def test_audio_with_inf_values(self, mock_load):
         """Test audio validation with infinite values."""
         audio_with_inf = np.random.rand(1000)
@@ -315,13 +325,13 @@ class TestRealTimeVsBatchModes:
         validator_batch = QualityValidator(ValidationMode.BATCH)
 
         # Empty shot
-        shot = {'frames': [], 'audio_score': 50.0, 'continuity_score': 50.0}
+        shot = {"frames": [], "audio_score": 50.0, "continuity_score": 50.0}
 
         score_rt = validator_rt.generate_quality_score(shot)
         score_batch = validator_batch.generate_quality_score(shot)
 
         # Both should handle gracefully but may have different scoring
-        assert hasattr(score_rt, 'overall_score')
-        assert hasattr(score_batch, 'overall_score')
+        assert hasattr(score_rt, "overall_score")
+        assert hasattr(score_batch, "overall_score")
         assert len(score_rt.issues) >= 1  # Should have missing_frames issue
         assert len(score_batch.issues) >= 1

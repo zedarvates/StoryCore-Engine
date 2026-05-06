@@ -11,7 +11,7 @@ import { setActiveTool } from '../../store/slices/toolsSlice';
 import { markSaved, setSaveStatus } from '../../store/slices/projectSlice';
 import { 
   setActivePanel, toggleLayerManager, toggleCompactMode, 
-  setAssetCategory, setLibraryVisible 
+  setAssetCategory, setLibraryVisible, toggleProductionStudioMode
 } from '../../store/slices/panelsSlice';
 import { saveProjectToFile, generateProjectFilename } from '../../services/projectPersistence';
 import type { ToolType } from '../../types';
@@ -26,7 +26,7 @@ import {
   Shuffle, Type, Key, 
   Undo2, Redo2, 
   Home, Settings, Save, Download, Box, LayoutPanelLeft,
-  Grid3X3, MapPin, AlignLeft
+  Grid3X3, MapPin, AlignLeft, Clapperboard
 } from 'lucide-react';
 import './toolBar.css';
 import { toggleGrid, toggleMarkers, togglePrompts } from '../../store/slices/panelsSlice';
@@ -255,12 +255,21 @@ export const ToolBar: React.FC<ToolBarProps> = ({
         </button>
 
         <button 
-          className={`tool-btn px-3 ${useAppSelector(state => state.panels.compactMode) ? 'active' : ''}`}
+          className={`tool-btn px-3 ${useAppSelector(state => state.panels.compactMode) ? 'active text-amber-500' : ''}`}
           onClick={() => dispatch(toggleCompactMode())}
           title="Compact Director Dashboard (K)"
         >
           <Box className="w-4 h-4 mr-2" />
           <span className="text-xs font-bold">Director</span>
+        </button>
+        
+        <button 
+          className={`tool-btn px-3 ${useAppSelector(state => state.panels.productionStudioMode) ? 'active studio-active border-amber-500/50' : ''}`}
+          onClick={() => dispatch(toggleProductionStudioMode())}
+          title="Production Studio (CapCut Style) (Shift+S)"
+        >
+          <Clapperboard className="w-4 h-4 mr-2 text-amber-400" />
+          <span className="text-xs font-bold text-amber-100">Studio Mode</span>
         </button>
 
         <div className="tool-separator-v" />

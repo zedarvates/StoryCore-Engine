@@ -4,11 +4,13 @@ Memory Validate command handler - Validate memory system integrity and project s
 
 import argparse
 import json
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.memory_system.memory_system_core import MemorySystemCore
 
 
 class MemoryValidateHandler(BaseHandler):
@@ -23,7 +25,7 @@ class MemoryValidateHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory to validate (default: current directory)"
+            help="Project directory to validate (default: current directory)",
         )
 
         parser.add_argument(
@@ -31,26 +33,24 @@ class MemoryValidateHandler(BaseHandler):
             nargs="+",
             choices=["structure", "config", "memory", "discussions", "assets"],
             default=["structure", "config", "memory"],
-            help="Validation scope (default: structure, config, memory). Multiple scopes can be specified."
+            help="Validation scope (default: structure, config, memory). Multiple scopes can be specified.",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format (default: human)"
+            help="Output format (default: human)",
         )
 
         parser.add_argument(
-            "--strict",
-            action="store_true",
-            help="Enable strict validation mode"
+            "--strict", action="store_true", help="Enable strict validation mode"
         )
 
         parser.add_argument(
             "--fix",
             action="store_true",
-            help="Attempt to fix validation issues automatically"
+            help="Attempt to fix validation issues automatically",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -61,7 +61,7 @@ class MemoryValidateHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             # Import memory system
@@ -70,7 +70,7 @@ class MemoryValidateHandler(BaseHandler):
             except ImportError as e:
                 raise SystemError(
                     f"Memory system not available: {e}",
-                    "Ensure memory_system module is installed"
+                    "Ensure memory_system module is installed",
                 )
 
             # Initialize memory system
@@ -89,7 +89,7 @@ class MemoryValidateHandler(BaseHandler):
                 "discussion_validation": {},
                 "asset_validation": {},
                 "overall_passed": True,
-                "exit_code": 0
+                "exit_code": 0,
             }
 
             # Run structure validation if requested
@@ -151,7 +151,7 @@ class MemoryValidateHandler(BaseHandler):
         except Exception as e:
             return self.handle_error(e, "memory validation")
 
-    def _validate_structure(self, memory_system: 'MemorySystemCore') -> Dict[str, Any]:
+    def _validate_structure(self, memory_system: "MemorySystemCore") -> Dict[str, Any]:
         """Validate project structure."""
         result = {"passed": True, "errors": []}
 
@@ -178,7 +178,7 @@ class MemoryValidateHandler(BaseHandler):
 
         return result
 
-    def _validate_config(self, memory_system: 'MemorySystemCore') -> Dict[str, Any]:
+    def _validate_config(self, memory_system: "MemorySystemCore") -> Dict[str, Any]:
         """Validate project configuration."""
         result = {"passed": True, "errors": []}
 
@@ -202,7 +202,7 @@ class MemoryValidateHandler(BaseHandler):
 
         return result
 
-    def _validate_memory(self, memory_system: 'MemorySystemCore') -> Dict[str, Any]:
+    def _validate_memory(self, memory_system: "MemorySystemCore") -> Dict[str, Any]:
         """Validate memory system."""
         result = {"passed": True, "errors": []}
 
@@ -226,12 +226,16 @@ class MemoryValidateHandler(BaseHandler):
 
         return result
 
-    def _validate_discussions(self, memory_system: 'MemorySystemCore') -> Dict[str, Any]:
+    def _validate_discussions(
+        self, memory_system: "MemorySystemCore"
+    ) -> Dict[str, Any]:
         """Validate discussion files."""
         result = {"passed": True, "errors": [], "checked": 0, "valid": 0}
 
         try:
-            discussions_dir = memory_system.project_path / "assistant" / "discussions_raw"
+            discussions_dir = (
+                memory_system.project_path / "assistant" / "discussions_raw"
+            )
             if not discussions_dir.exists():
                 result["passed"] = False
                 result["errors"].append("Discussions directory not found")
@@ -243,12 +247,14 @@ class MemoryValidateHandler(BaseHandler):
 
             for file_path in discussion_files:
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
+                    with open(file_path, "r", encoding="utf-8") as f:
                         json.load(f)
                     result["valid"] += 1
                 except Exception as e:
                     result["passed"] = False
-                    result["errors"].append(f"Invalid discussion file {file_path.name}: {str(e)}")
+                    result["errors"].append(
+                        f"Invalid discussion file {file_path.name}: {str(e)}"
+                    )
 
         except Exception as e:
             result["passed"] = False
@@ -256,7 +262,7 @@ class MemoryValidateHandler(BaseHandler):
 
         return result
 
-    def _validate_assets(self, memory_system: 'MemorySystemCore') -> Dict[str, Any]:
+    def _validate_assets(self, memory_system: "MemorySystemCore") -> Dict[str, Any]:
         """Validate asset files."""
         result = {"passed": True, "errors": [], "checked": 0, "valid": 0}
 
@@ -269,7 +275,18 @@ class MemoryValidateHandler(BaseHandler):
 
             # Check asset files
             asset_files = []
-            for ext in ['*.jpg', '*.jpeg', '*.png', '*.gif', '*.mp4', '*.avi', '*.mov', '*.mp3', '*.wav', '*.flac']:
+            for ext in [
+                "*.jpg",
+                "*.jpeg",
+                "*.png",
+                "*.gif",
+                "*.mp4",
+                "*.avi",
+                "*.mov",
+                "*.mp3",
+                "*.wav",
+                "*.flac",
+            ]:
                 asset_files.extend(assets_dir.glob(ext))
 
             result["checked"] = len(asset_files)
@@ -287,7 +304,9 @@ class MemoryValidateHandler(BaseHandler):
 
         return result
 
-    def _print_human_results(self, results: Dict[str, Any], args: argparse.Namespace) -> None:
+    def _print_human_results(
+        self, results: Dict[str, Any], args: argparse.Namespace
+    ) -> None:
         """Print human-readable validation results."""
         print(f"Memory System Validation: {results['project']}")
         print(f"Validation scopes: {', '.join(results['scopes'])}")
@@ -330,9 +349,13 @@ class MemoryValidateHandler(BaseHandler):
         if results.get("discussion_validation"):
             print("Discussion Validation:")
             if results["discussion_validation"].get("passed", True):
-                print(f"  [PASS] Discussion validation: PASSED ({results['discussion_validation'].get('valid', 0)}/{results['discussion_validation'].get('checked', 0)} files)")
+                print(
+                    f"  [PASS] Discussion validation: PASSED ({results['discussion_validation'].get('valid', 0)}/{results['discussion_validation'].get('checked', 0)} files)"
+                )
             else:
-                print(f"  [FAIL] Discussion validation: FAILED ({results['discussion_validation'].get('valid', 0)}/{results['discussion_validation'].get('checked', 0)} files)")
+                print(
+                    f"  [FAIL] Discussion validation: FAILED ({results['discussion_validation'].get('valid', 0)}/{results['discussion_validation'].get('checked', 0)} files)"
+                )
                 for error in results["discussion_validation"].get("errors", []):
                     print(f"    - {error}")
             print()
@@ -341,9 +364,13 @@ class MemoryValidateHandler(BaseHandler):
         if results.get("asset_validation"):
             print("Asset Validation:")
             if results["asset_validation"].get("passed", True):
-                print(f"  [PASS] Asset validation: PASSED ({results['asset_validation'].get('valid', 0)}/{results['asset_validation'].get('checked', 0)} files)")
+                print(
+                    f"  [PASS] Asset validation: PASSED ({results['asset_validation'].get('valid', 0)}/{results['asset_validation'].get('checked', 0)} files)"
+                )
             else:
-                print(f"  [FAIL] Asset validation: FAILED ({results['asset_validation'].get('valid', 0)}/{results['asset_validation'].get('checked', 0)} files)")
+                print(
+                    f"  [FAIL] Asset validation: FAILED ({results['asset_validation'].get('valid', 0)}/{results['asset_validation'].get('checked', 0)} files)"
+                )
                 for error in results["asset_validation"].get("errors", []):
                     print(f"    - {error}")
             print()
@@ -354,7 +381,9 @@ class MemoryValidateHandler(BaseHandler):
         else:
             print("FAILURE: Some memory system validations failed")
 
-    def _attempt_fixes(self, memory_system: 'MemorySystemCore', validation_results: Dict[str, Any]) -> int:
+    def _attempt_fixes(
+        self, memory_system: "MemorySystemCore", validation_results: Dict[str, Any]
+    ) -> int:
         """Attempt to automatically fix validation issues."""
         fixed_count = 0
 
@@ -369,7 +398,9 @@ class MemoryValidateHandler(BaseHandler):
                         print(f"  Created directory: {dir_name}")
                         fixed_count += 1
                     except Exception as e:
-                        self.logger.warning(f"Failed to create directory {dir_name}: {e}")
+                        self.logger.warning(
+                            f"Failed to create directory {dir_name}: {e}"
+                        )
 
         # Fix config issues
         if not validation_results.get("config_validation", {}).get("passed", True):
@@ -378,7 +409,7 @@ class MemoryValidateHandler(BaseHandler):
                 config = memory_system.config_manager.create_default_config(
                     project_name="Recovered Project",
                     project_type="video",
-                    objectives=[]
+                    objectives=[],
                 )
                 if memory_system.config_manager.save_config(config):
                     print("  Recreated project configuration")
@@ -404,12 +435,12 @@ class MemoryValidateHandler(BaseHandler):
                         "progress_percentage": 0,
                         "active_tasks": [],
                         "blockers": [],
-                        "last_activity": datetime.now().isoformat()
-                    }
+                        "last_activity": datetime.now().isoformat(),
+                    },
                 }
                 memory_path = memory_system.project_path / "assistant" / "memory.json"
                 memory_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(memory_path, 'w', encoding='utf-8') as f:
+                with open(memory_path, "w", encoding="utf-8") as f:
                     json.dump(memory_data, f, indent=2, ensure_ascii=False)
                 print("  Recreated memory structure")
                 fixed_count += 1

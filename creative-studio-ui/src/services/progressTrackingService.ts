@@ -108,9 +108,9 @@ export class ProgressTrackingService {
       this.trackers.delete(taskId);
     }
 
-    let currentProgress = 0;
+    let _currentProgress = 0;
     const tracker: ProgressTracker = {
-      update: (progress: number, message?: string) => {
+      update: (progress: number, _message?: string) => {
         currentProgress = progress;
       },
       complete: () => {
@@ -187,9 +187,9 @@ export class MockProgressTrackingService extends ProgressTrackingService {
   }
 
   createTracker(taskId: string, options: { total: number; description?: string }): ProgressTracker {
-    let currentProgress = 0;
+    let _currentProgress = 0;
     const tracker: ProgressTracker = {
-      update: (progress: number, message?: string) => {
+      update: (progress: number, _message?: string) => {
         currentProgress = progress;
       },
       complete: () => {

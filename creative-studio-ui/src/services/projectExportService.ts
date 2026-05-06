@@ -12,7 +12,7 @@
  * Requirements: 1.5, 13.1-13.6
  */
 
-import type { Project, Shot, Asset } from '@/types';
+import type { Project, Shot, _Asset } from '@/types';
 import { logger } from '@/utils/logger';
 
 /**

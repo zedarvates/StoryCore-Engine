@@ -2,7 +2,7 @@
 // Character Casting System Types
 // ============================================================================
 
-import type { Character } from '@/types/character';
+import type { _Character } from '@/types/character';
 
 /**
  * Represents an avatar asset that can be assigned to a character

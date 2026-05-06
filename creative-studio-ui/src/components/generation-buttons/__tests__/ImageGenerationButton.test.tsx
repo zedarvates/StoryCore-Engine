@@ -3,6 +3,8 @@
  * 
  * Tests for ImageGenerationButton component functionality.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -21,7 +23,7 @@ describe('ImageGenerationButton', () => {
     // Default mock: no pipeline
     vi.mocked(useGenerationStore).mockReturnValue({
       currentPipeline: null,
-    } as any);
+    } as LegacyAny);
   });
   
   it('should render button with correct label', () => {
@@ -38,7 +40,7 @@ describe('ImageGenerationButton', () => {
           image: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     
@@ -58,7 +60,7 @@ describe('ImageGenerationButton', () => {
           image: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     
@@ -78,7 +80,7 @@ describe('ImageGenerationButton', () => {
           image: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     
@@ -100,7 +102,7 @@ describe('ImageGenerationButton', () => {
           image: { status: 'in_progress', attempts: 1 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} isGenerating={true} />);
     
@@ -130,7 +132,7 @@ describe('ImageGenerationButton', () => {
           },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     
@@ -153,7 +155,7 @@ describe('ImageGenerationButton', () => {
           },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     
@@ -173,7 +175,7 @@ describe('ImageGenerationButton', () => {
           image: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     
@@ -191,7 +193,7 @@ describe('ImageGenerationButton', () => {
           image: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<ImageGenerationButton onClick={mockOnClick} />);
     

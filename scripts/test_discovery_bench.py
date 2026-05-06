@@ -1,17 +1,17 @@
 import requests
-import json
 import sys
 import os
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 def test_discovery():
     """Test the Discovery Lab narrative analysis endpoint."""
     base_url = os.environ.get("API_URL", "http://localhost:8001")
     url_render = f"{base_url}/api/llm/render-template"
     url_generate = f"{base_url}/api/llm/generate"
-    
+
     # Sample Transcript
     sample_content = """
     INTERVIEWER: Monsieur Dupont, depuis combien de temps travaillez-vous ici ?
@@ -30,8 +30,8 @@ def test_discovery():
         "variables": {
             "project_name": project_name,
             "project_goal": project_goal,
-            "content_to_analyze": sample_content
-        }
+            "content_to_analyze": sample_content,
+        },
     }
 
     print("=" * 60)
@@ -41,38 +41,38 @@ def test_discovery():
     print(f"Goal: {project_goal}")
     print(f"API URL: {base_url}")
     print("-" * 60)
-    
+
     try:
         # Step 1: Render the template
         print("\n[1/2] Rendering prompt template...")
         response = requests.post(url_render, json=payload_render, timeout=30)
-        
+
         if response.status_code != 200:
             print(f"❌ Template render failed: {response.status_code}")
             print(f"   Response: {response.text[:200]}")
             return False
-            
+
         rendered_prompt = response.json().get("rendered_prompt", "")
         print(f"✅ Template rendered ({len(rendered_prompt)} chars)")
-        
+
         # Step 2: Call LLM with rendered prompt
         print("\n[2/2] Calling LLM for analysis...")
         generate_payload = {
             "prompt": rendered_prompt,
             "max_tokens": 2048,
-            "temperature": 0.7
+            "temperature": 0.7,
         }
-        
+
         response = requests.post(url_generate, json=generate_payload, timeout=120)
-        
+
         if response.status_code != 200:
             print(f"❌ LLM generation failed: {response.status_code}")
             print(f"   Response: {response.text[:200]}")
             return False
-            
+
         result = response.json()
         generated_text = result.get("text", "")
-        
+
         print("\n" + "=" * 60)
         print("📊 AI ASSISTANT EDITOR - ANALYSIS RESULT")
         print("=" * 60)
@@ -80,16 +80,16 @@ def test_discovery():
         print("=" * 60)
         print("✅ Discovery test completed successfully!")
         return True
-        
+
     except requests.exceptions.ConnectionError:
         print("❌ Connection refused - Is the backend server running?")
-        print(f"   Try: python -m uvicorn src.api_server_fastapi:app --port 8001")
+        print("   Try: python -m uvicorn src.api_server_fastapi:app --port 8001")
         return _run_offline_demo()
-        
+
     except requests.exceptions.Timeout:
         print("❌ Request timed out - LLM may be processing slowly")
         return False
-        
+
     except Exception as e:
         print(f"❌ Error: {e}")
         return False
@@ -100,7 +100,7 @@ def _run_offline_demo():
     print("\n" + "=" * 60)
     print("📡 OFFLINE DEMO MODE (Backend not available)")
     print("=" * 60)
-    
+
     print("""
 [PROPOSED ANALYSIS BY AI ASSISTANT EDITOR]
 

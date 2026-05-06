@@ -8,7 +8,7 @@
  * Requirements: 7.1, 7.3, 7.4, 7.5
  */
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, _useRef, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,

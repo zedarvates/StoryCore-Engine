@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import n8nService from '../n8nService';
 
@@ -8,7 +9,7 @@ describe('n8nService', () => {
   });
 
   it('getStatus should return online if fetch succeeds', async () => {
-    (global.fetch as any).mockResolvedValue({
+    (global.fetch as LegacyAny).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ status: 'online', message: 'All good' }),
     });
@@ -19,7 +20,7 @@ describe('n8nService', () => {
   });
 
   it('getStatus should return offline if fetch fails', async () => {
-    (global.fetch as any).mockRejectedValue(new Error('Network failure'));
+    (global.fetch as LegacyAny).mockRejectedValue(new Error('Network failure'));
 
     const status = await n8nService.getStatus();
     expect(status.status).toBe('offline');
@@ -28,7 +29,7 @@ describe('n8nService', () => {
 
   it('listWorkflows should return workflows list', async () => {
     const mockWorkflows = [{ id: '1', name: 'Test Workflow', active: true }];
-    (global.fetch as any).mockResolvedValue({
+    (global.fetch as LegacyAny).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ workflows: mockWorkflows }),
     });
@@ -39,7 +40,7 @@ describe('n8nService', () => {
   });
 
   it('triggerWorkflow should post data to correct endpoint', async () => {
-    (global.fetch as any).mockResolvedValue({
+    (global.fetch as LegacyAny).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });
@@ -57,7 +58,7 @@ describe('n8nService', () => {
   });
 
   it('createWorkflow should post workflow definition', async () => {
-    (global.fetch as any).mockResolvedValue({
+    (global.fetch as LegacyAny).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ id: 'new-id' }),
     });

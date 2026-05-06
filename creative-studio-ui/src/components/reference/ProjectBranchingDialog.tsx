@@ -35,13 +35,13 @@ import {
 import {
   AccountTreeOutlined,
   MergeType,
-  ContentCopy,
+  _ContentCopy,
   History,
   ArrowForward,
-  ArrowBack,
+  _ArrowBack,
   Add,
-  Delete,
-  Save,
+  _Delete,
+  _Save,
   FolderOpen,
 } from '@mui/icons-material';
 import type { ContextScope, BranchInfo, ContextExport } from '../../services/projectBranchingService';

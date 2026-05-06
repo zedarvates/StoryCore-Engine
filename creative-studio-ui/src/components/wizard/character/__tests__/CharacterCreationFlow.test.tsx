@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Character Creation Flow Integration Tests
 // ============================================================================
@@ -60,7 +61,7 @@ describe('Character Creation Flow Integration', () => {
     mockAddCharacter.mockClear();
     mockUpdateCharacter.mockClear();
     
-    (global.fetch as any).mockReset();
+    (global.fetch as LegacyAny).mockReset();
   });
 
   afterEach(() => {
@@ -73,7 +74,7 @@ describe('Character Creation Flow Integration', () => {
       const onComplete = vi.fn();
 
       // Mock successful API response
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'test-uuid',
@@ -167,7 +168,7 @@ describe('Character Creation Flow Integration', () => {
     it('persists data through all steps of the flow', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'test-uuid',
@@ -212,10 +213,10 @@ describe('Character Creation Flow Integration', () => {
       const onComplete = vi.fn();
 
       // Mock API failure
-      (global.fetch as any).mockRejectedValueOnce(new Error('Network Error'));
+      (global.fetch as LegacyAny).mockRejectedValueOnce(new Error('Network Error'));
 
       // Mock successful fallback
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'local-uuid',
@@ -294,7 +295,7 @@ describe('Character Creation Flow Integration', () => {
       const user = userEvent.setup();
 
       // Mock persistent API failure
-      (global.fetch as any).mockRejectedValue(new Error('Save Failed'));
+      (global.fetch as LegacyAny).mockRejectedValue(new Error('Save Failed'));
 
       render(
         <CharacterWizard
@@ -334,7 +335,7 @@ describe('Character Creation Flow Integration', () => {
       const user = userEvent.setup();
       const onComplete = vi.fn();
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'test-uuid',
@@ -376,7 +377,7 @@ describe('Character Creation Flow Integration', () => {
     it('handles rapid navigation between steps', async () => {
       const user = userEvent.setup();
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ character_id: 'test-uuid', name: 'Rapid Hero' }),
       });
@@ -413,7 +414,7 @@ describe('Character Creation Flow Integration', () => {
       const user = userEvent.setup();
       const onComplete = vi.fn();
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'test-uuid',
@@ -463,7 +464,7 @@ describe('Character Creation Flow Integration', () => {
         vi.clearAllMocks();
         localStorage.clear();
         
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as LegacyAny).mockResolvedValueOnce({
           ok: true,
           json: async () => ({ character_id: 'test-uuid', name: `Test ${archetype}` }),
         });
@@ -503,7 +504,7 @@ describe('Character Creation Flow Integration', () => {
         vi.clearAllMocks();
         localStorage.clear();
         
-        (global.fetch as any).mockResolvedValueOnce({
+        (global.fetch as LegacyAny).mockResolvedValueOnce({
           ok: true,
           json: async () => ({ character_id: 'test-uuid', name: `Test ${ageRange}` }),
         });
@@ -539,7 +540,7 @@ describe('Character Creation Flow Integration', () => {
       const user = userEvent.setup();
       const onComplete = vi.fn();
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'integrity-test-uuid',

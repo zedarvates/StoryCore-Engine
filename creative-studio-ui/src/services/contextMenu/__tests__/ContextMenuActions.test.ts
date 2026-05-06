@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi } from 'vitest';
 import {
   generateDuplicateName,
@@ -161,8 +162,8 @@ describe('ContextMenuActions', () => {
       global.URL.revokeObjectURL = vi.fn();
       
       const createElementSpy = vi.spyOn(document, 'createElement');
-      const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as any);
-      const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as any);
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as LegacyAny);
+      const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as LegacyAny);
       
       exportShots([mockShot]);
       

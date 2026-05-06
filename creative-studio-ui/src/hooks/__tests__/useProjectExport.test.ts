@@ -1,6 +1,8 @@
 /**
  * Tests for useProjectExport Hook
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
@@ -217,9 +219,9 @@ describe('useProjectExport', () => {
         download: '',
         click: vi.fn(),
       };
-      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
-      vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as any);
-      vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as any);
+      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as LegacyAny);
+      vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockLink as LegacyAny);
+      vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockLink as LegacyAny);
     });
 
     it('should trigger download', () => {

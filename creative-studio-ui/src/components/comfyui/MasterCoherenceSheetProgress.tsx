@@ -57,7 +57,7 @@ export interface MasterCoherenceSheetProgressProps {
 /**
  * Get panel position in 3x3 grid (row, col)
  */
-function getPanelPosition(index: number): { row: number; col: number } {
+function _getPanelPosition(index: number): { row: number; col: number } {
   return {
     row: Math.floor(index / 3),
     col: index % 3,

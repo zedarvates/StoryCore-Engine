@@ -1,0 +1,53 @@
+/* Smart Master Render - Phase 10 Premium Styling */
+
+.smart-master-render {
+  animation: smart-master-slide-in 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at 100% 0%, #064e3b, #020617);
+}
+
+@keyframes smart-master-slide-in {
+  from { opacity: 0; transform: scale(0.95) translateY(60px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Slow Spin for background disc */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.smart-master-render .animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+/* Button & Card Focus effects */
+.smart-master-render button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
+
+.smart-master-render .shadow-3xl {
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.6);
+}
+
+/* Custom Progress bar animation */
+.smart-master-render [role="progressbar"] > div {
+  background: linear-gradient(to right, #10b981, #34d399, #059669) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Loader ring glow */
+.smart-master-render .w-48.h-48 {
+  box-shadow: inset 0 0 40px rgba(16, 185, 129, 0.05);
+}
+
+/* Mastering Badge */
+.smart-master-render .bg-amber-500\/10 {
+  border-left: 2px solid #f59e0b;
+}
+
+/* Mastering Progress container */
+.smart-master-render .exporting-status {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}

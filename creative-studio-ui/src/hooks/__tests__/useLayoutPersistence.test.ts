@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useLayoutPersistence } from '../useLayoutPersistence';
@@ -36,7 +37,7 @@ describe('useLayoutPersistence', () => {
     vi.clearAllMocks();
     localStorageMock.clear();
 
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       panelSizes: {
         assetLibrary: 20,
         canvas: 50,
@@ -152,7 +153,7 @@ describe('useLayoutPersistence', () => {
       const { rerender } = renderHook(() => useLayoutPersistence());
 
       // Change panel sizes
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         panelSizes: {
           assetLibrary: 25,
           canvas: 45,
@@ -180,7 +181,7 @@ describe('useLayoutPersistence', () => {
       const { rerender } = renderHook(() => useLayoutPersistence());
 
       // Change chat visibility
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         panelSizes: {
           assetLibrary: 20,
           canvas: 50,

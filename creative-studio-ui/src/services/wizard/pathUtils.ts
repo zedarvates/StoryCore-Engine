@@ -10,9 +10,9 @@
  */
 
 // Detect platform separator (for display purposes)
-const isWindowsPath = (path: string): boolean => /^[a-zA-Z]:\\/.test(path) || path.includes('\\');
+const _isWindowsPath = (path: string): boolean => /^[a-zA-Z]:\\/.test(path) || path.includes('\\');
 const POSIX_SEP = '/';
-const WIN_SEP = '\\';
+const _WIN_SEP = '\\';
 
 /**
  * Join path segments using forward slashes (standard for web/storage)

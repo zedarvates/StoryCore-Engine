@@ -5,6 +5,8 @@
  * 
  * Requirements: 3.7, 9.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
@@ -205,7 +207,7 @@ describe('GenerationErrorHandler', () => {
       // Requirements: 9.5
       const projectId = 'test-project-1';
       const completedStages = ['grid'];
-      const generatedShots: any[] = [];
+      const generatedShots: LegacyAny[] = [];
       const masterCoherenceSheetUrl = '/test/grid.png';
 
       // Save first

@@ -19,11 +19,11 @@ from .qualifier_service import QualifierService
 from .power_windows import PowerWindowsService
 
 __all__ = [
-    'ColorService',
-    'ColorGrade',
-    'ColorSpace',
-    'ScopesService',
-    'LUTService',
-    'QualifierService',
-    'PowerWindowsService',
+    "ColorService",
+    "ColorGrade",
+    "ColorSpace",
+    "ScopesService",
+    "LUTService",
+    "QualifierService",
+    "PowerWindowsService",
 ]

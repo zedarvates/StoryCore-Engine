@@ -4,13 +4,15 @@
  * Requirements: 2.3
  * Phase 2: Advanced Diagnostics
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { globalErrorHandler } from '../globalErrorHandler';
 import type { FeedbackInitialContext } from '@/components/feedback/types';
 
 describe('GlobalErrorHandler', () => {
-  let mockOpenFeedbackPanel: any;
+  let mockOpenFeedbackPanel: LegacyAny;
   let originalConsoleError: typeof console.error;
   let originalConsoleLog: typeof console.log;
   let originalConsoleWarn: typeof console.warn;
@@ -233,8 +235,8 @@ describe('GlobalErrorHandler', () => {
   describe('module detection', () => {
     it('should detect editor module from URL', () => {
       // Mock window.location
-      delete (window as any).location;
-      window.location = { pathname: '/editor/sequence-1' } as any;
+      delete (window as LegacyAny).location;
+      window.location = { pathname: '/editor/sequence-1' } as LegacyAny;
       
       globalErrorHandler.initialize(mockOpenFeedbackPanel);
       
@@ -246,8 +248,8 @@ describe('GlobalErrorHandler', () => {
     });
 
     it('should detect dashboard module from URL', () => {
-      delete (window as any).location;
-      window.location = { pathname: '/dashboard' } as any;
+      delete (window as LegacyAny).location;
+      window.location = { pathname: '/dashboard' } as LegacyAny;
       
       globalErrorHandler.initialize(mockOpenFeedbackPanel);
       
@@ -259,8 +261,8 @@ describe('GlobalErrorHandler', () => {
     });
 
     it('should default to creative-studio-ui for unknown paths', () => {
-      delete (window as any).location;
-      window.location = { pathname: '/' } as any;
+      delete (window as LegacyAny).location;
+      window.location = { pathname: '/' } as LegacyAny;
       
       globalErrorHandler.initialize(mockOpenFeedbackPanel);
       

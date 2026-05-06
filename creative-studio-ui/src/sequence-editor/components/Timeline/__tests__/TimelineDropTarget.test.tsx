@@ -11,7 +11,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, _beforeEach } from 'vitest';
 import { TimelineDropTarget } from '../TimelineDropTarget';
 import timelineReducer from '../../../store/slices/timelineSlice';
 import type { Track } from '../../../types';

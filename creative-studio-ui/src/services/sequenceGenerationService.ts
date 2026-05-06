@@ -9,6 +9,8 @@
  * 
  * Requirements: 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 8.1, 8.2, 8.3, 8.4, 9.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type {
   Project,
@@ -531,7 +533,7 @@ export class SequenceGenerationService {
   /**
    * Poll ComfyUI for workflow completion
    */
-  private async pollComfyUICompletion(promptId: string): Promise<any> {
+  private async pollComfyUICompletion(promptId: string): Promise<LegacyAny> {
     const maxAttempts = 60; // 5 minutes with 5 second intervals
     const pollInterval = 5000;
 

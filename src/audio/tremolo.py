@@ -6,6 +6,7 @@ This module provides tremolo effect functionality for audio processing.
 
 import numpy as np
 
+
 class Tremolo:
     """Tremolo effect processor for audio signals."""
 

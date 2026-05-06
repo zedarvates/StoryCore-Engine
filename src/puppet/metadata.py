@@ -10,7 +10,9 @@ from typing import Dict, List, Any
 class PuppetLayerMetadata:
     """Metadata generation methods for puppets and layers."""
 
-    def _generate_pose_metadata(self, puppet_rigs: List[Dict[str, Any]], storyboard_frames: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _generate_pose_metadata(
+        self, puppet_rigs: List[Dict[str, Any]], storyboard_frames: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Generate pose metadata for character animation."""
 
         pose_sequences = {}
@@ -30,7 +32,7 @@ class PuppetLayerMetadata:
                 "pose_progression": [pose["base_template"] for pose in poses],
                 "energy_progression": [pose["pose_energy"] for pose in poses],
                 "consistency_score": self._calculate_pose_consistency(poses),
-                "animation_keyframes": self._generate_animation_keyframes(poses)
+                "animation_keyframes": self._generate_animation_keyframes(poses),
             }
 
         pose_metadata = {
@@ -40,13 +42,15 @@ class PuppetLayerMetadata:
             "global_pose_analysis": {
                 "most_common_pose": self._find_most_common_pose(puppet_rigs),
                 "energy_distribution": self._analyze_energy_distribution(puppet_rigs),
-                "pose_variety_score": self._calculate_pose_variety(puppet_rigs)
-            }
+                "pose_variety_score": self._calculate_pose_variety(puppet_rigs),
+            },
         }
 
         return pose_metadata
 
-    def _generate_camera_metadata(self, storyboard_frames: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _generate_camera_metadata(
+        self, storyboard_frames: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Generate camera metadata for ComfyUI integration."""
 
         camera_sequences = []
@@ -64,11 +68,19 @@ class PuppetLayerMetadata:
                 "shot_type": cinematic_data["shot_type"],
                 "timing": cinematic_data["timing"],
                 "comfyui_camera_params": {
-                    "fov": self._calculate_fov_from_lens(camera_data["lens_specifications"]),
-                    "camera_position": self._calculate_camera_position(camera_data["camera_angle"]),
-                    "camera_rotation": self._calculate_camera_rotation(camera_data["camera_angle"]),
-                    "movement_vector": self._calculate_movement_vector(camera_data["camera_movement"])
-                }
+                    "fov": self._calculate_fov_from_lens(
+                        camera_data["lens_specifications"]
+                    ),
+                    "camera_position": self._calculate_camera_position(
+                        camera_data["camera_angle"]
+                    ),
+                    "camera_rotation": self._calculate_camera_rotation(
+                        camera_data["camera_angle"]
+                    ),
+                    "movement_vector": self._calculate_movement_vector(
+                        camera_data["camera_movement"]
+                    ),
+                },
             }
 
             camera_sequences.append(camera_frame)
@@ -77,15 +89,19 @@ class PuppetLayerMetadata:
             "total_camera_frames": len(camera_sequences),
             "camera_sequences": camera_sequences,
             "camera_analysis": {
-                "movement_complexity": self._analyze_camera_complexity(camera_sequences),
+                "movement_complexity": self._analyze_camera_complexity(
+                    camera_sequences
+                ),
                 "shot_variety": self._analyze_shot_variety(camera_sequences),
-                "lens_usage": self._analyze_lens_usage(camera_sequences)
-            }
+                "lens_usage": self._analyze_lens_usage(camera_sequences),
+            },
         }
 
         return camera_metadata
 
-    def _generate_lighting_metadata(self, storyboard_frames: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _generate_lighting_metadata(
+        self, storyboard_frames: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Generate lighting metadata for scene illumination."""
 
         lighting_sequences = []
@@ -101,11 +117,13 @@ class PuppetLayerMetadata:
                 "cinematic_purpose": lighting_data["cinematic_purpose"],
                 "shadow_information": lighting_data["shadow_information"],
                 "comfyui_lighting_params": {
-                    "key_light_direction": self._extract_key_light_direction(lighting_data),
+                    "key_light_direction": self._extract_key_light_direction(
+                        lighting_data
+                    ),
                     "light_temperature": self._extract_light_temperature(lighting_data),
                     "shadow_intensity": self._extract_shadow_intensity(lighting_data),
-                    "ambient_level": self._extract_ambient_level(lighting_data)
-                }
+                    "ambient_level": self._extract_ambient_level(lighting_data),
+                },
             }
 
             lighting_sequences.append(lighting_frame)
@@ -114,15 +132,23 @@ class PuppetLayerMetadata:
             "total_lighting_frames": len(lighting_sequences),
             "lighting_sequences": lighting_sequences,
             "lighting_analysis": {
-                "consistency_score": self._calculate_lighting_consistency_score(lighting_sequences),
-                "primary_setup": self._determine_primary_lighting_setup(lighting_sequences),
-                "color_temperature_progression": self._analyze_temperature_progression(lighting_sequences)
-            }
+                "consistency_score": self._calculate_lighting_consistency_score(
+                    lighting_sequences
+                ),
+                "primary_setup": self._determine_primary_lighting_setup(
+                    lighting_sequences
+                ),
+                "color_temperature_progression": self._analyze_temperature_progression(
+                    lighting_sequences
+                ),
+            },
         }
 
         return lighting_metadata
 
-    def _generate_motion_metadata(self, storyboard_frames: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _generate_motion_metadata(
+        self, storyboard_frames: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Generate motion metadata for animation."""
 
         motion_sequences = []
@@ -137,10 +163,14 @@ class PuppetLayerMetadata:
                 "overall_energy": motion_data["overall_energy"],
                 "comfyui_motion_params": {
                     "motion_vectors": self._extract_motion_vectors(motion_data),
-                    "energy_level": self._convert_energy_to_numeric(motion_data["overall_energy"]),
+                    "energy_level": self._convert_energy_to_numeric(
+                        motion_data["overall_energy"]
+                    ),
                     "motion_blur_strength": self._calculate_motion_blur(motion_data),
-                    "interpolation_method": "optical_flow" if motion_data["total_motion_elements"] > 0 else "linear"
-                }
+                    "interpolation_method": "optical_flow"
+                    if motion_data["total_motion_elements"] > 0
+                    else "linear",
+                },
             }
 
             motion_sequences.append(motion_frame)
@@ -150,14 +180,18 @@ class PuppetLayerMetadata:
             "motion_sequences": motion_sequences,
             "motion_analysis": {
                 "average_energy": self._calculate_average_energy(motion_sequences),
-                "motion_complexity": self._calculate_motion_complexity(motion_sequences),
-                "temporal_flow": self._analyze_temporal_flow(motion_sequences)
-            }
+                "motion_complexity": self._calculate_motion_complexity(
+                    motion_sequences
+                ),
+                "temporal_flow": self._analyze_temporal_flow(motion_sequences),
+            },
         }
 
         return motion_metadata
 
-    def _generate_audio_markers(self, storyboard_frames: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _generate_audio_markers(
+        self, storyboard_frames: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Generate audio markers for synchronization."""
 
         audio_markers = []
@@ -178,13 +212,13 @@ class PuppetLayerMetadata:
                     "dialogue": self._extract_dialogue_requirements(frame),
                     "sfx": self._extract_sfx_requirements(frame),
                     "ambience": self._extract_ambience_requirements(frame),
-                    "music": self._extract_music_requirements(frame)
+                    "music": self._extract_music_requirements(frame),
                 },
                 "sync_points": {
                     "visual_beats": self._identify_visual_beats(frame),
                     "motion_sync": self._identify_motion_sync_points(frame),
-                    "emotional_beats": self._identify_emotional_beats(frame)
-                }
+                    "emotional_beats": self._identify_emotional_beats(frame),
+                },
             }
 
             audio_markers.append(marker)
@@ -197,8 +231,8 @@ class PuppetLayerMetadata:
             "synchronization_analysis": {
                 "sync_complexity": self._calculate_sync_complexity(audio_markers),
                 "dialogue_density": self._calculate_dialogue_density(audio_markers),
-                "audio_variety": self._calculate_audio_variety(audio_markers)
-            }
+                "audio_variety": self._calculate_audio_variety(audio_markers),
+            },
         }
 
         return audio_metadata

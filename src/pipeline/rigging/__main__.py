@@ -13,7 +13,7 @@ def main():
         print(f"Keypoints file not found: {kp_path}")
         sys.exit(1)
     try:
-        with kp_path.open('r', encoding='utf-8') as f:
+        with kp_path.open("r", encoding="utf-8") as f:
             kp_data = json.load(f)
         meta = rig_character(kp_data)
         print(json.dumps(meta, indent=2))
@@ -21,5 +21,6 @@ def main():
         print(f"Error: {e}")
         sys.exit(1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

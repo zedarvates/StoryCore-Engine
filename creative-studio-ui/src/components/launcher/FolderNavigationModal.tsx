@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   FolderOpen,
@@ -97,7 +98,7 @@ export function FolderNavigationModal({
   const [treeData, setTreeData] = useState<TreeNode[]>([]);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] = useState<any>(null);
+  const [validationResult, setValidationResult] = useState<LegacyAny>(null);
   const [isOpening, setIsOpening] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,7 +124,7 @@ export function FolderNavigationModal({
       let contents: DirectoryItem[] = [];
 
       if (window.electronAPI) {
-        contents = await (window.electronAPI.project as any).listDirectory(path);
+        contents = await (window.electronAPI.project as LegacyAny).listDirectory(path);
       } else {
         // Demo mode - simulate directory listing
         contents = [
@@ -154,7 +155,7 @@ export function FolderNavigationModal({
     }
   }, []);
 
-  // Toggle directory expansion
+  // Tog_gle directory expansion
   const toggleDirectory = async (node: TreeNode) => {
     if (node.expanded) {
       node.expanded = false;

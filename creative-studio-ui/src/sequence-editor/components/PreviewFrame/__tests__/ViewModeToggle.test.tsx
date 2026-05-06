@@ -8,7 +8,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ViewModeToggle, type ViewMode } from '../ViewModeToggle';
+import { ViewModeToggle, type _ViewMode } from '../ViewModeToggle';
 
 describe('ViewModeToggle', () => {
   const mockOnModeChange = vi.fn();

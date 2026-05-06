@@ -11,7 +11,7 @@
  * Validates: Requirements 2.1, 2.2, 2.3, 2.7
  */
 
-import type { Shot, ProductionShot } from '../../types/shot';
+import type { _Shot, ProductionShot } from '../../types/shot';
 import type {
   DragDropConfig,
   Position,
@@ -47,7 +47,7 @@ export class DragDropManager {
   startDrag(
     items: ProductionShot[],
     event: DragEvent | React.DragEvent,
-    gridConfig?: GridLayoutConfig
+    _gridConfig?: GridLayoutConfig
   ): void {
     if (!this.config.allowMultiple && items.length > 1) {
       items = [items[0]];
@@ -118,7 +118,7 @@ export class DragDropManager {
    * End drag operation and execute drop
    * Validates: Requirement 2.4 - Animate transition to new position
    */
-  endDrag(event: MouseEvent | React.MouseEvent): void {
+  endDrag(_event: MouseEvent | React.MouseEvent): void {
     if (!this.state.isDragging) return;
 
     const { dropTarget, isValidDrop, draggedItems, isCopyMode } = this.state;

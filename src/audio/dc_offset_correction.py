@@ -6,6 +6,7 @@ This module provides functionality for correcting DC offset in audio signals.
 
 import numpy as np
 
+
 class DCOffsetCorrection:
     """DC offset correction processor for audio signals."""
 
@@ -30,6 +31,6 @@ class DCOffsetCorrection:
         """
         # Calculate mean (DC offset)
         dc_offset = np.mean(audio_data)
-        
+
         # Remove DC offset
         return audio_data - dc_offset

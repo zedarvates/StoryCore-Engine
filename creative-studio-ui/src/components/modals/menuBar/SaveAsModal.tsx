@@ -8,6 +8,8 @@
  * 
  * Requirements: 1.4
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { Modal } from '../Modal';
@@ -76,7 +78,7 @@ export function SaveAsModal({
   const handleBrowseLocation = () => {
     // This would trigger the native file picker
     // For now, we'll use a placeholder
-    const electronAPI = (window as any).electron;
+    const electronAPI = (window as LegacyAny).electron;
     if (electronAPI?.dialog?.showSaveDialog) {
       electronAPI.dialog.showSaveDialog({
         title: 'Save Project As',

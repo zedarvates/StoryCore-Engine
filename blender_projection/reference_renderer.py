@@ -1,4 +1,5 @@
 """reference_renderer.py — Generation d images de reference pour IA video."""
+
 from __future__ import annotations
 import hashlib
 from pathlib import Path
@@ -9,25 +10,60 @@ from blender_projection.asset_library import AssetLibrary, SceneContext
 _LIB = AssetLibrary()
 
 SCENE_PRESETS = {
-    "foret":     {"tags":["foret","arbre","nature","brume"],
-                  "assets":{"tree_conifer":6,"tree_deciduous":4,"plant_fern":8,
-                             "rock_medium":3,"sprite_grass_ground":15},"context":"exterior"},
-    "desert":    {"tags":["desert","aride","sec"],
-                  "assets":{"plant_cactus":4,"rock_boulder":3,"rock_cluster":6,"rock_medium":5},
-                  "context":"exterior"},
-    "urbain":    {"tags":["urbain","rue","nuit","ville"],
-                  "assets":{"prop_streetlamp":3,"prop_crate":4,"prop_barrel":2,"prop_debris":5},
-                  "context":"exterior"},
-    "montagne":  {"tags":["montagne","rocher","alpin"],
-                  "assets":{"rock_boulder":5,"rock_medium":8,"rock_cluster":6,
-                             "tree_conifer":4,"tree_dead":3},"context":"exterior"},
-    "tropical":  {"tags":["tropical","palmier","plage","ile"],
-                  "assets":{"tree_palm":5,"plant_bush":6,"sprite_grass_ground":12},
-                  "context":"exterior"},
-    "interieur": {"tags":["interieur","bureau","piece"],
-                  "assets":{"plant_pot":2,"prop_crate":2,"prop_barrel":1},
-                  "context":"interior"},
+    "foret": {
+        "tags": ["foret", "arbre", "nature", "brume"],
+        "assets": {
+            "tree_conifer": 6,
+            "tree_deciduous": 4,
+            "plant_fern": 8,
+            "rock_medium": 3,
+            "sprite_grass_ground": 15,
+        },
+        "context": "exterior",
+    },
+    "desert": {
+        "tags": ["desert", "aride", "sec"],
+        "assets": {
+            "plant_cactus": 4,
+            "rock_boulder": 3,
+            "rock_cluster": 6,
+            "rock_medium": 5,
+        },
+        "context": "exterior",
+    },
+    "urbain": {
+        "tags": ["urbain", "rue", "nuit", "ville"],
+        "assets": {
+            "prop_streetlamp": 3,
+            "prop_crate": 4,
+            "prop_barrel": 2,
+            "prop_debris": 5,
+        },
+        "context": "exterior",
+    },
+    "montagne": {
+        "tags": ["montagne", "rocher", "alpin"],
+        "assets": {
+            "rock_boulder": 5,
+            "rock_medium": 8,
+            "rock_cluster": 6,
+            "tree_conifer": 4,
+            "tree_dead": 3,
+        },
+        "context": "exterior",
+    },
+    "tropical": {
+        "tags": ["tropical", "palmier", "plage", "ile"],
+        "assets": {"tree_palm": 5, "plant_bush": 6, "sprite_grass_ground": 12},
+        "context": "exterior",
+    },
+    "interieur": {
+        "tags": ["interieur", "bureau", "piece"],
+        "assets": {"plant_pot": 2, "prop_crate": 2, "prop_barrel": 1},
+        "context": "interior",
+    },
 }
+
 
 class ReferenceRenderer:
     """
@@ -42,11 +78,11 @@ class ReferenceRenderer:
     """
 
     CAM_PRESETS = {
-        "wide":          ("(0.0, -8.0, 1.7)",  "(1.53, 0, 0)",   24.0, 5.6, 8.0),
-        "close":         ("(0.0, -1.5, 1.65)", "(1.53, 0, 0)",   85.0, 1.8, 1.5),
-        "low_angle":     ("(0.0, -4.0, 0.4)",  "(1.22, 0, 0)",   28.0, 4.0, 4.0),
-        "high_angle":    ("(0.0, -3.0, 5.0)",  "(2.09, 0, 0)",   35.0, 4.0, 4.0),
-        "over_shoulder": ("(0.4, -1.8, 1.7)",  "(1.40, 0,-0.14)",50.0, 2.8, 2.5),
+        "wide": ("(0.0, -8.0, 1.7)", "(1.53, 0, 0)", 24.0, 5.6, 8.0),
+        "close": ("(0.0, -1.5, 1.65)", "(1.53, 0, 0)", 85.0, 1.8, 1.5),
+        "low_angle": ("(0.0, -4.0, 0.4)", "(1.22, 0, 0)", 28.0, 4.0, 4.0),
+        "high_angle": ("(0.0, -3.0, 5.0)", "(2.09, 0, 0)", 35.0, 4.0, 4.0),
+        "over_shoulder": ("(0.4, -1.8, 1.7)", "(1.40, 0,-0.14)", 50.0, 2.8, 2.5),
     }
 
     def __init__(self, output_dir: str = "./exports/blender/references"):
@@ -103,8 +139,11 @@ class ReferenceRenderer:
             camera_shot=camera_shot,
             camera_lens=camera_lens,
             use_depth_map=use_depth_map,
-            depth_map_path=(str(Path(depth_map_path).resolve()).replace("\\", "/")
-                            if depth_map_path else ""),
+            depth_map_path=(
+                str(Path(depth_map_path).resolve()).replace("\\", "/")
+                if depth_map_path
+                else ""
+            ),
             resolution=resolution,
             engine=engine,
             output_path=output_path.replace("\\", "/"),
@@ -138,8 +177,11 @@ class ReferenceRenderer:
 
     def list_presets(self) -> Dict[str, Any]:
         return {
-            name: {"tags": p["tags"], "context": p["context"],
-                   "asset_count": sum(p["assets"].values())}
+            name: {
+                "tags": p["tags"],
+                "context": p["context"],
+                "asset_count": sum(p["assets"].values()),
+            }
             for name, p in SCENE_PRESETS.items()
         }
 
@@ -152,9 +194,19 @@ class ReferenceRenderer:
             for asset in asset_list[:2]
         }
 
-    def _build_script(self, image_path, scene_type, camera_shot, camera_lens,
-                      use_depth_map, depth_map_path, resolution, engine,
-                      output_path, placement_code) -> str:
+    def _build_script(
+        self,
+        image_path,
+        scene_type,
+        camera_shot,
+        camera_lens,
+        use_depth_map,
+        depth_map_path,
+        resolution,
+        engine,
+        output_path,
+        placement_code,
+    ) -> str:
         cam = self.CAM_PRESETS.get(camera_shot, self.CAM_PRESETS["wide"])
         cam_pos, cam_rot, default_lens, fstop, focus = cam
         lens = camera_lens or default_lens
@@ -324,6 +376,7 @@ class ReferenceRenderer:
             "print(f'STORYCORE_RENDER_COMPLETE:{bpy.context.scene.render.filepath}.png')",
         ]
         return "\n".join(lines)
+
 
 if __name__ == "__main__":
     r = ReferenceRenderer()

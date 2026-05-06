@@ -4,6 +4,8 @@
  * Manages real-time directorial collaboration using WebRTC/WebSockets.
  * Allows multiple directors to sync playheads, annotations, and camera configurations.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { Annotation } from '@/components/DirectorialAnnotator/DirectorialAnnotator';
 
@@ -15,7 +17,7 @@ export interface CollaborationSession {
 }
 
 class CollaborativeReviewService {
-  private socket: any = null;
+  private socket: LegacyAny = null;
   private currentSession: CollaborationSession | null = null;
   private onAnnotationReceived: ((a: Annotation) => void) | null = null;
   private onSyncPlayhead: ((frame: number) => void) | null = null;

@@ -7,29 +7,11 @@
  * 
  * Exigences: 10.1, 10.6
  */
+import type { WorkerTask, WorkerMessage, WorkerResponse } from './WorkerPool';
 
-export interface WorkerTask<T = any, R = any> {
-  id: string;
-  type: string;
-  data: T;
-  resolve: (result: R) => void;
-  reject: (error: Error) => void;
-  priority?: number;
-}
-
-export interface WorkerMessage<T = any> {
-  id: string;
-  type: string;
-  data: T;
-}
-
-export interface WorkerResponse<R = any> {
-  id: string;
-  status: 'completed' | 'error' | 'progress';
-  result?: R;
-  error?: string;
-  progress?: number;
-}
+/**
+ * WorkerPool - Manages a pool of Web Workers for async processing
+ */
 
 export class WorkerPool {
   private workers: Worker[] = [];
@@ -141,7 +123,7 @@ export class WorkerPool {
     worker.postMessage(message);
 
     // Store task for later resolution
-    (worker as any).__currentTask = task;
+    (worker as LegacyAny).__currentTask = task;
   }
 
   /**
@@ -149,7 +131,7 @@ export class WorkerPool {
    * Requirement: 10.2 - Progress updates
    */
   private handleWorkerMessage(worker: Worker, response: WorkerResponse): void {
-    const task = (worker as any).__currentTask as WorkerTask;
+    const task = (worker as LegacyAny).__currentTask as WorkerTask;
 
     if (!task || response.id !== task.id) {
       console.warn('Received message for unknown task:', response.id);
@@ -169,7 +151,7 @@ export class WorkerPool {
     }
 
     // Release worker
-    delete (worker as any).__currentTask;
+    delete (worker as LegacyAny).__currentTask;
     this.availableWorkers.push(worker);
 
     // Process next pending task
@@ -196,11 +178,11 @@ export class WorkerPool {
    * Requirement: 10.7 - Error handling with context
    */
   private handleWorkerError(worker: Worker, error: ErrorEvent): void {
-    const task = (worker as any).__currentTask as WorkerTask;
+    const task = (worker as LegacyAny).__currentTask as WorkerTask;
 
     if (task) {
       task.reject(new Error(`Worker error: ${error.message}`));
-      delete (worker as any).__currentTask;
+      delete (worker as LegacyAny).__currentTask;
     }
 
     // Recreate failed worker
@@ -230,10 +212,10 @@ export class WorkerPool {
 
     // Search in running tasks
     for (const worker of this.workers) {
-      const task = (worker as any).__currentTask as WorkerTask;
+      const task = (worker as LegacyAny).__currentTask as WorkerTask;
       if (task && task.id === taskId) {
         task.reject(new Error('Task cancelled'));
-        delete (worker as any).__currentTask;
+        delete (worker as LegacyAny).__currentTask;
         
         // Send cancellation message to worker
         worker.postMessage({ id: taskId, type: 'cancel' });
@@ -267,10 +249,10 @@ export class WorkerPool {
 
     // Reject all running tasks
     for (const worker of this.workers) {
-      const task = (worker as any).__currentTask as WorkerTask;
+      const task = (worker as LegacyAny).__currentTask as WorkerTask;
       if (task) {
         task.reject(new Error('Task cancelled'));
-        delete (worker as any).__currentTask;
+        delete (worker as LegacyAny).__currentTask;
         
         // Send cancellation message to worker
         worker.postMessage({ id: task.id, type: 'cancel' });

@@ -89,7 +89,7 @@ export function BuilderIOIntegration() {
           : 'Cannot connect to Builder.io server',
         variant: isConnected ? 'default' : 'destructive'
       });
-    } catch (error) {
+    } catch (_error) {
       setState(prev => ({
         ...prev,
         isConnected: false,

@@ -4,6 +4,8 @@
  * Allows viewing, creating, editing, and analyzing story objects.
  * Uses file-based storage and integrated AI services.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -247,7 +249,7 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
 
               <select
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value as any)}
+                onChange={(e) => setSelectedType(e.target.value as LegacyAny)}
                 className="h-10 px-3 rounded-md border border-gray-200 bg-white text-sm"
               >
                 <option value="all">All Types</option>
@@ -264,7 +266,7 @@ export function ObjectsModal({ isOpen, onClose }: ObjectsModalProps) {
 
               <select
                 value={selectedRarity}
-                onChange={(e) => setSelectedRarity(e.target.value as any)}
+                onChange={(e) => setSelectedRarity(e.target.value as LegacyAny)}
                 className="h-10 px-3 rounded-md border border-gray-200 bg-white text-sm"
               >
                 <option value="all">All Rarities</option>
@@ -420,7 +422,7 @@ function ObjectEditModal({ object, onSave, onCancel }: { object: StoryObject, on
     }
   };
 
-  const handleUpdateProperty = (key: string, value: any) => {
+  const handleUpdateProperty = (key: string, value: LegacyAny) => {
     setEdited({
       ...edited,
       properties: {
@@ -457,7 +459,7 @@ function ObjectEditModal({ object, onSave, onCancel }: { object: StoryObject, on
                   <select
                     className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
                     value={edited.type}
-                    onChange={e => setEdited({ ...edited, type: e.target.value as any })}
+                    onChange={e => setEdited({ ...edited, type: e.target.value as LegacyAny })}
                   >
                     <option value="prop">Prop</option>
                     <option value="weapon">Weapon</option>
@@ -484,7 +486,7 @@ function ObjectEditModal({ object, onSave, onCancel }: { object: StoryObject, on
                   <select
                     className="w-full h-10 px-3 rounded-md border border-gray-200 bg-white"
                     value={edited.rarity}
-                    onChange={e => setEdited({ ...edited, rarity: e.target.value as any })}
+                    onChange={e => setEdited({ ...edited, rarity: e.target.value as LegacyAny })}
                   >
                     <option value="common">Common</option>
                     <option value="uncommon">Uncommon</option>
@@ -636,7 +638,7 @@ function ObjectGenerationModal({ onGenerated, onCancel }: { onGenerated: (obj: S
               <select
                 className="w-full h-10 px-3 rounded-md border border-gray-200"
                 value={options.objectType}
-                onChange={e => setOptions({ ...options, objectType: e.target.value as any })}
+                onChange={e => setOptions({ ...options, objectType: e.target.value as LegacyAny })}
               >
                 <option value="weapon">Weapon</option>
                 <option value="armor">Armor</option>
@@ -650,7 +652,7 @@ function ObjectGenerationModal({ onGenerated, onCancel }: { onGenerated: (obj: S
               <select
                 className="w-full h-10 px-3 rounded-md border border-gray-200"
                 value={options.rarity}
-                onChange={e => setOptions({ ...options, rarity: e.target.value as any })}
+                onChange={e => setOptions({ ...options, rarity: e.target.value as LegacyAny })}
               >
                 <option value="common">Common</option>
                 <option value="uncommon">Uncommon</option>
@@ -708,7 +710,7 @@ function ObjectAnalysisModal({ object, analysis, onClose }: { object: StoryObjec
             <div className="space-y-4">
               <div>
                 <h3 className="text-xs font-bold text-gray-500 uppercase mb-2">Conflict Potential</h3>
-                <Badge variant={analysis.conflictPotential === 'high' ? 'destructive' : 'secondary' as any}>
+                <Badge variant={analysis.conflictPotential === 'high' ? 'destructive' : 'secondary' as LegacyAny}>
                   {(analysis.conflictPotential || '').toUpperCase()}
                 </Badge>
               </div>

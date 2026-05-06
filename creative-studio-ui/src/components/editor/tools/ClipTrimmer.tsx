@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Scissors, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
@@ -189,21 +190,21 @@ export function ClipTrimmer({ clip, onTrim, onClose }: ClipTrimmerProps) {
               <div
                 className="trim-region"
                 style={{
-                  ['--left' as any]: `${getTrimPercentage(trimStart)}%`,
-                  ['--width' as any]: `${getTrimPercentage(trimEnd) - getTrimPercentage(trimStart)}%`
+                  ['--left' as LegacyAny]: `${getTrimPercentage(trimStart)}%`,
+                  ['--width' as LegacyAny]: `${getTrimPercentage(trimEnd) - getTrimPercentage(trimStart)}%`
                 }}
               />
 
               {/* Current time indicator */}
               <div
                 className="current-time-indicator"
-                style={{ ['--left' as any]: `${getTrimPercentage(currentTime)}%` }}
+                style={{ ['--left' as LegacyAny]: `${getTrimPercentage(currentTime)}%` }}
               />
 
               {/* Trim handles */}
               <div
                 className="trim-handle trim-start"
-                style={{ ['--left' as any]: `${getTrimPercentage(trimStart)}%` }}
+                style={{ ['--left' as LegacyAny]: `${getTrimPercentage(trimStart)}%` }}
                 onMouseDown={() => setIsDragging('start')}
               >
                 <div className="handle-line" />
@@ -212,7 +213,7 @@ export function ClipTrimmer({ clip, onTrim, onClose }: ClipTrimmerProps) {
 
               <div
                 className="trim-handle trim-end"
-                style={{ ['--left' as any]: `${getTrimPercentage(trimEnd)}%` }}
+                style={{ ['--left' as LegacyAny]: `${getTrimPercentage(trimEnd)}%` }}
                 onMouseDown={() => setIsDragging('end')}
               >
                 <div className="handle-line" />

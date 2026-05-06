@@ -62,11 +62,11 @@ const ContextMenuExample: React.FC = () => {
       setSelectedShotIds([]);
       hideContextMenu();
     },
-    onExport: (exportedShots: Shot[]) => {
+    onExport: (_exportedShots: Shot[]) => {
       ;
       hideContextMenu();
     },
-    onTransform: (transformedShots: Shot[], transformType: string) => {
+    onTransform: (_transformedShots: Shot[], _transformType: string) => {
       ;
       hideContextMenu();
     },

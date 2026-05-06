@@ -1,6 +1,8 @@
 /**
  * Contrast Checker Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect } from 'vitest';
 import {
@@ -92,7 +94,7 @@ describe('contrastChecker', () => {
 
     it('should check multiple color combinations', () => {
       const results = validatePalette(ACCESSIBLE_COLORS);
-      const allPass = Object.values(results).every((r: any) => r.meetsAA);
+      const allPass = Object.values(results).every((r: LegacyAny) => r.meetsAA);
       expect(allPass).toBe(true);
     });
   });

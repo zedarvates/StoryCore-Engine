@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { AudioFileManager } from '../AudioFileManager';
 import { AudioEngine } from '../AudioEngine';
 
@@ -26,22 +27,22 @@ describe('AudioFileManager', () => {
     // Mock Audio
     const mockAudio = {
       play: jest.fn(),
-      oncanplaythrough: null as any,
-      onerror: null as any
+      oncanplaythrough: null as LegacyAny,
+      onerror: null as LegacyAny
     };
 
     global.Audio = jest.fn().mockImplementation(() => {
-      const instance = mockAudio as any;
+      const instance = mockAudio as LegacyAny;
       instance.oncanplaythrough = null;
       instance.onerror = null;
       return instance;
-    }) as any;
+    }) as LegacyAny;
 
     // Mock fetch
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       blob: jest.fn().mockResolvedValue(new Blob(['mock-audio-data'], { type: 'audio/wav' }))
-    }) as any;
+    }) as LegacyAny;
 
     await audioFileManager.playAudioFile('mock-url');
     expect(mockAudio.play).toHaveBeenCalled();
@@ -52,7 +53,7 @@ describe('AudioFileManager', () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0))
-    }) as any;
+    }) as LegacyAny;
 
     // Mock AudioContext
     const mockAudioContext = {
@@ -62,7 +63,7 @@ describe('AudioFileManager', () => {
       })
     };
 
-    global.AudioContext = jest.fn().mockImplementation(() => mockAudioContext) as any;
+    global.AudioContext = jest.fn().mockImplementation(() => mockAudioContext) as LegacyAny;
 
     const metadata = await audioFileManager.getAudioMetadata('mock-url');
     

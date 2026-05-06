@@ -413,7 +413,7 @@ export const Timeline: React.FC<TimelineProps> = ({
   // ============================================================================
 
   // Map of shot ID to inheritance status
-  const [shotInheritanceStatus, setShotInheritanceStatus] = useState<Map<string, InheritanceStatus>>(new Map());
+  const [_shotInheritanceStatus, setShotInheritanceStatus] = useState<Map<string, InheritanceStatus>>(new Map());
 
   // Sequence consistency score
   const [sequenceConsistencyScore, setSequenceConsistencyScore] = useState<number>(100);
@@ -1028,7 +1028,9 @@ export const Timeline: React.FC<TimelineProps> = ({
             content: comment,
             createdAt: new Date().toISOString(),
             resolved: false
-          };
+};
+
+export default memo(Timeline);
           await updateShotInPlan(contextMenu.shotId, {
             metadata: { 
               ...shot.metadata, 

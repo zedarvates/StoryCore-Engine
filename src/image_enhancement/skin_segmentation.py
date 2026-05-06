@@ -1,4 +1,3 @@
-
 """
 Skin Segmentation Module - Precise skin area detection.
 Part of the StoryCore-Engine Image Enhancement Suite.
@@ -6,12 +5,14 @@ Part of the StoryCore-Engine Image Enhancement Suite.
 
 import logging
 import asyncio
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
+
 
 class SkinSegmenter:
     """
     Handles pixel-level skin segmentation using BiSeNet or similar semantic segmentation.
     """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class SkinSegmenter:
         await asyncio.sleep(0.2)
         self.logger.info("Performing skin segmentation...")
         return {
-            "face_mask": None, # In production: np.ndarray
+            "face_mask": None,  # In production: np.ndarray
             "body_mask": None,
-            "skin_percentage": 0.15
+            "skin_percentage": 0.15,
         }

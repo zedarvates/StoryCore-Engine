@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Story File I/O Utilities - LLM-Optimized Version
 // ============================================================================
@@ -115,7 +116,7 @@ export function parseYAMLFrontmatter(content: string): { metadata: Partial<FileM
 
     // Save previous array if exists
     if (isArray && currentKey) {
-      (metadata as any)[currentKey] = currentArray;
+      (metadata as LegacyAny)[currentKey] = currentArray;
       currentArray = [];
       isArray = false;
     }
@@ -129,14 +130,14 @@ export function parseYAMLFrontmatter(content: string): { metadata: Partial<FileM
       if (value) {
         // Try to parse as number
         const numValue = Number(value);
-        (metadata as any)[currentKey] = isNaN(numValue) ? value : numValue;
+        (metadata as LegacyAny)[currentKey] = isNaN(numValue) ? value : numValue;
       }
     }
   }
 
   // Save final array if exists
   if (isArray && currentKey) {
-    (metadata as any)[currentKey] = currentArray;
+    (metadata as LegacyAny)[currentKey] = currentArray;
   }
 
   return { metadata, body };
@@ -208,7 +209,7 @@ export function generateStoryIndexFile(story: Story): string {
     generated_at: new Date().toISOString(),
   };
 
-  const partsList = story.parts?.map((part, index) => {
+  const partsList = story.parts?.map((part, _index) => {
     const fileName = part.type === 'intro'
       ? FILE_NAMES.intro
       : part.type === 'ending'
@@ -445,7 +446,7 @@ export function markdownToStory(markdown: string, existingStory?: Partial<Story>
     if (line.startsWith('**Length**:')) {
       const lengthText = line.substring(11).trim().toLowerCase();
       if (['short', 'medium', 'long', 'scene', 'short_story', 'novella', 'novel', 'epic_novel'].includes(lengthText)) {
-        story.length = lengthText as any;
+        story.length = lengthText as LegacyAny;
       }
       continue;
     }
@@ -569,7 +570,7 @@ export async function loadStoryPartsFromDisk(projectPath: string): Promise<Story
 
       parts.push({
         id: crypto.randomUUID(),
-        type: metadata.type as any,
+        type: metadata.type as LegacyAny,
         title: metadata.title || fileName,
         content: contentMatch ? contentMatch[1].trim() : body,
         summary: summaryMatch ? summaryMatch[1].trim() : '',
@@ -633,7 +634,7 @@ export async function saveStoryToFile(projectPath: string, story: Story): Promis
         ],
       };
 
-      const handle = await (window as any).showSaveFilePicker(options);
+      const handle = await (window as LegacyAny).showSaveFilePicker(options);
       const writable = await handle.createWritable();
       await writable.write(markdown);
       await writable.close();
@@ -955,8 +956,8 @@ function parseStoryToScenes(content: string, parts?: StoryPart[]): Scene[] {
   const scenes: Scene[] = [];
 
   if (parts && parts.length > 0) {
-    // Use parts if available
-    parts.forEach((part, index) => {
+    // Use parts if avail_able
+    parts.forEach((part, _index) => {
       scenes.push({
         location: 'À déterminer',
         timeOfDay: 'Jour',

@@ -12,8 +12,8 @@ import {
   AudioTrack,
   AudioTrackState,
   AudioEffect,
-  AudioEffectType,
-  AudioEffectParameters,
+  _AudioEffectType,
+  _AudioEffectParameters,
   DuckingConfig,
   DuckingState,
   CrossfadeConfig,
@@ -24,7 +24,7 @@ import {
   AudioMixingActions,
   ExportOptions,
   AudioEventMap,
-  LevelMeter
+  _LevelMeter
 } from './AudioMixingTypes';
 
 // ============================================================================

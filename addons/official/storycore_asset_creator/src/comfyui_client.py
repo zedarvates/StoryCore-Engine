@@ -7,9 +7,9 @@ Gere:
   - Polling du statut (queue)
   - Recuperation des outputs (GLB, PNG)
 """
+
 from __future__ import annotations
 
-import json
 import time
 import uuid
 from pathlib import Path
@@ -40,6 +40,7 @@ class ComfyUIClient:
             # Tenter de charger depuis la config projet
             try:
                 from .config_loader import get_comfyui_connection
+
                 host, port = get_comfyui_connection()
             except Exception as e:
                 raise ValueError(
@@ -63,6 +64,7 @@ class ComfyUIClient:
             client = ComfyUIClient.from_project_config(blender_prefs=context.preferences.addons[...].preferences)
         """
         from .config_loader import get_comfyui_connection
+
         host, port = get_comfyui_connection(blender_prefs=blender_prefs)
         return cls(host=host, port=port)
 
@@ -92,7 +94,9 @@ class ComfyUIClient:
             r.raise_for_status()
             return r.json()
 
-    def queue_workflow(self, workflow: Dict[str, Any], client_id: Optional[str] = None) -> str:
+    def queue_workflow(
+        self, workflow: Dict[str, Any], client_id: Optional[str] = None
+    ) -> str:
         """
         Envoie le workflow dans la queue ComfyUI.
 
@@ -158,7 +162,9 @@ class ComfyUIClient:
                 queue = self.get_queue_status()
                 running = len(queue.get("queue_running", []))
                 pending = len(queue.get("queue_pending", []))
-                progress_callback(f"Running: {running} | Pending: {pending} | {elapsed:.0f}s")
+                progress_callback(
+                    f"Running: {running} | Pending: {pending} | {elapsed:.0f}s"
+                )
 
             time.sleep(poll_interval)
 
@@ -198,7 +204,9 @@ class ComfyUIClient:
                         if isinstance(v, dict) and "filename" in v:
                             files.append(v["filename"])
                 elif isinstance(values, str) and (
-                    values.endswith(".glb") or values.endswith(".gltf") or values.endswith(".png")
+                    values.endswith(".glb")
+                    or values.endswith(".gltf")
+                    or values.endswith(".png")
                 ):
                     files.append(Path(values).name)
         return files

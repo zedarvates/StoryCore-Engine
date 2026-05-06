@@ -8,7 +8,7 @@ video assembly, transitions, effects, rendering, and preview generation.
 import logging
 import time
 from pathlib import Path
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 from ..base_handler import BaseAPIHandler
 from ..models import APIResponse, RequestContext, ErrorCodes
@@ -16,18 +16,10 @@ from ..config import APIConfig
 from ..router import APIRouter
 
 from .video_models import (
-    VideoShot,
-    VideoAssembleRequest,
     VideoAssembleResult,
-    VideoTransition,
-    TransitionAddRequest,
     TransitionAddResult,
-    VideoEffect,
-    EffectsApplyRequest,
     EffectsApplyResult,
-    VideoRenderRequest,
     VideoRenderResult,
-    VideoPreviewRequest,
     VideoPreviewResult,
 )
 
@@ -38,7 +30,7 @@ logger = logging.getLogger(__name__)
 class VideoCategoryHandler(BaseAPIHandler):
     """
     Handler for Video Processing API category.
-    
+
     Implements 5 endpoints:
     - storycore.video.assemble: Combine shots into video sequence
     - storycore.video.transition.add: Insert transition between shots
@@ -46,21 +38,21 @@ class VideoCategoryHandler(BaseAPIHandler):
     - storycore.video.render: Render final video file
     - storycore.video.preview: Generate low-resolution preview
     """
-    
+
     def __init__(self, config: APIConfig, router: APIRouter):
         """Initialize the video category handler."""
         super().__init__(config)
         self.router = router
-        
+
         # Try to initialize video processing engine if available
         self.video_engine = None
         self._initialize_video_engine()
-        
+
         # Register all endpoints
         self.register_endpoints()
-        
+
         logger.info("Initialized VideoCategoryHandler with 5 endpoints")
-    
+
     def _initialize_video_engine(self) -> None:
         """Initialize video processing engine if available."""
         try:
@@ -71,16 +63,18 @@ class VideoCategoryHandler(BaseAPIHandler):
                     from src.video_processing_engine import VideoProcessingEngine
                 except ImportError:
                     from video_processing_engine import VideoProcessingEngine
-            
+
             self.video_engine = VideoProcessingEngine()
             logger.info("Video processing engine initialized successfully")
         except Exception as e:
-            logger.warning(f"VideoProcessingEngine not available ({str(e)}), using mock mode")
+            logger.warning(
+                f"VideoProcessingEngine not available ({str(e)}), using mock mode"
+            )
             self.video_engine = None
-    
+
     def register_endpoints(self) -> None:
         """Register all video processing endpoints with the router."""
-        
+
         # Video assembly endpoint (async)
         self.router.register_endpoint(
             path="storycore.video.assemble",
@@ -89,7 +83,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             description="Assemble shots into video sequence",
             async_capable=True,
         )
-        
+
         # Transition endpoint
         self.router.register_endpoint(
             path="storycore.video.transition.add",
@@ -98,7 +92,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             description="Insert transition between shots",
             async_capable=False,
         )
-        
+
         # Effects endpoint
         self.router.register_endpoint(
             path="storycore.video.effects.apply",
@@ -107,7 +101,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             description="Apply video effects",
             async_capable=False,
         )
-        
+
         # Render endpoint (async)
         self.router.register_endpoint(
             path="storycore.video.render",
@@ -116,7 +110,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             description="Render final video file",
             async_capable=True,
         )
-        
+
         # Preview endpoint
         self.router.register_endpoint(
             path="storycore.video.preview",
@@ -125,10 +119,12 @@ class VideoCategoryHandler(BaseAPIHandler):
             description="Generate low-resolution preview",
             async_capable=False,
         )
-    
+
     # Helper methods
-    
-    def _validate_video_path(self, video_path: str, context: RequestContext) -> Optional[APIResponse]:
+
+    def _validate_video_path(
+        self, video_path: str, context: RequestContext
+    ) -> Optional[APIResponse]:
         """Validate that video file exists."""
         if not Path(video_path).exists():
             return self.create_error_response(
@@ -139,11 +135,13 @@ class VideoCategoryHandler(BaseAPIHandler):
                 remediation="Provide a valid video file path",
             )
         return None
-    
-    def _validate_resolution(self, resolution: str, context: RequestContext) -> Optional[APIResponse]:
+
+    def _validate_resolution(
+        self, resolution: str, context: RequestContext
+    ) -> Optional[APIResponse]:
         """Validate resolution format."""
         try:
-            parts = resolution.split('x')
+            parts = resolution.split("x")
             if len(parts) != 2:
                 raise ValueError("Invalid format")
             width, height = int(parts[0]), int(parts[1])
@@ -158,37 +156,39 @@ class VideoCategoryHandler(BaseAPIHandler):
                 remediation="Use format 'WIDTHxHEIGHT' (e.g., '1920x1080')",
             )
         return None
-    
+
     def _parse_resolution(self, resolution: str) -> tuple[int, int]:
         """Parse resolution string to width and height."""
-        parts = resolution.split('x')
+        parts = resolution.split("x")
         return int(parts[0]), int(parts[1])
-    
-    def _calculate_file_size(self, duration: float, resolution: str, bitrate: str = "5M") -> int:
+
+    def _calculate_file_size(
+        self, duration: float, resolution: str, bitrate: str = "5M"
+    ) -> int:
         """Estimate file size based on duration, resolution, and bitrate."""
         # Parse bitrate (e.g., "5M" -> 5000000 bits/second)
-        if bitrate.endswith('M'):
+        if bitrate.endswith("M"):
             bitrate_bps = int(bitrate[:-1]) * 1_000_000
-        elif bitrate.endswith('K'):
+        elif bitrate.endswith("K"):
             bitrate_bps = int(bitrate[:-1]) * 1_000
         else:
             bitrate_bps = int(bitrate)
-        
+
         # Calculate file size in bytes
         file_size = int((bitrate_bps / 8) * duration)
         return file_size
-    
+
     # Video processing endpoints
-    
+
     def assemble(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
         """
         Assemble shots into video sequence.
-        
+
         Endpoint: storycore.video.assemble
         Requirements: 10.1
         """
         self.log_request("storycore.video.assemble", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -196,7 +196,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             project_name = params["project_name"]
             shots_data = params["shots"]
@@ -204,10 +204,10 @@ class VideoCategoryHandler(BaseAPIHandler):
             output_format = params.get("output_format", "mp4")
             resolution = params.get("resolution", "1920x1080")
             framerate = params.get("framerate", 30)
-            codec = params.get("codec", "h264")
+            params.get("codec", "h264")
             use_ai_upscale = params.get("use_ai_upscale", False)
             metadata = params.get("metadata", {})
-            
+
             # Validate shots
             if not shots_data or len(shots_data) == 0:
                 return self.create_error_response(
@@ -216,12 +216,12 @@ class VideoCategoryHandler(BaseAPIHandler):
                     context=context,
                     remediation="Provide one or more video shots to assemble",
                 )
-            
+
             # Validate resolution
             error_response = self._validate_resolution(resolution, context)
             if error_response:
                 return error_response
-            
+
             # Validate framerate
             if framerate <= 0 or framerate > 120:
                 return self.create_error_response(
@@ -231,7 +231,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                     details={"framerate": framerate},
                     remediation="Provide a framerate between 1 and 120",
                 )
-            
+
             # Validate each shot
             for i, shot_data in enumerate(shots_data):
                 if "shot_id" not in shot_data or "video_path" not in shot_data:
@@ -242,7 +242,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                         details={"shot_index": i, "shot_data": shot_data},
                         remediation="Each shot must have 'shot_id' and 'video_path' fields",
                     )
-                
+
                 # Check if video file exists
                 video_path = shot_data["video_path"]
                 if not Path(video_path).exists():
@@ -253,26 +253,30 @@ class VideoCategoryHandler(BaseAPIHandler):
                         details={"shot_index": i, "video_path": video_path},
                         remediation="Provide valid video file paths for all shots",
                     )
-            
+
             start_time = time.time()
-            
+
             # Real or Mock video assembly
             total_duration = 0.0
             success = True
-            
+
             if self.video_engine:
                 # Map API shots to engine config
                 shots_config = []
                 for shot in shots_data:
-                    shots_config.append({
-                        "path": shot["video_path"],
-                        "in_point": shot.get("in_point"),
-                        "out_point": shot.get("out_point")
-                    })
+                    shots_config.append(
+                        {
+                            "path": shot["video_path"],
+                            "in_point": shot.get("in_point"),
+                            "out_point": shot.get("out_point"),
+                        }
+                    )
                     duration = shot.get("duration_seconds", 3.0)
                     total_duration += duration
-                
-                success = self.video_engine.assemble(shots_config, output_path, use_ai_upscale=use_ai_upscale)
+
+                success = self.video_engine.assemble(
+                    shots_config, output_path, use_ai_upscale=use_ai_upscale
+                )
             else:
                 # Mock video assembly
                 for shot_data in shots_data:
@@ -282,17 +286,17 @@ class VideoCategoryHandler(BaseAPIHandler):
                     else:
                         total_duration += 3.0
                 logger.info("[MOCK] Assembling video to %s", output_path)
-            
+
             if not success:
-                 return self.create_error_response(
+                return self.create_error_response(
                     error_code=ErrorCodes.INTERNAL_ERROR,
                     message="Video assembly failed",
-                    context=context
+                    context=context,
                 )
-            
+
             # Calculate file size
             file_size = self._calculate_file_size(total_duration, resolution, "5M")
-            
+
             result = VideoAssembleResult(
                 video_path=output_path,
                 project_name=project_name,
@@ -305,7 +309,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                 processing_time_ms=(time.time() - start_time) * 1000,
                 metadata=metadata,
             )
-            
+
             response_data = {
                 "video_path": result.video_path,
                 "project_name": result.project_name,
@@ -318,23 +322,25 @@ class VideoCategoryHandler(BaseAPIHandler):
                 "processing_time_ms": result.processing_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.video.assemble", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
-    def transition_add(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
+
+    def transition_add(
+        self, params: Dict[str, Any], context: RequestContext
+    ) -> APIResponse:
         """
         Insert transition between shots.
-        
+
         Endpoint: storycore.video.transition.add
         Requirements: 10.2
         """
         self.log_request("storycore.video.transition.add", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -342,21 +348,21 @@ class VideoCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             video_path = params["video_path"]
             shot_index = params["shot_index"]
             transition_type = params["transition_type"]
             transition_duration = params.get("transition_duration_seconds", 0.5)
-            transition_parameters = params.get("transition_parameters", {})
+            params.get("transition_parameters", {})
             output_path = params.get("output_path")
             metadata = params.get("metadata", {})
-            
+
             # Validate video file exists
             error_response = self._validate_video_path(video_path, context)
             if error_response:
                 return error_response
-            
+
             # Validate transition type
             valid_transitions = ["fade", "dissolve", "wipe", "cut", "slide", "zoom"]
             if transition_type not in valid_transitions:
@@ -364,10 +370,13 @@ class VideoCategoryHandler(BaseAPIHandler):
                     error_code=ErrorCodes.VALIDATION_ERROR,
                     message=f"Invalid transition type: {transition_type}",
                     context=context,
-                    details={"transition_type": transition_type, "valid_transitions": valid_transitions},
+                    details={
+                        "transition_type": transition_type,
+                        "valid_transitions": valid_transitions,
+                    },
                     remediation=f"Use one of: {', '.join(valid_transitions)}",
                 )
-            
+
             # Validate shot index
             if shot_index < 0:
                 return self.create_error_response(
@@ -377,7 +386,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                     details={"shot_index": shot_index},
                     remediation="Provide a non-negative shot index",
                 )
-            
+
             # Validate transition duration
             if transition_duration <= 0 or transition_duration > 5.0:
                 return self.create_error_response(
@@ -387,18 +396,20 @@ class VideoCategoryHandler(BaseAPIHandler):
                     details={"transition_duration_seconds": transition_duration},
                     remediation="Provide a duration between 0 and 5 seconds",
                 )
-            
+
             start_time = time.time()
-            
+
             # Generate output path if not provided
             if not output_path:
                 path_obj = Path(video_path)
-                output_path = str(path_obj.parent / f"{path_obj.stem}_transition{path_obj.suffix}")
-            
+                output_path = str(
+                    path_obj.parent / f"{path_obj.stem}_transition{path_obj.suffix}"
+                )
+
             # Mock transition addition
             # In real implementation, this would use video processing engine
             total_duration = 27.0 + transition_duration  # Mock: original + transition
-            
+
             result = TransitionAddResult(
                 video_path=output_path,
                 original_path=video_path,
@@ -409,7 +420,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                 processing_time_ms=(time.time() - start_time) * 1000,
                 metadata=metadata,
             )
-            
+
             response_data = {
                 "video_path": result.video_path,
                 "original_path": result.original_path,
@@ -420,23 +431,25 @@ class VideoCategoryHandler(BaseAPIHandler):
                 "processing_time_ms": result.processing_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.video.transition.add", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
-    def effects_apply(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
+
+    def effects_apply(
+        self, params: Dict[str, Any], context: RequestContext
+    ) -> APIResponse:
         """
         Apply video effects.
-        
+
         Endpoint: storycore.video.effects.apply
         Requirements: 10.3
         """
         self.log_request("storycore.video.effects.apply", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -444,18 +457,18 @@ class VideoCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             video_path = params["video_path"]
             effects_data = params["effects"]
             output_path = params.get("output_path")
             metadata = params.get("metadata", {})
-            
+
             # Validate video file exists
             error_response = self._validate_video_path(video_path, context)
             if error_response:
                 return error_response
-            
+
             # Validate effects
             if not effects_data or len(effects_data) == 0:
                 return self.create_error_response(
@@ -464,13 +477,21 @@ class VideoCategoryHandler(BaseAPIHandler):
                     context=context,
                     remediation="Provide one or more video effects to apply",
                 )
-            
+
             # Validate each effect
             valid_effect_types = [
-                "color_grade", "blur", "sharpen", "stabilize", "speed", 
-                "reverse", "brightness", "contrast", "saturation", "vignette"
+                "color_grade",
+                "blur",
+                "sharpen",
+                "stabilize",
+                "speed",
+                "reverse",
+                "brightness",
+                "contrast",
+                "saturation",
+                "vignette",
             ]
-            
+
             for i, effect_data in enumerate(effects_data):
                 if "effect_type" not in effect_data:
                     return self.create_error_response(
@@ -480,28 +501,33 @@ class VideoCategoryHandler(BaseAPIHandler):
                         details={"effect_index": i, "effect_data": effect_data},
                         remediation="Each effect must have 'effect_type' field",
                     )
-                
+
                 effect_type = effect_data["effect_type"]
                 if effect_type not in valid_effect_types:
                     return self.create_error_response(
                         error_code=ErrorCodes.VALIDATION_ERROR,
                         message=f"Invalid effect type: {effect_type}",
                         context=context,
-                        details={"effect_type": effect_type, "valid_effect_types": valid_effect_types},
+                        details={
+                            "effect_type": effect_type,
+                            "valid_effect_types": valid_effect_types,
+                        },
                         remediation=f"Use one of: {', '.join(valid_effect_types)}",
                     )
-            
+
             start_time = time.time()
-            
+
             # Generate output path if not provided
             if not output_path:
                 path_obj = Path(video_path)
-                output_path = str(path_obj.parent / f"{path_obj.stem}_effects{path_obj.suffix}")
-            
+                output_path = str(
+                    path_obj.parent / f"{path_obj.stem}_effects{path_obj.suffix}"
+                )
+
             # Real or Mock effects application
             duration = 27.0  # Mock duration
             success = True
-            
+
             if self.video_engine:
                 # Merge effects into a single dict for the engine
                 engine_effects = {}
@@ -511,18 +537,20 @@ class VideoCategoryHandler(BaseAPIHandler):
                     # Map standard effects
                     if effect_type in ["brightness", "contrast", "saturation"]:
                         engine_effects[effect_type] = params.get("value")
-                
-                success = self.video_engine.apply_effects(video_path, output_path, engine_effects)
+
+                success = self.video_engine.apply_effects(
+                    video_path, output_path, engine_effects
+                )
             else:
                 logger.info("[MOCK] Applying effects to %s", output_path)
-            
+
             if not success:
-                 return self.create_error_response(
+                return self.create_error_response(
                     error_code=ErrorCodes.INTERNAL_ERROR,
                     message="Effect application failed",
-                    context=context
+                    context=context,
                 )
-            
+
             result = EffectsApplyResult(
                 video_path=output_path,
                 original_path=video_path,
@@ -531,7 +559,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                 processing_time_ms=(time.time() - start_time) * 1000,
                 metadata=metadata,
             )
-            
+
             response_data = {
                 "video_path": result.video_path,
                 "original_path": result.original_path,
@@ -540,23 +568,23 @@ class VideoCategoryHandler(BaseAPIHandler):
                 "processing_time_ms": result.processing_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.video.effects.apply", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def render(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
         """
         Render final video file.
-        
+
         Endpoint: storycore.video.render
         Requirements: 10.4
         """
         self.log_request("storycore.video.render", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -564,7 +592,7 @@ class VideoCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             project_name = params["project_name"]
             video_path = params["video_path"]
@@ -575,21 +603,21 @@ class VideoCategoryHandler(BaseAPIHandler):
             codec = params.get("codec", "h264")
             bitrate = params.get("bitrate", "5M")
             quality = params.get("quality", "high")
-            audio_codec = params.get("audio_codec", "aac")
-            audio_bitrate = params.get("audio_bitrate", "192K")
+            params.get("audio_codec", "aac")
+            params.get("audio_bitrate", "192K")
             use_ai_upscale = params.get("use_ai_upscale", False)
             metadata = params.get("metadata", {})
-            
+
             # Validate video file exists
             error_response = self._validate_video_path(video_path, context)
             if error_response:
                 return error_response
-            
+
             # Validate resolution
             error_response = self._validate_resolution(resolution, context)
             if error_response:
                 return error_response
-            
+
             # Validate framerate
             if framerate <= 0 or framerate > 120:
                 return self.create_error_response(
@@ -599,7 +627,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                     details={"framerate": framerate},
                     remediation="Provide a framerate between 1 and 120",
                 )
-            
+
             # Validate quality
             valid_qualities = ["low", "medium", "high", "ultra"]
             if quality not in valid_qualities:
@@ -610,32 +638,38 @@ class VideoCategoryHandler(BaseAPIHandler):
                     details={"quality": quality, "valid_qualities": valid_qualities},
                     remediation=f"Use one of: {', '.join(valid_qualities)}",
                 )
-            
+
             start_time = time.time()
-            
+
             # Real or Mock video rendering
             success = True
             width, height = self._parse_resolution(resolution)
-            
+
             if self.video_engine:
-                success = self.video_engine.render(video_path, output_path, width, height, use_ai_upscale=use_ai_upscale)
+                success = self.video_engine.render(
+                    video_path,
+                    output_path,
+                    width,
+                    height,
+                    use_ai_upscale=use_ai_upscale,
+                )
             else:
                 logger.info("[MOCK] Rendering video to %s", output_path)
-            
+
             if not success:
-                 return self.create_error_response(
+                return self.create_error_response(
                     error_code=ErrorCodes.INTERNAL_ERROR,
                     message="Video rendering failed",
-                    context=context
+                    context=context,
                 )
-            
+
             duration = 27.0  # Mock duration
             file_size = self._calculate_file_size(duration, resolution, bitrate)
-            
+
             # Quality score based on quality setting
             quality_scores = {"low": 0.6, "medium": 0.75, "high": 0.9, "ultra": 0.95}
             quality_score = quality_scores.get(quality, 0.9)
-            
+
             result = VideoRenderResult(
                 video_path=output_path,
                 project_name=project_name,
@@ -650,7 +684,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                 quality_score=quality_score,
                 metadata=metadata,
             )
-            
+
             response_data = {
                 "video_path": result.video_path,
                 "project_name": result.project_name,
@@ -665,23 +699,23 @@ class VideoCategoryHandler(BaseAPIHandler):
                 "quality_score": result.quality_score,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.video.render", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def preview(self, params: Dict[str, Any], context: RequestContext) -> APIResponse:
         """
         Generate low-resolution preview.
-        
+
         Endpoint: storycore.video.preview
         Requirements: 10.5
         """
         self.log_request("storycore.video.preview", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -689,26 +723,26 @@ class VideoCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             video_path = params["video_path"]
             output_path = params.get("output_path")
             resolution = params.get("resolution", "640x360")
             framerate = params.get("framerate", 15)
-            quality = params.get("quality", "low")
+            params.get("quality", "low")
             max_duration_seconds = params.get("max_duration_seconds")
             metadata = params.get("metadata", {})
-            
+
             # Validate video file exists
             error_response = self._validate_video_path(video_path, context)
             if error_response:
                 return error_response
-            
+
             # Validate resolution
             error_response = self._validate_resolution(resolution, context)
             if error_response:
                 return error_response
-            
+
             # Validate framerate
             if framerate <= 0 or framerate > 60:
                 return self.create_error_response(
@@ -718,25 +752,29 @@ class VideoCategoryHandler(BaseAPIHandler):
                     details={"framerate": framerate},
                     remediation="Provide a framerate between 1 and 60 for preview",
                 )
-            
+
             start_time = time.time()
-            
+
             # Generate output path if not provided
             if not output_path:
                 path_obj = Path(video_path)
-                output_path = str(path_obj.parent / f"{path_obj.stem}_preview{path_obj.suffix}")
-            
+                output_path = str(
+                    path_obj.parent / f"{path_obj.stem}_preview{path_obj.suffix}"
+                )
+
             # Mock preview generation
             # In real implementation, this would use video processing engine
             duration = 27.0  # Mock duration
             if max_duration_seconds and duration > max_duration_seconds:
                 duration = max_duration_seconds
-            
+
             # Calculate file sizes
             original_size = self._calculate_file_size(27.0, "1920x1080", "5M")
             preview_size = self._calculate_file_size(duration, resolution, "1M")
-            compression_ratio = original_size / preview_size if preview_size > 0 else 1.0
-            
+            compression_ratio = (
+                original_size / preview_size if preview_size > 0 else 1.0
+            )
+
             result = VideoPreviewResult(
                 preview_path=output_path,
                 original_path=video_path,
@@ -748,7 +786,7 @@ class VideoCategoryHandler(BaseAPIHandler):
                 generation_time_ms=(time.time() - start_time) * 1000,
                 metadata=metadata,
             )
-            
+
             response_data = {
                 "preview_path": result.preview_path,
                 "original_path": result.original_path,
@@ -760,10 +798,10 @@ class VideoCategoryHandler(BaseAPIHandler):
                 "generation_time_ms": result.generation_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.video.preview", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)

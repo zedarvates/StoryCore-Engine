@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Sun, Moon, Cloud, Flame, Zap, Palette, CloudRain, Snowflake } from 'lucide-react';
+import { Sun, Moon, Cloud, Flame, Zap, Palette, CloudRain, _Snowflake } from 'lucide-react';
 import './LightingPresets.css';
 
 // ============================================================================

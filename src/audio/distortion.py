@@ -6,6 +6,7 @@ This module provides distortion effect functionality for audio processing.
 
 import numpy as np
 
+
 class Distortion:
     """Distortion effect processor for audio signals."""
 
@@ -34,10 +35,10 @@ class Distortion:
         """
         # Apply drive
         driven_signal = audio_data * (1 + self.drive * 10)
-        
+
         # Apply clipping
         distorted_signal = np.tanh(driven_signal)
-        
+
         # Apply tone control (simple low-pass filter)
         if self.tone < 0.5:
             # More bass
@@ -45,12 +46,14 @@ class Distortion:
         else:
             # More treble
             alpha = 0.5 + (self.tone - 0.5) * 0.4
-        
+
         # Simple one-pole low-pass filter
         filtered_signal = np.zeros_like(distorted_signal)
         filtered_signal[0] = distorted_signal[0]
-        
+
         for i in range(1, len(distorted_signal)):
-            filtered_signal[i] = alpha * distorted_signal[i] + (1 - alpha) * filtered_signal[i-1]
+            filtered_signal[i] = (
+                alpha * distorted_signal[i] + (1 - alpha) * filtered_signal[i - 1]
+            )
 
         return filtered_signal

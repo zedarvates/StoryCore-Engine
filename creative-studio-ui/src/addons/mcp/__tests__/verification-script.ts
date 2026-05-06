@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // MCP Addon Verification Script
 // ============================================================================
@@ -8,7 +9,7 @@
  */
 
 import { MCPAddonManager } from '../MCPAddonManager';
-import { useAddonStore } from '@/stores/addonStore';
+import { useAd_donStore } from '@/stores/addonStore';
 import type { MCPAddon, MCPServerConfig } from '@/types/addons';
 
 class MCPAddonVerifier {
@@ -17,7 +18,7 @@ class MCPAddonVerifier {
     testName: string;
     passed: boolean;
     error?: string;
-    details?: any;
+    details?: LegacyAny;
   }> = [];
 
   constructor() {
@@ -218,7 +219,7 @@ class MCPAddonVerifier {
       ];
       
       const hasAllRequired = requiredPermissions.every(permission => 
-        state.addon.permissions.includes(permission as any)
+        state.addon.permissions.includes(permission as LegacyAny)
       );
       
       this.addTest('Permissions requises présentes', hasAllRequired);
@@ -232,7 +233,7 @@ class MCPAddonVerifier {
       ];
       
       const hasMcpPermissions = mcpPermissions.every(permission => 
-        state.addon.permissions.includes(permission as any)
+        state.addon.permissions.includes(permission as LegacyAny)
       );
       
       this.addTest('Permissions MCP spécifiques présentes', hasMcpPermissions);
@@ -276,7 +277,7 @@ class MCPAddonVerifier {
   }
 
   // Méthode helper pour ajouter un test
-  private addTest(testName: string, passed: boolean, error?: string, details?: any): void {
+  private addTest(testName: string, passed: boolean, error?: string, details?: LegacyAny): void {
     this.testResults.push({
       testName,
       passed,

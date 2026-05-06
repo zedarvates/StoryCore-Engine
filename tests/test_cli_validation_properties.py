@@ -4,10 +4,9 @@ Property-based tests for CLI validation commands.
 Tests universal properties for CLI parameter handling, exit codes, and output formatting.
 """
 
-import pytest
 import json
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from hypothesis import given, strategies as st, settings, HealthCheck
 from hypothesis.strategies import composite
 import sys
@@ -23,7 +22,13 @@ from cli.handlers.validate import ValidateHandler
 @composite
 def valid_project_paths(draw):
     """Generate valid project directory paths."""
-    base_name = draw(st.text(alphabet=st.characters(whitelist_categories=['L', 'N']), min_size=1, max_size=10))
+    base_name = draw(
+        st.text(
+            alphabet=st.characters(whitelist_categories=["L", "N"]),
+            min_size=1,
+            max_size=10,
+        )
+    )
     return f"/tmp/test_project_{base_name}"
 
 
@@ -32,7 +37,14 @@ def validation_scopes(draw):
     """Generate valid validation scope combinations."""
     available_scopes = ["structure", "config", "quality", "visual", "audio"]
     num_scopes = draw(st.integers(min_value=1, max_value=len(available_scopes)))
-    scopes = draw(st.lists(st.sampled_from(available_scopes), min_size=num_scopes, max_size=num_scopes, unique=True))
+    scopes = draw(
+        st.lists(
+            st.sampled_from(available_scopes),
+            min_size=num_scopes,
+            max_size=num_scopes,
+            unique=True,
+        )
+    )
     return scopes
 
 
@@ -51,9 +63,20 @@ def output_formats(draw):
 class TestCLIValidationProperties:
     """Property-based tests for CLI validation commands."""
 
-    @given(valid_project_paths(), validation_scopes(), quality_thresholds(), output_formats())
-    @settings(max_examples=20, deadline=5000, suppress_health_check=[HealthCheck.data_too_large])
-    def test_property_31_cli_parameter_handling(self, project_path, scopes, threshold, format_type):
+    @given(
+        valid_project_paths(),
+        validation_scopes(),
+        quality_thresholds(),
+        output_formats(),
+    )
+    @settings(
+        max_examples=20,
+        deadline=5000,
+        suppress_health_check=[HealthCheck.data_too_large],
+    )
+    def test_property_31_cli_parameter_handling(
+        self, project_path, scopes, threshold, format_type
+    ):
         """
         Property 31: CLI Parameter Handling
         For any valid combination of CLI parameters, the validate command should
@@ -72,15 +95,18 @@ class TestCLIValidationProperties:
         args.strict = False
 
         # Mock file system to simulate project existence
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.validate.ValidateHandler._run_quality_validation') as mock_quality, \
-             patch('cli.handlers.validate.ValidateHandler._attempt_fixes'), \
-             patch('builtins.print') as mock_print:
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.validate.ValidateHandler._run_quality_validation"
+            ) as mock_quality,
+            patch("cli.handlers.validate.ValidateHandler._attempt_fixes"),
+            patch("builtins.print") as mock_print,
+        ):
             # Mock quality validation to return valid results
             mock_quality.return_value = {
                 "passed": threshold < 70.0,  # Pass if threshold is reasonable
-                "results": {"test": "mock_result"}
+                "results": {"test": "mock_result"},
             }
 
             # Execute handler
@@ -104,7 +130,9 @@ class TestCLIValidationProperties:
                             # Should be valid JSON
                             try:
                                 parsed = json.loads(output)
-                                assert isinstance(parsed, dict), "JSON output should be a dictionary"
+                                assert isinstance(parsed, dict), (
+                                    "JSON output should be a dictionary"
+                                )
                             except json.JSONDecodeError:
                                 # If not JSON, that's also acceptable (error messages, etc.)
                                 pass
@@ -112,11 +140,15 @@ class TestCLIValidationProperties:
             except Exception as e:
                 # Parameters should not cause crashes, but some validation failures are expected
                 # The handler should handle errors gracefully
-                assert isinstance(e, (SystemExit, Exception)), f"Unexpected error type: {type(e)}"
+                assert isinstance(e, (SystemExit, Exception)), (
+                    f"Unexpected error type: {type(e)}"
+                )
 
     @given(valid_project_paths(), st.booleans(), st.booleans())
     @settings(max_examples=15, deadline=3000)
-    def test_property_32_cli_exit_codes(self, project_path, has_failures, fix_requested):
+    def test_property_32_cli_exit_codes(
+        self, project_path, has_failures, fix_requested
+    ):
         """
         Property 32: CLI Exit Codes
         The validate command should return exit code 0 for pass and 1 for failures,
@@ -134,15 +166,18 @@ class TestCLIValidationProperties:
         args.fix = fix_requested
         args.strict = False
 
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.validate.ValidateHandler._run_quality_validation') as mock_quality, \
-             patch('cli.handlers.validate.ValidateHandler._attempt_fixes'), \
-             patch('builtins.print'):
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.validate.ValidateHandler._run_quality_validation"
+            ) as mock_quality,
+            patch("cli.handlers.validate.ValidateHandler._attempt_fixes"),
+            patch("builtins.print"),
+        ):
             # Mock validation to return controlled failure state
             mock_quality.return_value = {
                 "passed": not has_failures,
-                "results": {"mock": "data"}
+                "results": {"mock": "data"},
             }
 
             # Execute handler
@@ -156,7 +191,9 @@ class TestCLIValidationProperties:
 
     @given(valid_project_paths(), st.sampled_from(["human", "json"]), st.booleans())
     @settings(max_examples=15, deadline=3000)
-    def test_property_33_cli_output_formatting(self, project_path, format_type, has_failures):
+    def test_property_33_cli_output_formatting(
+        self, project_path, format_type, has_failures
+    ):
         """
         Property 33: CLI Output Formatting
         For any project and format selection, the validate command should produce
@@ -174,19 +211,22 @@ class TestCLIValidationProperties:
         args.fix = False
         args.strict = False
 
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.validate.ValidateHandler._run_quality_validation') as mock_quality, \
-             patch('cli.handlers.validate.ValidateHandler._attempt_fixes'), \
-             patch('builtins.print') as mock_print, \
-             patch('json.dumps') as mock_json_dumps:
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.validate.ValidateHandler._run_quality_validation"
+            ) as mock_quality,
+            patch("cli.handlers.validate.ValidateHandler._attempt_fixes"),
+            patch("builtins.print") as mock_print,
+            patch("json.dumps") as mock_json_dumps,
+        ):
             # Mock validation results
             mock_quality.return_value = {
                 "passed": not has_failures,
                 "results": {
                     "visual": {"passed": True, "message": "Visual OK"},
-                    "audio": {"passed": not has_failures, "message": "Audio checked"}
-                }
+                    "audio": {"passed": not has_failures, "message": "Audio checked"},
+                },
             }
 
             # Mock JSON output
@@ -207,7 +247,9 @@ class TestCLIValidationProperties:
 
             # Verify consistent exit code behavior
             expected_exit = 1 if has_failures else 0
-            assert exit_code == expected_exit, f"Exit code should be {expected_exit}, got {exit_code}"
+            assert exit_code == expected_exit, (
+                f"Exit code should be {expected_exit}, got {exit_code}"
+            )
 
 
 def test_cli_validation_basic_functionality():
@@ -237,7 +279,7 @@ def test_cli_validation_scope_parsing():
         ["structure"],
         ["config"],
         ["quality", "visual", "audio"],
-        ["structure", "config", "quality"]
+        ["structure", "config", "quality"],
     ]
 
     for scopes in test_cases:
@@ -249,13 +291,19 @@ def test_cli_validation_scope_parsing():
         args.fix = False
         args.strict = False
 
-        with patch('pathlib.Path.exists', return_value=True), \
-             patch('cli.handlers.validate.ValidateHandler._run_quality_validation', return_value={"passed": True, "results": {}}), \
-             patch('builtins.print'):
-
+        with (
+            patch("pathlib.Path.exists", return_value=True),
+            patch(
+                "cli.handlers.validate.ValidateHandler._run_quality_validation",
+                return_value={"passed": True, "results": {}},
+            ),
+            patch("builtins.print"),
+        ):
             # Should not crash with any valid scope combination
             exit_code = handler.execute(args)
-            assert exit_code in [0, 1], f"Invalid exit code for scopes {scopes}: {exit_code}"
+            assert exit_code in [0, 1], (
+                f"Invalid exit code for scopes {scopes}: {exit_code}"
+            )
 
     print("✓ CLI validation scope parsing tests passed")
 

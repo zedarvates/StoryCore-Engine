@@ -8,6 +8,8 @@
  * 
  * Requirements: 9.1, 9.2, 9.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { assetManagementService, AssetManagementService } from '../AssetManagementService';
@@ -506,7 +508,7 @@ describe('AssetManagementService', () => {
         const method = Object.getOwnPropertyNames(Object.getPrototypeOf(service))
           .find(name => name === 'ensureDirectoryExists');
         if (method) {
-          return (service as any)[method](path);
+          return (service as LegacyAny)[method](path);
         }
         throw new Error('ensureDirectoryExists method not found');
       };
@@ -514,7 +516,7 @@ describe('AssetManagementService', () => {
 
     beforeEach(() => {
       // Clear window.electronAPI before each test
-      delete (window as any).electronAPI;
+      delete (window as LegacyAny).electronAPI;
     });
 
     it('should do nothing in non-Electron environment', async () => {
@@ -526,7 +528,7 @@ describe('AssetManagementService', () => {
 
     it('should not create directory if it already exists', async () => {
       // Mock Electron API with exists returning true
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           exists: vi.fn().mockResolvedValue(true),
           mkdir: vi.fn().mockResolvedValue(undefined),
@@ -537,12 +539,12 @@ describe('AssetManagementService', () => {
       await ensureDir('/existing/directory');
       
       // mkdir should not be called since directory exists
-      expect((window as any).electronAPI.fs.mkdir).not.toHaveBeenCalled();
+      expect((window as LegacyAny).electronAPI.fs.mkdir).not.toHaveBeenCalled();
     });
 
     it('should create directory if it does not exist', async () => {
       // Mock Electron API with exists returning false
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           exists: vi.fn().mockResolvedValue(false),
           mkdir: vi.fn().mockResolvedValue(undefined),
@@ -553,7 +555,7 @@ describe('AssetManagementService', () => {
       await ensureDir('/new/directory');
       
       // mkdir should be called with recursive option
-      expect((window as any).electronAPI.fs.mkdir).toHaveBeenCalledWith(
+      expect((window as LegacyAny).electronAPI.fs.mkdir).toHaveBeenCalledWith(
         '/new/directory',
         { recursive: true }
       );
@@ -561,7 +563,7 @@ describe('AssetManagementService', () => {
 
     it('should create nested directories recursively', async () => {
       // Mock Electron API with exists returning false
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           exists: vi.fn().mockResolvedValue(false),
           mkdir: vi.fn().mockResolvedValue(undefined),
@@ -572,7 +574,7 @@ describe('AssetManagementService', () => {
       await ensureDir('/a/b/c/d/e');
       
       // mkdir should be called with recursive option
-      expect((window as any).electronAPI.fs.mkdir).toHaveBeenCalledWith(
+      expect((window as LegacyAny).electronAPI.fs.mkdir).toHaveBeenCalledWith(
         '/a/b/c/d/e',
         { recursive: true }
       );
@@ -580,7 +582,7 @@ describe('AssetManagementService', () => {
 
     it('should handle mkdir error gracefully', async () => {
       // Mock Electron API with mkdir throwing an error
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           exists: vi.fn().mockResolvedValue(false),
           mkdir: vi.fn().mockRejectedValue(new Error('Permission denied')),
@@ -597,7 +599,7 @@ describe('AssetManagementService', () => {
 
     it('should handle exists check error gracefully', async () => {
       // Mock Electron API with exists throwing an error
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           exists: vi.fn().mockRejectedValue(new Error('Access denied')),
         },
@@ -613,7 +615,7 @@ describe('AssetManagementService', () => {
 
     it('should use recursive option for mkdir', async () => {
       // Mock Electron API
-      (window as any).electronAPI = {
+      (window as LegacyAny).electronAPI = {
         fs: {
           exists: vi.fn().mockResolvedValue(false),
           mkdir: vi.fn().mockResolvedValue(undefined),
@@ -624,7 +626,7 @@ describe('AssetManagementService', () => {
       await ensureDir('/deeply/nested/path');
       
       // Verify recursive option is used
-      expect((window as any).electronAPI.fs.mkdir).toHaveBeenCalledWith(
+      expect((window as LegacyAny).electronAPI.fs.mkdir).toHaveBeenCalledWith(
         '/deeply/nested/path',
         { recursive: true }
       );

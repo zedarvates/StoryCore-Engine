@@ -1,6 +1,8 @@
 /**
  * useResultDisplay Hook Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
@@ -47,7 +49,7 @@ describe('useResultDisplay', () => {
     vi.clearAllMocks();
 
     // Mock store state
-    (useAppStore as any).mockImplementation((selector: any) => {
+    (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
       const state = {
         taskQueue: [],
         project: { project_name: 'test-project' },
@@ -326,7 +328,7 @@ describe('useResultDisplay', () => {
       mockService.fetchMultipleResults.mockResolvedValueOnce([mockResult]);
 
       // Mock store with completed tasks
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           taskQueue: [
             { id: 'task-1', status: 'completed' },
@@ -348,7 +350,7 @@ describe('useResultDisplay', () => {
       const { createResultService } = require('@/services/resultService');
       const mockService = createResultService();
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           taskQueue: [{ id: 'task-1', status: 'completed' }],
           project: { project_name: 'test-project' },

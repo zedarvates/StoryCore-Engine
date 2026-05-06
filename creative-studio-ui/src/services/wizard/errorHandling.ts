@@ -7,7 +7,7 @@
  * Requirements: 1.3, 1.4, 13.1, 13.3, 13.7
  */
 
-import { WizardError, type WizardErrorCategory } from './types';
+import { WizardError, type _WizardErrorCategory } from './types';
 
 /**
  * Error message template
@@ -126,7 +126,7 @@ function generateConnectionErrorMessage(
  */
 function generateValidationErrorMessage(
   error: WizardError,
-  context?: ErrorContext
+  _context?: ErrorContext
 ): ErrorMessageTemplate {
   const validationErrors = (error.details?.errors || []) as string[];
   const fieldName = error.details?.field;
@@ -241,7 +241,7 @@ function generateFilesystemErrorMessage(
  */
 function generateDataContractErrorMessage(
   error: WizardError,
-  context?: ErrorContext
+  _context?: ErrorContext
 ): ErrorMessageTemplate {
   const validationErrors = (error.details?.errors || []) as string[];
 
@@ -313,7 +313,7 @@ function generateTimeoutErrorMessage(
  */
 function generateUnknownErrorMessage(
   error: WizardError,
-  context?: ErrorContext
+  _context?: ErrorContext
 ): ErrorMessageTemplate {
   const recoveryInstructions: string[] = [
     'An unexpected error occurred',

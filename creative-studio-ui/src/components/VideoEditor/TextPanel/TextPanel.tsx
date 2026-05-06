@@ -2,6 +2,8 @@
  * Text Panel Component
  * Title and subtitle editor
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { useVideoEditor } from '../../../contexts/VideoEditorContext';
@@ -56,20 +58,20 @@ export const TextPanel: React.FC = () => {
       color: '#ffffff',
       opacity: 100,
       position: { x: 50, y: 50 }
-    } as any);
+    } as LegacyAny);
   }, [selectedClip, text, textStyle, animation, updateClip]);
 
   const handleUpdateText = useCallback(
     (updates: Partial<typeof textOverlay>) => {
       if (!selectedClip || !textOverlay) return;
-      updateClip(selectedClip.id, { ...updates } as any);
+      updateClip(selectedClip.id, { ...updates } as LegacyAny);
     },
     [selectedClip, textOverlay, updateClip]
   );
 
   const handleRemoveText = useCallback(() => {
     if (!selectedClip) return;
-    updateClip(selectedClip.id, { text: '' } as any);
+    updateClip(selectedClip.id, { text: '' } as LegacyAny);
   }, [selectedClip, updateClip]);
 
   return (

@@ -126,7 +126,7 @@ export class GridEditorErrorBoundary extends Component<Props, State> {
    */
   private reportErrorToService(error: Error, errorInfo: ErrorInfo) {
     // For now, just log to console
-    const errorReport = {
+    const _errorReport = {
       timestamp: new Date().toISOString(),
       message: error.message,
       stack: error.stack,

@@ -3,6 +3,8 @@
  * 
  * Tests the LLM generation features in character wizard steps
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
@@ -32,7 +34,7 @@ vi.mock('@/services/llmService', () => ({
 // Mock useLLMGeneration hook for character steps
 vi.mock('@/hooks/useLLMGeneration', () => ({
   useLLMGeneration: vi.fn(() => {
-    const generate = async (request: any, options?: { onSuccess?: (result: any) => void }) => {
+    const generate = async (request: LegacyAny, options?: { onSuccess?: (result: LegacyAny) => void }) => {
       // Call the mock LLM service and get its resolved value
       const mockResult = await mockGenerateCompletion(request);
       

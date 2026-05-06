@@ -7,17 +7,17 @@ characters, world-building elements, summaries, and project structure from text 
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from enum import Enum
 import json
 import re
 from pathlib import Path
 from datetime import datetime
-import asyncio
 
 
 class ExtractionCategory(Enum):
     """Categories of data that can be extracted"""
+
     CHARACTERS = "characters"
     WORLD_BUILDING = "world_building"
     LOCATIONS = "locations"
@@ -32,6 +32,7 @@ class ExtractionCategory(Enum):
 
 class ConfidenceLevel(Enum):
     """Confidence levels for extracted data"""
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
@@ -41,13 +42,16 @@ class ConfidenceLevel(Enum):
 @dataclass
 class ExtractedCharacter:
     """A character extracted from the text"""
+
     name: str
     description: str
     personality_traits: List[str] = field(default_factory=list)
     physical_description: str = ""
     background: str = ""
     motivations: List[str] = field(default_factory=list)
-    relationships: Dict[str, str] = field(default_factory=dict)  # name -> relationship_type
+    relationships: Dict[str, str] = field(
+        default_factory=dict
+    )  # name -> relationship_type
     role_in_story: str = ""
     age_group: str = ""  # child, teen, adult, elderly
     gender: str = ""
@@ -59,6 +63,7 @@ class ExtractedCharacter:
 @dataclass
 class ExtractedLocation:
     """A location extracted from the text"""
+
     name: str
     description: str
     type: str = ""  # city, building, natural, etc.
@@ -73,6 +78,7 @@ class ExtractedLocation:
 @dataclass
 class ExtractedWorldElement:
     """A world-building element extracted from the text"""
+
     category: str  # magic_system, technology, culture, etc.
     name: str
     description: str
@@ -86,6 +92,7 @@ class ExtractedWorldElement:
 @dataclass
 class RogerExtractionResult:
     """Complete extraction result from Roger Wizard"""
+
     project_id: str
     extraction_timestamp: str
     source_file: str
@@ -122,8 +129,12 @@ class RogerWizard:
         self.llm_client = llm_client
         self.extraction_result: Optional[RogerExtractionResult] = None
 
-    async def analyze_and_extract(self, project_path: Path, text_file_path: Path,
-                                focus_areas: Optional[List[str]] = None) -> RogerExtractionResult:
+    async def analyze_and_extract(
+        self,
+        project_path: Path,
+        text_file_path: Path,
+        focus_areas: Optional[List[str]] = None,
+    ) -> RogerExtractionResult:
         """
         Analyze a text file and extract all project-relevant data
 
@@ -163,36 +174,48 @@ class RogerWizard:
             project_id=self._get_project_id(project_path),
             extraction_timestamp=datetime.utcnow().isoformat() + "Z",
             source_file=str(text_file_path),
-            summary_500_chars=""
+            summary_500_chars="",
         )
 
         # Extract summary first (needed for context)
         extraction_result.summary_500_chars = await self._extract_summary(text_content)
 
         # Extract characters
-        characters = await self._extract_characters(text_content, extraction_result.summary_500_chars)
+        characters = await self._extract_characters(
+            text_content, extraction_result.summary_500_chars
+        )
         extraction_result.characters = characters
 
         # Extract locations
-        locations = await self._extract_locations(text_content, extraction_result.summary_500_chars)
+        locations = await self._extract_locations(
+            text_content, extraction_result.summary_500_chars
+        )
         extraction_result.locations = locations
 
         # Extract world-building elements
-        world_elements = await self._extract_world_elements(text_content, extraction_result.summary_500_chars)
+        world_elements = await self._extract_world_elements(
+            text_content, extraction_result.summary_500_chars
+        )
         extraction_result.world_elements = world_elements
 
         # Extract story elements
-        story_elements = await self._extract_story_elements(text_content, extraction_result.summary_500_chars)
-        extraction_result.plot_summary = story_elements.get('plot_summary', '')
-        extraction_result.main_themes = story_elements.get('themes', [])
-        extraction_result.main_conflicts = story_elements.get('conflicts', [])
-        extraction_result.key_relationships = story_elements.get('relationships', {})
+        story_elements = await self._extract_story_elements(
+            text_content, extraction_result.summary_500_chars
+        )
+        extraction_result.plot_summary = story_elements.get("plot_summary", "")
+        extraction_result.main_themes = story_elements.get("themes", [])
+        extraction_result.main_conflicts = story_elements.get("conflicts", [])
+        extraction_result.key_relationships = story_elements.get("relationships", {})
 
         # Calculate confidence metrics
-        extraction_result.confidence_metrics = self._calculate_confidence_metrics(extraction_result)
+        extraction_result.confidence_metrics = self._calculate_confidence_metrics(
+            extraction_result
+        )
 
         # Calculate extraction statistics
-        extraction_result.extraction_stats = self._calculate_extraction_stats(extraction_result)
+        extraction_result.extraction_stats = self._calculate_extraction_stats(
+            extraction_result
+        )
 
         # Log processing
         extraction_result.processing_log = [
@@ -201,7 +224,7 @@ class RogerWizard:
             f"Extracted {len(locations)} locations",
             f"Extracted {len(world_elements)} world elements",
             f"Generated {len(extraction_result.summary_500_chars)} character summary",
-            f"Identified {len(extraction_result.main_themes)} main themes"
+            f"Identified {len(extraction_result.main_themes)} main themes",
         ]
 
         self.extraction_result = extraction_result
@@ -212,18 +235,20 @@ class RogerWizard:
         print(f"👥 Characters: {len(extraction_result.characters)}")
         print(f"🏰 Locations: {len(extraction_result.locations)}")
         print(f"🌍 World Elements: {len(extraction_result.world_elements)}")
-        print(f"📊 Confidence: {extraction_result.confidence_metrics.get('overall', 0):.1f}/10")
+        print(
+            f"📊 Confidence: {extraction_result.confidence_metrics.get('overall', 0):.1f}/10"
+        )
 
         return extraction_result
 
     def _read_text_file(self, file_path: Path) -> str:
         """Read and return text file content"""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 return f.read()
         except UnicodeDecodeError:
             # Try with different encoding
-            with open(file_path, 'r', encoding='latin-1') as f:
+            with open(file_path, "r", encoding="latin-1") as f:
                 return f.read()
 
     def _get_project_id(self, project_path: Path) -> str:
@@ -231,10 +256,10 @@ class RogerWizard:
         project_file = project_path / "project.json"
         if project_file.exists():
             try:
-                with open(project_file, 'r') as f:
+                with open(project_file, "r") as f:
                     project_data = json.load(f)
-                    return project_data.get('id', 'unknown')
-            except:
+                    return project_data.get("id", "unknown")
+            except Exception:
                 pass
         return f"roger_extraction_{int(datetime.utcnow().timestamp())}"
 
@@ -244,19 +269,21 @@ class RogerWizard:
         text = text_content.strip()
 
         # Try to find a good starting point (skip titles, headers)
-        lines = text.split('\n')
+        lines = text.split("\n")
         meaningful_lines = [line for line in lines if len(line.strip()) > 20][:3]
 
-        summary_text = ' '.join(meaningful_lines) if meaningful_lines else text[:800]
+        summary_text = " ".join(meaningful_lines) if meaningful_lines else text[:800]
 
         # Clean up and truncate to 500 characters
-        summary = re.sub(r'\s+', ' ', summary_text).strip()
+        summary = re.sub(r"\s+", " ", summary_text).strip()
         if len(summary) > 500:
             summary = summary[:497] + "..."
 
         return summary
 
-    async def _extract_characters(self, text_content: str, context_summary: str) -> List[ExtractedCharacter]:
+    async def _extract_characters(
+        self, text_content: str, context_summary: str
+    ) -> List[ExtractedCharacter]:
         """Extract characters from the text using pattern recognition and LLM analysis"""
         characters = []
 
@@ -266,28 +293,34 @@ class RogerWizard:
 
         # LLM-enhanced extraction (if available)
         if self.llm_client:
-            llm_characters = await self._extract_characters_with_llm(text_content, context_summary)
+            llm_characters = await self._extract_characters_with_llm(
+                text_content, context_summary
+            )
             # Merge and deduplicate
             characters = self._merge_characters(characters, llm_characters)
 
         # Enhance character data
         for character in characters:
-            character.confidence_score = self._calculate_character_confidence(character, text_content)
+            character.confidence_score = self._calculate_character_confidence(
+                character, text_content
+            )
 
         # Sort by confidence and remove duplicates
         characters = self._deduplicate_characters(characters)
 
         return characters[:20]  # Limit to top 20 characters
 
-    def _extract_characters_by_pattern(self, text_content: str) -> List[ExtractedCharacter]:
+    def _extract_characters_by_pattern(
+        self, text_content: str
+    ) -> List[ExtractedCharacter]:
         """Extract characters using regex patterns and text analysis"""
         characters = []
 
         # Common patterns for character names
         name_patterns = [
-            r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b',  # First Last
-            r'\b[A-Z][a-z]+\b',  # Single names
-            r'\b(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+[A-Z][a-z]+\b',  # Titles
+            r"\b[A-Z][a-z]+\s+[A-Z][a-z]+\b",  # First Last
+            r"\b[A-Z][a-z]+\b",  # Single names
+            r"\b(?:Mr\.|Mrs\.|Ms\.|Dr\.|Prof\.)\s+[A-Z][a-z]+\b",  # Titles
         ]
 
         found_names = set()
@@ -304,7 +337,7 @@ class RogerWizard:
                     character = ExtractedCharacter(
                         name=match,
                         description=f"Character mentioned in the story. Context: {context[:200]}...",
-                        source_text=context
+                        source_text=context,
                     )
 
                     # Try to infer basic attributes from context
@@ -313,13 +346,17 @@ class RogerWizard:
 
         return characters
 
-    async def _extract_characters_with_llm(self, text_content: str, context_summary: str) -> List[ExtractedCharacter]:
+    async def _extract_characters_with_llm(
+        self, text_content: str, context_summary: str
+    ) -> List[ExtractedCharacter]:
         """Use LLM to extract and analyze characters"""
         # Placeholder for LLM integration
         # In a real implementation, this would call an LLM API to analyze characters
         return []
 
-    def _extract_context_around_match(self, text: str, match: str, context_chars: int = 300) -> str:
+    def _extract_context_around_match(
+        self, text: str, match: str, context_chars: int = 300
+    ) -> str:
         """Extract context around a text match"""
         index = text.find(match)
         if index == -1:
@@ -330,36 +367,47 @@ class RogerWizard:
 
         return text[start:end]
 
-    def _infer_character_attributes(self, character: ExtractedCharacter, context: str) -> ExtractedCharacter:
+    def _infer_character_attributes(
+        self, character: ExtractedCharacter, context: str
+    ) -> ExtractedCharacter:
         """Infer basic character attributes from context"""
         context_lower = context.lower()
 
         # Age group inference
-        if any(word in context_lower for word in ['child', 'kid', 'boy', 'girl', 'young']):
-            character.age_group = 'child' if 'child' in context_lower or 'kid' in context_lower else 'teen'
-        elif any(word in context_lower for word in ['elderly', 'old', 'aged']):
-            character.age_group = 'elderly'
+        if any(
+            word in context_lower for word in ["child", "kid", "boy", "girl", "young"]
+        ):
+            character.age_group = (
+                "child"
+                if "child" in context_lower or "kid" in context_lower
+                else "teen"
+            )
+        elif any(word in context_lower for word in ["elderly", "old", "aged"]):
+            character.age_group = "elderly"
         else:
-            character.age_group = 'adult'
+            character.age_group = "adult"
 
         # Gender inference (basic)
-        if any(word in context_lower for word in ['he', 'him', 'his', 'man', 'boy']):
-            character.gender = 'male'
-        elif any(word in context_lower for word in ['she', 'her', 'woman', 'girl']):
-            character.gender = 'female'
+        if any(word in context_lower for word in ["he", "him", "his", "man", "boy"]):
+            character.gender = "male"
+        elif any(word in context_lower for word in ["she", "her", "woman", "girl"]):
+            character.gender = "female"
 
         # Role inference
-        if 'protagonist' in context_lower or 'hero' in context_lower:
-            character.role_in_story = 'protagonist'
-        elif 'antagonist' in context_lower or 'villain' in context_lower:
-            character.role_in_story = 'antagonist'
-        elif 'mentor' in context_lower or 'teacher' in context_lower:
-            character.role_in_story = 'mentor'
+        if "protagonist" in context_lower or "hero" in context_lower:
+            character.role_in_story = "protagonist"
+        elif "antagonist" in context_lower or "villain" in context_lower:
+            character.role_in_story = "antagonist"
+        elif "mentor" in context_lower or "teacher" in context_lower:
+            character.role_in_story = "mentor"
 
         return character
 
-    def _merge_characters(self, pattern_chars: List[ExtractedCharacter],
-                         llm_chars: List[ExtractedCharacter]) -> List[ExtractedCharacter]:
+    def _merge_characters(
+        self,
+        pattern_chars: List[ExtractedCharacter],
+        llm_chars: List[ExtractedCharacter],
+    ) -> List[ExtractedCharacter]:
         """Merge characters from different extraction methods"""
         # Simple merge - prefer LLM results over pattern matching
         all_chars = pattern_chars + llm_chars
@@ -380,7 +428,9 @@ class RogerWizard:
 
         return list(merged.values())
 
-    def _calculate_character_confidence(self, character: ExtractedCharacter, full_text: str) -> float:
+    def _calculate_character_confidence(
+        self, character: ExtractedCharacter, full_text: str
+    ) -> float:
         """Calculate confidence score for extracted character"""
         confidence = 0.5  # Base confidence
 
@@ -395,10 +445,17 @@ class RogerWizard:
             confidence += 0.2
 
         # Attributes completeness
-        attributes_count = sum(1 for attr in [
-            character.age_group, character.gender, character.role_in_story,
-            character.occupation, character.background
-        ] if attr)
+        attributes_count = sum(
+            1
+            for attr in [
+                character.age_group,
+                character.gender,
+                character.role_in_story,
+                character.occupation,
+                character.background,
+            ]
+            if attr
+        )
         confidence += attributes_count * 0.1
 
         # Frequency in text
@@ -410,7 +467,9 @@ class RogerWizard:
 
         return min(confidence, 1.0)
 
-    def _deduplicate_characters(self, characters: List[ExtractedCharacter]) -> List[ExtractedCharacter]:
+    def _deduplicate_characters(
+        self, characters: List[ExtractedCharacter]
+    ) -> List[ExtractedCharacter]:
         """Remove duplicate characters and sort by confidence"""
         # Sort by confidence descending
         characters.sort(key=lambda x: x.confidence_score, reverse=True)
@@ -427,13 +486,15 @@ class RogerWizard:
 
         return unique_chars
 
-    async def _extract_locations(self, text_content: str, context_summary: str) -> List[ExtractedLocation]:
+    async def _extract_locations(
+        self, text_content: str, context_summary: str
+    ) -> List[ExtractedLocation]:
         """Extract locations from the text"""
         locations = []
 
         # Pattern-based location extraction
         location_patterns = [
-            r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b(?:\s+(?:City|Town|Village|Castle|Palace|House|Street|Avenue|Road|Mountain|River|Forest|Sea|Ocean|Lake|Valley|Hill|Island|Kingdom|Realm|World|Planet|Country|Nation|State|Province|District|Neighborhood|Building|School|Hospital|Church|Temple|Store|Shop|Restaurant|Bar|Hotel|Museum|Park|Garden|Beach|Desert|Cave|Mines|Tower|Bridge|Gate|Wall|Fort|Fountain|Square|Plaza))*\b',
+            r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b(?:\s+(?:City|Town|Village|Castle|Palace|House|Street|Avenue|Road|Mountain|River|Forest|Sea|Ocean|Lake|Valley|Hill|Island|Kingdom|Realm|World|Planet|Country|Nation|State|Province|District|Neighborhood|Building|School|Hospital|Church|Temple|Store|Shop|Restaurant|Bar|Hotel|Museum|Park|Garden|Beach|Desert|Cave|Mines|Tower|Bridge|Gate|Wall|Fort|Fountain|Square|Plaza))*\b",
         ]
 
         found_locations = set()
@@ -450,7 +511,7 @@ class RogerWizard:
                         name=match,
                         description=f"Location mentioned in the story. Context: {context[:200]}...",
                         source_text=context,
-                        confidence_score=0.6
+                        confidence_score=0.6,
                     )
 
                     # Infer location type
@@ -467,66 +528,72 @@ class RogerWizard:
         """Infer the type of location"""
         text = (name + " " + context).lower()
 
-        if any(word in text for word in ['city', 'town', 'village', 'capital']):
-            return 'settlement'
-        elif any(word in text for word in ['castle', 'palace', 'fort', 'tower']):
-            return 'building'
-        elif any(word in text for word in ['mountain', 'hill', 'valley', 'canyon']):
-            return 'natural'
-        elif any(word in text for word in ['forest', 'woods', 'jungle', 'desert']):
-            return 'natural_area'
-        elif any(word in text for word in ['river', 'lake', 'sea', 'ocean']):
-            return 'water_body'
+        if any(word in text for word in ["city", "town", "village", "capital"]):
+            return "settlement"
+        elif any(word in text for word in ["castle", "palace", "fort", "tower"]):
+            return "building"
+        elif any(word in text for word in ["mountain", "hill", "valley", "canyon"]):
+            return "natural"
+        elif any(word in text for word in ["forest", "woods", "jungle", "desert"]):
+            return "natural_area"
+        elif any(word in text for word in ["river", "lake", "sea", "ocean"]):
+            return "water_body"
         else:
-            return 'location'
+            return "location"
 
     def _infer_location_atmosphere(self, context: str) -> str:
         """Infer the atmosphere/mood of a location"""
         context_lower = context.lower()
 
-        if any(word in context_lower for word in ['dark', 'shadowy', 'eerie', 'haunted']):
-            return 'dark and mysterious'
-        elif any(word in context_lower for word in ['bright', 'sunny', 'cheerful', 'vibrant']):
-            return 'bright and welcoming'
-        elif any(word in context_lower for word in ['quiet', 'peaceful', 'serene']):
-            return 'calm and peaceful'
-        elif any(word in context_lower for word in ['busy', 'crowded', 'lively']):
-            return 'bustling and energetic'
+        if any(
+            word in context_lower for word in ["dark", "shadowy", "eerie", "haunted"]
+        ):
+            return "dark and mysterious"
+        elif any(
+            word in context_lower for word in ["bright", "sunny", "cheerful", "vibrant"]
+        ):
+            return "bright and welcoming"
+        elif any(word in context_lower for word in ["quiet", "peaceful", "serene"]):
+            return "calm and peaceful"
+        elif any(word in context_lower for word in ["busy", "crowded", "lively"]):
+            return "bustling and energetic"
         else:
-            return 'neutral atmosphere'
+            return "neutral atmosphere"
 
-    async def _extract_world_elements(self, text_content: str, context_summary: str) -> List[ExtractedWorldElement]:
+    async def _extract_world_elements(
+        self, text_content: str, context_summary: str
+    ) -> List[ExtractedWorldElement]:
         """Extract world-building elements from the text"""
         world_elements = []
 
         # Look for common world-building patterns
         world_patterns = {
-            'magic_system': [
-                r'magic(?:al)?\s+system',
-                r'spell(?:s)?(?:casting)?',
-                r'mana|energy|power',
-                r'enchantment|charm|curse'
+            "magic_system": [
+                r"magic(?:al)?\s+system",
+                r"spell(?:s)?(?:casting)?",
+                r"mana|energy|power",
+                r"enchantment|charm|curse",
             ],
-            'technology': [
-                r'technology|tech|machine',
-                r'device|gadget|weapon',
-                r'scientific|science|research'
+            "technology": [
+                r"technology|tech|machine",
+                r"device|gadget|weapon",
+                r"scientific|science|research",
             ],
-            'culture': [
-                r'culture|tradition|custom',
-                r'religion|belief|faith|god',
-                r'society|social|community'
+            "culture": [
+                r"culture|tradition|custom",
+                r"religion|belief|faith|god",
+                r"society|social|community",
             ],
-            'politics': [
-                r'government|kingdom|empire',
-                r'king|queen|ruler|lord',
-                r'law|politics|policy'
+            "politics": [
+                r"government|kingdom|empire",
+                r"king|queen|ruler|lord",
+                r"law|politics|policy",
             ],
-            'economy': [
-                r'money|currency|coin|gold',
-                r'trade|merchant|market',
-                r'economy|wealth|poverty'
-            ]
+            "economy": [
+                r"money|currency|coin|gold",
+                r"trade|merchant|market",
+                r"economy|wealth|poverty",
+            ],
         }
 
         for category, patterns in world_patterns.items():
@@ -535,14 +602,16 @@ class RogerWizard:
             for pattern in patterns:
                 matches = re.finditer(pattern, text_content, re.IGNORECASE)
                 for match in matches:
-                    context = self._extract_context_around_match(text_content, match.group(), 400)
+                    context = self._extract_context_around_match(
+                        text_content, match.group(), 400
+                    )
 
                     element = ExtractedWorldElement(
                         category=category,
                         name=f"{category.title()} Element",
                         description=f"World-building element related to {category}. Context: {context[:300]}...",
                         source_text=context,
-                        confidence_score=0.7
+                        confidence_score=0.7,
                     )
 
                     # Extract rules if mentioned
@@ -564,9 +633,9 @@ class RogerWizard:
 
         # Look for rule-like patterns
         rule_patterns = [
-            r'(?:must|can(?:not)?|cannot|may|shall|should|always|never)\s+[^.]*',
-            r'(?:rule|law|constraint|limitation)[:\s]+[^.]*',
-            r'(?:impossible|possible) to[^.]*'
+            r"(?:must|can(?:not)?|cannot|may|shall|should|always|never)\s+[^.]*",
+            r"(?:rule|law|constraint|limitation)[:\s]+[^.]*",
+            r"(?:impossible|possible) to[^.]*",
         ]
 
         for pattern in rule_patterns:
@@ -581,8 +650,8 @@ class RogerWizard:
 
         # Look for example patterns
         example_patterns = [
-            r'(?:for example|such as|like|including)[:\s]+[^.]*',
-            r'(?:example|instance)[:\s]+[^.]*'
+            r"(?:for example|such as|like|including)[:\s]+[^.]*",
+            r"(?:example|instance)[:\s]+[^.]*",
         ]
 
         for pattern in example_patterns:
@@ -591,32 +660,36 @@ class RogerWizard:
 
         return examples[:2]  # Max 2 examples
 
-    async def _extract_story_elements(self, text_content: str, context_summary: str) -> Dict[str, Any]:
+    async def _extract_story_elements(
+        self, text_content: str, context_summary: str
+    ) -> Dict[str, Any]:
         """Extract story elements like plot summary, themes, conflicts"""
         story_elements = {
-            'plot_summary': '',
-            'themes': [],
-            'conflicts': [],
-            'relationships': {}
+            "plot_summary": "",
+            "themes": [],
+            "conflicts": [],
+            "relationships": {},
         }
 
         # Extract basic plot summary (simplified)
-        sentences = re.split(r'[.!?]+', text_content)
+        sentences = re.split(r"[.!?]+", text_content)
         meaningful_sentences = [s.strip() for s in sentences if len(s.strip()) > 20][:5]
 
         if meaningful_sentences:
-            story_elements['plot_summary'] = ' '.join(meaningful_sentences)
-            if len(story_elements['plot_summary']) > 1000:
-                story_elements['plot_summary'] = story_elements['plot_summary'][:997] + "..."
+            story_elements["plot_summary"] = " ".join(meaningful_sentences)
+            if len(story_elements["plot_summary"]) > 1000:
+                story_elements["plot_summary"] = (
+                    story_elements["plot_summary"][:997] + "..."
+                )
 
         # Extract themes (simplified keyword-based)
         theme_keywords = {
-            'love': ['love', 'romance', 'heart', 'passion'],
-            'adventure': ['adventure', 'journey', 'quest', 'explore'],
-            'conflict': ['war', 'battle', 'fight', 'struggle'],
-            'mystery': ['mystery', 'secret', 'unknown', 'puzzle'],
-            'growth': ['growth', 'change', 'learn', 'develop'],
-            'friendship': ['friend', 'loyalty', 'bond', 'trust']
+            "love": ["love", "romance", "heart", "passion"],
+            "adventure": ["adventure", "journey", "quest", "explore"],
+            "conflict": ["war", "battle", "fight", "struggle"],
+            "mystery": ["mystery", "secret", "unknown", "puzzle"],
+            "growth": ["growth", "change", "learn", "develop"],
+            "friendship": ["friend", "loyalty", "bond", "trust"],
         }
 
         text_lower = text_content.lower()
@@ -626,160 +699,182 @@ class RogerWizard:
             if any(keyword in text_lower for keyword in keywords):
                 detected_themes.append(theme.title())
 
-        story_elements['themes'] = detected_themes[:5]
+        story_elements["themes"] = detected_themes[:5]
 
         # Extract conflicts (simplified)
-        conflict_indicators = ['conflict', 'problem', 'challenge', 'obstacle', 'versus', 'against']
+        conflict_indicators = [
+            "conflict",
+            "problem",
+            "challenge",
+            "obstacle",
+            "versus",
+            "against",
+        ]
         conflict_sentences = []
 
         for sentence in sentences:
             if any(indicator in sentence.lower() for indicator in conflict_indicators):
                 conflict_sentences.append(sentence.strip())
 
-        story_elements['conflicts'] = conflict_sentences[:3]
+        story_elements["conflicts"] = conflict_sentences[:3]
 
         return story_elements
 
-    def _calculate_confidence_metrics(self, result: RogerExtractionResult) -> Dict[str, float]:
+    def _calculate_confidence_metrics(
+        self, result: RogerExtractionResult
+    ) -> Dict[str, float]:
         """Calculate confidence metrics for the extraction"""
         metrics = {}
 
         # Character confidence
         if result.characters:
-            avg_char_confidence = sum(c.confidence_score for c in result.characters) / len(result.characters)
-            metrics['characters'] = avg_char_confidence
+            avg_char_confidence = sum(
+                c.confidence_score for c in result.characters
+            ) / len(result.characters)
+            metrics["characters"] = avg_char_confidence
 
         # Location confidence
         if result.locations:
-            avg_loc_confidence = sum(l.confidence_score for l in result.locations) / len(result.locations)
-            metrics['locations'] = avg_loc_confidence
+            avg_loc_confidence = sum(
+                loc.confidence_score for loc in result.locations
+            ) / len(result.locations)
+            metrics["locations"] = avg_loc_confidence
 
         # World elements confidence
         if result.world_elements:
-            avg_world_confidence = sum(w.confidence_score for w in result.world_elements) / len(result.world_elements)
-            metrics['world_elements'] = avg_world_confidence
+            avg_world_confidence = sum(
+                w.confidence_score for w in result.world_elements
+            ) / len(result.world_elements)
+            metrics["world_elements"] = avg_world_confidence
 
         # Overall confidence
         confidence_values = [v for v in metrics.values()]
         if confidence_values:
-            metrics['overall'] = sum(confidence_values) / len(confidence_values)
+            metrics["overall"] = sum(confidence_values) / len(confidence_values)
         else:
-            metrics['overall'] = 0.5
+            metrics["overall"] = 0.5
 
         return metrics
 
-    def _calculate_extraction_stats(self, result: RogerExtractionResult) -> Dict[str, Any]:
+    def _calculate_extraction_stats(
+        self, result: RogerExtractionResult
+    ) -> Dict[str, Any]:
         """Calculate extraction statistics"""
         return {
-            'total_characters_extracted': len(result.characters),
-            'total_locations_extracted': len(result.locations),
-            'total_world_elements_extracted': len(result.world_elements),
-            'summary_length': len(result.summary_500_chars),
-            'themes_identified': len(result.main_themes),
-            'conflicts_identified': len(result.main_conflicts),
-            'relationships_mapped': len(result.key_relationships),
-            'extraction_timestamp': result.extraction_timestamp
+            "total_characters_extracted": len(result.characters),
+            "total_locations_extracted": len(result.locations),
+            "total_world_elements_extracted": len(result.world_elements),
+            "summary_length": len(result.summary_500_chars),
+            "themes_identified": len(result.main_themes),
+            "conflicts_identified": len(result.main_conflicts),
+            "relationships_mapped": len(result.key_relationships),
+            "extraction_timestamp": result.extraction_timestamp,
         }
 
-    def _save_extraction_results(self, project_path: Path, result: RogerExtractionResult) -> None:
+    def _save_extraction_results(
+        self, project_path: Path, result: RogerExtractionResult
+    ) -> None:
         """Save extraction results to project files"""
         # Save main extraction report
         extraction_data = {
-            'roger_extraction': {
-                'project_id': result.project_id,
-                'extraction_timestamp': result.extraction_timestamp,
-                'source_file': result.source_file,
-                'summary_500_chars': result.summary_500_chars,
-                'extraction_stats': result.extraction_stats,
-                'confidence_metrics': result.confidence_metrics,
-                'processing_log': result.processing_log
+            "roger_extraction": {
+                "project_id": result.project_id,
+                "extraction_timestamp": result.extraction_timestamp,
+                "source_file": result.source_file,
+                "summary_500_chars": result.summary_500_chars,
+                "extraction_stats": result.extraction_stats,
+                "confidence_metrics": result.confidence_metrics,
+                "processing_log": result.processing_log,
             }
         }
 
         extraction_file = project_path / "roger_extraction_report.json"
-        with open(extraction_file, 'w') as f:
+        with open(extraction_file, "w") as f:
             json.dump(extraction_data, f, indent=2)
 
         # Save extracted characters
         if result.characters:
             characters_data = {
-                'character_definitions': [
+                "character_definitions": [
                     {
-                        'name': char.name,
-                        'description': char.description,
-                        'personality_traits': char.personality_traits,
-                        'physical_description': char.physical_description,
-                        'background': char.background,
-                        'motivations': char.motivations,
-                        'relationships': char.relationships,
-                        'role_in_story': char.role_in_story,
-                        'age_group': char.age_group,
-                        'gender': char.gender,
-                        'occupation': char.occupation,
-                        'confidence_score': char.confidence_score,
-                        'extracted_by_roger': True,
-                        'extraction_timestamp': result.extraction_timestamp
-                    } for char in result.characters
+                        "name": char.name,
+                        "description": char.description,
+                        "personality_traits": char.personality_traits,
+                        "physical_description": char.physical_description,
+                        "background": char.background,
+                        "motivations": char.motivations,
+                        "relationships": char.relationships,
+                        "role_in_story": char.role_in_story,
+                        "age_group": char.age_group,
+                        "gender": char.gender,
+                        "occupation": char.occupation,
+                        "confidence_score": char.confidence_score,
+                        "extracted_by_roger": True,
+                        "extraction_timestamp": result.extraction_timestamp,
+                    }
+                    for char in result.characters
                 ]
             }
 
             characters_file = project_path / "character_definitions.json"
-            with open(characters_file, 'w') as f:
+            with open(characters_file, "w") as f:
                 json.dump(characters_data, f, indent=2)
 
         # Save extracted world elements
         if result.world_elements or result.locations:
             world_data = {
-                'world_building': {
-                    'locations': [
+                "world_building": {
+                    "locations": [
                         {
-                            'name': loc.name,
-                            'description': loc.description,
-                            'type': loc.type,
-                            'significance': loc.significance,
-                            'connected_locations': loc.connected_locations,
-                            'atmosphere': loc.atmosphere,
-                            'key_elements': loc.key_elements,
-                            'confidence_score': loc.confidence_score,
-                            'extracted_by_roger': True
-                        } for loc in result.locations
+                            "name": loc.name,
+                            "description": loc.description,
+                            "type": loc.type,
+                            "significance": loc.significance,
+                            "connected_locations": loc.connected_locations,
+                            "atmosphere": loc.atmosphere,
+                            "key_elements": loc.key_elements,
+                            "confidence_score": loc.confidence_score,
+                            "extracted_by_roger": True,
+                        }
+                        for loc in result.locations
                     ],
-                    'world_elements': [
+                    "world_elements": [
                         {
-                            'category': elem.category,
-                            'name': elem.name,
-                            'description': elem.description,
-                            'rules': elem.rules,
-                            'examples': elem.examples,
-                            'significance': elem.significance,
-                            'confidence_score': elem.confidence_score,
-                            'extracted_by_roger': True
-                        } for elem in result.world_elements
+                            "category": elem.category,
+                            "name": elem.name,
+                            "description": elem.description,
+                            "rules": elem.rules,
+                            "examples": elem.examples,
+                            "significance": elem.significance,
+                            "confidence_score": elem.confidence_score,
+                            "extracted_by_roger": True,
+                        }
+                        for elem in result.world_elements
                     ],
-                    'extraction_timestamp': result.extraction_timestamp
+                    "extraction_timestamp": result.extraction_timestamp,
                 }
             }
 
             world_file = project_path / "world_building.json"
-            with open(world_file, 'w') as f:
+            with open(world_file, "w") as f:
                 json.dump(world_data, f, indent=2)
 
         # Update project.json with extraction metadata
         project_file = project_path / "project.json"
         if project_file.exists():
             try:
-                with open(project_file, 'r') as f:
+                with open(project_file, "r") as f:
                     project_data = json.load(f)
 
-                project_data['roger_extraction'] = {
-                    'completed': True,
-                    'extraction_timestamp': result.extraction_timestamp,
-                    'source_file': result.source_file,
-                    'summary': result.summary_500_chars,
-                    'stats': result.extraction_stats
+                project_data["roger_extraction"] = {
+                    "completed": True,
+                    "extraction_timestamp": result.extraction_timestamp,
+                    "source_file": result.source_file,
+                    "summary": result.summary_500_chars,
+                    "stats": result.extraction_stats,
                 }
 
-                with open(project_file, 'w') as f:
+                with open(project_file, "w") as f:
                     json.dump(project_data, f, indent=2)
 
             except Exception as e:
@@ -796,7 +891,7 @@ class RogerWizard:
             Preview data with extraction estimates
         """
         if not text_file_path.exists():
-            return {'error': 'File not found'}
+            return {"error": "File not found"}
 
         try:
             text_content = self._read_text_file(text_file_path)
@@ -806,22 +901,30 @@ class RogerWizard:
             char_count = len(text_content)
 
             # Estimate extraction potential
-            name_matches = len(re.findall(r'\b[A-Z][a-z]+\b', text_content))
-            location_matches = len(re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b', text_content))
+            name_matches = len(re.findall(r"\b[A-Z][a-z]+\b", text_content))
+            location_matches = len(
+                re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b", text_content)
+            )
 
             return {
-                'file_name': text_file_path.name,
-                'file_size': text_file_path.stat().st_size,
-                'word_count': word_count,
-                'character_count': char_count,
-                'estimated_characters': min(name_matches // 3, 20),  # Rough estimate
-                'estimated_locations': min(location_matches // 5, 15),  # Rough estimate
-                'extraction_potential': 'high' if word_count > 1000 else 'medium' if word_count > 500 else 'low',
-                'preview_text': text_content[:300] + "..." if len(text_content) > 300 else text_content
+                "file_name": text_file_path.name,
+                "file_size": text_file_path.stat().st_size,
+                "word_count": word_count,
+                "character_count": char_count,
+                "estimated_characters": min(name_matches // 3, 20),  # Rough estimate
+                "estimated_locations": min(location_matches // 5, 15),  # Rough estimate
+                "extraction_potential": "high"
+                if word_count > 1000
+                else "medium"
+                if word_count > 500
+                else "low",
+                "preview_text": text_content[:300] + "..."
+                if len(text_content) > 300
+                else text_content,
             }
 
         except Exception as e:
-            return {'error': f'Could not analyze file: {str(e)}'}
+            return {"error": f"Could not analyze file: {str(e)}"}
 
 
 # Convenience functions
@@ -830,8 +933,9 @@ def create_roger_wizard(llm_client=None) -> RogerWizard:
     return RogerWizard(llm_client)
 
 
-async def extract_project_data(project_path: Path, text_file_path: Path,
-                             focus_areas: Optional[List[str]] = None) -> RogerExtractionResult:
+async def extract_project_data(
+    project_path: Path, text_file_path: Path, focus_areas: Optional[List[str]] = None
+) -> RogerExtractionResult:
     """
     Convenience function to extract project data from text file
 

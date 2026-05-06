@@ -55,6 +55,7 @@ export function LocalModelSelector({
   const [isOllamaRunning, setIsOllamaRunning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [modelStates, setModelStates] = useState<Map<string, ModelState>>(new Map());
+  const [discoveredModels, setDiscoveredModels] = useState<LocalModel[]>([]);
   const [recommendedModels, setRecommendedModels] = useState<LocalModel[]>([]);
   const [selectedFamily, setSelectedFamily] = useState<LocalModel['family'] | 'all'>('all');
   const [showOnlyInstalled, setShowOnlyInstalled] = useState(false);
@@ -67,14 +68,14 @@ export function LocalModelSelector({
 
   useEffect(() => {
     checkOllamaStatus();
-  }, [endpoint]);
+  }, [endpoint, checkOllamaStatus]);
 
   useEffect(() => {
     if (isOllamaRunning) {
       loadInstalledModels();
       loadRecommendedModels();
     }
-  }, [isOllamaRunning]);
+  }, [isOllamaRunning, loadInstalledModels, loadRecommendedModels]);
 
   // ============================================================================
   // Handlers
@@ -82,23 +83,43 @@ export function LocalModelSelector({
 
   const checkOllamaStatus = async () => {
     setIsLoading(true);
-    const running = await modelService.isOllamaRunning();
-    setIsOllamaRunning(running);
+    const ollamaRunning = await modelService.isOllamaRunning();
+    const lmStudioRunning = await modelService.isLMStudioRunning();
+    setIsOllamaRunning(ollamaRunning || lmStudioRunning);
     setIsLoading(false);
   };
 
   const loadInstalledModels = async () => {
     const installed = await modelService.getInstalledModels();
     const newStates = new Map<string, ModelState>();
+    const discovered: LocalModel[] = [];
 
-    LOCAL_MODELS.forEach(model => {
+    // Map installed models to states
+    installed.forEach(model => {
       newStates.set(model.id, {
-        installed: installed.includes(model.id),
+        installed: true,
         downloading: false,
         progress: 0,
       });
+
+      // If it's not in the predefined list, it's discovered
+      if (!LOCAL_MODELS.some(m => m.id === model.id)) {
+        discovered.push(model);
+      }
     });
 
+    // Also include predefined models that are NOT installed (for download option)
+    LOCAL_MODELS.forEach(model => {
+      if (!newStates.has(model.id)) {
+        newStates.set(model.id, {
+          installed: false,
+          downloading: false,
+          progress: 0,
+        });
+      }
+    });
+
+    setDiscoveredModels(discovered);
     setModelStates(newStates);
   };
 
@@ -209,7 +230,17 @@ export function LocalModelSelector({
   // ============================================================================
 
   const getFilteredModels = (): LocalModel[] => {
-    let filtered = LOCAL_MODELS;
+    // Combine predefined and discovered models
+    let filtered = [...LOCAL_MODELS, ...discoveredModels];
+
+    // Deduplicate by ID
+    const uniqueMap = new Map<string, LocalModel>();
+    filtered.forEach(m => {
+      if (!uniqueMap.has(m.id)) {
+        uniqueMap.set(m.id, m);
+      }
+    });
+    filtered = Array.from(uniqueMap.values());
 
     // Filter by family
     if (selectedFamily !== 'all') {
@@ -263,6 +294,11 @@ export function LocalModelSelector({
                   <Badge variant="default" className="text-xs">
                     <Check className="h-3 w-3 mr-1" />
                     Installed
+                  </Badge>
+                )}
+                {model.provider && (
+                  <Badge variant="outline" className="text-[10px] uppercase opacity-70">
+                    {model.provider}
                   </Badge>
                 )}
               </CardTitle>

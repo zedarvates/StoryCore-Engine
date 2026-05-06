@@ -9,15 +9,15 @@ Requirements: 13.1, 13.2, 13.3, 13.4, 13.5
 """
 
 import json
-import re
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 
 
 @dataclass
 class PathUpdate:
     """Represents a path update in a configuration file"""
+
     file_path: Path
     old_path: str
     new_path: str
@@ -63,7 +63,7 @@ class ConfigurationPathUpdater:
         """
         try:
             # Read JSON file
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             # Update paths in the data structure
@@ -72,7 +72,7 @@ class ConfigurationPathUpdater:
             # Check if any updates were made
             if self._has_changes(data, updated_data):
                 # Write back with preserved formatting
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(updated_data, f, indent=2, ensure_ascii=False)
                 return True
 
@@ -101,7 +101,7 @@ class ConfigurationPathUpdater:
 
         try:
             # Read YAML file
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
 
             # Update paths in the data structure
@@ -110,8 +110,10 @@ class ConfigurationPathUpdater:
             # Check if any updates were made
             if self._has_changes(data, updated_data):
                 # Write back preserving formatting
-                with open(file_path, 'w', encoding='utf-8') as f:
-                    yaml.dump(updated_data, f, default_flow_style=False, allow_unicode=True)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    yaml.dump(
+                        updated_data, f, default_flow_style=False, allow_unicode=True
+                    )
                 return True
 
         except Exception as e:
@@ -132,7 +134,7 @@ class ConfigurationPathUpdater:
         """
         try:
             # Read .env file
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             updated_lines = []
@@ -140,13 +142,13 @@ class ConfigurationPathUpdater:
 
             for line_num, line in enumerate(lines, 1):
                 # Skip comments and empty lines
-                if line.strip().startswith('#') or not line.strip():
+                if line.strip().startswith("#") or not line.strip():
                     updated_lines.append(line)
                     continue
 
                 # Parse key=value
-                if '=' in line:
-                    key, value = line.split('=', 1)
+                if "=" in line:
+                    key, value = line.split("=", 1)
                     key = key.strip()
                     value = value.strip()
 
@@ -156,12 +158,14 @@ class ConfigurationPathUpdater:
                     if updated_value != value:
                         updated_lines.append(f"{key}={updated_value}\n")
                         has_changes = True
-                        self.updates.append(PathUpdate(
-                            file_path=file_path,
-                            old_path=value,
-                            new_path=updated_value,
-                            line_number=line_num
-                        ))
+                        self.updates.append(
+                            PathUpdate(
+                                file_path=file_path,
+                                old_path=value,
+                                new_path=updated_value,
+                                line_number=line_num,
+                            )
+                        )
                     else:
                         updated_lines.append(line)
                 else:
@@ -169,7 +173,7 @@ class ConfigurationPathUpdater:
 
             if has_changes:
                 # Write back
-                with open(file_path, 'w', encoding='utf-8') as f:
+                with open(file_path, "w", encoding="utf-8") as f:
                     f.writelines(updated_lines)
                 return True
 
@@ -190,11 +194,11 @@ class ConfigurationPathUpdater:
             Dictionary with statistics about updates
         """
         stats = {
-            'json_files_updated': 0,
-            'yaml_files_updated': 0,
-            'env_files_updated': 0,
-            'total_files_processed': 0,
-            'errors': 0
+            "json_files_updated": 0,
+            "yaml_files_updated": 0,
+            "env_files_updated": 0,
+            "total_files_processed": 0,
+            "errors": 0,
         }
 
         for file_path in config_files:
@@ -202,30 +206,30 @@ class ConfigurationPathUpdater:
                 suffix = file_path.suffix.lower()
                 updated = False
 
-                if suffix == '.json':
+                if suffix == ".json":
                     updated = self.update_json_file(file_path)
                     if updated:
-                        stats['json_files_updated'] += 1
-                elif suffix in ['.yaml', '.yml']:
+                        stats["json_files_updated"] += 1
+                elif suffix in [".yaml", ".yml"]:
                     updated = self.update_yaml_file(file_path)
                     if updated:
-                        stats['yaml_files_updated'] += 1
-                elif file_path.name == '.env' or file_path.name.endswith('.env'):
+                        stats["yaml_files_updated"] += 1
+                elif file_path.name == ".env" or file_path.name.endswith(".env"):
                     updated = self.update_env_file(file_path)
                     if updated:
-                        stats['env_files_updated'] += 1
+                        stats["env_files_updated"] += 1
                 else:
                     # Try to detect file type by content
                     updated = self._update_file_by_content(file_path)
                     if updated:
-                        stats['json_files_updated'] += 1  # Assume JSON if not extension
+                        stats["json_files_updated"] += 1  # Assume JSON if not extension
 
                 if updated:
-                    stats['total_files_processed'] += 1
+                    stats["total_files_processed"] += 1
 
             except Exception as e:
                 print(f"Error processing {file_path}: {e}")
-                stats['errors'] += 1
+                stats["errors"] += 1
 
         return stats
 
@@ -288,10 +292,10 @@ class ConfigurationPathUpdater:
 
         # Try partial path matching for paths within values
         # Sort by length (longest first) to match most specific paths first
-        sorted_mappings = sorted(self.path_mapping.items(), 
-                                key=lambda x: len(str(x[0])), 
-                                reverse=True)
-        
+        sorted_mappings = sorted(
+            self.path_mapping.items(), key=lambda x: len(str(x[0])), reverse=True
+        )
+
         for old_path, new_path in sorted_mappings:
             old_str = str(old_path)
             new_str = str(new_path)
@@ -315,7 +319,9 @@ class ConfigurationPathUpdater:
         Returns:
             True if changes exist
         """
-        return json.dumps(original, sort_keys=True) != json.dumps(updated, sort_keys=True)
+        return json.dumps(original, sort_keys=True) != json.dumps(
+            updated, sort_keys=True
+        )
 
     def _update_file_by_content(self, file_path: Path) -> bool:
         """
@@ -328,14 +334,14 @@ class ConfigurationPathUpdater:
             True if file was updated
         """
         try:
-            content = file_path.read_text(encoding='utf-8').strip()
+            content = file_path.read_text(encoding="utf-8").strip()
 
             # Try JSON
-            if content.startswith('{') or content.startswith('['):
+            if content.startswith("{") or content.startswith("["):
                 return self.update_json_file(file_path)
 
             # Try YAML
-            if ':' in content and not content.startswith('//'):
+            if ":" in content and not content.startswith("//"):
                 return self.update_yaml_file(file_path)
 
         except Exception:
@@ -344,8 +350,9 @@ class ConfigurationPathUpdater:
         return False
 
 
-def update_configuration_paths(project_root: Path, path_mapping: Dict[Path, Path],
-                              config_files: List[Path]) -> Dict[str, int]:
+def update_configuration_paths(
+    project_root: Path, path_mapping: Dict[Path, Path], config_files: List[Path]
+) -> Dict[str, int]:
     """
     Update configuration file paths for all moved files.
 

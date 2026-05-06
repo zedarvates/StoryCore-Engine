@@ -24,7 +24,7 @@ Middleware = Callable[[RequestContext, Dict[str, Any]], Optional[APIResponse]]
 
 class DeprecationInfo:
     """Information about endpoint deprecation."""
-    
+
     def __init__(
         self,
         deprecated_date: str,
@@ -34,7 +34,7 @@ class DeprecationInfo:
     ):
         """
         Initialize deprecation info.
-        
+
         Args:
             deprecated_date: Date when endpoint was deprecated (YYYY-MM-DD)
             removal_date: Date when endpoint will be removed (YYYY-MM-DD)
@@ -45,7 +45,7 @@ class DeprecationInfo:
         self.removal_date = removal_date
         self.alternative = alternative
         self.reason = reason
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
@@ -58,7 +58,7 @@ class DeprecationInfo:
 
 class EndpointDefinition:
     """Definition of an API endpoint."""
-    
+
     def __init__(
         self,
         path: str,
@@ -72,7 +72,7 @@ class EndpointDefinition:
     ):
         """
         Initialize endpoint definition.
-        
+
         Args:
             path: Endpoint path (e.g., "storycore.narration.generate")
             method: HTTP method (e.g., "POST", "GET")
@@ -96,7 +96,7 @@ class EndpointDefinition:
 class APIRouter:
     """
     Central router for all API endpoints.
-    
+
     Provides:
     - Endpoint registration
     - Request routing
@@ -104,11 +104,11 @@ class APIRouter:
     - Response formatting
     - Error handling
     """
-    
+
     def __init__(self, config: APIConfig):
         """
         Initialize the router.
-        
+
         Args:
             config: API configuration
         """
@@ -119,7 +119,7 @@ class APIRouter:
         self.error_handler = ErrorHandler(debug_mode=(config.log_level == "DEBUG"))
         self.logger = logging.getLogger(self.__class__.__name__)
         self.middleware: List[Middleware] = []
-    
+
     def register_endpoint(
         self,
         path: str,
@@ -133,7 +133,7 @@ class APIRouter:
     ) -> None:
         """
         Register an API endpoint.
-        
+
         Args:
             path: Endpoint path (e.g., "storycore.narration.generate")
             method: HTTP method (e.g., "POST", "GET")
@@ -145,10 +145,10 @@ class APIRouter:
             deprecation: Deprecation information (if deprecated)
         """
         endpoint_key = f"{method}:{path}"
-        
+
         if endpoint_key in self.endpoints:
             self.logger.warning(f"Overwriting existing endpoint: {endpoint_key}")
-        
+
         self.endpoints[endpoint_key] = EndpointDefinition(
             path=path,
             method=method,
@@ -159,23 +159,23 @@ class APIRouter:
             description=description,
             deprecation=deprecation,
         )
-        
+
         self.logger.info(f"Registered endpoint: {endpoint_key}")
-    
+
     def add_middleware(self, middleware: Middleware) -> None:
         """
         Add middleware to the router.
-        
+
         Middleware functions are called before the endpoint handler.
         They can inspect/modify the request or return an error response.
-        
+
         Args:
             middleware: Middleware function that takes (context, params) and
                        returns None to continue or APIResponse to short-circuit
         """
         self.middleware.append(middleware)
         self.logger.info(f"Added middleware: {middleware.__name__}")
-    
+
     def route_request(
         self,
         path: str,
@@ -185,13 +185,13 @@ class APIRouter:
     ) -> APIResponse:
         """
         Route and execute an API request.
-        
+
         Args:
             path: Endpoint path
             method: HTTP method
             params: Request parameters
             context: Request context (created if not provided)
-            
+
         Returns:
             API response
         """
@@ -204,20 +204,21 @@ class APIRouter:
         else:
             context.endpoint = path
             context.method = method
-        
+
         try:
             # Find endpoint
             endpoint_key = f"{method}:{path}"
             endpoint = self.endpoints.get(endpoint_key)
-            
+
             if endpoint is None:
                 return self._create_not_found_response(path, context)
-            
+
             # Validate request
             if endpoint.schema:
                 validation_error = self.validator.validate(params, endpoint.schema)
                 if validation_error:
                     from .models import ResponseMetadata
+
                     return APIResponse(
                         status="error",
                         error=validation_error,
@@ -228,33 +229,36 @@ class APIRouter:
                             api_version=self.config.version,
                         ),
                     )
-            
+
             # Run middleware (this sets context.user if auth is provided)
             for mw in self.middleware:
                 mw_response = mw(context, params)
                 if mw_response is not None:
                     # Middleware returned a response, short-circuit
                     return mw_response
-            
+
             # Check authentication if required (after middleware has run)
             if endpoint.requires_auth and not context.user:
                 return self._create_auth_required_response(context)
-            
+
             # Execute handler
             self.logger.info(
                 f"Executing endpoint: {endpoint_key}",
-                extra={"request_id": context.request_id}
+                extra={"request_id": context.request_id},
             )
-            
+
             response = endpoint.handler(params, context)
-            
+
             # Ensure response is an APIResponse
             if not isinstance(response, APIResponse):
                 # Handler returned raw data, wrap it
                 from .models import ResponseMetadata
+
                 response = APIResponse(
                     status="success",
-                    data=response if isinstance(response, dict) else {"result": response},
+                    data=response
+                    if isinstance(response, dict)
+                    else {"result": response},
                     metadata=ResponseMetadata(
                         request_id=context.request_id,
                         timestamp=datetime.now(),
@@ -262,33 +266,34 @@ class APIRouter:
                         api_version=self.config.version,
                     ),
                 )
-            
+
             # Add deprecation warning if endpoint is deprecated
             if endpoint.deprecation:
                 # Ensure metadata exists
                 if response.metadata is None:
                     from .models import ResponseMetadata
+
                     response.metadata = ResponseMetadata(
                         request_id=context.request_id,
                         timestamp=datetime.now(),
                         duration_ms=context.get_duration_ms(),
                         api_version=self.config.version,
                     )
-                
+
                 # Add deprecation info to response metadata
                 response.metadata.deprecation = endpoint.deprecation.to_dict()
-                
+
                 # Log deprecation warning
                 self.logger.warning(
                     f"Deprecated endpoint called: {endpoint_key}",
                     extra={
                         "request_id": context.request_id,
                         "deprecation": endpoint.deprecation.to_dict(),
-                    }
+                    },
                 )
-            
+
             return response
-            
+
         except Exception as e:
             # Handle any exceptions
             return self.error_handler.handle_exception(
@@ -296,30 +301,30 @@ class APIRouter:
                 context,
                 self.config.version,
             )
-    
+
     def get_endpoint(self, path: str, method: str) -> Optional[EndpointDefinition]:
         """
         Get an endpoint definition.
-        
+
         Args:
             path: Endpoint path
             method: HTTP method
-            
+
         Returns:
             Endpoint definition or None if not found
         """
         endpoint_key = f"{method}:{path}"
         return self.endpoints.get(endpoint_key)
-    
+
     def list_endpoints(self) -> list[EndpointDefinition]:
         """
         List all registered endpoints.
-        
+
         Returns:
             List of endpoint definitions
         """
         return list(self.endpoints.values())
-    
+
     def _create_not_found_response(
         self,
         path: str,
@@ -327,12 +332,12 @@ class APIRouter:
     ) -> APIResponse:
         """Create a not found error response."""
         from .models import ResponseMetadata
-        
+
         error = self.error_handler.create_not_found_error(
             resource_type="endpoint",
             resource_id=path,
         )
-        
+
         return APIResponse(
             status="error",
             error=error,
@@ -343,20 +348,20 @@ class APIRouter:
                 api_version=self.config.version,
             ),
         )
-    
+
     def _create_auth_required_response(
         self,
         context: RequestContext,
     ) -> APIResponse:
         """Create an authentication required error response."""
         from .models import ResponseMetadata, ErrorDetails
-        
+
         error = ErrorDetails(
             code=ErrorCodes.AUTHENTICATION_REQUIRED,
             message="Authentication required",
             remediation="Provide valid authentication credentials",
         )
-        
+
         return APIResponse(
             status="error",
             error=error,

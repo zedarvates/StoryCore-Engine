@@ -6,13 +6,13 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, _waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SceneView3D } from '../SceneView3D';
 
 // Mock canvas context
 const mockGetContext = vi.fn();
-const mockCanvas = {
+const _mockCanvas = {
   getContext: mockGetContext,
   width: 1280,
   height: 720,
@@ -135,21 +135,21 @@ describe('SceneView3D', () => {
       
       const mockContext2D = {
         fillStyle: '',
-        fillRect: jest.fn(),
+        fillRect: vi.fn(),
         strokeStyle: '',
-        strokeRect: jest.fn(),
-        beginPath: jest.fn(),
-        moveTo: jest.fn(),
-        lineTo: jest.fn(),
-        stroke: jest.fn(),
-        fillText: jest.fn(),
-        arc: jest.fn(),
-        fill: jest.fn(),
-        save: jest.fn(),
-        restore: jest.fn(),
-        translate: jest.fn(),
-        rotate: jest.fn(),
-        setLineDash: jest.fn(),
+        strokeRect: vi.fn(),
+        beginPath: vi.fn(),
+        moveTo: vi.fn(),
+        lineTo: vi.fn(),
+        stroke: vi.fn(),
+        fillText: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        save: vi.fn(),
+        restore: vi.fn(),
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        setLineDash: vi.fn(),
         lineWidth: 0,
         font: '',
         textAlign: '',
@@ -264,8 +264,8 @@ describe('SceneView3D', () => {
       expect(rotationSlider).toHaveValue('45');
     });
     
-    it('should call onPuppetUpdate when puppet is modified and mouse is released', () => {
-      const mockOnPuppetUpdate = jest.fn();
+     it('should call onPuppetUpdate when puppet is modified and mouse is released', () => {
+       const mockOnPuppetUpdate = vi.fn();
       const { container } = render(
         <SceneView3D {...defaultProps} onPuppetUpdate={mockOnPuppetUpdate} />
       );

@@ -9,6 +9,7 @@ from typing import Dict, Any
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.memory_system.memory_system_core import MemorySystemCore
 
 
 class MemorySummaryHandler(BaseHandler):
@@ -23,28 +24,28 @@ class MemorySummaryHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
         parser.add_argument(
             "--type",
             choices=["overview", "discussions", "assets", "memory", "all"],
             default="overview",
-            help="Type of summary to generate (default: overview)"
+            help="Type of summary to generate (default: overview)",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json", "markdown"],
             default="human",
-            help="Output format (default: human)"
+            help="Output format (default: human)",
         )
 
         parser.add_argument(
             "--limit",
             type=int,
             default=10,
-            help="Limit number of items in summary (default: 10)"
+            help="Limit number of items in summary (default: 10)",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -55,7 +56,7 @@ class MemorySummaryHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             # Import memory system
@@ -64,7 +65,7 @@ class MemorySummaryHandler(BaseHandler):
             except ImportError as e:
                 raise SystemError(
                     f"Memory system not available: {e}",
-                    "Ensure memory_system module is installed"
+                    "Ensure memory_system module is installed",
                 )
 
             # Initialize memory system
@@ -75,16 +76,24 @@ class MemorySummaryHandler(BaseHandler):
             summary_result = {}
 
             if summary_type in ["overview", "all"]:
-                summary_result["overview"] = self._generate_overview_summary(memory_system, args.limit)
+                summary_result["overview"] = self._generate_overview_summary(
+                    memory_system, args.limit
+                )
 
             if summary_type in ["discussions", "all"]:
-                summary_result["discussions"] = self._generate_discussion_summary(memory_system, args.limit)
+                summary_result["discussions"] = self._generate_discussion_summary(
+                    memory_system, args.limit
+                )
 
             if summary_type in ["assets", "all"]:
-                summary_result["assets"] = self._generate_asset_summary(memory_system, args.limit)
+                summary_result["assets"] = self._generate_asset_summary(
+                    memory_system, args.limit
+                )
 
             if summary_type in ["memory", "all"]:
-                summary_result["memory"] = self._generate_memory_summary(memory_system, args.limit)
+                summary_result["memory"] = self._generate_memory_summary(
+                    memory_system, args.limit
+                )
 
             # Output results
             if args.format == "json":
@@ -99,7 +108,9 @@ class MemorySummaryHandler(BaseHandler):
         except Exception as e:
             return self.handle_error(e, "memory summary")
 
-    def _generate_overview_summary(self, memory_system: 'MemorySystemCore', limit: int) -> Dict[str, Any]:
+    def _generate_overview_summary(
+        self, memory_system: "MemorySystemCore", limit: int
+    ) -> Dict[str, Any]:
         """Generate project overview summary."""
         try:
             context = memory_system.get_project_context()
@@ -118,44 +129,43 @@ class MemorySummaryHandler(BaseHandler):
                 "validation_valid": status.get("validation_valid", False),
                 "errors_count": status.get("errors_count", 0),
                 "qa_score": status.get("qa_score"),
-                "last_activity": status.get("last_activity")
+                "last_activity": status.get("last_activity"),
             }
 
         except Exception as e:
             return {"error": f"Failed to generate overview: {str(e)}"}
 
-    def _generate_discussion_summary(self, memory_system: 'MemorySystemCore', limit: int) -> Dict[str, Any]:
+    def _generate_discussion_summary(
+        self, memory_system: "MemorySystemCore", limit: int
+    ) -> Dict[str, Any]:
         """Generate discussion summary."""
         try:
             discussions = memory_system.discussion_manager.get_discussion_history(limit)
             summary = memory_system.summarization_engine.summarize_discussion(
-                "\n".join([str(d) for d in discussions]),
-                max_points=limit
+                "\n".join([str(d) for d in discussions]), max_points=limit
             )
 
-            return {
-                "discussions_count": len(discussions),
-                "summary": summary
-            }
+            return {"discussions_count": len(discussions), "summary": summary}
 
         except Exception as e:
             return {"error": f"Failed to generate discussion summary: {str(e)}"}
 
-    def _generate_asset_summary(self, memory_system: 'MemorySystemCore', limit: int) -> Dict[str, Any]:
+    def _generate_asset_summary(
+        self, memory_system: "MemorySystemCore", limit: int
+    ) -> Dict[str, Any]:
         """Generate asset summary."""
         try:
             assets = memory_system.asset_manager.get_asset_index()
             summary = memory_system.summarization_engine.summarize_assets(assets)
 
-            return {
-                "assets_count": len(assets),
-                "summary": summary
-            }
+            return {"assets_count": len(assets), "summary": summary}
 
         except Exception as e:
             return {"error": f"Failed to generate asset summary: {str(e)}"}
 
-    def _generate_memory_summary(self, memory_system: 'MemorySystemCore', limit: int) -> Dict[str, Any]:
+    def _generate_memory_summary(
+        self, memory_system: "MemorySystemCore", limit: int
+    ) -> Dict[str, Any]:
         """Generate memory summary."""
         try:
             memory = memory_system.memory_manager.load_memory()
@@ -167,13 +177,15 @@ class MemorySummaryHandler(BaseHandler):
                 "entities": memory.entities[:limit],
                 "decisions": memory.decisions[:limit],
                 "constraints": memory.constraints[:limit],
-                "current_state": memory.current_state
+                "current_state": memory.current_state,
             }
 
         except Exception as e:
             return {"error": f"Failed to generate memory summary: {str(e)}"}
 
-    def _print_human_results(self, results: Dict[str, Any], args: argparse.Namespace) -> None:
+    def _print_human_results(
+        self, results: Dict[str, Any], args: argparse.Namespace
+    ) -> None:
         """Print human-readable summary results."""
         print(f"Memory System Summary: {Path(args.project).absolute()}")
         print()
@@ -199,7 +211,9 @@ class MemorySummaryHandler(BaseHandler):
         print(f"Objectives: {overview.get('objectives_count', 0)}")
         print(f"Entities: {overview.get('entities_count', 0)}")
         print(f"Decisions: {overview.get('decisions_count', 0)}")
-        print(f"Validation: {'Valid' if overview.get('validation_valid', False) else 'Invalid'}")
+        print(
+            f"Validation: {'Valid' if overview.get('validation_valid', False) else 'Invalid'}"
+        )
         print(f"Errors: {overview.get('errors_count', 0)}")
         print(f"QA Score: {overview.get('qa_score', 'N/A')}")
         print(f"Last Activity: {overview.get('last_activity', 'Unknown')}")
@@ -245,7 +259,9 @@ class MemorySummaryHandler(BaseHandler):
 
         print("ENTITIES:")
         for entity in memory.get("entities", []):
-            print(f"  • {entity.get('name', 'Unknown')} ({entity.get('type', 'unknown')})")
+            print(
+                f"  • {entity.get('name', 'Unknown')} ({entity.get('type', 'unknown')})"
+            )
         print()
 
         print("DECISIONS:")
@@ -265,7 +281,9 @@ class MemorySummaryHandler(BaseHandler):
         print(f"  Last Activity: {current_state.get('last_activity', 'Unknown')}")
         print()
 
-    def _print_markdown_results(self, results: Dict[str, Any], args: argparse.Namespace) -> None:
+    def _print_markdown_results(
+        self, results: Dict[str, Any], args: argparse.Namespace
+    ) -> None:
         """Print markdown-formatted summary results."""
         print(f"# Memory System Summary: {Path(args.project).absolute()}")
         print()
@@ -291,7 +309,9 @@ class MemorySummaryHandler(BaseHandler):
         print(f"- **Objectives**: {overview.get('objectives_count', 0)}")
         print(f"- **Entities**: {overview.get('entities_count', 0)}")
         print(f"- **Decisions**: {overview.get('decisions_count', 0)}")
-        print(f"- **Validation**: {'Valid' if overview.get('validation_valid', False) else 'Invalid'}")
+        print(
+            f"- **Validation**: {'Valid' if overview.get('validation_valid', False) else 'Invalid'}"
+        )
         print(f"- **Errors**: {overview.get('errors_count', 0)}")
         print(f"- **QA Score**: {overview.get('qa_score', 'N/A')}")
         print(f"- **Last Activity**: {overview.get('last_activity', 'Unknown')}")
@@ -343,7 +363,9 @@ class MemorySummaryHandler(BaseHandler):
         print("### Entities")
         print()
         for entity in memory.get("entities", []):
-            print(f"- {entity.get('name', 'Unknown')} ({entity.get('type', 'unknown')})")
+            print(
+                f"- {entity.get('name', 'Unknown')} ({entity.get('type', 'unknown')})"
+            )
         print()
 
         print("### Decisions")

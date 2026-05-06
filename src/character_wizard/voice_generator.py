@@ -16,7 +16,9 @@ class VoiceGenerator:
         """Initialize the voice generator"""
         self.voice_patterns = self._load_voice_patterns()
 
-    def generate_voice_identity(self, personality: PersonalityProfile, archetype: CharacterArchetype) -> VoiceIdentity:
+    def generate_voice_identity(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> VoiceIdentity:
         """Generate voice identity matching personality and appearance"""
         voice = VoiceIdentity()
 
@@ -29,7 +31,9 @@ class VoiceGenerator:
 
         # Generate speech characteristics
         voice.speech_patterns = pattern["speech_patterns"]
-        voice.vocabulary_level = self._determine_vocabulary_level(personality, archetype)
+        voice.vocabulary_level = self._determine_vocabulary_level(
+            personality, archetype
+        )
         voice.sentence_complexity = self._determine_sentence_complexity(personality)
         voice.speaking_pace = self._determine_speaking_pace(personality)
 
@@ -41,22 +45,33 @@ class VoiceGenerator:
         # Generate emotional expression
         voice.humor_style = self._determine_humor_style(personality)
         voice.emotional_range = self._determine_emotional_range(personality)
-        voice.vulnerability_expression = self._determine_vulnerability_expression(personality)
+        voice.vulnerability_expression = self._determine_vulnerability_expression(
+            personality
+        )
 
         # Generate unique elements
         voice.catchphrases = self._generate_catchphrases(archetype, personality)
         voice.verbal_tics = self._generate_verbal_tics(personality)
-        voice.signature_expressions = self._generate_signature_expressions(archetype, personality)
+        voice.signature_expressions = self._generate_signature_expressions(
+            archetype, personality
+        )
 
         # Technical specifications
         voice.voice_type = self._determine_voice_type(personality, archetype)
-        voice.emotional_variance = personality.neuroticism * 0.8 + 0.2  # 0.2 to 1.0 range
+        voice.emotional_variance = (
+            personality.neuroticism * 0.8 + 0.2
+        )  # 0.2 to 1.0 range
 
         return voice
 
-    def _determine_vocabulary_level(self, personality: PersonalityProfile, archetype: CharacterArchetype) -> str:
+    def _determine_vocabulary_level(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> str:
         """Determine vocabulary level"""
-        if archetype.role in [self._get_archetype_role("mentor"), self._get_archetype_role("villain")]:
+        if archetype.role in [
+            self._get_archetype_role("mentor"),
+            self._get_archetype_role("villain"),
+        ]:
             return "sophisticated"
         elif personality.openness > 0.7:
             return "varied"
@@ -81,7 +96,9 @@ class VoiceGenerator:
         else:
             return "moderate and natural"
 
-    def _determine_formality_level(self, personality: PersonalityProfile, archetype: CharacterArchetype):
+    def _determine_formality_level(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ):
         """Determine formality level"""
         from .models import FormalityLevel
 
@@ -116,7 +133,9 @@ class VoiceGenerator:
         else:
             return "controlled and subtle"
 
-    def _determine_vulnerability_expression(self, personality: PersonalityProfile) -> str:
+    def _determine_vulnerability_expression(
+        self, personality: PersonalityProfile
+    ) -> str:
         """Determine how character expresses vulnerability"""
         if personality.agreeableness > 0.7:
             return "open about feelings and struggles"
@@ -125,16 +144,45 @@ class VoiceGenerator:
         else:
             return "selective about sharing vulnerabilities"
 
-    def _generate_catchphrases(self, archetype: CharacterArchetype, personality: PersonalityProfile) -> list[str]:
+    def _generate_catchphrases(
+        self, archetype: CharacterArchetype, personality: PersonalityProfile
+    ) -> list[str]:
         """Generate character catchphrases"""
         phrases_by_archetype = {
-            self._get_archetype_role("hero"): ["We can do this", "Never give up", "For justice", "Together we're stronger"],
-            self._get_archetype_role("villain"): ["Power is everything", "You cannot stop me", "Foolish", "Bow before me"],
-            self._get_archetype_role("mentor"): ["Learn from this", "Patience, young one", "Wisdom comes with time", "Trust the process"],
-            self._get_archetype_role("ally"): ["I've got your back", "Let's do this", "Count me in", "We're in this together"],
-            self._get_archetype_role("trickster"): ["Expect the unexpected", "Rules are meant to be broken", "Why so serious?", "Surprise!"]
+            self._get_archetype_role("hero"): [
+                "We can do this",
+                "Never give up",
+                "For justice",
+                "Together we're stronger",
+            ],
+            self._get_archetype_role("villain"): [
+                "Power is everything",
+                "You cannot stop me",
+                "Foolish",
+                "Bow before me",
+            ],
+            self._get_archetype_role("mentor"): [
+                "Learn from this",
+                "Patience, young one",
+                "Wisdom comes with time",
+                "Trust the process",
+            ],
+            self._get_archetype_role("ally"): [
+                "I've got your back",
+                "Let's do this",
+                "Count me in",
+                "We're in this together",
+            ],
+            self._get_archetype_role("trickster"): [
+                "Expect the unexpected",
+                "Rules are meant to be broken",
+                "Why so serious?",
+                "Surprise!",
+            ],
         }
-        phrases = phrases_by_archetype.get(archetype.role, ["Indeed", "Interesting", "I see"])
+        phrases = phrases_by_archetype.get(
+            archetype.role, ["Indeed", "Interesting", "I see"]
+        )
         return random.sample(phrases, min(2, len(phrases)))
 
     def _generate_verbal_tics(self, personality: PersonalityProfile) -> list[str]:
@@ -149,19 +197,29 @@ class VoiceGenerator:
 
         return random.sample(tics, min(2, len(tics))) if tics else []
 
-    def _generate_signature_expressions(self, archetype: CharacterArchetype, personality: PersonalityProfile) -> list[str]:
+    def _generate_signature_expressions(
+        self, archetype: CharacterArchetype, personality: PersonalityProfile
+    ) -> list[str]:
         """Generate signature expressions"""
         expressions = []
         if archetype.role == self._get_archetype_role("hero"):
-            expressions.extend(["determined nod", "encouraging smile", "firm handshake"])
+            expressions.extend(
+                ["determined nod", "encouraging smile", "firm handshake"]
+            )
         elif archetype.role == self._get_archetype_role("villain"):
             expressions.extend(["cold stare", "dismissive wave", "cruel smile"])
         elif archetype.role == self._get_archetype_role("mentor"):
-            expressions.extend(["knowing look", "gentle pat on shoulder", "thoughtful pause"])
+            expressions.extend(
+                ["knowing look", "gentle pat on shoulder", "thoughtful pause"]
+            )
 
-        return random.sample(expressions, min(2, len(expressions))) if expressions else []
+        return (
+            random.sample(expressions, min(2, len(expressions))) if expressions else []
+        )
 
-    def _determine_voice_type(self, personality: PersonalityProfile, archetype: CharacterArchetype) -> str:
+    def _determine_voice_type(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> str:
         """Determine voice type for TTS"""
         if archetype.role == self._get_archetype_role("villain"):
             return "deep and commanding"
@@ -178,36 +236,37 @@ class VoiceGenerator:
             "hero": {
                 "speech_patterns": "clear and direct",
                 "accent": None,
-                "dialect": None
+                "dialect": None,
             },
             "villain": {
                 "speech_patterns": "sophisticated and calculated",
                 "accent": "refined",
-                "dialect": None
+                "dialect": None,
             },
             "mentor": {
                 "speech_patterns": "measured and thoughtful",
                 "accent": None,
-                "dialect": "formal"
+                "dialect": "formal",
             },
             "ally": {
                 "speech_patterns": "friendly and supportive",
                 "accent": None,
-                "dialect": "casual"
+                "dialect": "casual",
             },
             "trickster": {
                 "speech_patterns": "quick and playful",
                 "accent": None,
-                "dialect": "colloquial"
+                "dialect": "colloquial",
             },
             "default": {
                 "speech_patterns": "natural and conversational",
                 "accent": None,
-                "dialect": None
-            }
+                "dialect": None,
+            },
         }
 
     def _get_archetype_role(self, role_name: str):
         """Helper to get archetype role enum"""
         from .archetypes import ArchetypeRole
+
         return ArchetypeRole[role_name.upper()]

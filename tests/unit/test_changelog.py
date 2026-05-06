@@ -3,9 +3,13 @@ Unit tests for Changelog System
 """
 
 import pytest
-import json
 from pathlib import Path
-from src.api.changelog import Changelog, ChangelogEntry, ChangeType, create_initial_changelog
+from src.api.changelog import (
+    Changelog,
+    ChangelogEntry,
+    ChangeType,
+    create_initial_changelog,
+)
 
 
 @pytest.fixture
@@ -29,7 +33,7 @@ def test_add_entry(changelog):
         affected_endpoints=["storycore.test.endpoint"],
         date="2024-01-15",
     )
-    
+
     assert entry.version == "v1.0.0"
     assert entry.change_type == ChangeType.ADDED
     assert entry.description == "New feature added"
@@ -47,7 +51,7 @@ def test_add_breaking_change(changelog):
         breaking=True,
         date="2024-02-01",
     )
-    
+
     assert entry.breaking is True
 
 
@@ -60,7 +64,7 @@ def test_get_entries_by_version(changelog):
         affected_endpoints=["endpoint1"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.0.0",
         change_type=ChangeType.FIXED,
@@ -68,7 +72,7 @@ def test_get_entries_by_version(changelog):
         affected_endpoints=["endpoint2"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.1.0",
         change_type=ChangeType.ADDED,
@@ -76,10 +80,10 @@ def test_get_entries_by_version(changelog):
         affected_endpoints=["endpoint3"],
         date="2024-02-01",
     )
-    
+
     v1_entries = changelog.get_entries_by_version("v1.0.0")
     assert len(v1_entries) == 2
-    
+
     v1_1_entries = changelog.get_entries_by_version("v1.1.0")
     assert len(v1_1_entries) == 1
 
@@ -93,7 +97,7 @@ def test_get_entries_by_endpoint(changelog):
         affected_endpoints=["storycore.test.endpoint"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.1.0",
         change_type=ChangeType.CHANGED,
@@ -101,7 +105,7 @@ def test_get_entries_by_endpoint(changelog):
         affected_endpoints=["storycore.test.endpoint", "storycore.other.endpoint"],
         date="2024-02-01",
     )
-    
+
     entries = changelog.get_entries_by_endpoint("storycore.test.endpoint")
     assert len(entries) == 2
 
@@ -115,7 +119,7 @@ def test_get_entries_by_type(changelog):
         affected_endpoints=["endpoint1"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.0.0",
         change_type=ChangeType.ADDED,
@@ -123,7 +127,7 @@ def test_get_entries_by_type(changelog):
         affected_endpoints=["endpoint2"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.0.0",
         change_type=ChangeType.FIXED,
@@ -131,10 +135,10 @@ def test_get_entries_by_type(changelog):
         affected_endpoints=["endpoint3"],
         date="2024-01-15",
     )
-    
+
     added_entries = changelog.get_entries_by_type(ChangeType.ADDED)
     assert len(added_entries) == 2
-    
+
     fixed_entries = changelog.get_entries_by_type(ChangeType.FIXED)
     assert len(fixed_entries) == 1
 
@@ -149,7 +153,7 @@ def test_get_breaking_changes(changelog):
         breaking=False,
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v2.0.0",
         change_type=ChangeType.CHANGED,
@@ -158,7 +162,7 @@ def test_get_breaking_changes(changelog):
         breaking=True,
         date="2024-02-01",
     )
-    
+
     breaking = changelog.get_breaking_changes()
     assert len(breaking) == 1
     assert breaking[0].breaking is True
@@ -173,7 +177,7 @@ def test_get_versions(changelog):
         affected_endpoints=["endpoint1"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.1.0",
         change_type=ChangeType.ADDED,
@@ -181,7 +185,7 @@ def test_get_versions(changelog):
         affected_endpoints=["endpoint2"],
         date="2024-02-01",
     )
-    
+
     changelog.add_entry(
         version="v1.0.0",
         change_type=ChangeType.FIXED,
@@ -189,7 +193,7 @@ def test_get_versions(changelog):
         affected_endpoints=["endpoint3"],
         date="2024-01-15",
     )
-    
+
     versions = changelog.get_versions()
     assert len(versions) == 2
     assert "v1.0.0" in versions
@@ -207,7 +211,7 @@ def test_generate_markdown(changelog):
         affected_endpoints=["storycore.test.endpoint"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v1.0.0",
         change_type=ChangeType.FIXED,
@@ -215,9 +219,9 @@ def test_generate_markdown(changelog):
         affected_endpoints=["storycore.other.endpoint"],
         date="2024-01-15",
     )
-    
+
     markdown = changelog.generate_markdown()
-    
+
     assert "# Changelog" in markdown
     assert "## [v1.0.0] - 2024-01-15" in markdown
     assert "### Added" in markdown
@@ -237,7 +241,7 @@ def test_markdown_breaking_change_indicator(changelog):
         breaking=True,
         date="2024-02-01",
     )
-    
+
     markdown = changelog.generate_markdown()
     assert "**[BREAKING]**" in markdown
 
@@ -251,15 +255,15 @@ def test_save_and_load(changelog, temp_changelog_path):
         affected_endpoints=["endpoint1"],
         date="2024-01-15",
     )
-    
+
     changelog.save()
-    
+
     # Verify file exists
     assert Path(temp_changelog_path).exists()
-    
+
     # Load into new changelog
     new_changelog = Changelog(temp_changelog_path)
-    
+
     assert len(new_changelog.entries) == 1
     assert new_changelog.entries[0].description == "Feature 1"
 
@@ -273,15 +277,15 @@ def test_export_markdown(changelog, tmp_path):
         affected_endpoints=["endpoint1"],
         date="2024-01-15",
     )
-    
+
     output_path = tmp_path / "CHANGELOG.md"
     changelog.export_markdown(str(output_path))
-    
+
     assert output_path.exists()
-    
+
     with open(output_path) as f:
         content = f.read()
-    
+
     assert "# Changelog" in content
     assert "Feature 1" in content
 
@@ -295,7 +299,7 @@ def test_to_dict(changelog):
         affected_endpoints=["endpoint1"],
         date="2024-01-15",
     )
-    
+
     changelog.add_entry(
         version="v2.0.0",
         change_type=ChangeType.CHANGED,
@@ -304,14 +308,14 @@ def test_to_dict(changelog):
         breaking=True,
         date="2024-02-01",
     )
-    
+
     data = changelog.to_dict()
-    
+
     assert "versions" in data
     assert "total_entries" in data
     assert "breaking_changes" in data
     assert "entries" in data
-    
+
     assert data["total_entries"] == 2
     assert data["breaking_changes"] == 1
     assert len(data["versions"]) == 2
@@ -320,13 +324,13 @@ def test_to_dict(changelog):
 def test_create_initial_changelog():
     """Test creating initial changelog."""
     changelog = create_initial_changelog()
-    
+
     assert len(changelog.entries) > 0
-    
+
     # Should have v1.0.0 entries
     v1_entries = changelog.get_entries_by_version("v1.0.0")
     assert len(v1_entries) > 0
-    
+
     # Should include initial release entry
     descriptions = [e.description for e in v1_entries]
     assert any("Initial release" in d for d in descriptions)
@@ -342,9 +346,9 @@ def test_changelog_entry_to_dict():
         affected_endpoints=["endpoint1"],
         breaking=False,
     )
-    
+
     data = entry.to_dict()
-    
+
     assert data["version"] == "v1.0.0"
     assert data["date"] == "2024-01-15"
     assert data["change_type"] == "added"
@@ -363,9 +367,9 @@ def test_changelog_entry_from_dict():
         "affected_endpoints": ["endpoint1"],
         "breaking": False,
     }
-    
+
     entry = ChangelogEntry.from_dict(data)
-    
+
     assert entry.version == "v1.0.0"
     assert entry.date == "2024-01-15"
     assert entry.change_type == ChangeType.ADDED

@@ -11,6 +11,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class ScalabilityTests:
     """Handles scalability validation"""
 
@@ -22,7 +23,9 @@ class ScalabilityTests:
         test_start = time.time()
 
         try:
-            scalability_results = ScalabilityTests._run_scalability_tests(temp_project_dir)
+            scalability_results = ScalabilityTests._run_scalability_tests(
+                temp_project_dir
+            )
 
             # Analyze scalability metrics
             scalability_passed = True
@@ -36,10 +39,12 @@ class ScalabilityTests:
                         result.add_performance_metric(
                             f"scalability_{test_name}_time",
                             result_data["processing_time"],
-                            "seconds"
+                            "seconds",
                         )
                 else:
-                    logger.warning(f"    ⚠️  {test_name}: {result_data.get('error', 'Failed')}")
+                    logger.warning(
+                        f"    ⚠️  {test_name}: {result_data.get('error', 'Failed')}"
+                    )
                     scalability_passed = False
 
             duration = time.time() - test_start
@@ -63,13 +68,19 @@ class ScalabilityTests:
         results = {}
 
         # Test 1: Multiple shot processing
-        results["multiple_shots"] = ScalabilityTests._test_multiple_shot_scalability(temp_project_dir)
+        results["multiple_shots"] = ScalabilityTests._test_multiple_shot_scalability(
+            temp_project_dir
+        )
 
         # Test 2: Large frame count handling
-        results["large_frame_count"] = ScalabilityTests._test_large_frame_count_scalability()
+        results["large_frame_count"] = (
+            ScalabilityTests._test_large_frame_count_scalability()
+        )
 
         # Test 3: Concurrent processing
-        results["concurrent_processing"] = ScalabilityTests._test_concurrent_processing_scalability(temp_project_dir)
+        results["concurrent_processing"] = (
+            ScalabilityTests._test_concurrent_processing_scalability(temp_project_dir)
+        )
 
         return results
 
@@ -84,7 +95,7 @@ class ScalabilityTests:
             config = VideoConfig(
                 frame_rate=24,
                 resolution=(1280, 720),  # Moderate resolution for scalability test
-                quality="medium"
+                quality="medium",
             )
 
             engine = VideoEngine(config)
@@ -111,14 +122,11 @@ class ScalabilityTests:
                 "shots_processed": successful_shots,
                 "total_shots": len(shot_ids),
                 "success_rate": success_rate,
-                "summary": f"{successful_shots}/{len(shot_ids)} shots ({success_rate:.1f}%)"
+                "summary": f"{successful_shots}/{len(shot_ids)} shots ({success_rate:.1f}%)",
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @staticmethod
     def _test_large_frame_count_scalability():
@@ -131,7 +139,7 @@ class ScalabilityTests:
 
             from advanced_interpolation_engine import (
                 AdvancedInterpolationEngine,
-                create_cinematic_preset
+                create_cinematic_preset,
             )
 
             config = create_cinematic_preset("documentary")  # Efficient preset
@@ -140,13 +148,15 @@ class ScalabilityTests:
             # Test with larger frame count
             keyframes = [
                 np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8),
-                np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8)
+                np.random.randint(0, 255, (720, 1280, 3), dtype=np.uint8),
             ]
 
             large_frame_count = 240  # 10 seconds at 24fps
 
             start_time = time.time()
-            interpolated_frames = engine.interpolate_frames(keyframes, large_frame_count)
+            interpolated_frames = engine.interpolate_frames(
+                keyframes, large_frame_count
+            )
             processing_time = time.time() - start_time
 
             success = len(interpolated_frames) == large_frame_count
@@ -156,14 +166,11 @@ class ScalabilityTests:
                 "processing_time": processing_time,
                 "target_frames": large_frame_count,
                 "actual_frames": len(interpolated_frames),
-                "summary": f"{len(interpolated_frames)}/{large_frame_count} frames in {processing_time:.1f}s"
+                "summary": f"{len(interpolated_frames)}/{large_frame_count} frames in {processing_time:.1f}s",
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}
 
     @staticmethod
     def _test_concurrent_processing_scalability(temp_project_dir):
@@ -177,7 +184,7 @@ class ScalabilityTests:
                 frame_rate=24,
                 resolution=(854, 480),  # Lower resolution for concurrent test
                 quality="low",
-                parallel_processing=True
+                parallel_processing=True,
             )
 
             # Test concurrent processing with multiple engines
@@ -188,7 +195,9 @@ class ScalabilityTests:
                     result = engine.generate_video_sequence(shot_id)
                     result_queue.put({"shot_id": shot_id, "success": result.success})
                 except Exception as e:
-                    result_queue.put({"shot_id": shot_id, "success": False, "error": str(e)})
+                    result_queue.put(
+                        {"shot_id": shot_id, "success": False, "error": str(e)}
+                    )
 
             # Start concurrent processing
             result_queue = queue.Queue()
@@ -198,7 +207,9 @@ class ScalabilityTests:
             start_time = time.time()
 
             for shot_id in shot_ids:
-                thread = threading.Thread(target=process_shot, args=(shot_id, result_queue))
+                thread = threading.Thread(
+                    target=process_shot, args=(shot_id, result_queue)
+                )
                 thread.start()
                 threads.append(thread)
 
@@ -216,15 +227,13 @@ class ScalabilityTests:
             successful_concurrent = sum(1 for r in results if r["success"])
 
             return {
-                "success": successful_concurrent >= len(shot_ids) // 2,  # At least half successful
+                "success": successful_concurrent
+                >= len(shot_ids) // 2,  # At least half successful
                 "processing_time": processing_time,
                 "concurrent_shots": len(shot_ids),
                 "successful_shots": successful_concurrent,
-                "summary": f"{successful_concurrent}/{len(shot_ids)} concurrent shots"
+                "summary": f"{successful_concurrent}/{len(shot_ids)} concurrent shots",
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+            return {"success": False, "error": str(e)}

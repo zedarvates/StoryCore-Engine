@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import type { ModalState, ModalSchema, ValidationResult } from '@/types/modal';
+import type { ModalState, ModalSchema, _ValidationResult } from '@/types/modal';
 
 /**
  * Hook for managing modal state
@@ -81,7 +81,7 @@ export function useModalState(schema: ModalSchema, initialData?: Record<string, 
   // Open modal
   const open = useCallback((data?: Record<string, unknown>) => {
     if (data) {
-      setData(prev => ({ ...initializeFormData(), ...data }));
+      setData(_prev => ({ ...initializeFormData(), ...data }));
     }
     setIsOpen(true);
   }, [initializeFormData]);

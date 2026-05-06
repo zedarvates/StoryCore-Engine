@@ -4,11 +4,10 @@ Ghost Tracker Wizard command handler - AI-powered tracking analysis.
 
 import argparse
 from pathlib import Path
-from typing import List, Optional
-import json
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.wizard.ghost_tracker_wizard import TrackingResult
 
 
 class GhostTrackerWizardHandler(BaseHandler):
@@ -22,33 +21,35 @@ class GhostTrackerWizardHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
         parser.add_argument(
             "--mode",
-            choices=["continuity", "anomaly_detection", "motion_analysis", "visual_consistency", "quality_assurance"],
+            choices=[
+                "continuity",
+                "anomaly_detection",
+                "motion_analysis",
+                "visual_consistency",
+                "quality_assurance",
+            ],
             default="continuity",
-            help="Tracking analysis mode (default: continuity)"
+            help="Tracking analysis mode (default: continuity)",
         )
 
-        parser.add_argument(
-            "--shots",
-            nargs="+",
-            help="Specific shot IDs to analyze"
-        )
+        parser.add_argument("--shots", nargs="+", help="Specific shot IDs to analyze")
 
         parser.add_argument(
             "--report-only",
             action="store_true",
-            help="Generate report without displaying detailed output"
+            help="Generate report without displaying detailed output",
         )
 
         parser.add_argument(
             "--format",
             choices=["detailed", "summary", "minimal"],
             default="detailed",
-            help="Output format (default: detailed)"
+            help="Output format (default: detailed)",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -59,12 +60,12 @@ class GhostTrackerWizardHandler(BaseHandler):
                 from src.wizard.ghost_tracker_wizard import (
                     create_ghost_tracker_wizard,
                     TrackingResult,
-                    TrackingMode
+                    TrackingMode,
                 )
             except ImportError as e:
                 raise SystemError(
                     f"Ghost Tracker wizard modules not available: {e}",
-                    "Ensure wizard package is installed"
+                    "Ensure wizard package is installed",
                 )
 
             # Validate project path
@@ -72,7 +73,7 @@ class GhostTrackerWizardHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             print("👻 Ghost Tracker Wizard - Advanced Tracking System")
@@ -87,11 +88,11 @@ class GhostTrackerWizardHandler(BaseHandler):
 
             # Parse mode
             mode_map = {
-                'continuity': TrackingMode.CONTINUITY,
-                'anomaly_detection': TrackingMode.ANOMALY_DETECTION,
-                'motion_analysis': TrackingMode.MOTION_ANALYSIS,
-                'visual_consistency': TrackingMode.VISUAL_CONSISTENCY,
-                'quality_assurance': TrackingMode.QUALITY_ASSURANCE
+                "continuity": TrackingMode.CONTINUITY,
+                "anomaly_detection": TrackingMode.ANOMALY_DETECTION,
+                "motion_analysis": TrackingMode.MOTION_ANALYSIS,
+                "visual_consistency": TrackingMode.VISUAL_CONSISTENCY,
+                "quality_assurance": TrackingMode.QUALITY_ASSURANCE,
             }
             tracking_mode = mode_map.get(args.mode, TrackingMode.CONTINUITY)
             print(f"🎯 Tracking mode: {tracking_mode.value.replace('_', ' ').title()}")
@@ -101,7 +102,9 @@ class GhostTrackerWizardHandler(BaseHandler):
 
             # Run analysis
             report = asyncio.run(
-                wizard.perform_tracking_analysis(project_path, tracking_mode, args.shots)
+                wizard.perform_tracking_analysis(
+                    project_path, tracking_mode, args.shots
+                )
             )
 
             # Display results based on format
@@ -124,9 +127,11 @@ class GhostTrackerWizardHandler(BaseHandler):
 
         return 0
 
-    def _display_tracking_results(self, report: TrackingResult, format_type: str) -> int:
+    def _display_tracking_results(
+        self, report: TrackingResult, format_type: str
+    ) -> int:
         """Display tracking analysis results."""
-        print(f"\n🎯 Tracking Analysis Complete")
+        print("\n🎯 Tracking Analysis Complete")
         print("=" * 60)
 
         # Project info
@@ -154,7 +159,7 @@ class GhostTrackerWizardHandler(BaseHandler):
             for i, rec in enumerate(report.recommendations[:3], 1):
                 print(f"   {i}. {rec}")
 
-        print(f"\n📄 Full report saved to: ghost_tracking_result.json")
+        print("\n📄 Full report saved to: ghost_tracking_result.json")
         return 0
 
     def _display_summary_tracking(self, report: TrackingResult) -> int:
@@ -165,7 +170,9 @@ class GhostTrackerWizardHandler(BaseHandler):
         if report.tracked_elements:
             print(f"\n📍 Tracked Elements: {len(report.tracked_elements)}")
             for elem in report.tracked_elements[:3]:
-                print(f"   • {elem.name} ({elem.target_type.value}) - seen in {elem.total_occurrences} shots")
+                print(
+                    f"   • {elem.name} ({elem.target_type.value}) - seen in {elem.total_occurrences} shots"
+                )
 
         # Issues summary
         if report.continuity_issues:
@@ -175,11 +182,11 @@ class GhostTrackerWizardHandler(BaseHandler):
 
         # Recommendations
         if report.recommendations:
-            print(f"\n🚀 Recommendations:")
+            print("\n🚀 Recommendations:")
             for rec in report.recommendations[:3]:
                 print(f"   • {rec}")
 
-        print(f"\n📄 Detailed report saved to: ghost_tracking_result.json")
+        print("\n📄 Detailed report saved to: ghost_tracking_result.json")
 
         return 0
 
@@ -200,7 +207,7 @@ class GhostTrackerWizardHandler(BaseHandler):
 
         # Analysis summary
         if report.analysis_summary:
-            print(f"\n📊 Analysis Summary:")
+            print("\n📊 Analysis Summary:")
             print(f"   {report.analysis_summary}")
 
         # Tracked elements by type
@@ -225,11 +232,9 @@ class GhostTrackerWizardHandler(BaseHandler):
         if report.continuity_issues:
             print(f"\n⚠️  Continuity Issues ({len(report.continuity_issues)}):")
             for issue in report.continuity_issues:
-                priority_indicator = {
-                    "critical": "🚨",
-                    "major": "⚠️",
-                    "minor": "ℹ️"
-                }.get(issue.severity, "•")
+                priority_indicator = {"critical": "🚨", "major": "⚠️", "minor": "ℹ️"}.get(
+                    issue.severity, "•"
+                )
 
                 print(f"   {priority_indicator} {issue.description}")
                 print(f"      Severity: {issue.severity}")
@@ -239,12 +244,11 @@ class GhostTrackerWizardHandler(BaseHandler):
 
         # Recommendations
         if report.recommendations:
-            print(f"\n📝 Recommendations:")
+            print("\n📝 Recommendations:")
             for i, rec in enumerate(report.recommendations, 1):
                 print(f"   {i}. {rec}")
 
         # Report location
-        print(f"\n📄 Complete analysis saved to: ghost_tracking_result.json")
+        print("\n📄 Complete analysis saved to: ghost_tracking_result.json")
 
         return 0
-

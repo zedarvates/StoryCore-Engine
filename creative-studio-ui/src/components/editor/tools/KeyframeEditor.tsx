@@ -1,4 +1,5 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { LegacyAny } from '@/types/legacy';
+import React, { useSta_te, useRef, useCallback, useEffect, useMem_o } from 'react';
 import { Play, Pause, RotateCcw, ZoomIn, ZoomOut, Plus, Trash2, Move, Square, Circle, Triangle } from 'lucide-react';
 
 interface Keyframe {
@@ -41,12 +42,12 @@ export function KeyframeEditor({
   onKeyframeAdd,
   onKeyframeUpdate,
   onKeyframeRemove,
-  onPlayPause,
+  _onPlayPause,
   onSeek
 }: KeyframeEditorProps) {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const [_zoom, setZoom] = u_seState(1);
   const [showBezierEditor, setShowBezierEditor] = useState(false);
   const [selectedKeyframe, setSelectedKeyframe] = useState<{ propertyId: string; keyframeId: string } | null>(null);
 
@@ -498,7 +499,7 @@ export function KeyframeEditor({
                       onChange={(e) => onKeyframeUpdate(
                         selectedKeyframe.propertyId,
                         selectedKeyframe.keyframeId,
-                        { easing: e.target.value as any }
+                        { easing: e.target.value as LegacyAny }
                       )}
                     >
                       <option value="linear">Linear</option>
@@ -528,7 +529,7 @@ export function KeyframeEditor({
                                 bezierPoints: {
                                   ...keyframe.bezierPoints,
                                   x1: parseFloat(e.target.value)
-                                } as any
+                                } as LegacyAny
                               }
                             )}
                           />
@@ -545,7 +546,7 @@ export function KeyframeEditor({
                                 bezierPoints: {
                                   ...keyframe.bezierPoints,
                                   y1: parseFloat(e.target.value)
-                                } as any
+                                } as LegacyAny
                               }
                             )}
                           />
@@ -565,7 +566,7 @@ export function KeyframeEditor({
                                 bezierPoints: {
                                   ...keyframe.bezierPoints,
                                   x2: parseFloat(e.target.value)
-                                } as any
+                                } as LegacyAny
                               }
                             )}
                           />
@@ -582,7 +583,7 @@ export function KeyframeEditor({
                                 bezierPoints: {
                                   ...keyframe.bezierPoints,
                                   y2: parseFloat(e.target.value)
-                                } as any
+                                } as LegacyAny
                               }
                             )}
                           />

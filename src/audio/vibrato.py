@@ -7,6 +7,7 @@ This module provides vibrato effect functionality for audio processing.
 import numpy as np
 import librosa
 
+
 class Vibrato:
     """Vibrato effect processor for audio signals."""
 
@@ -41,22 +42,20 @@ class Vibrato:
         # Apply vibrato using pitch shifting
         output = np.zeros_like(audio_data)
         frame_size = int(self.sample_rate * 0.02)  # 20ms frames
-        
+
         for i in range(0, num_samples, frame_size):
             end_idx = min(i + frame_size, num_samples)
             frame = audio_data[i:end_idx]
-            
+
             # Calculate pitch shift for this frame
             pitch_shift = self.depth * lfo_signal[i]
-            
+
             # Apply pitch shift
             shifted_frame = librosa.effects.pitch_shift(
-                frame, 
-                sr=self.sample_rate, 
-                n_steps=pitch_shift
+                frame, sr=self.sample_rate, n_steps=pitch_shift
             )
-            
+
             # Place shifted frame in output
-            output[i:i+len(shifted_frame)] += shifted_frame
+            output[i : i + len(shifted_frame)] += shifted_frame
 
         return output

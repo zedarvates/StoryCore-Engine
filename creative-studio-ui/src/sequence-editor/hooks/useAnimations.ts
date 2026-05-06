@@ -6,7 +6,8 @@
  * Requirements: 20.1, 20.3, 20.5
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import * as React from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import {
   applyHoverAnimation,
   applyActiveAnimation,
@@ -213,7 +214,9 @@ export function useFadeOut(duration?: number) {
  * @returns True if animations should be reduced
  */
 export function useReducedMotion(): boolean {
-  const [reducedMotion, setReducedMotion] = React.useState(shouldReduceMotion());
+  const [reducedMotion, setReducedMotion] = useState(() => 
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false
+  );
   
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -232,5 +235,3 @@ export function useReducedMotion(): boolean {
   return reducedMotion;
 }
 
-// Fix React import
-import * as React from 'react';

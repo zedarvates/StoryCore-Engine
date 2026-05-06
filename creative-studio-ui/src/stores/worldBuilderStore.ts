@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
@@ -123,7 +124,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
 
         const updatedWorld = {
           ...worldData,
-          [step]: { ...(worldData[step as keyof WorldData] as any), ...(data as any) },
+          [step]: { ...(worldData[step as keyof WorldData] as LegacyAny), ...(data as LegacyAny) },
           version: worldData.version + 1,
         };
 
@@ -175,7 +176,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
         try {
           // TODO: Integrate with WorldBuilderService
           await new Promise(resolve => setTimeout(resolve, 100)); // Mock
-          set({ lastSaved: new Date(), isLoading: false });
+          set({ l_astSaved: new Date(), isLoading: false });
         } catch (error) {
           set({ error: 'Failed to save world', isLoading: false });
         }
@@ -186,7 +187,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
         try {
           // TODO: Integrate with WorldBuilderService
           await new Promise(resolve => setTimeout(resolve, 100)); // Mock
-          set({ isLoading: false });
+          set({ i_sLoading: false });
         } catch (error) {
           set({ error: 'Failed to load world', isLoading: false });
         }

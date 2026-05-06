@@ -8,6 +8,8 @@
  * - Generation flow
  * - Error handling
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -24,7 +26,7 @@ vi.mock('@/hooks/useCameraAngleGeneration', () => ({
 
 // Mock child components
 vi.mock('../AnglePresetSelector', () => ({
-  AnglePresetSelector: ({ presets, selectedAngles, onAngleToggle }: any) => (
+  AnglePresetSelector: ({ presets, selectedAngles, onAngleToggle }: LegacyAny) => (
     <div data-testid="angle-preset-selector">
       <span data-testid="selected-count">{selectedAngles.length}</span>
       {presets.map((preset: CameraAnglePresetMetadata) => (
@@ -41,7 +43,7 @@ vi.mock('../AnglePresetSelector', () => ({
 }));
 
 vi.mock('../ResultsGrid', () => ({
-  ResultsGrid: ({ results, isLoading, progress, error, onRetry }: any) => (
+  ResultsGrid: ({ results, isLoading, progress, error, onRetry }: LegacyAny) => (
     <div data-testid="results-grid">
       {isLoading && <span data-testid="loading-indicator">Loading... {progress}%</span>}
       {error && <span data-testid="error-message">{error}</span>}
@@ -126,7 +128,7 @@ describe('CameraAngleEditor', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockHook = { ...defaultMockReturn };
-    (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+    (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
   });
 
   afterEach(() => {
@@ -198,7 +200,7 @@ describe('CameraAngleEditor', () => {
   describe('Image Handling', () => {
     it('should display uploaded image', () => {
       mockHook.sourceImage = 'data:image/png;base64,test-image';
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -222,7 +224,7 @@ describe('CameraAngleEditor', () => {
 
     it('should clear image when clear button is clicked', async () => {
       mockHook.sourceImage = 'data:image/png;base64,test-image';
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -246,7 +248,7 @@ describe('CameraAngleEditor', () => {
   describe('Angle Selection', () => {
     it('should display selected angle count', () => {
       mockHook.selectedAngles = ['front', 'left'];
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -278,7 +280,7 @@ describe('CameraAngleEditor', () => {
     it('should enable generate button when image and angles are selected', () => {
       mockHook.sourceImage = 'base64-image';
       mockHook.selectedAngles = ['front'];
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -289,7 +291,7 @@ describe('CameraAngleEditor', () => {
     it('should call startGeneration when generate button is clicked', async () => {
       mockHook.sourceImage = 'base64-image';
       mockHook.selectedAngles = ['front'];
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -301,7 +303,7 @@ describe('CameraAngleEditor', () => {
 
     it('should show cancel button during generation', () => {
       mockHook.isGenerating = true;
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -310,7 +312,7 @@ describe('CameraAngleEditor', () => {
 
     it('should call cancelGeneration when cancel button is clicked', async () => {
       mockHook.isGenerating = true;
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -333,7 +335,7 @@ describe('CameraAngleEditor', () => {
         remainingAngles: ['front', 'left'],
         isLoading: true,
       };
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -395,7 +397,7 @@ describe('CameraAngleEditor', () => {
         isLoading: false,
       };
       mockHook.hasResults = true;
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -404,7 +406,7 @@ describe('CameraAngleEditor', () => {
 
     it('should display error message when generation fails', () => {
       mockHook.error = 'Generation failed';
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -413,7 +415,7 @@ describe('CameraAngleEditor', () => {
 
     it('should call retry when retry button is clicked', async () => {
       mockHook.error = 'Generation failed';
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -441,7 +443,7 @@ describe('CameraAngleEditor', () => {
 
     it('should disable reset button during generation', () => {
       mockHook.isGenerating = true;
-      (useCameraAngleGeneration as any).mockReturnValue(mockHook);
+      (useCameraAngleGeneration as LegacyAny).mockReturnValue(mockHook);
 
       render(<CameraAngleEditor />);
 
@@ -468,7 +470,7 @@ describe('CameraAngleEditor', () => {
         remainingAngles: [],
         isLoading: false,
       };
-      (useCameraAngleGeneration as any).mockImplementation(({ onGenerationComplete: callback }: any) => {
+      (useCameraAngleGeneration as LegacyAny).mockImplementation(({ onGenerationComplete: callback }: LegacyAny) => {
         // Simulate calling the callback
         if (callback) {
           callback(mockResults);
@@ -481,7 +483,7 @@ describe('CameraAngleEditor', () => {
 
     it('should call onGenerationError when error occurs', () => {
       const onGenerationError = vi.fn();
-      (useCameraAngleGeneration as any).mockImplementation(({ onGenerationError: callback }: any) => {
+      (useCameraAngleGeneration as LegacyAny).mockImplementation(({ onGenerationError: callback }: LegacyAny) => {
         // Simulate calling the callback
         if (callback) {
           callback('Test error');

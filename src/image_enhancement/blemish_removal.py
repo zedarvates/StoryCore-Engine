@@ -1,4 +1,3 @@
-
 """
 Blemish Removal Module - Targeted removal of skin imperfections.
 Part of the StoryCore-Engine Image Enhancement Suite.
@@ -6,12 +5,14 @@ Part of the StoryCore-Engine Image Enhancement Suite.
 
 import logging
 import asyncio
-from typing import Any, List, Tuple
+from typing import Any
+
 
 class BlemishRemover:
     """
     Detects and Removes spots, acne, and other minor skin blemishes.
     """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -22,5 +23,4 @@ class BlemishRemover:
         await asyncio.sleep(0.3)
         self.logger.info("Detecting and removing blemishes...")
         # Mock detection of 3 blemishes
-        blemishes_found = 3
-        return image # Mock
+        return image  # Mock

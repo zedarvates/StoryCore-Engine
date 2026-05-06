@@ -9,7 +9,7 @@
  * Exigences: 8.1, 8.5, 8.6
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, _useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { ProductionShot, BatchOperationType, BatchOperationResult } from '../../types';
 import { BatchOperationsManager, type BatchOperationOptions } from '../../services/batchOperations';

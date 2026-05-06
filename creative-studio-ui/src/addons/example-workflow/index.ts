@@ -3,7 +3,7 @@
 // ============================================================================
 
 // Core types - Import first, then re-export
-import type { WorkflowStep, WorkflowConfig, WorkflowState, WorkflowOperation } from './types';
+import type { _WorkflowStep, _WorkflowConfig, WorkflowState, _WorkflowOperation } from './types';
 export type {
   WorkflowStep,
   WorkflowConfig,

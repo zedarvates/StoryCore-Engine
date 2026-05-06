@@ -26,7 +26,7 @@ export class MCPAddonManager implements MCPAddonActions {
   }
 
   // Private helper to create default addon
-  private createDefaultAddon(partial?: Partial<MCPAddon>): MCPAddon {
+  private createDefaultAddon(_partial?: Partial<MCPAddon>): MCPAddon {
     return {
       id: 'mcp-server',
       name: 'MCP Server Integration',

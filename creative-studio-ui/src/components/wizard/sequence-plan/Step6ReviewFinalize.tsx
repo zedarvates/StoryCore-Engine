@@ -1,11 +1,12 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronDownIcon, ChevronUpIcon, EditIcon, DownloadIcon, CheckCircleIcon, AlertTriangleIcon, EyeIcon, Film } from 'lucide-react';
-import { SequencePlan, Act, Scene } from '@/types/sequencePlan';
+import { ChevronDownIco_n, Ch_evronUpIcon, EditIcon, DownloadIcon, CheckCircleIcon, AlertTriangleIcon, EyeIcon, Film } from 'lucide-react';
+import { _SequencePlan, Act, Scene } from '@/types/sequencePlan';
 import { ProductionShot } from '@/types/shot';
 import { SequenceTemplate } from '@/types/template';
 
@@ -399,12 +400,12 @@ export function Step6ReviewFinalize({
                     Optimized
                   </Badge>
                 )}
-                {(engine as any).premium && (
+                {(engine as LegacyAny).premium && (
                   <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30 text-[10px] uppercase tracking-widest font-bold">
                     Premium
                   </Badge>
                 )}
-                {(engine as any).suggested && (
+                {(engine as LegacyAny).suggested && (
                   <Badge className="bg-emerald-500/20 text-emerald-500 border-emerald-500/30 text-[10px] uppercase tracking-widest font-bold">
                     Recommended
                   </Badge>

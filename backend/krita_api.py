@@ -1,25 +1,31 @@
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Dict, Any, Optional
+from typing import Optional
 from backend.krita_layer_service import KritaLayerService
 import os
 
 router = APIRouter(tags=["Krita / Precepts"])
 
+
 @router.get("/cine/krita/layers")
-async def get_layers(path: str = Query(..., description="Absolute path to the .kra file")):
+async def get_layers(
+    path: str = Query(..., description="Absolute path to the .kra file"),
+):
     """
     Returns the list of layers in a Krita file.
     """
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail=f"Krita file not found: {path}")
-    
+
     layers = KritaLayerService.get_kra_layers(path)
     return {"layers": layers}
+
 
 @router.get("/cine/krita/composition")
 async def get_composition(
     path: str = Query(..., description="Absolute path to the .kra file"),
-    narrative_context: Optional[str] = Query(None, description="Narrative string for auto-tinting")
+    narrative_context: Optional[str] = Query(
+        None, description="Narrative string for auto-tinting"
+    ),
 ):
     """
     Returns all layers as base64 images, potentially tinted by narrative context.

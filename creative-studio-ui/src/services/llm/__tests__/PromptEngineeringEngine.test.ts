@@ -7,6 +7,8 @@
  * - Template system
  * - Enhanced prompt generation
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PromptEngineeringEngine, type FewShotExample } from '../PromptEngineeringEngine';
@@ -321,7 +323,7 @@ describe('PromptEngineeringEngine', () => {
     });
 
     it('should return empty array for unknown wizard type', () => {
-      const examples = engine.getExamples('unknown' as any);
+      const examples = engine.getExamples('unknown' as LegacyAny);
 
       expect(examples).toEqual([]);
     });

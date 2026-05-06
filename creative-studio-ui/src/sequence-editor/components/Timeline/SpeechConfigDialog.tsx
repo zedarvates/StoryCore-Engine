@@ -108,8 +108,8 @@ const SPEED_PRESETS = [
 
 export const SpeechConfigDialog: React.FC<SpeechConfigDialogProps> = ({
   isOpen,
-  shotId,
-  layerId,
+  _shotId,
+  _layerId,
   currentConfig,
   existingText = '',
   characters = DEFAULT_CHARACTERS,
@@ -133,7 +133,7 @@ export const SpeechConfigDialog: React.FC<SpeechConfigDialogProps> = ({
   const [emotion, setEmotion] = useState<string | undefined>(currentConfig?.emotion);
 
   // Get selected character
-  const selectedCharacter = useMemo(
+  const _selectedCharacter = useMemo(
     () => characters.find((c) => c.id === selectedCharacterId),
     [characters, selectedCharacterId]
   );

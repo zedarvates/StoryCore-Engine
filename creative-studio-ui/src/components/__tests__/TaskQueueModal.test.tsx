@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { TaskQueueModal } from '../TaskQueueModal';
@@ -11,7 +12,7 @@ describe('TaskQueueModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [],
     });
   });
@@ -41,7 +42,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays task count in header', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -60,7 +61,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays plural task count', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -115,7 +116,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays task items', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -135,7 +136,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays task position', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -163,7 +164,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays task priority', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -182,7 +183,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays pending status', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -201,7 +202,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays processing status', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -221,7 +222,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays completed status', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -242,7 +243,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays failed status', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -263,7 +264,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays task type labels', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -309,7 +310,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('displays status summary in footer', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -356,7 +357,7 @@ describe('TaskQueueModal', () => {
 
   it('displays created timestamp', () => {
     const createdDate = new Date('2024-01-15T10:30:00');
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -376,7 +377,7 @@ describe('TaskQueueModal', () => {
 
   it('displays started timestamp when available', () => {
     const startedDate = new Date('2024-01-15T10:35:00');
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -397,7 +398,7 @@ describe('TaskQueueModal', () => {
 
   it('displays completed timestamp when available', () => {
     const completedDate = new Date('2024-01-15T10:40:00');
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -418,7 +419,7 @@ describe('TaskQueueModal', () => {
   });
 
   it('has proper styling for different statuses', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',

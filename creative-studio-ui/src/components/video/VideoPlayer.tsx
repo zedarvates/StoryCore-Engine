@@ -74,14 +74,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, []);
 
   // Seek to specific frame
-  const seekToFrame = useCallback((frameNumber: number, framerate: number = 30) => {
+  const _seekToFrame = useCallback((frameNumber: number, framerate: number = 30) => {
     if (!videoRef.current) return;
     const time = frameNumber / framerate;
     videoRef.current.currentTime = time;
   }, []);
 
   // Generate thumbnail at specific time
-  const generateThumbnail = useCallback(async (time: number): Promise<Blob | null> => {
+  const _generateThumbnail = useCallback(async (time: number): Promise<Blob | null> => {
     if (!videoRef.current || !canvasRef.current) return null;
 
     const video = videoRef.current;

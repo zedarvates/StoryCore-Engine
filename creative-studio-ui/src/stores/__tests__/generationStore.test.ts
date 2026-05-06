@@ -391,7 +391,7 @@ describe('GenerationStore - Unit Tests', () => {
 
       // Start new pipeline
       getStore().resetPipeline();
-      const pipelineId2 = getStore().startPipeline();
+      const _pipelineId2 = getStore().startPipeline();
 
       const image2: GeneratedAsset = {
         id: 'img-2',

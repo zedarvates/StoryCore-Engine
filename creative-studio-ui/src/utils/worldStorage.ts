@@ -21,7 +21,6 @@ export interface SaveWorldResult {
  */
 function sanitizeFolderName(name: string): string {
   return name
-    // eslint-disable-next-line no-control-regex
     .trim()
     .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_') // Replace invalid characters
     .replace(/\s+/g, '_') // Replace spaces with underscores

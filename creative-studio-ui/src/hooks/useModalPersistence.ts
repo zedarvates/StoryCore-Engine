@@ -29,7 +29,7 @@ const createLocalStoragePersistence = (storageKey: string): ModalPersistence => 
       try {
         localStorage.setItem(getStorageKey(schemaId, draftId), JSON.stringify(draft));
         return draftId;
-      } catch (error) {
+      } catch (_error) {
         throw new Error('Failed to save draft to localStorage');
       }
     },
@@ -43,7 +43,7 @@ const createLocalStoragePersistence = (storageKey: string): ModalPersistence => 
 
         const draft: ModalDraft = JSON.parse(stored);
         return draft.data;
-      } catch (error) {
+      } catch (_error) {
         throw new Error('Failed to load draft from localStorage');
       }
     },
@@ -71,7 +71,7 @@ const createLocalStoragePersistence = (storageKey: string): ModalPersistence => 
 
         // Sort by timestamp (newest first)
         return drafts.sort((a, b) => b.timestamp - a.timestamp);
-      } catch (error) {
+      } catch (_error) {
         return [];
       }
     },
@@ -79,7 +79,7 @@ const createLocalStoragePersistence = (storageKey: string): ModalPersistence => 
     delete: async (schemaId: string, draftId: string): Promise<void> => {
       try {
         localStorage.removeItem(getStorageKey(schemaId, draftId));
-      } catch (error) {
+      } catch (_error) {
         throw new Error('Failed to delete draft from localStorage');
       }
     },
@@ -143,7 +143,7 @@ export function useModalPersistence(
       for (const draft of draftsToDelete) {
         await persistence.delete(schema.id, draft.id);
       }
-    } catch (error) {
+    } catch (_error) {
       // Silently fail cleanup
     }
   }, [persistence, schema.id]);

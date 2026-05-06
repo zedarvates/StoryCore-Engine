@@ -9,11 +9,11 @@ from .registry import CommandRegistry
 from .errors import CLIError, UserError, SystemError, ConfigurationError
 
 __all__ = [
-    'CLICore',
-    'BaseHandler', 
-    'CommandRegistry',
-    'CLIError',
-    'UserError',
-    'SystemError',
-    'ConfigurationError'
+    "CLICore",
+    "BaseHandler",
+    "CommandRegistry",
+    "CLIError",
+    "UserError",
+    "SystemError",
+    "ConfigurationError",
 ]

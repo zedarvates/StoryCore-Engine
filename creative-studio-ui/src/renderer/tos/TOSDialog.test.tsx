@@ -9,6 +9,8 @@
  * 
  * Requirements: 1.2, 2.1, 3.1, 3.2, 4.1, 4.2
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -25,7 +27,7 @@ describe('TOSDialog Component', () => {
     mockSendExit.mockClear();
 
     // Setup window.tosAPI mock
-    (window as any).tosAPI = {
+    (window as LegacyAny).tosAPI = {
       sendAcceptance: mockSendAcceptance,
       sendExit: mockSendExit,
     };
@@ -248,7 +250,7 @@ describe('TOSDialog Component', () => {
   describe('IPC Communication', () => {
     it('should handle missing tosAPI gracefully when clicking Accept', () => {
       // Remove tosAPI
-      delete (window as any).tosAPI;
+      delete (window as LegacyAny).tosAPI;
       
       render(<TOSDialog />);
       
@@ -269,7 +271,7 @@ describe('TOSDialog Component', () => {
 
     it('should handle missing tosAPI gracefully when clicking Exit', () => {
       // Remove tosAPI
-      delete (window as any).tosAPI;
+      delete (window as LegacyAny).tosAPI;
       
       render(<TOSDialog />);
       
@@ -286,7 +288,7 @@ describe('TOSDialog Component', () => {
 
     it('should disable both buttons when IPC error occurs', () => {
       // Remove tosAPI
-      delete (window as any).tosAPI;
+      delete (window as LegacyAny).tosAPI;
       
       render(<TOSDialog />);
       
@@ -309,7 +311,7 @@ describe('TOSDialog Component', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
       // Remove tosAPI
-      delete (window as any).tosAPI;
+      delete (window as LegacyAny).tosAPI;
       
       render(<TOSDialog />);
       
@@ -333,7 +335,7 @@ describe('TOSDialog Component', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
       // Remove tosAPI
-      delete (window as any).tosAPI;
+      delete (window as LegacyAny).tosAPI;
       
       render(<TOSDialog />);
       
@@ -418,7 +420,7 @@ describe('TOSDialog Component', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
       // Mock tosAPI with throwing sendAcceptance
-      (window as any).tosAPI = {
+      (window as LegacyAny).tosAPI = {
         sendAcceptance: () => {
           throw new Error('IPC communication failed');
         },
@@ -454,7 +456,7 @@ describe('TOSDialog Component', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
       // Mock tosAPI with throwing sendExit
-      (window as any).tosAPI = {
+      (window as LegacyAny).tosAPI = {
         sendAcceptance: mockSendAcceptance,
         sendExit: () => {
           throw new Error('IPC communication failed');

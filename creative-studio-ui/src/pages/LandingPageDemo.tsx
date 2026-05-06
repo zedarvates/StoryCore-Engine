@@ -46,7 +46,7 @@ export function LandingPageDemo() {
   const handleCreateProjectSubmit = async (projectName: string, projectPath: string, format: SerializableProjectFormat) => {
     // Generate project template
     const template = generateProjectTemplate(format);
-    const initialShots = sequencesToShots(template.sequences);
+    const _initialShots = sequencesToShots(template.sequences);
 
     // Simulate project creation
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -72,7 +72,7 @@ export function LandingPageDemo() {
     }
   };
 
-  const handleRemoveRecentProject = (projectPath: string) => {
+  const handleRemoveRecentProject = (_projectPath: string) => {
     // This will be handled by the RecentProjectsService
     // For now, just refresh the list
     refreshProjects();

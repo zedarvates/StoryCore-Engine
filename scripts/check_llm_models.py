@@ -22,8 +22,7 @@ import json
 import os
 import subprocess
 import sys
-import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from typing import Dict, List, Optional, Tuple
 
 # ---------------------------------------------------------------------------
@@ -129,20 +128,21 @@ FEATURE_MATRIX: List[Dict] = [
 
 # Recommended pull list for a complete install
 RECOMMENDED_PULL_LIST = [
-    ("qwen2.5:7b",   "Primary text model — script, dialogue, characters, memory"),
-    ("qwen2.5:14b",  "Upgrade for RLM reasoning chains (optional but better)"),
-    ("llava:7b",     "Vision/Multimodal — analyzing reference images"),
+    ("qwen2.5:7b", "Primary text model — script, dialogue, characters, memory"),
+    ("qwen2.5:14b", "Upgrade for RLM reasoning chains (optional but better)"),
+    ("llava:7b", "Vision/Multimodal — analyzing reference images"),
 ]
 
 MINIMAL_PULL_LIST = [
-    ("llama3.2:3b",  "Fastest text model — minimal install for quick testing"),
-    ("moondream",    "Smallest vision model — reference image analysis"),
+    ("llama3.2:3b", "Fastest text model — minimal install for quick testing"),
+    ("moondream", "Smallest vision model — reference image analysis"),
 ]
 
 
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ModelInfo:
@@ -156,7 +156,7 @@ class ModelInfo:
 class FeatureStatus:
     feature: str
     module: str
-    status: str        # OK | FALLBACK | MISSING
+    status: str  # OK | FALLBACK | MISSING
     active_model: Optional[str]
     recommended: str
     purpose: str
@@ -172,16 +172,18 @@ class LLMReport:
     features: List[FeatureStatus]
     critical_missing: int
     optional_missing: int
-    pipeline_mode: str   # FULL | MOCK | BROKEN
+    pipeline_mode: str  # FULL | MOCK | BROKEN
 
 
 # ---------------------------------------------------------------------------
 # Ollama helpers
 # ---------------------------------------------------------------------------
 
+
 def fetch_ollama_models(host: str) -> Tuple[bool, List[ModelInfo], str]:
     """Returns (reachable, model_list, error_message)."""
-    import urllib.request, urllib.error
+    import urllib.request
+    import urllib.error
 
     try:
         req = urllib.request.Request(f"{host}/api/tags")
@@ -189,8 +191,8 @@ def fetch_ollama_models(host: str) -> Tuple[bool, List[ModelInfo], str]:
             data = json.loads(resp.read())
             models = []
             for m in data.get("models", []):
-                name      = m.get("name", "")
-                size_gb   = m.get("size", 0) / (1024 ** 3)
+                name = m.get("name", "")
+                size_gb = m.get("size", 0) / (1024**3)
                 # Estimate params from name (e.g. "qwen2.5:7b" → 7.0)
                 param_b: Optional[float] = None
                 for part in name.replace(":", "_").split("_"):
@@ -201,7 +203,11 @@ def fetch_ollama_models(host: str) -> Tuple[bool, List[ModelInfo], str]:
                             pass
                 # Family
                 family = name.split(":")[0].split("/")[-1].lower()
-                models.append(ModelInfo(name=name, size_gb=size_gb, param_b=param_b, family=family))
+                models.append(
+                    ModelInfo(
+                        name=name, size_gb=size_gb, param_b=param_b, family=family
+                    )
+                )
             return True, models, ""
     except urllib.error.URLError as e:
         return False, [], str(e.reason)
@@ -215,8 +221,8 @@ def pull_model(host: str, model_name: str) -> bool:
     try:
         result = subprocess.run(
             ["ollama", "pull", model_name],
-            timeout=600,       # 10 min max
-            check=True
+            timeout=600,  # 10 min max
+            check=True,
         )
         return result.returncode == 0
     except subprocess.CalledProcessError as e:
@@ -234,17 +240,18 @@ def pull_model(host: str, model_name: str) -> bool:
 # Feature mapping
 # ---------------------------------------------------------------------------
 
+
 def evaluate_features(models: List[ModelInfo]) -> List[FeatureStatus]:
     """For each feature, determine if a suitable model is available."""
-    model_families = {m.family for m in models}
-    model_names    = {m.name for m in models}
+    {m.family for m in models}
+    model_names = {m.name for m in models}
 
     results = []
     for feat in FEATURE_MATRIX:
-        required_tag    = feat["required_tag"]
+        required_tag = feat["required_tag"]
         recommended_tag = feat["recommended_tag"]
-        alternatives    = feat["alternatives"]
-        min_params      = feat["min_params_b"]
+        alternatives = feat["alternatives"]
+        min_params = feat["min_params_b"]
 
         # Find best matching model
         active: Optional[str] = None
@@ -256,7 +263,10 @@ def evaluate_features(models: List[ModelInfo]) -> List[FeatureStatus]:
         else:
             for m in models:
                 tags_to_check = [required_tag] + alternatives
-                if any(tag.split(":")[0] in m.family or m.family in tag for tag in tags_to_check):
+                if any(
+                    tag.split(":")[0] in m.family or m.family in tag
+                    for tag in tags_to_check
+                ):
                     if m.param_b is None or m.param_b >= min_params:
                         active = m.name
                         break
@@ -276,16 +286,18 @@ def evaluate_features(models: List[ModelInfo]) -> List[FeatureStatus]:
         if status == "MISSING":
             pull_cmd = f"ollama pull {recommended_tag}"
 
-        results.append(FeatureStatus(
-            feature=feat["feature"],
-            module=feat["module"],
-            status=status,
-            active_model=active,
-            recommended=recommended_tag,
-            purpose=feat["purpose"],
-            critical=feat["critical"],
-            pull_command=pull_cmd,
-        ))
+        results.append(
+            FeatureStatus(
+                feature=feat["feature"],
+                module=feat["module"],
+                status=status,
+                active_model=active,
+                recommended=recommended_tag,
+                purpose=feat["purpose"],
+                critical=feat["critical"],
+                pull_command=pull_cmd,
+            )
+        )
 
     return results
 
@@ -296,15 +308,33 @@ def evaluate_features(models: List[ModelInfo]) -> List[FeatureStatus]:
 
 USE_COLOR = sys.stdout.isatty()
 
+
 def c(text: str, code: str) -> str:
     return f"\033[{code}m{text}\033[0m" if USE_COLOR else text
 
-RED    = lambda t: c(t, "91")
-YELLOW = lambda t: c(t, "93")
-GREEN  = lambda t: c(t, "92")
-CYAN   = lambda t: c(t, "96")
-BOLD   = lambda t: c(t, "1")
-DIM    = lambda t: c(t, "2")
+
+def RED(t):
+    return c(t, "91")
+
+
+def YELLOW(t):
+    return c(t, "93")
+
+
+def GREEN(t):
+    return c(t, "92")
+
+
+def CYAN(t):
+    return c(t, "96")
+
+
+def BOLD(t):
+    return c(t, "1")
+
+
+def DIM(t):
+    return c(t, "2")
 
 
 def render_report(report: LLMReport) -> None:
@@ -318,7 +348,11 @@ def render_report(report: LLMReport) -> None:
     if not report.ollama_reachable:
         print(RED(BOLD("  ❌  OLLAMA NOT REACHABLE")))
         print(RED("     Start Ollama: ollama serve"))
-        print(RED(f"     Or configure OLLAMA_HOST in .env (current: {report.ollama_host})"))
+        print(
+            RED(
+                f"     Or configure OLLAMA_HOST in .env (current: {report.ollama_host})"
+            )
+        )
         print()
         return
 
@@ -327,7 +361,7 @@ def render_report(report: LLMReport) -> None:
     if not report.models:
         print(YELLOW("  ⚠️  No models installed."))
     for m in report.models:
-        size_str  = f"{m.size_gb:.1f} GB"
+        size_str = f"{m.size_gb:.1f} GB"
         param_str = f"{m.param_b:.0f}B params" if m.param_b else "?"
         print(f"  • {m.name:<30} {size_str:<10} {param_str}")
 
@@ -336,20 +370,22 @@ def render_report(report: LLMReport) -> None:
     print(CYAN(BOLD("  [FEATURE COMPATIBILITY MATRIX]")))
     print()
 
-    critical_rows  = [f for f in report.features if f.critical]
-    optional_rows  = [f for f in report.features if not f.critical]
+    critical_rows = [f for f in report.features if f.critical]
+    optional_rows = [f for f in report.features if not f.critical]
 
     def render_rows(rows: List[FeatureStatus], label: str) -> None:
         print(BOLD(f"  ── {label} ──"))
         for feat in rows:
             if feat.status == "OK":
-                icon  = GREEN("✅")
+                icon = GREEN("✅")
                 model = GREEN(feat.active_model or "")
             elif feat.status == "FALLBACK":
-                icon  = YELLOW("⚡")
-                model = YELLOW(f"{feat.active_model} (suboptimal — recommend {feat.recommended})")
+                icon = YELLOW("⚡")
+                model = YELLOW(
+                    f"{feat.active_model} (suboptimal — recommend {feat.recommended})"
+                )
             else:
-                icon  = RED("❌")
+                icon = RED("❌")
                 model = RED(f"NOT FOUND — {feat.pull_command}")
 
             print(f"  {icon} {feat.feature}")
@@ -360,12 +396,12 @@ def render_report(report: LLMReport) -> None:
                 print(YELLOW(f"       Fix     : {feat.pull_command}"))
             print()
 
-    render_rows(critical_rows,  "CRITICAL FEATURES (pipeline will fail without these)")
-    render_rows(optional_rows,  "OPTIONAL FEATURES (degraded quality without)")
+    render_rows(critical_rows, "CRITICAL FEATURES (pipeline will fail without these)")
+    render_rows(optional_rows, "OPTIONAL FEATURES (degraded quality without)")
 
     # Summary
     print(BOLD("─" * 56))
-    total_ok      = sum(1 for f in report.features if f.status in ("OK", "FALLBACK"))
+    total_ok = sum(1 for f in report.features if f.status in ("OK", "FALLBACK"))
     total_missing = sum(1 for f in report.features if f.status == "MISSING")
 
     print(
@@ -414,20 +450,32 @@ def render_dependency_table() -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="StoryCore Engine — LLM Model Dependency Checker"
     )
-    parser.add_argument("--host",             default=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
-                        help="Ollama API host (default: http://localhost:11434 or OLLAMA_HOST env)")
-    parser.add_argument("--pull-recommended", action="store_true",
-                        help="Auto-pull recommended models that are missing")
-    parser.add_argument("--pull-minimal",     action="store_true",
-                        help="Auto-pull minimal model set only")
-    parser.add_argument("--matrix",           action="store_true",
-                        help="Print feature→model dependency table and exit")
-    parser.add_argument("--json",             action="store_true",
-                        help="Output machine-readable JSON")
+    parser.add_argument(
+        "--host",
+        default=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
+        help="Ollama API host (default: http://localhost:11434 or OLLAMA_HOST env)",
+    )
+    parser.add_argument(
+        "--pull-recommended",
+        action="store_true",
+        help="Auto-pull recommended models that are missing",
+    )
+    parser.add_argument(
+        "--pull-minimal", action="store_true", help="Auto-pull minimal model set only"
+    )
+    parser.add_argument(
+        "--matrix",
+        action="store_true",
+        help="Print feature→model dependency table and exit",
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Output machine-readable JSON"
+    )
     args = parser.parse_args()
 
     if args.matrix:
@@ -445,7 +493,9 @@ def main():
 
     features = evaluate_features(models)
     critical_missing = sum(1 for f in features if f.critical and f.status == "MISSING")
-    optional_missing = sum(1 for f in features if not f.critical and f.status == "MISSING")
+    optional_missing = sum(
+        1 for f in features if not f.critical and f.status == "MISSING"
+    )
 
     if critical_missing > 0:
         pipeline_mode = "MOCK (no critical models)" if models else "BROKEN"

@@ -6,6 +6,8 @@
  * 
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 /**
  * Error categories for generation pipeline
@@ -460,7 +462,7 @@ export function preserveStateOnError(
     errorCategory: error.category,
     userInputs: { ...userInputs },
     generatedAssets: [...generatedAssets],
-    pipelineState: pipelineState ? { ...(pipelineState as any) } : null,
+    pipelineState: pipelineState ? { ...(pipelineState as LegacyAny) } : null,
   };
 }
 
@@ -477,7 +479,7 @@ export function restorePreservedState(preserved: PreservedState): {
   return {
     userInputs: { ...preserved.userInputs },
     generatedAssets: [...preserved.generatedAssets],
-    pipelineState: preserved.pipelineState ? { ...(preserved.pipelineState as any) } : null,
+    pipelineState: preserved.pipelineState ? { ...(preserved.pipelineState as LegacyAny) } : null,
   };
 }
 
@@ -548,7 +550,7 @@ export function suggestParameterAdjustments(
   const suggestions: Record<string, unknown> = {};
 
   // Reduce complexity for timeout or generation errors
-  const params = currentParams as any;
+  const params = currentParams as LegacyAny;
   if (params.steps && params.steps > 20) {
     suggestions.steps = Math.max(10, Math.floor(params.steps * 0.7));
   }

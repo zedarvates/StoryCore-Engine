@@ -13,13 +13,16 @@ sys.path.append(str(Path(__file__).parent.parent))
 from backend.ltx_service import LTXVideoService, LTXGenerationConfig, LTXAspectRatio
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 async def run_cinematic_demo():
     logger.info("🎬 DÉMO : SCÈNE CINÉMATIQUE LTX 2.3")
     logger.info("====================================")
-    
+
     # Configuration d'une scène complexe
     config = LTXGenerationConfig(
         prompt=(
@@ -29,7 +32,7 @@ async def run_cinematic_demo():
             "Cinématique 4K, haut niveau de détail, éclairage volumétrique."
         ),
         negative_prompt="cartoon, anime, flou, basse résolution, déformation, couleurs ternes, statique",
-        aspect_ratio=LTXAspectRatio.CINEMATIC, # 2.35:1
+        aspect_ratio=LTXAspectRatio.CINEMATIC,  # 2.35:1
         duration=5.0,
         audio_enabled=True,
         audio_prompt=(
@@ -40,35 +43,36 @@ async def run_cinematic_demo():
             "Vent extrême de force tempête soufflant de gauche à droite. Cape de soie flottant violemment derrière le samouraï. "
             "Gouttes de pluie tombant à un angle aigu de 45 degrés à cause du vent."
         ),
-        use_spectrum=True, # Accélération 3.5x
+        use_spectrum=True,  # Accélération 3.5x
         seed=12345,
-        steps=25
+        steps=25,
     )
 
     service = LTXVideoService()
-    
+
     logger.info(f"🎭 SCÉNARIO : {config.prompt[:60]}...")
     logger.info(f"🔊 AUDIO NORM : {config.audio_prompt[:60]}...")
     logger.info(f"🌪️ PHYSIQUE (Real Wonder) : {config.physics_prompt[:60]}...")
-    logger.info(f"🚀 ACCÉLÉRATEUR : Spectrum v2 (ByteDance) - 3.5x Speedup")
-    
+    logger.info("🚀 ACCÉLÉRATEUR : Spectrum v2 (ByteDance) - 3.5x Speedup")
+
     # Lancement de la génération (Mode Mock pour validation structurelle)
     logger.info("⏳ Lancement du moteur de production (Mode Simulation)...")
     result = await service.generate_video(config)
-    
+
     if result["status"] == "completed":
         logger.info("✅ GÉNÉRATION TERMINÉE AVEC SUCCÈS")
         logger.info(f"📂 FICHIER : {result['output_path']}")
         logger.info("💎 GEMS CONSOMMÉS : 15 (Catégorie Pro)")
         logger.info("------------------------------------")
         logger.info("RÉSUMÉ TECHNIQUE :")
-        logger.info(f" - Moteur : LTX 2.3 Latent Diffusion")
+        logger.info(" - Moteur : LTX 2.3 Latent Diffusion")
         logger.info(f" - Ratio : {config.aspect_ratio.value}")
-        logger.info(f" - Physique : Activé (Vent directionnel)")
-        logger.info(f" - Audio : Sync Latente (Pluie/Tonnerre/Métal)")
-        logger.info(f" - Performance : Spectrum Enabled (Steps: 25 -> 14 interne)")
+        logger.info(" - Physique : Activé (Vent directionnel)")
+        logger.info(" - Audio : Sync Latente (Pluie/Tonnerre/Métal)")
+        logger.info(" - Performance : Spectrum Enabled (Steps: 25 -> 14 interne)")
     else:
         logger.error(f"❌ ÉCHEC : {result.get('error')}")
+
 
 if __name__ == "__main__":
     asyncio.run(run_cinematic_demo())

@@ -3,10 +3,10 @@
  * Main wrapper component for applying transitions to any content
  */
 
-import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { CSSProperties, _useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   TransitionConfig,
-  TransitionState,
+  _TransitionState,
   TransitionPreset,
   TransitionCategory,
   FadeTransitionConfig,
@@ -14,7 +14,7 @@ import {
   ZoomTransitionConfig,
   WipeTransitionConfig,
   GlitchTransitionConfig,
-  GPUMode,
+  _GPUMode,
 } from '../../services/transitions';
 import { useTransition, useCSSTransition, TRANSITION_CSS_CLASSES } from '../../hooks/useTransition';
 
@@ -127,7 +127,7 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
     presetId,
     autoTrigger,
     trigger,
-    direction,
+    _direction,
     preserveOldContent,
     className,
     style,
@@ -150,27 +150,27 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
   const {
     state,
     isActive,
-    isComplete,
+    _isComplete,
     start,
-    cancel,
-    reset,
+    _cancel,
+    _reset,
     applyPreset,
     getPreset,
-    getPresets,
-    getPresetsByCategory,
-    metrics,
+    _getPresets,
+    _getPresetsByCategory,
+    _metrics,
     engine,
   } = useTransition(effectiveCanvasRef, config);
 
   // CSS-based transition helper
   const {
-    isTransitioning: cssTransitioning,
+    isTransitioning: _cssTransitioning,
     fadeOut,
     fadeIn,
-    slideLeft,
-    slideRight,
-    zoomIn,
-    zoomOut,
+    _slideLeft,
+    _slideRight,
+    _zoomIn,
+    _zoomOut,
   } = useCSSTransition(useRef<HTMLDivElement>(null));
 
   // Apply preset if specified

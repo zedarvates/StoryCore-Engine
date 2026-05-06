@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect } from 'react';
 import { DialogueLine, ProductionShot } from '@/types/shot';
 import { Vector3D } from './types';
@@ -214,7 +215,7 @@ export const DialogueGenerator: React.FC<DialogueGeneratorProps> = ({
                 onChange={(e) => {
                   const updated = {
                     ...dialogueState.selectedDialogue!,
-                    timing: { ...dialogueState.selectedDialogue!.timing, emotionalTone: e.target.value as any }
+                    timing: { ...dialogueState.selectedDialogue!.timing, emotionalTone: e.target.value as LegacyAny }
                   };
                   onDialogueUpdate(dialogueState.selectedDialogue!.id, updated);
                 }}

@@ -13,7 +13,6 @@ Author: StoryCore-Engine Team
 Date: 2026-01-15
 """
 
-import asyncio
 import json
 import logging
 import threading
@@ -21,27 +20,28 @@ import time
 import statistics
 from collections import deque, defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Callable, Tuple, Set
+from typing import Dict, List, Any, Optional, Callable
 import psutil
 import numpy as np
 
 from .performance_monitor import PerformanceMonitor, AlertSeverity, PerformanceAlert
-from .advanced_performance_optimizer import ResourceMonitor
 
 
 class MetricType(Enum):
     """Enhanced metric types."""
-    COUNTER = "counter"          # Monotonically increasing value
-    GAUGE = "gauge"             # Point-in-time value
-    HISTOGRAM = "histogram"     # Distribution of values
-    SUMMARY = "summary"         # Quantiles over time
+
+    COUNTER = "counter"  # Monotonically increasing value
+    GAUGE = "gauge"  # Point-in-time value
+    HISTOGRAM = "histogram"  # Distribution of values
+    SUMMARY = "summary"  # Quantiles over time
 
 
 class AlertLevel(Enum):
     """Enhanced alert levels with escalation."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -51,6 +51,7 @@ class AlertLevel(Enum):
 
 class TrendDirection(Enum):
     """Performance trend directions."""
+
     IMPROVING = "improving"
     STABLE = "stable"
     DECLINING = "declining"
@@ -60,6 +61,7 @@ class TrendDirection(Enum):
 @dataclass
 class MetricValue:
     """Enhanced metric value with metadata."""
+
     name: str
     value: float
     timestamp: float
@@ -69,17 +71,18 @@ class MetricValue:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
-            'name': self.name,
-            'value': self.value,
-            'timestamp': self.timestamp,
-            'labels': self.labels,
-            'type': self.metric_type.value
+            "name": self.name,
+            "value": self.value,
+            "timestamp": self.timestamp,
+            "labels": self.labels,
+            "type": self.metric_type.value,
         }
 
 
 @dataclass
 class AlertRule:
     """Alert rule configuration."""
+
     name: str
     condition: str  # Python expression to evaluate
     severity: AlertLevel
@@ -103,10 +106,10 @@ class AlertRule:
                     timestamp=datetime.utcnow(),
                     severity=AlertSeverity(self.severity.value.upper()),
                     metric_name=self.name,
-                    current_value=context.get(self.name.split('.')[0], 0),
+                    current_value=context.get(self.name.split(".")[0], 0),
                     threshold_value=0,  # Not applicable for complex conditions
                     message=self.description,
-                    suggestions=[f"Alert condition: {self.condition}"]
+                    suggestions=[f"Alert condition: {self.condition}"],
                 )
         except Exception as e:
             logging.getLogger(__name__).error(f"Alert rule evaluation error: {e}")
@@ -117,6 +120,7 @@ class AlertRule:
 @dataclass
 class AnomalyDetection:
     """Anomaly detection configuration."""
+
     metric_name: str
     algorithm: str = "zscore"  # zscore, iqr, isolation_forest
     threshold: float = 3.0
@@ -174,6 +178,7 @@ class AnomalyDetection:
 @dataclass
 class PerformanceReport:
     """Comprehensive performance report."""
+
     timestamp: datetime
     summary: Dict[str, Any]
     trends: Dict[str, TrendDirection]
@@ -229,45 +234,53 @@ class EnhancedPerformanceMonitor:
 
     def _setup_default_alert_rules(self):
         """Set up default alert rules."""
-        self.alert_rules.extend([
-            AlertRule(
-                name="high_memory_usage",
-                condition="memory_percent > 90",
-                severity=AlertLevel.CRITICAL,
-                description="Memory usage exceeds 90%",
-                cooldown_seconds=300
-            ),
-            AlertRule(
-                name="high_cpu_usage",
-                condition="cpu_percent > 95",
-                severity=AlertLevel.CRITICAL,
-                description="CPU usage exceeds 95%",
-                cooldown_seconds=300
-            ),
-            AlertRule(
-                name="workflow_timeout",
-                condition="workflow_execution_time > 600",
-                severity=AlertLevel.ERROR,
-                description="Workflow execution time exceeds 10 minutes",
-                cooldown_seconds=600
-            ),
-            AlertRule(
-                name="error_rate_spike",
-                condition="error_rate > 10",
-                severity=AlertLevel.WARNING,
-                description="Error rate exceeds 10%",
-                cooldown_seconds=300
-            )
-        ])
+        self.alert_rules.extend(
+            [
+                AlertRule(
+                    name="high_memory_usage",
+                    condition="memory_percent > 90",
+                    severity=AlertLevel.CRITICAL,
+                    description="Memory usage exceeds 90%",
+                    cooldown_seconds=300,
+                ),
+                AlertRule(
+                    name="high_cpu_usage",
+                    condition="cpu_percent > 95",
+                    severity=AlertLevel.CRITICAL,
+                    description="CPU usage exceeds 95%",
+                    cooldown_seconds=300,
+                ),
+                AlertRule(
+                    name="workflow_timeout",
+                    condition="workflow_execution_time > 600",
+                    severity=AlertLevel.ERROR,
+                    description="Workflow execution time exceeds 10 minutes",
+                    cooldown_seconds=600,
+                ),
+                AlertRule(
+                    name="error_rate_spike",
+                    condition="error_rate > 10",
+                    severity=AlertLevel.WARNING,
+                    description="Error rate exceeds 10%",
+                    cooldown_seconds=300,
+                ),
+            ]
+        )
 
     def _setup_default_anomaly_detectors(self):
         """Set up default anomaly detectors."""
-        self.anomaly_detectors.update({
-            "cpu_percent": AnomalyDetection("cpu_percent", threshold=2.5),
-            "memory_percent": AnomalyDetection("memory_percent", threshold=2.5),
-            "gpu_utilization_percent": AnomalyDetection("gpu_utilization_percent", threshold=3.0),
-            "workflow_execution_time": AnomalyDetection("workflow_execution_time", threshold=2.0)
-        })
+        self.anomaly_detectors.update(
+            {
+                "cpu_percent": AnomalyDetection("cpu_percent", threshold=2.5),
+                "memory_percent": AnomalyDetection("memory_percent", threshold=2.5),
+                "gpu_utilization_percent": AnomalyDetection(
+                    "gpu_utilization_percent", threshold=3.0
+                ),
+                "workflow_execution_time": AnomalyDetection(
+                    "workflow_execution_time", threshold=2.0
+                ),
+            }
+        )
 
     def start_monitoring(self):
         """Start enhanced monitoring."""
@@ -278,17 +291,13 @@ class EnhancedPerformanceMonitor:
 
         # Start monitoring thread
         self.monitoring_thread = threading.Thread(
-            target=self._monitoring_loop,
-            daemon=True,
-            name="enhanced-monitor"
+            target=self._monitoring_loop, daemon=True, name="enhanced-monitor"
         )
         self.monitoring_thread.start()
 
         # Start analytics thread
         self.analytics_thread = threading.Thread(
-            target=self._analytics_loop,
-            daemon=True,
-            name="analytics-thread"
+            target=self._analytics_loop, daemon=True, name="analytics-thread"
         )
         self.analytics_thread.start()
 
@@ -305,16 +314,20 @@ class EnhancedPerformanceMonitor:
 
         self.logger.info("Enhanced performance monitoring stopped")
 
-    def record_metric(self, name: str, value: float,
-                     labels: Optional[Dict[str, str]] = None,
-                     metric_type: MetricType = MetricType.GAUGE):
+    def record_metric(
+        self,
+        name: str,
+        value: float,
+        labels: Optional[Dict[str, str]] = None,
+        metric_type: MetricType = MetricType.GAUGE,
+    ):
         """Record a metric value."""
         metric = MetricValue(
             name=name,
             value=value,
             timestamp=time.time(),
             labels=labels or {},
-            metric_type=metric_type
+            metric_type=metric_type,
         )
 
         # Store in history
@@ -334,7 +347,9 @@ class EnhancedPerformanceMonitor:
         """Get current metric value."""
         return self.real_time_metrics.get(name)
 
-    def get_metric_history(self, name: str, duration_seconds: int = 300) -> List[MetricValue]:
+    def get_metric_history(
+        self, name: str, duration_seconds: int = 300
+    ) -> List[MetricValue]:
         """Get metric history for specified duration."""
         cutoff_time = time.time() - duration_seconds
         return [m for m in self.metrics_history[name] if m.timestamp >= cutoff_time]
@@ -395,7 +410,7 @@ class EnhancedPerformanceMonitor:
             self.record_metric("memory_available_mb", memory.available / (1024 * 1024))
 
             # Disk metrics
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             self.record_metric("disk_usage_percent", disk.percent)
 
             # Network metrics (if available)
@@ -410,7 +425,9 @@ class EnhancedPerformanceMonitor:
             # GPU metrics (mock for now)
             self.record_metric("gpu_utilization_percent", 45.0 + (time.time() % 10))
             self.record_metric("gpu_memory_used_mb", 2048 + (time.time() % 100))
-            self.record_metric("gpu_memory_free_mb", 6144 - (2048 + (time.time() % 100)))
+            self.record_metric(
+                "gpu_memory_free_mb", 6144 - (2048 + (time.time() % 100))
+            )
 
         except Exception as e:
             self.logger.error(f"System metrics collection error: {e}")
@@ -442,7 +459,7 @@ class EnhancedPerformanceMonitor:
             if len(history) < detector.window_size:
                 continue
 
-            values = [m.value for m in list(history)[-detector.window_size:]]
+            values = [m.value for m in list(history)[-detector.window_size :]]
             if detector.detect_anomaly(values):
                 self._trigger_anomaly_alert(metric_name, values[-1])
 
@@ -454,7 +471,7 @@ class EnhancedPerformanceMonitor:
         log_level = {
             AlertSeverity.INFO: logging.INFO,
             AlertSeverity.WARNING: logging.WARNING,
-            AlertSeverity.CRITICAL: logging.CRITICAL
+            AlertSeverity.CRITICAL: logging.CRITICAL,
         }.get(alert.severity, logging.WARNING)
 
         self.logger.log(log_level, f"Performance Alert: {alert.message}")
@@ -476,7 +493,11 @@ class EnhancedPerformanceMonitor:
             current_value=value,
             threshold_value=0,
             message=f"Anomaly detected in {metric_name}: {value}",
-            suggestions=["Investigate unusual metric behavior", "Check system resources", "Review recent changes"]
+            suggestions=[
+                "Investigate unusual metric behavior",
+                "Check system resources",
+                "Review recent changes",
+            ],
         )
 
         self._trigger_alert(alert)
@@ -554,7 +575,7 @@ class EnhancedPerformanceMonitor:
         predictions = {
             "next_hour_cpu_percent": "stable",
             "memory_trend": "increasing",
-            "predicted_alerts": []
+            "predicted_alerts": [],
         }
 
         return PerformanceReport(
@@ -564,7 +585,7 @@ class EnhancedPerformanceMonitor:
             recommendations=recommendations,
             alerts=alerts,
             anomalies=anomalies,
-            predictions=predictions
+            predictions=predictions,
         )
 
     def _calculate_trends(self) -> Dict[str, TrendDirection]:
@@ -579,7 +600,9 @@ class EnhancedPerformanceMonitor:
 
             # Simple trend analysis based on recent values
             recent = [m.value for m in history[-10:]]
-            older = [m.value for m in history[-20:-10]] if len(history) >= 20 else recent
+            older = (
+                [m.value for m in history[-20:-10]] if len(history) >= 20 else recent
+            )
 
             if not older:
                 trends[metric_name] = TrendDirection.STABLE
@@ -588,7 +611,9 @@ class EnhancedPerformanceMonitor:
             recent_avg = statistics.mean(recent)
             older_avg = statistics.mean(older)
 
-            change_percent = ((recent_avg - older_avg) / older_avg) * 100 if older_avg != 0 else 0
+            change_percent = (
+                ((recent_avg - older_avg) / older_avg) * 100 if older_avg != 0 else 0
+            )
 
             if abs(change_percent) < 5:
                 trends[metric_name] = TrendDirection.STABLE
@@ -608,23 +633,37 @@ class EnhancedPerformanceMonitor:
         # Memory recommendations
         memory_metric = self.get_metric("memory_percent")
         if memory_metric and memory_metric.value > 85:
-            recommendations.append("High memory usage detected - consider increasing RAM or optimizing memory usage")
+            recommendations.append(
+                "High memory usage detected - consider increasing RAM or optimizing memory usage"
+            )
 
         # CPU recommendations
         cpu_metric = self.get_metric("cpu_percent")
         if cpu_metric and cpu_metric.value > 90:
-            recommendations.append("High CPU usage detected - consider optimizing CPU-intensive operations")
+            recommendations.append(
+                "High CPU usage detected - consider optimizing CPU-intensive operations"
+            )
 
         # Alert-based recommendations
-        active_critical = [a for a in self.active_alerts.values() if a.severity == AlertSeverity.CRITICAL]
+        active_critical = [
+            a
+            for a in self.active_alerts.values()
+            if a.severity == AlertSeverity.CRITICAL
+        ]
         if active_critical:
-            recommendations.append(f"{len(active_critical)} critical alerts active - immediate attention required")
+            recommendations.append(
+                f"{len(active_critical)} critical alerts active - immediate attention required"
+            )
 
         # Trend-based recommendations
         trends = self._calculate_trends()
-        declining_trends = [name for name, trend in trends.items() if trend == TrendDirection.DECLINING]
+        declining_trends = [
+            name for name, trend in trends.items() if trend == TrendDirection.DECLINING
+        ]
         if declining_trends:
-            recommendations.append(f"Performance declining for: {', '.join(declining_trends[:3])}")
+            recommendations.append(
+                f"Performance declining for: {', '.join(declining_trends[:3])}"
+            )
 
         return recommendations
 
@@ -632,34 +671,34 @@ class EnhancedPerformanceMonitor:
         """Export metrics to JSON file."""
         try:
             export_data = {
-                'timestamp': datetime.utcnow().isoformat(),
-                'metrics': {
+                "timestamp": datetime.utcnow().isoformat(),
+                "metrics": {
                     name: [m.to_dict() for m in history]
                     for name, history in self.metrics_history.items()
                 },
-                'alert_rules': [
+                "alert_rules": [
                     {
-                        'name': rule.name,
-                        'condition': rule.condition,
-                        'severity': rule.severity.value,
-                        'description': rule.description,
-                        'enabled': rule.enabled
+                        "name": rule.name,
+                        "condition": rule.condition,
+                        "severity": rule.severity.value,
+                        "description": rule.description,
+                        "enabled": rule.enabled,
                     }
                     for rule in self.alert_rules
                 ],
-                'active_alerts': [
+                "active_alerts": [
                     {
-                        'id': alert.alert_id,
-                        'timestamp': alert.timestamp.isoformat(),
-                        'severity': alert.severity.value,
-                        'metric': alert.metric_name,
-                        'message': alert.message
+                        "id": alert.alert_id,
+                        "timestamp": alert.timestamp.isoformat(),
+                        "severity": alert.severity.value,
+                        "metric": alert.metric_name,
+                        "message": alert.message,
                     }
                     for alert in self.active_alerts.values()
-                ]
+                ],
             }
 
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 json.dump(export_data, f, indent=2)
 
             self.logger.info(f"Metrics exported to {filepath}")

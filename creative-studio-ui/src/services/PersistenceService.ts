@@ -9,6 +9,8 @@
  * - Storage cleanup when duplicates detected
  * - Compressed storage for large datasets
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { World } from '@/types/world';
 import { Character } from '@/types/character';
@@ -91,12 +93,12 @@ export class PersistenceService {
         const state = useStore.getState();
         const project = state.project;
         
-        if (project && (project as any).projectPath) {
+        if (project && (project as LegacyAny).projectPath) {
           logger.info('[PersistenceService] Auto-saving project state...');
           // On synchronise tout le projet
-          await this.syncData((project as any).projectPath);
+          await this.syncData((project as LegacyAny).projectPath);
           // Et on sauve le fichier projet principal
-          await this.saveProject(project, (project as any).projectPath);
+          await this.saveProject(project, (project as LegacyAny).projectPath);
         }
       } finally {
         this.isSaving = false;
@@ -999,7 +1001,7 @@ export class PersistenceService {
       // Only load discussion if no meaningful messages exist (only welcome message)
       // Check if existing messages are actual conversation (not just welcome)
       const hasConversation = appStore.chatMessages.some(
-        msg => msg.role === 'user' || msg.role === 'assistant'
+        msg => msg.role === 'user' || (msg.role === 'assistant' && msg.id !== '1')
       );
       
       if (!hasConversation) {
@@ -1051,7 +1053,7 @@ export class PersistenceService {
       
       for (const msg of messages) {
         // Fix: Use either role or type (fallback for local message format in LandingChatBox)
-        const roleValue = msg.role || (msg as any).type || 'unknown';
+        const roleValue = msg.role || (msg as LegacyAny).type || 'unknown';
         const roleStr = typeof roleValue === 'string' ? roleValue : 'unknown';
         const role = roleStr.charAt(0).toUpperCase() + roleStr.slice(1);
         content += `# ${role}\n\n${msg.content}\n\n---\n\n`;

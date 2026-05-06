@@ -3,7 +3,7 @@
  * Tests for performance monitoring, timer accuracy, memory tracking, and cache performance
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, _vi, beforeEach, afterEach } from 'vitest';
 import {
   PerformanceMonitoringService,
   getPerformanceMonitoringService,

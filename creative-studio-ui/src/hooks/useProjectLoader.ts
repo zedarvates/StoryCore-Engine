@@ -108,7 +108,7 @@ export function useProjectLoader(): UseProjectLoaderReturn {
       
       // Load recent projects from localStorage
       const recentProjectsService = new RecentProjectsService();
-      const recentProjects = recentProjectsService.getRecentProjects();
+      const _recentProjects = recentProjectsService.getRecentProjects();
       
       // Discover projects from file system via IPC
       const discoveryResult: DiscoveryResult = await window.electron.projectDiscovery.discoverProjects();

@@ -3,7 +3,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import { llmConfigService } from '@/services/llmConfigService';
 import { ComfyUIService } from '@/services/comfyuiService';
 import { serviceStatusMonitor } from '@/services/ServiceStatusMonitor';
-import { getModelNames } from '@/utils/ollamaModelDetection';
+import { getModelNames } from '@/utils/llmDiscovery';
 import {
     Cpu,
     RefreshCw,
@@ -24,14 +24,13 @@ import { Badge } from '@/components/ui/badge';
 export const LocalAIPanel = () => {
     const {
         ollamaStatus,
+        lmStudioStatus,
         comfyuiStatus,
-        setOllamaStatus,
-        setComfyUIStatus
     } = useAppStore();
 
-    const [ollamaModels, setOllamaModels] = useState<string[]>([]);
+    const [models, setModels] = useState<import('@/utils/llmDiscovery').LLMModel[]>([]);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [currentModel, setCurrentModel] = useState<string>('');
+    const [_currentModel, setCurrentModel] = useState<string>('');
 
     useEffect(() => {
         const config = llmConfigService.getConfig();
@@ -44,10 +43,9 @@ export const LocalAIPanel = () => {
     }, []);
 
     const fetchModels = async () => {
-        const config = llmConfigService.getConfig();
-        const endpoint = config?.apiEndpoint || 'http://localhost:11434';
-        const models = await getModelNames(endpoint);
-        setOllamaModels(models);
+        const { getInstalledModels } = await import('@/utils/llmDiscovery');
+        const allModels = await getInstalledModels();
+        setModels(allModels);
     };
 
     const handleRefresh = async () => {
@@ -79,7 +77,7 @@ export const LocalAIPanel = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Ollama Status (LLM) */}
+                {/* Local LLM Status */}
                 <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
                     <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
@@ -88,11 +86,20 @@ export const LocalAIPanel = () => {
                                     <Database className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-lg">Ollama (LLM)</CardTitle>
-                                    <CardDescription>Local Language Model Service</CardDescription>
+                                    <CardTitle className="text-lg">Local LLM</CardTitle>
+                                    <CardDescription>Ollama & LM Studio Providers</CardDescription>
                                 </div>
                             </div>
-                            <StatusBadge status={ollamaStatus} />
+                            <div className="flex flex-col gap-1 items-end">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold">Ollama</span>
+                                    <StatusBadge status={ollamaStatus} />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] text-muted-foreground uppercase font-bold">LM Studio</span>
+                                    <StatusBadge status={lmStudioStatus} />
+                                </div>
+                            </div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -105,24 +112,29 @@ export const LocalAIPanel = () => {
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <span className="text-muted-foreground">Endpoint</span>
-                                <div className="font-medium truncate text-xs font-mono bg-muted/50 px-1.5 py-0.5 rounded">
-                                    {currentLLMConfig?.apiEndpoint || 'http://localhost:11434'}
+                                <span className="text-muted-foreground">Provider</span>
+                                <div className="font-medium flex items-center gap-1.5 capitalize">
+                                    <Server className="w-3.5 h-3.5 text-blue-400" />
+                                    {currentLLMConfig?.provider || 'Unknown'}
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <span className="text-xs font-medium uppercase text-muted-foreground tracking-wider">Available Models</span>
-                            <div className="flex flex-wrap gap-2">
-                                {ollamaModels.length > 0 ? (
-                                    ollamaModels.map(model => (
+                            <span className="text-xs font-medium uppercase text-muted-foreground tracking-wider">Detected Models</span>
+                            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-1">
+                                {models.length > 0 ? (
+                                    models.map(model => (
                                         <Badge
-                                            key={model}
-                                            variant={model === currentLLMConfig?.model ? "default" : "secondary"}
-                                            className="cursor-default"
+                                            key={`${model.provider}-${model.name}`}
+                                            variant={model.name === currentLLMConfig?.model ? "default" : "secondary"}
+                                            className={cn(
+                                                "cursor-default gap-1",
+                                                model.provider === 'lmstudio' ? "border-purple-500/30" : "border-blue-500/30"
+                                            )}
                                         >
-                                            {model}
+                                            <span className="opacity-50 text-[10px] uppercase font-bold">{model.provider}</span>
+                                            {model.name}
                                         </Badge>
                                     ))
                                 ) : (
@@ -134,7 +146,7 @@ export const LocalAIPanel = () => {
                         <div className="pt-2 border-t border-border/50 flex gap-2">
                             <Button variant="ghost" size="sm" className="w-full text-xs gap-1.5" onClick={() => window.dispatchEvent(new CustomEvent('open-llm-settings'))}>
                                 <Settings className="w-3.5 h-3.5" />
-                                Configure
+                                Configure LLM
                             </Button>
                         </div>
                     </CardContent>

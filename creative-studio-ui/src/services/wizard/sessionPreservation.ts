@@ -6,6 +6,8 @@
  * 
  * Requirements: 13.5, 13.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { getLogger } from './logger';
 import type { WizardType } from './types';
@@ -409,7 +411,7 @@ export class SessionPreservationManager {
    */
   updateConfig(config: Partial<SessionPreservationConfig>): void {
     this.config = { ...this.config, ...config };
-    this.logger.info('session', 'Configuration updated', this.config as any);
+    this.logger.info('session', 'Configuration updated', this.config as LegacyAny);
   }
 
   /**

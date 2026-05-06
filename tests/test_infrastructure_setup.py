@@ -41,9 +41,10 @@ class TestInfrastructureSetup:
     @pytest.mark.asyncio
     async def test_pytest_asyncio_working(self):
         """Verify pytest-asyncio is working correctly."""
+
         async def async_function():
             return "async result"
-        
+
         result = await async_function()
         assert result == "async result", "pytest-asyncio is working"
 
@@ -58,10 +59,11 @@ class TestInfrastructureSetup:
     @pytest.mark.unit
     def test_coverage_tracking(self):
         """Verify coverage tracking is enabled."""
+
         # This test will be tracked by coverage
         def sample_function():
             return "covered"
-        
+
         result = sample_function()
         assert result == "covered", "coverage tracking is working"
 

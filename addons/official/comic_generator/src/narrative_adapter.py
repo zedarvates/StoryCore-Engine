@@ -3,16 +3,23 @@ Comic Generator - Narrative Adapter
 Analyzes StoryCore project data and produces mini BD scripts for each page.
 """
 
-import json
 import logging
 from typing import List, Dict, Any, Optional
 from uuid import uuid4
 from datetime import datetime
 
 from .types import (
-    ComicStyle, BubbleShape, NarrativeBeat, DialogueLine, PanelScript,
-    ComicPage, CharacterState, NarrativeCheckpoint, CharacterVisualSignature,
-    PageGenerationRequest, PageGenerationResult
+    ComicStyle,
+    BubbleShape,
+    NarrativeBeat,
+    DialogueLine,
+    PanelScript,
+    ComicPage,
+    CharacterState,
+    NarrativeCheckpoint,
+    CharacterVisualSignature,
+    PageGenerationRequest,
+    PageGenerationResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -23,18 +30,52 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 BUBBLE_THEME_DEFAULTS: Dict[str, Dict[str, Any]] = {
-    "hero":       {"bubble_theme": BubbleShape.ROUND,     "primary_color": "#4A90E2", "border": "#2C5F8A"},
-    "villain":    {"bubble_theme": BubbleShape.FLAME,     "primary_color": "#E24A4A", "border": "#8A2C2C"},
-    "ally":       {"bubble_theme": BubbleShape.ROUND,     "primary_color": "#4AE27A", "border": "#2C8A4F"},
-    "neutral":    {"bubble_theme": BubbleShape.ROUND,     "primary_color": "#E2CC4A", "border": "#8A7A2C"},
-    "robot":      {"bubble_theme": BubbleShape.RECTANGLE, "primary_color": "#4AE2CC", "border": "#2C8A7A"},
-    "spirit":     {"bubble_theme": BubbleShape.CLOUD,     "primary_color": "#CC4AE2", "border": "#7A2C8A"},
-    "ai":         {"bubble_theme": BubbleShape.GLITCH,    "primary_color": "#FF00FF", "border": "#990099"},
-    "default":    {"bubble_theme": BubbleShape.ROUND,     "primary_color": "#FFFFFF", "border": "#CCCCCC"},
+    "hero": {
+        "bubble_theme": BubbleShape.ROUND,
+        "primary_color": "#4A90E2",
+        "border": "#2C5F8A",
+    },
+    "villain": {
+        "bubble_theme": BubbleShape.FLAME,
+        "primary_color": "#E24A4A",
+        "border": "#8A2C2C",
+    },
+    "ally": {
+        "bubble_theme": BubbleShape.ROUND,
+        "primary_color": "#4AE27A",
+        "border": "#2C8A4F",
+    },
+    "neutral": {
+        "bubble_theme": BubbleShape.ROUND,
+        "primary_color": "#E2CC4A",
+        "border": "#8A7A2C",
+    },
+    "robot": {
+        "bubble_theme": BubbleShape.RECTANGLE,
+        "primary_color": "#4AE2CC",
+        "border": "#2C8A7A",
+    },
+    "spirit": {
+        "bubble_theme": BubbleShape.CLOUD,
+        "primary_color": "#CC4AE2",
+        "border": "#7A2C8A",
+    },
+    "ai": {
+        "bubble_theme": BubbleShape.GLITCH,
+        "primary_color": "#FF00FF",
+        "border": "#990099",
+    },
+    "default": {
+        "bubble_theme": BubbleShape.ROUND,
+        "primary_color": "#FFFFFF",
+        "border": "#CCCCCC",
+    },
 }
 
 
-def get_character_visual_signature(character: Dict[str, Any]) -> CharacterVisualSignature:
+def get_character_visual_signature(
+    character: Dict[str, Any],
+) -> CharacterVisualSignature:
     """Derive a visual signature from a StoryCore character's role/archetype."""
     archetype = (
         character.get("role", {}).get("archetype", "")
@@ -66,6 +107,7 @@ def get_character_visual_signature(character: Dict[str, Any]) -> CharacterVisual
 # Narrative Beat Selector
 # ============================================================================
 
+
 def select_narrative_beat(
     story_progression: float,
     arc_position: float,
@@ -92,10 +134,11 @@ def select_narrative_beat(
 # Script Builder
 # ============================================================================
 
+
 class NarrativeAdapter:
     """
     Converts StoryCore project data into structured BD mini-scripts.
-    
+
     Responsibilities:
     - Analyze story arc, characters, locations, objects
     - Decide narrative beat for next page
@@ -105,16 +148,16 @@ class NarrativeAdapter:
 
     STYLE_PANEL_COUNTS = {
         ComicStyle.FRANCO_BELGE: (4, 6),
-        ComicStyle.COMICS_US:    (3, 5),
-        ComicStyle.MANGA:        (4, 6),
-        ComicStyle.WEBTOON:      (4, 8),
+        ComicStyle.COMICS_US: (3, 5),
+        ComicStyle.MANGA: (4, 6),
+        ComicStyle.WEBTOON: (4, 8),
     }
 
     STYLE_LAYOUT_HINTS = {
         ComicStyle.FRANCO_BELGE: "Regular square panels, clear dialogue, centered composition",
-        ComicStyle.COMICS_US:    "Dynamic panels with diagonals, dramatic close-ups, action lines",
-        ComicStyle.MANGA:        "Variable panel size, emotional large panels, screentone effects",
-        ComicStyle.WEBTOON:      "Vertical scroll format, wide panels with breathing space",
+        ComicStyle.COMICS_US: "Dynamic panels with diagonals, dramatic close-ups, action lines",
+        ComicStyle.MANGA: "Variable panel size, emotional large panels, screentone effects",
+        ComicStyle.WEBTOON: "Vertical scroll format, wide panels with breathing space",
     }
 
     def __init__(self, llm_service=None):
@@ -142,9 +185,7 @@ class NarrativeAdapter:
             )
 
             # 3. Select location
-            location = self._select_location(
-                request.locations, checkpoint, beat
-            )
+            location = self._select_location(request.locations, checkpoint, beat)
 
             # 4. Determine panel count for this style
             min_p, max_p = self.STYLE_PANEL_COUNTS[request.style]
@@ -194,7 +235,9 @@ class NarrativeAdapter:
             )
 
         except Exception as e:
-            logger.error(f"[NarrativeAdapter] Page generation failed: {e}", exc_info=True)
+            logger.error(
+                f"[NarrativeAdapter] Page generation failed: {e}", exc_info=True
+            )
             return PageGenerationResult(
                 success=False,
                 page=None,
@@ -220,8 +263,16 @@ class NarrativeAdapter:
         # Prioritize characters seen recently in checkpoint
         if checkpoint and checkpoint.active_characters:
             recent_ids = {c.character_id for c in checkpoint.active_characters}
-            recent = [c for c in characters if c.get("character_id", c.get("id")) in recent_ids]
-            others = [c for c in characters if c.get("character_id", c.get("id")) not in recent_ids]
+            recent = [
+                c
+                for c in characters
+                if c.get("character_id", c.get("id")) in recent_ids
+            ]
+            others = [
+                c
+                for c in characters
+                if c.get("character_id", c.get("id")) not in recent_ids
+            ]
             ordered = recent + others
         else:
             ordered = characters
@@ -245,9 +296,11 @@ class NarrativeAdapter:
         # For CLIMAX, prefer dramatic/exterior locations
         if beat == NarrativeBeat.CLIMAX:
             exterior = [
-                loc for loc in locations
+                loc
+                for loc in locations
                 if "exterior" in str(loc.get("location_type", "")).lower()
-                or "exterior" in str(loc.get("metadata", {}).get("description", "")).lower()
+                or "exterior"
+                in str(loc.get("metadata", {}).get("description", "")).lower()
             ]
             if exterior:
                 return exterior[0]
@@ -270,17 +323,22 @@ class NarrativeAdapter:
         """Build individual panel scripts."""
         panels: List[PanelScript] = []
 
-        location_name = location.get("name", "Unknown Location") if location else "Unknown"
-        location_id   = location.get("location_id", location.get("id")) if location else None
+        location_name = (
+            location.get("name", "Unknown Location") if location else "Unknown"
+        )
+        location_id = (
+            location.get("location_id", location.get("id")) if location else None
+        )
         location_desc = (
-            location.get("metadata", {}).get("description", "")
-            if location else ""
+            location.get("metadata", {}).get("description", "") if location else ""
         )
         style_hint = self.STYLE_LAYOUT_HINTS[request.style]
 
         for i in range(panels_count):
             panel_role = self._panel_role(i, panels_count, beat)
-            chars_in_panel = active_chars[: max(1, len(active_chars) - (panels_count - 1 - i))]
+            chars_in_panel = active_chars[
+                : max(1, len(active_chars) - (panels_count - 1 - i))
+            ]
 
             dialogue = self._build_dialogue(
                 characters=chars_in_panel,
@@ -309,7 +367,9 @@ class NarrativeAdapter:
                 id=f"panel_{str(uuid4())[:8]}",
                 page_id="",  # Will be filled by page
                 panel_index=i,
-                characters=[c.get("character_id", c.get("id", "")) for c in chars_in_panel],
+                characters=[
+                    c.get("character_id", c.get("id", "")) for c in chars_in_panel
+                ],
                 character_names=[c.get("name", "") for c in chars_in_panel],
                 location=location_name,
                 location_id=location_id,
@@ -405,13 +465,15 @@ class NarrativeAdapter:
         for i, char in enumerate(characters[:2]):  # max 2 speakers per panel
             sig = get_character_visual_signature(char)
             text = role_templates[i % len(role_templates)]
-            lines.append(DialogueLine(
-                character_id=char.get("character_id", char.get("id", "")),
-                character_name=char.get("name", "Character"),
-                text=text,
-                bubble_shape=sig.bubble_theme,
-                bubble_color=sig.bubble_background_color,
-            ))
+            lines.append(
+                DialogueLine(
+                    character_id=char.get("character_id", char.get("id", "")),
+                    character_name=char.get("name", "Character"),
+                    text=text,
+                    bubble_shape=sig.bubble_theme,
+                    bubble_color=sig.bubble_background_color,
+                )
+            )
 
         return lines
 
@@ -430,7 +492,7 @@ class NarrativeAdapter:
     ) -> str:
         """Build a human-readable visual description for the panel."""
         char_names = ", ".join(c.get("name", "character") for c in characters)
-        
+
         angle_map = {
             "setup": "establishing wide shot",
             "tension": "medium close-up with tension",
@@ -456,9 +518,9 @@ class NarrativeAdapter:
         """Build a full AI image generation prompt."""
         style_modifiers = {
             ComicStyle.FRANCO_BELGE: "clear ligne claire comic style, vibrant colors, sharp outlines, European BD",
-            ComicStyle.COMICS_US:    "American superhero comics style, dynamic inking, bold colors, cross-hatching",
-            ComicStyle.MANGA:        "manga style, screentone texture, black and white, expressive eyes, speed lines",
-            ComicStyle.WEBTOON:      "webtoon style, full color, clean digital art, Korean manhwa aesthetic",
+            ComicStyle.COMICS_US: "American superhero comics style, dynamic inking, bold colors, cross-hatching",
+            ComicStyle.MANGA: "manga style, screentone texture, black and white, expressive eyes, speed lines",
+            ComicStyle.WEBTOON: "webtoon style, full color, clean digital art, Korean manhwa aesthetic",
         }
         modifier = style_modifiers.get(style, "comic style, high quality")
 
@@ -493,14 +555,12 @@ class NarrativeAdapter:
         """Generate a one-sentence narrative summary for the page."""
         if not panels:
             return "An empty page."
-        char_names = list(set(
-            name for panel in panels for name in panel.character_names
-        ))
+        char_names = list(
+            set(name for panel in panels for name in panel.character_names)
+        )
         chars_str = " and ".join(char_names[:2]) if char_names else "The characters"
         location = panels[0].location if panels else "an unknown location"
-        return (
-            f"{chars_str} face a moment of {beat.value} at {location}."
-        )
+        return f"{chars_str} face a moment of {beat.value} at {location}."
 
     def _update_checkpoint(
         self,

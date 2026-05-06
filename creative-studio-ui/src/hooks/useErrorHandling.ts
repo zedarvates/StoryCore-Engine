@@ -3,6 +3,8 @@
  * 
  * React hook for error handling with retry strategies and user notifications.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
@@ -115,7 +117,7 @@ export function useErrorHandling(
   const [isRetrying, setIsRetrying] = useState(false);
 
   // Last failed operation for retry
-  const lastOperationRef = useRef<(() => Promise<any>) | null>(null);
+  const lastOperationRef = useRef<(() => Promise<LegacyAny>) | null>(null);
 
   // Auto-dismiss timer
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -323,7 +325,7 @@ export function useErrorHandling(
       
       // Call onRecover callback
       if (onRecover) {
-        onRecover();
+        onRec_over();
       }
     } catch (err) {
       // Error will be handled by withRetry

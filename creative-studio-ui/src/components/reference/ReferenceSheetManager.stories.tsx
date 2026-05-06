@@ -83,7 +83,7 @@ const mockGlobalStyle: GlobalStyleSheet = {
   moodBoard: [],
 };
 
-const mockMasterSheet: MasterReferenceSheet = {
+const _mockMasterSheet: MasterReferenceSheet = {
   id: 'master_1',
   projectId: 'project_1',
   characterSheets: [mockCharacter1, mockCharacter2],

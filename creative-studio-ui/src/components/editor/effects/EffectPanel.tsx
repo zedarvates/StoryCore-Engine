@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { Settings, Eye, EyeOff, Trash2, Plus, Sliders, Palette, Move, Zap, Sun } from 'lucide-react';
+import { Settings, Eye, EyeOff, Trash2, Plus, _Sliders, Palette, Move, Zap, Sun } from 'lucide-react';
 import './EffectPanel.css';
 
-import { Effect, AppliedEffect, EffectParameter } from '@/types/effect';
+import { _Effect, AppliedEffect, EffectParameter } from '@/types/effect';
 
 interface EffectPanelProps {
   effects: AppliedEffect[];
@@ -17,7 +17,7 @@ export function EffectPanel({
   onEffectAdd,
   onEffectUpdate,
   onEffectRemove,
-  onEffectReorder
+  _onEffectReorder
 }: EffectPanelProps) {
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['color']));

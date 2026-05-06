@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { useWorkflowStore, WorkflowStage } from '../stores/workflowStore';
-import { Check, Circle, ArrowRight } from 'lucide-react';
+import { Check, _Circle, _ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import './WorkflowProgressBar.css';
 

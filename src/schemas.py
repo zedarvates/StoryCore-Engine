@@ -8,14 +8,14 @@ PROJECT_SCHEMA = {
     "type": "object",
     "required": [
         "schema_version",
-        "project_id", 
+        "project_id",
         "created_at",
         "updated_at",
         "config",
         "coherence_anchors",
         "shots_index",
         "asset_manifest",
-        "status"
+        "status",
     ],
     "properties": {
         "schema_version": {"type": "string"},
@@ -28,8 +28,8 @@ PROJECT_SCHEMA = {
                 "hackathon_mode",
                 "global_seed",
                 "target_aspect_ratio",
-                "target_resolution", 
-                "target_duration_seconds"
+                "target_resolution",
+                "target_duration_seconds",
             ],
             "properties": {
                 "hackathon_mode": {"type": "boolean"},
@@ -37,8 +37,8 @@ PROJECT_SCHEMA = {
                 "target_aspect_ratio": {"type": "string"},
                 "target_resolution": {"type": "string"},
                 "target_duration_seconds": {"type": "integer"},
-                "time_budget_seconds": {"type": "integer"}
-            }
+                "time_budget_seconds": {"type": "integer"},
+            },
         },
         "coherence_anchors": {
             "type": "object",
@@ -49,7 +49,7 @@ PROJECT_SCHEMA = {
                 "lighting_direction",
                 "lighting_temperature",
                 "perspective_type",
-                "horizon_line"
+                "horizon_line",
             ],
             "properties": {
                 "style_anchor_id": {"type": "string"},
@@ -58,8 +58,8 @@ PROJECT_SCHEMA = {
                 "lighting_direction": {"type": "string"},
                 "lighting_temperature": {"type": "string"},
                 "perspective_type": {"type": "string"},
-                "horizon_line": {"type": "string"}
-            }
+                "horizon_line": {"type": "string"},
+            },
         },
         "shots_index": {"type": "object"},
         "asset_manifest": {
@@ -72,8 +72,8 @@ PROJECT_SCHEMA = {
                         "path": {"type": "string"},
                         "type": {"type": "string"},
                         "dimensions": {"type": "string"},
-                        "created_at": {"type": "string"}
-                    }
+                        "created_at": {"type": "string"},
+                    },
                 },
                 "panels": {
                     "type": "array",
@@ -82,9 +82,9 @@ PROJECT_SCHEMA = {
                         "properties": {
                             "asset_id": {"type": "string"},
                             "path": {"type": "string"},
-                            "panel_index": {"type": "integer"}
-                        }
-                    }
+                            "panel_index": {"type": "integer"},
+                        },
+                    },
                 },
                 "promoted_panels": {
                     "type": "array",
@@ -95,9 +95,9 @@ PROJECT_SCHEMA = {
                             "path": {"type": "string"},
                             "original_panel": {"type": "string"},
                             "original_resolution": {"type": "string"},
-                            "promoted_resolution": {"type": "string"}
-                        }
-                    }
+                            "promoted_resolution": {"type": "string"},
+                        },
+                    },
                 },
                 "promotion_metadata": {
                     "type": "object",
@@ -105,8 +105,8 @@ PROJECT_SCHEMA = {
                         "scale_factor": {"type": "integer"},
                         "method": {"type": "string"},
                         "created_at": {"type": "string"},
-                        "total_panels": {"type": "integer"}
-                    }
+                        "total_panels": {"type": "integer"},
+                    },
                 },
                 "refined_panels": {
                     "type": "array",
@@ -116,9 +116,9 @@ PROJECT_SCHEMA = {
                             "asset_id": {"type": "string"},
                             "path": {"type": "string"},
                             "original_source": {"type": "string"},
-                            "resolution": {"type": "string"}
-                        }
-                    }
+                            "resolution": {"type": "string"},
+                        },
+                    },
                 },
                 "refinement_metadata": {
                     "type": "object",
@@ -127,8 +127,8 @@ PROJECT_SCHEMA = {
                         "mode": {"type": "string"},
                         "strength": {"type": "number"},
                         "created_at": {"type": "string"},
-                        "total_panels": {"type": "integer"}
-                    }
+                        "total_panels": {"type": "integer"},
+                    },
                 },
                 "refinement_metrics": {
                     "type": "object",
@@ -141,9 +141,9 @@ PROJECT_SCHEMA = {
                                     "panel": {"type": "string"},
                                     "sharpness_before": {"type": "number"},
                                     "sharpness_after": {"type": "number"},
-                                    "improvement_percent": {"type": "number"}
-                                }
-                            }
+                                    "improvement_percent": {"type": "number"},
+                                },
+                            },
                         },
                         "summary": {
                             "type": "object",
@@ -151,10 +151,10 @@ PROJECT_SCHEMA = {
                                 "min_improvement_percent": {"type": "number"},
                                 "mean_improvement_percent": {"type": "number"},
                                 "max_improvement_percent": {"type": "number"},
-                                "computed_at": {"type": "string"}
-                            }
-                        }
-                    }
+                                "computed_at": {"type": "string"},
+                            },
+                        },
+                    },
                 },
                 "comparison_assets": {
                     "type": "array",
@@ -166,22 +166,19 @@ PROJECT_SCHEMA = {
                             "type": {"type": "string"},
                             "mode": {"type": "string"},
                             "panel": {"type": "string"},
-                            "panels": {
-                                "type": "array",
-                                "items": {"type": "string"}
-                            }
-                        }
-                    }
+                            "panels": {"type": "array", "items": {"type": "string"}},
+                        },
+                    },
                 },
                 "comparison_metadata": {
                     "type": "object",
                     "properties": {
                         "created_at": {"type": "string"},
-                        "total_comparisons": {"type": "integer"}
-                    }
+                        "total_comparisons": {"type": "integer"},
+                    },
                 },
-                "panel_to_shot_map": {"type": "object"}
-            }
+                "panel_to_shot_map": {"type": "object"},
+            },
         },
         "status": {
             "type": "object",
@@ -189,10 +186,10 @@ PROJECT_SCHEMA = {
             "properties": {
                 "current_phase": {"type": "string"},
                 "qa_passed": {"type": "boolean"},
-                "last_qa_report_id": {"type": ["string", "null"]}
-            }
-        }
-    }
+                "last_qa_report_id": {"type": ["string", "null"]},
+            },
+        },
+    },
 }
 
 # Storyboard.json schema
@@ -208,13 +205,13 @@ STORYBOARD_SCHEMA = {
                 "type": "object",
                 "required": [
                     "shot_id",
-                    "scene_id", 
+                    "scene_id",
                     "shot_number",
                     "version",
                     "title",
                     "description",
                     "duration_seconds",
-                    "prompt_modules"
+                    "prompt_modules",
                 ],
                 "properties": {
                     "shot_id": {"type": "string"},
@@ -226,20 +223,27 @@ STORYBOARD_SCHEMA = {
                     "duration_seconds": {"type": "number"},
                     "prompt_modules": {
                         "type": "object",
-                        "required": ["subject", "camera", "lighting", "color", "style", "technical"],
+                        "required": [
+                            "subject",
+                            "camera",
+                            "lighting",
+                            "color",
+                            "style",
+                            "technical",
+                        ],
                         "properties": {
                             "subject": {"type": "string"},
                             "camera": {"type": "string"},
                             "lighting": {"type": "string"},
                             "color": {"type": "string"},
                             "style": {"type": "string"},
-                            "technical": {"type": "object"}
-                        }
-                    }
-                }
-            }
-        }
-    }
+                            "technical": {"type": "object"},
+                        },
+                    },
+                },
+            },
+        },
+    },
 }
 
 # QA Report schema stub
@@ -252,8 +256,8 @@ QA_REPORT_SCHEMA = {
         "timestamp": {"type": "string"},
         "overall_score": {"type": "number"},
         "passed": {"type": "boolean"},
-        "issues": {"type": "array"}
-    }
+        "issues": {"type": "array"},
+    },
 }
 
 # Lighting Asset schema
@@ -261,7 +265,20 @@ LIGHTING_ASSET_SCHEMA = {
     "type": "object",
     "required": ["type", "intensity", "color", "position", "direction"],
     "properties": {
-        "type": {"type": "string", "enum": ["natural", "soft", "rim", "backlight", "overcast", "warm_sunset", "cool_moonlight", "studio", "dramatic"]},
+        "type": {
+            "type": "string",
+            "enum": [
+                "natural",
+                "soft",
+                "rim",
+                "backlight",
+                "overcast",
+                "warm_sunset",
+                "cool_moonlight",
+                "studio",
+                "dramatic",
+            ],
+        },
         "intensity": {"type": "number", "minimum": 0.0, "maximum": 1.0},
         "color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"},
         "position": {
@@ -270,9 +287,9 @@ LIGHTING_ASSET_SCHEMA = {
             "properties": {
                 "x": {"type": "number"},
                 "y": {"type": "number"},
-                "z": {"type": "number"}
-            }
+                "z": {"type": "number"},
+            },
         },
-        "direction": {"type": "string"}
-    }
+        "direction": {"type": "string"},
+    },
 }

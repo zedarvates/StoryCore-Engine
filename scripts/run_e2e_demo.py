@@ -39,7 +39,6 @@ import os
 import shutil
 import sys
 import time
-import uuid
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -52,16 +51,37 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # ── ANSI colors ─────────────────────────────────────────────────────────────
 USE_COLOR = sys.stdout.isatty()
 
+
 def _c(t: str, code: str) -> str:
     return f"\033[{code}m{t}\033[0m" if USE_COLOR else t
 
-RED    = lambda t: _c(t, "91")
-YELLOW = lambda t: _c(t, "93")
-GREEN  = lambda t: _c(t, "92")
-CYAN   = lambda t: _c(t, "96")
-BLUE   = lambda t: _c(t, "94")
-BOLD   = lambda t: _c(t, "1")
-DIM    = lambda t: _c(t, "2")
+
+def RED(t):
+    return _c(t, "91")
+
+
+def YELLOW(t):
+    return _c(t, "93")
+
+
+def GREEN(t):
+    return _c(t, "92")
+
+
+def CYAN(t):
+    return _c(t, "96")
+
+
+def BLUE(t):
+    return _c(t, "94")
+
+
+def BOLD(t):
+    return _c(t, "1")
+
+
+def DIM(t):
+    return _c(t, "2")
 
 
 # ── Canonical demo story (Little Red Riding Hood in 2048) ───────────────────
@@ -113,59 +133,119 @@ MOCK_SCENE_BREAKDOWN = {
         {
             "scene_id": "scene_01",
             "title": "Streets of Neon — Departure",
-            "environment": {"type": "megacity-street", "time_of_day": "night", "weather": "heavy_rain"},
+            "environment": {
+                "type": "megacity-street",
+                "time_of_day": "night",
+                "weather": "heavy_rain",
+            },
             "mood": "tense",
             "tension": 0.45,
             "camera": {"shot_type": "low_angle_wide", "movement": "slow_push_in"},
             "vfx": ["rain_particles", "neon_reflections"],
             "dialogue": [
-                {"character_id": "red", "text": "Package 97B. 97th floor. Don't be late.", "emotion": "determined"}
+                {
+                    "character_id": "red",
+                    "text": "Package 97B. 97th floor. Don't be late.",
+                    "emotion": "determined",
+                }
             ],
-            "actions": [{"type": "walk", "description": "Red navigates a neon-lit alley, dodging puddles"}],
+            "actions": [
+                {
+                    "type": "walk",
+                    "description": "Red navigates a neon-lit alley, dodging puddles",
+                }
+            ],
             "duration_sec": 8,
         },
         {
             "scene_id": "scene_02",
             "title": "Gang Territory — The Warning",
-            "environment": {"type": "underground-market", "time_of_day": "night", "weather": "dry"},
+            "environment": {
+                "type": "underground-market",
+                "time_of_day": "night",
+                "weather": "dry",
+            },
             "mood": "dangerous",
             "tension": 0.70,
             "camera": {"shot_type": "close_up", "movement": "rack_focus"},
             "vfx": ["color_isolation_red_hoodie"],
             "dialogue": [
-                {"character_id": "red", "text": "I just need to pass through.", "emotion": "alert"},
+                {
+                    "character_id": "red",
+                    "text": "I just need to pass through.",
+                    "emotion": "alert",
+                },
             ],
-            "actions": [{"type": "look", "description": "Red scans for threats at the marketplace entrance"}],
+            "actions": [
+                {
+                    "type": "look",
+                    "description": "Red scans for threats at the marketplace entrance",
+                }
+            ],
             "duration_sec": 6,
         },
         {
             "scene_id": "scene_03",
             "title": "The Wolf-Corp Confrontation",
-            "environment": {"type": "corporate-lobby", "time_of_day": "night", "weather": "none"},
+            "environment": {
+                "type": "corporate-lobby",
+                "time_of_day": "night",
+                "weather": "none",
+            },
             "mood": "menacing",
             "tension": 0.87,
             "camera": {"shot_type": "low_angle", "movement": "dolly_in"},
             "vfx": ["hellation_effect", "color_isolation"],
             "dialogue": [
-                {"character_id": "wolf_corp", "text": "Unregistered delivery. The package is forfeit.", "emotion": "cold"},
-                {"character_id": "red", "text": "You can't stop me.", "emotion": "defiant"},
+                {
+                    "character_id": "wolf_corp",
+                    "text": "Unregistered delivery. The package is forfeit.",
+                    "emotion": "cold",
+                },
+                {
+                    "character_id": "red",
+                    "text": "You can't stop me.",
+                    "emotion": "defiant",
+                },
             ],
-            "actions": [{"type": "standoff", "description": "Wolf-Corp enforcer blocks the elevator"}],
+            "actions": [
+                {
+                    "type": "standoff",
+                    "description": "Wolf-Corp enforcer blocks the elevator",
+                }
+            ],
             "duration_sec": 10,
         },
         {
             "scene_id": "scene_04",
             "title": "The 97th Floor — Arrival",
-            "environment": {"type": "apartment-97f", "time_of_day": "dawn", "weather": "clearing"},
+            "environment": {
+                "type": "apartment-97f",
+                "time_of_day": "dawn",
+                "weather": "clearing",
+            },
             "mood": "relief",
             "tension": 0.20,
             "camera": {"shot_type": "medium_wide", "movement": "slow_zoom_out"},
             "vfx": ["warm_light_break"],
             "dialogue": [
-                {"character_id": "grandmother", "text": "You made it...", "emotion": "weak"},
-                {"character_id": "red", "text": "I always do, Grand-Mère.", "emotion": "warm"},
+                {
+                    "character_id": "grandmother",
+                    "text": "You made it...",
+                    "emotion": "weak",
+                },
+                {
+                    "character_id": "red",
+                    "text": "I always do, Grand-Mère.",
+                    "emotion": "warm",
+                },
             ],
-            "actions": [{"type": "delivery", "description": "Red delivers the package, grandmother smiles"}],
+            "actions": [
+                {
+                    "type": "delivery",
+                    "description": "Red delivers the package, grandmother smiles",
+                }
+            ],
             "duration_sec": 12,
         },
     ],
@@ -174,10 +254,11 @@ MOCK_SCENE_BREAKDOWN = {
 
 # ── Data models ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class StepLog:
     step: str
-    status: str          # running | ok | warning | error | skip
+    status: str  # running | ok | warning | error | skip
     message: str
     detail: str = ""
     duration_sec: float = 0.0
@@ -198,9 +279,10 @@ class DemoRunResult:
 
 # ── Logger setup ─────────────────────────────────────────────────────────────
 
+
 def setup_logger(verbose: bool, log_file: Optional[Path]) -> logging.Logger:
     level = logging.DEBUG if verbose else logging.INFO
-    fmt   = "%(asctime)s  %(levelname)-8s  %(message)s"
+    fmt = "%(asctime)s  %(levelname)-8s  %(message)s"
     handlers: List[logging.Handler] = [logging.StreamHandler(sys.stdout)]
     if log_file:
         log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -211,9 +293,11 @@ def setup_logger(verbose: bool, log_file: Optional[Path]) -> logging.Logger:
 
 # ── Progress print helpers ────────────────────────────────────────────────────
 
+
 def step_start(label: str) -> float:
     print(f"\n  {CYAN('▶')} {BOLD(label)}")
     return time.time()
+
 
 def step_ok(label: str, detail: str, t0: float) -> StepLog:
     elapsed = time.time() - t0
@@ -222,12 +306,14 @@ def step_ok(label: str, detail: str, t0: float) -> StepLog:
         print(f"    {DIM(detail)}")
     return StepLog(step=label, status="ok", message=detail, duration_sec=elapsed)
 
+
 def step_warn(label: str, detail: str, t0: float) -> StepLog:
     elapsed = time.time() - t0
     print(f"  {YELLOW('⚠')} {label:<40} {DIM(f'{elapsed:.1f}s')}")
     if detail:
         print(f"    {YELLOW(detail)}")
     return StepLog(step=label, status="warning", message=detail, duration_sec=elapsed)
+
 
 def step_error(label: str, detail: str, t0: float) -> StepLog:
     elapsed = time.time() - t0
@@ -236,12 +322,14 @@ def step_error(label: str, detail: str, t0: float) -> StepLog:
         print(f"    {RED(detail)}")
     return StepLog(step=label, status="error", message=detail, duration_sec=elapsed)
 
+
 def step_skip(label: str, reason: str) -> StepLog:
     print(f"  {DIM('⏭')} {label:<40} {DIM('SKIPPED: ' + reason)}")
     return StepLog(step=label, status="skip", message=reason)
 
 
 # ── Pipeline steps ────────────────────────────────────────────────────────────
+
 
 async def step_preflight(mock: bool, logger: logging.Logger) -> StepLog:
     """Run startup_check.py and parse the result."""
@@ -257,21 +345,29 @@ async def step_preflight(mock: bool, logger: logging.Logger) -> StepLog:
 
     try:
         import subprocess
+
         result = subprocess.run(
             [sys.executable, str(preflight_script), "--json"],
-            capture_output=True, text=True, timeout=30,
-            cwd=str(PROJECT_ROOT)
+            capture_output=True,
+            text=True,
+            timeout=30,
+            cwd=str(PROJECT_ROOT),
         )
         try:
             data = json.loads(result.stdout)
             if data.get("critical_failures", 0) > 0:
                 details = "; ".join(
-                    c["message"] for c in data.get("checks", [])
+                    c["message"]
+                    for c in data.get("checks", [])
                     if c["level"] == "CRITICAL"
                 )
-                return step_error(label, f"{data['critical_failures']} critical issue(s): {details}", t0)
+                return step_error(
+                    label,
+                    f"{data['critical_failures']} critical issue(s): {details}",
+                    t0,
+                )
             warnings = data.get("warnings", 0)
-            msg = f"All checks passed"
+            msg = "All checks passed"
             if warnings:
                 msg += f" ({warnings} warnings)"
             return step_ok(label, msg, t0)
@@ -288,9 +384,7 @@ async def step_preflight(mock: bool, logger: logging.Logger) -> StepLog:
 
 
 async def step_parse_prompt(
-    prompt: str,
-    mock: bool,
-    logger: logging.Logger
+    prompt: str, mock: bool, logger: logging.Logger
 ) -> tuple[Dict[str, Any], StepLog]:
     """Expand the user prompt into a structured scene_breakdown."""
     label = "Prompt → Scene breakdown"
@@ -299,11 +393,14 @@ async def step_parse_prompt(
     if mock:
         data = MOCK_SCENE_BREAKDOWN.copy()
         data["prompt"] = prompt
-        return data, step_ok(label, f"Mock breakdown: {len(data['scenes'])} scenes generated", t0)
+        return data, step_ok(
+            label, f"Mock breakdown: {len(data['scenes'])} scenes generated", t0
+        )
 
     # Try to use the end_to_end orchestrator
     try:
         from src.end_to_end.prompt_parser import PromptParser
+
         parser = PromptParser()
         parsed = parser.parse(prompt)
         _, errors = parser.validate_parsed_data(parsed)
@@ -314,12 +411,16 @@ async def step_parse_prompt(
         if "scenes" not in data or not data.get("scenes"):
             data.update(MOCK_SCENE_BREAKDOWN)
             data["prompt"] = prompt
-        return data, step_ok(label, f"Parsed: {len(data.get('scenes', []))} scene(s)", t0)
+        return data, step_ok(
+            label, f"Parsed: {len(data.get('scenes', []))} scene(s)", t0
+        )
     except ImportError as e:
         logger.debug(f"PromptParser import failed: {e} — using mock breakdown")
         data = MOCK_SCENE_BREAKDOWN.copy()
         data["prompt"] = prompt
-        return data, step_warn(label, f"Using mock breakdown (PromptParser unavailable: {e})", t0)
+        return data, step_warn(
+            label, f"Using mock breakdown (PromptParser unavailable: {e})", t0
+        )
     except Exception as e:
         logger.warning(f"PromptParser error: {e}")
         data = MOCK_SCENE_BREAKDOWN.copy()
@@ -385,6 +486,7 @@ async def step_generate_images(
         # Create colored placeholder images
         try:
             from PIL import Image, ImageDraw, ImageFont
+
             neon_palette = ["#FF2244", "#00F5FF", "#9D00FF", "#FF6B00", "#00FF9D"]
             for i, scene in enumerate(scenes):
                 img = Image.new("RGB", (1280, 720), color="#0A0A1A")
@@ -394,7 +496,7 @@ async def step_generate_images(
                 for thickness in range(4):
                     draw.rectangle(
                         [thickness, thickness, 1280 - thickness, 720 - thickness],
-                        outline=border_color
+                        outline=border_color,
                     )
                 # Scene info text
                 text_lines = [
@@ -412,12 +514,18 @@ async def step_generate_images(
                 img.save(str(img_path), "PNG")
                 print(f"    {DIM(f'  Placeholder image: {img_path.name}')}")
 
-            return step_ok(label, f"Created {len(scenes)} placeholder image(s) [mock mode]", t0)
+            return step_ok(
+                label, f"Created {len(scenes)} placeholder image(s) [mock mode]", t0
+            )
         except ImportError:
             # PIL not available — create empty files
             for scene in scenes:
                 (images_dir / f"{scene['scene_id']}.png").write_bytes(b"")
-            return step_warn(label, f"Created {len(scenes)} empty placeholder files (PIL not installed)", t0)
+            return step_warn(
+                label,
+                f"Created {len(scenes)} empty placeholder files (PIL not installed)",
+                t0,
+            )
 
     # Real mode: ComfyUI via end_to_end integration
     try:
@@ -426,7 +534,7 @@ async def step_generate_images(
 
         comfyui_host = os.environ.get("COMFYUI_HOST", "localhost")
         comfyui_port = int(os.environ.get("COMFYUI_PORT", "8188"))
-        comfyui_url  = f"http://{comfyui_host}:{comfyui_port}"
+        comfyui_url = f"http://{comfyui_host}:{comfyui_port}"
 
         integration = ComfyUIIntegration(comfyui_url)
         available = await integration.check_availability()
@@ -448,13 +556,13 @@ async def step_generate_images(
             return step_warn(
                 label,
                 f"Created {len(scenes)} placeholder image(s) (ComfyUI unavailable — start it first)",
-                t0
+                t0,
             )
 
         # ComfyUI is up — generate real images
         coherence = scene_data.get("visual_coherence", {})
         config_mgr = ConfigurationManager()
-        style_config = config_mgr.determine_style_config(coherence)
+        config_mgr.determine_style_config(coherence)
 
         generated = 0
         for scene in scenes:
@@ -482,7 +590,9 @@ async def step_generate_images(
                 logger.warning(f"Image generation failed for {scene['scene_id']}: {e}")
                 (images_dir / f"{scene['scene_id']}.png").write_bytes(b"")
 
-        return step_ok(label, f"Generated {generated}/{len(scenes)} real image(s) via ComfyUI", t0)
+        return step_ok(
+            label, f"Generated {generated}/{len(scenes)} real image(s) via ComfyUI", t0
+        )
 
     except ImportError as e:
         logger.warning(f"ComfyUI integration unavailable: {e}")
@@ -501,12 +611,13 @@ async def step_generate_audio(
     label = "Audio / TTS synthesis"
     t0 = step_start(label)
     audio_dir = output_dir / "audio"
-    scenes    = scene_data.get("scenes", [])
+    scenes = scene_data.get("scenes", [])
 
     if mock:
         # Create silent WAV placeholders (44100 Hz, 1 sec, mono)
         try:
-            import wave, struct, array as arr_mod
+            import wave
+
             for scene in scenes:
                 dialogues = scene.get("dialogue", [])
                 for j, dlg in enumerate(dialogues):
@@ -519,20 +630,23 @@ async def step_generate_audio(
                         wf.setframerate(44100)
                         wf.writeframes(b"\x00\x00" * n_samples)
             total = sum(len(s.get("dialogue", [])) for s in scenes)
-            return step_ok(label, f"Created {total} silent placeholder WAV(s) [mock mode]", t0)
+            return step_ok(
+                label, f"Created {total} silent placeholder WAV(s) [mock mode]", t0
+            )
         except Exception as e:
             return step_warn(label, f"Could not write WAV placeholders: {e}", t0)
 
     # Real mode: try local TTS
     try:
         from src.audio_engine import AudioEngine
+
         engine = AudioEngine()
         generated = 0
         for scene in scenes:
             for j, dlg in enumerate(scene.get("dialogue", [])):
-                char_id  = dlg.get("character_id", "narrator")
-                text     = dlg.get("text", "")
-                emotion  = dlg.get("emotion", "neutral")
+                char_id = dlg.get("character_id", "narrator")
+                text = dlg.get("text", "")
+                emotion = dlg.get("emotion", "neutral")
                 wav_path = audio_dir / f"{scene['scene_id']}_dlg{j:02d}.wav"
                 try:
                     await engine.synthesize(
@@ -562,9 +676,9 @@ async def step_assemble_video(
     t0 = step_start(label)
 
     images_dir = output_dir / "images"
-    final_dir  = output_dir / "final"
+    final_dir = output_dir / "final"
     final_path = final_dir / f"{project_name}_demo.mp4"
-    scenes     = scene_data.get("scenes", [])
+    scenes = scene_data.get("scenes", [])
 
     # Check FFmpeg
     ffmpeg = shutil.which("ffmpeg")
@@ -579,9 +693,7 @@ async def step_assemble_video(
 
     if not ffmpeg:
         return None, step_error(
-            label,
-            "FFmpeg not found. Install it and add to PATH.",
-            t0
+            label, "FFmpeg not found. Install it and add to PATH.", t0
         )
 
     # Build image list file
@@ -591,16 +703,28 @@ async def step_assemble_video(
             img_path = images_dir / f"{scene['scene_id']}.png"
             if not img_path.exists() or img_path.stat().st_size == 0:
                 # Write a colored solid frame as substitute
-                logger.debug(f"Image missing for {scene['scene_id']} — will use black frame")
+                logger.debug(
+                    f"Image missing for {scene['scene_id']} — will use black frame"
+                )
                 # Create a 1280x720 black PNG with text via FFmpeg itself
                 black_img = images_dir / f"{scene['scene_id']}_blank.png"
                 import subprocess as sp
-                sp.run([
-                    ffmpeg, "-y", "-f", "lavfi",
-                    "-i", f"color=c=0x0A0A1A:size=1280x720:rate=1",
-                    "-frames:v", "1",
-                    str(black_img)
-                ], capture_output=True, timeout=10)
+
+                sp.run(
+                    [
+                        ffmpeg,
+                        "-y",
+                        "-f",
+                        "lavfi",
+                        "-i",
+                        "color=c=0x0A0A1A:size=1280x720:rate=1",
+                        "-frames:v",
+                        "1",
+                        str(black_img),
+                    ],
+                    capture_output=True,
+                    timeout=10,
+                )
                 if black_img.exists():
                     img_path = black_img
 
@@ -611,15 +735,26 @@ async def step_assemble_video(
     # FFmpeg: images → slideshow MP4
     try:
         import subprocess as sp
+
         cmd = [
-            ffmpeg, "-y",
-            "-f", "concat", "-safe", "0",
-            "-i", str(image_list_path),
-            "-vf", "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=24",
-            "-c:v", "libx264",
-            "-crf", "23",
-            "-preset", "fast",
-            "-pix_fmt", "yuv420p",
+            ffmpeg,
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(image_list_path),
+            "-vf",
+            "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,fps=24",
+            "-c:v",
+            "libx264",
+            "-crf",
+            "23",
+            "-preset",
+            "fast",
+            "-pix_fmt",
+            "yuv420p",
             str(final_path),
         ]
         logger.debug(f"FFmpeg command: {' '.join(cmd)}")
@@ -629,14 +764,12 @@ async def step_assemble_video(
             return None, step_error(
                 label,
                 f"FFmpeg failed (exit {result.returncode}): {result.stderr[-500:]}",
-                t0
+                t0,
             )
 
         size_mb = final_path.stat().st_size / (1024 * 1024)
         return final_path, step_ok(
-            label,
-            f"Video: {final_path.name} ({size_mb:.1f} MB)",
-            t0
+            label, f"Video: {final_path.name} ({size_mb:.1f} MB)", t0
         )
     except Exception as e:
         return None, step_error(label, str(e), t0)
@@ -675,6 +808,7 @@ async def step_copy_to_demo_dir(
 
 # ── Main orchestrator ─────────────────────────────────────────────────────────
 
+
 async def run_e2e_demo(
     prompt: str,
     output_dir: Path,
@@ -710,7 +844,9 @@ async def run_e2e_demo(
     print(BOLD("╔══════════════════════════════════════════════════════╗"))
     print(BOLD("║         StoryCore Engine — E2E Demo Runner          ║"))
     print(BOLD("╚══════════════════════════════════════════════════════╝"))
-    print(f"  Mode    : {YELLOW('MOCK (no AI calls)') if mock else GREEN('FULL (ComfyUI + LLM)')}")
+    print(
+        f"  Mode    : {YELLOW('MOCK (no AI calls)') if mock else GREEN('FULL (ComfyUI + LLM)')}"
+    )
     print(f"  Project : {CYAN(project_name)}")
     print(f"  Output  : {DIM(str(run_dir))}")
     print(f"  Prompt  : {DIM(prompt[:100] + ('...' if len(prompt) > 100 else ''))}")
@@ -759,7 +895,9 @@ async def run_e2e_demo(
         result.warnings.append(log.message)
 
     # 6. Video assembly
-    video_path, log = await step_assemble_video(scene_data, run_dir, project_name, mock, logger)
+    video_path, log = await step_assemble_video(
+        scene_data, run_dir, project_name, mock, logger
+    )
     result.steps.append(log)
     if log.status == "error":
         result.errors.append(log.message)
@@ -790,7 +928,9 @@ async def run_e2e_demo(
         "steps": [asdict(s) for s in result.steps],
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
-    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    summary_path.write_text(
+        json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     # ── Banner ───────────────────────────────────────────────────────────────
     print()
@@ -821,6 +961,7 @@ async def run_e2e_demo(
 
 # ── Entry point ───────────────────────────────────────────────────────────────
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="StoryCore Engine — End-to-End Demo Runner",
@@ -835,31 +976,35 @@ Examples:
 
   # Custom story, mock mode
   python scripts/run_e2e_demo.py --mock "Snow White in 2048, cyberpunk, neon"
-        """
+        """,
     )
     parser.add_argument(
-        "prompt", nargs="?", default=None,
-        help="Story prompt (omit if using --canonical)"
+        "prompt",
+        nargs="?",
+        default=None,
+        help="Story prompt (omit if using --canonical)",
     )
     parser.add_argument(
-        "--canonical", action="store_true",
-        help=f"Use the canonical demo prompt: '{CANONICAL_PROMPT[:60]}...'"
+        "--canonical",
+        action="store_true",
+        help=f"Use the canonical demo prompt: '{CANONICAL_PROMPT[:60]}...'",
     )
     parser.add_argument(
-        "--mock", action="store_true",
-        help="Mock mode: skip ComfyUI and LLM calls, use placeholders"
+        "--mock",
+        action="store_true",
+        help="Mock mode: skip ComfyUI and LLM calls, use placeholders",
     )
     parser.add_argument(
-        "--output", type=Path, default=PROJECT_ROOT / "output" / "e2e_demos",
-        help="Output directory (default: output/e2e_demos/)"
+        "--output",
+        type=Path,
+        default=PROJECT_ROOT / "output" / "e2e_demos",
+        help="Output directory (default: output/e2e_demos/)",
     )
     parser.add_argument(
-        "--no-preflight", action="store_true",
-        help="Skip the pre-flight check"
+        "--no-preflight", action="store_true", help="Skip the pre-flight check"
     )
     parser.add_argument(
-        "--verbose", "-v", action="store_true",
-        help="Enable verbose debug logging"
+        "--verbose", "-v", action="store_true", help="Enable verbose debug logging"
     )
     args = parser.parse_args()
 
@@ -880,13 +1025,15 @@ Examples:
         sys.exit(3)
 
     # Run
-    result = asyncio.run(run_e2e_demo(
-        prompt=prompt,
-        output_dir=args.output,
-        mock=args.mock,
-        no_preflight=args.no_preflight,
-        verbose=args.verbose,
-    ))
+    result = asyncio.run(
+        run_e2e_demo(
+            prompt=prompt,
+            output_dir=args.output,
+            mock=args.mock,
+            no_preflight=args.no_preflight,
+            verbose=args.verbose,
+        )
+    )
 
     sys.exit(0 if result.success else 1)
 

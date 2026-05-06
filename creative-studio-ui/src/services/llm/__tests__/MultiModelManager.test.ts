@@ -8,6 +8,8 @@
  * - Fallback chains
  * - Configuration management
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MultiModelManager, type LLMConfig } from '../MultiModelManager';
@@ -19,7 +21,7 @@ vi.mock('../OllamaClient');
 describe('MultiModelManager', () => {
   let manager: MultiModelManager;
   let mockConfig: LLMConfig;
-  let mockOllamaClient: any;
+  let mockOllamaClient: LegacyAny;
 
   beforeEach(() => {
     mockConfig = {
@@ -41,7 +43,7 @@ describe('MultiModelManager', () => {
     };
 
     // Mock the OllamaClient constructor
-    (OllamaClient as any).mockImplementation(() => mockOllamaClient);
+    (OllamaClient as LegacyAny).mockImplementation(() => mockOllamaClient);
 
     manager = new MultiModelManager(mockConfig);
   });
@@ -441,26 +443,26 @@ describe('MultiModelManager', () => {
 
     it('should create new Ollama client when endpoint changes', () => {
       // Track how many times OllamaClient constructor was called
-      const constructorCallsBefore = (OllamaClient as any).mock.calls.length;
+      const constructorCallsBefore = (OllamaClient as LegacyAny).mock.calls.length;
       
       manager.updateConfig({ apiEndpoint: 'http://custom:8080' });
 
-      const constructorCallsAfter = (OllamaClient as any).mock.calls.length;
+      const constructorCallsAfter = (OllamaClient as LegacyAny).mock.calls.length;
       
       // Should have created a new client (one more constructor call)
       expect(constructorCallsAfter).toBe(constructorCallsBefore + 1);
       
       // Verify the new endpoint was used
-      const lastCall = (OllamaClient as any).mock.calls[constructorCallsAfter - 1];
+      const lastCall = (OllamaClient as LegacyAny).mock.calls[constructorCallsAfter - 1];
       expect(lastCall[0]).toBe('http://custom:8080');
     });
 
     it('should not create new client when endpoint unchanged', () => {
-      const initialClient = (manager as any).ollamaClient;
+      const initialClient = (manager as LegacyAny).ollamaClient;
       
       manager.updateConfig({ model: 'llama3.1:8b' });
 
-      const sameClient = (manager as any).ollamaClient;
+      const sameClient = (manager as LegacyAny).ollamaClient;
       expect(sameClient).toBe(initialClient);
     });
   });

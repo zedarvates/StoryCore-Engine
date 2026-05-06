@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useCallback, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useStore } from '../store';
@@ -111,7 +112,7 @@ export const StoryboardCanvas: React.FC<StoryboardCanvasProps> = ({ className = 
   }
 
   return (
-    <div ref={drop as any} className={`h-full overflow-auto bg-gray-50 ${className} ${isOver ? 'bg-blue-50' : ''}`}>
+    <div ref={drop as LegacyAny} className={`h-full overflow-auto bg-gray-50 ${className} ${isOver ? 'bg-blue-50' : ''}`}>
       <div className="p-6">
         {/* Grid container with responsive columns */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

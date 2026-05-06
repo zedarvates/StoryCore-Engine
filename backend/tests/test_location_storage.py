@@ -2,10 +2,9 @@ import os
 import json
 import shutil
 import tempfile
-import asyncio
 from pathlib import Path
 import pytest
-from backend.location_api import create_location, get_location, LocationCreate
+
 
 @pytest.fixture
 def temp_projects_dir():
@@ -24,6 +23,7 @@ def temp_projects_dir():
 def test_directory_creation_when_missing(temp_projects_dir):
     """Test that the 'lieux' directory is created if it does not exist when saving a location."""
     import uuid
+
     project_id = "testproj"
     location_id = str(uuid.uuid4())
     location_data = {
@@ -41,6 +41,7 @@ def test_directory_creation_when_missing(temp_projects_dir):
         shutil.rmtree(project_path.parent.parent)
     # Save location directly (this should trigger directory creation)
     from backend.location_api import save_location
+
     saved = save_location(location_id, location_data)
     assert saved is True
     # Verify that the directory was created

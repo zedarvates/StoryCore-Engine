@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, beforeEach, _afterEach, vi } from 'vitest';
+import { render, screen, waitFor, _cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Step5Relationships } from '../Step5Relationships';
 import { WizardProvider } from '@/contexts/WizardContext';
@@ -15,9 +15,9 @@ vi.mock('@/store', () => ({
 import { useCharacters } from '@/store';
 
 describe('Step5Relationships - Character Relationship Validation', () => {
-  const mockNextStep = vi.fn();
-  const mockPreviousStep = vi.fn();
-  const mockUpdateFormData = vi.fn();
+  const _mockNextStep = vi.fn();
+  const _mockPreviousStep = vi.fn();
+  const _mockUpdateFormData = vi.fn();
 
   const mockCharacter: Partial<Character> = {
     ...createEmptyCharacter(),
@@ -96,7 +96,7 @@ describe('Step5Relationships - Character Relationship Validation', () => {
   });
 
   it('validates that selected character exists when adding relationship', async () => {
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
     renderComponent();
     
     // Try to add without selecting a character
@@ -254,7 +254,7 @@ describe('Step5Relationships - Character Relationship Validation', () => {
   });
 
   it('allows deleting relationships', async () => {
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
     const characterWithRelationships: Partial<Character> = {
       ...mockCharacter,
       relationships: [

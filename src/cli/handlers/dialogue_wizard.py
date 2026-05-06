@@ -8,6 +8,12 @@ from typing import List
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.wizard.dialogue_wizard import (
+    DialogueTone,
+    DialoguePurpose,
+    create_dialogue_wizard,
+    generate_quick_dialogue,
+)
 
 
 class DialogueWizardHandler(BaseHandler):
@@ -21,45 +27,46 @@ class DialogueWizardHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
         parser.add_argument(
-            "--characters",
-            nargs="+",
-            help="Character names to include in dialogue"
+            "--characters", nargs="+", help="Character names to include in dialogue"
         )
 
-        parser.add_argument(
-            "--topic",
-            help="Topic or concept for the dialogue scene"
-        )
+        parser.add_argument("--topic", help="Topic or concept for the dialogue scene")
 
         parser.add_argument(
             "--tone",
             choices=["natural", "dramatic", "comedic", "intense", "subtle"],
             default="natural",
-            help="Tone of the dialogue (default: natural)"
+            help="Tone of the dialogue (default: natural)",
         )
 
         parser.add_argument(
             "--purpose",
-            choices=["exposition", "conflict", "character_development", "comedy_relief", "climax_building"],
+            choices=[
+                "exposition",
+                "conflict",
+                "character_development",
+                "comedy_relief",
+                "climax_building",
+            ],
             default="character_development",
-            help="Purpose of the dialogue scene (default: character_development)"
+            help="Purpose of the dialogue scene (default: character_development)",
         )
 
         parser.add_argument(
             "--length",
             type=int,
             default=8,
-            help="Target number of dialogue lines (default: 8)"
+            help="Target number of dialogue lines (default: 8)",
         )
 
         parser.add_argument(
             "--quick",
             action="store_true",
-            help="Use quick generation mode with minimal prompts"
+            help="Use quick generation mode with minimal prompts",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -71,12 +78,12 @@ class DialogueWizardHandler(BaseHandler):
                     create_dialogue_wizard,
                     generate_quick_dialogue,
                     DialoguePurpose,
-                    DialogueTone
+                    DialogueTone,
                 )
             except ImportError as e:
                 raise SystemError(
                     f"Dialogue wizard modules not available: {e}",
-                    "Ensure wizard package is installed"
+                    "Ensure wizard package is installed",
                 )
 
             # Validate project path
@@ -84,7 +91,7 @@ class DialogueWizardHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             print(f"🎭 Dialogue Wizard for project: {project_path.absolute()}")
@@ -107,20 +114,18 @@ class DialogueWizardHandler(BaseHandler):
         if not args.characters:
             raise UserError(
                 "Character names are required in quick mode",
-                "Use --characters to specify character names"
+                "Use --characters to specify character names",
             )
 
         if not args.topic:
             raise UserError(
                 "Topic is required in quick mode",
-                "Use --topic to specify the dialogue topic"
+                "Use --topic to specify the dialogue topic",
             )
 
         # Generate dialogue scene
         scene = generate_quick_dialogue(
-            characters=args.characters,
-            topic=args.topic,
-            tone=args.tone
+            characters=args.characters, topic=args.topic, tone=args.tone
         )
 
         # Display results
@@ -130,7 +135,9 @@ class DialogueWizardHandler(BaseHandler):
         success = self._save_dialogue_to_project(scene, args.project)
         if success:
             self.print_success("Dialogue scene saved to project!")
-            print(f"  File: dialogue_scenes/{scene.title.lower().replace(' ', '_').replace(':', '')}.txt")
+            print(
+                f"  File: dialogue_scenes/{scene.title.lower().replace(' ', '_').replace(':', '')}.txt"
+            )
 
         return 0
 
@@ -154,14 +161,14 @@ class DialogueWizardHandler(BaseHandler):
         tone = self._select_tone(args.tone)
         purpose = self._select_purpose(args.purpose)
 
-        print(f"\n📝 Generating dialogue scene...")
+        print("\n📝 Generating dialogue scene...")
         print(f"   Characters: {', '.join(characters)}")
         print(f"   Topic: {topic}")
         print(f"   Tone: {tone.value}")
         print(f"   Purpose: {purpose.value.replace('_', ' ')}")
 
         # Create character voices
-        print(f"\n👥 Creating character voices...")
+        print("\n👥 Creating character voices...")
         for name in characters:
             personality = self._prompt_character_personality(name)
             wizard.create_character_voice(name, personality=personality)
@@ -173,7 +180,7 @@ class DialogueWizardHandler(BaseHandler):
             characters=characters,
             purpose=purpose,
             tone=tone,
-            target_length=args.length
+            target_length=args.length,
         )
 
         # Display and potentially enhance
@@ -181,9 +188,11 @@ class DialogueWizardHandler(BaseHandler):
 
         # Offer enhancements
         if self._prompt_enhancement():
-            enhanced_lines = wizard.enhance_dialogue(scene.dialogue_lines, "emotional_depth")
+            enhanced_lines = wizard.enhance_dialogue(
+                scene.dialogue_lines, "emotional_depth"
+            )
             scene.dialogue_lines = enhanced_lines
-            print(f"\n✨ Enhanced dialogue with emotional depth:")
+            print("\n✨ Enhanced dialogue with emotional depth:")
             self._display_dialogue_lines(enhanced_lines)
 
         # Save to project
@@ -215,7 +224,9 @@ class DialogueWizardHandler(BaseHandler):
     def _prompt_topic(self) -> str:
         """Prompt user for dialogue topic."""
         try:
-            topic = input("\n📝 Enter the topic or concept for this dialogue scene: ").strip()
+            topic = input(
+                "\n📝 Enter the topic or concept for this dialogue scene: "
+            ).strip()
             return topic or "a difficult conversation"
         except (KeyboardInterrupt, EOFError):
             return "a difficult conversation"
@@ -227,7 +238,7 @@ class DialogueWizardHandler(BaseHandler):
             "2": DialogueTone.DRAMATIC,
             "3": DialogueTone.COMEDIC,
             "4": DialogueTone.INTENSE,
-            "5": DialogueTone.SUBTLE
+            "5": DialogueTone.SUBTLE,
         }
 
         print(f"\n🎭 Select dialogue tone (current: {default}):")
@@ -250,7 +261,7 @@ class DialogueWizardHandler(BaseHandler):
             "dramatic": DialogueTone.DRAMATIC,
             "comedic": DialogueTone.COMEDIC,
             "intense": DialogueTone.INTENSE,
-            "subtle": DialogueTone.SUBTLE
+            "subtle": DialogueTone.SUBTLE,
         }
         return tone_mapping.get(default, DialogueTone.NATURAL)
 
@@ -261,7 +272,7 @@ class DialogueWizardHandler(BaseHandler):
             "2": DialoguePurpose.CONFLICT,
             "3": DialoguePurpose.CHARACTER_DEVELOPMENT,
             "4": DialoguePurpose.COMEDY_RELIEF,
-            "5": DialoguePurpose.CLIMAX_BUILDING
+            "5": DialoguePurpose.CLIMAX_BUILDING,
         }
 
         print(f"\n🎯 Select dialogue purpose (current: {default.replace('_', ' ')}):")
@@ -284,15 +295,22 @@ class DialogueWizardHandler(BaseHandler):
             "conflict": DialoguePurpose.CONFLICT,
             "character_development": DialoguePurpose.CHARACTER_DEVELOPMENT,
             "comedy_relief": DialoguePurpose.COMEDY_RELIEF,
-            "climax_building": DialoguePurpose.CLIMAX_BUILDING
+            "climax_building": DialoguePurpose.CLIMAX_BUILDING,
         }
         return purpose_mapping.get(default, DialoguePurpose.CHARACTER_DEVELOPMENT)
 
     def _prompt_character_personality(self, name: str) -> List[str]:
         """Prompt for character personality traits."""
         personality_options = [
-            "confident", "nervous", "intellectual", "aggressive",
-            "calm", "passionate", "stoic", "emotional", "humorous"
+            "confident",
+            "nervous",
+            "intellectual",
+            "aggressive",
+            "calm",
+            "passionate",
+            "stoic",
+            "emotional",
+            "humorous",
         ]
 
         print(f"\nSelect personality traits for {name} (comma-separated):")
@@ -311,7 +329,11 @@ class DialogueWizardHandler(BaseHandler):
     def _prompt_enhancement(self) -> bool:
         """Ask if user wants to enhance the dialogue."""
         try:
-            response = input("\n✨ Enhance dialogue with emotional depth? (y/N): ").strip().lower()
+            response = (
+                input("\n✨ Enhance dialogue with emotional depth? (y/N): ")
+                .strip()
+                .lower()
+            )
             return response in ["y", "yes"]
         except (KeyboardInterrupt, EOFError):
             return False
@@ -358,7 +380,10 @@ class DialogueWizardHandler(BaseHandler):
             dialogue_dir.mkdir(exist_ok=True)
 
             # Create filename from title
-            filename = scene.title.lower().replace(" ", "_").replace(":", "").replace(",", "") + ".txt"
+            filename = (
+                scene.title.lower().replace(" ", "_").replace(":", "").replace(",", "")
+                + ".txt"
+            )
             filepath = dialogue_dir / filename
 
             # Write dialogue to file
@@ -369,7 +394,9 @@ class DialogueWizardHandler(BaseHandler):
                 f.write(f"Setting: {scene.setting}\n")
                 f.write(f"Tone: {scene.tone.value}\n")
                 f.write(f"Purpose: {scene.purpose.value.replace('_', ' ')}\n")
-                f.write(f"Characters: {', '.join([c.character_name for c in scene.characters])}\n\n")
+                f.write(
+                    f"Characters: {', '.join([c.character_name for c in scene.characters])}\n\n"
+                )
 
                 if scene.scene_description:
                     f.write("Scene Description:\n")

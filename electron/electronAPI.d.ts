@@ -219,7 +219,8 @@ export interface ElectronAPI {
      * @returns Updated project information
      * @throws Error if update fails
      */
-    updateMetadata: (path: string, metadata: Record<string, any>) => Promise<Project>;
+    updateMetadata: (path: string, metadata: Record<string, any>) => Promise<any>;
+    delete: (path: string) => Promise<boolean>;
   };
 
   // Sequence management

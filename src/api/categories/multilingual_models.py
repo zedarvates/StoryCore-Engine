@@ -8,12 +8,12 @@ and validation.
 
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
-from datetime import datetime
 
 
 @dataclass
 class TranslationRequest:
     """Request for text translation."""
+
     text: str
     target_language: str
     source_language: Optional[str] = None
@@ -26,6 +26,7 @@ class TranslationRequest:
 @dataclass
 class TranslationResult:
     """Result of text translation."""
+
     translated_text: str
     source_language: str
     target_language: str
@@ -41,6 +42,7 @@ class TranslationResult:
 @dataclass
 class LanguageDetectionRequest:
     """Request for language detection."""
+
     text: str
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -48,6 +50,7 @@ class LanguageDetectionRequest:
 @dataclass
 class LanguageDetectionResult:
     """Result of language detection."""
+
     detected_language: str
     language_name: str
     confidence_score: float
@@ -60,6 +63,7 @@ class LanguageDetectionResult:
 @dataclass
 class LocalizationRequest:
     """Request for content localization."""
+
     content: Dict[str, Any]
     target_locale: str
     content_type: str  # "text", "ui", "narrative", "dialogue"
@@ -71,6 +75,7 @@ class LocalizationRequest:
 @dataclass
 class LocalizationResult:
     """Result of content localization."""
+
     localized_content: Dict[str, Any]
     target_locale: str
     content_type: str
@@ -83,6 +88,7 @@ class LocalizationResult:
 @dataclass
 class VoiceMapping:
     """Voice actor mapping for a language."""
+
     language: str
     voice_id: str
     voice_name: str
@@ -97,6 +103,7 @@ class VoiceMapping:
 @dataclass
 class VoiceMappingRequest:
     """Request for voice mapping."""
+
     target_language: str
     character_profile: Optional[Dict[str, Any]] = None
     voice_preferences: Optional[Dict[str, Any]] = None
@@ -106,6 +113,7 @@ class VoiceMappingRequest:
 @dataclass
 class VoiceMappingResult:
     """Result of voice mapping."""
+
     target_language: str
     total_voices_available: int
     mapping_time_ms: float
@@ -116,6 +124,7 @@ class VoiceMappingResult:
 @dataclass
 class TranslationValidationRequest:
     """Request for translation validation."""
+
     original_text: str
     translated_text: str
     source_language: str
@@ -127,6 +136,7 @@ class TranslationValidationRequest:
 @dataclass
 class ValidationIssue:
     """Translation validation issue."""
+
     issue_type: str
     severity: str  # "error", "warning", "info"
     description: str
@@ -138,6 +148,7 @@ class ValidationIssue:
 @dataclass
 class TranslationValidationResult:
     """Result of translation validation."""
+
     valid: bool
     overall_score: float
     accuracy_score: float

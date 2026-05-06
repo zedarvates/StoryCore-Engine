@@ -1,4 +1,3 @@
-
 """
 Body Analysis Module - Morphological extraction for clothing fit.
 Part of the StoryCore-Engine AI Stylist Suite.
@@ -8,11 +7,13 @@ import logging
 import asyncio
 from typing import Any, Dict
 
+
 class BodyAnalyzer:
     """
     Analyzes person's body shape and proportions using DensePose or MediaPipe.
     Used for virtual try-on adaptation.
     """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -25,5 +26,5 @@ class BodyAnalyzer:
         return {
             "body_shape": "hourglass",
             "height_to_width_ratio": 1.6,
-            "estimated_measurements": {"shoulder": 40, "waist": 70, "hip": 95}
+            "estimated_measurements": {"shoulder": 40, "waist": 70, "hip": 95},
         }

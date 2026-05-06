@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { useGenerationStore } from '../../stores/generationStore';
-import type { BatchGenerationConfig } from '../../types/generation';
+import type { _BatchGenerationConfig } from '../../types/generation';
 
 interface BatchConfigPanelProps {
   onClose?: () => void;

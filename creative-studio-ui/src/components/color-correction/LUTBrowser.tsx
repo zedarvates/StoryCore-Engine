@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, _useEffect } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
 import { LUTConfig } from '../../types/lut';
 import styles from './ColorCorrectionPanel.module.css';

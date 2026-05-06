@@ -8,7 +8,12 @@ handling everything from parsing to final video export.
 from .prompt_parser import PromptParser
 from .config import ConfigurationManager
 from .error_recovery_manager import ErrorRecoveryManager
-from .orchestrator import EndToEndOrchestrator, WorkflowStatus, WorkflowInfo, create_project
+from .orchestrator import (
+    EndToEndOrchestrator,
+    WorkflowStatus,
+    WorkflowInfo,
+    create_project,
+)
 from .data_models import (
     ParsedPrompt,
     CharacterInfo,
@@ -55,4 +60,3 @@ __all__ = [
     "ErrorLogger",
     "with_error_handling",
 ]
-

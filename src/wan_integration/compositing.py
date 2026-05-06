@@ -27,7 +27,7 @@ class CompositingPipeline:
     def composite_layers(
         self,
         layers: List[CompositeLayer],
-        background_color: Tuple[int, int, int, int] = (0, 0, 0, 0)
+        background_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
     ) -> List[Image.Image]:
         """
         Composite multiple video layers
@@ -66,7 +66,7 @@ class CompositingPipeline:
         for frame_idx in range(num_frames):
             # Create background
             if Image:
-                composite_frame = Image.new('RGBA', (width, height), background_color)
+                composite_frame = Image.new("RGBA", (width, height), background_color)
             else:
                 composite_frame = None
 
@@ -81,8 +81,8 @@ class CompositingPipeline:
                     # Apply alpha if available
                     if layer.alpha_channel and frame_idx < len(layer.alpha_channel):
                         alpha_mask = layer.alpha_channel[frame_idx]
-                        if layer_frame.mode != 'RGBA':
-                            layer_frame = layer_frame.convert('RGBA')
+                        if layer_frame.mode != "RGBA":
+                            layer_frame = layer_frame.convert("RGBA")
                         layer_frame.putalpha(alpha_mask)
 
                     # Apply opacity
@@ -96,7 +96,7 @@ class CompositingPipeline:
                     composite_frame.paste(
                         layer_frame,
                         (layer.offset_x, layer.offset_y),
-                        layer_frame if layer_frame.mode == 'RGBA' else None
+                        layer_frame if layer_frame.mode == "RGBA" else None,
                     )
 
             composited_frames.append(composite_frame)

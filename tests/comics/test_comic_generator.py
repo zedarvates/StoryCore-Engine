@@ -5,12 +5,10 @@ Tests for narrative adapter, pipeline, and panel generator.
 
 import asyncio
 import json
-import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 # Add the addon to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -18,8 +16,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 from addons.official.comic_generator.src.types import (
     ComicStyle,
     NarrativeBeat,
-    PanelScript,
-    ComicPage,
     NarrativeCheckpoint,
     CharacterState,
     PageGenerationRequest,
@@ -85,13 +81,21 @@ SAMPLE_STORY_CONTEXT = (
 # Type Tests
 # ============================================================================
 
+
 class TestTypes(unittest.TestCase):
     def test_comic_style_values(self):
         for val in ["franco-belge", "comics-us", "manga", "webtoon"]:
             self.assertEqual(ComicStyle(val).value, val)
 
     def test_narrative_beat_values(self):
-        for val in ["setup", "tension", "revelation", "transition", "climax", "resolution"]:
+        for val in [
+            "setup",
+            "tension",
+            "revelation",
+            "transition",
+            "climax",
+            "resolution",
+        ]:
             self.assertEqual(NarrativeBeat(val).value, val)
 
     def test_dialogue_line(self):
@@ -110,8 +114,8 @@ class TestTypes(unittest.TestCase):
 # Narrative Adapter Tests
 # ============================================================================
 
-class TestNarrativeAdapter(unittest.TestCase):
 
+class TestNarrativeAdapter(unittest.TestCase):
     def test_get_character_visual_signature_hero(self):
         sig = get_character_visual_signature(SAMPLE_CHARACTER)
         self.assertEqual(sig.character_id, "char_001")
@@ -179,11 +183,13 @@ class TestNarrativeAdapter(unittest.TestCase):
                 panels_count=4,
             )
             result = asyncio.run(adapter.generate_page_script(request))
-            self.assertTrue(result.success, f"Failed for style {style.value}: {result.error}")
+            self.assertTrue(
+                result.success, f"Failed for style {style.value}: {result.error}"
+            )
             self.assertRegex(
-                result.page.layout_template, 
+                result.page.layout_template,
                 r"(franco|us|manga|webtoon)_",
-                f"Unexpected layout for {style.value}"
+                f"Unexpected layout for {style.value}",
             )
 
     def test_panels_have_required_fields(self):
@@ -256,10 +262,11 @@ class TestNarrativeAdapter(unittest.TestCase):
         self.assertTrue(result.success)
 
         # Checkpoint should be updated
-        self.assertNotEqual(result.new_checkpoint.checkpoint_id, checkpoint.checkpoint_id)
+        self.assertNotEqual(
+            result.new_checkpoint.checkpoint_id, checkpoint.checkpoint_id
+        )
         self.assertGreater(
-            result.new_checkpoint.story_arc_position,
-            checkpoint.story_arc_position
+            result.new_checkpoint.story_arc_position, checkpoint.story_arc_position
         )
 
 
@@ -267,8 +274,8 @@ class TestNarrativeAdapter(unittest.TestCase):
 # Pipeline Tests
 # ============================================================================
 
-class TestComicPipeline(unittest.TestCase):
 
+class TestComicPipeline(unittest.TestCase):
     def setUp(self):
         """Create a temp directory for each test."""
         self.tmp_dir = tempfile.mkdtemp()
@@ -297,16 +304,18 @@ class TestComicPipeline(unittest.TestCase):
 
     def test_generate_next_page_no_images(self):
         """Full pipeline run without image generation."""
-        result = asyncio.run(self.pipeline.generate_next_page(
-            project_id=self.project_id,
-            story_context=SAMPLE_STORY_CONTEXT,
-            characters=[SAMPLE_CHARACTER, SAMPLE_CHARACTER_2],
-            locations=[SAMPLE_LOCATION],
-            objects=[],
-            style=ComicStyle.MANGA,
-            generate_images=False,
-            panels_count=4,
-        ))
+        result = asyncio.run(
+            self.pipeline.generate_next_page(
+                project_id=self.project_id,
+                story_context=SAMPLE_STORY_CONTEXT,
+                characters=[SAMPLE_CHARACTER, SAMPLE_CHARACTER_2],
+                locations=[SAMPLE_LOCATION],
+                objects=[],
+                style=ComicStyle.MANGA,
+                generate_images=False,
+                panels_count=4,
+            )
+        )
 
         self.assertTrue(result.success, f"Pipeline failed: {result.error}")
         self.assertIsNotNone(result.page)
@@ -320,14 +329,16 @@ class TestComicPipeline(unittest.TestCase):
     def test_multiple_page_generation(self):
         """Test generating multiple pages maintains progression."""
         for i in range(3):
-            result = asyncio.run(self.pipeline.generate_next_page(
-                project_id=self.project_id,
-                story_context=SAMPLE_STORY_CONTEXT,
-                characters=[SAMPLE_CHARACTER],
-                locations=[SAMPLE_LOCATION],
-                objects=[],
-                generate_images=False,
-            ))
+            result = asyncio.run(
+                self.pipeline.generate_next_page(
+                    project_id=self.project_id,
+                    story_context=SAMPLE_STORY_CONTEXT,
+                    characters=[SAMPLE_CHARACTER],
+                    locations=[SAMPLE_LOCATION],
+                    objects=[],
+                    generate_images=False,
+                )
+            )
             self.assertTrue(result.success)
             self.assertEqual(result.page.page_number, i + 1)
 
@@ -337,34 +348,38 @@ class TestComicPipeline(unittest.TestCase):
 
     def test_placeholder_svgs_are_created(self):
         """Verify placeholder SVG files are created for each panel."""
-        result = asyncio.run(self.pipeline.generate_next_page(
-            project_id=self.project_id,
-            story_context=SAMPLE_STORY_CONTEXT,
-            characters=[SAMPLE_CHARACTER],
-            locations=[SAMPLE_LOCATION],
-            objects=[],
-            generate_images=False,
-            panels_count=4,
-        ))
+        result = asyncio.run(
+            self.pipeline.generate_next_page(
+                project_id=self.project_id,
+                story_context=SAMPLE_STORY_CONTEXT,
+                characters=[SAMPLE_CHARACTER],
+                locations=[SAMPLE_LOCATION],
+                objects=[],
+                generate_images=False,
+                panels_count=4,
+            )
+        )
         self.assertTrue(result.success)
 
         for panel in result.page.panels:
             self.assertIsNotNone(panel.generated_image_path)
             svg_path = Path(panel.generated_image_path)
             self.assertTrue(svg_path.exists(), f"SVG not found: {svg_path}")
-            content = svg_path.read_text(encoding='utf-8')
+            content = svg_path.read_text(encoding="utf-8")
             self.assertIn("<svg", content)
 
     def test_page_json_is_saved(self):
         """Verify page JSON is persisted to disk after generation."""
-        result = asyncio.run(self.pipeline.generate_next_page(
-            project_id=self.project_id,
-            story_context=SAMPLE_STORY_CONTEXT,
-            characters=[SAMPLE_CHARACTER],
-            locations=[SAMPLE_LOCATION],
-            objects=[],
-            generate_images=False,
-        ))
+        result = asyncio.run(
+            self.pipeline.generate_next_page(
+                project_id=self.project_id,
+                story_context=SAMPLE_STORY_CONTEXT,
+                characters=[SAMPLE_CHARACTER],
+                locations=[SAMPLE_LOCATION],
+                objects=[],
+                generate_images=False,
+            )
+        )
         self.assertTrue(result.success)
 
         # Find the page JSON
@@ -381,14 +396,16 @@ class TestComicPipeline(unittest.TestCase):
 
     def test_load_page(self):
         """Test loading a previously generated page."""
-        asyncio.run(self.pipeline.generate_next_page(
-            project_id=self.project_id,
-            story_context=SAMPLE_STORY_CONTEXT,
-            characters=[SAMPLE_CHARACTER],
-            locations=[SAMPLE_LOCATION],
-            objects=[],
-            generate_images=False,
-        ))
+        asyncio.run(
+            self.pipeline.generate_next_page(
+                project_id=self.project_id,
+                story_context=SAMPLE_STORY_CONTEXT,
+                characters=[SAMPLE_CHARACTER],
+                locations=[SAMPLE_LOCATION],
+                objects=[],
+                generate_images=False,
+            )
+        )
 
         state = self.pipeline.load_state(self.project_id)
         chapter_id = state.last_chapter_id
@@ -399,14 +416,16 @@ class TestComicPipeline(unittest.TestCase):
 
     def test_export_to_json(self):
         """Test JSON export after generating pages."""
-        asyncio.run(self.pipeline.generate_next_page(
-            project_id=self.project_id,
-            story_context=SAMPLE_STORY_CONTEXT,
-            characters=[SAMPLE_CHARACTER],
-            locations=[SAMPLE_LOCATION],
-            objects=[],
-            generate_images=False,
-        ))
+        asyncio.run(
+            self.pipeline.generate_next_page(
+                project_id=self.project_id,
+                story_context=SAMPLE_STORY_CONTEXT,
+                characters=[SAMPLE_CHARACTER],
+                locations=[SAMPLE_LOCATION],
+                objects=[],
+                generate_images=False,
+            )
+        )
 
         result = asyncio.run(self.pipeline.export_to_json(self.project_id))
         self.assertTrue(result.success, f"Export failed: {result.error}")
@@ -425,24 +444,28 @@ class TestComicPipeline(unittest.TestCase):
 
     def test_regenerate_panel(self):
         """Test panel regeneration updates the image path."""
-        gen_result = asyncio.run(self.pipeline.generate_next_page(
-            project_id=self.project_id,
-            story_context=SAMPLE_STORY_CONTEXT,
-            characters=[SAMPLE_CHARACTER],
-            locations=[SAMPLE_LOCATION],
-            objects=[],
-            generate_images=False,
-        ))
+        gen_result = asyncio.run(
+            self.pipeline.generate_next_page(
+                project_id=self.project_id,
+                story_context=SAMPLE_STORY_CONTEXT,
+                characters=[SAMPLE_CHARACTER],
+                locations=[SAMPLE_LOCATION],
+                objects=[],
+                generate_images=False,
+            )
+        )
         self.assertTrue(gen_result.success)
         page = gen_result.page
-        original_path = page.panels[0].generated_image_path
+        page.panels[0].generated_image_path
 
-        new_path = asyncio.run(self.pipeline.regenerate_panel(
-            project_id=self.project_id,
-            page=page,
-            panel_index=0,
-            generate_image=False,
-        ))
+        new_path = asyncio.run(
+            self.pipeline.regenerate_panel(
+                project_id=self.project_id,
+                page=page,
+                panel_index=0,
+                generate_image=False,
+            )
+        )
         # A new path should be returned (regen suffix)
         self.assertIsNotNone(new_path)
 
@@ -451,13 +474,16 @@ class TestComicPipeline(unittest.TestCase):
 # Panel Generator Tests
 # ============================================================================
 
-class TestPanelGenerator(unittest.TestCase):
 
+class TestPanelGenerator(unittest.TestCase):
     def test_placeholder_svg_contains_panel_info(self):
         """Verify SVG placeholder contains relevant panel information."""
         from addons.official.comic_generator.src.panel_generator import PanelGenerator
         from addons.official.comic_generator.src.types import (
-            PanelScript, NarrativeBeat, DialogueLine, BubbleShape
+            PanelScript,
+            NarrativeBeat,
+            DialogueLine,
+            BubbleShape,
         )
 
         gen = PanelGenerator()

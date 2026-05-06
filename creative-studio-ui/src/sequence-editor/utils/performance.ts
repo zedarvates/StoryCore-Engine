@@ -6,6 +6,8 @@
  * 
  * Requirements: 3.6, 20.1, 22.3
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useCallback, useEffect, useRef, useMemo, useState } from 'react';
 import { debounce, throttle } from '../../utils/debounceAndThrottle';
@@ -412,7 +414,7 @@ export function useLRUCache<K, V>(maxSize: number = 100): LRUCache<K, V> {
  * Preload a lazy-loaded component
  */
 export function preloadComponent(
-  lazyComponent: React.LazyExoticComponent<React.ComponentType<any>>
+  lazyComponent: React.LazyExoticComponent<React.ComponentType<LegacyAny>>
 ): void {
   // @ts-ignore - accessing internal _result
   if (lazyComponent._result === null) {

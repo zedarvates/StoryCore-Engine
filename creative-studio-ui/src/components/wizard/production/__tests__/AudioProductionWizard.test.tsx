@@ -1,9 +1,11 @@
 /**
  * Audio Production Wizard Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { _render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AudioProductionWizard } from '../AudioProductionWizard';
 import { useAudioRemixStore } from '@/stores/audioRemixStore';
 
@@ -54,7 +56,7 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as LegacyAny;
 
 describe('AudioProductionWizard', () => {
   const mockOnClose = jest.fn();

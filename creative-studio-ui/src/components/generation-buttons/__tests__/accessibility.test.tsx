@@ -16,9 +16,9 @@ import { VideoGenerationButton } from '../VideoGenerationButton';
 import { AudioGenerationButton } from '../AudioGenerationButton';
 import { GenerationProgressModal } from '../GenerationProgressModal';
 import { PromptGenerationDialog } from '../PromptGenerationDialog';
-import { ImageGenerationDialog } from '../ImageGenerationDialog';
-import { VideoGenerationDialog } from '../VideoGenerationDialog';
-import { AudioGenerationDialog } from '../AudioGenerationDialog';
+import { _ImageGenerationDialog } from '../ImageGenerationDialog';
+import { _VideoGenerationDialog } from '../VideoGenerationDialog';
+import { _AudioGenerationDialog } from '../AudioGenerationDialog';
 import { useGenerationStore } from '../../../stores/generationStore';
 import type { GenerationProgress } from '../../../types/generation';
 
@@ -253,7 +253,7 @@ describe('Generation Buttons Accessibility', () => {
 
   describe('Focus Management', () => {
     it('should trap focus within dialog when open', async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       const onClose = vi.fn();
 
       render(

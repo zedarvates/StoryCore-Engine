@@ -319,7 +319,7 @@ describe('MultiCharacterSelector', () => {
     const { useCharacters } = require('@/store');
     useCharacters.mockReturnValue(mockCharacters);
 
-    const user = userEvent.setup();
+    const _user = userEvent.setup();
     const onChange = vi.fn();
 
     render(

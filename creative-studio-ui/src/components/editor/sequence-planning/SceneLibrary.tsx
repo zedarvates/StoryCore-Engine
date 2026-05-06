@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Search, Plus, MapPin } from 'lucide-react';
+import { Home, Search, _Plus, MapPin } from 'lucide-react';
 import { useLocationStore } from '../../../stores/locationStore';
 import './Library.css';
 
@@ -9,7 +9,7 @@ export interface SceneLibraryProps {
 }
 
 export const SceneLibrary: React.FC<SceneLibraryProps> = ({
-  onElementSelect,
+  _onElementSelect,
   className = ''
 }) => {
   // Load locations from store

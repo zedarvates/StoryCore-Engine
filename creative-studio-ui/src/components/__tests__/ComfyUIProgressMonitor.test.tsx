@@ -1,6 +1,8 @@
 /**
  * Unit tests for ComfyUIProgressMonitor component
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -18,7 +20,7 @@ describe('ComfyUIProgressMonitor', () => {
   const mockExecutions = [
     {
       id: 'exec-1',
-      client: {} as any, // Mock ComfyUIClient
+      client: {} as LegacyAny, // Mock ComfyUIClient
       status: 'running' as const,
       progress: 45,
       currentNode: 'KSampler',
@@ -29,7 +31,7 @@ describe('ComfyUIProgressMonitor', () => {
     },
     {
       id: 'exec-2',
-      client: {} as any,
+      client: {} as LegacyAny,
       status: 'completed' as const,
       progress: 100,
       startTime: new Date(Date.now() - 60000), // 1 minute ago

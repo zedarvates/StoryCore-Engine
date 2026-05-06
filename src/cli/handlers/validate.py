@@ -10,6 +10,11 @@ from typing import Dict, Any, List
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
 
+try:
+    from src.quality_validator import QualityValidator
+except ImportError:
+    QualityValidator = None  # type: ignore
+
 
 class ValidateHandler(BaseHandler):
     """Handler for the validate command - project and quality validation."""
@@ -22,7 +27,7 @@ class ValidateHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory to validate (default: current directory)"
+            help="Project directory to validate (default: current directory)",
         )
 
         parser.add_argument(
@@ -30,35 +35,33 @@ class ValidateHandler(BaseHandler):
             nargs="+",
             choices=["structure", "config", "quality", "visual", "audio"],
             default=["structure", "config"],
-            help="Validation scope (default: structure, config). Multiple scopes can be specified."
+            help="Validation scope (default: structure, config). Multiple scopes can be specified.",
         )
 
         parser.add_argument(
             "--quality-threshold",
             type=float,
             default=70.0,
-            help="Quality score threshold for pass/fail (default: 70.0)"
+            help="Quality score threshold for pass/fail (default: 70.0)",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format (default: human)"
+            help="Output format (default: human)",
         )
 
         parser.add_argument(
-            "--strict",
-            action="store_true",
-            help="Enable strict validation mode"
+            "--strict", action="store_true", help="Enable strict validation mode"
         )
 
         parser.add_argument(
             "--fix",
             action="store_true",
-            help="Attempt to fix validation issues automatically"
+            help="Attempt to fix validation issues automatically",
         )
-    
+
     def execute(self, args: argparse.Namespace) -> int:
         """Execute the validate command."""
         try:
@@ -67,7 +70,7 @@ class ValidateHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             # Determine validation scopes
@@ -82,13 +85,14 @@ class ValidateHandler(BaseHandler):
                 "structure_validation": {},
                 "quality_validation": {},
                 "overall_passed": True,
-                "exit_code": 0
+                "exit_code": 0,
             }
 
             # Run structure/config validation if requested
             if structure_scopes:
                 try:
                     from validator import Validator, ValidationError
+
                     validator = Validator()
                     results = validator.validate_project_directory(str(project_path))
 
@@ -98,9 +102,14 @@ class ValidateHandler(BaseHandler):
 
                     for filename, result in results.items():
                         if result is True:
-                            validation_results["structure_validation"][filename] = {"status": "passed"}
+                            validation_results["structure_validation"][filename] = {
+                                "status": "passed"
+                            }
                         else:
-                            validation_results["structure_validation"][filename] = {"status": "failed", "error": str(result)}
+                            validation_results["structure_validation"][filename] = {
+                                "status": "failed",
+                                "error": str(result),
+                            }
                             all_passed = False
                             failed_validations.append((filename, result))
 
@@ -111,12 +120,14 @@ class ValidateHandler(BaseHandler):
                 except ImportError as e:
                     raise SystemError(
                         f"Validator not available: {e}",
-                        "Ensure validator module is installed"
+                        "Ensure validator module is installed",
                     )
 
             # Run quality validation if requested
             if quality_scopes:
-                quality_result = self._run_quality_validation(project_path, quality_scopes, args.quality_threshold)
+                quality_result = self._run_quality_validation(
+                    project_path, quality_scopes, args.quality_threshold
+                )
                 validation_results["quality_validation"] = quality_result["results"]
 
                 if not quality_result["passed"]:
@@ -136,11 +147,15 @@ class ValidateHandler(BaseHandler):
                     # Reuse existing fix logic for structure issues
                     failed_validations = [
                         (filename, details.get("error", "Unknown error"))
-                        for filename, details in validation_results["structure_validation"].items()
+                        for filename, details in validation_results[
+                            "structure_validation"
+                        ].items()
                         if details.get("status") == "failed"
                     ]
                     if failed_validations:
-                        fixed_count = self._attempt_fixes(project_path, failed_validations)
+                        fixed_count = self._attempt_fixes(
+                            project_path, failed_validations
+                        )
                         if fixed_count > 0:
                             print(f"[SUCCESS] Fixed {fixed_count} structure issue(s)")
                             print("Run validation again to verify fixes")
@@ -154,15 +169,17 @@ class ValidateHandler(BaseHandler):
 
         except Exception as e:
             return self.handle_error(e, "validation")
-    
-    def _run_quality_validation(self, project_path: Path, scopes: List[str], threshold: float) -> Dict[str, Any]:
+
+    def _run_quality_validation(
+        self, project_path: Path, scopes: List[str], threshold: float
+    ) -> Dict[str, Any]:
         """Run quality validation for the specified scopes."""
         try:
             from quality_validator import QualityValidator, ValidationMode
         except ImportError as e:
             return {
                 "passed": False,
-                "results": {"error": f"QualityValidator not available: {e}"}
+                "results": {"error": f"QualityValidator not available: {e}"},
             }
 
         results = {}
@@ -186,22 +203,26 @@ class ValidateHandler(BaseHandler):
             if not audio_results.get("passed", True):
                 overall_passed = False
 
-        return {
-            "passed": overall_passed,
-            "results": results
-        }
+        return {"passed": overall_passed, "results": results}
 
-    def _validate_visual_quality(self, project_path: Path, validator: 'QualityValidator') -> Dict[str, Any]:
+    def _validate_visual_quality(
+        self, project_path: Path, validator: "QualityValidator"
+    ) -> Dict[str, Any]:
         """Validate visual quality of video files in the project."""
         # Look for video files in the project
-        video_files = (list(project_path.glob("**/*.mp4")) +
-                      list(project_path.glob("**/*.avi")) +
-                      list(project_path.glob("**/*.mov")) +
-                      list(project_path.glob("**/*.mkv")) +
-                      list(project_path.glob("**/*.webm")))
+        video_files = (
+            list(project_path.glob("**/*.mp4"))
+            + list(project_path.glob("**/*.avi"))
+            + list(project_path.glob("**/*.mov"))
+            + list(project_path.glob("**/*.mkv"))
+            + list(project_path.glob("**/*.webm"))
+        )
 
         if not video_files:
-            return {"status": "no_videos", "message": "No video files found for visual validation"}
+            return {
+                "status": "no_videos",
+                "message": "No video files found for visual validation",
+            }
 
         total_files = len(video_files)
         valid_files = 0
@@ -227,7 +248,7 @@ class ValidateHandler(BaseHandler):
             "videos_checked": total_files,
             "valid_videos": valid_files,
             "invalid_videos": len(invalid_files),
-            "message": f"Visual validation completed: {valid_files}/{total_files} videos valid"
+            "message": f"Visual validation completed: {valid_files}/{total_files} videos valid",
         }
 
         if not passed:
@@ -236,17 +257,24 @@ class ValidateHandler(BaseHandler):
 
         return result
 
-    def _validate_audio_quality(self, project_path: Path, validator: 'QualityValidator') -> Dict[str, Any]:
+    def _validate_audio_quality(
+        self, project_path: Path, validator: "QualityValidator"
+    ) -> Dict[str, Any]:
         """Validate audio quality of audio files in the project."""
         # Look for audio files in the project
-        audio_files = (list(project_path.glob("**/*.wav")) +
-                      list(project_path.glob("**/*.mp3")) +
-                      list(project_path.glob("**/*.flac")) +
-                      list(project_path.glob("**/*.aac")) +
-                      list(project_path.glob("**/*.ogg")))
+        audio_files = (
+            list(project_path.glob("**/*.wav"))
+            + list(project_path.glob("**/*.mp3"))
+            + list(project_path.glob("**/*.flac"))
+            + list(project_path.glob("**/*.aac"))
+            + list(project_path.glob("**/*.ogg"))
+        )
 
         if not audio_files:
-            return {"status": "no_audio", "message": "No audio files found for audio validation"}
+            return {
+                "status": "no_audio",
+                "message": "No audio files found for audio validation",
+            }
 
         total_files = len(audio_files)
         valid_files = 0
@@ -272,7 +300,7 @@ class ValidateHandler(BaseHandler):
             "audio_files_checked": total_files,
             "valid_audio_files": valid_files,
             "invalid_audio_files": len(invalid_files),
-            "message": f"Audio validation completed: {valid_files}/{total_files} files valid"
+            "message": f"Audio validation completed: {valid_files}/{total_files} files valid",
         }
 
         if not passed:
@@ -281,7 +309,9 @@ class ValidateHandler(BaseHandler):
 
         return result
 
-    def _print_human_results(self, results: Dict[str, Any], args: argparse.Namespace) -> None:
+    def _print_human_results(
+        self, results: Dict[str, Any], args: argparse.Namespace
+    ) -> None:
         """Print human-readable validation results."""
         print(f"Validating project in: {results['project']}")
         print(f"Validation scopes: {', '.join(results['scopes'])}")
@@ -306,9 +336,13 @@ class ValidateHandler(BaseHandler):
             if "visual" in quality_results:
                 visual = quality_results["visual"]
                 if visual.get("passed", True):
-                    print(f"[PASS] Visual quality: PASSED ({visual.get('message', '')})")
+                    print(
+                        f"[PASS] Visual quality: PASSED ({visual.get('message', '')})"
+                    )
                 else:
-                    print(f"[FAIL] Visual quality: FAILED ({visual.get('message', '')})")
+                    print(
+                        f"[FAIL] Visual quality: FAILED ({visual.get('message', '')})"
+                    )
 
             # Audio quality
             if "audio" in quality_results:
@@ -336,7 +370,7 @@ class ValidateHandler(BaseHandler):
                     # Try to create missing file or directory
                     target_path = project_path / filename
                     if not target_path.exists():
-                        if filename.endswith('/'):
+                        if filename.endswith("/"):
                             target_path.mkdir(parents=True, exist_ok=True)
                             print(f"  Created directory: {filename}")
                             fixed_count += 1

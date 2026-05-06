@@ -6,10 +6,7 @@ Run with: python -m pytest tests/test_api_security.py -v
 """
 
 import pytest
-import asyncio
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
-import httpx
 from fastapi.testclient import TestClient
 from jose import jwt
 
@@ -19,14 +16,9 @@ from src.auth import (
     get_password_hash,
     verify_password,
     create_access_token,
-    create_refresh_token,
     verify_token,
     users_db,
     User,
-    APIKey,
-    api_keys_db,
-    hash_api_key,
-    generate_api_key,
 )
 
 
@@ -76,12 +68,10 @@ def valid_token(test_user):
 def expired_token(test_user):
     """Generate an expired JWT token."""
     expire = datetime.utcnow() - timedelta(minutes=1)
-    to_encode = {
-        "sub": test_user.username,
-        "role": test_user.role,
-        "exp": expire
-    }
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    to_encode = {"sub": test_user.username, "role": test_user.role, "exp": expire}
+    return jwt.encode(
+        to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+    )
 
 
 class TestAuthentication:
@@ -90,8 +80,7 @@ class TestAuthentication:
     def test_login_success(self, client, test_user):
         """Test successful user login."""
         response = client.post(
-            "/auth/login",
-            json={"username": "testuser", "password": "testpass123!"}
+            "/auth/login", json={"username": "testuser", "password": "testpass123!"}
         )
 
         assert response.status_code == 200
@@ -104,8 +93,7 @@ class TestAuthentication:
     def test_login_invalid_credentials(self, client):
         """Test login with invalid credentials."""
         response = client.post(
-            "/auth/login",
-            json={"username": "nonexistent", "password": "wrongpass"}
+            "/auth/login", json={"username": "nonexistent", "password": "wrongpass"}
         )
 
         assert response.status_code == 401
@@ -119,8 +107,7 @@ class TestAuthentication:
     def test_refresh_token_success(self, client, valid_token):
         """Test successful token refresh."""
         response = client.post(
-            "/auth/refresh",
-            headers={"Authorization": f"Bearer {valid_token}"}
+            "/auth/refresh", headers={"Authorization": f"Bearer {valid_token}"}
         )
 
         assert response.status_code == 200
@@ -131,8 +118,7 @@ class TestAuthentication:
     def test_refresh_token_invalid(self, client):
         """Test refresh with invalid token."""
         response = client.post(
-            "/auth/refresh",
-            headers={"Authorization": "Bearer invalid_token"}
+            "/auth/refresh", headers={"Authorization": "Bearer invalid_token"}
         )
 
         assert response.status_code == 401
@@ -141,8 +127,7 @@ class TestAuthentication:
     def test_logout_success(self, client, valid_token):
         """Test successful logout."""
         response = client.post(
-            "/auth/logout",
-            headers={"Authorization": f"Bearer {valid_token}"}
+            "/auth/logout", headers={"Authorization": f"Bearer {valid_token}"}
         )
 
         assert response.status_code == 200
@@ -161,8 +146,7 @@ class TestAuthorization:
     def test_protected_endpoint_with_valid_token(self, client, valid_token):
         """Test accessing protected endpoint with valid token."""
         response = client.get(
-            "/system_stats",
-            headers={"Authorization": f"Bearer {valid_token}"}
+            "/system_stats", headers={"Authorization": f"Bearer {valid_token}"}
         )
         assert response.status_code == 200
         data = response.json()
@@ -172,8 +156,7 @@ class TestAuthorization:
     def test_protected_endpoint_with_expired_token(self, client, expired_token):
         """Test accessing protected endpoint with expired token."""
         response = client.get(
-            "/system_stats",
-            headers={"Authorization": f"Bearer {expired_token}"}
+            "/system_stats", headers={"Authorization": f"Bearer {expired_token}"}
         )
         assert response.status_code == 401
         assert "Invalid or expired token" in response.json()["detail"]
@@ -195,7 +178,7 @@ class TestAPIKeys:
             key_id=key_id,
             name="test_key",
             hashed_key=hashed_key,
-            permissions=["read:workflows"]
+            permissions=["read:workflows"],
         )
         api_keys_db[key_id] = api_key
         yield api_key_plain, api_key
@@ -206,18 +189,12 @@ class TestAPIKeys:
     def test_api_key_authentication(self, client, api_key):
         """Test API key authentication."""
         api_key_plain, _ = api_key
-        response = client.get(
-            "/system_stats",
-            headers={"X-API-Key": api_key_plain}
-        )
+        response = client.get("/system_stats", headers={"X-API-Key": api_key_plain})
         assert response.status_code == 200
 
     def test_invalid_api_key(self, client):
         """Test invalid API key."""
-        response = client.get(
-            "/system_stats",
-            headers={"X-API-Key": "invalid_key"}
-        )
+        response = client.get("/system_stats", headers={"X-API-Key": "invalid_key"})
         assert response.status_code == 401
 
     def test_create_api_key_requires_auth(self, client):
@@ -231,7 +208,7 @@ class TestAPIKeys:
         response = client.post(
             "/api-keys",
             json={"name": "test_key"},
-            headers={"Authorization": f"Bearer {valid_token}"}
+            headers={"Authorization": f"Bearer {valid_token}"},
         )
         assert response.status_code == 403
         assert "Insufficient permissions" in response.json()["detail"]
@@ -271,13 +248,13 @@ class TestSecurityValidation:
             "workflow_type": "basic_generation",
             "prompt": "A beautiful sunset",
             "image_path": None,
-            "trajectory": None
+            "trajectory": None,
         }
 
         response = client.post(
             "/workflows",
             json=workflow_request,
-            headers={"Authorization": f"Bearer {valid_token}"}
+            headers={"Authorization": f"Bearer {valid_token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -294,7 +271,7 @@ class TestSecurityValidation:
         response = client.post(
             "/workflows",
             json=workflow_request,
-            headers={"Authorization": f"Bearer {valid_token}"}
+            headers={"Authorization": f"Bearer {valid_token}"},
         )
         assert response.status_code == 400
         assert "Validation failed" in response.json()["detail"]
@@ -309,7 +286,7 @@ class TestSecurityValidation:
         response = client.post(
             "/workflows",
             json=workflow_request,
-            headers={"Authorization": f"Bearer {valid_token}"}
+            headers={"Authorization": f"Bearer {valid_token}"},
         )
         assert response.status_code == 400
 
@@ -344,8 +321,7 @@ class TestSecurityHeaders:
     def test_cors_headers(self, client):
         """Test CORS headers are set correctly."""
         response = client.options(
-            "/health",
-            headers={"Origin": "http://localhost:3000"}
+            "/health", headers={"Origin": "http://localhost:3000"}
         )
         assert "access-control-allow-origin" in response.headers
         assert "access-control-allow-credentials" in response.headers
@@ -357,10 +333,13 @@ class TestSecurityHeaders:
         security_headers = [
             "x-content-type-options",
             "x-frame-options",
-            "x-xss-protection"
+            "x-xss-protection",
         ]
         for header in security_headers:
-            assert header in response.headers or header.replace("-", "_") in response.headers
+            assert (
+                header in response.headers
+                or header.replace("-", "_") in response.headers
+            )
 
 
 class TestErrorHandling:
@@ -370,7 +349,7 @@ class TestErrorHandling:
         """Test Pydantic validation error handling."""
         response = client.post(
             "/auth/login",
-            json={"username": "", "password": ""}  # Invalid data
+            json={"username": "", "password": ""},  # Invalid data
         )
         assert response.status_code == 422
         data = response.json()
@@ -393,8 +372,7 @@ class TestSecurityIntegration:
         """Test complete authentication flow."""
         # Login
         login_response = client.post(
-            "/auth/login",
-            json={"username": "testuser", "password": "testpass123!"}
+            "/auth/login", json={"username": "testuser", "password": "testpass123!"}
         )
         assert login_response.status_code == 200
         tokens = login_response.json()
@@ -402,14 +380,14 @@ class TestSecurityIntegration:
         # Access protected resource
         protected_response = client.get(
             "/system_stats",
-            headers={"Authorization": f"Bearer {tokens['access_token']}"}
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
         )
         assert protected_response.status_code == 200
 
         # Refresh token
         refresh_response = client.post(
             "/auth/refresh",
-            headers={"Authorization": f"Bearer {tokens['refresh_token']}"}
+            headers={"Authorization": f"Bearer {tokens['refresh_token']}"},
         )
         assert refresh_response.status_code == 200
         new_tokens = refresh_response.json()
@@ -417,26 +395,24 @@ class TestSecurityIntegration:
         # Verify new token works
         new_protected_response = client.get(
             "/system_stats",
-            headers={"Authorization": f"Bearer {new_tokens['access_token']}"}
+            headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
         )
         assert new_protected_response.status_code == 200
 
         # Logout
         logout_response = client.post(
             "/auth/logout",
-            headers={"Authorization": f"Bearer {new_tokens['access_token']}"}
+            headers={"Authorization": f"Bearer {new_tokens['access_token']}"},
         )
         assert logout_response.status_code == 200
 
     def test_concurrent_requests_handling(self, client, valid_token):
         """Test handling of concurrent requests."""
-        import asyncio
         from concurrent.futures import ThreadPoolExecutor
 
         def make_request():
             return client.get(
-                "/system_stats",
-                headers={"Authorization": f"Bearer {valid_token}"}
+                "/system_stats", headers={"Authorization": f"Bearer {valid_token}"}
             )
 
         # Make concurrent requests

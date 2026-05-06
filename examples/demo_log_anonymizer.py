@@ -11,10 +11,10 @@ def main():
     print("LogAnonymizer Demo - Feedback & Diagnostics Module")
     print("=" * 80)
     print()
-    
+
     # Initialize anonymizer
     anonymizer = LogAnonymizer()
-    
+
     # Example log entries with sensitive information
     sample_logs = [
         "2024-01-25 10:30:15 ERROR: /home/john/storycore-engine/src/promotion_engine.py:142 - Connection timeout",
@@ -27,28 +27,28 @@ def main():
         "2024-01-25 10:30:22 ERROR: AWS credentials AKIAIOSFODNN7EXAMPLE invalid",
         "2024-01-25 10:30:23 INFO: Processing file /home/alice/projects/storycore/exports/video.mp4",
     ]
-    
+
     print("ORIGINAL LOGS (with sensitive data):")
     print("-" * 80)
     for i, log in enumerate(sample_logs, 1):
         print(f"{i}. {log}")
-    
+
     print()
     print("=" * 80)
     print()
-    
+
     # Anonymize the logs
     anonymized_logs = anonymizer.anonymize_logs(sample_logs)
-    
+
     print("ANONYMIZED LOGS (safe to share):")
     print("-" * 80)
     for i, log in enumerate(anonymized_logs, 1):
         print(f"{i}. {log}")
-    
+
     print()
     print("=" * 80)
     print()
-    
+
     print("WHAT WAS REMOVED/ANONYMIZED:")
     print("-" * 80)
     print("✓ Usernames (john, alice, bob) → USER")
@@ -59,7 +59,7 @@ def main():
     print("✓ AWS credentials → [AWS_KEY_REDACTED]")
     print("✓ Session IDs → Consistent hashes (ID_xxxxxxxx)")
     print("✓ Absolute paths → Relative paths or filenames")
-    
+
     print()
     print("WHAT WAS PRESERVED:")
     print("-" * 80)
@@ -69,7 +69,7 @@ def main():
     print("✓ Stack trace line numbers (:142)")
     print("✓ Module names (promotion_engine.py)")
     print("✓ File extensions (.py, .json, .mp4)")
-    
+
     print()
     print("=" * 80)
     print("Demo complete! The LogAnonymizer is ready for use in the Feedback system.")

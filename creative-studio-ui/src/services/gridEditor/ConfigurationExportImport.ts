@@ -268,7 +268,7 @@ export function importFromURL(url: string): ImportResult {
     const exportedData: ExportedGridConfiguration = JSON.parse(json);
     
     return validateAndProcessImport(exportedData);
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       errors: [
@@ -600,7 +600,7 @@ function parseYAML(content: string): ExportedGridConfiguration {
         
         // Set value in result
         if (indent === 0) {
-          currentSection = result[key] = value || {};
+          _currentSection = result[key] = value || {};
           currentPath = [key];
         } else {
           // Nested value

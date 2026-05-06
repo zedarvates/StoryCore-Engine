@@ -58,6 +58,9 @@ export function useAudioContext(config?: Partial<AudioVisualizerConfig>) {
   const [error, setError] = useState<string | null>(null);
   const audioServiceRef = useRef<AudioContextService | null>(null);
 
+  // Stable config to avoid unnecessary re-initializations
+  const configString = JSON.stringify(config);
+  
   const initialize = useCallback(async () => {
     try {
       audioServiceRef.current = createAudioContextService(config);
@@ -68,7 +71,8 @@ export function useAudioContext(config?: Partial<AudioVisualizerConfig>) {
       setError(err instanceof Error ? err.message : 'Failed to initialize audio context');
       setIsInitialized(false);
     }
-  }, [config]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configString]);
 
   useEffect(() => {
     initialize();
@@ -154,10 +158,10 @@ export function useSpectrumAnalysis(
   const startAnalysis = useCallback(() => {
     if (!audioService || !enabled) return;
 
-    setIsAnalyzing(true);
-
     const analyze = (timestamp: number) => {
-      if (!enabled || !audioService) return;
+      if (!enabled || !audioService) {
+        return;
+      }
 
       if (timestamp - lastUpdateRef.current >= updateInterval) {
         const data = audioService.getFrequencyData();
@@ -176,8 +180,13 @@ export function useSpectrumAnalysis(
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    setIsAnalyzing(false);
   }, []);
+
+  // Sync analyzing state during render
+  const shouldAnalyze = !!(audioService && enabled);
+  if (isAnalyzing !== shouldAnalyze) {
+    setIsAnalyzing(shouldAnalyze);
+  }
 
   useEffect(() => {
     if (enabled) {
@@ -219,10 +228,10 @@ export function useWaveformData(
   const startAnalysis = useCallback(() => {
     if (!audioService || !enabled) return;
 
-    setIsAnalyzing(true);
-
     const analyze = (timestamp: number) => {
-      if (!enabled || !audioService) return;
+      if (!enabled || !audioService) {
+        return;
+      }
 
       if (timestamp - lastUpdateRef.current >= updateInterval) {
         const data = audioService.getWaveformData();
@@ -241,8 +250,13 @@ export function useWaveformData(
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    setIsAnalyzing(false);
   }, []);
+
+  // Sync analyzing state during render
+  const shouldAnalyzeWave = !!(audioService && enabled);
+  if (isAnalyzing !== shouldAnalyzeWave) {
+    setIsAnalyzing(shouldAnalyzeWave);
+  }
 
   useEffect(() => {
     if (enabled) {
@@ -287,10 +301,11 @@ export function useAudioVisualization(
   const startVisualization = useCallback(() => {
     if (!audioService || !enabled) return;
 
-    setIsAnalyzing(true);
-
     const update = (timestamp: number) => {
-      if (!enabled || !audioService) return;
+      if (!enabled || !audioService) {
+        setIsAnalyzing(false);
+        return;
+      }
 
       if (timestamp - lastUpdateRef.current >= updateInterval) {
         const freqData = audioService.getFrequencyData();
@@ -315,8 +330,13 @@ export function useAudioVisualization(
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-    setIsAnalyzing(false);
   }, []);
+
+  // Sync analyzing state during render
+  const shouldVisualize = !!(audioService && enabled);
+  if (isAnalyzing !== shouldVisualize) {
+    setIsAnalyzing(shouldVisualize);
+  }
 
   useEffect(() => {
     if (enabled) {
@@ -332,11 +352,17 @@ export function useAudioVisualization(
 
   // Sync with audio service state changes
   useEffect(() => {
-    if (audioService) {
-      audioService.setStateChangeCallback((newState) => {
-        setState(newState);
-      });
-    }
+    if (!audioService) return;
+    
+    audioService.setStateChangeCallback((newState) => {
+      setState(newState);
+    });
+    
+    return () => {
+      // Assuming the service has a way to clear the callback
+      // If not, we should use an event listener or a ref for the callback
+      audioService.setStateChangeCallback(() => {});
+    };
   }, [audioService]);
 
   return {

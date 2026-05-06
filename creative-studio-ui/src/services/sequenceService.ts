@@ -140,7 +140,7 @@ export class SequenceService {
         return await apiRequest<SequenceData>(`/sequences/${sequenceId}?project_path=${encodeURIComponent(projectPath)}`, {
           headers: this.getHeaders()
         });
-      } catch (error) {
+      } catch (_error) {
         return null;
       }
     }

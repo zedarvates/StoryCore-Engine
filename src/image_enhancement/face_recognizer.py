@@ -1,4 +1,3 @@
-
 """
 Face Recognizer Module - Extracting face embeddings for identity verification.
 Part of the StoryCore-Engine Image Enhancement Suite.
@@ -6,7 +5,7 @@ Part of the StoryCore-Engine Image Enhancement Suite.
 
 import logging
 import asyncio
-from typing import Any, List, Optional
+from typing import Any, Optional
 import numpy as np
 import os
 
@@ -15,14 +14,20 @@ try:
 except ImportError:
     ort = None
 
+
 class FaceRecognizer:
     """
     Wrapper for ArcFace based facial recognition using ONNXRuntime.
     """
-    def __init__(self, model_name: str = "arcface_r50", model_path: Optional[str] = None):
+
+    def __init__(
+        self, model_name: str = "arcface_r50", model_path: Optional[str] = None
+    ):
         self.logger = logging.getLogger(__name__)
         self.model_name = model_name
-        self.model_path = model_path or os.environ.get("ARCFACE_MODEL_PATH", "models/insightface/arcface_r50.onnx")
+        self.model_path = model_path or os.environ.get(
+            "ARCFACE_MODEL_PATH", "models/insightface/arcface_r50.onnx"
+        )
         self.session = None
         self._initialized = False
 
@@ -30,7 +35,7 @@ class FaceRecognizer:
         """Lazy initialization of the ONNX session"""
         if self._initialized:
             return
-        
+
         if ort and os.path.exists(self.model_path):
             try:
                 self.session = ort.InferenceSession(self.model_path)
@@ -38,8 +43,10 @@ class FaceRecognizer:
             except Exception as e:
                 self.logger.error(f"Failed to load ONNX model: {e}")
         else:
-            self.logger.warning("ONNXRuntime or model file not found. Running in high-precision simulated mode.")
-            
+            self.logger.warning(
+                "ONNXRuntime or model file not found. Running in high-precision simulated mode."
+            )
+
         self._initialized = True
 
     async def get_embedding(self, face_image: Any) -> np.ndarray:
@@ -48,7 +55,7 @@ class FaceRecognizer:
         If real model is available, performs ONNX inference.
         """
         await self._initialize()
-        
+
         if self.session:
             # Real Inference logic:
             # 1. Preprocess face_image (resize to 112x112, normalize)

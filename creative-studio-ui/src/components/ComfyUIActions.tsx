@@ -55,7 +55,7 @@ export const ComfyUIActions: React.FC<ComfyUIActionsProps> = ({
         title: 'Image Generation Started',
         description: 'Generating image from text prompt...',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Generation Failed',
         description: 'Failed to start image generation',
@@ -89,7 +89,7 @@ export const ComfyUIActions: React.FC<ComfyUIActionsProps> = ({
         title: 'Video Generation Started',
         description: 'Generating video from text prompt...',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Generation Failed',
         description: 'Failed to start video generation',
@@ -121,7 +121,7 @@ export const ComfyUIActions: React.FC<ComfyUIActionsProps> = ({
           title: 'Media Uploaded',
           description: `${file.name} uploaded successfully`,
         });
-      } catch (error) {
+      } catch (_error) {
         toast({
           title: 'Upload Failed',
           description: 'Failed to upload media file',
@@ -170,7 +170,7 @@ export const ComfyUIActions: React.FC<ComfyUIActionsProps> = ({
         title: 'Workflow Started',
         description: `${workflowType} generation in progress...`,
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Workflow Failed',
         description: `Failed to start ${workflowType} workflow`,

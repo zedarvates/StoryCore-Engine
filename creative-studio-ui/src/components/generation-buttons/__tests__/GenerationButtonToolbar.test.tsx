@@ -6,6 +6,8 @@
  * 
  * Requirements: 5.1, 5.2
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -20,7 +22,7 @@ vi.mock('../../../stores/generationStore', () => ({
 
 // Mock child components
 vi.mock('../PromptGenerationButton', () => ({
-  PromptGenerationButton: ({ onClick, isGenerating }: any) => (
+  PromptGenerationButton: ({ onClick, isGenerating }: LegacyAny) => (
     <button onClick={onClick} disabled={isGenerating} data-testid="prompt-button">
       {isGenerating ? 'Generating...' : 'Generate Prompt'}
     </button>
@@ -28,7 +30,7 @@ vi.mock('../PromptGenerationButton', () => ({
 }));
 
 vi.mock('../ImageGenerationButton', () => ({
-  ImageGenerationButton: ({ onClick, isGenerating }: any) => (
+  ImageGenerationButton: ({ onClick, isGenerating }: LegacyAny) => (
     <button onClick={onClick} disabled={isGenerating} data-testid="image-button">
       {isGenerating ? 'Generating...' : 'Generate Image'}
     </button>
@@ -36,7 +38,7 @@ vi.mock('../ImageGenerationButton', () => ({
 }));
 
 vi.mock('../VideoGenerationButton', () => ({
-  VideoGenerationButton: ({ onClick, isGenerating }: any) => (
+  VideoGenerationButton: ({ onClick, isGenerating }: LegacyAny) => (
     <button onClick={onClick} disabled={isGenerating} data-testid="video-button">
       {isGenerating ? 'Generating...' : 'Generate Video'}
     </button>
@@ -44,7 +46,7 @@ vi.mock('../VideoGenerationButton', () => ({
 }));
 
 vi.mock('../AudioGenerationButton', () => ({
-  AudioGenerationButton: ({ onClick, isGenerating }: any) => (
+  AudioGenerationButton: ({ onClick, isGenerating }: LegacyAny) => (
     <button onClick={onClick} disabled={isGenerating} data-testid="audio-button">
       {isGenerating ? 'Generating...' : 'Generate Audio'}
     </button>
@@ -52,7 +54,7 @@ vi.mock('../AudioGenerationButton', () => ({
 }));
 
 vi.mock('../PromptGenerationDialog', () => ({
-  PromptGenerationDialog: ({ isOpen, onClose, onGenerate }: any) =>
+  PromptGenerationDialog: ({ isOpen, onClose, onGenerate }: LegacyAny) =>
     isOpen ? (
       <div data-testid="prompt-dialog">
         <button onClick={() => {
@@ -67,7 +69,7 @@ vi.mock('../PromptGenerationDialog', () => ({
 }));
 
 vi.mock('../ImageGenerationDialog', () => ({
-  ImageGenerationDialog: ({ isOpen, onClose }: any) =>
+  ImageGenerationDialog: ({ isOpen, onClose }: LegacyAny) =>
     isOpen ? (
       <div data-testid="image-dialog">
         <button onClick={onClose}>Close</button>
@@ -76,7 +78,7 @@ vi.mock('../ImageGenerationDialog', () => ({
 }));
 
 vi.mock('../VideoGenerationDialog', () => ({
-  VideoGenerationDialog: ({ isOpen, onClose }: any) =>
+  VideoGenerationDialog: ({ isOpen, onClose }: LegacyAny) =>
     isOpen ? (
       <div data-testid="video-dialog">
         <button onClick={onClose}>Close</button>
@@ -85,7 +87,7 @@ vi.mock('../VideoGenerationDialog', () => ({
 }));
 
 vi.mock('../AudioGenerationDialog', () => ({
-  AudioGenerationDialog: ({ isOpen, onClose }: any) =>
+  AudioGenerationDialog: ({ isOpen, onClose }: LegacyAny) =>
     isOpen ? (
       <div data-testid="audio-dialog">
         <button onClick={onClose}>Close</button>
@@ -94,7 +96,7 @@ vi.mock('../AudioGenerationDialog', () => ({
 }));
 
 vi.mock('../GenerationProgressModal', () => ({
-  GenerationProgressModal: ({ isOpen, generationType }: any) =>
+  GenerationProgressModal: ({ isOpen, generationType }: LegacyAny) =>
     isOpen ? (
       <div data-testid="progress-modal">
         Generating {generationType}...
@@ -125,7 +127,7 @@ describe('GenerationButtonToolbar', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useGenerationStore as any).mockReturnValue({
+    (useGenerationStore as LegacyAny).mockReturnValue({
       currentPipeline: null,
     });
   });
@@ -247,7 +249,7 @@ describe('GenerationButtonToolbar', () => {
 
   describe('Generation Progress', () => {
     it('should show progress modal when generation is in progress', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'in_progress', progress: { stage: 'Generating', stageProgress: 50, overallProgress: 50, estimatedTimeRemaining: 10, message: 'Generating prompt...', cancellable: true } },
@@ -265,7 +267,7 @@ describe('GenerationButtonToolbar', () => {
     });
 
     it('should not show progress modal when no generation is in progress', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed' },
@@ -345,7 +347,7 @@ describe('GenerationButtonToolbar', () => {
 
   describe('Button State Management', () => {
     it('should disable buttons during generation', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'in_progress' },
@@ -364,7 +366,7 @@ describe('GenerationButtonToolbar', () => {
     });
 
     it('should enable buttons when not generating', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed' },
@@ -384,7 +386,7 @@ describe('GenerationButtonToolbar', () => {
 
   describe('Pipeline State Integration', () => {
     it('should pass prompt result to image dialog', async () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: {
@@ -408,7 +410,7 @@ describe('GenerationButtonToolbar', () => {
     });
 
     it('should pass image result to video dialog', async () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed' },
@@ -432,7 +434,7 @@ describe('GenerationButtonToolbar', () => {
     });
 
     it('should pass video result to audio dialog', async () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed' },
@@ -513,7 +515,7 @@ describe('GenerationButtonToolbar', () => {
     it('should maintain state across context switches', () => {
       const { rerender } = render(<GenerationButtonToolbar context="editor" />);
 
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed', result: { text: 'Test' } },

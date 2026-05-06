@@ -9,14 +9,14 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 import {
   ProgressCallback,
-  ProgressStatus,
+  _ProgressStatus,
   ExportSettings,
   VideoFormat,
-  VideoCodec,
-  AudioCodec,
-  BitrateMode,
-  GPUEncoder,
-  Resolution,
+  _VideoCodec,
+  _AudioCodec,
+  _BitrateMode,
+  _GPUEncoder,
+  _Resolution,
   FFmpegState,
   FFmpegExportState,
   ExportResponse,
@@ -32,7 +32,7 @@ import {
   Preset,
   PresetCategory,
   FormatOptions,
-  CodecOptions,
+  _CodecOptions,
 } from '../services/ffmpeg/FFmpegTypes';
 
 // =============================================================================
@@ -618,7 +618,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       targetFormat: VideoFormat
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/convert', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -648,7 +648,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       outputPath: string
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/thumbnails', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -676,7 +676,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       inputPath: string
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/extract-audio', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -705,7 +705,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       format: VideoFormat = 'mp4'
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/concatenate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -736,7 +736,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       endTime?: number
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/trim', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -768,7 +768,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       options?: Partial<WatermarkOptions>
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/watermark', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -805,7 +805,7 @@ export function useFFmpeg(): UseFFmpegReturn {
       adjustAudio: boolean = true
     ): Promise<AsyncResult<string>> => {
       return executeOperation(
-        async (onProgress) => {
+        async (_onProgress) => {
           const response = await fetch('/api/ffmpeg/speed', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -978,7 +978,7 @@ export function estimateFileSize(
   duration: number,
   settings: ExportSettings
 ): number {
-  const { videoBitrate, audioBitrate, resolution } = settings;
+  const { videoBitrate, audioBitrate, _resolution } = settings;
   
   // Parse bitrate values
   const videoRate = parseBitrate(videoBitrate) || 5000000; // Default 5 Mbps

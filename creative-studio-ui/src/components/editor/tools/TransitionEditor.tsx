@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Settings, RotateCcw, Save } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, _Settings, RotateCcw, Save } from 'lucide-react';
 
 interface Transition {
   id: string;
@@ -272,7 +272,7 @@ export function TransitionEditor({
   const renderTransitionOverlay = () => {
     switch (localTransition.type) {
       case 'wipe':
-        const wipePosition = easedProgress * 100;
+        const _wipePosition = easedProgress * 100;
         return (
           <div
             style={{

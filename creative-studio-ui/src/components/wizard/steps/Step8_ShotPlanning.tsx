@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Camera, Film, BarChart3, AlertCircle } from 'lucide-react';
-import { WizardFormLayout, FormField, FormSection, FormGrid } from '../WizardFormLayout';
+import { WizardFormLayout, FormField, FormSection, _FormGrid } from '../WizardFormLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

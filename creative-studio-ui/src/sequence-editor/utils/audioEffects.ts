@@ -148,7 +148,7 @@ export function generateWaveformData(
 ): WaveformData | null {
   if (audioLayer.type !== 'audio') return null;
   
-  const audioData = audioLayer.data as AudioLayerData;
+  const _audioData = audioLayer.data as AudioLayerData;
   
   // In a real implementation, this would analyze the audio file
   // For now, return mock waveform data

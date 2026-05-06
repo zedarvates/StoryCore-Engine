@@ -8,7 +8,10 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/react';
-import { VirtualTimelineCanvas, getTrackShots, TRACK_CONFIG } from '../VirtualTimelineCanvas';
+import { Provider } from 'react-redux';
+import { VirtualTimelineCanvas, TRACK_CONFIG } from '../VirtualTimelineCanvas';
+import { getTrackShots } from '../../../constants/timelineConstants';
+import { store } from '../../../store';
 import type { Track, Shot, LayerType, MediaLayerData } from '../../../types';
 
 // Redundant mocks removed - now handled by src/test/setup.ts
@@ -23,33 +26,39 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
   setTransform: vi.fn(),
   drawImage: vi.fn(),
   save: vi.fn(),
-  fillText: vi.fn(),
   restore: vi.fn(),
   beginPath: vi.fn(),
   moveTo: vi.fn(),
   lineTo: vi.fn(),
-  closePath: vi.fn(),
   stroke: vi.fn(),
-  translate: vi.fn(),
-  scale: vi.fn(),
-  rotate: vi.fn(),
-  arc: vi.fn(),
   fill: vi.fn(),
+  arc: vi.fn(),
+  rect: vi.fn(),
+  fillText: vi.fn(),
   measureText: vi.fn(() => ({ width: 0 })),
   transform: vi.fn(),
-  rect: vi.fn(),
+  rotate: vi.fn(),
+  scale: vi.fn(),
+  translate: vi.fn(),
+  closePath: vi.fn(),
   clip: vi.fn(),
+  quadraticCurveTo: vi.fn(),
+  bezierCurveTo: vi.fn(),
+  arcTo: vi.fn(),
+  createLinearGradient: vi.fn(() => ({
+    addColorStop: vi.fn(),
+  })),
+  createRadialGradient: vi.fn(() => ({
+    addColorStop: vi.fn(),
+  })),
+  createPattern: vi.fn(),
   roundRect: vi.fn(),
-  strokeStyle: '',
-  fillStyle: '',
-  lineWidth: 1,
-  font: '',
-  textBaseline: '',
-  textAlign: '',
-  globalAlpha: 1,
-  shadowColor: '',
-  shadowBlur: 0,
-});
+} as CanvasRenderingContext2D);
+
+// Helper to render with Redux provider
+function renderWithProvider(ui: React.ReactElement) {
+  return render(<Provider store={store}>{ui}</Provider>);
+}
 
 // Helper function to create sample tracks
 function createSampleTracks(): Track[] {
@@ -170,7 +179,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots: Shot[] = [];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -189,7 +198,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots: Shot[] = [];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -210,7 +219,7 @@ describe('VirtualTimelineCanvas Component', () => {
       
       const shots: Shot[] = [];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -234,7 +243,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots: Shot[] = [];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -256,7 +265,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const shots: Shot[] = [];
       const timelineWidth = 2000;
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -281,7 +290,7 @@ describe('VirtualTimelineCanvas Component', () => {
         createSampleShot('shot-2', 60, 90, 'media'),
       ];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -321,7 +330,7 @@ describe('VirtualTimelineCanvas Component', () => {
       
       const shots = [shot];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -344,7 +353,7 @@ describe('VirtualTimelineCanvas Component', () => {
         createSampleShot('shot-2', 60, 90, 'media'),
       ];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -367,7 +376,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -394,7 +403,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -424,7 +433,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -446,7 +455,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -476,7 +485,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots: Shot[] = [];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -496,7 +505,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots: Shot[] = [];
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -519,7 +528,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
       
-      const { rerender, container } = render(
+      const { rerender, container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -534,7 +543,7 @@ describe('VirtualTimelineCanvas Component', () => {
       expect(container.querySelector('.track-canvas')).toBeTruthy();
 
       // Change zoom level
-      rerender(
+      rerenderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -609,7 +618,7 @@ describe('VirtualTimelineCanvas Component', () => {
         shots.push(createSampleShot(`shot-${i}`, i * 30, 30, 'media'));
       }
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -633,7 +642,7 @@ describe('VirtualTimelineCanvas Component', () => {
         shots.push(createSampleShot(`shot-${i}`, i * 30, 30, 'media'));
       }
       
-      const { container } = render(
+      const { container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}

@@ -20,7 +20,7 @@ import type { GenerationResults, Project } from '../types/projectDashboard';
 /**
  * Create a mock project with valid prompts
  */
-const createValidProject = (): Project => ({
+const _createValidProject = (): Project => ({
   id: 'valid-project',
   name: 'Valid Project',
   schemaVersion: '1.0',
@@ -85,7 +85,7 @@ const createValidProject = (): Project => ({
 /**
  * Create a mock project with invalid prompts
  */
-const createInvalidProject = (): Project => ({
+const _createInvalidProject = (): Project => ({
   id: 'invalid-project',
   name: 'Invalid Project',
   schemaVersion: '1.0',
@@ -138,7 +138,7 @@ const createInvalidProject = (): Project => ({
 /**
  * Create an empty project
  */
-const createEmptyProject = (): Project => ({
+const _createEmptyProject = (): Project => ({
   id: 'empty-project',
   name: 'Empty Project',
   schemaVersion: '1.0',

@@ -35,7 +35,7 @@ class MonitoringSystem:
             "gpu_metrics": self._collect_gpu_metrics,
             "workflow_metrics": self._collect_workflow_metrics,
             "performance_metrics": self._collect_performance_metrics,
-            "quality_metrics": self._collect_quality_metrics
+            "quality_metrics": self._collect_quality_metrics,
         }
 
         # Initialize metrics storage
@@ -59,21 +59,21 @@ class MonitoringSystem:
                         collector_metrics = await collector_func()
                         metrics[collector_name] = collector_metrics
                     except Exception as e:
-                        logger.error(f"Metrics collection failed for {collector_name}: {e}")
+                        logger.error(
+                            f"Metrics collection failed for {collector_name}: {e}"
+                        )
                         metrics[collector_name] = {"error": str(e)}
 
                 # Store metrics
                 self.current_metrics = metrics
-                self.metrics_history.append({
-                    'timestamp': timestamp,
-                    'metrics': metrics
-                })
+                self.metrics_history.append(
+                    {"timestamp": timestamp, "metrics": metrics}
+                )
 
                 # Keep only recent history (last 24 hours)
                 cutoff_time = timestamp - timedelta(hours=24)
                 self.metrics_history = [
-                    m for m in self.metrics_history
-                    if m['timestamp'] > cutoff_time
+                    m for m in self.metrics_history if m["timestamp"] > cutoff_time
                 ]
 
                 # Check for alerts
@@ -96,7 +96,7 @@ class MonitoringSystem:
             memory = psutil.virtual_memory()
 
             # Disk metrics
-            disk = psutil.disk_usage('.')
+            disk = psutil.disk_usage(".")
 
             # Network metrics (simplified)
             network = psutil.net_io_counters()
@@ -111,7 +111,7 @@ class MonitoringSystem:
                 "disk_total_gb": disk.total / (1024**3),
                 "disk_used_percent": (disk.used / disk.total) * 100,
                 "network_bytes_sent": network.bytes_sent,
-                "network_bytes_recv": network.bytes_recv
+                "network_bytes_recv": network.bytes_recv,
             }
 
         except Exception as e:
@@ -127,7 +127,9 @@ class MonitoringSystem:
             # GPU memory
             gpu_memory_allocated = torch.cuda.memory_allocated() / (1024**3)
             gpu_memory_reserved = torch.cuda.memory_reserved() / (1024**3)
-            gpu_memory_total = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+            gpu_memory_total = torch.cuda.get_device_properties(0).total_memory / (
+                1024**3
+            )
 
             # GPU utilization (would need nvidia-ml-py for real utilization)
             gpu_utilization = min(100.0, (gpu_memory_reserved / gpu_memory_total) * 100)
@@ -139,7 +141,7 @@ class MonitoringSystem:
                 "gpu_memory_total_gb": gpu_memory_total,
                 "gpu_memory_percent": (gpu_memory_reserved / gpu_memory_total) * 100,
                 "gpu_utilization_percent": gpu_utilization,
-                "gpu_device_count": torch.cuda.device_count()
+                "gpu_device_count": torch.cuda.device_count(),
             }
 
         except Exception as e:
@@ -161,7 +163,7 @@ class MonitoringSystem:
                 "avg_video_generation_time": 120.0,
                 "avg_image_generation_time": 25.0,
                 "model_cache_hit_rate": 0.85,
-                "workflow_success_rate": 0.96
+                "workflow_success_rate": 0.96,
             }
 
         except Exception as e:
@@ -182,7 +184,7 @@ class MonitoringSystem:
                 "error_rate_percent": 2.1,
                 "timeout_rate_percent": 0.5,
                 "throughput_mbps": 12.5,
-                "concurrent_users": 8
+                "concurrent_users": 8,
             }
 
         except Exception as e:
@@ -202,7 +204,7 @@ class MonitoringSystem:
                 "temporal_consistency_score": 0.89,
                 "visual_artifact_rate": 0.03,
                 "user_satisfaction_score": 4.2,  # out of 5
-                "quality_improvement_rate": 0.15
+                "quality_improvement_rate": 0.15,
             }
 
         except Exception as e:
@@ -218,28 +220,51 @@ class MonitoringSystem:
             if "system_metrics" in metrics:
                 sys_metrics = metrics["system_metrics"]
 
-                if sys_metrics.get("cpu_percent", 0) > self.config.alert_thresholds["cpu_usage"]:
+                if (
+                    sys_metrics.get("cpu_percent", 0)
+                    > self.config.alert_thresholds["cpu_usage"]
+                ):
                     alerts.append(f"High CPU usage: {sys_metrics['cpu_percent']:.1f}%")
 
-                if sys_metrics.get("memory_percent", 0) > self.config.alert_thresholds["memory_usage"]:
-                    alerts.append(f"High memory usage: {sys_metrics['memory_percent']:.1f}%")
+                if (
+                    sys_metrics.get("memory_percent", 0)
+                    > self.config.alert_thresholds["memory_usage"]
+                ):
+                    alerts.append(
+                        f"High memory usage: {sys_metrics['memory_percent']:.1f}%"
+                    )
 
             # Check GPU metrics
             if "gpu_metrics" in metrics:
                 gpu_metrics = metrics["gpu_metrics"]
 
-                if gpu_metrics.get("gpu_utilization_percent", 0) > self.config.alert_thresholds["gpu_usage"]:
-                    alerts.append(f"High GPU usage: {gpu_metrics['gpu_utilization_percent']:.1f}%")
+                if (
+                    gpu_metrics.get("gpu_utilization_percent", 0)
+                    > self.config.alert_thresholds["gpu_usage"]
+                ):
+                    alerts.append(
+                        f"High GPU usage: {gpu_metrics['gpu_utilization_percent']:.1f}%"
+                    )
 
             # Check performance metrics
             if "performance_metrics" in metrics:
                 perf_metrics = metrics["performance_metrics"]
 
-                if perf_metrics.get("error_rate_percent", 0) > self.config.alert_thresholds["error_rate"]:
-                    alerts.append(f"High error rate: {perf_metrics['error_rate_percent']:.1f}%")
+                if (
+                    perf_metrics.get("error_rate_percent", 0)
+                    > self.config.alert_thresholds["error_rate"]
+                ):
+                    alerts.append(
+                        f"High error rate: {perf_metrics['error_rate_percent']:.1f}%"
+                    )
 
-                if perf_metrics.get("avg_response_time", 0) > self.config.alert_thresholds["response_time"]:
-                    alerts.append(f"High response time: {perf_metrics['avg_response_time']:.1f}s")
+                if (
+                    perf_metrics.get("avg_response_time", 0)
+                    > self.config.alert_thresholds["response_time"]
+                ):
+                    alerts.append(
+                        f"High response time: {perf_metrics['avg_response_time']:.1f}s"
+                    )
 
             # Trigger alerts if any
             if alerts:
@@ -263,10 +288,7 @@ class MonitoringSystem:
     def get_metrics_history(self, hours: int = 1) -> List[Dict]:
         """Get metrics history for specified hours"""
         cutoff_time = datetime.now() - timedelta(hours=hours)
-        return [
-            m for m in self.metrics_history
-            if m['timestamp'] > cutoff_time
-        ]
+        return [m for m in self.metrics_history if m["timestamp"] > cutoff_time]
 
     def generate_metrics_report(self) -> Dict[str, Any]:
         """Generate comprehensive metrics report"""
@@ -289,12 +311,16 @@ class MonitoringSystem:
             "report_timestamp": datetime.now().isoformat(),
             "data_points": len(recent_metrics),
             "time_range_hours": 1,
-            "summary": {}
+            "summary": {},
         }
 
         if system_metrics:
-            report["summary"]["avg_cpu_percent"] = sum(m.get("cpu_percent", 0) for m in system_metrics) / len(system_metrics)
-            report["summary"]["avg_memory_percent"] = sum(m.get("memory_percent", 0) for m in system_metrics) / len(system_metrics)
+            report["summary"]["avg_cpu_percent"] = sum(
+                m.get("cpu_percent", 0) for m in system_metrics
+            ) / len(system_metrics)
+            report["summary"]["avg_memory_percent"] = sum(
+                m.get("memory_percent", 0) for m in system_metrics
+            ) / len(system_metrics)
 
         return report
 

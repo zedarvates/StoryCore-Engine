@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useGridStore, createDefaultGridConfiguration } from '../gridEditorStore';
+import { useGridStore, _createDefaultGridConfiguration } from '../gridEditorStore';
 import { useViewportStore } from '../viewportStore';
 import { useUndoRedoStore, createOperation } from '../undoRedoStore';
 
@@ -48,7 +48,7 @@ describe('Store Verification - Task 3 Checkpoint', () => {
     });
 
     it('should select a panel correctly', () => {
-      const { selectPanel, selectedPanelIds } = useGridStore.getState();
+      const { selectPanel, _selectedPanelIds } = useGridStore.getState();
       
       selectPanel('panel-0-0', false);
       

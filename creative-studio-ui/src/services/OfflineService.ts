@@ -4,6 +4,8 @@
  * Manages intelligent suggestion caching, basic offline functionality,
  * and automatic synchronization on reconnection.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { promptSuggestionService, type PromptSuggestion, type Message } from './PromptSuggestionService';
 import { notificationService } from './NotificationService';
@@ -285,17 +287,17 @@ export class OfflineService {
       try {
         suggestions = promptSuggestionService.generateSuggestions(
           messages,
-          language as any,
+          language as LegacyAny,
           currentInput
         );
       } catch (error) {
         logger.warn('[OfflineService] Failed to generate suggestions:', error);
         // Fallback to default suggestions
-        suggestions = promptSuggestionService.getDefaultSuggestions(language as any);
+        suggestions = promptSuggestionService.getDefaultSuggestions(language as LegacyAny);
       }
     } else {
       // Degraded mode: only default suggestions
-      suggestions = promptSuggestionService.getDefaultSuggestions(language as any);
+      suggestions = promptSuggestionService.getDefaultSuggestions(language as LegacyAny);
     }
 
     // Mettre en cache si en ligne

@@ -5,25 +5,30 @@ Provides RESTful API endpoints for project generation, management, and modificat
 Includes authentication, rate limiting, and usage tracking middleware.
 """
 
-from fastapi import FastAPI, Depends, HTTPException, Header, Request, Response
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from typing import Optional, Dict, Any, List
 from pathlib import Path
 import time
 import os
 
-from ..storycore_assistant import StoryCoreAssistant, ProjectPreview
-from ..auth import AuthenticationMiddleware, UserService, User
+from ..storycore_assistant import StoryCoreAssistant
+from ..auth import AuthenticationMiddleware, UserService
 from ..rate_limiter import RateLimiter, RateLimitExceededError
 from ..usage_tracker import UsageTracker
 from ..exceptions import (
-    AssistantError, AuthenticationError, AuthorizationError,
-    ValidationError, ResourceError, ProjectError, StorageLimitExceededError
+    AssistantError,
+    AuthenticationError,
+    AuthorizationError,
+    ValidationError,
+    ResourceError,
+    ProjectError,
+    StorageLimitExceededError,
 )
 from ..logging_config import get_logger
-from .models import *
-from .dependencies import set_auth_middleware, get_current_user
+from .dependencies import set_auth_middleware
+from .models import HealthResponse
+from .routes import auth, projects, generation, modifications, storage
 
 logger = get_logger(__name__)
 
@@ -84,35 +89,29 @@ app = FastAPI(
     contact={
         "name": "StoryCore Support",
         "url": "https://github.com/your-org/storycore-engine",
-        "email": "support@storycore.example.com"
+        "email": "support@storycore.example.com",
     },
-    license_info={
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT"
-    },
+    license_info={"name": "MIT License", "url": "https://opensource.org/licenses/MIT"},
     terms_of_service="https://storycore.example.com/terms",
     openapi_tags=[
         {
             "name": "Authentication",
-            "description": "JWT-based authentication and token management"
+            "description": "JWT-based authentication and token management",
         },
         {
             "name": "Generation",
-            "description": "Natural language project generation from creative prompts"
+            "description": "Natural language project generation from creative prompts",
         },
         {
             "name": "Projects",
-            "description": "Project management operations (open, close, list, delete)"
+            "description": "Project management operations (open, close, list, delete)",
         },
         {
             "name": "Modifications",
-            "description": "Modify project elements (scenes, characters, sequences)"
+            "description": "Modify project elements (scenes, characters, sequences)",
         },
-        {
-            "name": "Storage",
-            "description": "Storage monitoring and usage statistics"
-        }
-    ]
+        {"name": "Storage", "description": "Storage monitoring and usage statistics"},
+    ],
 )
 
 # Configure CORS
@@ -125,7 +124,9 @@ app.add_middleware(
 )
 
 # Initialize services
-PROJECT_DIR = Path(os.getenv("STORYCORE_PROJECT_DIR", Path.home() / "Documents" / "StoryCore Projects"))
+PROJECT_DIR = Path(
+    os.getenv("STORYCORE_PROJECT_DIR", Path.home() / "Documents" / "StoryCore Projects")
+)
 SECRET_KEY = os.getenv("STORYCORE_SECRET_KEY", "dev-secret-key-change-in-production")
 
 auth_middleware = AuthenticationMiddleware(secret_key=SECRET_KEY)
@@ -147,11 +148,11 @@ set_auth_middleware(auth_middleware)
 async def rate_limit_and_track_middleware(request: Request, call_next):
     """
     Middleware for rate limiting and usage tracking.
-    
+
     Enforces rate limits per user and tracks API usage.
     """
     start_time = time.time()
-    
+
     # Extract user from authorization header if present
     user_id = "anonymous"
     authorization = request.headers.get("authorization")
@@ -163,9 +164,9 @@ async def rate_limit_and_track_middleware(request: Request, call_next):
                 user = auth_middleware.validate_token(token)
                 if user:
                     user_id = user.id
-        except:
+        except Exception:
             pass  # Continue with anonymous user_id
-    
+
     # Check rate limit
     try:
         limit_info = rate_limiter.enforce_limit(user_id)
@@ -178,27 +179,27 @@ async def rate_limit_and_track_middleware(request: Request, call_next):
                 "error": {
                     "code": "RATE_LIMIT_EXCEEDED",
                     "message": str(e),
-                    "details": e.details
+                    "details": e.details,
                 }
             },
-            headers=headers
+            headers=headers,
         )
-    
+
     # Process request
     response = await call_next(request)
-    
+
     # Calculate duration
     duration_ms = (time.time() - start_time) * 1000
-    
+
     # Track usage
     request_size = int(request.headers.get("content-length", 0))
     response_size = 0
     if hasattr(response, "body"):
         response_size = len(response.body)
-    
+
     # Determine operation type from endpoint
     operation_type = _determine_operation_type(request.url.path)
-    
+
     usage_tracker.record_request(
         user_id=user_id,
         endpoint=request.url.path,
@@ -207,14 +208,14 @@ async def rate_limit_and_track_middleware(request: Request, call_next):
         request_size_bytes=request_size,
         response_size_bytes=response_size,
         duration_ms=duration_ms,
-        operation_type=operation_type
+        operation_type=operation_type,
     )
-    
+
     # Add rate limit headers to response
     limit_headers = rate_limiter.get_headers(limit_info)
     for key, value in limit_headers.items():
         response.headers[key] = value
-    
+
     return response
 
 
@@ -247,7 +248,7 @@ def _determine_operation_type(path: str) -> str:
 async def assistant_exception_handler(request: Request, exc: AssistantError):
     """Handle Assistant-specific exceptions"""
     status_code = 500
-    
+
     if isinstance(exc, AuthenticationError):
         status_code = 401
     elif isinstance(exc, AuthorizationError):
@@ -260,7 +261,7 @@ async def assistant_exception_handler(request: Request, exc: AssistantError):
         status_code = 507  # Insufficient Storage
     elif isinstance(exc, ProjectError):
         status_code = 400
-    
+
     return JSONResponse(
         status_code=status_code,
         content={
@@ -268,9 +269,9 @@ async def assistant_exception_handler(request: Request, exc: AssistantError):
                 "code": exc.code,
                 "message": exc.message,
                 "details": exc.details,
-                "suggested_action": exc.suggested_action
+                "suggested_action": exc.suggested_action,
             }
-        }
+        },
     )
 
 
@@ -284,9 +285,9 @@ async def general_exception_handler(request: Request, exc: Exception):
             "error": {
                 "code": "INTERNAL_SERVER_ERROR",
                 "message": "An unexpected error occurred",
-                "details": {"error_type": type(exc).__name__}
+                "details": {"error_type": type(exc).__name__},
             }
-        }
+        },
     )
 
 
@@ -295,23 +296,20 @@ async def general_exception_handler(request: Request, exc: Exception):
 async def health_check():
     """
     Health check endpoint.
-    
+
     Returns system status and basic statistics.
     """
     storage_stats = assistant.get_storage_stats()
-    
+
     return HealthResponse(
         status="healthy",
         version="1.0.0",
         storage_usage_gb=storage_stats.total_gb,
         storage_limit_gb=storage_stats.limit_gb,
         file_count=storage_stats.file_count,
-        file_limit=storage_stats.file_limit
+        file_limit=storage_stats.file_limit,
     )
 
-
-# Import route modules
-from .routes import auth, projects, generation, modifications, storage
 
 # Initialize route dependencies
 auth.init_auth_routes(auth_middleware, user_service, usage_tracker)
@@ -324,10 +322,13 @@ storage.init_storage_routes(assistant)
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(projects.router, prefix="/api/v1/projects", tags=["Projects"])
 app.include_router(generation.router, prefix="/api/v1/generate", tags=["Generation"])
-app.include_router(modifications.router, prefix="/api/v1/projects", tags=["Modifications"])
+app.include_router(
+    modifications.router, prefix="/api/v1/projects", tags=["Modifications"]
+)
 app.include_router(storage.router, prefix="/api/v1/storage", tags=["Storage"])
 
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

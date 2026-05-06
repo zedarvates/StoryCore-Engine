@@ -6,10 +6,9 @@ Requirements: R&D Plan Section 🎵 1.1 SFX Generator"""
 import logging
 import time
 import asyncio
-import os
 import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional
 from pathlib import Path
 
 
@@ -46,7 +45,9 @@ class SFXGenerator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.logger.info(f"SFX Generator Engine initialized at {output_dir}")
 
-    async def generate_sfx(self, prompt: str, config: Optional[SFXConfig] = None) -> SFXResult:
+    async def generate_sfx(
+        self, prompt: str, config: Optional[SFXConfig] = None
+    ) -> SFXResult:
         """Generates a sound effect based on the prompt."""
         start_time = time.time()
         cfg = config or SFXConfig()
@@ -61,12 +62,14 @@ class SFXGenerator:
                 # 1. Load Pro Workflow
                 workflow_path = Path("src/workflows/comfyui/audioldm2_sfx_pro_v2.json")
                 if workflow_path.exists():
-                    with open(workflow_path, 'r') as f:
+                    with open(workflow_path, "r") as f:
                         workflow = json.load(f)
 
                     # 2. Inject Parameters
                     if "1" in workflow:  # Positive Prompt
-                        workflow["1"]["inputs"]["text"] = f"{prompt}, {cfg.style} sfx, {cfg.fidelity} fidelity"
+                        workflow["1"]["inputs"]["text"] = (
+                            f"{prompt}, {cfg.style} sfx, {cfg.fidelity} fidelity"
+                        )
                     if "11" in workflow:  # Negative Prompt
                         workflow["11"]["inputs"]["text"] = cfg.negative_prompt
                     if "2" in workflow:  # Sampler Config
@@ -89,7 +92,7 @@ class SFXGenerator:
                             success=True,
                             audio_path=str(output_path),
                             duration=cfg.duration,
-                            processing_time=time.time() - start_time
+                            processing_time=time.time() - start_time,
                         )
 
             # Fallback / Direct Inference Simulation
@@ -111,9 +114,9 @@ class SFXGenerator:
                     "low_freq": 20,
                     "high_freq": 22000,
                     "dominant_pitch": "noise",
-                    "loudness_lufs": -18.0
+                    "loudness_lufs": -18.0,
                 },
-                processing_time=processing_time
+                processing_time=processing_time,
             )
 
         except Exception as e:
@@ -121,7 +124,7 @@ class SFXGenerator:
             return SFXResult(
                 success=False,
                 error_message=str(e),
-                processing_time=time.time() - start_time
+                processing_time=time.time() - start_time,
             )
 
     async def batch_generate(self, prompts: List[str]) -> List[SFXResult]:

@@ -4,6 +4,8 @@
  * Tests the integration of LLMSettingsPanel with secure storage
  * Validates Requirements: 3.7, 10.1, 10.2, 10.3, 10.4, 10.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -49,7 +51,7 @@ const mockCrypto = {
 beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
-  global.crypto = mockCrypto as any;
+  global.crypto = mockCrypto as LegacyAny;
   vi.clearAllMocks();
 });
 
@@ -290,7 +292,7 @@ describe('Settings Export', () => {
     const originalCreateElement = document.createElement.bind(document);
     document.createElement = vi.fn((tag) => {
       if (tag === 'a') {
-        return mockLink as any;
+        return mockLink as LegacyAny;
       }
       return originalCreateElement(tag);
     });

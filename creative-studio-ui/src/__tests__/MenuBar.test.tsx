@@ -7,6 +7,8 @@
  * Note: This tests the compatibility wrapper. For comprehensive tests of the
  * new MenuBar implementation, see src/components/menuBar/__tests__/
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -16,7 +18,7 @@ import { MenuBarCompat } from '../components/MenuBarCompat';
 
 // Mock the new MenuBar component
 vi.mock('../components/menuBar', () => ({
-  MenuBar: ({ project, hasUnsavedChanges, viewState }: any) => (
+  MenuBar: ({ project, hasUnsavedChanges, viewState }: LegacyAny) => (
     <div data-testid="menu-bar-mock">
       <div data-testid="project-state">{project ? 'has-project' : 'no-project'}</div>
       <div data-testid="unsaved-changes">{hasUnsavedChanges ? 'unsaved' : 'saved'}</div>

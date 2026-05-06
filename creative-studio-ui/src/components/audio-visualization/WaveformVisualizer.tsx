@@ -59,7 +59,7 @@ export const WaveformVisualizer: React.FC<WaveformVisualizerProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const { timeDomainData, rms, peaks, currentTime, duration } = data;
+    const { timeDomainData, _rms, peaks, currentTime, duration } = data;
     const centerY = height / 2;
 
     // Clear canvas

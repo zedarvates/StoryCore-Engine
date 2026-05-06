@@ -13,6 +13,6 @@ def assign_puppet_category(role: str) -> PuppetCategory:
         "protagonist": PuppetCategory.P1,
         "antagonist": PuppetCategory.P1,
         "supporting": PuppetCategory.P2,
-        "minor": PuppetCategory.M1
+        "minor": PuppetCategory.M1,
     }
     return role_mapping.get(role, PuppetCategory.M1)

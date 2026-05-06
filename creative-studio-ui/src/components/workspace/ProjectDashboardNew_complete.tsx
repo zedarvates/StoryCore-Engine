@@ -10,6 +10,8 @@
  * - Sequence Plans display with +/- buttons
  * - Click on sequence to open editor
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useMemo } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
@@ -88,7 +90,7 @@ const FILM_TYPE_CONFIGS: FilmTypeConfig[] = [
 // HELPER FUNCTIONS
 // ============================================================================
 
-export function detectFilmType(story: any): FilmType {
+export function detectFilmType(story: LegacyAny): FilmType {
   const contentLength = story?.content?.length || 0;
   const estimatedMinutes = contentLength / 150;
   
@@ -147,9 +149,9 @@ export function ProjectDashboardNew({
       return [];
     }
 
-    const sequenceMap: Record<string, any[]> = {};
+    const sequenceMap: Record<string, LegacyAny[]> = {};
     shots.forEach(shot => {
-      const seqId = (shot as any).sequence_id || 'default';
+      const seqId = (shot as LegacyAny).sequence_id || 'default';
       if (!sequenceMap[seqId]) {
         sequenceMap[seqId] = [];
       }

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { create } from 'zustand';
 import { devtools, persist, createJSONStorage } from 'zustand/middleware';
 import { StorageManager } from '../utils/storageManager';
@@ -745,7 +746,7 @@ export const useStore = create<Store>()(
         updateLocation: (id, updates) =>
           set((state) => {
             const updatedLocations = state.locations.map((loc) =>
-              (loc.location_id === id || (loc as any).id === id)
+              (loc.location_id === id || (loc as LegacyAny).id === id)
                 ? { ...loc, ...updates }
                 : loc
             );
@@ -763,11 +764,11 @@ export const useStore = create<Store>()(
 
         deleteLocation: (id) =>
           set((state) => ({
-            locations: state.locations.filter((loc) => loc.location_id !== id && (loc as any).id !== id),
+            locations: state.locations.filter((loc) => loc.location_id !== id && (loc as LegacyAny).id !== id),
           })),
 
         getLocationById: (id: string) => {
-          return get().locations.find((loc: ProductionLocation) => loc.location_id === id || (loc as any).id === id);
+          return get().locations.find((loc: ProductionLocation) => loc.location_id === id || (loc as LegacyAny).id === id);
         },
 
         // ====================================================================
@@ -1842,8 +1843,8 @@ export const useStore = create<Store>()(
       {
         name: 'creative-studio-storage',
         storage: createJSONStorage(() => ({
-          getItem: (name) => StorageManager.getItem(name) as any,
-          setItem: (name, value) => StorageManager.setItem(name, value) as any,
+          getItem: (name) => StorageManager.getItem(name) as LegacyAny,
+          setItem: (name, value) => StorageManager.setItem(name, value) as LegacyAny,
           removeItem: (name) => StorageManager.removeItem(name),
         })),
         partialize: (state) => ({

@@ -7,7 +7,7 @@
  */
 
 import React, { useState } from 'react';
-import { MapPin, GripVertical, Eye, EyeOff, Trash2, Plus } from 'lucide-react';
+import { MapPin, GripVertical, _Eye, _EyeOff, Trash2, Plus } from 'lucide-react';
 import type { Location } from '@/types/location';
 import './LocationPalette.css';
 

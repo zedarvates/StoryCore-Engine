@@ -12,8 +12,11 @@ from pathlib import Path
 import shutil
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class ComfyUIUpdater:
     """
@@ -37,7 +40,9 @@ class ComfyUIUpdater:
             if (path / "main.py").exists():
                 return path
 
-        raise FileNotFoundError("ComfyUI installation not found. Please run the installer first.")
+        raise FileNotFoundError(
+            "ComfyUI installation not found. Please run the installer first."
+        )
 
     def check_comfyui_version(self) -> str:
         """Check current ComfyUI version"""
@@ -48,7 +53,7 @@ class ComfyUIUpdater:
                 cwd=self.comfyui_path,
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             if result.returncode == 0:
@@ -98,7 +103,9 @@ class ComfyUIUpdater:
 
                 # Verify update
                 new_version = self.check_comfyui_version()
-                logger.info(f"✅ ComfyUI updated successfully to version: {new_version}")
+                logger.info(
+                    f"✅ ComfyUI updated successfully to version: {new_version}"
+                )
 
                 # Update custom nodes
                 self._update_custom_nodes()
@@ -119,10 +126,7 @@ class ComfyUIUpdater:
         try:
             # First, check if we're in a git repository
             result = subprocess.run(
-                ["git", "status"],
-                capture_output=True,
-                text=True,
-                timeout=30
+                ["git", "status"], capture_output=True, text=True, timeout=30
             )
 
             if result.returncode != 0:
@@ -131,11 +135,7 @@ class ComfyUIUpdater:
 
             # Stash any local changes
             logger.info("💾 Stashing local changes...")
-            subprocess.run(
-                ["git", "stash"],
-                capture_output=True,
-                timeout=60
-            )
+            subprocess.run(["git", "stash"], capture_output=True, timeout=60)
 
             # Pull latest changes
             logger.info("⬇️ Pulling latest changes...")
@@ -143,7 +143,7 @@ class ComfyUIUpdater:
                 ["git", "pull"],
                 capture_output=True,
                 text=True,
-                timeout=300  # 5 minutes timeout
+                timeout=300,  # 5 minutes timeout
             )
 
             if result.returncode == 0:
@@ -168,10 +168,7 @@ class ComfyUIUpdater:
             # Reset to latest origin/master
             logger.info("🔄 Resetting to origin/master...")
             result = subprocess.run(
-                ["git", "fetch", "origin"],
-                capture_output=True,
-                text=True,
-                timeout=120
+                ["git", "fetch", "origin"], capture_output=True, text=True, timeout=120
             )
 
             if result.returncode != 0:
@@ -182,7 +179,7 @@ class ComfyUIUpdater:
                 ["git", "reset", "--hard", "origin/master"],
                 capture_output=True,
                 text=True,
-                timeout=120
+                timeout=120,
             )
 
             if result.returncode == 0:
@@ -210,16 +207,25 @@ class ComfyUIUpdater:
                 # Install/update requirements
                 logger.info("🔄 Installing updated requirements...")
                 result = subprocess.run(
-                    [sys.executable, "-m", "pip", "install", "-r", str(requirements_file)],
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "install",
+                        "-r",
+                        str(requirements_file),
+                    ],
                     capture_output=True,
                     text=True,
-                    timeout=300
+                    timeout=300,
                 )
 
                 if result.returncode == 0:
                     logger.info("✅ Requirements updated successfully")
                 else:
-                    logger.warning(f"⚠️ Some requirements may have failed: {result.stderr}")
+                    logger.warning(
+                        f"⚠️ Some requirements may have failed: {result.stderr}"
+                    )
 
             except subprocess.TimeoutExpired:
                 logger.warning("Requirements installation timed out")
@@ -245,16 +251,15 @@ class ComfyUIUpdater:
 
                         # Update the custom node
                         result = subprocess.run(
-                            ["git", "pull"],
-                            capture_output=True,
-                            text=True,
-                            timeout=120
+                            ["git", "pull"], capture_output=True, text=True, timeout=120
                         )
 
                         if result.returncode == 0:
                             logger.info(f"✅ Updated {item.name}")
                         else:
-                            logger.warning(f"⚠️ Failed to update {item.name}: {result.stderr}")
+                            logger.warning(
+                                f"⚠️ Failed to update {item.name}: {result.stderr}"
+                            )
 
                         # Restore directory
                         os.chdir(original_cwd)
@@ -267,7 +272,11 @@ class ComfyUIUpdater:
     def backup_comfyui(self, backup_path: Path = None) -> bool:
         """Create a backup of ComfyUI before updating"""
         if backup_path is None:
-            backup_path = self.project_root / "backups" / f"comfyui_backup_{self.check_comfyui_version()}"
+            backup_path = (
+                self.project_root
+                / "backups"
+                / f"comfyui_backup_{self.check_comfyui_version()}"
+            )
 
         logger.info(f"💾 Creating backup at: {backup_path}")
 
@@ -276,15 +285,20 @@ class ComfyUIUpdater:
 
             # Create backup (exclude large model files)
             ignore_patterns = shutil.ignore_patterns(
-                "*.safetensors", "*.ckpt", "*.pth", "*.bin",
-                "__pycache__", "*.pyc", ".git"
+                "*.safetensors",
+                "*.ckpt",
+                "*.pth",
+                "*.bin",
+                "__pycache__",
+                "*.pyc",
+                ".git",
             )
 
             shutil.copytree(
                 self.comfyui_path,
                 backup_path,
                 ignore=ignore_patterns,
-                dirs_exist_ok=True
+                dirs_exist_ok=True,
             )
 
             logger.info("✅ Backup created successfully")
@@ -305,7 +319,7 @@ class ComfyUIUpdater:
                 cwd=self.comfyui_path,
                 capture_output=True,
                 text=True,
-                timeout=30
+                timeout=30,
             )
 
             if result.returncode == 0:
@@ -322,19 +336,27 @@ class ComfyUIUpdater:
             logger.error(f"Error during verification: {e}")
             return False
 
+
 def main():
     """Main entry point"""
     import argparse
 
     parser = argparse.ArgumentParser(description="ComfyUI Update Script")
-    parser.add_argument("--method", choices=["auto", "git_pull", "git_reset"],
-                       default="auto", help="Update method to use")
-    parser.add_argument("--backup", action="store_true",
-                       help="Create backup before updating")
-    parser.add_argument("--verify", action="store_true",
-                       help="Verify ComfyUI works after update")
-    parser.add_argument("--check-version", action="store_true",
-                       help="Only check current version")
+    parser.add_argument(
+        "--method",
+        choices=["auto", "git_pull", "git_reset"],
+        default="auto",
+        help="Update method to use",
+    )
+    parser.add_argument(
+        "--backup", action="store_true", help="Create backup before updating"
+    )
+    parser.add_argument(
+        "--verify", action="store_true", help="Verify ComfyUI works after update"
+    )
+    parser.add_argument(
+        "--check-version", action="store_true", help="Only check current version"
+    )
 
     args = parser.parse_args()
 
@@ -361,6 +383,7 @@ def main():
     else:
         logger.error("❌ ComfyUI update failed. Please check the logs above.")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

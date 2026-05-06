@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import styles from './FusionPanel.module.css';
 
@@ -5,7 +6,7 @@ interface FusionPageProps {}
 
 export const FusionPage: React.FC<FusionPageProps> = () => {
   const [activeTab, setActiveTab] = useState<'nodeEditor' | 'nodeLibrary' | 'inspector' | 'splineEditor'>('nodeEditor');
-  const [nodes, setNodes] = useState<any[]>([
+  const [nodes, setNodes] = useState<LegacyAny[]>([
     {
       id: 'node_1',
       type: 'mediaIn',
@@ -52,14 +53,14 @@ export const FusionPage: React.FC<FusionPageProps> = () => {
       enabled: true
     }
   ]);
-  const [connections, setConnections] = useState<any[]>([
+  const [connections, setConnections] = useState<LegacyAny[]>([
     { from: 'node_1', output: 'output', to: 'node_2', input: 'input' },
     { from: 'node_2', output: 'output', to: 'node_3', input: 'input' },
     { from: 'node_3', output: 'output', to: 'node_4', input: 'foreground' },
     { from: 'node_4', output: 'output', to: 'node_5', input: 'input' }
   ]);
 
-  const handleNodeMove = (nodeId: string, newPosition: any) => {
+  const handleNodeMove = (nodeId: string, newPosition: LegacyAny) => {
     setNodes(nodes.map(node =>
       node.id === nodeId ? { ...node, position: newPosition } : node
     ));
@@ -82,7 +83,7 @@ export const FusionPage: React.FC<FusionPageProps> = () => {
     setConnections([...connections, { from: fromNode, output: fromOutput, to: toNode, input: toInput }]);
   };
 
-  const handleDisconnect = (connection: any) => {
+  const handleDisconnect = (connection: LegacyAny) => {
     setConnections(connections.filter(conn => 
       conn.from !== connection.from || conn.output !== connection.output ||
       conn.to !== connection.to || conn.input !== connection.input

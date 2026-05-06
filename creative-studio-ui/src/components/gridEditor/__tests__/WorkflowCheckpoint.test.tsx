@@ -10,7 +10,7 @@ import { useGridStore } from '../../../stores/gridEditorStore';
 import { useUndoRedoStore } from '../../../stores/undoRedoStore';
 import { useViewportStore } from '../../../stores/viewportStore';
 import { createAnnotationLayer } from '../../../types/gridEditor.factories';
-import type { Transform, CropRegion } from '../../../types/gridEditor';
+import type { _Transform, _CropRegion } from '../../../types/gridEditor';
 
 describe('Task 11: Complete Editing Workflow Checkpoint', () => {
   let panel1Id: string;

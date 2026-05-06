@@ -3,16 +3,16 @@ import sys
 import urllib.request
 from pathlib import Path
 
+
 def download_file(url, dest_path):
-    temp_path = dest_path + '.tmp'
+    temp_path = dest_path + ".tmp"
     try:
         Path(dest_path).parent.mkdir(parents=True, exist_ok=True)
         request = urllib.request.Request(
-            url,
-            headers={'User-Agent': 'StoryCore-Downloader/1.0'}
+            url, headers={"User-Agent": "StoryCore-Downloader/1.0"}
         )
         with urllib.request.urlopen(request) as response:
-            with open(temp_path, 'wb') as f:
+            with open(temp_path, "wb") as f:
                 while True:
                     chunk = response.read(8192 * 4)
                     if not chunk:
@@ -25,6 +25,7 @@ def download_file(url, dest_path):
             Path(temp_path).unlink()
         print(f"FAILED: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:

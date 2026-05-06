@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AudioPanel } from '../AudioPanel';
@@ -48,7 +49,7 @@ describe('AudioPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useStore as any).mockImplementation((selector: any) => {
+    (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
       const state = {
         shots: [mockShot],
         addAudioTrack: mockAddAudioTrack,
@@ -79,7 +80,7 @@ describe('AudioPanel', () => {
     });
 
     it('should render audio track when present', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -142,7 +143,7 @@ describe('AudioPanel', () => {
 
   describe('Edit Audio Track', () => {
     it('should show edit form when edit button clicked', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -161,7 +162,7 @@ describe('AudioPanel', () => {
     });
 
     it('should call updateAudioTrack when edit form submitted', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -189,7 +190,7 @@ describe('AudioPanel', () => {
     });
 
     it('should cancel edit when cancel button clicked', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -213,7 +214,7 @@ describe('AudioPanel', () => {
 
   describe('Delete Audio Track', () => {
     it('should show delete confirmation when delete button clicked', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -232,7 +233,7 @@ describe('AudioPanel', () => {
     });
 
     it('should call deleteAudioTrack when confirmed', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -256,7 +257,7 @@ describe('AudioPanel', () => {
 
   describe('Audio Track Controls', () => {
     it('should toggle mute when mute button clicked', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -278,7 +279,7 @@ describe('AudioPanel', () => {
     });
 
     it('should toggle solo when solo button clicked', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -300,7 +301,7 @@ describe('AudioPanel', () => {
     });
 
     it('should update volume when volume slider changed', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack] }],
           addAudioTrack: mockAddAudioTrack,
@@ -341,7 +342,7 @@ describe('AudioPanel', () => {
         effects: [],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, audioTracks: [mockAudioTrack, track2] }],
           addAudioTrack: mockAddAudioTrack,

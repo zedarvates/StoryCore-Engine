@@ -8,11 +8,11 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Any, Callable, Awaitable
-from pathlib import Path
 
 
 class HookPriority(Enum):
     """Priorités d'exécution des hooks"""
+
     LOWEST = 0
     LOW = 25
     NORMAL = 50
@@ -23,6 +23,7 @@ class HookPriority(Enum):
 @dataclass
 class HookRegistration:
     """Enregistrement d'un hook"""
+
     addon_name: str
     hook_name: str
     callback: Callable[..., Awaitable[Any]]
@@ -33,6 +34,7 @@ class HookRegistration:
 @dataclass
 class HookContext:
     """Contexte d'exécution d'un hook"""
+
     hook_name: str
     args: List[Any]
     kwargs: Dict[str, Any]
@@ -43,6 +45,7 @@ class HookContext:
 @dataclass
 class HookResult:
     """Résultat d'exécution d'un hook"""
+
     hook_name: str
     addon_name: str
     success: bool
@@ -77,7 +80,7 @@ class HookManager:
             "executions_total": 0,
             "executions_successful": 0,
             "executions_failed": 0,
-            "hooks_registered": 0
+            "hooks_registered": 0,
         }
 
     def _initialize_system_hooks(self):
@@ -87,44 +90,41 @@ class HookManager:
             "addon_loaded": "Déclenché quand un add-on est chargé",
             "addon_enabled": "Déclenché quand un add-on est activé",
             "addon_disabled": "Déclenché quand un add-on est désactivé",
-
             # Hooks de traitement
             "pre_processing": "Avant le début du traitement",
             "post_processing": "Après la fin du traitement",
             "processing_error": "En cas d'erreur de traitement",
-
             # Hooks de génération de contenu
             "pre_generation": "Avant la génération de contenu",
             "post_generation": "Après la génération de contenu",
             "content_filter": "Pour filtrer/modifier le contenu généré",
-
             # Hooks de workflow
             "workflow_start": "Début d'un workflow",
             "workflow_step": "À chaque étape du workflow",
             "workflow_end": "Fin d'un workflow",
-
             # Hooks d'export
             "pre_export": "Avant l'export",
             "post_export": "Après l'export",
             "export_filter": "Filtrage du contenu d'export",
-
             # Hooks UI
             "ui_render": "Rendu d'interface utilisateur",
             "ui_event": "Gestion des événements UI",
-
             # Hooks de sécurité
             "security_check": "Vérifications de sécurité",
             "permission_request": "Demandes de permissions",
-
             # Hooks de monitoring
             "metrics_collect": "Collecte de métriques",
-            "health_check": "Vérifications de santé"
+            "health_check": "Vérifications de santé",
         }
 
-    def register_hook(self, addon_name: str, hook_name: str,
-                     callback: Callable[..., Awaitable[Any]],
-                     priority: HookPriority = HookPriority.NORMAL,
-                     metadata: Dict[str, Any] = None) -> bool:
+    def register_hook(
+        self,
+        addon_name: str,
+        hook_name: str,
+        callback: Callable[..., Awaitable[Any]],
+        priority: HookPriority = HookPriority.NORMAL,
+        metadata: Dict[str, Any] = None,
+    ) -> bool:
         """
         Enregistre un hook pour un add-on
 
@@ -139,11 +139,15 @@ class HookManager:
             True si enregistré avec succès
         """
         if hook_name not in self.system_hooks and not hook_name.startswith("custom_"):
-            self.logger.warning(f"Hook inconnu: {hook_name}. Utilisez custom_* pour les hooks personnalisés.")
+            self.logger.warning(
+                f"Hook inconnu: {hook_name}. Utilisez custom_* pour les hooks personnalisés."
+            )
             return False
 
         if not asyncio.iscoroutinefunction(callback):
-            self.logger.error(f"Le callback pour {hook_name} doit être une fonction async")
+            self.logger.error(
+                f"Le callback pour {hook_name} doit être une fonction async"
+            )
             return False
 
         registration = HookRegistration(
@@ -151,7 +155,7 @@ class HookManager:
             hook_name=hook_name,
             callback=callback,
             priority=priority,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         if hook_name not in self.hooks:
@@ -162,7 +166,9 @@ class HookManager:
         self.hooks[hook_name].sort(key=lambda x: x.priority.value, reverse=True)
 
         self.stats["hooks_registered"] += 1
-        self.logger.debug(f"Hook enregistré: {addon_name}.{hook_name} (priorité: {priority.name})")
+        self.logger.debug(
+            f"Hook enregistré: {addon_name}.{hook_name} (priorité: {priority.name})"
+        )
 
         return True
 
@@ -182,8 +188,7 @@ class HookManager:
 
         original_count = len(self.hooks[hook_name])
         self.hooks[hook_name] = [
-            reg for reg in self.hooks[hook_name]
-            if reg.addon_name != addon_name
+            reg for reg in self.hooks[hook_name] if reg.addon_name != addon_name
         ]
 
         if len(self.hooks[hook_name]) < original_count:
@@ -240,8 +245,9 @@ class HookManager:
         self.stats["executions_total"] += len(results)
         return results
 
-    async def execute_hook_with_filter(self, hook_name: str, initial_value: Any,
-                                     *args, **kwargs) -> Any:
+    async def execute_hook_with_filter(
+        self, hook_name: str, initial_value: Any, *args, **kwargs
+    ) -> Any:
         """
         Exécute des hooks de filtrage qui peuvent modifier une valeur
 
@@ -267,12 +273,16 @@ class HookManager:
                 if result is not None:
                     current_value = result
             except Exception as e:
-                self.logger.error(f"Erreur dans hook de filtrage {registration.addon_name}.{hook_name}: {e}")
+                self.logger.error(
+                    f"Erreur dans hook de filtrage {registration.addon_name}.{hook_name}: {e}"
+                )
                 # En cas d'erreur, on garde la valeur précédente
 
         return current_value
 
-    def get_registered_hooks(self, hook_name: Optional[str] = None) -> Dict[str, List[str]]:
+    def get_registered_hooks(
+        self, hook_name: Optional[str] = None
+    ) -> Dict[str, List[str]]:
         """
         Retourne les hooks enregistrés
 
@@ -299,7 +309,7 @@ class HookManager:
             "hooks_by_type": {
                 hook_name: len(registrations)
                 for hook_name, registrations in self.hooks.items()
-            }
+            },
         }
 
     def get_available_hooks(self) -> Dict[str, str]:
@@ -308,24 +318,29 @@ class HookManager:
 
     # Méthodes privées
 
-    async def _execute_single_hook(self, registration: HookRegistration,
-                                 args: List[Any], kwargs: Dict[str, Any],
-                                 addon_context: Dict[str, Any]) -> HookResult:
+    async def _execute_single_hook(
+        self,
+        registration: HookRegistration,
+        args: List[Any],
+        kwargs: Dict[str, Any],
+        addon_context: Dict[str, Any],
+    ) -> HookResult:
         """Exécute un seul hook"""
         import time
+
         start_time = time.time()
 
         try:
             # Préparer le contexte
-            hook_context = HookContext(
+            HookContext(
                 hook_name=registration.hook_name,
                 args=args,
                 kwargs=kwargs,
                 addon_context=addon_context,
                 execution_metadata={
                     "priority": registration.priority.value,
-                    "metadata": registration.metadata
-                }
+                    "metadata": registration.metadata,
+                },
             )
 
             # Exécuter le callback
@@ -340,14 +355,16 @@ class HookManager:
                 result=result,
                 error=None,
                 execution_time=execution_time,
-                priority=registration.priority
+                priority=registration.priority,
             )
 
         except Exception as e:
             execution_time = time.time() - start_time
             error_msg = f"{type(e).__name__}: {str(e)}"
 
-            self.logger.error(f"Erreur dans hook {registration.addon_name}.{registration.hook_name}: {error_msg}")
+            self.logger.error(
+                f"Erreur dans hook {registration.addon_name}.{registration.hook_name}: {error_msg}"
+            )
 
             return HookResult(
                 hook_name=registration.hook_name,
@@ -356,17 +373,13 @@ class HookManager:
                 result=None,
                 error=error_msg,
                 execution_time=execution_time,
-                priority=registration.priority
+                priority=registration.priority,
             )
 
     def _should_stop_on_error(self, hook_name: str) -> bool:
         """Détermine si l'exécution doit s'arrêter en cas d'erreur"""
         # Hooks critiques qui doivent s'arrêter sur erreur
-        critical_hooks = {
-            "security_check",
-            "permission_request",
-            "pre_processing"
-        }
+        critical_hooks = {"security_check", "permission_request", "pre_processing"}
 
         return hook_name in critical_hooks
 
@@ -376,12 +389,14 @@ class HookManager:
         return {
             "engine_version": "2.0.0",
             "active_addons": [],  # Liste des add-ons actifs
-            "system_state": "running"
+            "system_state": "running",
         }
 
     # Méthodes utilitaires pour les add-ons
 
-    def create_filter_hook(self, filter_function: Callable[[Any], Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+    def create_filter_hook(
+        self, filter_function: Callable[[Any], Awaitable[Any]]
+    ) -> Callable[..., Awaitable[Any]]:
         """
         Crée un hook de filtrage à partir d'une fonction simple
 
@@ -391,12 +406,15 @@ class HookManager:
         Returns:
             Fonction compatible avec les hooks de filtrage
         """
+
         async def filter_hook(value: Any, *args, **kwargs) -> Any:
             return await filter_function(value)
 
         return filter_hook
 
-    def create_event_hook(self, event_handler: Callable[..., Awaitable[None]]) -> Callable[..., Awaitable[Any]]:
+    def create_event_hook(
+        self, event_handler: Callable[..., Awaitable[None]]
+    ) -> Callable[..., Awaitable[Any]]:
         """
         Crée un hook d'événement à partir d'un gestionnaire simple
 
@@ -406,6 +424,7 @@ class HookManager:
         Returns:
             Fonction compatible avec les hooks d'événement
         """
+
         async def event_hook(*args, **kwargs) -> None:
             await event_handler(*args, **kwargs)
             return None  # Les hooks d'événement ne retournent généralement rien

@@ -5,7 +5,7 @@
  * Requirements: 3.1, 3.2, 3.4, 3.5, 3.6
  */
 
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act, _waitFor } from '@testing-library/react';
 import { LanguageProvider, useLanguage } from '../contexts/LanguageContext';
 import { I18nProvider } from '../utils/i18n';
 import * as languageDetection from '../utils/languageDetection';

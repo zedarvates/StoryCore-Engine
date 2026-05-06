@@ -444,7 +444,7 @@ export class LoggingService {
     // Monitoring basique des performances
   }
 
-  private monitorOperation(logEntry: LogEntry): void {
+  private monitorOperation(_logEntry: LogEntry): void {
     // Monitoring basique des opérations
   }
 

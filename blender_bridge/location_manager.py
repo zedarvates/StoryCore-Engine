@@ -20,8 +20,15 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 from blender_bridge.scene_types import (
-    LocationPreset, SceneType, LightingConfig, LightConfig,
-    AtmosphereConfig, AtmosphereType, LightType, PropObject, SceneJSON,
+    LocationPreset,
+    SceneType,
+    LightingConfig,
+    LightConfig,
+    AtmosphereConfig,
+    AtmosphereType,
+    LightType,
+    PropObject,
+    SceneJSON,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,6 +37,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 #  PRESETS INTÉGRÉS (livrés avec BlenderBridge)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _make_builtin_presets() -> Dict[str, LocationPreset]:
     """Crée les presets de lieux prédéfinis."""
@@ -43,9 +51,15 @@ def _make_builtin_presets() -> Dict[str, LocationPreset]:
         scene_type=SceneType.EXTERIOR,
         tags=["cyberpunk", "urban", "night", "neon", "rain"],
         props=[
-            PropObject(name="Container_L", position=(-3.0, 2.0, 0.0), scale=(1.0, 1.0, 1.0)),
-            PropObject(name="Container_R", position=(3.0, 4.0, 0.0), scale=(1.0, 1.0, 1.0)),
-            PropObject(name="Debris_Ground", position=(1.0, 1.5, 0.0), scale=(0.5, 0.5, 0.3)),
+            PropObject(
+                name="Container_L", position=(-3.0, 2.0, 0.0), scale=(1.0, 1.0, 1.0)
+            ),
+            PropObject(
+                name="Container_R", position=(3.0, 4.0, 0.0), scale=(1.0, 1.0, 1.0)
+            ),
+            PropObject(
+                name="Debris_Ground", position=(1.0, 1.5, 0.0), scale=(0.5, 0.5, 0.3)
+            ),
         ],
         lighting=LightingConfig(
             lights=[
@@ -248,6 +262,7 @@ def _make_builtin_presets() -> Dict[str, LocationPreset]:
 #  GESTIONNAIRE DE LIEUX
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LocationManager:
     """
     Gère les presets de lieux pour les scènes Blender.
@@ -299,8 +314,11 @@ class LocationManager:
         if query:
             q = query.lower()
             results = [
-                p for p in results
-                if q in p.name.lower() or q in p.description.lower() or q in p.id.lower()
+                p
+                for p in results
+                if q in p.name.lower()
+                or q in p.description.lower()
+                or q in p.id.lower()
             ]
 
         if scene_type is not None:
@@ -309,7 +327,8 @@ class LocationManager:
         if tags:
             tags_lower = [t.lower() for t in tags]
             results = [
-                p for p in results
+                p
+                for p in results
                 if any(t in [pt.lower() for pt in p.tags] for t in tags_lower)
             ]
 
@@ -340,7 +359,9 @@ class LocationManager:
         """Supprime un preset (seulement les presets utilisateur, pas les builtins)."""
         builtin_ids = set(_make_builtin_presets().keys())
         if preset_id in builtin_ids:
-            logger.warning(f"[LocationManager] Impossible de supprimer le preset builtin : {preset_id}")
+            logger.warning(
+                f"[LocationManager] Impossible de supprimer le preset builtin : {preset_id}"
+            )
             return False
 
         if preset_id in self._presets:
@@ -393,7 +414,9 @@ class LocationManager:
         # Enregistrer la référence au preset
         scene.location_preset_id = preset_id
 
-        logger.info(f"[LocationManager] Preset '{preset_id}' appliqué à la scène '{scene.scene_id}'")
+        logger.info(
+            f"[LocationManager] Preset '{preset_id}' appliqué à la scène '{scene.scene_id}'"
+        )
         return scene
 
     def create_from_narrative(self, description: str) -> Optional[LocationPreset]:
@@ -412,11 +435,35 @@ class LocationManager:
 
         # Mapping de mots-clés → preset IDs
         keyword_map = {
-            "ruelle_cyberpunk":  ["ruelle", "cyberpunk", "néon", "neon", "urbain", "urban", "dystop"],
-            "foret_brumeuse":    ["forêt", "foret", "brume", "brouillard", "fog", "arbre", "nature", "bois"],
-            "bureau_sombre":     ["bureau", "office", "détective", "detective", "noir", "sombre"],
-            "studio_neutre":     ["studio", "neutre", "fond blanc", "portrait", "clean"],
-            "desert":            ["désert", "desert", "sable", "aride", "western", "dune"],
+            "ruelle_cyberpunk": [
+                "ruelle",
+                "cyberpunk",
+                "néon",
+                "neon",
+                "urbain",
+                "urban",
+                "dystop",
+            ],
+            "foret_brumeuse": [
+                "forêt",
+                "foret",
+                "brume",
+                "brouillard",
+                "fog",
+                "arbre",
+                "nature",
+                "bois",
+            ],
+            "bureau_sombre": [
+                "bureau",
+                "office",
+                "détective",
+                "detective",
+                "noir",
+                "sombre",
+            ],
+            "studio_neutre": ["studio", "neutre", "fond blanc", "portrait", "clean"],
+            "desert": ["désert", "desert", "sable", "aride", "western", "dune"],
         }
 
         best_match = None
@@ -452,7 +499,11 @@ class LocationManager:
         loc_type = location_data.get("location_type", "generic")
 
         # Déduire le type de scène
-        scene_type = SceneType.INTERIOR if "intérieur" in loc_type.lower() else SceneType.EXTERIOR
+        scene_type = (
+            SceneType.INTERIOR
+            if "intérieur" in loc_type.lower()
+            else SceneType.EXTERIOR
+        )
 
         # Créer un preset basique depuis les métadonnées
         preset = LocationPreset(
@@ -503,7 +554,9 @@ class LocationManager:
                     self._presets[preset.id] = preset
                     count += 1
             except Exception as e:
-                logger.warning(f"[LocationManager] Impossible de charger {json_file}: {e}")
+                logger.warning(
+                    f"[LocationManager] Impossible de charger {json_file}: {e}"
+                )
 
         if count:
             logger.info(f"[LocationManager] {count} preset(s) utilisateur chargé(s)")

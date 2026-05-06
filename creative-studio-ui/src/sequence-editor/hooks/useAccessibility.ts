@@ -9,7 +9,7 @@
  * Note: Consolidated hooks are imported from src/hooks/useAccessibility.ts
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAnnounce, useReducedMotion, useFocusTrap as useBaseFocusTrap } from '../../hooks/useAccessibility';
 
 // ============================================================================
@@ -20,26 +20,7 @@ import { useAnnounce, useReducedMotion, useFocusTrap as useBaseFocusTrap } from 
  * Hook for trapping focus within a container (for modals/dialogs)
  */
 export const useFocusTrap = (active: boolean = false) => {
-  const containerRef = useRef<HTMLElement>(null);
-  const focusTrapRef = useRef<ReturnType<typeof useBaseFocusTrap> | null>(null);
-  
-  useEffect(() => {
-    if (!containerRef.current) return;
-    
-    if (active) {
-      focusTrapRef.current = useBaseFocusTrap(active);
-      // @ts-ignore - FocusTrap methods
-      if (focusTrapRef.current?.current) {
-        // @ts-ignore - FocusTrap methods
-        focusTrapRef.current.current = containerRef.current;
-      }
-    }
-    
-    return () => {
-      focusTrapRef.current = null;
-    };
-  }, [active]);
-  
+  const containerRef = useBaseFocusTrap(active) as React.RefObject<HTMLDivElement>;
   return containerRef;
 };
 
@@ -148,11 +129,12 @@ export const useKeyboardNavigation = (
  * Hook for detecting high contrast mode
  */
 export const useHighContrast = () => {
-  const [highContrast, setHighContrast] = useState(false);
+  const [highContrast, setHighContrast] = useState(() => 
+    typeof window !== 'undefined' ? window.matchMedia('(prefers-contrast: high)').matches : false
+  );
   
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-contrast: high)');
-    setHighContrast(mediaQuery.matches);
     
     const handleChange = () => {
       setHighContrast(mediaQuery.matches);

@@ -50,7 +50,7 @@ export class MenuStateManager {
    * Merges partial updates and notifies listeners
    */
   setState(updates: Partial<MenuBarState>): void {
-    const previousState = this.getState();
+    const _previousState = this.getState();
     
     this.state = {
       ...this.state,

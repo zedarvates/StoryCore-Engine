@@ -14,7 +14,7 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { splitShot } from '../../store/slices/timelineSlice';
 import { LAYER_ICONS, getTrackShots, getLayerIndex } from '../../constants/timelineConstants';
 import type { Track, ToolType } from '@/sequence-editor/types';
-import type { Shot, Layer, LayerType } from '@/types';
+import type { Shot, Layer, LayerType, TimelineKeyframe } from '@/types';
 import { cinematicTensionService, type TensionNode } from '@/services/CinematicTensionService';
 import '@/sequence-editor/components/Timeline/VirtualTimelineCanvas.css';
  
@@ -243,6 +243,56 @@ function drawThumbnail(
 }
 
 /**
+ * Draw diamond-shaped keyframe markers on a layer
+ */
+function drawKeyframeMarkers(
+  ctx: CanvasRenderingContext2D,
+  layer: Layer,
+  x: number,
+  y: number,
+  _width: number,
+  height: number,
+  zoomLevel: number,
+  isSelected: boolean
+): void {
+  if (!layer.animations || !isSelected) return;
+
+  ctx.save();
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#ffffff';
+  ctx.fillStyle = '#3498db'; // Primary blue for keyframes
+
+  Object.values(layer.animations).forEach((keyframes) => {
+    if (!Array.isArray(keyframes)) return;
+    
+    keyframes.forEach((kf: TimelineKeyframe) => {
+      const kfX = x + kf.time * zoomLevel;
+      const kfY = y + height / 2;
+
+      // Draw Diamond
+      ctx.beginPath();
+      ctx.moveTo(kfX, kfY - 4); // Top
+      ctx.lineTo(kfX + 4, kfY); // Right
+      ctx.lineTo(kfX, kfY + 4); // Bottom
+      ctx.lineTo(kfX - 4, kfY); // Left
+      ctx.closePath();
+      
+      ctx.fill();
+      ctx.stroke();
+
+      // Add a tiny highlight for premium look
+      ctx.fillStyle = '#ffffff99';
+      ctx.beginPath();
+      ctx.arc(kfX - 1, kfY - 1, 1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#3498db'; // Restore
+    });
+  });
+
+  ctx.restore();
+}
+
+/**
  * Draw a layer on the canvas
  */
 function drawLayer(
@@ -268,7 +318,7 @@ function drawLayer(
   const y = layerIndex * LAYER_STACK_HEIGHT + SHOT_PADDING;
   const height = LAYER_STACK_HEIGHT - SHOT_PADDING * 2;
   
-  const stackOffset = layerIndex * 2; // Offset for layered rendering on the same track if applicable// Skip if hidden
+  const _stackOffset = layerIndex * 2; // Offset for layered rendering on the same track if applicable// Skip if hidden
   if (isHidden) return;
   
   // Calculate opacity
@@ -288,7 +338,7 @@ function drawLayer(
   ctx.roundRect(x, y, width, height, SHOT_CORNER_RADIUS);
   ctx.fill();
 
-  // Subtle inner highlight/border for glassmorphism
+  // Subtle inner highlight/border for glass-morphism
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
   ctx.lineWidth = 1;
   ctx.stroke();
@@ -626,7 +676,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   onShotDoubleClick,
   isPlaying = false,
   onShotGenerate,
-  onGenerateAll,
+  onGenerateAll: _onGenerateAll,
   scrollElement = null,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -661,10 +711,12 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
   );
   
   // Setup virtualizer for vertical scrolling
+  // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
     count: visibleTracks.length,
     getScrollElement: () => scrollElement || containerRef.current,
     estimateSize: (index) => visibleTracks[index]?.height || 40,
+    // cspell:ignore overscan
     overscan: 3,
     // Enable measurement for test environments
     measureElement:
@@ -798,20 +850,35 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
           ctx,
           previewShot,
           layer,
-          index, // Pass the index directly
+          index,
           track.type,
           track.height,
           zoomLevel,
           isSelected,
-          track.color,
-          layer.locked,
-          layer.hidden,
+          track.color || '#4A90E2',
+          track.locked || layer.locked,
+          track.hidden || layer.hidden,
           dragOffset,
           shotIndices.get(shot.id),
           promptsVisible,
           contentOffset,
           activeTool
         );
+
+        // Draw keyframe markers if the shot is selected
+        if (isSelected) {
+          drawKeyframeMarkers(
+            ctx,
+            layer,
+            previewShot.startTime * zoomLevel + dragOffset,
+            index * LAYER_STACK_HEIGHT + SHOT_PADDING,
+            Math.max(previewShot.duration * zoomLevel, MIN_SHOT_WIDTH),
+            LAYER_STACK_HEIGHT - SHOT_PADDING * 2,
+            zoomLevel,
+            isSelected
+          );
+        }
+
         ctx.restore();
       });
 
@@ -936,7 +1003,7 @@ export const VirtualTimelineCanvas: React.FC<VirtualTimelineCanvasProps> = ({
         onShotSelect('', false);
       }
     },
-    [shots, zoomLevel, activeTool, dispatch, onShotSelect, onLayerSelect, onShotRoll]
+    [shots, zoomLevel, activeTool, dispatch, onShotSelect, onLayerSelect, onShotRoll, onShotGenerate, onShotDoubleClick]
   );
 
   // Handle double click on shot
@@ -1197,11 +1264,13 @@ const SNAP_THRESHOLD = 10;
     <div 
       ref={containerRef} 
       className="virtual-timeline-canvas"
+      /* hint-disable no-inline-styles */
       style={{
         '--tw': `${timelineWidth}px`,
         '--th': `${totalHeight}px`,
         '--vth': `${rowVirtualizer.getTotalSize()}px`
       } as React.CSSProperties}
+      /* hint-enable no-inline-styles */
     >
       {/* Canvas for drawing static elements (grid, playhead, etc.) */}
       <div className="static-overlay-canvas-wrapper">
@@ -1223,10 +1292,12 @@ const SNAP_THRESHOLD = 10;
             <div
               key={track.id}
               className="virtual-track-row"
+              /* hint-disable no-inline-styles */
               style={{
                 '--rh': `${track.height}px`,
                 '--ry': `${visibleTracks.slice(0, index).reduce((sum, t) => sum + t.height, 0)}px`,
               } as React.CSSProperties}
+              /* hint-enable no-inline-styles */
             >
               <div
                 id={`track-container-${track.id}`}
@@ -1271,10 +1342,12 @@ const SNAP_THRESHOLD = 10;
             <div
               key={track.id}
               className="virtual-track-row"
+              /* hint-disable no-inline-styles */
               style={{
                 '--rh': `${track.height}px`,
                 '--ry': `${virtualItem.start}px`,
               } as React.CSSProperties}
+              /* hint-enable no-inline-styles */
             >
               <div
                 id={`track-container-${track.id}`}

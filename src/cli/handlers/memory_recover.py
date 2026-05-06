@@ -5,10 +5,10 @@ Memory Recover command handler - Recover damaged memory system and project state
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, Any
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.wizard.models import RecoveryReport
 
 
 class MemoryRecoverHandler(BaseHandler):
@@ -23,27 +23,27 @@ class MemoryRecoverHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory to recover (default: current directory)"
+            help="Project directory to recover (default: current directory)",
         )
 
         parser.add_argument(
             "--mode",
             choices=["automatic", "desperate"],
             default="automatic",
-            help="Recovery mode (default: automatic)"
+            help="Recovery mode (default: automatic)",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format (default: human)"
+            help="Output format (default: human)",
         )
 
         parser.add_argument(
             "--force",
             action="store_true",
-            help="Force recovery even if no errors detected"
+            help="Force recovery even if no errors detected",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -54,7 +54,7 @@ class MemoryRecoverHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             # Import memory system
@@ -64,7 +64,7 @@ class MemoryRecoverHandler(BaseHandler):
             except ImportError as e:
                 raise SystemError(
                     f"Memory system not available: {e}",
-                    "Ensure memory_system module is installed"
+                    "Ensure memory_system module is installed",
                 )
 
             # Initialize memory system
@@ -79,7 +79,11 @@ class MemoryRecoverHandler(BaseHandler):
                 return 0
 
             # Determine recovery type
-            recovery_type = RecoveryType.DESPERATE if args.mode == "desperate" else RecoveryType.AUTOMATIC
+            recovery_type = (
+                RecoveryType.DESPERATE
+                if args.mode == "desperate"
+                else RecoveryType.AUTOMATIC
+            )
 
             # Perform recovery
             print(f"Starting {args.mode} recovery...")
@@ -87,15 +91,22 @@ class MemoryRecoverHandler(BaseHandler):
 
             # Output results
             if args.format == "json":
-                print(json.dumps({
-                    "success": recovery_report.success,
-                    "restored_files": [str(f) for f in recovery_report.restored_files],
-                    "lost_files": [str(f) for f in recovery_report.lost_files],
-                    "confidence_scores": recovery_report.confidence_scores,
-                    "warnings": recovery_report.warnings,
-                    "recommendations": recovery_report.recommendations,
-                    "timestamp": recovery_report.timestamp
-                }, indent=2))
+                print(
+                    json.dumps(
+                        {
+                            "success": recovery_report.success,
+                            "restored_files": [
+                                str(f) for f in recovery_report.restored_files
+                            ],
+                            "lost_files": [str(f) for f in recovery_report.lost_files],
+                            "confidence_scores": recovery_report.confidence_scores,
+                            "warnings": recovery_report.warnings,
+                            "recommendations": recovery_report.recommendations,
+                            "timestamp": recovery_report.timestamp,
+                        },
+                        indent=2,
+                    )
+                )
             else:
                 self._print_human_results(recovery_report, args)
 
@@ -104,9 +115,11 @@ class MemoryRecoverHandler(BaseHandler):
         except Exception as e:
             return self.handle_error(e, "memory recovery")
 
-    def _print_human_results(self, report: 'RecoveryReport', args: argparse.Namespace) -> None:
+    def _print_human_results(
+        self, report: "RecoveryReport", args: argparse.Namespace
+    ) -> None:
         """Print human-readable recovery results."""
-        print(f"Memory System Recovery Results")
+        print("Memory System Recovery Results")
         print(f"Mode: {args.mode}")
         print()
 

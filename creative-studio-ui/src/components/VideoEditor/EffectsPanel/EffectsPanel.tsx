@@ -2,6 +2,8 @@
  * Effects Panel Component
  * Color correction, filter controls, and AI enhancements
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { useVideoEditor } from '../../../contexts/VideoEditorContext';
@@ -67,7 +69,7 @@ export const EffectsPanel: React.FC = () => {
     if (!selectedClip) return null;
     return Object.values(aiJobs).find(job => 
       (job.status === 'pending' || job.status === 'processing') && 
-      (job as any).media_id === selectedClip.mediaId
+      (job as LegacyAny).media_id === selectedClip.mediaId
     );
   }, [aiJobs, selectedClip]);
 

@@ -8,7 +8,7 @@ import {
   MetadataEnrichmentService,
   type EnhancedSceneBreakdown,
   type EnhancedShotPlan,
-  type CompletenessReport,
+  type _CompletenessReport,
 } from '../MetadataEnrichmentService';
 
 describe('MetadataEnrichmentService', () => {

@@ -3,6 +3,8 @@
  * 
  * Provides runtime validation for component props and data structures
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { z } from 'zod';
 
@@ -112,7 +114,7 @@ export function validateData<T>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       const errors: Record<string, string> = {};
-      (error as any).errors.forEach((err: z.ZodIssue) => {
+      (error as LegacyAny).errors.forEach((err: z.ZodIssue) => {
         const path = err.path.join('.');
         errors[path] = err.message;
       });

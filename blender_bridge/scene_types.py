@@ -22,56 +22,60 @@ import json
 #  ENUMERATIONS
 # ─────────────────────────────────────────────
 
+
 class ShotType(str, Enum):
     """Types de plans cinématographiques."""
-    WIDE            = "wide"
-    CLOSE_UP        = "close_up"
-    MEDIUM          = "medium"
-    OVER_SHOULDER   = "over_shoulder"
-    LOW_ANGLE       = "low_angle"
-    HIGH_ANGLE      = "high_angle"
+
+    WIDE = "wide"
+    CLOSE_UP = "close_up"
+    MEDIUM = "medium"
+    OVER_SHOULDER = "over_shoulder"
+    LOW_ANGLE = "low_angle"
+    HIGH_ANGLE = "high_angle"
     LOW_ANGLE_CLOSE = "low_angle_close"
-    BIRD_EYE        = "bird_eye"
-    WORM_EYE        = "worm_eye"
-    DUTCH_ANGLE     = "dutch_angle"
-    POV             = "pov"
+    BIRD_EYE = "bird_eye"
+    WORM_EYE = "worm_eye"
+    DUTCH_ANGLE = "dutch_angle"
+    POV = "pov"
 
 
 class SceneType(str, Enum):
     """Type d'environnement de la scène."""
-    EXTERIOR        = "exterior"
-    INTERIOR        = "interior"
-    SKYBOX          = "skybox"
-    ABSTRACT        = "abstract"
+
+    EXTERIOR = "exterior"
+    INTERIOR = "interior"
+    SKYBOX = "skybox"
+    ABSTRACT = "abstract"
 
 
 class LightType(str, Enum):
-    SUN     = "sun"
-    AREA    = "area"
-    POINT   = "point"
-    SPOT    = "spot"
-    HEMI    = "hemi"
+    SUN = "sun"
+    AREA = "area"
+    POINT = "point"
+    SPOT = "spot"
+    HEMI = "hemi"
 
 
 class AtmosphereType(str, Enum):
-    NONE        = "none"
-    FOG         = "fog"
-    VOLUMETRIC  = "volumetric_fog"
-    RAIN        = "rain"
-    DUST        = "dust"
-    SMOKE       = "smoke"
-    MIST        = "mist"
+    NONE = "none"
+    FOG = "fog"
+    VOLUMETRIC = "volumetric_fog"
+    RAIN = "rain"
+    DUST = "dust"
+    SMOKE = "smoke"
+    MIST = "mist"
 
 
 class RigType(str, Enum):
-    HUMANOID    = "humanoid"
-    ANIMAL      = "animal"
-    ABSTRACT    = "abstract"
+    HUMANOID = "humanoid"
+    ANIMAL = "animal"
+    ABSTRACT = "abstract"
 
 
 # ─────────────────────────────────────────────
 #  CAMERA
 # ─────────────────────────────────────────────
+
 
 @dataclass
 class CameraConfig:
@@ -86,14 +90,15 @@ class CameraConfig:
     focus_dist  : distance de mise au point en mètres
     shot_type   : type de plan cinématographique
     """
-    position:    Tuple[float, float, float] = (0.0, -5.0, 1.6)
-    rotation:    Tuple[float, float, float] = (85.0, 0.0, 0.0)
-    lens:        float                      = 50.0
-    dof_enabled: bool                       = True
-    f_stop:      float                      = 2.8
-    focus_dist:  float                      = 5.0
-    shot_type:   ShotType                   = ShotType.MEDIUM
-    sensor_width: float                     = 36.0  # mm (format 35mm)
+
+    position: Tuple[float, float, float] = (0.0, -5.0, 1.6)
+    rotation: Tuple[float, float, float] = (85.0, 0.0, 0.0)
+    lens: float = 50.0
+    dof_enabled: bool = True
+    f_stop: float = 2.8
+    focus_dist: float = 5.0
+    shot_type: ShotType = ShotType.MEDIUM
+    sensor_width: float = 36.0  # mm (format 35mm)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -110,17 +115,19 @@ class CameraConfig:
 #  LIGHTING
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class LightConfig:
     """Configuration d'une source lumineuse."""
-    name:       str                         = "Light"
-    light_type: LightType                   = LightType.SUN
-    position:   Tuple[float, float, float]  = (4.0, -4.0, 6.0)
-    rotation:   Tuple[float, float, float]  = (45.0, 0.0, 45.0)
-    color:      Tuple[float, float, float]  = (1.0, 0.95, 0.9)
-    energy:     float                       = 5.0
-    size:       float                       = 1.0  # pour area lights
-    cast_shadow: bool                       = True
+
+    name: str = "Light"
+    light_type: LightType = LightType.SUN
+    position: Tuple[float, float, float] = (4.0, -4.0, 6.0)
+    rotation: Tuple[float, float, float] = (45.0, 0.0, 45.0)
+    color: Tuple[float, float, float] = (1.0, 0.95, 0.9)
+    energy: float = 5.0
+    size: float = 1.0  # pour area lights
+    cast_shadow: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -129,12 +136,13 @@ class LightConfig:
 @dataclass
 class LightingConfig:
     """Ensemble de l'éclairage d'une scène."""
-    lights:         List[LightConfig]           = field(default_factory=list)
-    world_color:    Tuple[float, float, float]  = (0.05, 0.05, 0.08)
-    world_strength: float                       = 1.0
-    use_hdri:       bool                        = False
-    hdri_path:      Optional[str]               = None
-    hdri_rotation:  float                       = 0.0
+
+    lights: List[LightConfig] = field(default_factory=list)
+    world_color: Tuple[float, float, float] = (0.05, 0.05, 0.08)
+    world_strength: float = 1.0
+    use_hdri: bool = False
+    hdri_path: Optional[str] = None
+    hdri_rotation: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -163,15 +171,17 @@ class LightingConfig:
 #  ATMOSPHERE
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class AtmosphereConfig:
     """Configuration de l'atmosphère volumétrique."""
-    type:           AtmosphereType  = AtmosphereType.NONE
-    density:        float           = 0.02
-    color:          Tuple[float, float, float] = (0.8, 0.85, 1.0)
-    emission:       float           = 0.0
-    anisotropy:     float           = 0.0  # direction du scatter (-1 à 1)
-    height_falloff: float           = 0.5  # brouillard de sol
+
+    type: AtmosphereType = AtmosphereType.NONE
+    density: float = 0.02
+    color: Tuple[float, float, float] = (0.8, 0.85, 1.0)
+    emission: float = 0.0
+    anisotropy: float = 0.0  # direction du scatter (-1 à 1)
+    height_falloff: float = 0.5  # brouillard de sol
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -181,17 +191,19 @@ class AtmosphereConfig:
 #  PROPS (objets de décor)
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class PropObject:
     """Objet de décor placé dans la scène."""
-    name:       str
-    asset_path: Optional[str]                   = None  # chemin vers .blend ou .obj
-    position:   Tuple[float, float, float]      = (0.0, 0.0, 0.0)
-    rotation:   Tuple[float, float, float]      = (0.0, 0.0, 0.0)
-    scale:      Tuple[float, float, float]      = (1.0, 1.0, 1.0)
-    material_override: Optional[str]            = None
-    visible:    bool                            = True
-    cast_shadow: bool                           = True
+
+    name: str
+    asset_path: Optional[str] = None  # chemin vers .blend ou .obj
+    position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    rotation: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    scale: Tuple[float, float, float] = (1.0, 1.0, 1.0)
+    material_override: Optional[str] = None
+    visible: bool = True
+    cast_shadow: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -200,6 +212,7 @@ class PropObject:
 # ─────────────────────────────────────────────
 #  CHARACTER RIG (pantin placeholder)
 # ─────────────────────────────────────────────
+
 
 @dataclass
 class CharacterRig:
@@ -213,14 +226,15 @@ class CharacterRig:
     height      : taille en mètres
     material_color : couleur de base du matériau
     """
-    name:           str
-    rig_type:       RigType                         = RigType.HUMANOID
-    position:       Tuple[float, float, float]      = (0.0, 0.0, 0.0)
-    rotation:       Tuple[float, float, float]      = (0.0, 0.0, 0.0)
-    height:         float                           = 1.75
-    material_color: Tuple[float, float, float]      = (0.7, 0.6, 0.5)
-    pose:           str                             = "T_POSE"
-    facing_camera:  bool                            = True
+
+    name: str
+    rig_type: RigType = RigType.HUMANOID
+    position: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    rotation: Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    height: float = 1.75
+    material_color: Tuple[float, float, float] = (0.7, 0.6, 0.5)
+    pose: str = "T_POSE"
+    facing_camera: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -237,6 +251,7 @@ class CharacterRig:
 #  LOCATION PRESET
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class LocationPreset:
     """
@@ -244,16 +259,17 @@ class LocationPreset:
 
     Structure : Scene → Location → Props → Lighting → Atmosphere
     """
-    id:             str
-    name:           str
-    description:    str                     = ""
-    scene_type:     SceneType               = SceneType.EXTERIOR
-    tags:           List[str]               = field(default_factory=list)
-    props:          List[PropObject]        = field(default_factory=list)
-    lighting:       Optional[LightingConfig]    = None
-    atmosphere:     Optional[AtmosphereConfig]  = None
-    thumbnail_path: Optional[str]               = None
-    created_at:     str                         = ""
+
+    id: str
+    name: str
+    description: str = ""
+    scene_type: SceneType = SceneType.EXTERIOR
+    tags: List[str] = field(default_factory=list)
+    props: List[PropObject] = field(default_factory=list)
+    lighting: Optional[LightingConfig] = None
+    atmosphere: Optional[AtmosphereConfig] = None
+    thumbnail_path: Optional[str] = None
+    created_at: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -271,8 +287,12 @@ class LocationPreset:
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "LocationPreset":
-        lighting = LightingConfig.from_dict(d["lighting"]) if d.get("lighting") else None
-        atmosphere = AtmosphereConfig(**d["atmosphere"]) if d.get("atmosphere") else None
+        lighting = (
+            LightingConfig.from_dict(d["lighting"]) if d.get("lighting") else None
+        )
+        atmosphere = (
+            AtmosphereConfig(**d["atmosphere"]) if d.get("atmosphere") else None
+        )
         props = [PropObject(**p) for p in d.get("props", [])]
         return cls(
             id=d["id"],
@@ -292,19 +312,21 @@ class LocationPreset:
 #  RENDER SETTINGS
 # ─────────────────────────────────────────────
 
+
 @dataclass
 class RenderSettings:
     """Paramètres de rendu Blender."""
-    engine:         str     = "CYCLES"          # ou EEVEE
-    resolution_x:   int     = 1920
-    resolution_y:   int     = 1080
-    samples:        int     = 64
-    use_denoiser:   bool    = True
-    output_format:  str     = "PNG"             # PNG, JPEG, EXR
-    output_path:    str     = "/tmp/render_"
-    frame_start:    int     = 1
-    frame_end:      int     = 1
-    fps:            int     = 24
+
+    engine: str = "CYCLES"  # ou EEVEE
+    resolution_x: int = 1920
+    resolution_y: int = 1080
+    samples: int = 64
+    use_denoiser: bool = True
+    output_format: str = "PNG"  # PNG, JPEG, EXR
+    output_path: str = "/tmp/render_"
+    frame_start: int = 1
+    frame_end: int = 1
+    fps: int = 24
     export_controlnet: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
@@ -314,6 +336,7 @@ class RenderSettings:
 # ─────────────────────────────────────────────
 #  SCENE JSON (structure principale)
 # ─────────────────────────────────────────────
+
 
 @dataclass
 class SceneJSON:
@@ -336,36 +359,37 @@ class SceneJSON:
             atmosphere=AtmosphereConfig(type=AtmosphereType.VOLUMETRIC, density=0.05),
         )
     """
-    scene_id:       str
-    scene_type:     SceneType               = SceneType.EXTERIOR
-    description:    str                     = ""
-    location_preset_id: Optional[str]       = None
 
-    camera:         CameraConfig            = field(default_factory=CameraConfig)
-    lighting:       LightingConfig          = field(default_factory=LightingConfig)
-    atmosphere:     AtmosphereConfig        = field(default_factory=AtmosphereConfig)
-    characters:     List[CharacterRig]      = field(default_factory=list)
-    props:          List[PropObject]        = field(default_factory=list)
-    render:         RenderSettings          = field(default_factory=RenderSettings)
+    scene_id: str
+    scene_type: SceneType = SceneType.EXTERIOR
+    description: str = ""
+    location_preset_id: Optional[str] = None
+
+    camera: CameraConfig = field(default_factory=CameraConfig)
+    lighting: LightingConfig = field(default_factory=LightingConfig)
+    atmosphere: AtmosphereConfig = field(default_factory=AtmosphereConfig)
+    characters: List[CharacterRig] = field(default_factory=list)
+    props: List[PropObject] = field(default_factory=list)
+    render: RenderSettings = field(default_factory=RenderSettings)
 
     # Métadonnées narratives (séparées de la description technique)
-    narrative_tags: List[str]               = field(default_factory=list)
-    voice_command:  Optional[str]           = None
+    narrative_tags: List[str] = field(default_factory=list)
+    voice_command: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "scene_id":             self.scene_id,
-            "scene_type":           self.scene_type.value,
-            "description":          self.description,
-            "location_preset_id":   self.location_preset_id,
-            "camera":               self.camera.to_dict(),
-            "lighting":             self.lighting.to_dict(),
-            "atmosphere":           self.atmosphere.to_dict(),
-            "characters":           [c.to_dict() for c in self.characters],
-            "props":                [p.to_dict() for p in self.props],
-            "render":               self.render.to_dict(),
-            "narrative_tags":       self.narrative_tags,
-            "voice_command":        self.voice_command,
+            "scene_id": self.scene_id,
+            "scene_type": self.scene_type.value,
+            "description": self.description,
+            "location_preset_id": self.location_preset_id,
+            "camera": self.camera.to_dict(),
+            "lighting": self.lighting.to_dict(),
+            "atmosphere": self.atmosphere.to_dict(),
+            "characters": [c.to_dict() for c in self.characters],
+            "props": [p.to_dict() for p in self.props],
+            "render": self.render.to_dict(),
+            "narrative_tags": self.narrative_tags,
+            "voice_command": self.voice_command,
         }
 
     def to_json(self, indent: int = 2) -> str:
@@ -373,14 +397,22 @@ class SceneJSON:
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "SceneJSON":
-        camera = CameraConfig.from_dict(d.get("camera", {})) if d.get("camera") else CameraConfig()
-        lighting = LightingConfig.from_dict(d.get("lighting", {})) if d.get("lighting") else LightingConfig()
+        camera = (
+            CameraConfig.from_dict(d.get("camera", {}))
+            if d.get("camera")
+            else CameraConfig()
+        )
+        lighting = (
+            LightingConfig.from_dict(d.get("lighting", {}))
+            if d.get("lighting")
+            else LightingConfig()
+        )
         atm_data = d.get("atmosphere", {})
         atmosphere = AtmosphereConfig(**atm_data) if atm_data else AtmosphereConfig()
         characters = [CharacterRig.from_dict(c) for c in d.get("characters", [])]
         props = [PropObject(**p) for p in d.get("props", [])]
         render_data = d.get("render", {})
-        if "export_controlnet" in d: # Rétrocompatibilité si au mauvais endroit
+        if "export_controlnet" in d:  # Rétrocompatibilité si au mauvais endroit
             render_data["export_controlnet"] = d["export_controlnet"]
         render = RenderSettings(**render_data) if render_data else RenderSettings()
 

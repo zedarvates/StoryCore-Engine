@@ -5,22 +5,22 @@
  * Provides automatic scene initialization, model loading, and animation support.
  */
 
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, _useCallback, useRef } from 'react';
 import { Camera } from 'lucide-react';
 import { useThreeJs } from '../../hooks/useThreeJs';
 import {
   ThreeJsViewerProps,
   ThreeJsSceneConfig,
   ModelConfig,
-  AnimationConfig,
+  _AnimationConfig,
   CameraAnimationConfig,
   EffectComposerConfig,
-  ThreeJsState
+  _ThreeJsState
 } from '../../services/threejs/ThreeJsTypes';
 import {
   threeJsService,
   defaultSceneConfig,
-  defaultCameraAnimationConfig
+  _defaultCameraAnimationConfig
 } from '../../services/threejs/ThreeJsService';
 import { ShotRenderer } from '../../services/threejs/ShotRenderer';
 
@@ -95,8 +95,8 @@ export const ThreeJsViewer: React.FC<ThreeJsViewerProps> = ({
   sceneConfig,
   cameraConfig,
   models = [],
-  cameraAnimation,
-  effects,
+  _cameraAnimation,
+  _effects,
   onReady,
   onError,
   onFrameRendered,
@@ -115,15 +115,15 @@ export const ThreeJsViewer: React.FC<ThreeJsViewerProps> = ({
     disposeScene,
     loadModel,
     unloadModel,
-    playAnimation,
-    stopAnimation,
-    animateCamera,
-    stopCameraAnimation,
-    updateCameraPosition,
+    _playAnimation,
+    _stopAnimation,
+    _animateCamera,
+    _stopCameraAnimation,
+    _updateCameraPosition,
     renderFrame,
     startRendering,
     stopRendering,
-    updateEffects
+    _updateEffects
   } = useThreeJs({
     sceneConfig,
     cameraConfig,

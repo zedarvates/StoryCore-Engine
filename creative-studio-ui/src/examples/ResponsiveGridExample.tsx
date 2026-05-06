@@ -10,6 +10,8 @@
  * 
  * Exigences: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { ResponsiveGridLayout } from '../components/gridEditor/ResponsiveGridLayout';
@@ -92,14 +94,14 @@ export const ResponsiveGridExample: React.FC = () => {
     const elem = document.documentElement;
     if (!document.fullscreenElement) {
       elem.requestFullscreen?.() ||
-      (elem as any).webkitRequestFullscreen?.() ||
-      (elem as any).mozRequestFullScreen?.() ||
-      (elem as any).msRequestFullscreen?.();
+      (elem as LegacyAny).webkitRequestFullscreen?.() ||
+      (elem as LegacyAny).mozRequestFullScreen?.() ||
+      (elem as LegacyAny).msRequestFullscreen?.();
     } else {
       document.exitFullscreen?.() ||
-      (document as any).webkitExitFullscreen?.() ||
-      (document as any).mozCancelFullScreen?.() ||
-      (document as any).msExitFullscreen?.();
+      (document as LegacyAny).webkitExitFullscreen?.() ||
+      (document as LegacyAny).mozCancelFullScreen?.() ||
+      (document as LegacyAny).msExitFullscreen?.();
     }
   };
 

@@ -29,12 +29,9 @@ def sample_project_data() -> dict:
             "grid_generation": True,
             "promotion_engine": True,
             "qa_engine": True,
-            "autofix_engine": True
+            "autofix_engine": True,
         },
-        "generation_status": {
-            "grid": "pending",
-            "promotion": "pending"
-        }
+        "generation_status": {"grid": "pending", "promotion": "pending"},
     }
 
 
@@ -51,7 +48,7 @@ def sample_scene_data() -> dict:
         "duration": 5.0,
         "characters": ["char_1"],
         "key_actions": ["walking", "looking around"],
-        "visual_notes": "Film noir style, high contrast lighting"
+        "visual_notes": "Film noir style, high contrast lighting",
     }
 
 
@@ -64,16 +61,17 @@ def sample_character_data() -> dict:
         "role": "protagonist",
         "description": "A hardened detective with a troubled past",
         "appearance": "Middle-aged man, wearing a trench coat and fedora, weathered face",
-        "personality": "Cynical but determined, haunted by past failures"
+        "personality": "Cynical but determined, haunted by past failures",
     }
 
 
 @pytest.fixture
 def mock_llm_client():
     """Mock LLM client for testing"""
+
     class MockLLMClient:
         def complete(self, prompt: str) -> str:
             """Mock completion method"""
             return '{"genre": "sci-fi", "tone": "thriller", "characters": [], "scenes": []}'
-    
+
     return MockLLMClient()

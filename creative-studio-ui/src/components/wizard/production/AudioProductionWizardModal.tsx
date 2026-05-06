@@ -17,8 +17,8 @@ export function AudioProductionWizardModal() {
   } = useAppStore();
   
   const { 
-    loadTrack, 
-    analyzeStructure, 
+    _loadTrack, 
+    _analyzeStructure, 
     executeRemix, 
     export: exportAudio,
     reset,
@@ -34,7 +34,7 @@ export function AudioProductionWizardModal() {
         await executeRemix();
       }
       
-      const exportUrl = await exportAudio('mp3');
+      const _exportUrl = await exportAudio('mp3');
       
       toast({
         title: 'Audio Production Complete',

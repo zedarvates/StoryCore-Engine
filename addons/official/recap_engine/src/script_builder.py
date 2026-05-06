@@ -10,12 +10,17 @@ Pipeline :
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Dict, Any
 from uuid import uuid4
 
 from .types import (
-    RecapScene, RecapTimeline, RecapCharacterStyle, RecapGenerationRequest,
-    RecapGenerationResult, CameraMove, TransitionType, RecapStyle, RecapRenderResult,
+    RecapScene,
+    RecapTimeline,
+    RecapCharacterStyle,
+    RecapGenerationResult,
+    CameraMove,
+    TransitionType,
+    RecapStyle,
 )
 
 logger = logging.getLogger(__name__)
@@ -26,36 +31,36 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 
 EMOTION_CAMERA_MAP: Dict[str, CameraMove] = {
-    "tension":    CameraMove.SLOW_PUSH,
-    "climax":     CameraMove.SHAKE,
+    "tension": CameraMove.SLOW_PUSH,
+    "climax": CameraMove.SHAKE,
     "revelation": CameraMove.ZOOM_IN,
     "resolution": CameraMove.ZOOM_OUT,
-    "setup":      CameraMove.PAN_LEFT,
+    "setup": CameraMove.PAN_LEFT,
     "transition": CameraMove.PAN_RIGHT,
-    "calm":       CameraMove.STATIC,
-    "action":     CameraMove.SHAKE,
-    "mystery":    CameraMove.SLOW_PUSH,
-    "romance":    CameraMove.ZOOM_IN,
+    "calm": CameraMove.STATIC,
+    "action": CameraMove.SHAKE,
+    "mystery": CameraMove.SLOW_PUSH,
+    "romance": CameraMove.ZOOM_IN,
 }
 
 EMOTION_DURATION_MAP: Dict[str, float] = {
-    "tension":    6.0,
-    "climax":     8.0,
+    "tension": 6.0,
+    "climax": 8.0,
     "revelation": 7.0,
     "resolution": 5.0,
-    "setup":      4.5,
+    "setup": 4.5,
     "transition": 3.5,
-    "calm":       4.0,
-    "action":     5.5,
-    "mystery":    6.5,
-    "romance":    5.5,
+    "calm": 4.0,
+    "action": 5.5,
+    "mystery": 6.5,
+    "romance": 5.5,
 }
 
 NARRATIVE_BEAT_TRANSITIONS: Dict[str, tuple] = {
-    "setup":      (TransitionType.FADE_BLACK, TransitionType.DISSOLVE),
-    "tension":    (TransitionType.CUT, TransitionType.CUT),
+    "setup": (TransitionType.FADE_BLACK, TransitionType.DISSOLVE),
+    "tension": (TransitionType.CUT, TransitionType.CUT),
     "revelation": (TransitionType.FADE_WHITE, TransitionType.DISSOLVE),
-    "climax":     (TransitionType.CUT, TransitionType.CUT),
+    "climax": (TransitionType.CUT, TransitionType.CUT),
     "resolution": (TransitionType.DISSOLVE, TransitionType.FADE_BLACK),
     "transition": (TransitionType.DISSOLVE, TransitionType.DISSOLVE),
 }
@@ -66,13 +71,21 @@ NARRATIVE_BEAT_TRANSITIONS: Dict[str, tuple] = {
 # ============================================================================
 
 CHARACTER_COLOR_PALETTE = [
-    {"frame": "#00aaff", "glow": "#0066ee", "bubble": "round_soft"},    # Protagoniste — bleu
-    {"frame": "#ff4444", "glow": "#cc2200", "bubble": "spiky"},          # Antagoniste — rouge
-    {"frame": "#44cc88", "glow": "#229955", "bubble": "square_clean"},   # Allié 1 — vert
-    {"frame": "#ffaa00", "glow": "#cc7700", "bubble": "round_soft"},     # Allié 2 — or
-    {"frame": "#cc44ff", "glow": "#8800cc", "bubble": "cloud"},          # Mystérieux — violet
-    {"frame": "#ff8844", "glow": "#cc5500", "bubble": "square_clean"},   # Neutre — orange
-    {"frame": "#44ccff", "glow": "#0099cc", "bubble": "round_soft"},     # Allié 3 — cyan
+    {
+        "frame": "#00aaff",
+        "glow": "#0066ee",
+        "bubble": "round_soft",
+    },  # Protagoniste — bleu
+    {"frame": "#ff4444", "glow": "#cc2200", "bubble": "spiky"},  # Antagoniste — rouge
+    {"frame": "#44cc88", "glow": "#229955", "bubble": "square_clean"},  # Allié 1 — vert
+    {"frame": "#ffaa00", "glow": "#cc7700", "bubble": "round_soft"},  # Allié 2 — or
+    {"frame": "#cc44ff", "glow": "#8800cc", "bubble": "cloud"},  # Mystérieux — violet
+    {
+        "frame": "#ff8844",
+        "glow": "#cc5500",
+        "bubble": "square_clean",
+    },  # Neutre — orange
+    {"frame": "#44ccff", "glow": "#0099cc", "bubble": "round_soft"},  # Allié 3 — cyan
 ]
 
 NARRATOR_STYLE = {
@@ -84,9 +97,9 @@ NARRATOR_STYLE = {
 VOICE_PRESETS = {
     "narrator_fr": "fr-FR-DeniseNeural",
     "narrator_en": "en-US-JennyNeural",
-    "hero_fr":     "fr-FR-HenriNeural",
-    "villain_fr":  "fr-FR-AlainNeural",
-    "child_fr":    "fr-FR-EloiseNeural",
+    "hero_fr": "fr-FR-HenriNeural",
+    "villain_fr": "fr-FR-AlainNeural",
+    "child_fr": "fr-FR-EloiseNeural",
 }
 
 
@@ -94,10 +107,11 @@ VOICE_PRESETS = {
 # Script Builder
 # ============================================================================
 
+
 class RecapScriptBuilder:
     """
     Construit le script narratif d'un recap à partir des données BD.
-    
+
     Il transforme chaque panel + dialogue en une scène de narration continue,
     comme le ferait un voiceover humain dans un recap YouTube.
     """
@@ -114,7 +128,7 @@ class RecapScriptBuilder:
     ) -> RecapGenerationResult:
         """
         Génère un RecapTimeline complet depuis les données JSON d'une BD.
-        
+
         Args:
             comic_data: Données JSON exportées par le Comic Generator
             story_context: Contexte narratif global du projet
@@ -167,7 +181,9 @@ class RecapScriptBuilder:
             timeline = RecapTimeline(
                 timeline_id=str(uuid4()),
                 project_id=project_id,
-                title=f"Recap — {story_context[:60]}…" if len(story_context) > 60 else f"Recap — {story_context}",
+                title=f"Recap — {story_context[:60]}…"
+                if len(story_context) > 60
+                else f"Recap — {story_context}",
                 subtitle=f"{total_pages} planches · {len(all_scenes)} scènes",
                 style=style,
                 scenes=all_scenes,
@@ -180,7 +196,7 @@ class RecapScriptBuilder:
 
             logger.info(
                 f"[RecapScriptBuilder] Timeline générée : {len(all_scenes)} scènes, "
-                f"durée estimée {total_duration:.1f}s (~{total_duration/60:.1f} min)"
+                f"durée estimée {total_duration:.1f}s (~{total_duration / 60:.1f} min)"
             )
 
             return RecapGenerationResult(
@@ -246,7 +262,7 @@ class RecapScriptBuilder:
             timeline = RecapTimeline(
                 timeline_id=str(uuid4()),
                 project_id=project_id,
-                title=f"Recap BD",
+                title="Recap BD",
                 subtitle=f"{len(page_dirs)} planches · {len(all_scenes)} scènes",
                 style=style,
                 scenes=all_scenes,
@@ -265,8 +281,11 @@ class RecapScriptBuilder:
         except Exception as e:
             logger.error(f"[RecapScriptBuilder] Erreur scan pages : {e}", exc_info=True)
             return RecapGenerationResult(
-                success=False, timeline=None, scenes_count=0,
-                estimated_duration=0.0, error=str(e),
+                success=False,
+                timeline=None,
+                scenes_count=0,
+                estimated_duration=0.0,
+                error=str(e),
             )
 
     # ------------------------------------------------------------------
@@ -282,7 +301,7 @@ class RecapScriptBuilder:
 
         for i, char in enumerate(characters):
             char_id = char.get("id", f"char_{i}")
-            char_name = char.get("name", f"Personnage {i+1}")
+            char_name = char.get("name", f"Personnage {i + 1}")
             color = palette[i % len(palette)]
 
             styles[char_id] = RecapCharacterStyle(
@@ -303,11 +322,21 @@ class RecapScriptBuilder:
     def _pick_voice(self, char: Dict[str, Any], index: int) -> str:
         """Sélectionne une voix TTS appropriée."""
         if self.language == "fr":
-            voices = ["fr-FR-HenriNeural", "fr-FR-AlainNeural", "fr-FR-EloiseNeural",
-                      "fr-FR-DeniseNeural", "fr-FR-YvetteNeural"]
+            voices = [
+                "fr-FR-HenriNeural",
+                "fr-FR-AlainNeural",
+                "fr-FR-EloiseNeural",
+                "fr-FR-DeniseNeural",
+                "fr-FR-YvetteNeural",
+            ]
         else:
-            voices = ["en-US-GuyNeural", "en-US-TonyNeural", "en-US-JennyNeural",
-                      "en-US-AriaNeural", "en-US-DavisNeural"]
+            voices = [
+                "en-US-GuyNeural",
+                "en-US-TonyNeural",
+                "en-US-JennyNeural",
+                "en-US-AriaNeural",
+                "en-US-DavisNeural",
+            ]
         return voices[index % len(voices)]
 
     def _pick_role(self, char: Dict[str, Any], index: int) -> str:
@@ -411,7 +440,7 @@ class RecapScriptBuilder:
             text = line.get("text", "").strip()
             if text:
                 if self.language == "fr":
-                    parts.append(f'{char} déclare : « {text} »')
+                    parts.append(f"{char} déclare : « {text} »")
                 else:
                     parts.append(f'{char} says: "{text}"')
 
@@ -420,11 +449,11 @@ class RecapScriptBuilder:
     def _pick_sfx_tags(self, narrative_beat: str) -> List[str]:
         """Associe des effets sonores au type de scène."""
         sfx_map = {
-            "climax":     ["dramatic_hit", "whoosh"],
-            "tension":    ["tension_rise"],
+            "climax": ["dramatic_hit", "whoosh"],
+            "tension": ["tension_rise"],
             "revelation": ["dramatic_reveal"],
-            "action":     ["whoosh", "impact"],
-            "setup":      [],
+            "action": ["whoosh", "impact"],
+            "setup": [],
             "resolution": ["soft_whoosh"],
         }
         return sfx_map.get(narrative_beat, [])

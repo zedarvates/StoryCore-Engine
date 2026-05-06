@@ -6,13 +6,14 @@ sequences with character voices, emotional depth, and narrative pacing.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 from enum import Enum
 import random
 
 
 class DialogueTone(Enum):
     """Different tones for dialogue"""
+
     NATURAL = "natural"
     DRAMATIC = "dramatic"
     COMEDIC = "comedic"
@@ -22,6 +23,7 @@ class DialogueTone(Enum):
 
 class DialoguePurpose(Enum):
     """Purposes of dialogue sequences"""
+
     EXPOSITION = "exposition"
     CONFLICT = "conflict"
     CHARACTER_DEVELOPMENT = "character_development"
@@ -32,6 +34,7 @@ class DialoguePurpose(Enum):
 @dataclass
 class CharacterVoice:
     """Voice characteristics for a character"""
+
     character_name: str
     personality_traits: List[str]
     speech_patterns: List[str]
@@ -44,6 +47,7 @@ class CharacterVoice:
 @dataclass
 class DialogueLine:
     """A single line of dialogue"""
+
     character: str
     text: str
     emotional_state: str
@@ -54,6 +58,7 @@ class DialogueLine:
 @dataclass
 class DialogueScene:
     """Complete dialogue scene"""
+
     title: str
     setting: str
     characters: List[CharacterVoice]
@@ -75,8 +80,9 @@ class DialogueWizard:
         self.templates = self._load_dialogue_templates()
         self.emotional_states = self._load_emotional_states()
 
-    def create_character_voice(self, character_name: str, genre: str = "general",
-                             personality: List[str] = None) -> CharacterVoice:
+    def create_character_voice(
+        self, character_name: str, genre: str = "general", personality: List[str] = None
+    ) -> CharacterVoice:
         """
         Create a character voice profile
 
@@ -102,15 +108,20 @@ class DialogueWizard:
             speech_patterns=speech_patterns,
             vocabulary_level=vocabulary,
             emotional_range=emotions,
-            age_group="adult"
+            age_group="adult",
         )
 
         self.character_voices[character_name] = voice
         return voice
 
-    def generate_dialogue_scene(self, scene_concept: str, characters: List[str],
-                               purpose: DialoguePurpose, tone: DialogueTone,
-                               target_length: int = 10) -> DialogueScene:
+    def generate_dialogue_scene(
+        self,
+        scene_concept: str,
+        characters: List[str],
+        purpose: DialoguePurpose,
+        tone: DialogueTone,
+        target_length: int = 10,
+    ) -> DialogueScene:
         """
         Generate a complete dialogue scene
 
@@ -135,7 +146,7 @@ class DialogueWizard:
             setting=self._generate_setting(scene_concept),
             characters=[self.character_voices[name] for name in characters],
             purpose=purpose,
-            tone=tone
+            tone=tone,
         )
 
         # Generate dialogue lines
@@ -151,8 +162,11 @@ class DialogueWizard:
 
         return scene
 
-    def enhance_dialogue(self, existing_dialogue: List[DialogueLine],
-                        enhancement_type: str = "emotional_depth") -> List[DialogueLine]:
+    def enhance_dialogue(
+        self,
+        existing_dialogue: List[DialogueLine],
+        enhancement_type: str = "emotional_depth",
+    ) -> List[DialogueLine]:
         """
         Enhance existing dialogue with additional layers
 
@@ -169,7 +183,7 @@ class DialogueWizard:
             enhanced_line = DialogueLine(
                 character=line.character,
                 text=line.text,
-                emotional_state=line.emotional_state
+                emotional_state=line.emotional_state,
             )
 
             if enhancement_type == "emotional_depth":
@@ -195,7 +209,9 @@ class DialogueWizard:
         if "nervous" in personality:
             patterns.extend(["hesitant speech", "filler words", "rushed delivery"])
         if "intellectual" in personality:
-            patterns.extend(["complex sentences", "precise vocabulary", "analytical tone"])
+            patterns.extend(
+                ["complex sentences", "precise vocabulary", "analytical tone"]
+            )
         if "aggressive" in personality:
             patterns.extend(["confrontational", "interrupting", "loud emphasis"])
         if "calm" in personality:
@@ -240,7 +256,11 @@ class DialogueWizard:
             DialoguePurpose.CONFLICT: ["Confrontation", "Clash", "Dispute"],
             DialoguePurpose.CHARACTER_DEVELOPMENT: ["Revelation", "Growth", "Change"],
             DialoguePurpose.COMEDY_RELIEF: ["Light Moment", "Comic Relief", "Break"],
-            DialoguePurpose.CLIMAX_BUILDING: ["Rising Tension", "Critical Moment", "Breaking Point"]
+            DialoguePurpose.CLIMAX_BUILDING: [
+                "Rising Tension",
+                "Critical Moment",
+                "Breaking Point",
+            ],
         }
 
         words = purpose_words.get(purpose, ["Dialogue"])
@@ -270,9 +290,14 @@ class DialogueWizard:
         else:
             return "An intimate conversation space with focused lighting"
 
-    def _generate_dialogue_lines(self, concept: str, characters: List[str],
-                               purpose: DialoguePurpose, tone: DialogueTone,
-                               target_length: int) -> List[DialogueLine]:
+    def _generate_dialogue_lines(
+        self,
+        concept: str,
+        characters: List[str],
+        purpose: DialoguePurpose,
+        tone: DialogueTone,
+        target_length: int,
+    ) -> List[DialogueLine]:
         """Generate the actual dialogue lines"""
         lines = []
 
@@ -295,15 +320,16 @@ class DialogueWizard:
             line = DialogueLine(
                 character=character_name,
                 text=adapted_text,
-                emotional_state=emotional_state
+                emotional_state=emotional_state,
             )
 
             lines.append(line)
 
         return lines
 
-    def _get_dialogue_template(self, purpose: DialoguePurpose,
-                             tone: DialogueTone) -> List[str]:
+    def _get_dialogue_template(
+        self, purpose: DialoguePurpose, tone: DialogueTone
+    ) -> List[str]:
         """Get dialogue template for specific purpose and tone"""
         # This would be expanded with more templates
         templates = {
@@ -315,7 +341,7 @@ class DialogueWizard:
                 "This ends now.",
                 "You have no idea what you're doing.",
                 "I can't let this happen.",
-                "Think about what you're saying!"
+                "Think about what you're saying!",
             ],
             (DialoguePurpose.EXPOSITION, DialogueTone.NATURAL): [
                 "So, how did you end up here?",
@@ -324,7 +350,7 @@ class DialogueWizard:
                 "Tell me more about your background.",
                 "How did you get into this line of work?",
                 "That's quite a story.",
-                "I never knew that about you."
+                "I never knew that about you.",
             ],
             (DialoguePurpose.CHARACTER_DEVELOPMENT, DialogueTone.DRAMATIC): [
                 "I've been carrying this secret for too long.",
@@ -333,8 +359,8 @@ class DialogueWizard:
                 "I need to tell you something important.",
                 "My whole life has been a lie.",
                 "I can't keep pretending anymore.",
-                "This is who I really am."
-            ]
+                "This is who I really am.",
+            ],
         }
 
         # Default template if specific combination not found
@@ -346,7 +372,7 @@ class DialogueWizard:
             "What do you mean?",
             "Let me explain.",
             "I see your point.",
-            "That makes sense."
+            "That makes sense.",
         ]
 
         return templates.get((purpose, tone), default_template)
@@ -401,7 +427,7 @@ class DialogueWizard:
 
 {characters_str} engage in an intense conversation. The {scene.tone.value} tone builds tension as they discuss {concept.lower()}.
 
-The dialogue reveals character motivations and drives the story forward through {scene.purpose.value.replace('_', ' ')}."""
+The dialogue reveals character motivations and drives the story forward through {scene.purpose.value.replace("_", " ")}."""
 
     def _add_subtext(self, line: DialogueLine) -> str:
         """Add subtext layer to dialogue line"""
@@ -411,10 +437,12 @@ The dialogue reveals character motivations and drives the story forward through 
             "vulnerable": "Revealing true feelings despite fear",
             "amused": "Using humor to deflect from deeper emotions",
             "intense": "Barely containing overwhelming emotion",
-            "calm": "Maintaining composure despite inner turmoil"
+            "calm": "Maintaining composure despite inner turmoil",
         }
 
-        return emotional_mapping.get(line.emotional_state, "Conveying complex inner thoughts")
+        return emotional_mapping.get(
+            line.emotional_state, "Conveying complex inner thoughts"
+        )
 
     def _add_action_description(self, line: DialogueLine) -> str:
         """Add action description to accompany dialogue"""
@@ -424,7 +452,7 @@ The dialogue reveals character motivations and drives the story forward through 
             "vulnerable": "voice breaking slightly, eyes downcast",
             "amused": "smiling wryly, leaning back",
             "intense": "leaning forward, intense eye contact",
-            "calm": "speaking deliberately, maintaining posture"
+            "calm": "speaking deliberately, maintaining posture",
         }
 
         action = action_mapping.get(line.emotional_state, "speaking steadily")
@@ -433,7 +461,7 @@ The dialogue reveals character motivations and drives the story forward through 
     def _generate_subtext(self, line: DialogueLine, context: List[DialogueLine]) -> str:
         """Generate subtext based on dialogue context"""
         # Analyze conversation flow to determine subtext
-        line_index = context.index(line) if line in context else 0
+        context.index(line) if line in context else 0
 
         # Simple subtext generation
         if line.emotional_state == "angry":
@@ -445,7 +473,9 @@ The dialogue reveals character motivations and drives the story forward through 
         else:
             return "Hiding true intentions behind words"
 
-    def _add_conflict_layer(self, line: DialogueLine, context: List[DialogueLine]) -> DialogueLine:
+    def _add_conflict_layer(
+        self, line: DialogueLine, context: List[DialogueLine]
+    ) -> DialogueLine:
         """Add conflict elements to dialogue"""
         # Enhance line with conflict
         conflict_indicators = ["but", "however", "actually", "truth is", "fact is"]
@@ -459,7 +489,7 @@ The dialogue reveals character motivations and drives the story forward through 
             text=enhanced_text,
             emotional_state="intense",  # Escalate emotion for conflict
             subtext="Challenging the other's perspective",
-            action_description="(confrontational body language)"
+            action_description="(confrontational body language)",
         )
 
     def _load_dialogue_templates(self) -> Dict:
@@ -477,8 +507,9 @@ def create_dialogue_wizard() -> DialogueWizard:
     return DialogueWizard()
 
 
-def generate_quick_dialogue(characters: List[str], topic: str,
-                          tone: str = "natural") -> DialogueScene:
+def generate_quick_dialogue(
+    characters: List[str], topic: str, tone: str = "natural"
+) -> DialogueScene:
     """
     Quick dialogue generation for simple scenes
 
@@ -501,7 +532,7 @@ def generate_quick_dialogue(characters: List[str], topic: str,
         "natural": DialogueTone.NATURAL,
         "dramatic": DialogueTone.DRAMATIC,
         "comedic": DialogueTone.COMEDIC,
-        "intense": DialogueTone.INTENSE
+        "intense": DialogueTone.INTENSE,
     }
 
     tone_enum = tone_mapping.get(tone, DialogueTone.NATURAL)
@@ -512,5 +543,5 @@ def generate_quick_dialogue(characters: List[str], topic: str,
         characters=characters,
         purpose=DialoguePurpose.CHARACTER_DEVELOPMENT,
         tone=tone_enum,
-        target_length=6
+        target_length=6,
     )

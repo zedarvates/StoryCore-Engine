@@ -7,7 +7,7 @@
  * generate .js files in the src/ directory.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, _beforeEach, afterEach } from 'vitest';
 import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';

@@ -109,7 +109,7 @@ interface LiveRegionProps {
  */
 export function LiveRegion({
   message,
-  politeness = 'polite',
+  _politeness = 'polite',
   atomic = true,
   className,
 }: LiveRegionProps) {

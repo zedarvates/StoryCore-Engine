@@ -6,6 +6,7 @@ This module provides functionality for swapping audio channels.
 
 import numpy as np
 
+
 class ChannelSwapper:
     """Audio channel swapper for stereo signals."""
 
@@ -31,9 +32,9 @@ class ChannelSwapper:
         if len(audio_data.shape) == 1:
             # Mono audio - nothing to swap
             return audio_data
-        
+
         # For stereo audio
         left_channel = audio_data[0]
         right_channel = audio_data[1]
-        
+
         return np.array([right_channel, left_channel])

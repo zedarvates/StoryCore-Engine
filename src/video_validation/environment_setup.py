@@ -12,6 +12,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class EnvironmentSetup:
     """Handles validation environment setup and cleanup"""
 
@@ -55,16 +56,16 @@ class EnvironmentSetup:
             "video_settings": {
                 "frame_rate": 24,
                 "resolution": [1920, 1080],
-                "quality": "high"
+                "quality": "high",
             },
             "shots": [
                 {"id": "shot_001", "duration": 5.0, "keyframes": 2},
                 {"id": "shot_002", "duration": 3.0, "keyframes": 2},
-                {"id": "shot_003", "duration": 4.0, "keyframes": 3}
-            ]
+                {"id": "shot_003", "duration": 4.0, "keyframes": 3},
+            ],
         }
 
-        with open(project_path / "project.json", 'w') as f:
+        with open(project_path / "project.json", "w") as f:
             json.dump(project_data, f, indent=2)
 
         # Create mock keyframes
@@ -81,7 +82,7 @@ class EnvironmentSetup:
         for shot_data in [
             {"id": "shot_001", "keyframes": 2},
             {"id": "shot_002", "keyframes": 2},
-            {"id": "shot_003", "keyframes": 3}
+            {"id": "shot_003", "keyframes": 3},
         ]:
             shot_dir = keyframes_dir / shot_data["id"]
             shot_dir.mkdir(exist_ok=True)

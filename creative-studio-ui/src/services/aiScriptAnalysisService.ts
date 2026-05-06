@@ -4,6 +4,8 @@
  * Provides script analysis and scene breakdown capabilities using the AI Script Analysis Engine.
  * Integrates with the existing service architecture and provides React hooks for UI integration.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { EventEmitter } from 'events';
 import { llmService } from './llmService';
@@ -428,8 +430,8 @@ class AIScriptAnalysisService extends EventEmitter {
 
     const analysis: ScriptAnalysis = {
       ...(analysisData as ScriptAnalysis),
-      createdAt: new Date((analysisData as any).createdAt),
-      updatedAt: new Date((analysisData as any).updatedAt)
+      createdAt: new Date((analysisData as LegacyAny).createdAt),
+      updatedAt: new Date((analysisData as LegacyAny).updatedAt)
     };
 
     this.analyses.set(analysis.id, analysis);

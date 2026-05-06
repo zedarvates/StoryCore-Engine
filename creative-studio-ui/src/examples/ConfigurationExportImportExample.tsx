@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { ConfigurationExportImport } from '../components/gridEditor/ConfigurationExportImport';
 import type { GridEditorConfiguration } from '../services/gridEditor/ConfigurationExportImport';
-import type { GridLayoutConfig, GridPanel } from '../types/gridEditorAdvanced';
+import type { _GridLayoutConfig, _GridPanel } from '../types/gridEditorAdvanced';
 
 export const ConfigurationExportImportExample: React.FC = () => {
   const [showDialog, setShowDialog] = useState(false);

@@ -1,6 +1,8 @@
 /**
  * Tests for useBackendIntegration Hook
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
@@ -356,7 +358,7 @@ describe('useBackendIntegration', () => {
         useBackendIntegration({ apiService: mockApiService })
       );
 
-      let output: any;
+      let output: LegacyAny;
       await act(async () => {
         output = await result.current.invokeCliCommand('grid', { project: 'test' });
       });
@@ -376,7 +378,7 @@ describe('useBackendIntegration', () => {
         useBackendIntegration({ apiService: errorService })
       );
 
-      let output: any;
+      let output: LegacyAny;
       await act(async () => {
         output = await result.current.invokeCliCommand('grid', {});
       });

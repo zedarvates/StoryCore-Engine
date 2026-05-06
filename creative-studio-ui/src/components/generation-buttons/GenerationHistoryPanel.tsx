@@ -29,7 +29,7 @@ import {
   GitCompare,
   X,
 } from 'lucide-react';
-import type { HistoryEntry, GeneratedAsset } from '../../types/generation';
+import type { HistoryEntry, _GeneratedAsset } from '../../types/generation';
 import { generationHistoryService } from '../../services/GenerationHistoryService';
 
 export interface GenerationHistoryPanelProps {

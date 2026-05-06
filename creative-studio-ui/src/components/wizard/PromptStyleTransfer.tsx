@@ -2,6 +2,8 @@
  * PromptStyleTransfer
  * Component for configuring prompt-based style transfer
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useCallback, useState, useEffect } from 'react';
 import { PromptStyleTransferProps, StylePresetName, STYLE_PRESETS } from '../../types/styleTransfer';
@@ -9,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Slider } from '../../components/ui/slider';
+import { Slider } from '../../compone_nts/ui/slider';
 import { Textarea } from '../../components/ui/textarea';
 import { Upload, Image as ImageIcon, Type, Settings2, X, Sparkles, Palette } from 'lucide-react';
 import { cn } from '../../lib/utils';
@@ -63,7 +65,7 @@ export const PromptStyleTransfer: React.FC<PromptStyleTransferProps> = ({
   }, [onSourceFileChange]);
 
   const clearSourceFile = useCallback(() => {
-    onSourceFileChange(undefined as any);
+    onSourceFileChange(undefined as LegacyAny);
     setSourcePreview(null);
   }, [onSourceFileChange]);
 
@@ -78,7 +80,7 @@ export const PromptStyleTransfer: React.FC<PromptStyleTransferProps> = ({
 
   const handleCustomTabClick = useCallback(() => {
     setActiveTab('custom');
-    onPresetChange(undefined as any);
+    onPresetChange(undefined as LegacyAny);
   }, [onPresetChange]);
 
   const categories = Array.from(new Set(Object.values(STYLE_PRESETS).map(p => p.category)));

@@ -6,7 +6,6 @@ security, integrity, and proper key management.
 """
 
 import pytest
-import json
 import tempfile
 from pathlib import Path
 from datetime import datetime
@@ -15,10 +14,9 @@ from unittest.mock import patch
 from src.secure_logging import (
     SecureAuditLogger,
     KeyStore,
-    EncryptionKey,
     generate_encryption_key,
     encrypt_data,
-    decrypt_data
+    decrypt_data,
 )
 
 
@@ -72,7 +70,7 @@ class TestSecureLogging:
                 "user_id": "test_user",
                 "action": "test_action",
                 "resource": "test_resource",
-                "result": "success"
+                "result": "success",
             }
 
             logger.log_entry(test_entry)
@@ -99,13 +97,15 @@ class TestSecureLogging:
 
             # Log multiple entries
             for i in range(5):
-                logger.log_entry({
-                    "timestamp": datetime.now().isoformat(),
-                    "user_id": f"user_{i}",
-                    "action": "test_action",
-                    "resource": f"resource_{i}",
-                    "result": "success"
-                })
+                logger.log_entry(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "user_id": f"user_{i}",
+                        "action": "test_action",
+                        "resource": f"resource_{i}",
+                        "result": "success",
+                    }
+                )
 
             stats = logger.get_log_stats()
             assert stats["total_entries"] >= 5
@@ -156,7 +156,7 @@ class TestSecureLogging:
             logger = SecureAuditLogger(log_dir)
 
             # Manually write corrupted data to log file
-            with open(logger.log_file, 'w') as f:
+            with open(logger.log_file, "w") as f:
                 f.write("corrupted_data\n")
                 f.write("more_corrupted_data\n")
 
@@ -180,7 +180,7 @@ class TestSecureLogging:
                 "action": "large_test",
                 "resource": "test_resource",
                 "result": "success",
-                "large_field": large_data
+                "large_field": large_data,
             }
 
             logger.log_entry(test_entry)
@@ -195,15 +195,15 @@ class TestSecureLogging:
                     break
             assert found
 
-    @patch('src.secure_logging.secrets.token_bytes')
+    @patch("src.secure_logging.secrets.token_bytes")
     def test_key_generation_determinism(self, mock_token_bytes):
         """Test that key generation uses proper randomness"""
         # Ensure different calls produce different keys
-        mock_token_bytes.side_effect = [b'key1' + b'\x00'*27, b'salt1' + b'\x00'*11]
+        mock_token_bytes.side_effect = [b"key1" + b"\x00" * 27, b"salt1" + b"\x00" * 11]
 
         key1 = generate_encryption_key()
 
-        mock_token_bytes.side_effect = [b'key2' + b'\x00'*27, b'salt2' + b'\x00'*11]
+        mock_token_bytes.side_effect = [b"key2" + b"\x00" * 27, b"salt2" + b"\x00" * 11]
 
         key2 = generate_encryption_key()
 

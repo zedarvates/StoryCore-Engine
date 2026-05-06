@@ -11,10 +11,21 @@ import {
   Film,
   Image,
   Clapperboard,
-  MoreHorizontal
+  MoreHorizontal,
+  Trash2,
+  ListX,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 // ============================================================================
 // Types
@@ -65,9 +76,11 @@ interface RecentProjectsListProps {
   projects: RecentProject[];
   onProjectClick: (project: RecentProject) => void;
   onRemoveProject: (projectPath: string) => void;
+  onDeleteProject?: (projectPath: string) => void;
   onCreateNew?: () => void;
   onRefresh?: () => void;
   className?: string;
+  // ... rest
   isLoading?: boolean;
   animated?: boolean; // Enable entrance animations
 }
@@ -80,6 +93,7 @@ export function RecentProjectsList({
   projects,
   onProjectClick,
   onRemoveProject,
+  onDeleteProject,
   onCreateNew,
   onRefresh,
   className,
@@ -184,6 +198,7 @@ export function RecentProjectsList({
             index={index}
             onClick={() => onProjectClick(project)}
             onRemove={() => onRemoveProject(project.path)}
+            onDelete={onDeleteProject ? () => onDeleteProject(project.path) : undefined}
             animated={animated}
             isVisible={visibleProjects.some(p => p.id === project.id)}
           />
@@ -202,6 +217,7 @@ interface EnhancedProjectCardProps {
   index: number;
   onClick: () => void;
   onRemove: () => void;
+  onDelete?: () => void;
   animated: boolean;
   isVisible: boolean;
 }
@@ -211,6 +227,7 @@ function EnhancedProjectCard({
   index, 
   onClick, 
   onRemove, 
+  onDelete,
   animated,
   isVisible 
 }: EnhancedProjectCardProps) {
@@ -218,6 +235,9 @@ function EnhancedProjectCard({
   const isValid = project.exists === true;
   const isRecent = project.isRecent === true;
   
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Determine project type - infer from metadata or use provided type
   const projectType = project.projectType || inferProjectType(project);
   const typeConfig = PROJECT_TYPE_CONFIG[projectType as keyof typeof PROJECT_TYPE_CONFIG] || PROJECT_TYPE_CONFIG.mixed;
@@ -259,8 +279,6 @@ function EnhancedProjectCard({
     }
   };
 
-  // Animation delay based on index for staggered entrance
-  const animationDelay = animated ? `${index * 50}ms` : '0ms';
 
   return (
     <div
@@ -277,9 +295,9 @@ function EnhancedProjectCard({
         // Hover effects
         !isMissing && !isRecent && 'border-gray-700 hover:bg-gray-700/60 hover:border-gray-600 hover:shadow-lg hover:shadow-gray-500/10',
         !isMissing && isRecent && 'border-blue-600/40 hover:bg-blue-900/30 hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20',
-        isMissing && 'opacity-60 cursor-not-allowed border-gray-700'
+        isMissing && 'opacity-60 cursor-not-allowed border-gray-700',
+        animated && `stagger-delay-${Math.min(index, 15)}`
       )}
-      style={{ animationDelay }}
     >
       {/* Animated Background Gradient */}
       {!isMissing && (
@@ -439,25 +457,83 @@ function EnhancedProjectCard({
           </Button>
         )}
 
-        {/* More Options Button */}
+        {/* More Options Button with Dropdown */}
         {!isMissing && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className={cn(
-              'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
-              'hover:bg-gray-700/50 text-gray-400 hover:text-white'
-            )}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            title="More Options"
-          >
-            <MoreHorizontal className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
+                  'hover:bg-gray-700/50 text-gray-400 hover:text-white'
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                title="More Options"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-gray-900 border-gray-700 text-gray-200">
+              <DropdownMenuItem 
+                onSelect={() => {
+                  window.electronAPI.app.openFolder(project.path);
+                }}
+                className="hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                <span>Open Folder</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-gray-700" />
+              <DropdownMenuItem 
+                onSelect={() => {
+                  onRemove();
+                }}
+                className="hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+              >
+                <ListX className="mr-2 h-4 w-4" />
+                <span>Remove from List</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onSelect={() => {
+                  setShowDeleteModal(true);
+                }}
+                className="hover:bg-red-900/30 focus:bg-red-900/30 text-red-400 hover:text-red-300 focus:text-red-300 cursor-pointer"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete Project Permanently</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
+
+        {/* Delete Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={async () => {
+            if (onDelete) {
+              setIsDeleting(true);
+              try {
+                await onDelete();
+                setShowDeleteModal(false);
+              } catch (err) {
+                console.error('Delete failed:', err);
+              } finally {
+                setIsDeleting(false);
+              }
+            }
+          }}
+          title="Delete Project Permanently"
+          message={`Are you sure you want to delete "${project.name}"? This will permanently remove all project files and data from your computer. This action cannot be undone.`}
+          confirmLabel="Delete Permanently"
+          variant="danger"
+          isLoading={isDeleting}
+        />
 
         {/* Remove Button */}
         <Button

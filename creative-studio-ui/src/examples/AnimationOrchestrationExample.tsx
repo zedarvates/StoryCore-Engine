@@ -6,6 +6,8 @@
  * 
  * Validates: Requirements 11.8
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -32,7 +34,7 @@ export function AnimationOrchestrationExample() {
 
   const animateBox = async (
     boxId: number,
-    setter: React.Dispatch<React.SetStateAction<any>>,
+    setter: React.Dispatch<React.SetStateAction<LegacyAny>>,
     distance: number
   ) => {
     return new Promise<void>((resolve) => {

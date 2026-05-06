@@ -5,7 +5,7 @@
 
 import { 
   LottieAnimation, 
-  LottiePlaybackSettings, 
+  _LottiePlaybackSettings, 
   LottieLayer,
   LottieConfig 
 } from '../types/lottie';
@@ -176,9 +176,9 @@ class LottieService {
       play: () => {},
       pause: () => {},
       stop: () => {},
-      goToFrame: (frame: number) => {},
-      setSpeed: (speed: number) => {},
-      setDirection: (direction: 'forward' | 'reverse') => {},
+      goToFrame: (_frame: number) => {},
+      setSpeed: (_speed: number) => {},
+      setDirection: (_direction: 'forward' | 'reverse') => {},
       destroy: () => {},
     };
     
@@ -227,7 +227,7 @@ class LottieService {
       w: animation.width,
       h: animation.height,
       nm: animation.name,
-      layers: animation.layers.map((layer, index) => ({
+      layers: animation.layers.map((layer, _index) => ({
         refId: layer.id,
         nm: layer.name,
         ty: this.reverseMapLayerType(layer.type),

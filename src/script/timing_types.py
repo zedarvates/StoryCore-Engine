@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 class TimingUnit(Enum):
     """Timing unit types."""
+
     SECONDS = "seconds"
     MINUTES = "minutes"
     PAGES = "pages"
@@ -22,6 +23,7 @@ class TimingUnit(Enum):
 
 class ComplexityLevel(Enum):
     """Scene complexity levels."""
+
     SIMPLE = "simple"
     MODERATE = "moderate"
     COMPLEX = "complex"
@@ -30,6 +32,7 @@ class ComplexityLevel(Enum):
 
 class ActionIntensity(Enum):
     """Action intensity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -38,6 +41,7 @@ class ActionIntensity(Enum):
 
 class DialogueSpeed(Enum):
     """Dialogue delivery speeds."""
+
     SLOW = 2.5
     NORMAL = 3.0
     FAST = 3.5
@@ -47,59 +51,63 @@ class DialogueSpeed(Enum):
 @dataclass
 class DialogueTiming:
     """Dialogue timing breakdown."""
+
     word_count: int = 0
     estimated_seconds: float = 0.0
     dialogue_lines: int = 0
     speakers: List[str] = field(default_factory=list)
     speed_setting: DialogueSpeed = DialogueSpeed.NORMAL
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "words": self.word_count,
             "seconds": round(self.estimated_seconds, 1),
             "lines": self.dialogue_lines,
             "speakers": self.speakers,
-            "speed": self.speed_setting.name
+            "speed": self.speed_setting.name,
         }
 
 
 @dataclass
 class ActionTiming:
     """Action timing breakdown."""
+
     line_count: int = 0
     estimated_seconds: float = 0.0
     intensity: ActionIntensity = ActionIntensity.MEDIUM
     movements: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "lines": self.line_count,
             "seconds": round(self.estimated_seconds, 1),
             "intensity": self.intensity.value,
-            "movements": self.movements
+            "movements": self.movements,
         }
 
 
 @dataclass
 class SceneComplexity:
     """Scene complexity assessment."""
+
     level: ComplexityLevel = ComplexityLevel.MODERATE
     score: float = 0.5
     factors: List[str] = field(default_factory=list)
     adjustment_factor: float = 1.0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "level": self.level.value,
             "score": round(self.score, 2),
             "factors": self.factors,
-            "adjustment": round(self.adjustment_factor, 2)
+            "adjustment": round(self.adjustment_factor, 2),
         }
 
 
 @dataclass
 class SceneTiming:
     """Timing estimate for a single scene."""
+
     scene_number: int
     scene_heading: str
     total_lines: int = 0
@@ -112,7 +120,7 @@ class SceneTiming:
     dialogue_seconds: float = 0.0
     action_seconds: float = 0.0
     transition_seconds: float = 5.0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "scene_number": self.scene_number,
@@ -124,13 +132,14 @@ class SceneTiming:
             "total_seconds": round(self.estimated_duration_seconds, 1),
             "total_minutes": round(self.estimated_duration_seconds / 60, 2),
             "pages": round(self.estimated_pages, 2),
-            "complexity": self.complexity.to_dict()
+            "complexity": self.complexity.to_dict(),
         }
 
 
 @dataclass
 class ScriptTimingReport:
     """Complete script timing report."""
+
     script_title: str = ""
     analyzed_at: datetime = field(default_factory=datetime.now)
     scene_timings: List[SceneTiming] = field(default_factory=list)
@@ -146,7 +155,7 @@ class ScriptTimingReport:
     dialogue_percentage: float = 0.0
     action_percentage: float = 0.0
     complexity_distribution: Dict[str, int] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "title": self.script_title,
@@ -160,19 +169,16 @@ class ScriptTimingReport:
             "avg_scene_minutes": round(self.avg_scene_duration / 60, 1),
             "complexity_distribution": self.complexity_distribution,
             "scenes": [s.to_dict() for s in self.scene_timings],
-            "analyzed_at": self.analyzed_at.isoformat()
+            "analyzed_at": self.analyzed_at.isoformat(),
         }
 
 
 @dataclass
 class TimingVisualization:
     """Visualization data for timing."""
+
     timeline_data: Dict[str, Any] = field(default_factory=dict)
     breakdown_data: Dict[str, Any] = field(default_factory=dict)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "timeline": self.timeline_data,
-            "breakdown": self.breakdown_data
-        }
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {"timeline": self.timeline_data, "breakdown": self.breakdown_data}

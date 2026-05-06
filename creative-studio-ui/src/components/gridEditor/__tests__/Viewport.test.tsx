@@ -4,6 +4,8 @@
  * Tests for the Viewport component with zoom and pan functionality
  * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -28,7 +30,7 @@ describe('Viewport Component', () => {
     vi.clearAllMocks();
     
     // Setup default mock implementation
-    (useViewportStore as any).mockReturnValue({
+    (useViewportStore as LegacyAny).mockReturnValue({
       zoom: 1.0,
       pan: { x: 0, y: 0 },
       bounds: { width: 1920, height: 1080 },
@@ -64,7 +66,7 @@ describe('Viewport Component', () => {
     });
 
     it('should display current zoom level', () => {
-      (useViewportStore as any).mockReturnValue({
+      (useViewportStore as LegacyAny).mockReturnValue({
         zoom: 1.5,
         pan: { x: 0, y: 0 },
         bounds: { width: 1920, height: 1080 },
@@ -150,7 +152,7 @@ describe('Viewport Component', () => {
 
   describe('CSS Transform Application', () => {
     it('should apply transform based on zoom and pan', () => {
-      (useViewportStore as any).mockReturnValue({
+      (useViewportStore as LegacyAny).mockReturnValue({
         zoom: 2.0,
         pan: { x: 100, y: 50 },
         bounds: { width: 1920, height: 1080 },

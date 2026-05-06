@@ -4,7 +4,7 @@
  */
 
 const STORAGE_LIMIT = 100 * 1024 * 1024 * 1024; // 100GB
-const STORAGE_WARNING_THRESHOLD = 0.9;
+const _STORAGE_WARNING_THRESHOLD = 0.9;
 const LOCAL_STORAGE_SAFE_LIMIT = 2 * 1024 * 1024; // 2MB
 
 export interface StorageStats {
@@ -179,7 +179,7 @@ export class StorageManager {
           store.delete(key);
         }
       };
-    } catch (e) {
+    } catch (_e) {
       // Ignore errors on removal
     }
   }

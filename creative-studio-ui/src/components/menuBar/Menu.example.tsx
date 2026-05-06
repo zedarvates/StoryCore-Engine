@@ -3,6 +3,8 @@
  * 
  * Demonstrates various use cases for the Menu, MenuDropdown, and MenuItem components.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { Menu } from './Menu';
@@ -12,7 +14,7 @@ import { Save, FolderOpen, FileText, Settings } from 'lucide-react';
  * Basic File Menu Example
  */
 export function BasicFileMenuExample() {
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<LegacyAny>(null);
 
   const fileMenuItems = [
     {
@@ -160,7 +162,7 @@ export function MenuWithSubmenuExample() {
  * Complete MenuBar Example
  */
 export function CompleteMenuBarExample() {
-  const [project, setProject] = useState<any>(null);
+  const [project, setProject] = useState<LegacyAny>(null);
   const [viewState, setViewState] = useState({
     timeline: true,
     grid: false,

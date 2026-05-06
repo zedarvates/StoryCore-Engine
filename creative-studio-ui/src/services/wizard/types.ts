@@ -4,6 +4,8 @@
  * Type definitions for wizard backend integration, connection management,
  * and wizard execution workflows.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 // ============================================================================
 // Connection Status Types
@@ -62,8 +64,8 @@ export class WizardError extends Error {
     this.timestamp = new Date();
 
     // Maintains proper stack trace for where error was thrown (V8 only)
-    if (typeof (Error as any).captureStackTrace === 'function') {
-      (Error as any).captureStackTrace(this, WizardError);
+    if (typeof (Error as LegacyAny).captureStackTrace === 'function') {
+      (Error as LegacyAny).captureStackTrace(this, WizardError);
     }
   }
 

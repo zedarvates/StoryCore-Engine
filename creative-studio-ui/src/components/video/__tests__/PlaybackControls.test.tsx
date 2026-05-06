@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, _waitFor } from '@testing-library/react';
 import { PlaybackControls } from '../PlaybackControls';
 
 // Mock icons

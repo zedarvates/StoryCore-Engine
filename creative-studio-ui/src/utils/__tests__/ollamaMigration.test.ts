@@ -2,7 +2,7 @@
  * Unit tests for Ollama configuration migration
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, _vi } from 'vitest';
 import {
   hasLegacyOllamaConfig,
   hasLegacyChatHistory,

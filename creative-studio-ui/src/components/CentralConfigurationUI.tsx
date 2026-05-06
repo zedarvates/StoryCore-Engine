@@ -4,6 +4,8 @@
  * Main container component that manages the overall UI state and provides
  * configuration context for all child components
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useEffect } from 'react';
 import type { CentralConfigurationUIProps } from '../types/configuration';
@@ -90,7 +92,7 @@ function CentralConfigurationUIContent({
   // Handle saving API settings
   const handleSaveAPISettings = async (config: unknown) => {
     try {
-      await saveProjectConfig({ api: config as any });
+      await saveProjectConfig({ api: config as LegacyAny });
       setHasUnsavedChanges(false);
       setActiveWindow('workspace');
     } catch (error) {
@@ -102,7 +104,7 @@ function CentralConfigurationUIContent({
   // Handle saving LLM settings
   const handleSaveLLMSettings = async (config: unknown) => {
     try {
-      await saveProjectConfig({ llm: config as any });
+      await saveProjectConfig({ llm: config as LegacyAny });
       setHasUnsavedChanges(false);
       setActiveWindow('workspace');
     } catch (error) {
@@ -114,7 +116,7 @@ function CentralConfigurationUIContent({
   // Handle saving ComfyUI settings
   const handleSaveComfyUISettings = async (config: unknown) => {
     try {
-      await saveProjectConfig({ comfyui: config as any });
+      await saveProjectConfig({ comfyui: config as LegacyAny });
       setHasUnsavedChanges(false);
       setActiveWindow('workspace');
     } catch (error) {

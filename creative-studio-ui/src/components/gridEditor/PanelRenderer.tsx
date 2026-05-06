@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Panel, Layer, AnnotationContent, EffectContent } from '../../types/gridEditor';
 
@@ -263,9 +264,9 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   /**
    * Render effect layer (placeholder for future effects)
    */
-  const renderEffectLayer = useCallback((
-    ctx: CanvasRenderingContext2D,
-    content: EffectContent,
+  co_nst renderEffectLayer = useCallback((
+    _ctx: CanvasRenderingContext2D,
+    _content: EffectContent,
     bounds: { x: number; y: number; width: number; height: number }
   ) => {
     // Placeholder for effect rendering
@@ -375,7 +376,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   useEffect(() => {
     const imageUrls = panel.layers
       .filter(layer => layer.type === 'image' && layer.content.type === 'image')
-      .map(layer => (layer.content as any).url);
+      .map(layer => (layer.content as LegacyAny).url);
 
     if (imageUrls.length === 0) {
       setImagesLoaded(true);

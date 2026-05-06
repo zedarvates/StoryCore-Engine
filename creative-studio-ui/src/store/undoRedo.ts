@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { useStore } from './index';
 import type { HistoryState, AppState } from '../types';
 
@@ -136,18 +137,18 @@ export function canRedo(): boolean {
  * const addShotWithUndo = useStore.getState().addShot);
  * addShotWithUndo(newShot);
  */
-// Using 'any[]' in generic constraint to allow wrapping actions with any parameter types
+// Using 'LegacyAny[]' in generic constraint to allow wrapping actions with any parameter types
 // Using 'any' in generic constraint to allow wrapping actions with any parameter types and return values
 export function withUndo<T extends Function>(
   action: T
 ): T {
-  // Using 'any[]' for args to match the generic constraint
-  return ((...args: any[]) => {
+  // Using 'LegacyAny[]' for args to match the generic constraint
+  return ((...args: LegacyAny[]) => {
     // Save current state to history
     pushToHistory();
 
     // Execute the action
-    return (action as any)(...args);
+    return (action as LegacyAny)(...args);
   }) as unknown as T;
 }
 

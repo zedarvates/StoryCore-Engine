@@ -17,7 +17,7 @@ interface ObjectState {
 
 export const useObjectStore = create<ObjectState>()(
     devtools(
-        (set, get) => ({
+        (set, _get) => ({
             objects: [],
             isLoading: false,
             error: null,

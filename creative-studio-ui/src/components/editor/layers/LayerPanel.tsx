@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
   Copy,
-  Settings,
+  _Settings,
   Move,
   Layers
 } from 'lucide-react';
@@ -59,7 +59,7 @@ export function LayerPanel({
   onLayerAdd,
   onLayerRemove,
   onLayerDuplicate,
-  onLayerReorder,
+  _onLayerReorder,
   onLayerGroup,
   onLayerUngroup
 }: LayerPanelProps) {
@@ -160,7 +160,7 @@ export function LayerPanel({
     setDragOverLayer(null);
   };
 
-  const renderLayerItem = (layer: Layer, index: number) => {
+  const renderLayerItem = (layer: Layer, _index: number) => {
     const depth = getLayerDepth(layer);
     const isSelected = selectedLayerIds.includes(layer.id);
     const isGroup = layer.children && layer.children.length > 0;

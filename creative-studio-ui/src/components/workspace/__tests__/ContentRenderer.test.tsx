@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
 import { ContentRenderer, detectContentFormat } from '../ContentRenderer';
@@ -134,12 +135,12 @@ describe('ContentRenderer', () => {
 
   describe('placeholder rendering', () => {
     it('should display placeholder for undefined content', () => {
-      const { getByText } = render(<ContentRenderer content={undefined as any} />);
+      const { getByText } = render(<ContentRenderer content={undefined as LegacyAny} />);
       expect(getByText(/No story content available/i)).toBeInTheDocument();
     });
 
     it('should display placeholder for null content', () => {
-      const { getByText } = render(<ContentRenderer content={null as any} />);
+      const { getByText } = render(<ContentRenderer content={null as LegacyAny} />);
       expect(getByText(/No story content available/i)).toBeInTheDocument();
     });
 
@@ -154,7 +155,7 @@ describe('ContentRenderer', () => {
     });
 
     it('should apply placeholder CSS class for undefined', () => {
-      const { container } = render(<ContentRenderer content={undefined as any} />);
+      const { container } = render(<ContentRenderer content={undefined as LegacyAny} />);
       expect(container.querySelector('.story-content-placeholder')).toBeInTheDocument();
     });
 

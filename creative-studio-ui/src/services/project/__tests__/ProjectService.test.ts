@@ -1,6 +1,8 @@
 /**
  * Unit tests for ProjectService
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProjectService } from '../ProjectService';
@@ -17,12 +19,12 @@ const mockElectronAPI = {
   },
 };
 
-(global as any).window = {
+(global as LegacyAny).window = {
   electronAPI: mockElectronAPI,
 };
 
 // Helper function to create buffer mock that returns a serializable object
-const createBufferMock = (data: any) => {
+const createBufferMock = (data: LegacyAny) => {
   const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
   return {
     toString: (_encoding?: string) => jsonString,
@@ -96,7 +98,7 @@ describe('ProjectService', () => {
     });
 
     it('should throw error if validation fails', async () => {
-      const invalidData = { ...mockProjectData, schema_version: undefined } as any;
+      const invalidData = { ...mockProjectData, schema_version: undefined } as LegacyAny;
 
       await expect(service.saveProject('/test/project', invalidData)).rejects.toThrow('Cannot save invalid project data');
     });

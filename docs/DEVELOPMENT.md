@@ -1920,4 +1920,51 @@ Les contributeurs seront reconnus dans :
 
 ---
 
-*Guide de développement v2.3 - Dernière mise à jour: 2026-03-22*
+## 🔍 Audit Qualité Récent (Mai 2026)
+
+### Résumé de l'Audit
+
+Une refonte majeure de la qualité du code a été réalisée en mai 2026 :
+
+- **Réduction des erreurs Ruff** : 6000+ → 171 (97% de réduction)
+- **F821 (noms non définis)** : 84 → 0 ✅
+- **F811 (redéfinitions)** : 7 → 0 ✅
+- **E712 (comparaisons == True/False)** : 6 → 0 ✅
+- **E741 (nom de variable 'l')** : 28 → 0 ✅
+- **E701 (instructions multiples)** : 67 → 0 ✅
+- **E402 (ordre des imports)** : 93 → 0 ✅
+
+### Reste à corriger (non critiques)
+
+- **F401 (imports non utilisés)** : 140 — intentionnels pour les dépendances ML optionnelles (cv2, torch, librosa, mediapipe)
+- **F405 (imports wildcard)** : 12
+- **F403 (imports wildcard en __init__)** : 6
+- **F402 (imports redéfinis)** : 2
+- **E842 (continuation de ligne invalide)** : 11
+
+### Refactoring Architecturel
+
+- **App.tsx** : Découpage de 1299 lignes en modules séparés :
+  - `AppProviders.tsx` — Providers centralisés (React Query, Zustand, Router)
+  - `AppRoutes.tsx` — Routage et lazy loading
+  - `AppContent.tsx` — Logique principale de rendu
+  - `App.tsx` — Wrapper minimal (30 lignes)
+
+### Statut du Build
+
+- **TypeScript** : 0 erreur ✅
+- **Vitest** : 170 pass / 248 fail (échecs préexistants non liés au refactoring)
+- **Ruff** : 171 warnings restants (non critiques)
+
+### Documentation
+
+- Rapport d'audit complet : [AUDIT_200_TASKS.md](../../AUDIT_200_TASKS.md)
+- 200 tâches planifiées pour améliorations futures
+
+### Bonnes Pratiques
+
+1. **Vérifiez avec Ruff** avant de commit : `ruff check . --fix`
+2. **TypeScript strict** : Évitez `any`, utilisez les types explicites
+3. **Architecture modulaire** : Gardez les composants < 300 lignes
+4. **Tests** : Ajoutez des tests pour les nouvelles fonctionnalités
+5. **Documentation** : Mettez à jour la doc en même temps que le code

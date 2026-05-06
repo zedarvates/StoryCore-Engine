@@ -2,7 +2,7 @@
  * Tests for usePagination Hook
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, _beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { usePagination, getPageNumbers, getPaginationInfo } from '../usePagination';
 

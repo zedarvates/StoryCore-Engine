@@ -30,7 +30,7 @@ export const MotionTrackingPanel: React.FC<MotionTrackingPanelProps> = ({
     setProgress(null);
 
     try {
-      const trackData = await motionTrackingService.startTracking(
+      const _trackData = await motionTrackingService.startTracking(
         shotId,
         startFrame,
         endFrame,

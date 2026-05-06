@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Story Generation Service
 // ============================================================================
@@ -101,7 +102,7 @@ class ProgressTracker {
 
   private emit() {
     this.callback({
-      stage: this.currentStage as any,
+      stage: this.currentStage as LegacyAny,
       progress: Math.min(this.currentProgress, 99.9),
       currentTask: this.currentTask,
     });

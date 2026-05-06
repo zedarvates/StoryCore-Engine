@@ -4,8 +4,6 @@ FastAPI router that exposes the comic generation REST API.
 Registered under /api/addons/comic_generator/
 """
 
-import asyncio
-import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -15,6 +13,7 @@ try:
     from fastapi import APIRouter, BackgroundTasks, HTTPException
     from fastapi.responses import FileResponse, JSONResponse
     from pydantic import BaseModel
+
     HAS_FASTAPI = True
 except ImportError:
     HAS_FASTAPI = False
@@ -45,6 +44,7 @@ def get_pipeline() -> ComicPipeline:
 # ============================================================================
 
 if HAS_FASTAPI:
+
     class GeneratePageRequest(BaseModel):
         project_id: str
         story_context: str
@@ -92,7 +92,7 @@ if HAS_FASTAPI:
         state = pipeline.load_state(project_id)
         if not state:
             return {"exists": False, "project_id": project_id}
-        
+
         return {
             "exists": True,
             "project_id": state.project_id,
@@ -103,7 +103,8 @@ if HAS_FASTAPI:
             "last_page_generated": state.last_page_generated,
             "narrative_summary": (
                 state.narrative_checkpoint.story_summary
-                if state.narrative_checkpoint else None
+                if state.narrative_checkpoint
+                else None
             ),
         }
 
@@ -116,7 +117,7 @@ if HAS_FASTAPI:
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid style '{req.style}'. Valid: {[s.value for s in ComicStyle]}"
+                detail=f"Invalid style '{req.style}'. Valid: {[s.value for s in ComicStyle]}",
             )
 
         result = await pipeline.generate_next_page(
@@ -230,17 +231,20 @@ if HAS_FASTAPI:
     async def get_panel_image(image_path: str):
         """Serve a generated panel image."""
         from pathlib import Path
+
         # Security: Validate path to prevent path traversal attacks
         base_dir = Path("data/assets/comics").resolve()
         try:
             path = Path(image_path).resolve()
         except (OSError, ValueError) as e:
             raise HTTPException(status_code=400, detail=f"Invalid path: {e}")
-        
+
         # Ensure the resolved path is within the allowed base directory
         if not str(path).startswith(str(base_dir)):
-            raise HTTPException(status_code=403, detail="Access denied: path outside allowed directory")
-        
+            raise HTTPException(
+                status_code=403, detail="Access denied: path outside allowed directory"
+            )
+
         if not path.exists():
             raise HTTPException(status_code=404, detail="Image not found")
         return FileResponse(str(path))
@@ -251,7 +255,9 @@ if HAS_FASTAPI:
 
     class ExtractNarrativeRequest(BaseModel):
         project_id: str
-        comic_json_path: Optional[str] = None  # Si None : utilise l'export auto du projet
+        comic_json_path: Optional[str] = (
+            None  # Si None : utilise l'export auto du projet
+        )
         chapter_id: Optional[str] = None
         chapter_number: int = 1
 
@@ -273,12 +279,15 @@ if HAS_FASTAPI:
         """
         import json as _json
         from pathlib import Path
+
         try:
-            from addons.official.recap_engine.src.narrative_extractor import NarrativeExtractor
+            from addons.official.recap_engine.src.narrative_extractor import (
+                NarrativeExtractor,
+            )
         except ImportError:
             raise HTTPException(
                 status_code=503,
-                detail="NarrativeExtractor non disponible. Le Recap Engine doit être installé."
+                detail="NarrativeExtractor non disponible. Le Recap Engine doit être installé.",
             )
 
         pipeline = get_pipeline()
@@ -288,12 +297,17 @@ if HAS_FASTAPI:
             comic_path = Path(req.comic_json_path)
         else:
             # Chemin auto-détecté depuis le pipeline
-            comic_path = Path(pipeline.output_dir) / req.project_id / "export" / "comic_export.json"
+            comic_path = (
+                Path(pipeline.output_dir)
+                / req.project_id
+                / "export"
+                / "comic_export.json"
+            )
 
         if not comic_path.exists():
             raise HTTPException(
                 status_code=404,
-                detail=f"Export BD introuvable : {comic_path}. Lancez d'abord /export."
+                detail=f"Export BD introuvable : {comic_path}. Lancez d'abord /export.",
             )
 
         try:
@@ -340,11 +354,19 @@ if HAS_FASTAPI:
                 for c in pkg.characters
             ],
             "locations": [
-                {"name": l.location_name, "atmosphere": l.atmosphere, "importance": round(l.importance, 2)}
+                {
+                    "name": l.location_name,
+                    "atmosphere": l.atmosphere,
+                    "importance": round(l.importance, 2),
+                }
                 for l in pkg.locations
             ],
             "arcs": [
-                {"title": a.title, "status": a.status, "tension_level": round(a.tension_level, 2)}
+                {
+                    "title": a.title,
+                    "status": a.status,
+                    "tension_level": round(a.tension_level, 2),
+                }
                 for a in pkg.arcs
             ],
             "warnings": result.warnings,
@@ -354,9 +376,15 @@ if HAS_FASTAPI:
     async def list_continuity(project_id: str):
         """Liste tous les packages de continuité (chapitres extractés) d'un projet."""
         try:
-            from addons.official.recap_engine.src.narrative_extractor import NarrativeExtractor
+            from addons.official.recap_engine.src.narrative_extractor import (
+                NarrativeExtractor,
+            )
         except ImportError:
-            return {"project_id": project_id, "packages": [], "error": "NarrativeExtractor non disponible"}
+            return {
+                "project_id": project_id,
+                "packages": [],
+                "error": "NarrativeExtractor non disponible",
+            }
 
         extractor = NarrativeExtractor(output_dir="data/continuity")
         packages = extractor.list_packages(project_id)
@@ -376,16 +404,20 @@ if HAS_FASTAPI:
         les arcs ouverts et le story_context construit depuis la mémoire.
         """
         try:
-            from addons.official.recap_engine.src.narrative_extractor import NarrativeExtractor
+            from addons.official.recap_engine.src.narrative_extractor import (
+                NarrativeExtractor,
+            )
         except ImportError:
-            raise HTTPException(status_code=503, detail="NarrativeExtractor non disponible")
+            raise HTTPException(
+                status_code=503, detail="NarrativeExtractor non disponible"
+            )
 
         extractor = NarrativeExtractor(output_dir="data/continuity")
         package = extractor.load_package(project_id, chapter_number)
         if not package:
             raise HTTPException(
                 status_code=404,
-                detail=f"Aucun package de continuité pour le chapitre {chapter_number}."
+                detail=f"Aucun package de continuité pour le chapitre {chapter_number}.",
             )
 
         next_input = extractor.to_comic_generator_input(package)
@@ -400,7 +432,8 @@ if HAS_FASTAPI:
                 "global_progression": package.global_story_progression,
                 "open_arcs": [
                     {"title": a.title, "tension": a.tension_level}
-                    for a in package.arcs if a.status in ("open", "escalated")
+                    for a in package.arcs
+                    if a.status in ("open", "escalated")
                 ],
             },
             "comic_generator_input": next_input,

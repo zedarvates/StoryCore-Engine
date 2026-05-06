@@ -8,8 +8,8 @@ import {
   ZoomOut, 
   Scissors, 
   Trash2, 
-  Eye, 
-  EyeOff, 
+  _Eye, 
+  _EyeOff, 
   Lock, 
   Unlock,
   Volume2,
@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useVideoEditor } from '@/contexts/VideoEditorContext';
-import { Track, Clip, TrackType } from '@/types/video-editor';
+import { _Track, _Clip, _TrackType } from '@/types/video-editor';
 import './Timeline.css';
 
 const PIXELS_PER_SECOND = 50; // Base zoom

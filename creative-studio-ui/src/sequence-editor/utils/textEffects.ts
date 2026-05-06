@@ -550,8 +550,8 @@ function exportToASS(subtitles: SubtitleData[], fps: number): string {
  * Generate subtitles from audio using speech-to-text
  */
 export async function generateAutomaticSubtitles(
-  audioLayer: Layer,
-  options: SpeechToTextOptions
+  _audioLayer: Layer,
+  _options: SpeechToTextOptions
 ): Promise<SubtitleData[]> {
   // In a real implementation, this would call a speech-to-text API
   // For now, return mock subtitles
@@ -653,7 +653,7 @@ export function applyKaraokeEffect(
   karaokeEffect: KaraokeEffect
 ): SubtitleData {
   // Generate timing for each word/syllable/character
-  const timing = generateKaraokeTiming(
+  const _timing = generateKaraokeTiming(
     subtitle.text,
     subtitle.startTime,
     subtitle.endTime,

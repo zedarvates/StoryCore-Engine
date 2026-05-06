@@ -27,7 +27,7 @@ export const VolumeKeyframes: React.FC<VolumeKeyframesProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [draggedKeyframe, setDraggedKeyframe] = useState<string | null>(null);
-  const [isAddingKeyframe, setIsAddingKeyframe] = useState(false);
+  const [_isAddingKeyframe, _setIsAddingKeyframe] = useState(false);
 
   // Get volume at current time (interpolated between keyframes)
   const getCurrentVolume = useCallback((time: number): number => {

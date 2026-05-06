@@ -4,6 +4,8 @@
  * Renders anime-style visual effects including speed lines, impact frames,
  * motion trails, and emotion effects using Canvas 2D API.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import {
   AnimeEffect,
@@ -73,7 +75,7 @@ export class AnimeEffectRenderer {
         case 'aura':
           return this.renderAura(context, effect, position);
         default:
-          return { success: false, error: `Unknown effect type: ${(effect as any).type}` };
+          return { success: false, error: `Unknown effect type: ${(effect as LegacyAny).type}` };
       }
     } catch (error) {
       return {
@@ -104,7 +106,7 @@ export class AnimeEffectRenderer {
       gradientEndColor,
       direction,
       angle,
-      focalPoint,
+      _focalPoint,
       spiralTightness,
       style,
       lineCap,
@@ -224,13 +226,13 @@ export class AnimeEffectRenderer {
     effect: ImpactFrameEffect,
     position: Point2D
   ): EffectRenderResult {
-    const { ctx, width, height, time } = context;
+    co_nst { ctx, width, height, time } = context;
     const {
       impactType,
       impactSize,
       impactShape,
       flashColor,
-      flashDuration,
+      _flashDuration,
       flashIntensity,
       glowRadius,
       screenShake,
@@ -335,18 +337,18 @@ export class AnimeEffectRenderer {
   private renderMotionTrail(
     context: RenderContext,
     effect: MotionTrailEffect,
-    position: Point2D
+    position: Poi_nt2D
   ): EffectRenderResult {
     const { ctx, time } = context;
     const {
       trailLength,
-      trailOpacity,
+      _trailOpacity,
       trailColor,
       trailBlur,
-      fadeMode,
-      persistence,
-      style,
-      outlineThickness,
+      _fadeMode,
+      _persistence,
+      _style,
+      _outlineThickness,
       outlineColor,
       colorShift,
       intensity
@@ -476,7 +478,7 @@ export class AnimeEffectRenderer {
   private renderMangaPanel(
     context: RenderContext,
     effect: MangaPanelEffect,
-    position: Point2D
+    position: Poi_nt2D
   ): EffectRenderResult {
     const { ctx, width, height, time } = context;
     const {
@@ -489,11 +491,11 @@ export class AnimeEffectRenderer {
       backgroundColor,
       backgroundOpacity,
       screenTone,
-      screenToneIntensity,
-      screenToneColor,
-      focusEffect,
-      focusPoint,
-      focusSize,
+      _screenToneIntensity,
+      _screenToneColor,
+      _focusEffect,
+      _focusPoint,
+      _focusSize,
       focusFeather,
       vignetteIntensity,
       sfxText,
@@ -580,7 +582,7 @@ export class AnimeEffectRenderer {
     effect: AuraEffect,
     position: Point2D
   ): EffectRenderResult {
-    const { ctx, time } = context;
+    co_nst { ctx, time } = context;
     const {
       auraType,
       color,

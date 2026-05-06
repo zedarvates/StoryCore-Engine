@@ -6,7 +6,7 @@
  */
 
 import { GridConfiguration } from '../../stores/gridEditorStore';
-import { validateGridConfiguration, GridConfigurationSchema } from '../../types/gridEditor.validation';
+import { validateGridConfiguration, _GridConfigurationSchema } from '../../types/gridEditor.validation';
 
 export type ExportFormat = 'json' | 'zip';
 
@@ -178,8 +178,8 @@ export class ExportService {
    * Note: This requires canvas rendering and is a placeholder
    */
   async exportPanelAsImage(
-    panelId: string,
-    resolution: { width: number; height: number }
+    _panelId: string,
+    _resolution: { width: number; height: number }
   ): Promise<ExportResult> {
     // Placeholder for future implementation
     return {
@@ -193,8 +193,8 @@ export class ExportService {
    * Note: This requires canvas rendering and is a placeholder
    */
   async exportGridAsImage(
-    config: GridConfiguration,
-    resolution: { width: number; height: number }
+    _config: GridConfiguration,
+    _resolution: { width: number; height: number }
   ): Promise<ExportResult> {
     // Placeholder for future implementation
     return {

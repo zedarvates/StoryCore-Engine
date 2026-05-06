@@ -21,13 +21,13 @@ import tracemalloc
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Callable, Tuple
+from typing import Dict, List, Any, Optional
 import psutil
 import numpy as np
 
 # Import optimization modules
 from .advanced_caching_layer import AdvancedCachingLayer, CacheConfiguration
-from .memory_pool_manager import MemoryPoolManager, NumpyArrayPool, BufferPool
+from .memory_pool_manager import MemoryPoolManager
 from .async_task_queue import AsyncTaskQueue, QueueConfiguration, TaskPriority
 from .database_connection_pool import DatabaseConnectionPool, PoolConfiguration
 from .enhanced_performance_monitor import EnhancedPerformanceMonitor
@@ -36,6 +36,7 @@ from .enhanced_performance_monitor import EnhancedPerformanceMonitor
 @dataclass
 class BenchmarkResult:
     """Result of a benchmark test."""
+
     test_name: str
     duration_seconds: float
     operations_per_second: float
@@ -48,20 +49,21 @@ class BenchmarkResult:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
-            'test_name': self.test_name,
-            'duration_seconds': self.duration_seconds,
-            'operations_per_second': self.operations_per_second,
-            'memory_usage_mb': self.memory_usage_mb,
-            'cpu_usage_percent': self.cpu_usage_percent,
-            'metrics': self.metrics,
-            'success': self.success,
-            'error_message': self.error_message
+            "test_name": self.test_name,
+            "duration_seconds": self.duration_seconds,
+            "operations_per_second": self.operations_per_second,
+            "memory_usage_mb": self.memory_usage_mb,
+            "cpu_usage_percent": self.cpu_usage_percent,
+            "metrics": self.metrics,
+            "success": self.success,
+            "error_message": self.error_message,
         }
 
 
 @dataclass
 class BenchmarkSuite:
     """Collection of benchmark results."""
+
     suite_name: str
     timestamp: float
     results: List[BenchmarkResult] = field(default_factory=list)
@@ -80,14 +82,16 @@ class BenchmarkSuite:
         total_ops = sum(r.operations_per_second for r in successful_tests)
 
         return {
-            'suite_name': self.suite_name,
-            'timestamp': self.timestamp,
-            'total_tests': len(self.results),
-            'successful_tests': len(successful_tests),
-            'failed_tests': len(self.results) - len(successful_tests),
-            'average_ops_per_second': total_ops / len(successful_tests) if successful_tests else 0,
-            'total_memory_usage_mb': sum(r.memory_usage_mb for r in successful_tests),
-            'system_info': self.system_info
+            "suite_name": self.suite_name,
+            "timestamp": self.timestamp,
+            "total_tests": len(self.results),
+            "successful_tests": len(successful_tests),
+            "failed_tests": len(self.results) - len(successful_tests),
+            "average_ops_per_second": total_ops / len(successful_tests)
+            if successful_tests
+            else 0,
+            "total_memory_usage_mb": sum(r.memory_usage_mb for r in successful_tests),
+            "system_info": self.system_info,
         }
 
 
@@ -108,7 +112,7 @@ class PerformanceBenchmarks:
 
         start_time = time.time()
         start_memory = process.memory_info().rss / (1024 * 1024)
-        start_cpu = psutil.cpu_percent(interval=None)
+        psutil.cpu_percent(interval=None)
 
         try:
             yield
@@ -138,12 +142,12 @@ class PerformanceBenchmarks:
             memory_usage_mb=memory_usage,
             cpu_usage_percent=end_cpu,
             metrics={
-                'peak_memory_mb': peak / (1024 * 1024),
-                'num_operations': num_operations,
-                'avg_operation_time_ms': (duration * 1000) / num_operations
+                "peak_memory_mb": peak / (1024 * 1024),
+                "num_operations": num_operations,
+                "avg_operation_time_ms": (duration * 1000) / num_operations,
             },
             success=success,
-            error_message=error_message
+            error_message=error_message,
         )
 
         return result
@@ -155,9 +159,11 @@ class PerformanceBenchmarks:
 
         # Setup cache
         config = CacheConfiguration(
-            enable_l1=True, l1_max_size_mb=256,
-            enable_l2=True, l2_max_size_mb=1024,
-            enable_l3=False
+            enable_l1=True,
+            l1_max_size_mb=256,
+            enable_l2=True,
+            l2_max_size_mb=1024,
+            enable_l3=False,
         )
         cache = AdvancedCachingLayer(config)
         await cache.start()
@@ -206,15 +212,11 @@ class PerformanceBenchmarks:
         numpy_pool = manager.create_pool(
             "numpy_arrays",
             lambda: np.zeros((100, 100), dtype=np.float32),
-            manager.pool_config
+            manager.pool_config,
         )
 
         # Buffer pool
-        buffer_pool = manager.create_pool(
-            "buffers",
-            lambda: bytearray(1024),
-            manager.pool_config
-        )
+        manager.create_pool("buffers", lambda: bytearray(1024), manager.pool_config)
 
         try:
             # Benchmark 1: Object allocation/deallocation
@@ -230,7 +232,6 @@ class PerformanceBenchmarks:
             suite.add_result(result)
 
             # Benchmark 2: Pool under contention
-            import threading
             import concurrent.futures
 
             def pool_worker(pool, operations):
@@ -262,9 +263,7 @@ class PerformanceBenchmarks:
 
         # Setup queue
         config = QueueConfiguration(
-            max_queue_size=10000,
-            max_concurrent_tasks=50,
-            worker_pool_size=8
+            max_queue_size=10000, max_concurrent_tasks=50, worker_pool_size=8
         )
         queue = AsyncTaskQueue(config)
         queue.start()
@@ -282,7 +281,7 @@ class PerformanceBenchmarks:
                     tasks.append(queue.submit_task(task_id, dummy_task, args=(i,)))
 
                 # Wait for all tasks
-                results = await asyncio.gather(*tasks, return_exceptions=True)
+                await asyncio.gather(*tasks, return_exceptions=True)
 
             suite.add_result(result)
 
@@ -292,10 +291,11 @@ class PerformanceBenchmarks:
                 for i in range(1000):
                     priority = TaskPriority(i % 5)
                     task_id = f"priority_task_{i}"
-                    tasks.append(queue.submit_task(
-                        task_id, dummy_task,
-                        priority=priority, args=(i,)
-                    ))
+                    tasks.append(
+                        queue.submit_task(
+                            task_id, dummy_task, priority=priority, args=(i,)
+                        )
+                    )
 
                 # Wait for completion
                 await asyncio.sleep(5)  # Give time for processing
@@ -315,9 +315,7 @@ class PerformanceBenchmarks:
         # Setup database pool (using test database)
         test_db = Path("./test_performance.db")
         config = PoolConfiguration(
-            database_path=str(test_db),
-            min_connections=2,
-            max_connections=10
+            database_path=str(test_db), min_connections=2, max_connections=10
         )
 
         pool = DatabaseConnectionPool(config)
@@ -350,13 +348,12 @@ class PerformanceBenchmarks:
                     # Insert
                     pool.execute_update(
                         "INSERT INTO benchmark_data (data) VALUES (?)",
-                        (f"{test_data}_{i}",)
+                        (f"{test_data}_{i}",),
                     )
 
                     # Select
-                    results = pool.execute_query(
-                        "SELECT data FROM benchmark_data WHERE id = ?",
-                        (i + 1,)
+                    pool.execute_query(
+                        "SELECT data FROM benchmark_data WHERE id = ?", (i + 1,)
                     )
 
             suite.add_result(result)
@@ -366,7 +363,7 @@ class PerformanceBenchmarks:
                 for i in range(1000):
                     pool.execute_query(
                         "SELECT COUNT(*) FROM benchmark_data WHERE data LIKE ?",
-                        (f"%{i}%",)
+                        (f"%{i}%",),
                     )
 
             suite.add_result(result)
@@ -413,7 +410,7 @@ class PerformanceBenchmarks:
 
             with self.benchmark_context("report_generation", 10) as result:
                 for _ in range(10):
-                    report = monitor.generate_performance_report()
+                    monitor.generate_performance_report()
 
             suite.add_result(result)
 
@@ -474,18 +471,42 @@ class PerformanceBenchmarks:
         # Calculate improvements (compared to baseline - simulated)
         # In real scenario, this would compare against previous runs
         baseline_ops_per_sec = 1000  # Simulated baseline
-        current_avg_ops = statistics.mean([r.operations_per_second for r in successful_results]) if successful_results else 0
-        performance_improvement = ((current_avg_ops - baseline_ops_per_sec) / baseline_ops_per_sec) * 100 if baseline_ops_per_sec > 0 else 0
+        current_avg_ops = (
+            statistics.mean([r.operations_per_second for r in successful_results])
+            if successful_results
+            else 0
+        )
+        performance_improvement = (
+            ((current_avg_ops - baseline_ops_per_sec) / baseline_ops_per_sec) * 100
+            if baseline_ops_per_sec > 0
+            else 0
+        )
 
         # Memory efficiency
-        avg_memory_usage = statistics.mean([r.memory_usage_mb for r in successful_results]) if successful_results else 0
+        avg_memory_usage = (
+            statistics.mean([r.memory_usage_mb for r in successful_results])
+            if successful_results
+            else 0
+        )
 
         # Categorize by optimization type
-        caching_results = [r for r in successful_results if "cache" in r.test_name.lower()]
-        memory_results = [r for r in successful_results if "memory" in r.test_name.lower()]
-        async_results = [r for r in successful_results if "async" in r.test_name.lower() or "queue" in r.test_name.lower()]
+        caching_results = [
+            r for r in successful_results if "cache" in r.test_name.lower()
+        ]
+        memory_results = [
+            r for r in successful_results if "memory" in r.test_name.lower()
+        ]
+        async_results = [
+            r
+            for r in successful_results
+            if "async" in r.test_name.lower() or "queue" in r.test_name.lower()
+        ]
         db_results = [r for r in successful_results if "db" in r.test_name.lower()]
-        monitoring_results = [r for r in successful_results if "monitor" in r.test_name.lower() or "metric" in r.test_name.lower()]
+        monitoring_results = [
+            r
+            for r in successful_results
+            if "monitor" in r.test_name.lower() or "metric" in r.test_name.lower()
+        ]
 
         return {
             "report_timestamp": time.time(),
@@ -494,42 +515,62 @@ class PerformanceBenchmarks:
                 "total_tests": len(all_results),
                 "successful_tests": len(successful_results),
                 "failed_tests": len(failed_results),
-                "success_rate_percent": (len(successful_results) / len(all_results)) * 100 if all_results else 0,
+                "success_rate_percent": (len(successful_results) / len(all_results))
+                * 100
+                if all_results
+                else 0,
                 "average_ops_per_second": current_avg_ops,
                 "performance_improvement_percent": performance_improvement,
-                "average_memory_usage_mb": avg_memory_usage
+                "average_memory_usage_mb": avg_memory_usage,
             },
             "optimization_breakdown": {
                 "caching": {
                     "tests": len(caching_results),
-                    "avg_ops_per_sec": statistics.mean([r.operations_per_second for r in caching_results]) if caching_results else 0
+                    "avg_ops_per_sec": statistics.mean(
+                        [r.operations_per_second for r in caching_results]
+                    )
+                    if caching_results
+                    else 0,
                 },
                 "memory_management": {
                     "tests": len(memory_results),
-                    "avg_ops_per_sec": statistics.mean([r.operations_per_second for r in memory_results]) if memory_results else 0
+                    "avg_ops_per_sec": statistics.mean(
+                        [r.operations_per_second for r in memory_results]
+                    )
+                    if memory_results
+                    else 0,
                 },
                 "async_processing": {
                     "tests": len(async_results),
-                    "avg_ops_per_sec": statistics.mean([r.operations_per_second for r in async_results]) if async_results else 0
+                    "avg_ops_per_sec": statistics.mean(
+                        [r.operations_per_second for r in async_results]
+                    )
+                    if async_results
+                    else 0,
                 },
                 "database_pooling": {
                     "tests": len(db_results),
-                    "avg_ops_per_sec": statistics.mean([r.operations_per_second for r in db_results]) if db_results else 0
+                    "avg_ops_per_sec": statistics.mean(
+                        [r.operations_per_second for r in db_results]
+                    )
+                    if db_results
+                    else 0,
                 },
                 "monitoring": {
                     "tests": len(monitoring_results),
-                    "avg_ops_per_sec": statistics.mean([r.operations_per_second for r in monitoring_results]) if monitoring_results else 0
-                }
+                    "avg_ops_per_sec": statistics.mean(
+                        [r.operations_per_second for r in monitoring_results]
+                    )
+                    if monitoring_results
+                    else 0,
+                },
             },
             "scalability_assessment": self._assess_scalability(all_results),
             "suite_summaries": [suite.get_summary() for suite in self.results],
             "failed_tests": [
-                {
-                    "test_name": r.test_name,
-                    "error_message": r.error_message
-                }
+                {"test_name": r.test_name, "error_message": r.error_message}
                 for r in failed_results
-            ]
+            ],
         }
 
     def _assess_scalability(self, results: List[BenchmarkResult]) -> Dict[str, Any]:
@@ -540,12 +581,20 @@ class PerformanceBenchmarks:
         if len(throughput_values) < 2:
             return {"assessment": "insufficient_data"}
 
-        throughput_std = statistics.stdev(throughput_values) if len(throughput_values) > 1 else 0
-        throughput_cv = throughput_std / statistics.mean(throughput_values) if throughput_values else 0
+        throughput_std = (
+            statistics.stdev(throughput_values) if len(throughput_values) > 1 else 0
+        )
+        throughput_cv = (
+            throughput_std / statistics.mean(throughput_values)
+            if throughput_values
+            else 0
+        )
 
         # Memory efficiency analysis
         memory_values = [r.memory_usage_mb for r in results if r.success]
-        memory_efficiency = "good" if all(m < 100 for m in memory_values) else "needs_optimization"
+        memory_efficiency = (
+            "good" if all(m < 100 for m in memory_values) else "needs_optimization"
+        )
 
         # CPU efficiency analysis
         cpu_values = [r.cpu_usage_percent for r in results if r.success]
@@ -556,8 +605,10 @@ class PerformanceBenchmarks:
             "throughput_coefficient_of_variation": throughput_cv,
             "memory_efficiency": memory_efficiency,
             "cpu_efficiency": cpu_efficiency,
-            "estimated_concurrent_users": self._estimate_concurrent_capacity(throughput_values),
-            "scalability_score": self._calculate_scalability_score(results)
+            "estimated_concurrent_users": self._estimate_concurrent_capacity(
+                throughput_values
+            ),
+            "scalability_score": self._calculate_scalability_score(results),
         }
 
     def _estimate_concurrent_capacity(self, throughput_values: List[float]) -> int:
@@ -587,7 +638,9 @@ class PerformanceBenchmarks:
         memory_values = [r.memory_usage_mb for r in results if r.success]
         if memory_values:
             avg_memory = statistics.mean(memory_values)
-            memory_score = max(0, 100 - (avg_memory / 10))  # Penalty for high memory usage
+            memory_score = max(
+                0, 100 - (avg_memory / 10)
+            )  # Penalty for high memory usage
             scores.append(memory_score * 0.3)
 
         # CPU efficiency score
@@ -605,7 +658,7 @@ class PerformanceBenchmarks:
             "cpu_count": psutil.cpu_count(),
             "cpu_count_logical": psutil.cpu_count(logical=True),
             "memory_total_gb": psutil.virtual_memory().total / (1024**3),
-            "platform": "linux"  # Simplified
+            "platform": "linux",  # Simplified
         }
 
     def save_report(self, filepath: Path) -> bool:
@@ -613,7 +666,7 @@ class PerformanceBenchmarks:
         try:
             report = self.generate_comprehensive_report()
 
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 json.dump(report, f, indent=2, default=str)
 
             self.logger.info(f"Benchmark report saved to {filepath}")
@@ -624,7 +677,9 @@ class PerformanceBenchmarks:
             return False
 
 
-async def run_performance_benchmarks(output_path: Optional[Path] = None) -> Dict[str, Any]:
+async def run_performance_benchmarks(
+    output_path: Optional[Path] = None,
+) -> Dict[str, Any]:
     """
     Run all performance benchmarks and return comprehensive report.
 
@@ -637,7 +692,7 @@ async def run_performance_benchmarks(output_path: Optional[Path] = None) -> Dict
     benchmarks = PerformanceBenchmarks()
 
     try:
-        suites = await benchmarks.run_all_benchmarks()
+        await benchmarks.run_all_benchmarks()
         report = benchmarks.generate_comprehensive_report()
 
         if output_path:
@@ -670,10 +725,18 @@ if __name__ == "__main__":
     print("\n=== Performance Benchmark Summary ===")
     print(f"Total Suites: {report.get('summary', {}).get('total_suites', 0)}")
     print(f"Total Tests: {report.get('summary', {}).get('total_tests', 0)}")
-    print(f"Success Rate: {report.get('summary', {}).get('success_rate_percent', 0):.1f}%")
-    print(f"Average OPS: {report.get('summary', {}).get('average_ops_per_second', 0):.0f}")
-    print(f"Performance Improvement: {report.get('summary', {}).get('performance_improvement_percent', 0):.1f}%")
-    print(f"Scalability Score: {report.get('scalability_assessment', {}).get('scalability_score', 0):.1f}/100")
+    print(
+        f"Success Rate: {report.get('summary', {}).get('success_rate_percent', 0):.1f}%"
+    )
+    print(
+        f"Average OPS: {report.get('summary', {}).get('average_ops_per_second', 0):.0f}"
+    )
+    print(
+        f"Performance Improvement: {report.get('summary', {}).get('performance_improvement_percent', 0):.1f}%"
+    )
+    print(
+        f"Scalability Score: {report.get('scalability_assessment', {}).get('scalability_score', 0):.1f}/100"
+    )
 
     if args.output:
         print(f"\nDetailed report saved to: {args.output}")

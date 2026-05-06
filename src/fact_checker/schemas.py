@@ -17,29 +17,22 @@ CLAIM_SCHEMA: Dict[str, Any] = {
             "type": "array",
             "items": {"type": "integer"},
             "minItems": 2,
-            "maxItems": 2
+            "maxItems": 2,
         },
         "domain": {
             "type": ["string", "null"],
-            "enum": ["physics", "biology", "history", "statistics", "general", None]
+            "enum": ["physics", "biology", "history", "statistics", "general", None],
         },
-        "confidence": {
-            "type": ["number", "null"],
-            "minimum": 0,
-            "maximum": 100
-        },
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
         "risk_level": {
             "type": ["string", "null"],
-            "enum": ["low", "medium", "high", "critical", None]
+            "enum": ["low", "medium", "high", "critical", None],
         },
-        "evidence": {
-            "type": "array",
-            "items": {"$ref": "#/definitions/evidence"}
-        },
-        "recommendation": {"type": ["string", "null"]}
+        "evidence": {"type": "array", "items": {"$ref": "#/definitions/evidence"}},
+        "recommendation": {"type": ["string", "null"]},
     },
     "required": ["id", "text", "position"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # Evidence Schema
@@ -49,24 +42,16 @@ EVIDENCE_SCHEMA: Dict[str, Any] = {
         "source": {"type": "string"},
         "source_type": {
             "type": "string",
-            "enum": ["academic", "news", "government", "encyclopedia"]
+            "enum": ["academic", "news", "government", "encyclopedia"],
         },
-        "credibility_score": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "relevance": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
+        "credibility_score": {"type": "number", "minimum": 0, "maximum": 100},
+        "relevance": {"type": "number", "minimum": 0, "maximum": 100},
         "excerpt": {"type": "string"},
         "url": {"type": ["string", "null"]},
-        "publication_date": {"type": ["string", "null"]}
+        "publication_date": {"type": ["string", "null"]},
     },
     "required": ["source", "source_type", "credibility_score", "relevance", "excerpt"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # Verification Result Schema
@@ -74,29 +59,29 @@ VERIFICATION_RESULT_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "properties": {
         "claim": {"$ref": "#/definitions/claim"},
-        "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
-        "risk_level": {
-            "type": "string",
-            "enum": ["low", "medium", "high", "critical"]
-        },
+        "confidence": {"type": "number", "minimum": 0, "maximum": 100},
+        "risk_level": {"type": "string", "enum": ["low", "medium", "high", "critical"]},
         "supporting_evidence": {
             "type": "array",
-            "items": {"$ref": "#/definitions/evidence"}
+            "items": {"$ref": "#/definitions/evidence"},
         },
         "contradicting_evidence": {
             "type": "array",
-            "items": {"$ref": "#/definitions/evidence"}
+            "items": {"$ref": "#/definitions/evidence"},
         },
         "reasoning": {"type": "string"},
-        "recommendation": {"type": "string"}
+        "recommendation": {"type": "string"},
     },
-    "required": ["claim", "confidence", "risk_level", "supporting_evidence", 
-                 "contradicting_evidence", "reasoning", "recommendation"],
-    "additionalProperties": False
+    "required": [
+        "claim",
+        "confidence",
+        "risk_level",
+        "supporting_evidence",
+        "contradicting_evidence",
+        "reasoning",
+        "recommendation",
+    ],
+    "additionalProperties": False,
 }
 
 # Manipulation Signal Schema
@@ -105,24 +90,21 @@ MANIPULATION_SIGNAL_SCHEMA: Dict[str, Any] = {
     "properties": {
         "type": {
             "type": "string",
-            "enum": ["logical_inconsistency", "emotional_manipulation", "narrative_bias"]
+            "enum": [
+                "logical_inconsistency",
+                "emotional_manipulation",
+                "narrative_bias",
+            ],
         },
-        "severity": {
-            "type": "string",
-            "enum": ["low", "medium", "high"]
-        },
+        "severity": {"type": "string", "enum": ["low", "medium", "high"]},
         "timestamp_start": {"type": ["string", "null"]},
         "timestamp_end": {"type": ["string", "null"]},
         "description": {"type": "string"},
         "evidence": {"type": "string"},
-        "confidence": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        }
+        "confidence": {"type": "number", "minimum": 0, "maximum": 100},
     },
     "required": ["type", "severity", "description", "evidence", "confidence"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # Report Schema
@@ -135,17 +117,17 @@ REPORT_SCHEMA: Dict[str, Any] = {
                 "timestamp": {"type": "string"},
                 "version": {"type": "string"},
                 "input_hash": {"type": "string"},
-                "processing_time_ms": {"type": "number"}
+                "processing_time_ms": {"type": "number"},
             },
-            "required": ["timestamp", "version", "input_hash", "processing_time_ms"]
+            "required": ["timestamp", "version", "input_hash", "processing_time_ms"],
         },
         "claims": {
             "type": "array",
-            "items": {"$ref": "#/definitions/verification_result"}
+            "items": {"$ref": "#/definitions/verification_result"},
         },
         "manipulation_signals": {
             "type": "array",
-            "items": {"$ref": "#/definitions/manipulation_signal"}
+            "items": {"$ref": "#/definitions/manipulation_signal"},
         },
         "summary_statistics": {
             "type": "object",
@@ -153,33 +135,30 @@ REPORT_SCHEMA: Dict[str, Any] = {
                 "total_claims": {"type": "integer"},
                 "high_risk_count": {"type": "integer"},
                 "average_confidence": {"type": "number"},
-                "domains_analyzed": {
-                    "type": "array",
-                    "items": {"type": "string"}
-                }
-            }
+                "domains_analyzed": {"type": "array", "items": {"type": "string"}},
+            },
         },
         "human_summary": {"type": "string"},
-        "recommendations": {
-            "type": "array",
-            "items": {"type": "string"}
-        },
-        "disclaimer": {"type": "string"}
+        "recommendations": {"type": "array", "items": {"type": "string"}},
+        "disclaimer": {"type": "string"},
     },
-    "required": ["metadata", "claims", "manipulation_signals", "summary_statistics",
-                 "human_summary", "recommendations", "disclaimer"],
-    "additionalProperties": False
+    "required": [
+        "metadata",
+        "claims",
+        "manipulation_signals",
+        "summary_statistics",
+        "human_summary",
+        "recommendations",
+        "disclaimer",
+    ],
+    "additionalProperties": False,
 }
 
 # Configuration Schema
 CONFIGURATION_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "properties": {
-        "confidence_threshold": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-        },
+        "confidence_threshold": {"type": "number", "minimum": 0, "maximum": 100},
         "risk_level_mappings": {
             "type": "object",
             "properties": {
@@ -187,58 +166,40 @@ CONFIGURATION_SCHEMA: Dict[str, Any] = {
                     "type": "array",
                     "items": {"type": "number"},
                     "minItems": 2,
-                    "maxItems": 2
+                    "maxItems": 2,
                 },
                 "high": {
                     "type": "array",
                     "items": {"type": "number"},
                     "minItems": 2,
-                    "maxItems": 2
+                    "maxItems": 2,
                 },
                 "medium": {
                     "type": "array",
                     "items": {"type": "number"},
                     "minItems": 2,
-                    "maxItems": 2
+                    "maxItems": 2,
                 },
                 "low": {
                     "type": "array",
                     "items": {"type": "number"},
                     "minItems": 2,
-                    "maxItems": 2
-                }
-            }
+                    "maxItems": 2,
+                },
+            },
         },
         "trusted_sources": {
             "type": "object",
-            "additionalProperties": {
-                "type": "array",
-                "items": {"type": "string"}
-            }
+            "additionalProperties": {"type": "array", "items": {"type": "string"}},
         },
-        "custom_domains": {
-            "type": "array",
-            "items": {"type": "string"}
-        },
+        "custom_domains": {"type": "array", "items": {"type": "string"}},
         "cache_enabled": {"type": "boolean"},
-        "cache_ttl_seconds": {
-            "type": "integer",
-            "minimum": 0
-        },
-        "max_concurrent_verifications": {
-            "type": "integer",
-            "minimum": 1
-        },
-        "timeout_seconds": {
-            "type": "integer",
-            "minimum": 1
-        },
-        "environments": {
-            "type": "object",
-            "additionalProperties": {"type": "object"}
-        }
+        "cache_ttl_seconds": {"type": "integer", "minimum": 0},
+        "max_concurrent_verifications": {"type": "integer", "minimum": 1},
+        "timeout_seconds": {"type": "integer", "minimum": 1},
+        "environments": {"type": "object", "additionalProperties": {"type": "object"}},
     },
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # Scientific Audit Agent Input Schema
@@ -250,15 +211,12 @@ SCIENTIFIC_AUDIT_INPUT_SCHEMA: Dict[str, Any] = {
         "confidence_threshold": {
             "type": ["number", "null"],
             "minimum": 0,
-            "maximum": 100
+            "maximum": 100,
         },
-        "trusted_sources": {
-            "type": ["array", "null"],
-            "items": {"type": "string"}
-        }
+        "trusted_sources": {"type": ["array", "null"], "items": {"type": "string"}},
     },
     "required": ["content"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # Anti-Fake Video Agent Input Schema
@@ -266,46 +224,41 @@ ANTIFAKE_VIDEO_INPUT_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "properties": {
         "transcript": {"type": "string"},
-        "timestamps": {
-            "type": ["array", "null"],
-            "items": {"type": "string"}
-        },
+        "timestamps": {"type": ["array", "null"], "items": {"type": "string"}},
         "metadata": {
             "type": ["object", "null"],
             "properties": {
                 "source": {"type": ["string", "null"]},
-                "duration_seconds": {"type": ["number", "null"]}
-            }
-        }
+                "duration_seconds": {"type": ["number", "null"]},
+            },
+        },
     },
     "required": ["transcript"],
-    "additionalProperties": False
+    "additionalProperties": False,
 }
 
 # Fact Checker Command Response Schema
 FACT_CHECKER_RESPONSE_SCHEMA: Dict[str, Any] = {
     "type": "object",
     "properties": {
-        "status": {
-            "type": "string",
-            "enum": ["success", "error"]
-        },
-        "mode": {
-            "type": "string",
-            "enum": ["text", "video"]
-        },
-        "agent": {
-            "type": "string",
-            "enum": ["scientific_audit", "antifake_video"]
-        },
+        "status": {"type": "string", "enum": ["success", "error"]},
+        "mode": {"type": "string", "enum": ["text", "video"]},
+        "agent": {"type": "string", "enum": ["scientific_audit", "antifake_video"]},
         "report": {"type": "object"},
         "summary": {"type": "string"},
         "processing_time_ms": {"type": "number"},
-        "cached": {"type": "boolean"}
+        "cached": {"type": "boolean"},
     },
-    "required": ["status", "mode", "agent", "report", "summary", 
-                 "processing_time_ms", "cached"],
-    "additionalProperties": False
+    "required": [
+        "status",
+        "mode",
+        "agent",
+        "report",
+        "summary",
+        "processing_time_ms",
+        "cached",
+    ],
+    "additionalProperties": False,
 }
 
 # Alias for configuration schema (used by configuration module)
@@ -319,6 +272,6 @@ COMPLETE_SCHEMA: Dict[str, Any] = {
         "verification_result": VERIFICATION_RESULT_SCHEMA,
         "manipulation_signal": MANIPULATION_SIGNAL_SCHEMA,
         "report": REPORT_SCHEMA,
-        "configuration": CONFIGURATION_SCHEMA
+        "configuration": CONFIGURATION_SCHEMA,
     }
 }

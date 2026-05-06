@@ -6,6 +6,7 @@ This module provides chorus effect functionality for audio processing.
 
 import numpy as np
 
+
 class Chorus:
     """Chorus effect processor for audio signals."""
 
@@ -41,17 +42,19 @@ class Chorus:
 
         # Calculate modulated delay in samples
         base_delay_samples = int(self.delay * self.sample_rate)
-        modulated_delay_samples = base_delay_samples + (self.depth * self.sample_rate * lfo_signal).astype(int)
+        modulated_delay_samples = base_delay_samples + (
+            self.depth * self.sample_rate * lfo_signal
+        ).astype(int)
 
         # Apply chorus effect
         output = np.zeros_like(audio_data)
-        
+
         for i in range(num_samples):
             # Calculate delay index with wrapping
             delay_idx = i - modulated_delay_samples[i]
             if delay_idx < 0:
                 delay_idx = 0
-            
+
             # Mix original and delayed signal
             output[i] = 0.5 * audio_data[i] + 0.5 * audio_data[delay_idx]
 

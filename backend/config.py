@@ -19,7 +19,7 @@ Environment Variables:
 
 Usage:
     from backend.config import settings
-    
+
     # Access configuration
     print(settings.OLLAMA_BASE_URL)
     print(settings.DATABASE_URL)
@@ -28,17 +28,16 @@ Usage:
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from typing import Optional
-import os
 
 
 class Settings(BaseSettings):
     """
     StoryCore Engine Settings
-    
+
     All configuration values are loaded from environment variables or .env file.
     Defaults are provided for local development.
     """
-    
+
     # =======================
     # API Server Configuration
     # =======================
@@ -46,7 +45,7 @@ class Settings(BaseSettings):
     API_PORT: int = Field(default=8080, description="Port for API server")
     API_URL: str = Field(default="http://localhost:8080", description="Full API URL")
     API_VERSION: str = Field(default="v1", description="API version prefix")
-    
+
     # =======================
     # JWT Authentication
     # =======================
@@ -54,16 +53,16 @@ class Settings(BaseSettings):
     # The default None ensures we fail fast if not configured properly
     JWT_SECRET: Optional[str] = Field(
         default=None,
-        description="Secret key for JWT token generation (MUST be set in production)"
+        description="Secret key for JWT token generation (MUST be set in production)",
     )
-    
+
     def get_jwt_secret(self) -> str:
         """
         Get JWT secret with production safety check.
-        
+
         Returns:
             str: JWT secret key
-            
+
         Raises:
             ValueError: If JWT_SECRET is not set (required for production)
         """
@@ -71,106 +70,100 @@ class Settings(BaseSettings):
             # Allow None only in development mode with explicit warning
             if self.is_development():
                 import warnings
+
                 warnings.warn(
                     "JWT_SECRET not set. Using insecure default for development only. "
                     "Set JWT_SECRET environment variable for production!",
-                    UserWarning
+                    UserWarning,
                 )
                 return "dev-only-insecure-secret-key-do-not-use-in-production"
             raise ValueError(
                 "JWT_SECRET environment variable must be set for production use. "
-                "Generate a secure key with: python -c \"import secrets; print(secrets.token_urlsafe(32))\""
+                'Generate a secure key with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
             )
         return self.JWT_SECRET
+
     JWT_ALGORITHM: str = Field(default="HS256", description="JWT algorithm")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, description="Token expiration time")
-    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="Refresh token expiration")
-    
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
+        default=30, description="Token expiration time"
+    )
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
+        default=7, description="Refresh token expiration"
+    )
+
     # =======================
     # Database Configuration
     # =======================
     DATABASE_URL: str = Field(
         default="postgresql://user:password@localhost/video_editor",
-        description="PostgreSQL connection URL"
+        description="PostgreSQL connection URL",
     )
     DATABASE_POOL_SIZE: int = Field(default=10, description="Connection pool size")
-    DATABASE_MAX_OVERFLOW: int = Field(default=20, description="Max overflow connections")
-    
+    DATABASE_MAX_OVERFLOW: int = Field(
+        default=20, description="Max overflow connections"
+    )
+
     # =======================
     # Redis Configuration
     # =======================
     REDIS_URL: str = Field(
-        default="redis://localhost:6379/0",
-        description="Redis connection URL"
+        default="redis://localhost:6379/0", description="Redis connection URL"
     )
     REDIS_DB: int = Field(default=0, description="Redis database number")
-    
+
     # =======================
     # Ollama LLM Configuration
     # =======================
     OLLAMA_BASE_URL: str = Field(
-        default="http://localhost:11434",
-        description="Ollama LLM service base URL"
+        default="http://localhost:11434", description="Ollama LLM service base URL"
     )
-    OLLAMA_MODEL: str = Field(
-        default="qwen3-vl:4b",
-        description="Default Ollama model"
-    )
+    OLLAMA_MODEL: str = Field(default="qwen3-vl:4b", description="Default Ollama model")
     OLLAMA_TIMEOUT: int = Field(
-        default=300,
-        description="Ollama request timeout in seconds"
+        default=300, description="Ollama request timeout in seconds"
     )
     OLLAMA_EMBEDDING_MODEL: str = Field(
-        default="nomic-embed-text",
-        description="Embedding model for vector operations"
+        default="nomic-embed-text", description="Embedding model for vector operations"
     )
-    
+
     # =======================
     # ComfyUI Configuration
     # =======================
     COMFYUI_BASE_URL: str = Field(
-        default="http://127.0.0.1:8000",
-        description="ComfyUI service base URL"
+        default="http://127.0.0.1:8000", description="ComfyUI service base URL"
     )
     COMFYUI_SERVERS: str = Field(
         default="local:http://127.0.0.1:8000,backup:http://127.0.0.1:8188",
-        description="Registry of ComfyUI servers (format: name1:url1,name2:url2)"
+        description="Registry of ComfyUI servers (format: name1:url1,name2:url2)",
     )
     COMFYUI_TIMEOUT: int = Field(
-        default=600,
-        description="ComfyUI request timeout in seconds"
+        default=600, description="ComfyUI request timeout in seconds"
     )
     COMFYUI_WORKFLOW_FOLDER: str = Field(
-        default="workflows",
-        description="Folder for ComfyUI workflows"
+        default="workflows", description="Folder for ComfyUI workflows"
     )
-    
+
     # =======================
     # GitHub API Configuration
     # =======================
     GITHUB_API_TOKEN: Optional[str] = Field(
-        default=None,
-        description="GitHub API token for authenticated requests"
+        default=None, description="GitHub API token for authenticated requests"
     )
     GITHUB_API_URL: str = Field(
-        default="https://api.github.com",
-        description="GitHub API base URL"
+        default="https://api.github.com", description="GitHub API base URL"
     )
     GITHUB_ORG: Optional[str] = Field(
-        default=None,
-        description="GitHub organization name"
+        default=None, description="GitHub organization name"
     )
     GITHUB_REPO: Optional[str] = Field(
-        default=None,
-        description="GitHub repository name"
+        default=None, description="GitHub repository name"
     )
-    
+
     # =======================
     # StoryCore WordPress / Marketplace
     # =======================
     STORYCORE_WORDPRESS_URL: str = Field(
         default="http://localhost/storycore",
-        description="URL of the StoryCore WordPress site"
+        description="URL of the StoryCore WordPress site",
     )
 
     # =======================
@@ -178,172 +171,149 @@ class Settings(BaseSettings):
     # =======================
     GEM_SERVICE_URL: str = Field(
         default="http://localhost:8001",
-        description="URL of the standalone GemReward service"
+        description="URL of the standalone GemReward service",
     )
     GEM_SERVICE_APP_ID: str = Field(
         default="storycore-engine-main",
-        description="App ID for this engine in the Gem service"
+        description="App ID for this engine in the Gem service",
     )
 
     # =======================
     # n8n Configuration
     # =======================
     N8N_BASE_URL: str = Field(
-        default="http://192.168.1.47:5678",
-        description="n8n service base URL"
+        default="http://192.168.1.47:5678", description="n8n service base URL"
     )
-    N8N_API_KEY: Optional[str] = Field(
-        default=None,
-        description="n8n API key"
-    )
+    N8N_API_KEY: Optional[str] = Field(default=None, description="n8n API key")
     N8N_WEBHOOK_URL: str = Field(
-        default="http://192.168.1.47:5678/webhook",
-        description="n8n webhook base URL"
+        default="http://192.168.1.47:5678/webhook", description="n8n webhook base URL"
     )
 
     # =======================
     # Telegram Configuration
     # =======================
-    TELEGRAM_BOT_TOKEN: Optional[str] = Field(default=None, description="Telegram Bot API Token")
-    TELEGRAM_CHAT_ID: Optional[str] = Field(default=None, description="Default Telegram Chat ID for notifications")
+    TELEGRAM_BOT_TOKEN: Optional[str] = Field(
+        default=None, description="Telegram Bot API Token"
+    )
+    TELEGRAM_CHAT_ID: Optional[str] = Field(
+        default=None, description="Default Telegram Chat ID for notifications"
+    )
 
     # =======================
     # Discord Configuration
     # =======================
-    DISCORD_BOT_TOKEN: Optional[str] = Field(default=None, description="Discord Bot Token")
-    DISCORD_WEBHOOK_URL: Optional[str] = Field(default=None, description="Default Discord Webhook URL")
-    DISCORD_CLIENT_ID: Optional[str] = Field(default=None, description="Discord Client ID")
+    DISCORD_BOT_TOKEN: Optional[str] = Field(
+        default=None, description="Discord Bot Token"
+    )
+    DISCORD_WEBHOOK_URL: Optional[str] = Field(
+        default=None, description="Default Discord Webhook URL"
+    )
+    DISCORD_CLIENT_ID: Optional[str] = Field(
+        default=None, description="Discord Client ID"
+    )
 
     # =======================
     # Feature Flags
     # =======================
     USE_MOCK_LLM: bool = Field(
-        default=False,
-        description="Use mock LLM responses instead of real API"
+        default=False, description="Use mock LLM responses instead of real API"
     )
     USE_MOCK_COMFYUI: bool = Field(
-        default=False,
-        description="Use mock ComfyUI responses"
+        default=False, description="Use mock ComfyUI responses"
     )
     USE_MOCK_REDIS: bool = Field(
-        default=False,
-        description="Use mock Redis (for testing)"
+        default=False, description="Use mock Redis (for testing)"
     )
     DEBUG: bool = Field(
-        default=False,
-        description="Enable debug mode with verbose logging"
+        default=False, description="Enable debug mode with verbose logging"
     )
     LOG_LEVEL: str = Field(
-        default="INFO",
-        description="Logging level (DEBUG, INFO, WARNING, ERROR)"
+        default="INFO", description="Logging level (DEBUG, INFO, WARNING, ERROR)"
     )
-    
+
     # =======================
     # CORS Configuration
     # =======================
     CORS_ORIGINS: str = Field(
         default="http://localhost:3000,http://localhost:5173,http://127.0.0.1:5173",
-        description="Comma-separated list of allowed CORS origins"
+        description="Comma-separated list of allowed CORS origins",
     )
     CORS_ALLOW_CREDENTIALS: bool = Field(
-        default=True,
-        description="Allow credentials in CORS requests"
+        default=True, description="Allow credentials in CORS requests"
     )
-    
+
     # =======================
     # File Storage Configuration
     # =======================
     UPLOAD_FOLDER: str = Field(
-        default="uploads",
-        description="Folder for uploaded files"
+        default="uploads", description="Folder for uploaded files"
     )
     OUTPUT_FOLDER: str = Field(
-        default="output",
-        description="Folder for generated output"
+        default="output", description="Folder for generated output"
     )
     MAX_UPLOAD_SIZE: int = Field(
         default=100 * 1024 * 1024,  # 100MB
-        description="Maximum upload size in bytes"
+        description="Maximum upload size in bytes",
     )
     KNOWLEDGE_GRAPH_PATH: str = Field(
         default="storage/knowledge_graph.json",
-        description="Path to persist the StoryCore Knowledge Graph"
+        description="Path to persist the StoryCore Knowledge Graph",
     )
-    
+
     # =======================
     # Audio/Video Processing
     # =======================
-    AUDIO_SAMPLE_RATE: int = Field(
-        default=44100,
-        description="Audio sample rate"
-    )
-    VIDEO_QUALITY: str = Field(
-        default="high",
-        description="Video quality preset"
-    )
-    FFMPEG_PATH: Optional[str] = Field(
-        default=None,
-        description="Custom FFmpeg path"
-    )
-    
+    AUDIO_SAMPLE_RATE: int = Field(default=44100, description="Audio sample rate")
+    VIDEO_QUALITY: str = Field(default="high", description="Video quality preset")
+    FFMPEG_PATH: Optional[str] = Field(default=None, description="Custom FFmpeg path")
+
     # =======================
     # LTX 2.3 Configuration
     # =======================
     LTX_MODEL_PATH: str = Field(
-        default="models/ltx-video-2.3.safetensors",
-        description="Path to LTX 2.3 model"
+        default="models/ltx-video-2.3.safetensors", description="Path to LTX 2.3 model"
     )
     LTX_DEFAULT_RESOLUTION: str = Field(
-        default="1280x720",
-        description="Default resolution for LTX generation"
+        default="1280x720", description="Default resolution for LTX generation"
     )
     LTX_MAX_DURATION: int = Field(
-        default=20,
-        description="Maximum duration of LTX video in seconds"
+        default=20, description="Maximum duration of LTX video in seconds"
     )
     LTX_AUDIO_ENABLED: bool = Field(
-        default=True,
-        description="Enable native audio generation in LTX"
+        default=True, description="Enable native audio generation in LTX"
     )
-    
+
     # Audio/Video timeouts
     AUDIO_GENERATION_TIMEOUT: int = Field(
-        default=300,
-        description="Timeout for audio generation in seconds"
+        default=300, description="Timeout for audio generation in seconds"
     )
     AUDIO_MIX_TIMEOUT: int = Field(
-        default=180,
-        description="Timeout for audio mixing in seconds"
+        default=180, description="Timeout for audio mixing in seconds"
     )
     VIDEO_EXPORT_TIMEOUT: int = Field(
-        default=1800,
-        description="Timeout for video export in seconds"
+        default=1800, description="Timeout for video export in seconds"
     )
-    
+
     # =======================
     # Rate Limiting
     # =======================
-    RATE_LIMIT_ENABLED: bool = Field(
-        default=True,
-        description="Enable rate limiting"
-    )
+    RATE_LIMIT_ENABLED: bool = Field(default=True, description="Enable rate limiting")
     RATE_LIMIT_REQUESTS: int = Field(
-        default=100,
-        description="Maximum requests per window"
+        default=100, description="Maximum requests per window"
     )
     RATE_LIMIT_WINDOW: int = Field(
-        default=60,
-        description="Rate limit window in seconds"
+        default=60, description="Rate limit window in seconds"
     )
-    
+
     class Config:
         """Pydantic configuration"""
+
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
         validate_assignment = True
         extra = "ignore"  # Ignore extra environment variables
-    
+
     def get_comfyui_servers(self) -> dict:
         """Parse COMFYUI_SERVERS string into a dictionary"""
         servers = {}
@@ -358,12 +328,14 @@ class Settings(BaseSettings):
 
     def get_cors_origins_list(self) -> list:
         """Parse CORS_ORIGINS string into a list"""
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
-    
+        return [
+            origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()
+        ]
+
     def is_development(self) -> bool:
         """Check if running in development mode"""
         return self.DEBUG or "localhost" in self.API_URL
-    
+
     def get_database_driver(self) -> str:
         """Get database driver from DATABASE_URL"""
         if "postgresql" in self.DATABASE_URL:

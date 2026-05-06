@@ -6,6 +6,8 @@
  * 
  * Requirements: 10.2
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useRef, useState, useCallback } from 'react';
 import { Button } from './ui/button';
@@ -30,7 +32,7 @@ export interface VirtualShotListProps {
   selectedShotId: string | null;
   onShotSelect: (shot: Shot) => void;
   getPromptIndicator: (shot: Shot) => {
-    icon: React.ComponentType<any>;
+    icon: React.ComponentType<LegacyAny>;
     color: string;
     label: string;
     variant: 'default' | 'secondary' | 'outline' | 'destructive';

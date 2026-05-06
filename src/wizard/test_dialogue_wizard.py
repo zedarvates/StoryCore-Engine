@@ -2,7 +2,6 @@
 Unit tests for Dialogue Wizard functionality.
 """
 
-import pytest
 from .dialogue_wizard import (
     DialogueWizard,
     DialogueTone,
@@ -11,7 +10,7 @@ from .dialogue_wizard import (
     DialogueLine,
     DialogueScene,
     create_dialogue_wizard,
-    generate_quick_dialogue
+    generate_quick_dialogue,
 )
 
 
@@ -29,7 +28,9 @@ class TestDialogueWizard:
         """Test character voice creation."""
         wizard = DialogueWizard()
 
-        voice = wizard.create_character_voice("Alice", personality=["confident", "intellectual"])
+        voice = wizard.create_character_voice(
+            "Alice", personality=["confident", "intellectual"]
+        )
 
         assert voice.character_name == "Alice"
         assert "confident" in voice.personality_traits
@@ -54,7 +55,7 @@ class TestDialogueWizard:
             characters=["Alice", "Bob"],
             purpose=DialoguePurpose.CONFLICT,
             tone=DialogueTone.INTENSE,
-            target_length=6
+            target_length=6,
         )
 
         assert isinstance(scene, DialogueScene)
@@ -78,7 +79,7 @@ class TestDialogueWizard:
         # Create sample dialogue
         original_lines = [
             DialogueLine("Alice", "I don't understand why you're so upset.", "calm"),
-            DialogueLine("Bob", "You never listen to me!", "angry")
+            DialogueLine("Bob", "You never listen to me!", "angry"),
         ]
 
         # Enhance dialogue
@@ -115,7 +116,9 @@ class TestDialogueWizard:
         """Test scene title generation."""
         wizard = DialogueWizard()
 
-        title = wizard._generate_scene_title("family argument", DialoguePurpose.CONFLICT)
+        title = wizard._generate_scene_title(
+            "family argument", DialoguePurpose.CONFLICT
+        )
         assert "Confrontation" in title or "Clash" in title or "Dispute" in title
 
     def test_generate_setting_office(self):
@@ -137,11 +140,15 @@ class TestDialogueWizard:
         wizard = DialogueWizard()
 
         # Test exclamation (angry)
-        state = wizard._determine_emotional_state("This is unacceptable!", DialogueTone.INTENSE)
+        state = wizard._determine_emotional_state(
+            "This is unacceptable!", DialogueTone.INTENSE
+        )
         assert state == "angry"
 
         # Test question (concerned)
-        state = wizard._determine_emotional_state("What do you mean by that?", DialogueTone.NATURAL)
+        state = wizard._determine_emotional_state(
+            "What do you mean by that?", DialogueTone.NATURAL
+        )
         assert state == "concerned"
 
     def test_generate_scene_description(self):
@@ -155,7 +162,7 @@ class TestDialogueWizard:
             setting="Office",
             characters=characters,
             purpose=DialoguePurpose.CONFLICT,
-            tone=DialogueTone.INTENSE
+            tone=DialogueTone.INTENSE,
         )
 
         description = wizard._generate_scene_description(scene, "office confrontation")
@@ -176,9 +183,7 @@ class TestConvenienceFunctions:
     def test_generate_quick_dialogue(self):
         """Test quick dialogue generation."""
         scene = generate_quick_dialogue(
-            characters=["Alice", "Bob"],
-            topic="work project",
-            tone="natural"
+            characters=["Alice", "Bob"], topic="work project", tone="natural"
         )
 
         assert isinstance(scene, DialogueScene)
@@ -217,7 +222,7 @@ class TestDataClasses:
             vocabulary_level="complex",
             emotional_range=["calm", "intense"],
             cultural_background="American",
-            age_group="adult"
+            age_group="adult",
         )
 
         assert voice.character_name == "Alice"
@@ -232,7 +237,7 @@ class TestDataClasses:
             text="I understand your concern.",
             emotional_state="concerned",
             subtext="Actually worried about the implications",
-            action_description="(nodding slowly)"
+            action_description="(nodding slowly)",
         )
 
         assert line.character == "Alice"
@@ -253,7 +258,7 @@ class TestDataClasses:
             tone=DialogueTone.NATURAL,
             dialogue_lines=lines,
             scene_description="A simple conversation",
-            duration_estimate=20
+            duration_estimate=20,
         )
 
         assert scene.title == "Test Scene"

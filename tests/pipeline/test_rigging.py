@@ -1,4 +1,3 @@
-import json
 import pytest
 from pathlib import Path
 
@@ -25,6 +24,7 @@ VALID_KEYPOINTS = {
     "right_foot": {"x": 0, "y": 0, "z": 0},
 }
 
+
 def test_rig_character_success():
     meta = rig_character(VALID_KEYPOINTS)
     # Verify returned metadata structure
@@ -36,6 +36,7 @@ def test_rig_character_success():
     assert Path(meta["file_path"]).is_file()
     # Bone count should match the hierarchy defined in rigging.py (18 bones)
     assert meta["bone_count"] == 18
+
 
 def test_rig_character_missing_keypoints():
     incomplete = VALID_KEYPOINTS.copy()

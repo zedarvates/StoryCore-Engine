@@ -58,10 +58,10 @@ export function MenuBarCompat(): React.ReactElement {
   const clipboard: ClipboardState = {
     hasContent: false,
     contentType: null,
-    cut: (content: unknown) => {
+    cut: (_content: unknown) => {
       console.warn('Cut not implemented in compatibility mode');
     },
-    copy: (content: unknown) => {
+    copy: (_content: unknown) => {
       console.warn('Copy not implemented in compatibility mode');
     },
     paste: () => {

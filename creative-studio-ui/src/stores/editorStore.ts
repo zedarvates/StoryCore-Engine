@@ -14,6 +14,8 @@
  * 
  * Requirements: All requirements - state management foundation
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { create } from 'zustand';
 import type { Shot } from '../types';
@@ -300,7 +302,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       // For now, we'll update the project data structure
 
       // Update project based on wizard type
-      const data = output.data as any;
+      const data = output.data as LegacyAny;
       switch (output.type) {
         case 'character':
           // Add character to project
@@ -589,9 +591,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         // Find the shot to get its sequence ID
         const shot = shots.find(s => s.id === shotId);
 
-        if (shot && (shot as any).sequencePlanId) {
+        if (shot && (shot as LegacyAny).sequencePlanId) {
           // This is a ProductionShot with sequence information
-          const sequenceId = (shot as any).sequencePlanId;
+          const sequenceId = (shot as LegacyAny).sequencePlanId;
 
           // Use the new sequence IPC method to update the shot in its sequence file
           if (window.electronAPI?.sequence) {

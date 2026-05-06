@@ -90,6 +90,7 @@ class StoryAssetsConnector:
     def bridge(self):
         if self._bridge is None:
             from blender_bridge.voice_bridge import VoiceToSceneBridge
+
             self._bridge = VoiceToSceneBridge()
         return self._bridge
 
@@ -97,6 +98,7 @@ class StoryAssetsConnector:
     def registry(self):
         if self._registry is None:
             from story_assets.object_registry import StoryObjectRegistry
+
             self._registry = StoryObjectRegistry(
                 project_id=self.project_id,
                 projects_dir=self.projects_dir,
@@ -107,6 +109,7 @@ class StoryAssetsConnector:
     def script_gen(self):
         if self._script_gen is None:
             from blender_bridge.script_generator import BlenderScriptGenerator
+
             self._script_gen = BlenderScriptGenerator(
                 scripts_dir=str(Path(self.output_dir) / "scripts")
             )
@@ -117,6 +120,7 @@ class StoryAssetsConnector:
         if self._injector is None:
             from story_assets.scene_injector import SceneObjectInjector
             from story_assets.asset_builder import StoryAssetBuilder
+
             builder = StoryAssetBuilder(
                 output_dir=str(Path(self.output_dir) / "assets" / "scripts")
             )
@@ -127,6 +131,7 @@ class StoryAssetsConnector:
     def runner(self):
         if self._runner is None:
             from blender_bridge.headless_runner import BlenderHeadlessRunner
+
             self._runner = BlenderHeadlessRunner(
                 blender_executable=self.blender_executable,
                 output_dir=str(Path(self.output_dir) / "renders"),
@@ -185,7 +190,9 @@ class StoryAssetsConnector:
             # 4. Exécuter Blender (optionnel)
             render_path = None
             if execute:
-                result = self.runner.execute(script_path=script_path, scene=scene, frame=frame)
+                result = self.runner.execute(
+                    script_path=script_path, scene=scene, frame=frame
+                )
                 render_path = result.get("render_path")
                 if not result["success"]:
                     return {
@@ -293,13 +300,16 @@ class StoryAssetsConnector:
             if scene_tags:
                 scene_set = set(scene_tags)
                 objects = [
-                    o for o in objects
+                    o
+                    for o in objects
                     if not o.tags or scene_set.intersection(set(o.tags))
                 ]
 
             return objects
         except Exception as e:
-            logger.warning(f"[Connector] Inventaire {character_name} indisponible : {e}")
+            logger.warning(
+                f"[Connector] Inventaire {character_name} indisponible : {e}"
+            )
             return []
 
     def register_object(self, obj) -> None:

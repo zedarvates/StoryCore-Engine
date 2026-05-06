@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TaskQueueModal } from '../TaskQueueModal';
@@ -39,7 +40,7 @@ describe('TaskQueueModal - Reordering', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: createMockTasks(),
       reorderTasks: mockReorderTasks,
     });
@@ -114,7 +115,7 @@ describe('TaskQueueModal - Reordering', () => {
     });
 
     it('does not show reorder buttons for processing tasks', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         taskQueue: [
           {
             id: 'task-1',
@@ -135,7 +136,7 @@ describe('TaskQueueModal - Reordering', () => {
     });
 
     it('does not show reorder buttons for completed tasks', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         taskQueue: [
           {
             id: 'task-1',
@@ -165,7 +166,7 @@ describe('TaskQueueModal - Reordering', () => {
     });
 
     it('does not make processing tasks draggable', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         taskQueue: [
           {
             id: 'task-1',
@@ -247,7 +248,7 @@ describe('TaskQueueModal - Reordering', () => {
         fireEvent.drop(draggableElements[2]);
 
         const reorderedTasks = mockReorderTasks.mock.calls[0][0];
-        reorderedTasks.forEach((task: any, index: number) => {
+        reorderedTasks.forEach((task: LegacyAny, index: number) => {
           expect(task.priority).toBe(index + 1);
         });
       }

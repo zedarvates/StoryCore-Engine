@@ -3,11 +3,11 @@
  * Tests asset library to canvas, shot reordering, and timeline interactions
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import { describe, it, expect, beforeEach, _vi } from 'vitest';
+import { _render, _screen, waitFor } from '@testing-library/react';
+import _userEvent from '@testing-library/user-event';
+import { _DndProvider } from 'react-dnd';
+import { _HTML5Backend } from 'react-dnd-html5-backend';
 import { useStore } from '@/store';
 import type { Shot, Asset } from '@/types';
 
@@ -382,7 +382,7 @@ describe('Drag and Drop Integration', () => {
       useStore.setState({ shots: initialShots });
 
       // Try to add duplicate shot (should be prevented by application logic)
-      const duplicateShot = { ...initialShots[0] };
+      const _duplicateShot = { ...initialShots[0] };
 
       // Application should validate and prevent this
       const beforeCount = useStore.getState().shots.length;

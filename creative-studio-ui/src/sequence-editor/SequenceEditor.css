@@ -25,6 +25,23 @@
   background: #08080c;
   grid-template-columns: var(--editor-columns, 1fr);
   grid-template-rows: var(--timeline-rows, 60% 40%);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.studio-generation-cell {
+  background: #0f0f1a;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  animation: slideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
 
 .editor-cell {
@@ -162,6 +179,12 @@
 @keyframes sweep {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
+}
+
+.studio-active {
+  background: rgba(251, 191, 36, 0.15) !important;
+  color: #fbbf24 !important;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.2);
 }
 
 /* Layout Specific Polish */

@@ -2,6 +2,8 @@
  * AssetService - Handles asset import, validation, storage, and metadata management
  * Part of the editor-wizard-integration feature
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type {
   AssetType,
@@ -393,7 +395,7 @@ export class AssetService {
       const uint8Array = new Uint8Array(arrayBuffer);
 
       // Write file to target location
-      await window.electronAPI.fs.writeFile(targetPath, uint8Array as any);
+      await window.electronAPI.fs.writeFile(targetPath, uint8Array as LegacyAny);
 
       return targetPath;
     } else {
@@ -516,13 +518,13 @@ export class AssetService {
     }
 
     // Update assets array
-    (projectData as any).assets = assets;
+    (projectData as LegacyAny).assets = assets;
 
     // Write back to project.json
     const jsonString = JSON.stringify(projectData, null, 2);
     const encoder = new TextEncoder();
     const uint8Array = encoder.encode(jsonString);
-    await window.electronAPI.fs.writeFile(projectJsonPath, uint8Array as any);
+    await window.electronAPI.fs.writeFile(projectJsonPath, uint8Array as LegacyAny);
   }
 
   /**

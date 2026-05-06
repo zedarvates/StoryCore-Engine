@@ -130,7 +130,7 @@ const mockDigitalHumanAnalysisNoHuman: DigitalHumanAnalysis = {
   overallQuality: 0.95,
 };
 
-const mockReferenceVideo: ReferenceVideo = {
+const _mockReferenceVideo: ReferenceVideo = {
   id: 'ref_video_1',
   fileUrl: '/path/to/reference_video.mp4',
   duration: 30,
@@ -141,7 +141,7 @@ const mockReferenceVideo: ReferenceVideo = {
   digitalHumanAnalysis: mockDigitalHumanAnalysis,
 };
 
-const mockReferenceVideoNoHuman: ReferenceVideo = {
+const _mockReferenceVideoNoHuman: ReferenceVideo = {
   id: 'ref_video_2',
   fileUrl: '/path/to/reference_video_no_human.mp4',
   duration: 25,

@@ -5,18 +5,11 @@ This module implements intelligent character generation using genre-specific
 templates, psychological models, and narrative coherence algorithms.
 """
 
-import random
 import uuid
-from typing import Dict, List, Optional, Tuple, Any
+from typing import List
 from dataclasses import dataclass
-from enum import Enum
 
-from .models import (
-    CharacterProfile, VisualIdentity, PersonalityProfile, VoiceIdentity,
-    BackstoryProfile, CoherenceAnchors, ColorPalette, CreationMethod,
-    PuppetCategory, FormalityLevel, HumorStyle, AutoGenerationParams
-)
-from .name_generator import CharacterNameGenerator
+from .models import CharacterProfile, CreationMethod, AutoGenerationParams
 from .archetypes import load_archetypes, ArchetypeRole
 from .name_generation import NameGenerator
 from .visual_generator import VisualGenerator
@@ -28,21 +21,10 @@ from .quality_scorer import QualityScorer
 from .utils import assign_puppet_category
 
 
-class ArchetypeRole(Enum):
-    """Character archetype roles"""
-    HERO = "hero"
-    MENTOR = "mentor"
-    VILLAIN = "villain"
-    ALLY = "ally"
-    TRICKSTER = "trickster"
-    GUARDIAN = "guardian"
-    INNOCENT = "innocent"
-    REBEL = "rebel"
-
-
 @dataclass
 class CharacterArchetype:
     """Character archetype definition"""
+
     role: ArchetypeRole
     name: str
     description: str
@@ -113,26 +95,38 @@ class AutoCharacterGenerator:
         character.name = self.name_gen.generate_character_name(params, archetype)
 
         # Step 4: Generate visual identity
-        character.visual_identity = self.visual_gen.generate_visual_identity(params, archetype)
+        character.visual_identity = self.visual_gen.generate_visual_identity(
+            params, archetype
+        )
 
         # Step 5: Generate personality
-        character.personality_profile = self.personality_gen.generate_personality(params, archetype)
+        character.personality_profile = self.personality_gen.generate_personality(
+            params, archetype
+        )
 
         # Step 6: Generate backstory
-        character.backstory_profile = self.backstory_gen.generate_backstory(params, archetype, character.personality_profile)
+        character.backstory_profile = self.backstory_gen.generate_backstory(
+            params, archetype, character.personality_profile
+        )
 
         # Step 7: Generate voice identity
-        character.voice_identity = self.voice_gen.generate_voice_identity(character.personality_profile, archetype)
+        character.voice_identity = self.voice_gen.generate_voice_identity(
+            character.personality_profile, archetype
+        )
 
         # Step 8: Generate coherence anchors
-        character.coherence_anchors = self.coherence_gen.generate_coherence_anchors(character.visual_identity)
+        character.coherence_anchors = self.coherence_gen.generate_coherence_anchors(
+            character.visual_identity
+        )
 
         # Step 9: Assign puppet category
         character.puppet_category = assign_puppet_category(params.role)
 
         # Step 10: Calculate quality scores
         character.quality_score = self.quality_scorer.calculate_quality_score(character)
-        character.consistency_score = self.quality_scorer.calculate_consistency_score(character)
+        character.consistency_score = self.quality_scorer.calculate_consistency_score(
+            character
+        )
 
         return character
 
@@ -143,7 +137,7 @@ class AutoCharacterGenerator:
             "protagonist": ArchetypeRole.HERO,
             "antagonist": ArchetypeRole.VILLAIN,
             "supporting": ArchetypeRole.ALLY,
-            "minor": ArchetypeRole.INNOCENT
+            "minor": ArchetypeRole.INNOCENT,
         }
 
         archetype_role = role_mapping.get(role, ArchetypeRole.ALLY)

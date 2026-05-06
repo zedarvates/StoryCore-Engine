@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Step2CharacterSelection Component Tests
 // ============================================================================
@@ -35,7 +36,7 @@ vi.mock('@/services/storyGenerationService', () => ({
 }));
 
 vi.mock('@/components/ui/service-warning', () => ({
-  ServiceWarning: ({ onConfigure }: any) => (
+  ServiceWarning: ({ onConfigure }: LegacyAny) => (
     <div data-testid="service-warning">
       <button onClick={onConfigure}>Configure</button>
     </div>
@@ -44,7 +45,7 @@ vi.mock('@/components/ui/service-warning', () => ({
 }));
 
 vi.mock('@/components/character/CharacterList', () => ({
-  CharacterList: ({ selectable, selectedIds, onSelectionChange }: any) => (
+  CharacterList: ({ selectable, selectedIds, onSelectionChange }: LegacyAny) => (
     <div data-testid="character-list">
       <div>Character List (selectable: {String(selectable)})</div>
       <div>Selected: {selectedIds?.length || 0}</div>
@@ -169,15 +170,15 @@ describe('Step2CharacterSelection', () => {
       addCharacter: vi.fn(),
     }));
 
-    vi.mocked(useStore).mockImplementation((selector: any) => {
+    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
       const state = mockGetState();
       return selector ? selector(state) : state;
     });
 
     // Add getState to the mock
-    (useStore as any).getState = mockGetState;
+    (useStore as LegacyAny).getState = mockGetState;
 
-    vi.mocked(useAppStore).mockImplementation((selector: any) => {
+    vi.mocked(useAppStore).mockImplementation((selector: LegacyAny) => {
       const state = {
         characterSearchQuery: '',
         characterFilters: {},
@@ -252,11 +253,11 @@ describe('Step2CharacterSelection', () => {
         addCharacter: vi.fn(),
       }));
 
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = mockGetState();
         return selector ? selector(state) : state;
       });
-      (useStore as any).getState = mockGetState;
+      (useStore as LegacyAny).getState = mockGetState;
 
       // Act
       renderWithWizard();
@@ -281,11 +282,11 @@ describe('Step2CharacterSelection', () => {
         addCharacter: vi.fn(),
       }));
 
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = mockGetState();
         return selector ? selector(state) : state;
       });
-      (useStore as any).getState = mockGetState;
+      (useStore as LegacyAny).getState = mockGetState;
 
       // Act
       renderWithWizard();
@@ -528,11 +529,11 @@ describe('Step2CharacterSelection', () => {
         addCharacter: vi.fn(),
       }));
 
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = mockGetState();
         return selector ? selector(state) : state;
       });
-      (useStore as any).getState = mockGetState;
+      (useStore as LegacyAny).getState = mockGetState;
 
       // Act
       renderWithWizard();
@@ -565,11 +566,11 @@ describe('Step2CharacterSelection', () => {
         addCharacter: vi.fn(),
       }));
 
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = mockGetState();
         return selector ? selector(state) : state;
       });
-      (useStore as any).getState = mockGetState;
+      (useStore as LegacyAny).getState = mockGetState;
 
       renderWithWizard();
 

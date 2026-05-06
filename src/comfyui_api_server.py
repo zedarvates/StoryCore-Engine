@@ -7,22 +7,19 @@ Provides REST API endpoints to interact with ComfyUI workflows
 import asyncio
 import json
 import logging
-import os
 import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import aiohttp
 from aiohttp import web
-import websockets
-import base64
-from PIL import Image
-import io
-import subprocess
 import sys
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class ComfyUIAPI:
     """
@@ -53,7 +50,9 @@ class ComfyUIAPI:
     async def get_history(self, prompt_id: str) -> Dict[str, Any]:
         """Get prompt execution history"""
         try:
-            async with self.session.get(f"{self.comfyui_url}/history/{prompt_id}") as response:
+            async with self.session.get(
+                f"{self.comfyui_url}/history/{prompt_id}"
+            ) as response:
                 if response.status == 200:
                     return await response.json()
                 else:
@@ -66,15 +65,12 @@ class ComfyUIAPI:
     async def queue_prompt(self, workflow: Dict[str, Any]) -> Optional[str]:
         """Queue a prompt for execution"""
         try:
-            payload = {
-                "prompt": workflow,
-                "client_id": str(uuid.uuid4())
-            }
+            payload = {"prompt": workflow, "client_id": str(uuid.uuid4())}
 
             async with self.session.post(
                 f"{self.comfyui_url}/prompt",
                 json=payload,
-                headers={"Content-Type": "application/json"}
+                headers={"Content-Type": "application/json"},
             ) as response:
                 if response.status == 200:
                     result = await response.json()
@@ -83,7 +79,9 @@ class ComfyUIAPI:
                     return prompt_id
                 else:
                     error_text = await response.text()
-                    logger.error(f"Failed to queue prompt: {response.status} - {error_text}")
+                    logger.error(
+                        f"Failed to queue prompt: {response.status} - {error_text}"
+                    )
                     return None
         except Exception as e:
             logger.error(f"Error queuing prompt: {e}")
@@ -100,6 +98,7 @@ class ComfyUIAPI:
         except Exception as e:
             logger.error(f"Error getting queue status: {e}")
             return {"queue_pending": [], "queue_running": []}
+
 
 class WorkflowManager:
     """
@@ -122,7 +121,7 @@ class WorkflowManager:
         if flux2_dir.exists():
             for json_file in flux2_dir.glob("*.json"):
                 try:
-                    with open(json_file, 'r', encoding='utf-8') as f:
+                    with open(json_file, "r", encoding="utf-8") as f:
                         workflow = json.load(f)
                         workflow_name = json_file.stem
                         self.workflows[f"flux2_{workflow_name}"] = workflow
@@ -135,7 +134,7 @@ class WorkflowManager:
         if ltx2_dir.exists():
             for json_file in ltx2_dir.glob("*.json"):
                 try:
-                    with open(json_file, 'r', encoding='utf-8') as f:
+                    with open(json_file, "r", encoding="utf-8") as f:
                         workflow = json.load(f)
                         workflow_name = json_file.stem
                         self.workflows[f"ltx2_{workflow_name}"] = workflow
@@ -153,10 +152,16 @@ class WorkflowManager:
         """List all available workflows"""
         return list(self.workflows.keys())
 
-    def create_flux2_workflow(self, prompt: str, negative_prompt: str = "",
-                            width: int = 1024, height: int = 1024,
-                            steps: int = 20, cfg_scale: float = 3.5,
-                            seed: int = -1) -> Dict[str, Any]:
+    def create_flux2_workflow(
+        self,
+        prompt: str,
+        negative_prompt: str = "",
+        width: int = 1024,
+        height: int = 1024,
+        steps: int = 20,
+        cfg_scale: float = 3.5,
+        seed: int = -1,
+    ) -> Dict[str, Any]:
         """Create a customized FLUX.2 workflow"""
         base_workflow = self.get_workflow("flux2_basic")
         if not base_workflow:
@@ -187,10 +192,17 @@ class WorkflowManager:
 
         return workflow
 
-    def create_ltx2_workflow(self, prompt: str, negative_prompt: str = "",
-                           width: int = 768, height: int = 512,
-                           frames: int = 25, steps: int = 25,
-                           cfg_scale: float = 3.0, seed: int = -1) -> Dict[str, Any]:
+    def create_ltx2_workflow(
+        self,
+        prompt: str,
+        negative_prompt: str = "",
+        width: int = 768,
+        height: int = 512,
+        frames: int = 25,
+        steps: int = 25,
+        cfg_scale: float = 3.0,
+        seed: int = -1,
+    ) -> Dict[str, Any]:
         """Create a customized LTX-2 workflow"""
         base_workflow = self.get_workflow("ltx2_basic_video")
         if not base_workflow:
@@ -223,6 +235,7 @@ class WorkflowManager:
 
         return workflow
 
+
 class StoryCoreAPI:
     """
     Main API server for StoryCore ComfyUI integration
@@ -239,23 +252,27 @@ class StoryCoreAPI:
         async with ComfyUIAPI() as comfyui:
             comfyui_status = await comfyui.check_connection()
 
-        return web.json_response({
-            "status": "healthy" if comfyui_status else "degraded",
-            "comfyui_connected": comfyui_status,
-            "workflows_loaded": len(self.workflow_manager.list_workflows()),
-            "active_jobs": len(self.active_jobs)
-        })
+        return web.json_response(
+            {
+                "status": "healthy" if comfyui_status else "degraded",
+                "comfyui_connected": comfyui_status,
+                "workflows_loaded": len(self.workflow_manager.list_workflows()),
+                "active_jobs": len(self.active_jobs),
+            }
+        )
 
     async def list_workflows(self, request: web.Request) -> web.Response:
         """List available workflows"""
         workflows = self.workflow_manager.list_workflows()
-        return web.json_response({
-            "workflows": workflows,
-            "categories": {
-                "flux2": [w for w in workflows if w.startswith("flux2_")],
-                "ltx2": [w for w in workflows if w.startswith("ltx2_")]
+        return web.json_response(
+            {
+                "workflows": workflows,
+                "categories": {
+                    "flux2": [w for w in workflows if w.startswith("flux2_")],
+                    "ltx2": [w for w in workflows if w.startswith("ltx2_")],
+                },
             }
-        })
+        )
 
     async def generate_image(self, request: web.Request) -> web.Response:
         """Generate image using FLUX.2"""
@@ -288,17 +305,21 @@ class StoryCoreAPI:
                         "type": "flux2_image",
                         "prompt_id": prompt_id,
                         "status": "queued",
-                        "created_at": asyncio.get_event_loop().time()
+                        "created_at": asyncio.get_event_loop().time(),
                     }
 
-                    return web.json_response({
-                        "job_id": job_id,
-                        "prompt_id": prompt_id,
-                        "status": "queued",
-                        "message": "Image generation started"
-                    })
+                    return web.json_response(
+                        {
+                            "job_id": job_id,
+                            "prompt_id": prompt_id,
+                            "status": "queued",
+                            "message": "Image generation started",
+                        }
+                    )
                 else:
-                    return web.json_response({"error": "Failed to queue prompt"}, status=500)
+                    return web.json_response(
+                        {"error": "Failed to queue prompt"}, status=500
+                    )
 
         except Exception as e:
             logger.error(f"Error in generate_image: {e}")
@@ -336,17 +357,21 @@ class StoryCoreAPI:
                         "type": "ltx2_video",
                         "prompt_id": prompt_id,
                         "status": "queued",
-                        "created_at": asyncio.get_event_loop().time()
+                        "created_at": asyncio.get_event_loop().time(),
                     }
 
-                    return web.json_response({
-                        "job_id": job_id,
-                        "prompt_id": prompt_id,
-                        "status": "queued",
-                        "message": "Video generation started"
-                    })
+                    return web.json_response(
+                        {
+                            "job_id": job_id,
+                            "prompt_id": prompt_id,
+                            "status": "queued",
+                            "message": "Video generation started",
+                        }
+                    )
                 else:
-                    return web.json_response({"error": "Failed to queue prompt"}, status=500)
+                    return web.json_response(
+                        {"error": "Failed to queue prompt"}, status=500
+                    )
 
         except Exception as e:
             logger.error(f"Error in generate_video: {e}")
@@ -354,7 +379,7 @@ class StoryCoreAPI:
 
     async def get_job_status(self, request: web.Request) -> web.Response:
         """Get status of a generation job"""
-        job_id = request.match_info.get('job_id')
+        job_id = request.match_info.get("job_id")
 
         if job_id not in self.active_jobs:
             return web.json_response({"error": "Job not found"}, status=404)
@@ -389,36 +414,41 @@ class StoryCoreAPI:
         """Download ComfyUI models using auto model downloader"""
         try:
             # Parse request parameters
-            data = await request.json() if request.method == 'POST' else {}
-            include_ltx2 = data.get('include_ltx2', False)
-            force_download = data.get('force', False)
+            data = await request.json() if request.method == "POST" else {}
+            include_ltx2 = data.get("include_ltx2", False)
+            force_download = data.get("force", False)
 
             # Run the auto model downloader in a subprocess
-            cmd = [sys.executable, str(Path(__file__).parent / "auto_model_downloader.py")]
+            cmd = [
+                sys.executable,
+                str(Path(__file__).parent / "auto_model_downloader.py"),
+            ]
             if include_ltx2:
-                cmd.append('--include-ltx2')
+                cmd.append("--include-ltx2")
             if force_download:
-                cmd.append('--force')
+                cmd.append("--force")
 
             logger.info(f"Starting model download with command: {' '.join(cmd)}")
 
             # Start the subprocess
-            process = await asyncio.create_subprocess_exec(
+            await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=Path.cwd()
+                cwd=Path.cwd(),
             )
 
             # For now, we'll just start the process and return immediately
             # In a production system, you'd want to track the process and provide status updates
-            return web.json_response({
-                "status": "started",
-                "message": "Model download process started",
-                "include_ltx2": include_ltx2,
-                "force_download": force_download,
-                "command": ' '.join(cmd)
-            })
+            return web.json_response(
+                {
+                    "status": "started",
+                    "message": "Model download process started",
+                    "include_ltx2": include_ltx2,
+                    "force_download": force_download,
+                    "command": " ".join(cmd),
+                }
+            )
 
         except Exception as e:
             logger.error(f"Error starting model download: {e}")
@@ -429,13 +459,13 @@ class StoryCoreAPI:
         app = web.Application()
 
         # Routes
-        app.router.add_get('/health', self.health_check)
-        app.router.add_get('/workflows', self.list_workflows)
-        app.router.add_post('/generate/image', self.generate_image)
-        app.router.add_post('/generate/video', self.generate_video)
-        app.router.add_get('/job/{job_id}', self.get_job_status)
-        app.router.add_get('/queue', self.get_queue_status)
-        app.router.add_post('/download/models', self.download_models)
+        app.router.add_get("/health", self.health_check)
+        app.router.add_get("/workflows", self.list_workflows)
+        app.router.add_post("/generate/image", self.generate_image)
+        app.router.add_post("/generate/video", self.generate_video)
+        app.router.add_get("/job/{job_id}", self.get_job_status)
+        app.router.add_get("/queue", self.get_queue_status)
+        app.router.add_post("/download/models", self.download_models)
 
         return app
 
@@ -446,10 +476,14 @@ class StoryCoreAPI:
         # Enable CORS
         async def cors_middleware(request, handler):
             response = await handler(request)
-            response.headers['Access-Control-Allow-Origin'] = '*'
-            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS, PUT, DELETE'
-            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
-            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = (
+                "GET, POST, OPTIONS, PUT, DELETE"
+            )
+            response.headers["Access-Control-Allow-Headers"] = (
+                "Content-Type, Authorization, X-Requested-With"
+            )
+            response.headers["Access-Control-Allow-Credentials"] = "true"
             return response
 
         app.middlewares.append(cors_middleware)
@@ -478,6 +512,7 @@ class StoryCoreAPI:
             logger.info("Shutting down server...")
             await runner.cleanup()
 
+
 async def main():
     """Main entry point"""
     import argparse
@@ -485,15 +520,20 @@ async def main():
     parser = argparse.ArgumentParser(description="StoryCore ComfyUI API Server")
     parser.add_argument("--host", default="localhost", help="Server host")
     parser.add_argument("--port", type=int, default=8000, help="Server port")
-    parser.add_argument("--comfyui-url", default="http://127.0.0.1:8188", help="ComfyUI URL")
+    parser.add_argument(
+        "--comfyui-url", default="http://127.0.0.1:8188", help="ComfyUI URL"
+    )
 
     args = parser.parse_args()
 
     # Update ComfyUI URL if provided
-    ComfyUIAPI.__init__ = lambda self, comfyui_url=args.comfyui_url: super(ComfyUIAPI, self).__init__(comfyui_url)
+    ComfyUIAPI.__init__ = lambda self, comfyui_url=args.comfyui_url: super(
+        ComfyUIAPI, self
+    ).__init__(comfyui_url)
 
     server = StoryCoreAPI(args.host, args.port)
     await server.run_server()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

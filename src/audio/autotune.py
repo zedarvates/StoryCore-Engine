@@ -7,6 +7,7 @@ This module provides pitch correction functionality for vocal audio.
 import numpy as np
 import librosa
 
+
 class AutoTune:
     """Auto-tune processor for pitch correction."""
 
@@ -65,18 +66,24 @@ class AutoTune:
 
         for i in range(len(detected_pitches)):
             start_idx = i * frame_size
-            end_idx = (i + 1) * frame_size if i < len(detected_pitches) - 1 else len(audio_data)
+            end_idx = (
+                (i + 1) * frame_size
+                if i < len(detected_pitches) - 1
+                else len(audio_data)
+            )
 
             if detected_pitches[i] > 0:
                 # Find closest target note
-                closest_note = min(self.target_notes, key=lambda x: abs(x - detected_pitches[i]))
-                
+                closest_note = min(
+                    self.target_notes, key=lambda x: abs(x - detected_pitches[i])
+                )
+
                 # Apply pitch correction
                 pitch_ratio = closest_note / detected_pitches[i]
                 corrected_audio[start_idx:end_idx] = librosa.effects.pitch_shift(
-                    audio_data[start_idx:end_idx], 
-                    sr=self.sample_rate, 
-                    n_steps=np.log2(pitch_ratio) * correction_strength
+                    audio_data[start_idx:end_idx],
+                    sr=self.sample_rate,
+                    n_steps=np.log2(pitch_ratio) * correction_strength,
                 )
             else:
                 corrected_audio[start_idx:end_idx] = audio_data[start_idx:end_idx]

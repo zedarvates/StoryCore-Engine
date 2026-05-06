@@ -29,7 +29,7 @@ export const VideoSequencePlayer: React.FC<VideoSequencePlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [preloadedVideos, setPreloadedVideos] = useState<Map<string, PreloadedVideo>>(new Map());
   const currentVideoRef = useRef<HTMLVideoElement>(null);
-  const nextVideoRef = useRef<HTMLVideoElement>(null);
+  const _nextVideoRef = useRef<HTMLVideoElement>(null);
 
   // Get current and next shots
   const currentShot = shots[currentShotIndex];
@@ -122,7 +122,7 @@ export const VideoSequencePlayer: React.FC<VideoSequencePlayerProps> = ({
     const audioTracks = currentShot?.audioTracks || [];
 
     // For each audio track, ensure it's synchronized with video playback
-    audioTracks.forEach((track) => {
+    audioTracks.forEach((_track) => {
       // This is a placeholder for audio synchronization logic
       // In a real implementation, you would:
       // 1. Load audio files

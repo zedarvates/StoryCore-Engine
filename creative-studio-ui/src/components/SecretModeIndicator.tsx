@@ -39,7 +39,7 @@ export const SecretModeIndicator: React.FC = () => {
   
   // Determine which state to display
   const isKeysHeld = isSecretMode;
-  const isExperimentalView = isOnExperimentalPage && !isSecretMode;
+  const _isExperimentalView = isOnExperimentalPage && !isSecretMode;
   
   return (
     <div 

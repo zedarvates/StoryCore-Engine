@@ -7,7 +7,7 @@
  * Requirements: 1.1, 1.3, 1.4, 9.1
  */
 
-import type { Track, Layer } from '../types';
+import type { Track, _Layer } from '../types';
 
 // ============================================================================
 // Types
@@ -190,7 +190,7 @@ export function toggleGroupCollapsed(
  */
 export function duplicateTrack(
   track: Track,
-  tracks: Track[]
+  _tracks: Track[]
 ): Track {
   const newTrack: Track = {
     ...track,
@@ -267,7 +267,7 @@ export function reorderTracksInGroup(
  * Create FX track
  */
 export function createFXTrack(
-  name: string = 'FX Track'
+  _name: string = 'FX Track'
 ): FXTrack {
   return {
     id: `fx-track-${Date.now()}`,
@@ -459,7 +459,7 @@ export function removeSendReturnFromFXTrack(
  * Create annotation track
  */
 export function createAnnotationTrack(
-  name: string = 'Annotations'
+  _name: string = 'Annotations'
 ): AnnotationTrack {
   return {
     id: `annotation-track-${Date.now()}`,
@@ -570,7 +570,7 @@ function getAnnotationColor(category: Annotation['category']): string {
  * Create marker track
  */
 export function createMarkerTrack(
-  name: string = 'Markers'
+  _name: string = 'Markers'
 ): MarkerTrack {
   return {
     id: `marker-track-${Date.now()}`,

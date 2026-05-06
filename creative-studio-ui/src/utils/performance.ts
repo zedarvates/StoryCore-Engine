@@ -313,8 +313,8 @@ export function calculateVirtualListParams(
 } {
   const { itemHeight, containerHeight, overscan = 3 } = config;
   
-  const visibleCount = Math.ceil(containerHeight / itemHeight);
-  const totalHeight = totalItems * itemHeight;
+  const _visibleCount = Math.ceil(containerHeight / itemHeight);
+  const _totalHeight = totalItems * itemHeight;
   
   // Estimate scroll position (would need actual scroll position in real implementation)
   const estimatedScroll = 0;

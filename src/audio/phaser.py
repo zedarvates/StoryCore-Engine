@@ -7,6 +7,7 @@ This module provides phaser effect functionality for audio processing.
 import numpy as np
 from scipy import signal
 
+
 class Phaser:
     """Phaser effect processor for audio signals."""
 
@@ -39,12 +40,12 @@ class Phaser:
         """
         filters = []
         nyquist = 0.5 * self.sample_rate
-        
+
         for _ in range(self.stages):
             # Calculate filter coefficients
             freq = center_freq / nyquist
             bw = bandwidth / nyquist
-            
+
             # Create allpass filter
             b, a = signal.iirnotch(freq, bw)
             filters.append((b, a))
@@ -68,20 +69,24 @@ class Phaser:
 
         # Apply phaser effect
         output = np.zeros_like(audio_data)
-        
+
         for i in range(num_samples):
             # Calculate modulated center frequency
             center_freq = 500 + 2000 * lfo_signal[i] * self.depth
             bandwidth = 500
-            
+
             # Create and apply allpass filters
             filters = self._create_allpass_filters(center_freq, bandwidth)
-            
+
             signal_processed = audio_data[i]
             for b, a in filters:
                 # Apply allpass filter (simplified)
                 if i > 0:
-                    signal_processed = b[0] * signal_processed + b[1] * audio_data[i-1] - a[1] * output[i-1]
+                    signal_processed = (
+                        b[0] * signal_processed
+                        + b[1] * audio_data[i - 1]
+                        - a[1] * output[i - 1]
+                    )
                 else:
                     signal_processed = b[0] * signal_processed
 

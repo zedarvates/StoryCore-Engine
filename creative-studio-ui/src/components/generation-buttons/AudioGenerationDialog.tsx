@@ -102,14 +102,14 @@ export const AudioGenerationDialog: React.FC<AudioGenerationDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { currentPipeline, completeStage, failStage, updateStageProgress } = useGenerationStore();
+  const { _currentPipeline, completeStage, failStage, updateStageProgress } = useGenerationStore();
   
   // Parameters state
   const [params, setParams] = useState<AudioGenerationParams>(DEFAULT_PARAMS);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [categorizedError, setCategorizedError] = useState<CategorizedError | null>(null);
-  const [preservedState, setPreservedState] = useState<PreservedState | null>(null);
+  const [_preservedState, setPreservedState] = useState<PreservedState | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [previewAudioUrl, setPreviewAudioUrl] = useState<string | null>(null);
   
@@ -199,7 +199,7 @@ export const AudioGenerationDialog: React.FC<AudioGenerationDialogProps> = ({
     try {
       const result = await generationOrchestrator.generateAudio(
         params,
-        (progress) => {
+        (_progress) => {
           // Progress updates for preview
         },
         (error) => {

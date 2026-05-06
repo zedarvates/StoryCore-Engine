@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { useEffect, useState } from 'react';
 import { videoEditorAPI } from '@/services/videoEditorAPI';
 import { ShotThumbnail } from '../timeline/ShotThumbnail';
@@ -9,7 +10,7 @@ interface VaultGalleryProps {
 }
 
 export function VaultGallery({ projectId, className = '' }: VaultGalleryProps) {
-    const [assets, setAssets] = useState<any[]>([]);
+    const [assets, setAssets] = useState<LegacyAny[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState('');
 

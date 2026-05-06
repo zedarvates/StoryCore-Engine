@@ -127,7 +127,7 @@ export const SpectrumAnalyzer: React.FC<SpectrumAnalyzerProps> = ({
       const gradient = ctx.createLinearGradient(x, height, x, y);
       const colorIndex = Math.floor((i / bandCount) * (colorGradient.length - 1));
       const nextColorIndex = Math.min(colorIndex + 1, colorGradient.length - 1);
-      const t = (i / bandCount) * (colorGradient.length - 1) - colorIndex;
+      const _t = (i / bandCount) * (colorGradient.length - 1) - colorIndex;
 
       gradient.addColorStop(0, colorGradient[colorIndex]);
       gradient.addColorStop(1, colorGradient[nextColorIndex] || colorGradient[colorGradient.length - 1]);
@@ -168,7 +168,7 @@ export const SpectrumAnalyzer: React.FC<SpectrumAnalyzerProps> = ({
         const avgAmplitude = sum / step / 255;
         const barHeight = avgAmplitude * height * 0.9;
         const x = i * (barWidth + padding);
-        const y = height - barHeight;
+        const _y = height - barHeight;
 
         ctx.fillStyle = colorGradient[Math.floor(i / bandCount * (colors.length - 1))];
         ctx.fillRect(x, 0, barWidth, barHeight);

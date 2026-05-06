@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { WaveformDisplay, generateWaveformData } from '../WaveformDisplay';
@@ -30,12 +31,12 @@ class MockAudioBuffer {
 
 describe('WaveformDisplay', () => {
   let mockAudioContext: MockAudioContext;
-  let originalAudioContext: any;
+  let originalAudioContext: LegacyAny;
 
   beforeEach(() => {
     mockAudioContext = new MockAudioContext();
-    originalAudioContext = (window as any).AudioContext;
-    (window as any).AudioContext = vi.fn(() => mockAudioContext);
+    originalAudioContext = (window as LegacyAny).AudioContext;
+    (window as LegacyAny).AudioContext = vi.fn(() => mockAudioContext);
     
     // Mock fetch
     global.fetch = vi.fn().mockResolvedValue({
@@ -48,7 +49,7 @@ describe('WaveformDisplay', () => {
   });
 
   afterEach(() => {
-    (window as any).AudioContext = originalAudioContext;
+    (window as LegacyAny).AudioContext = originalAudioContext;
     vi.clearAllMocks();
   });
 
@@ -207,12 +208,12 @@ describe('WaveformDisplay', () => {
 
 describe('generateWaveformData', () => {
   let mockAudioContext: MockAudioContext;
-  let originalAudioContext: any;
+  let originalAudioContext: LegacyAny;
 
   beforeEach(() => {
     mockAudioContext = new MockAudioContext();
-    originalAudioContext = (window as any).AudioContext;
-    (window as any).AudioContext = vi.fn(() => mockAudioContext);
+    originalAudioContext = (window as LegacyAny).AudioContext;
+    (window as LegacyAny).AudioContext = vi.fn(() => mockAudioContext);
     
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -223,7 +224,7 @@ describe('generateWaveformData', () => {
   });
 
   afterEach(() => {
-    (window as any).AudioContext = originalAudioContext;
+    (window as LegacyAny).AudioContext = originalAudioContext;
     vi.clearAllMocks();
   });
 
@@ -269,7 +270,7 @@ describe('generateWaveformData', () => {
     const audioUrl = 'https://example.com/audio.mp3';
     
     try {
-      await generateWaveformData(audioUrl);
+      await g_enerateWaveformData(audioUrl);
     } catch (error) {
       // Expected to throw
     }

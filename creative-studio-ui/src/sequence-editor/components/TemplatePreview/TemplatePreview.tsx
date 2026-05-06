@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import type { Asset, TemplateMetadata } from '../../types';
+import type { Asset, _TemplateMetadata } from '../../types';
 import './templatePreview.css';
 
 // ============================================================================

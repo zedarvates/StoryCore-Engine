@@ -1,6 +1,8 @@
 /**
  * Logger Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Logger } from '../logger';
@@ -29,7 +31,7 @@ describe('Logger', () => {
       const message = 'Test message';
       Logger.info(message);
       
-      const callArgs = (console.log as any).mock.calls[0][0];
+      const callArgs = (console.log as LegacyAny).mock.calls[0][0];
       expect(callArgs).toContain('INFO');
     });
   });

@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 import time
 
 # Add src to path for imports
@@ -23,10 +23,10 @@ except ImportError:
             def __init__(self):
                 self.username = "test_user"
                 self.role = "admin"
-        
+
         def get_current_user():
             return MockUser()
-        
+
         User = MockUser
         rate_limiter = None
 
@@ -35,14 +35,13 @@ try:
         MediaIntelligenceEngine,
         SearchResult,
         AssetType,
-        SearchMode
+        SearchMode,
     )
 except ImportError:
     from ..media_intelligence_engine import (
         MediaIntelligenceEngine,
-        SearchResult,
         AssetType,
-        SearchMode
+        SearchMode,
     )
 
 # Create router
@@ -50,6 +49,7 @@ media_router = APIRouter()
 
 # Global engine instance
 _engine: Optional[MediaIntelligenceEngine] = None
+
 
 def get_engine() -> MediaIntelligenceEngine:
     """Get or create the media intelligence engine."""
@@ -108,14 +108,10 @@ async def health_check():
         return HealthResponse(
             status="healthy",
             indexed_assets=stats.indexed_assets,
-            asset_type_counts=stats.asset_type_counts
+            asset_type_counts=stats.asset_type_counts,
         )
-    except Exception as e:
-        return HealthResponse(
-            status="error",
-            indexed_assets=0,
-            asset_type_counts={}
-        )
+    except Exception:
+        return HealthResponse(status="error", indexed_assets=0, asset_type_counts={})
 
 
 @media_router.get("/types", response_model=TypesResponse)
@@ -123,7 +119,7 @@ async def get_supported_types():
     """Get supported asset types and search modes."""
     return TypesResponse(
         types=["image", "video", "audio", "text"],
-        modes=["semantic", "keyword", "hybrid", "similarity"]
+        modes=["semantic", "keyword", "hybrid", "similarity"],
     )
 
 
@@ -137,7 +133,7 @@ async def get_index_stats():
         indexed_assets=stats.indexed_assets,
         index_size_mb=stats.index_size_mb,
         last_indexed=stats.last_indexed.isoformat() if stats.last_indexed else None,
-        asset_type_counts=stats.asset_type_counts
+        asset_type_counts=stats.asset_type_counts,
     )
 
 
@@ -145,7 +141,7 @@ async def get_index_stats():
 async def search_assets(request: SearchRequest):
     """
     Search for media assets using natural language.
-    
+
     Example:
     ```
     POST /api/v1/media/search
@@ -157,7 +153,7 @@ async def search_assets(request: SearchRequest):
     ```
     """
     start_time = time.time()
-    
+
     # Convert asset types
     asset_types_enum = None
     if request.asset_types:
@@ -166,9 +162,9 @@ async def search_assets(request: SearchRequest):
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid asset type. Supported: image, video, audio, text"
+                detail="Invalid asset type. Supported: image, video, audio, text",
             )
-    
+
     # Convert search mode
     search_mode = SearchMode.HYBRID
     if request.search_mode:
@@ -177,9 +173,9 @@ async def search_assets(request: SearchRequest):
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid search mode. Supported: semantic, keyword, hybrid, similarity"
+                detail="Invalid search mode. Supported: semantic, keyword, hybrid, similarity",
             )
-    
+
     try:
         engine = get_engine()
         results = await engine.search(
@@ -188,45 +184,44 @@ async def search_assets(request: SearchRequest):
             asset_types=asset_types_enum,
             search_mode=search_mode,
             limit=request.limit,
-            similarity_threshold=request.similarity_threshold
+            similarity_threshold=request.similarity_threshold,
         )
-        
+
         # Format results for response
         formatted_results = []
         for result in results:
-            formatted_results.append({
-                "asset_id": result.asset_id,
-                "asset_type": result.asset_type.value,
-                "file_path": result.file_path,
-                "file_name": result.file_name,
-                "similarity_score": result.similarity_score,
-                "match_type": result.match_type,
-                "highlighted_text": result.highlighted_text,
-                "preview_url": result.preview_url,
-                "metadata": result.metadata
-            })
-        
+            formatted_results.append(
+                {
+                    "asset_id": result.asset_id,
+                    "asset_type": result.asset_type.value,
+                    "file_path": result.file_path,
+                    "file_name": result.file_name,
+                    "similarity_score": result.similarity_score,
+                    "match_type": result.match_type,
+                    "highlighted_text": result.highlighted_text,
+                    "preview_url": result.preview_url,
+                    "metadata": result.metadata,
+                }
+            )
+
         processing_time = time.time() - start_time
-        
+
         return {
             "query": request.query,
             "results_count": len(formatted_results),
             "processing_time_seconds": processing_time,
-            "results": formatted_results
+            "results": formatted_results,
         }
-        
+
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Search failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
 
 
 @media_router.post("/index", response_model=IndexResponse)
 async def index_project(request: IndexRequest):
     """
     Index all assets in a project.
-    
+
     Example:
     ```
     POST /api/v1/media/index
@@ -236,24 +231,24 @@ async def index_project(request: IndexRequest):
     ```
     """
     start_time = time.time()
-    
+
     try:
         engine = get_engine()
         result = await engine.index_project_assets(request.project_id)
-        
+
         return IndexResponse(
             project_id=result["project_id"],
             indexed_assets=result["indexed_assets"],
             errors=result["errors"],
-            duration_seconds=result["duration_seconds"]
+            duration_seconds=result["duration_seconds"],
         )
-        
+
     except Exception as e:
         return IndexResponse(
             project_id=request.project_id,
             indexed_assets=0,
             errors=[str(e)],
-            duration_seconds=time.time() - start_time
+            duration_seconds=time.time() - start_time,
         )
 
 
@@ -263,14 +258,10 @@ async def clear_project_index(project_id: str):
     try:
         engine = get_engine()
         removed_count = await engine.clear_project_index(project_id)
-        return {
-            "project_id": project_id,
-            "removed_assets": removed_count
-        }
+        return {"project_id": project_id, "removed_assets": removed_count}
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to clear project index: {str(e)}"
+            status_code=500, detail=f"Failed to clear project index: {str(e)}"
         )
 
 
@@ -280,12 +271,6 @@ async def export_index(file_path: str = "media_index_export.json"):
     try:
         engine = get_engine()
         await engine.export_index(file_path)
-        return {
-            "status": "success",
-            "file_path": file_path
-        }
+        return {"status": "success", "file_path": file_path}
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to export index: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to export index: {str(e)}")

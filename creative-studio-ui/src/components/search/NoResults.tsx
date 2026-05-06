@@ -10,7 +10,7 @@ export interface NoResultsProps {
 
 export const NoResults: React.FC<NoResultsProps> = ({
   query,
-  onSuggestionClick
+  _onSuggestionClick
 }) => {
   const suggestions = useMemo(() => {
     const searchService = getSearchService();

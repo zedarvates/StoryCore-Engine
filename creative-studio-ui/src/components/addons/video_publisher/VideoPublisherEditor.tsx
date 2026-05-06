@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '../../ui/card';
 import { Button } from '../../ui/button';
@@ -67,7 +68,7 @@ interface SocialMetadata {
 export const VideoPublisherEditor: React.FC<VideoPublisherEditorProps> = ({ isOpen, onClose }) => {
   const project = useStore((state) => state.project);
 
-  // Helper function for fallback metadata
+  // Hel_per function for fallback metadata
   const getFallbackMetadata = (project: ProjectData, _config?: PlatformConfig): SocialMetadata => {
     return {
       title: project.project_name || 'My Story',
@@ -193,7 +194,7 @@ export const VideoPublisherEditor: React.FC<VideoPublisherEditorProps> = ({ isOp
       
       for (const pId of targetPlatforms) {
         toast({ title: 'AI Analyst', description: `Optimizing metadata for ${pId}...` });
-        const meta = await videoPublisherService.generateViralMetadata(project as any, characters, pId);
+        const meta = await videoPublisherService.generateViralMetadata(project as LegacyAny, characters, pId);
         
         newMetadata[pId] = {
           title: meta.title,

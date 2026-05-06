@@ -8,22 +8,25 @@ des fichiers JSON validés avec les LLMs modernes
 import json
 from datetime import datetime
 
+
 def generate_llm_prompts():
     """Générer des exemples de prompts LLM concrets"""
-    
+
     prompts = []
-    
+
     # Charger les fichiers JSON
     try:
         with open("data/llm_configs/global_settings.json", "r", encoding="utf-8") as f:
             global_settings = json.load(f)
-        
-        with open("data/project_sequences/narrative_sequences.json", "r", encoding="utf-8") as f:
+
+        with open(
+            "data/project_sequences/narrative_sequences.json", "r", encoding="utf-8"
+        ) as f:
             narrative_sequences = json.load(f)
     except Exception as e:
         print(f"Erreur de chargement des fichiers: {e}")
         return []
-    
+
     # Prompt 1: Génération de séquence narrative
     prompt_1 = {
         "title": "Génération de séquence narrative",
@@ -32,19 +35,19 @@ def generate_llm_prompts():
 Vous êtes un assistant de création de contenu narratif. En utilisant la configuration suivante, générez une séquence narrative complète.
 
 Configuration LLM:
-- Modèle: {global_settings['llm_parameters']['model_config']['default_model']}
-- Température: {global_settings['llm_parameters']['model_config']['temperature']}
-- Max tokens: {global_settings['llm_parameters']['model_config']['max_tokens']}
-- Style: {global_settings['llm_parameters']['narrative_generation']['title_generation']['style_options'][0]}
+- Modèle: {global_settings["llm_parameters"]["model_config"]["default_model"]}
+- Température: {global_settings["llm_parameters"]["model_config"]["temperature"]}
+- Max tokens: {global_settings["llm_parameters"]["model_config"]["max_tokens"]}
+- Style: {global_settings["llm_parameters"]["narrative_generation"]["title_generation"]["style_options"][0]}
 
 Structure de séquence:
 - Type: opening
-- Durée: {global_settings['llm_parameters']['duration_planning']['short_format']['optimal_minutes']} minutes
+- Durée: {global_settings["llm_parameters"]["duration_planning"]["short_format"]["optimal_minutes"]} minutes
 - Contexte: contemporain, urban
 - Public cible: Adultes 18-45 ans
 
 Template de séquence:
-{json.dumps(narrative_sequences['sequence_templates']['template_basic_opening'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["sequence_templates"]["template_basic_opening"], indent=2, ensure_ascii=False)}
 
 Générez une séquence narrative complète incluant:
 1. Un titre accrocheur
@@ -82,9 +85,9 @@ Format de sortie JSON:
 }}
 """,
         "expected_output": "Séquence narrative complète avec structure JSON valide",
-        "use_case": "Création de contenu pour réseaux sociaux"
+        "use_case": "Création de contenu pour réseaux sociaux",
     }
-    
+
     # Prompt 2: Optimisation de la qualité
     prompt_2 = {
         "title": "Optimisation de la qualité narrative",
@@ -93,14 +96,14 @@ Format de sortie JSON:
 Vous êtes un expert en optimisation de contenu narratif. En utilisant les paramètres de qualité suivants, optimisez le contenu fourni.
 
 Paramètres de qualité:
-- Score de cohérence: {global_settings['llm_parameters']['quality_parameters']['content_quality']['coherence_score']}
-- Score d'engagement: {global_settings['llm_parameters']['quality_parameters']['content_quality']['engagement_score']}
-- Score d'originalité: {global_settings['llm_parameters']['quality_parameters']['content_quality']['originality_score']}
-- Score de structure: {global_settings['llm_parameters']['quality_parameters']['content_quality']['structure_score']}
+- Score de cohérence: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["coherence_score"]}
+- Score d'engagement: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["engagement_score"]}
+- Score d'originalité: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["originality_score"]}
+- Score de structure: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["structure_score"]}
 
 Contenu à optimiser:
 Séquence existante à améliorer:
-{json.dumps(narrative_sequences['project_sequences']['sequence_catalog']['opening_sequence'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["project_sequences"]["sequence_catalog"]["opening_sequence"], indent=2, ensure_ascii=False)}
 
 Tâches:
 1. Analyser le contenu existant selon les métriques de qualité
@@ -119,9 +122,9 @@ Format de sortie:
 Analyse + Propositions d'optimisation + Version améliorée
 """,
         "expected_output": "Analyse qualitative et version optimisée du contenu",
-        "use_case": "Amélioration de contenu existant"
+        "use_case": "Amélioration de contenu existant",
     }
-    
+
     # Prompt 3: Génération de variations
     prompt_3 = {
         "title": "Génération de variations créatives",
@@ -130,15 +133,15 @@ Analyse + Propositions d'optimisation + Version améliorée
 Vous êtes un créatif spécialisé dans la génération de variations narratives. En utilisant les paramètres de créativité, générez 3 variations différentes d'un thème central.
 
 Paramètres de créativité:
-- Niveau de créativité: {global_settings['llm_parameters']['narrative_generation']['title_generation']['creativity_level']}
-- Styles disponibles: {', '.join(global_settings['llm_parameters']['narrative_generation']['title_generation']['style_options'])}
-- Langues disponibles: {', '.join(global_settings['llm_parameters']['narrative_generation']['title_generation']['language_options'])}
+- Niveau de créativité: {global_settings["llm_parameters"]["narrative_generation"]["title_generation"]["creativity_level"]}
+- Styles disponibles: {", ".join(global_settings["llm_parameters"]["narrative_generation"]["title_generation"]["style_options"])}
+- Langues disponibles: {", ".join(global_settings["llm_parameters"]["narrative_generation"]["title_generation"]["language_options"])}
 
 Thème central:
 "Un protagoniste découvre un secret qui change sa vie"
 
 Structure de base:
-{json.dumps(narrative_sequences['sequence_templates']['template_basic_opening'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["sequence_templates"]["template_basic_opening"], indent=2, ensure_ascii=False)}
 
 Générez 3 variations avec:
 1. Variation 1: Style dramatique, langue française
@@ -166,9 +169,9 @@ Format de sortie JSON:
 }}
 """,
         "expected_output": "3 variations créatives avec adaptations stylistiques",
-        "use_case": "Génération de contenu multilingue et multistyle"
+        "use_case": "Génération de contenu multilingue et multistyle",
     }
-    
+
     # Prompt 4: Validation de séquence
     prompt_4 = {
         "title": "Validation de séquence narrative",
@@ -177,10 +180,10 @@ Format de sortie JSON:
 Vous êtes un validateur de contenu narratif. En utilisant les schémas de validation, vérifiez l'intégrité de la séquence fournie.
 
 Schémas de validation:
-{json.dumps(narrative_sequences['validation_schema'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["validation_schema"], indent=2, ensure_ascii=False)}
 
 Séquence à valider:
-{json.dumps(narrative_sequences['project_sequences']['sequence_catalog']['climax_sequence'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["project_sequences"]["sequence_catalog"]["climax_sequence"], indent=2, ensure_ascii=False)}
 
 Tâches de validation:
 1. Vérifier tous les champs requis
@@ -220,9 +223,9 @@ Format de sortie:
 }}
 """,
         "expected_output": "Rapport de validation complet avec scores et recommandations",
-        "use_case": "Contrôle qualité de contenu"
+        "use_case": "Contrôle qualité de contenu",
     }
-    
+
     # Prompt 5: Migration de version
     prompt_5 = {
         "title": "Migration de version de séquence",
@@ -231,12 +234,12 @@ Format de sortie:
 Vous êtes un spécialiste en migration de contenu narratif. En utilisant l'historique des versions, migrez la séquence fournie vers la version actuelle.
 
 Historique des versions:
-{json.dumps(global_settings['version_history'], indent=2, ensure_ascii=False)}
+{json.dumps(global_settings["version_history"], indent=2, ensure_ascii=False)}
 
 Séquence à migrérer:
-{json.dumps(narrative_sequences['project_sequences']['sequence_catalog']['development_sequence'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["project_sequences"]["sequence_catalog"]["development_sequence"], indent=2, ensure_ascii=False)}
 
-Version actuelle: {global_settings['metadata']['version']}
+Version actuelle: {global_settings["metadata"]["version"]}
 
 Tâches de migration:
 1. Analyser les différences entre versions
@@ -255,7 +258,7 @@ Format de sortie:
 {{
     "migration_result": {{
         "original_version": "ancienne_version",
-        "target_version": "{global_settings['metadata']['version']}",
+        "target_version": "{global_settings["metadata"]["version"]}",
         "changes_applied": ["champ1", "champ2"],
         "backward_compatible": true,
         "migration_summary": "Description des changements",
@@ -264,16 +267,17 @@ Format de sortie:
 }}
 """,
         "expected_output": "Séquence migrée avec rapport de migration",
-        "use_case": "Mise à jour de contenu existant"
+        "use_case": "Mise à jour de contenu existant",
     }
-    
+
     prompts.extend([prompt_1, prompt_2, prompt_3, prompt_4, prompt_5])
-    
+
     return prompts
+
 
 def generate_integration_guide():
     """Générer un guide d'intégration pour les LLMs"""
-    
+
     guide = """
 # GUIDE D'INTÉGRATION LLM POUR LES FICHIERS JSON
 
@@ -296,14 +300,14 @@ llm_config = {
 import openai
 
 def generate_narrative_sequence(config_data, template_data):
-    prompt = f"""
+    prompt = f'''
     Vous êtes un assistant de création de contenu narratif.
     
     Configuration: {json.dumps(config_data, indent=2)}
     Template: {json.dumps(template_data, indent=2)}
     
     Générez une séquence narrative complète...
-    """
+    '''
     
     response = openai.chat.completions.create(
         model=llm_config["model"],
@@ -417,15 +421,16 @@ production_config = {
 - Qualité générée
 - Utilisation des tokens
 """
-    
+
     return guide
+
 
 def main():
     """Générer le rapport complet avec exemples de prompts"""
-    
+
     prompts = generate_llm_prompts()
     guide = generate_integration_guide()
-    
+
     # Générer le rapport final
     report = f"""
 # RAPPORT COMPLET - COMPATIBILITÉ LLM
@@ -448,24 +453,24 @@ Fichiers analysés: global_settings.json, narrative_sequences.json
 ## EXEMPLES DE PROMPTS LLM CONCRETS
 
 """
-    
+
     for i, prompt in enumerate(prompts, 1):
         report += f"""
-### {i}. {prompt['title']}
+### {i}. {prompt["title"]}
 
-**Description:** {prompt['description']}
+**Description:** {prompt["description"]}
 
 **Prompt:**
 ```json
-{prompt['prompt']}
+{prompt["prompt"]}
 ```
 
-**Output attendu:** {prompt['expected_output']}
+**Output attendu:** {prompt["expected_output"]}
 
-**Cas d'usage:** {prompt['use_case']}
+**Cas d'usage:** {prompt["use_case"]}
 
 """
-    
+
     report += f"""
 ## GUIDE D'INTÉGRATION COMPLET
 
@@ -487,15 +492,16 @@ Les fichiers JSON analysés montrent une **compatibilité LLM excellente** (87/1
 
 Les fichiers sont prêts pour une utilisation en production avec les LLMs modernes.
 """
-    
+
     # Sauvegarder le rapport
     with open("llm_comprehensive_report.txt", "w", encoding="utf-8") as f:
         f.write(report)
-    
-    print(f"Rapport généré: llm_comprehensive_report.txt")
+
+    print("Rapport généré: llm_comprehensive_report.txt")
     print(f"Nombre de prompts LLM générés: {len(prompts)}")
-    
+
     return report
+
 
 if __name__ == "__main__":
     main()

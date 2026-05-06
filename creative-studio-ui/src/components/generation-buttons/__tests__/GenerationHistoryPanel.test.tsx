@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, _within } from '@testing-library/react';
 import { GenerationHistoryPanel } from '../GenerationHistoryPanel';
 import { generationHistoryService } from '../../../services/GenerationHistoryService';
 import type { HistoryEntry, GeneratedAsset } from '../../../types/generation';

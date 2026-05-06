@@ -1,0 +1,44 @@
+/* Studio Packager - Phase 10 Final Celebration Styles */
+
+.studio-packager {
+  animation: studio-pack-slide-in 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at 50% 50%, #1e1b4b, #020617);
+}
+
+@keyframes studio-pack-slide-in {
+  from { opacity: 0; transform: scale(0.9) translateY(100px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.studio-packager .italic-grad {
+  background: linear-gradient(to bottom, #ffffff, #94a3b8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Card hover animation */
+.studio-packager .rounded-3xl:hover {
+  background-color: rgba(30, 27, 75, 0.4);
+}
+
+/* Progress bar gold tint */
+.studio-packager [role="progressbar"] > div {
+  background: linear-gradient(to right, #f59e0b, #fbbf24, #d97706) !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Header Trophy Glow */
+.studio-packager .bg-amber-500\/10 {
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.1);
+}
+
+/* Project Stats summary border */
+.studio-packager .pb-3 {
+  border-image: linear-gradient(to right, transparent, rgba(255,255,255,0.05), transparent) 1;
+}
+
+/* Footer link hover */
+.studio-packager button:hover {
+  text-decoration: none;
+}

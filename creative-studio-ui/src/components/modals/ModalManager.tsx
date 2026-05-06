@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { Suspense, lazy } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -79,7 +80,7 @@ interface ModalManagerProps {
   onObjectComplete: (object: Partial<StoryObject>) => void;
   onStorytellerComplete: (story: Story) => void;
   onSequencePlanComplete: (plan: SequencePlan) => void;
-  onShotComplete: (shot: any) => void;
+  onShotComplete: (shot: LegacyAny) => void;
   onWizardComplete: (data: unknown) => void;
   feedbackInitialContext?: FeedbackInitialContext;
   settingsAddonName?: string;
@@ -87,7 +88,7 @@ interface ModalManagerProps {
   onBorrowReferences: (refs: ReferenceImage[]) => void;
   onBranchCreated: (branch: { id: string; name: string }) => void;
   onReferenceAdded: (ref: PreviousEpisodeReference) => void;
-  toast: any;
+  toast: LegacyAny;
 }
 
 export const ModalManager: React.FC<ModalManagerProps> = ({
@@ -357,7 +358,7 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
         isOpen={showShotWizard}
         onClose={closeShotWizard}
         onComplete={onShotComplete}
-        initialShot={shotWizardContext?.existingShot as any}
+        initialShot={shotWizardContext?.existingShot as LegacyAny}
         sequenceId={shotWizardContext?.sequenceId}
         mode={shotWizardContext?.mode || 'create'}
       />
@@ -391,7 +392,7 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
         isOpen={showProjectTranslator}
         onClose={() => setShowProjectTranslator(false)}
         projectId={project?.id || ''}
-        projectData={project as any}
+        projectData={project as LegacyAny}
       />
 
       {/* TTT LRM Modal */}

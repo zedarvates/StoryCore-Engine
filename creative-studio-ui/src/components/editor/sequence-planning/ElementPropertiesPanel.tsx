@@ -1,4 +1,5 @@
-import React from 'react';
+import { LegacyAny } from '@/types/legacy';
+import React from 'rea_ct';
 import { X, Settings, Palette, Move, RotateCw, Scale, Volume2, Speaker, Radio } from 'lucide-react';
 import { CanvasElement, AudioProperties, calculateAudioProperties } from './types';
 
@@ -75,7 +76,7 @@ export const ElementPropertiesPanel: React.FC<ElementPropertiesPanelProps> = ({
       audio: {
         ...audioProps,
         enabled: selectedElement.audio?.enabled ?? true
-      } as any
+      } as LegacyAny
     });
   };
 

@@ -167,7 +167,7 @@ export const useAudioRemixStore = create<AudioRemixState>((set, get) => ({
   },
 
   applyEffect: (effect: string, value: number | boolean) => {
-    const state = get();
+    const _state = get();
     switch (effect) {
       case 'fadeIn':
         set({ fadeInDuration: value as number });
@@ -266,7 +266,7 @@ export const useAudioRemixStore = create<AudioRemixState>((set, get) => ({
     }
   },
 
-  export: async (outputFormat?: string) => {
+  export: async (_outputFormat?: string) => {
     const { remixResult } = get();
     if (!remixResult) {
       throw new Error('Aucun remix à exporter');

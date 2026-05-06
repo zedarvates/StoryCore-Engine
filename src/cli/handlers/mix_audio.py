@@ -5,10 +5,11 @@ Mix-audio command handler - Audio mixing and processing.
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.audio_processing.music_remixer import AudioMixingEngine
 
 
 class MixAudioHandler(BaseHandler):
@@ -22,56 +23,50 @@ class MixAudioHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
-        parser.add_argument(
-            "--voice-track",
-            help="Path to voice/narration audio file"
-        )
+        parser.add_argument("--voice-track", help="Path to voice/narration audio file")
 
-        parser.add_argument(
-            "--music-track",
-            help="Path to background music audio file"
-        )
+        parser.add_argument("--music-track", help="Path to background music audio file")
 
         parser.add_argument(
             "--output",
-            help="Output file path for mixed audio (default: auto-generated)"
+            help="Output file path for mixed audio (default: auto-generated)",
         )
 
         parser.add_argument(
             "--music-reduction-db",
             type=float,
             default=-12.0,
-            help="Music volume reduction during voice segments in dB (default: -12.0)"
+            help="Music volume reduction during voice segments in dB (default: -12.0)",
         )
 
         parser.add_argument(
             "--keyframe-offset",
             type=float,
             default=0.5,
-            help="Time offset for volume keyframes before/after voice segments in seconds (default: 0.5)"
+            help="Time offset for volume keyframes before/after voice segments in seconds (default: 0.5)",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format (default: human)"
+            help="Output format (default: human)",
         )
 
         parser.add_argument(
             "--crossfade-duration",
             type=float,
             default=1.0,
-            help="Crossfade duration in seconds for track transitions (default: 1.0)"
+            help="Crossfade duration in seconds for track transitions (default: 1.0)",
         )
 
         parser.add_argument(
             "--fill-gaps",
             action="store_true",
-            help="Automatically detect and fill audio gaps"
+            help="Automatically detect and fill audio gaps",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -82,7 +77,7 @@ class MixAudioHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             # Import audio mixing engine
@@ -91,7 +86,7 @@ class MixAudioHandler(BaseHandler):
             except ImportError as e:
                 raise SystemError(
                     f"AudioMixingEngine not available: {e}",
-                    "Ensure audio_mixing_engine module is installed"
+                    "Ensure audio_mixing_engine module is installed",
                 )
 
             print(f"Mixing audio for project: {project_path.absolute()}")
@@ -101,7 +96,7 @@ class MixAudioHandler(BaseHandler):
                 "project": str(project_path.absolute()),
                 "operations": [],
                 "success": True,
-                "output_files": []
+                "output_files": [],
             }
 
             # Voice/music mixing if both tracks provided
@@ -123,30 +118,45 @@ class MixAudioHandler(BaseHandler):
                         voice_audio,
                         music_audio,
                         music_reduction_db=args.music_reduction_db,
-                        keyframe_offset=args.keyframe_offset
+                        keyframe_offset=args.keyframe_offset,
                     )
 
                     if mix_result.get("mixed_samples") is not None:
                         # Save mixed audio
-                        output_path = args.output or project_path / "assets" / "audio" / "mixed" / "voice_music_mix.wav"
+                        output_path = (
+                            args.output
+                            or project_path
+                            / "assets"
+                            / "audio"
+                            / "mixed"
+                            / "voice_music_mix.wav"
+                        )
                         output_path.parent.mkdir(parents=True, exist_ok=True)
 
                         # Save audio file (simplified)
-                        self._save_audio_file(mix_result["mixed_samples"], mix_result["sample_rate"], output_path)
+                        self._save_audio_file(
+                            mix_result["mixed_samples"],
+                            mix_result["sample_rate"],
+                            output_path,
+                        )
 
-                        results["operations"].append({
-                            "type": "voice_music_mix",
-                            "input_voice": str(voice_path),
-                            "input_music": str(music_path),
-                            "output": str(output_path),
-                            "duration": mix_result["duration"],
-                            "voice_segments": len(mix_result["voice_segments"]),
-                            "keyframes": len(mix_result["keyframes"])
-                        })
+                        results["operations"].append(
+                            {
+                                "type": "voice_music_mix",
+                                "input_voice": str(voice_path),
+                                "input_music": str(music_path),
+                                "output": str(output_path),
+                                "duration": mix_result["duration"],
+                                "voice_segments": len(mix_result["voice_segments"]),
+                                "keyframes": len(mix_result["keyframes"]),
+                            }
+                        )
                         results["output_files"].append(str(output_path))
                     else:
                         results["success"] = False
-                        results["error"] = mix_result.get("error", "Voice/music mixing failed")
+                        results["error"] = mix_result.get(
+                            "error", "Voice/music mixing failed"
+                        )
 
             # Crossfade sequences if multiple tracks
             # This would be more complex, placeholder for now
@@ -174,7 +184,7 @@ class MixAudioHandler(BaseHandler):
         return {
             "samples": None,  # Would be numpy array
             "sample_rate": 44100,
-            "duration": 10.0
+            "duration": 10.0,
         }
 
     def _save_audio_file(self, samples, sample_rate: int, output_path: Path) -> None:
@@ -183,16 +193,19 @@ class MixAudioHandler(BaseHandler):
         # For now, just create the file
         output_path.touch()
 
-    def _fill_audio_gaps(self, project_path: Path, engine: 'AudioMixingEngine') -> Dict[str, Any]:
+    def _fill_audio_gaps(
+        self, project_path: Path, engine: "AudioMixingEngine"
+    ) -> Dict[str, Any]:
         """Fill audio gaps in the project (simplified)."""
         # Look for audio files to process
-        audio_files = (list(project_path.glob("assets/audio/**/*.wav")) +
-                      list(project_path.glob("assets/audio/**/*.mp3")))
+        audio_files = list(project_path.glob("assets/audio/**/*.wav")) + list(
+            project_path.glob("assets/audio/**/*.mp3")
+        )
 
         return {
             "type": "gap_filling",
             "files_processed": len(audio_files),
-            "message": f"Gap filling applied to {len(audio_files)} audio files"
+            "message": f"Gap filling applied to {len(audio_files)} audio files",
         }
 
     def _print_human_results(self, results: Dict[str, Any]) -> None:
@@ -204,7 +217,7 @@ class MixAudioHandler(BaseHandler):
             print("Operations performed:")
             for op in results["operations"]:
                 if op["type"] == "voice_music_mix":
-                    print(f"[DONE] Voice/music mixing:")
+                    print("[DONE] Voice/music mixing:")
                     print(f"  Voice: {op['input_voice']}")
                     print(f"  Music: {op['input_music']}")
                     print(f"  Output: {op['output']}")
@@ -224,4 +237,6 @@ class MixAudioHandler(BaseHandler):
         if results["success"]:
             print("SUCCESS: Audio mixing completed successfully!")
         else:
-            print(f"FAILURE: Audio mixing failed: {results.get('error', 'Unknown error')}")
+            print(
+                f"FAILURE: Audio mixing failed: {results.get('error', 'Unknown error')}"
+            )

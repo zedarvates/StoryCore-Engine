@@ -4,8 +4,13 @@ Quality and Consistency Scoring Module
 This module handles calculation of character quality and consistency scores.
 """
 
-from .models import CharacterProfile, PersonalityProfile, VisualIdentity, VoiceIdentity, BackstoryProfile
-from .archetypes import CharacterArchetype
+from .models import (
+    CharacterProfile,
+    PersonalityProfile,
+    VisualIdentity,
+    VoiceIdentity,
+    BackstoryProfile,
+)
 
 
 class QualityScorer:
@@ -33,7 +38,9 @@ class QualityScorer:
             score += 0.3
         if self._check_visual_consistency(character.visual_identity):
             score += 0.2
-        if self._check_voice_personality_match(character.voice_identity, character.personality_profile):
+        if self._check_voice_personality_match(
+            character.voice_identity, character.personality_profile
+        ):
             score += 0.2
 
         return min(5.0, score)
@@ -43,9 +50,13 @@ class QualityScorer:
         consistency_checks = [
             self._check_personality_consistency(character.personality_profile),
             self._check_visual_consistency(character.visual_identity),
-            self._check_voice_personality_match(character.voice_identity, character.personality_profile),
-            self._check_backstory_personality_match(character.backstory_profile, character.personality_profile),
-            self._check_archetype_consistency(character)
+            self._check_voice_personality_match(
+                character.voice_identity, character.personality_profile
+            ),
+            self._check_backstory_personality_match(
+                character.backstory_profile, character.personality_profile
+            ),
+            self._check_archetype_consistency(character),
         ]
 
         return sum(consistency_checks) / len(consistency_checks) * 5.0
@@ -62,16 +73,24 @@ class QualityScorer:
     def _check_visual_consistency(self, visual_identity: VisualIdentity) -> bool:
         """Check visual identity consistency"""
         # Basic consistency check
-        return bool(visual_identity.hair_color and visual_identity.eye_color and visual_identity.skin_tone)
+        return bool(
+            visual_identity.hair_color
+            and visual_identity.eye_color
+            and visual_identity.skin_tone
+        )
 
-    def _check_voice_personality_match(self, voice: VoiceIdentity, personality: PersonalityProfile) -> bool:
+    def _check_voice_personality_match(
+        self, voice: VoiceIdentity, personality: PersonalityProfile
+    ) -> bool:
         """Check if voice matches personality"""
         # Simple check - extraverted characters should have more expressive voices
         if personality.extraversion > 0.6 and "expressive" not in voice.emotional_range:
             return False
         return True
 
-    def _check_backstory_personality_match(self, backstory: BackstoryProfile, personality: PersonalityProfile) -> bool:
+    def _check_backstory_personality_match(
+        self, backstory: BackstoryProfile, personality: PersonalityProfile
+    ) -> bool:
         """Check if backstory matches personality"""
         # Simple consistency check
         return bool(backstory.origin_story and len(backstory.key_life_events) > 0)
@@ -80,8 +99,8 @@ class QualityScorer:
         """Check overall archetype consistency"""
         # Basic check that character has all required elements
         return bool(
-            character.name and
-            character.personality_profile.primary_traits and
-            character.visual_identity.hair_color and
-            character.voice_identity.speech_patterns
+            character.name
+            and character.personality_profile.primary_traits
+            and character.visual_identity.hair_color
+            and character.voice_identity.speech_patterns
         )

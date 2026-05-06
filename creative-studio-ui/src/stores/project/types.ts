@@ -72,8 +72,10 @@ export interface ProjectState {
   // Task Queue
   taskQueue: GenerationTask[];
   generationStatus: {
-    isGenerating: boolean;
+    state: 'idle' | 'processing' | 'complete' | 'error';
+    stage?: 'grid' | 'promotion' | 'qa' | 'export';
     progress: number;
+    error?: string;
   };
   
   // UI Panels (Overlap from AppStore)
@@ -145,6 +147,11 @@ export interface ProjectActions {
   rollEdit: (payload: { shotAId: string; shotBId: string; delta: number }) => void;
   slipEdit: (payload: { shotId: string; delta: number }) => void;
   slideEdit: (payload: { shotId: string; delta: number }) => void;
+  splitShot: (shotId: string, splitTime: number) => void;
+
+  // Transitions
+  addCrossDissolve: (leftShotId: string, rightShotId: string, duration: number) => void;
+  removeTransition: (shotId: string, side: 'in' | 'out') => void;
   
   // World entities
   addWorld: (world: World) => void;
@@ -170,6 +177,7 @@ export interface ProjectActions {
   addTask: (task: GenerationTask) => void;
   updateTask: (taskId: string, updates: Partial<GenerationTask>) => void;
   removeTask: (taskId: string) => void;
+  setGenerationStatus: (status: Partial<ProjectState['generationStatus']>) => void;
   
   // Asset Promotion (Audit Task 21)
   promoteAssetFromShot: (shotId: string) => void;

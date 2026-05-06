@@ -1,6 +1,8 @@
 /**
  * Tests for AudioGenerationDialog component
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -44,7 +46,7 @@ describe('AudioGenerationDialog', () => {
       pause: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-    })) as any;
+    })) as LegacyAny;
   });
   
   describe('Rendering', () => {

@@ -9,12 +9,12 @@ Version: 1.0.0
 
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple
-from typing_extensions import TypedDict
+from typing import List, Dict, Optional
 
 
 class EmotionalTone(Enum):
     """Emotional tone categories for shot selection."""
+
     TENSE = "tense"
     ROMANTIC = "romantic"
     ACTION = "action"
@@ -31,6 +31,7 @@ class EmotionalTone(Enum):
 
 class NarrativeBeat(Enum):
     """Narrative beat types for story progression."""
+
     SETUP = "setup"
     INCITING_INCIDENT = "inciting"
     RISING_ACTION = "rising"
@@ -46,6 +47,7 @@ class NarrativeBeat(Enum):
 
 class ShotVariation(Enum):
     """Shot variation types for visual variety."""
+
     ANGLE_HIGH = "high_angle"
     ANGLE_LOW = "low_angle"
     ANGLE_EYE = "eye_level"
@@ -61,6 +63,7 @@ class ShotVariation(Enum):
 @dataclass
 class ShotSuggestion:
     """A dynamic shot suggestion with full context."""
+
     shot_class: str  # From ShotType enum
     emotional_tone: EmotionalTone
     confidence: float
@@ -75,6 +78,7 @@ class ShotSuggestion:
 @dataclass
 class ShotSequence:
     """A sequence of shots with transitions."""
+
     sequence_id: str
     scene_id: str
     shots: List[ShotSuggestion]
@@ -87,6 +91,7 @@ class ShotSequence:
 @dataclass
 class NarrativeContext:
     """Narrative context for shot decisions."""
+
     beat_type: NarrativeBeat
     beat_description: str
     intensity: float  # 0-1
@@ -98,19 +103,20 @@ class NarrativeContext:
 @dataclass
 class DynamicSuggestions:
     """Complete dynamic suggestion set for a scene."""
+
     scene_id: str
     primary_tone: EmotionalTone
     secondary_tones: List[EmotionalTone] = field(default_factory=list)
     narrative_context: Optional[NarrativeContext] = None
-    
+
     # Shot recommendations
     opening_shot: Optional[ShotSuggestion] = None
     closing_shot: Optional[ShotSuggestion] = None
     key_moments: List[ShotSuggestion] = field(default_factory=list)
-    
+
     # Sequence
     suggested_sequence: Optional[ShotSequence] = None
-    
+
     # Analysis
     tone_confidence: float = 0.0
     variety_notes: List[str] = field(default_factory=list)
@@ -120,6 +126,7 @@ class DynamicSuggestions:
 @dataclass
 class ContextIndicators:
     """Detected context indicators from script analysis."""
+
     action_words: List[str] = field(default_factory=list)
     emotional_words: List[str] = field(default_factory=list)
     dialogue_markers: List[str] = field(default_factory=list)
@@ -205,11 +212,30 @@ TONE_SHOT_MAP = {
 # Beat to shot mapping
 BEAT_SHOT_MAP = {
     NarrativeBeat.SETUP: {"shot": "wide", "movement": "static", "duration": 5.0},
-    NarrativeBeat.INCITING_INCIDENT: {"shot": "medium", "movement": "dolly_in", "duration": 3.0},
-    NarrativeBeat.RISING_ACTION: {"shot": "medium", "movement": "steadicam", "duration": 2.5},
-    NarrativeBeat.MIDPOINT: {"shot": "close_up", "movement": "dolly_in", "duration": 3.0},
+    NarrativeBeat.INCITING_INCIDENT: {
+        "shot": "medium",
+        "movement": "dolly_in",
+        "duration": 3.0,
+    },
+    NarrativeBeat.RISING_ACTION: {
+        "shot": "medium",
+        "movement": "steadicam",
+        "duration": 2.5,
+    },
+    NarrativeBeat.MIDPOINT: {
+        "shot": "close_up",
+        "movement": "dolly_in",
+        "duration": 3.0,
+    },
     NarrativeBeat.CLIMAX: {"shot": "wide", "movement": "crane_down", "duration": 4.0},
-    NarrativeBeat.FALLING_ACTION: {"shot": "medium", "movement": "static", "duration": 3.0},
-    NarrativeBeat.RESOLUTION: {"shot": "wide", "movement": "dolly_out", "duration": 5.0},
+    NarrativeBeat.FALLING_ACTION: {
+        "shot": "medium",
+        "movement": "static",
+        "duration": 3.0,
+    },
+    NarrativeBeat.RESOLUTION: {
+        "shot": "wide",
+        "movement": "dolly_out",
+        "duration": 5.0,
+    },
 }
-

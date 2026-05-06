@@ -19,14 +19,14 @@ import time
 import logging
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Callable, Generator
+from typing import Dict, List, Any, Optional, Generator
 from queue import Queue, Empty
 from enum import Enum
-import weakref
 
 
 class ConnectionState(Enum):
     """Database connection states."""
+
     IDLE = "idle"
     IN_USE = "in_use"
     CLOSED = "closed"
@@ -36,8 +36,9 @@ class ConnectionState(Enum):
 @dataclass
 class PooledConnection:
     """Pooled database connection wrapper."""
+
     connection: sqlite3.Connection
-    pool: 'DatabaseConnectionPool' = field(repr=False)
+    pool: "DatabaseConnectionPool" = field(repr=False)
     created_at: float = field(default_factory=time.time)
     last_used: float = field(default_factory=time.time)
     state: ConnectionState = ConnectionState.IDLE
@@ -86,6 +87,7 @@ class PooledConnection:
 @dataclass
 class PoolConfiguration:
     """Configuration for database connection pool."""
+
     database_path: str
     min_connections: int = 2
     max_connections: int = 10
@@ -100,6 +102,7 @@ class PoolConfiguration:
 @dataclass
 class PoolMetrics:
     """Connection pool performance metrics."""
+
     connections_created: int = 0
     connections_destroyed: int = 0
     connections_acquired: int = 0
@@ -136,7 +139,11 @@ class PreparedStatementCache:
             else:
                 # Create new statement
                 try:
-                    statement = connection.prepare(sql) if hasattr(connection, 'prepare') else None
+                    statement = (
+                        connection.prepare(sql)
+                        if hasattr(connection, "prepare")
+                        else None
+                    )
                     if statement and len(self.cache) < self.max_size:
                         self.cache[sql] = statement
                         self.access_order.append(sql)
@@ -167,7 +174,9 @@ class DatabaseConnectionPool:
 
         # Connection storage
         self.available_connections: Queue = Queue(maxsize=config.max_connections)
-        self.in_use_connections: Dict[int, PooledConnection] = {}  # thread_id -> connection
+        self.in_use_connections: Dict[
+            int, PooledConnection
+        ] = {}  # thread_id -> connection
         self.all_connections: set = set()  # All connections for cleanup
 
         # Synchronization
@@ -175,7 +184,11 @@ class DatabaseConnectionPool:
         self.condition = threading.Condition(self.lock)
 
         # Prepared statement cache
-        self.statement_cache = PreparedStatementCache(config.statement_cache_size) if config.enable_statement_cache else None
+        self.statement_cache = (
+            PreparedStatementCache(config.statement_cache_size)
+            if config.enable_statement_cache
+            else None
+        )
 
         # Metrics
         self.metrics = PoolMetrics()
@@ -205,13 +218,10 @@ class DatabaseConnectionPool:
             connection = sqlite3.connect(
                 self.config.database_path,
                 timeout=self.config.connection_timeout,
-                check_same_thread=False  # Allow cross-thread usage with care
+                check_same_thread=False,  # Allow cross-thread usage with care
             )
 
-            pooled_conn = PooledConnection(
-                connection=connection,
-                pool=self
-            )
+            pooled_conn = PooledConnection(connection=connection, pool=self)
 
             self.metrics.connections_created += 1
             return pooled_conn
@@ -230,17 +240,13 @@ class DatabaseConnectionPool:
 
         # Start health check thread
         self.health_check_thread = threading.Thread(
-            target=self._health_check_loop,
-            daemon=True,
-            name="db-pool-health-check"
+            target=self._health_check_loop, daemon=True, name="db-pool-health-check"
         )
         self.health_check_thread.start()
 
         # Start cleanup thread
         self.cleanup_thread = threading.Thread(
-            target=self._cleanup_loop,
-            daemon=True,
-            name="db-pool-cleanup"
+            target=self._cleanup_loop, daemon=True, name="db-pool-cleanup"
         )
         self.cleanup_thread.start()
 
@@ -279,7 +285,9 @@ class DatabaseConnectionPool:
         self.logger.info("Database connection pool stopped")
 
     @contextmanager
-    def get_connection(self, timeout: Optional[float] = None) -> Generator[PooledConnection, None, None]:
+    def get_connection(
+        self, timeout: Optional[float] = None
+    ) -> Generator[PooledConnection, None, None]:
         """
         Context manager for getting a database connection.
 
@@ -307,7 +315,7 @@ class DatabaseConnectionPool:
                 timeout = timeout or self.config.connection_timeout
                 if not self.condition.wait_for(
                     lambda: not self.available_connections.empty() or not self.running,
-                    timeout=timeout
+                    timeout=timeout,
                 ):
                     raise TimeoutError("Timeout waiting for database connection")
 
@@ -332,7 +340,7 @@ class DatabaseConnectionPool:
 
             yield conn
 
-        except Exception as e:
+        except Exception:
             self.metrics.connection_errors += 1
             raise
         finally:
@@ -370,7 +378,9 @@ class DatabaseConnectionPool:
             self.metrics.connections_released += 1
             self.condition.notify()
 
-    def execute_query(self, sql: str, parameters: tuple = (), timeout: Optional[float] = None) -> List[Dict[str, Any]]:
+    def execute_query(
+        self, sql: str, parameters: tuple = (), timeout: Optional[float] = None
+    ) -> List[Dict[str, Any]]:
         """
         Execute a SELECT query and return results.
 
@@ -399,7 +409,11 @@ class DatabaseConnectionPool:
                     cursor.execute(sql, parameters)
 
                 # Convert rows to dictionaries
-                columns = [desc[0] for desc in cursor.description] if cursor.description else []
+                columns = (
+                    [desc[0] for desc in cursor.description]
+                    if cursor.description
+                    else []
+                )
                 results = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
                 cursor.close()
@@ -409,7 +423,9 @@ class DatabaseConnectionPool:
                 self.logger.error(f"Query execution failed: {e}")
                 raise
 
-    def execute_update(self, sql: str, parameters: tuple = (), timeout: Optional[float] = None) -> int:
+    def execute_update(
+        self, sql: str, parameters: tuple = (), timeout: Optional[float] = None
+    ) -> int:
         """
         Execute an INSERT/UPDATE/DELETE query.
 
@@ -478,26 +494,31 @@ class DatabaseConnectionPool:
             total_count = len(self.all_connections)
 
             return {
-                'pool_size': {
-                    'available': available_count,
-                    'in_use': in_use_count,
-                    'total': total_count,
-                    'max': self.config.max_connections
+                "pool_size": {
+                    "available": available_count,
+                    "in_use": in_use_count,
+                    "total": total_count,
+                    "max": self.config.max_connections,
                 },
-                'utilization_percent': (in_use_count / self.config.max_connections) * 100 if self.config.max_connections > 0 else 0,
-                'metrics': {
-                    'connections_created': self.metrics.connections_created,
-                    'connections_destroyed': self.metrics.connections_destroyed,
-                    'average_wait_time': self.metrics.get_average_wait_time(),
-                    'connection_errors': self.metrics.connection_errors,
-                    'statement_cache_hits': self.metrics.cache_hits,
-                    'statement_cache_misses': self.metrics.cache_misses
+                "utilization_percent": (in_use_count / self.config.max_connections)
+                * 100
+                if self.config.max_connections > 0
+                else 0,
+                "metrics": {
+                    "connections_created": self.metrics.connections_created,
+                    "connections_destroyed": self.metrics.connections_destroyed,
+                    "average_wait_time": self.metrics.get_average_wait_time(),
+                    "connection_errors": self.metrics.connection_errors,
+                    "statement_cache_hits": self.metrics.cache_hits,
+                    "statement_cache_misses": self.metrics.cache_misses,
                 },
-                'health': {
-                    'pool_running': self.running,
-                    'health_check_active': self.health_check_thread and self.health_check_thread.is_alive(),
-                    'cleanup_active': self.cleanup_thread and self.cleanup_thread.is_alive()
-                }
+                "health": {
+                    "pool_running": self.running,
+                    "health_check_active": self.health_check_thread
+                    and self.health_check_thread.is_alive(),
+                    "cleanup_active": self.cleanup_thread
+                    and self.cleanup_thread.is_alive(),
+                },
             }
 
     def _health_check_loop(self):
@@ -540,7 +561,9 @@ class DatabaseConnectionPool:
                 self.metrics.connections_destroyed += 1
 
             if unhealthy_connections:
-                self.logger.warning(f"Closed {len(unhealthy_connections)} unhealthy connections")
+                self.logger.warning(
+                    f"Closed {len(unhealthy_connections)} unhealthy connections"
+                )
 
     def _cleanup_loop(self):
         """Background cleanup loop for idle connections."""
@@ -557,7 +580,10 @@ class DatabaseConnectionPool:
                     while not self.available_connections.empty():
                         try:
                             conn = self.available_connections.get_nowait()
-                            if current_time - conn.last_used < self.config.max_idle_time:
+                            if (
+                                current_time - conn.last_used
+                                < self.config.max_idle_time
+                            ):
                                 # Still fresh, keep it
                                 temp_queue.put(conn)
                             else:
@@ -572,7 +598,9 @@ class DatabaseConnectionPool:
                     # Put remaining connections back
                     while not temp_queue.empty():
                         try:
-                            self.available_connections.put_nowait(temp_queue.get_nowait())
+                            self.available_connections.put_nowait(
+                                temp_queue.get_nowait()
+                            )
                         except Exception:
                             pass
 
@@ -587,7 +615,9 @@ class DatabaseConnectionPool:
 _connection_pools: Dict[str, DatabaseConnectionPool] = {}
 
 
-def get_database_pool(database_path: str, config: Optional[PoolConfiguration] = None) -> DatabaseConnectionPool:
+def get_database_pool(
+    database_path: str, config: Optional[PoolConfiguration] = None
+) -> DatabaseConnectionPool:
     """
     Get or create a database connection pool for the given database.
 

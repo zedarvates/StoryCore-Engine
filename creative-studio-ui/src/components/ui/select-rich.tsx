@@ -162,7 +162,7 @@ export interface SelectItemWithDescriptionProps extends React.ComponentPropsWith
 const SelectItemWithDescription = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   SelectItemWithDescriptionProps
->(({ className, children, value, label, icon, description, ...props }, ref) => {
+>(({ className, _children, value, label, icon, description, ...props }, ref) => {
   return (
     <SelectPrimitive.Item
       ref={ref}

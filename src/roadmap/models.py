@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 class FeatureCategory(Enum):
     """Classification of features by type."""
-    
+
     UI = "UI"
     BACKEND = "Backend"
     INFRASTRUCTURE = "Infrastructure"
@@ -26,7 +26,7 @@ class FeatureCategory(Enum):
 
 class Priority(Enum):
     """Priority level for feature implementation."""
-    
+
     HIGH = "High"
     MEDIUM = "Medium"
     LOW = "Low"
@@ -34,7 +34,7 @@ class Priority(Enum):
 
 class FeatureStatus(Enum):
     """Current implementation status of a feature."""
-    
+
     COMPLETED = "completed"
     IN_PROGRESS = "in-progress"
     PLANNED = "planned"
@@ -45,7 +45,7 @@ class FeatureStatus(Enum):
 class SpecFiles:
     """
     References to specification files for a feature.
-    
+
     Attributes:
         directory: Path to the spec directory
         requirements: Path to requirements.md file (if exists)
@@ -53,7 +53,7 @@ class SpecFiles:
         tasks: Path to tasks.md file (if exists)
         metadata: Parsed frontmatter from spec files
     """
-    
+
     directory: Path
     requirements: Optional[Path] = None
     design: Optional[Path] = None
@@ -65,7 +65,7 @@ class SpecFiles:
 class Feature:
     """
     Complete feature metadata for roadmap generation.
-    
+
     Attributes:
         name: Kebab-case directory name
         title: Human-readable title
@@ -81,7 +81,7 @@ class Feature:
         dependencies: Names of dependent features
         tags: Additional classification tags
     """
-    
+
     name: str
     title: str
     description: str
@@ -95,7 +95,7 @@ class Feature:
     spec_path: Path = field(default_factory=lambda: Path("."))
     dependencies: List[str] = field(default_factory=list)
     tags: List[str] = field(default_factory=list)
-    
+
     def __post_init__(self):
         """Validate feature data after initialization."""
         if not 0.0 <= self.completion_percentage <= 1.0:
@@ -109,7 +109,7 @@ class Feature:
 class RoadmapConfig:
     """
     Configuration for roadmap generation.
-    
+
     Attributes:
         specs_directory: Path to internal specs directory
         output_path: Path for generated ROADMAP.md
@@ -119,20 +119,24 @@ class RoadmapConfig:
         status_emoji: Emoji mapping for feature statuses
         priority_emoji: Emoji mapping for priority levels
     """
-    
+
     specs_directory: Path = Path(".kiro/specs")
     output_path: Path = Path("ROADMAP.md")
     changelog_path: Path = Path("CHANGELOG.md")
     include_future: bool = True
     max_description_length: int = 300
-    status_emoji: Dict[FeatureStatus, str] = field(default_factory=lambda: {
-        FeatureStatus.COMPLETED: "✅",
-        FeatureStatus.IN_PROGRESS: "🚧",
-        FeatureStatus.PLANNED: "📋",
-        FeatureStatus.FUTURE: "💡",
-    })
-    priority_emoji: Dict[Priority, str] = field(default_factory=lambda: {
-        Priority.HIGH: "🔴",
-        Priority.MEDIUM: "🟡",
-        Priority.LOW: "🟢",
-    })
+    status_emoji: Dict[FeatureStatus, str] = field(
+        default_factory=lambda: {
+            FeatureStatus.COMPLETED: "✅",
+            FeatureStatus.IN_PROGRESS: "🚧",
+            FeatureStatus.PLANNED: "📋",
+            FeatureStatus.FUTURE: "💡",
+        }
+    )
+    priority_emoji: Dict[Priority, str] = field(
+        default_factory=lambda: {
+            Priority.HIGH: "🔴",
+            Priority.MEDIUM: "🟡",
+            Priority.LOW: "🟢",
+        }
+    )

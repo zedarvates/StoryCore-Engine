@@ -1,9 +1,9 @@
-import { CheckCircle2, Edit, Globe, MapPin, BookOpen, Users, Palette, Sparkles } from 'lucide-react';
+import { CheckCircle2, Edit, Globe, MapPin, BookOpen, Users, Palette, _Sparkles } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
 import type { World } from '@/types/world';
 import { WizardFormLayout } from '../WizardFormLayout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { _Card, _CardContent, _CardHeader, _CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 // ============================================================================

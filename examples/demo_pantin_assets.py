@@ -16,27 +16,27 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 from blender_bridge.rig_generator import RigGenerator
-from blender_bridge.box_scene_generator import BoxSceneGenerator
 from blender_bridge.skybox_generator import SkyboxGenerator
 from blender_bridge.scene_types import CharacterRig, RigType
+
 
 def generate_demo_script():
     """Génère un script Blender complet pour démonstration."""
     rig_gen = RigGenerator()
-    sky_gen = SkyboxGenerator()
-    
+    SkyboxGenerator()
+
     # Simulation d'un personnage
     pantin_rig = CharacterRig(
         name="Alpha",
         rig_type=RigType.HUMANOID,
         position=(0, 0, 0),
         height=1.80,
-        material_color=(0.2, 0.5, 0.8) # Bleu
+        material_color=(0.2, 0.5, 0.8),  # Bleu
     )
-    
+
     # 1. Obtenir le code du Pantin
     pantin_code = rig_gen.generate_pantin_script(pantin_rig)
-    
+
     # 2. Générer le script complet
     full_script = f"""\
 import bpy
@@ -77,9 +77,10 @@ setup_demo()
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(full_script)
-    
+
     print(f"Script de démo généré : {output_path}")
     print("Vous pouvez l'exécuter avec : blender -b -P {output_path}")
+
 
 if __name__ == "__main__":
     generate_demo_script()

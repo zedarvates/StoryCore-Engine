@@ -7,6 +7,8 @@
  * 
  * Requirements: 2.4, 10.1-10.10
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { Shot, Layer, TransitionLayerData, TextLayerData, KeyframeLayerData, Keyframe } from '../types';
 
@@ -307,7 +309,7 @@ export function handleSlipEdit(
   const mediaLayer = shot.layers.find((l) => l.type === 'media');
   if (!mediaLayer || mediaLayer.type !== 'media') return null;
   
-  const mediaData = mediaLayer.data as any;
+  const mediaData = mediaLayer.data as LegacyAny;
   const currentTrimStart = mediaData.trim?.start || 0;
   const currentTrimEnd = mediaData.trim?.end || shot.duration;
   

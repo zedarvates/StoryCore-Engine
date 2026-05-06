@@ -18,7 +18,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from enum import Enum
 from dataclasses import dataclass
-from functools import lru_cache
 
 from fastapi import APIRouter, HTTPException, status, Depends, Header
 from pydantic import BaseModel, Field
@@ -27,18 +26,14 @@ from pydantic_settings import BaseSettings
 from backend.auth import verify_jwt_token
 from backend.config import settings as app_settings
 from backend.llm_usage_tracker import (
-    get_usage_collector,
     initialize_usage_collector,
-    UsageEntry,
     UsageSummary,
-    UsageContext,
-    CostCalculator
+    CostCalculator,
 )
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -48,6 +43,7 @@ router = APIRouter()
 
 class Settings(BaseSettings):
     """Application settings for LLM integration"""
+
     default_provider: str = Field(default="openai")
     cache_enabled: bool = Field(default=True)
     cache_ttl_seconds: int = Field(default=3600)
@@ -55,7 +51,7 @@ class Settings(BaseSettings):
     temperature: float = Field(default=0.7)
     # Security: Control mock LLM usage - set to 'true' for development only
     use_mock_llm: bool = Field(default=False)
-    
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -71,28 +67,29 @@ except Exception:
 def should_use_mock_llm() -> bool:
     """
     Determine if mock LLM should be used.
-    
+
     Returns:
         bool: True if USE_MOCK_LLM is explicitly set to 'true'
-    
+
     Security Note:
         Mock LLM should NEVER be used in production environments.
         Set USE_MOCK_LLM=false or unset for production use.
     """
     use_mock = settings.use_mock_llm
-    
+
     if use_mock:
         logger.warning(
             "SECURITY WARNING: LLM Mock Mode is ENABLED! "
             "This should only be used in DEVELOPMENT environments. "
             "Set USE_MOCK_LLM=false in production for real LLM responses."
         )
-    
+
     return use_mock
 
 
 class LLMProvider(str, Enum):
     """Supported LLM providers"""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
@@ -101,6 +98,7 @@ class LLMProvider(str, Enum):
 
 class LLMModel(str, Enum):
     """Available LLM models"""
+
     GPT4 = "gpt-4"
     GPT35_TURBO = "gpt-3.5-turbo"
     CLAUDE_V2 = "claude-v2"
@@ -111,6 +109,7 @@ class LLMModel(str, Enum):
 
 class PromptTemplateType(str, Enum):
     """Prompt template types"""
+
     STORY_GENERATION = "story_generation"
     SHOT_DESCRIPTION = "shot_description"
     CHARACTER_DIALOGUE = "character_dialogue"
@@ -122,6 +121,7 @@ class PromptTemplateType(str, Enum):
 @dataclass
 class PromptTemplate:
     """Prompt template with variables"""
+
     name: str
     template_type: PromptTemplateType
     template: str
@@ -147,7 +147,7 @@ Characters: {characters}
 Length: {length}
 
 Please outline the main plot points and provide detailed descriptions for each scene.""",
-        variables=["genre", "theme", "setting", "characters", "length"]
+        variables=["genre", "theme", "setting", "characters", "length"],
     ),
     PromptTemplate(
         name="shot_description",
@@ -161,7 +161,13 @@ Action: {action}
 Duration: {duration} seconds
 
 Provide a vivid description that can be used to generate this shot.""",
-        variables=["scene_description", "camera_angle", "lighting", "action", "duration"]
+        variables=[
+            "scene_description",
+            "camera_angle",
+            "lighting",
+            "action",
+            "duration",
+        ],
     ),
     PromptTemplate(
         name="character_dialogue",
@@ -174,7 +180,7 @@ Emotion: {emotion}
 Goal: {dialogue_goal}
 
 Write natural, in-character dialogue that advances the story.""",
-        variables=["characters", "context", "emotion", "dialogue_goal"]
+        variables=["characters", "context", "emotion", "dialogue_goal"],
     ),
     PromptTemplate(
         name="world_building",
@@ -188,15 +194,19 @@ Geography: {geography}
 Culture: {culture}
 
 Provide rich details that bring this world to life.""",
-        variables=["time_period", "technology", "social_structure", "geography", "culture"]
+        variables=[
+            "time_period",
+            "technology",
+            "social_structure",
+            "geography",
+            "culture",
+        ],
     ),
-    
     # =============================================================================
     # LOCATION LOGIC LOOP TEMPLATES
     # Ref: "Writing Blueprint That Turns Generic Settings Into Compelling Worlds"
     # Framework: Function → Constraints → Culture → Reputation → Emergent Details
     # =============================================================================
-    
     PromptTemplate(
         name="location_function",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -223,9 +233,8 @@ Respond in JSON format:
   "sub_function": "specific_sub_function",
   "function_description": "Detailed explanation of why this location exists"
 }}""",
-        variables=["location_name", "genre", "tone", "description"]
+        variables=["location_name", "genre", "tone", "description"],
     ),
-    
     PromptTemplate(
         name="location_constraints",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -255,9 +264,8 @@ Respond in JSON format:
     }}
   ]
 }}""",
-        variables=["function", "sub_function", "description", "genre"]
+        variables=["function", "sub_function", "description", "genre"],
     ),
-    
     PromptTemplate(
         name="location_culture",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -294,9 +302,8 @@ Respond in JSON format:
     "relationship_with_environment": "harmony, struggle, adaptation"
   }}
 }}""",
-        variables=["function", "constraints"]
+        variables=["function", "constraints"],
     ),
-    
     PromptTemplate(
         name="location_reputation",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -331,9 +338,8 @@ Respond in JSON format:
     "who_avoids": ["types of people who stay away"]
   }}
 }}""",
-        variables=["function", "constraints", "culture", "location_name"]
+        variables=["function", "constraints", "culture", "location_name"],
     ),
-    
     PromptTemplate(
         name="location_emergent_details",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -376,9 +382,16 @@ Respond in JSON format:
     "common_materials": ["building materials used"]
   }}
 }}""",
-        variables=["function", "sub_function", "constraints", "culture", "reputation", "genre", "location_name"]
+        variables=[
+            "function",
+            "sub_function",
+            "constraints",
+            "culture",
+            "reputation",
+            "genre",
+            "location_name",
+        ],
     ),
-    
     PromptTemplate(
         name="location_story_hooks",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -403,9 +416,14 @@ Respond in JSON format:
     "..."
   ]
 }}""",
-        variables=["function", "constraints", "culture", "reputation", "emergent_details"]
+        variables=[
+            "function",
+            "constraints",
+            "culture",
+            "reputation",
+            "emergent_details",
+        ],
     ),
-    
     PromptTemplate(
         name="location_full_generation",
         template_type=PromptTemplateType.WORLD_BUILDING,
@@ -431,7 +449,7 @@ Complete the location with ALL layers, ensuring each detail LOGICALLY FOLLOWS fr
 The rule: Nothing is random. Every detail should be explainable by the function+constraints.
 
 Respond as a comprehensive JSON object with all layers populated.""",
-        variables=["location_name", "genre", "tone", "description", "context"]
+        variables=["location_name", "genre", "tone", "description", "context"],
     ),
     PromptTemplate(
         name="assistant_editor_discovery",
@@ -452,7 +470,7 @@ TASK:
 4. ROUGH STRUCTURE: Propose a 3-act or "Save the Cat" structure using SPECIFIC QUOTES (with timestamps if available) from the provided content.
 
 Maintain an expert, analytical, yet creative tone. Focus on human emotion and "Why" instead of just "What" happened.""",
-        variables=["project_name", "project_goal", "content_to_analyze"]
+        variables=["project_name", "project_goal", "content_to_analyze"],
     ),
     PromptTemplate(
         name="cinematic_visual_prompting",
@@ -483,8 +501,15 @@ Include specific details on:
 MANDATORY: Ensure the prompt is COMPATIBLE with {visual_style} and maintains character consistency for {characters}.
 
 Refine the prompt to be technically precise for Stable Diffusion / Flux / ComfyUI.""",
-        variables=["narrative_description", "visual_style", "shot_type", "camera_movement", "lighting_mood", "characters"]
-    )
+        variables=[
+            "narrative_description",
+            "visual_style",
+            "shot_type",
+            "camera_movement",
+            "lighting_mood",
+            "characters",
+        ],
+    ),
 ]
 
 
@@ -495,6 +520,7 @@ for template in DEFAULT_TEMPLATES:
 
 class LLMRequest(BaseModel):
     """Request model for LLM calls"""
+
     prompt: str = Field(..., min_length=1, max_length=10000)
     model: Optional[str] = None
     provider: Optional[str] = None
@@ -507,6 +533,7 @@ class LLMRequest(BaseModel):
 
 class LLMResponse(BaseModel):
     """Response model for LLM calls"""
+
     text: str
     model: str
     provider: str
@@ -517,18 +544,21 @@ class LLMResponse(BaseModel):
 
 class TemplateRenderRequest(BaseModel):
     """Request model for template rendering"""
+
     template_name: str = Field(..., min_length=1)
     variables: Dict[str, Any]
 
 
 class TemplateRenderResponse(BaseModel):
     """Response model for template rendering"""
+
     rendered_prompt: str
     template_name: str
 
 
 class ModelInfo(BaseModel):
     """Model information"""
+
     id: str
     name: str
     provider: str
@@ -546,16 +576,16 @@ def get_cached_response(cache_key: str) -> Optional[Dict[str, Any]]:
     """Get cached response if available and not expired"""
     if not settings.cache_enabled:
         return None
-    
+
     if cache_key in response_cache:
         cached = response_cache[cache_key]
         created_at = datetime.fromisoformat(cached["created_at"])
         age = (datetime.utcnow() - created_at).total_seconds()
-        
+
         if age < settings.cache_ttl_seconds:
             cached["cached"] = True
             return cached
-    
+
     return None
 
 
@@ -563,7 +593,7 @@ def cache_response(cache_key: str, response: Dict[str, Any]):
     """Cache a response"""
     if not settings.cache_enabled:
         return
-    
+
     response["created_at"] = datetime.utcnow().isoformat()
     response_cache[cache_key] = response
 
@@ -571,30 +601,33 @@ def cache_response(cache_key: str, response: Dict[str, Any]):
 async def call_llm_mock(request: LLMRequest, user_id: str) -> LLMResponse:
     """
     Mock LLM call for development.
-    
+
     In production, this would integrate with actual LLM providers.
     """
     import time
+
     start_time = time.time()
-    
+
     # Check cache
-    cache_key = get_cache_key(request.prompt, request.model or "default", request.temperature or 0.7)
+    cache_key = get_cache_key(
+        request.prompt, request.model or "default", request.temperature or 0.7
+    )
     cached = get_cached_response(cache_key)
     if cached and request.use_cache:
         return LLMResponse(**cached)
-    
+
     # Simulate LLM processing
     await asyncio.sleep(0.5)
-    
+
     # Generate mock response
     response_text = f"Based on your prompt: '{request.prompt[:100]}...'\n\n"
     response_text += "This is a simulated LLM response. In production, this would be generated by an actual LLM provider.\n\n"
     response_text += f"Model used: {request.model or 'default'}\n"
     response_text += f"Temperature: {request.temperature or 0.7}\n"
     response_text += f"Max tokens: {request.max_tokens or settings.max_tokens}\n"
-    
+
     latency_ms = int((time.time() - start_time) * 1000)
-    
+
     response = {
         "text": response_text,
         "model": request.model or "default",
@@ -602,176 +635,183 @@ async def call_llm_mock(request: LLMRequest, user_id: str) -> LLMResponse:
         "usage": {
             "prompt_tokens": len(request.prompt) // 4,
             "completion_tokens": len(response_text) // 4,
-            "total_tokens": (len(request.prompt) + len(response_text)) // 4
+            "total_tokens": (len(request.prompt) + len(response_text)) // 4,
         },
         "cached": False,
-        "latency_ms": latency_ms
+        "latency_ms": latency_ms,
     }
-    
+
     # Cache the response
     cache_response(cache_key, response)
-    
+
     return LLMResponse(**response)
 
 
 def get_available_llm_provider() -> Optional[str]:
     """
     Check which LLM provider is configured and available.
-    
+
     Returns:
         str: Provider name ('openai', 'anthropic', 'ollama') or None if none configured
     """
     # Check for OpenAI API key
     if os.environ.get("OPENAI_API_KEY"):
         return "openai"
-    
+
     # Check for Anthropic API key
     if os.environ.get("ANTHROPIC_API_KEY"):
         return "anthropic"
-    
+
     # Check for Ollama (local LLM)
-    ollama_host = os.environ.get("OLLAMA_HOST", app_settings.OLLAMA_BASE_URL)
+    os.environ.get("OLLAMA_HOST", app_settings.OLLAMA_BASE_URL)
     # Note: We don't actually ping Ollama here to avoid latency
     # The presence of OLLAMA_HOST or default localhost is enough
     if os.environ.get("OLLAMA_HOST") or os.environ.get("USE_OLLAMA"):
         return "ollama"
-    
+
     return None
 
 
 async def call_llm_openai(request: LLMRequest, user_id: str) -> LLMResponse:
     """
     Make a real LLM call to OpenAI API.
-    
+
     Args:
         request: LLM request parameters
         user_id: Authenticated user ID for logging
-    
+
     Returns:
         LLMResponse with generated text
-    
+
     Raises:
         HTTPException: If OpenAI API call fails
     """
     import time
     import httpx
-    
+
     start_time = time.time()
     api_key = os.environ.get("OPENAI_API_KEY")
-    
+
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="OpenAI API key not configured. Set OPENAI_API_KEY environment variable."
+            detail="OpenAI API key not configured. Set OPENAI_API_KEY environment variable.",
         )
-    
+
     # Check cache first
-    cache_key = get_cache_key(request.prompt, request.model or "gpt-3.5-turbo", request.temperature or 0.7)
+    cache_key = get_cache_key(
+        request.prompt, request.model or "gpt-3.5-turbo", request.temperature or 0.7
+    )
     cached = get_cached_response(cache_key)
     if cached and request.use_cache:
         return LLMResponse(**cached)
-    
+
     model = request.model or "gpt-3.5-turbo"
-    
+
     # Build messages for chat completion
     messages = [{"role": "user", "content": request.prompt}]
     if request.context:
         messages = request.context
-    
+
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
             response = await client.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={
                     "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 json={
                     "model": model,
                     "messages": messages,
                     "temperature": request.temperature or 0.7,
-                    "max_tokens": request.max_tokens or settings.max_tokens
-                }
+                    "max_tokens": request.max_tokens or settings.max_tokens,
+                },
             )
-            
+
             if response.status_code != 200:
-                logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+                logger.error(
+                    f"OpenAI API error: {response.status_code} - {response.text}"
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"OpenAI API error: {response.status_code}"
+                    detail=f"OpenAI API error: {response.status_code}",
                 )
-            
+
             data = response.json()
             response_text = data["choices"][0]["message"]["content"]
-            
+
             latency_ms = int((time.time() - start_time) * 1000)
-            
+
             result = {
                 "text": response_text,
                 "model": model,
                 "provider": "openai",
-                "usage": data.get("usage", {
-                    "prompt_tokens": 0,
-                    "completion_tokens": 0,
-                    "total_tokens": 0
-                }),
+                "usage": data.get(
+                    "usage",
+                    {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+                ),
                 "cached": False,
-                "latency_ms": latency_ms
+                "latency_ms": latency_ms,
             }
-            
+
             # Cache the response
             cache_response(cache_key, result)
-            
+
             return LLMResponse(**result)
-            
+
         except httpx.TimeoutException:
             logger.error("OpenAI API timeout")
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-                detail="OpenAI API request timed out"
+                detail="OpenAI API request timed out",
             )
         except Exception as e:
             logger.error(f"OpenAI API call failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"OpenAI API call failed: {str(e)}"
+                detail=f"OpenAI API call failed: {str(e)}",
             )
 
 
 async def call_llm_anthropic(request: LLMRequest, user_id: str) -> LLMResponse:
     """
     Make a real LLM call to Anthropic Claude API.
-    
+
     Args:
         request: LLM request parameters
         user_id: Authenticated user ID for logging
-    
+
     Returns:
         LLMResponse with generated text
-    
+
     Raises:
         HTTPException: If Anthropic API call fails
     """
     import time
     import httpx
-    
+
     start_time = time.time()
     api_key = os.environ.get("ANTHROPIC_API_KEY")
-    
+
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Anthropic API key not configured. Set ANTHROPIC_API_KEY environment variable."
+            detail="Anthropic API key not configured. Set ANTHROPIC_API_KEY environment variable.",
         )
-    
+
     # Check cache first
-    cache_key = get_cache_key(request.prompt, request.model or "claude-3-haiku-20240307", request.temperature or 0.7)
+    cache_key = get_cache_key(
+        request.prompt,
+        request.model or "claude-3-haiku-20240307",
+        request.temperature or 0.7,
+    )
     cached = get_cached_response(cache_key)
     if cached and request.use_cache:
         return LLMResponse(**cached)
-    
+
     model = request.model or "claude-3-haiku-20240307"
-    
+
     async with httpx.AsyncClient(timeout=180.0) as client:
         try:
             response = await client.post(
@@ -779,27 +819,29 @@ async def call_llm_anthropic(request: LLMRequest, user_id: str) -> LLMResponse:
                 headers={
                     "x-api-key": api_key,
                     "anthropic-version": "2023-06-01",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 json={
                     "model": model,
                     "max_tokens": request.max_tokens or settings.max_tokens,
-                    "messages": [{"role": "user", "content": request.prompt}]
-                }
+                    "messages": [{"role": "user", "content": request.prompt}],
+                },
             )
-            
+
             if response.status_code != 200:
-                logger.error(f"Anthropic API error: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Anthropic API error: {response.status_code} - {response.text}"
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Anthropic API error: {response.status_code}"
+                    detail=f"Anthropic API error: {response.status_code}",
                 )
-            
+
             data = response.json()
             response_text = data["content"][0]["text"]
-            
+
             latency_ms = int((time.time() - start_time) * 1000)
-            
+
             result = {
                 "text": response_text,
                 "model": model,
@@ -807,59 +849,64 @@ async def call_llm_anthropic(request: LLMRequest, user_id: str) -> LLMResponse:
                 "usage": {
                     "prompt_tokens": data.get("usage", {}).get("input_tokens", 0),
                     "completion_tokens": data.get("usage", {}).get("output_tokens", 0),
-                    "total_tokens": data.get("usage", {}).get("input_tokens", 0) + data.get("usage", {}).get("output_tokens", 0)
+                    "total_tokens": data.get("usage", {}).get("input_tokens", 0)
+                    + data.get("usage", {}).get("output_tokens", 0),
                 },
                 "cached": False,
-                "latency_ms": latency_ms
+                "latency_ms": latency_ms,
             }
-            
+
             # Cache the response
             cache_response(cache_key, result)
-            
+
             return LLMResponse(**result)
-            
+
         except httpx.TimeoutException:
             logger.error("Anthropic API timeout")
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-                detail="Anthropic API request timed out"
+                detail="Anthropic API request timed out",
             )
         except Exception as e:
             logger.error(f"Anthropic API call failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Anthropic API call failed: {str(e)}"
+                detail=f"Anthropic API call failed: {str(e)}",
             )
 
 
 async def call_llm_ollama(request: LLMRequest, user_id: str) -> LLMResponse:
     """
     Make a real LLM call to local Ollama server.
-    
+
     Args:
         request: LLM request parameters
         user_id: Authenticated user ID for logging
-    
+
     Returns:
         LLMResponse with generated text
-    
+
     Raises:
         HTTPException: If Ollama API call fails
     """
     import time
     import httpx
-    
+
     start_time = time.time()
     ollama_host = os.environ.get("OLLAMA_HOST", app_settings.OLLAMA_BASE_URL)
-    
+
     # Check cache first
-    cache_key = get_cache_key(request.prompt, request.model or app_settings.OLLAMA_MODEL or "qwen3-vl:4b", request.temperature or 0.7)
+    cache_key = get_cache_key(
+        request.prompt,
+        request.model or app_settings.OLLAMA_MODEL or "qwen3-vl:4b",
+        request.temperature or 0.7,
+    )
     cached = get_cached_response(cache_key)
     if cached and request.use_cache:
         return LLMResponse(**cached)
-    
+
     model = request.model or app_settings.OLLAMA_MODEL or "qwen3-vl:4b"
-    
+
     async with httpx.AsyncClient(timeout=300.0) as client:
         try:
             response = await client.post(
@@ -870,23 +917,25 @@ async def call_llm_ollama(request: LLMRequest, user_id: str) -> LLMResponse:
                     "stream": False,
                     "options": {
                         "temperature": request.temperature or 0.7,
-                        "num_predict": request.max_tokens or settings.max_tokens
-                    }
-                }
+                        "num_predict": request.max_tokens or settings.max_tokens,
+                    },
+                },
             )
-            
+
             if response.status_code != 200:
-                logger.error(f"Ollama API error: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Ollama API error: {response.status_code} - {response.text}"
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Ollama API error: {response.status_code}"
+                    detail=f"Ollama API error: {response.status_code}",
                 )
-            
+
             data = response.json()
             response_text = data.get("response", "")
-            
+
             latency_ms = int((time.time() - start_time) * 1000)
-            
+
             result = {
                 "text": response_text,
                 "model": model,
@@ -894,65 +943,66 @@ async def call_llm_ollama(request: LLMRequest, user_id: str) -> LLMResponse:
                 "usage": {
                     "prompt_tokens": data.get("prompt_eval_count", 0),
                     "completion_tokens": data.get("eval_count", 0),
-                    "total_tokens": data.get("prompt_eval_count", 0) + data.get("eval_count", 0)
+                    "total_tokens": data.get("prompt_eval_count", 0)
+                    + data.get("eval_count", 0),
                 },
                 "cached": False,
-                "latency_ms": latency_ms
+                "latency_ms": latency_ms,
             }
-            
+
             # Cache the response
             cache_response(cache_key, result)
-            
+
             return LLMResponse(**result)
-            
+
         except httpx.TimeoutException:
             logger.error("Ollama API timeout")
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-                detail="Ollama API request timed out"
+                detail="Ollama API request timed out",
             )
         except httpx.ConnectError:
             logger.error(f"Cannot connect to Ollama at {ollama_host}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=f"Cannot connect to Ollama server at {ollama_host}. Ensure Ollama is running."
+                detail=f"Cannot connect to Ollama server at {ollama_host}. Ensure Ollama is running.",
             )
         except Exception as e:
             logger.error(f"Ollama API call failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=f"Ollama API call failed: {str(e)}"
+                detail=f"Ollama API call failed: {str(e)}",
             )
 
 
 async def call_llm_real(request: LLMRequest, user_id: str) -> LLMResponse:
     """
     Make a real LLM call using the configured provider.
-    
+
     This function routes to the appropriate LLM provider based on
     available API keys and configuration.
-    
+
     Args:
         request: LLM request parameters
         user_id: Authenticated user ID for logging
-    
+
     Returns:
         LLMResponse with generated text
-    
+
     Raises:
         HTTPException: If no provider is configured or API call fails
     """
     # Determine which provider to use
     provider = request.provider or get_available_llm_provider()
-    
+
     if not provider:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="No LLM provider configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or USE_OLLAMA environment variable."
+            detail="No LLM provider configured. Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or USE_OLLAMA environment variable.",
         )
-    
+
     logger.info(f"Using LLM provider: {provider} for user {user_id}")
-    
+
     if provider == "openai":
         return await call_llm_openai(request, user_id)
     elif provider == "anthropic":
@@ -962,89 +1012,89 @@ async def call_llm_real(request: LLMRequest, user_id: str) -> LLMResponse:
     else:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Unknown LLM provider: {provider}"
+            detail=f"Unknown LLM provider: {provider}",
         )
 
 
 @router.post("/llm/generate", response_model=LLMResponse)
 async def generate_text(
-    request: LLMRequest,
-    user_id: str = Depends(verify_jwt_token)
+    request: LLMRequest, user_id: str = Depends(verify_jwt_token)
 ) -> LLMResponse:
     """
     Generate text using an LLM.
-    
+
     Args:
         request: LLM generation parameters
         user_id: Authenticated user ID
-    
+
     Returns:
         Generated text response
-    
+
     Raises:
         HTTPException: If generation fails
     """
     logger.info(f"LLM generation request from user {user_id}")
-    
+
     try:
         # Security: Only use mock LLM when explicitly enabled for development/testing
         # In production, USE_MOCK_LLM should be false (default) and a real provider should be configured
         if should_use_mock_llm():
-            logger.debug("Using mock LLM for generation (USE_MOCK_LLM=true) - DEVELOPMENT MODE ONLY")
+            logger.debug(
+                "Using mock LLM for generation (USE_MOCK_LLM=true) - DEVELOPMENT MODE ONLY"
+            )
             response = await call_llm_mock(request, user_id)
         else:
             # Production: Use real LLM provider (OpenAI, Anthropic, or Ollama)
-            logger.info(f"Using real LLM provider for generation (production mode)")
+            logger.info("Using real LLM provider for generation (production mode)")
             response = await call_llm_real(request, user_id)
         return response
     except Exception as e:
         logger.error(f"LLM generation failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Text generation failed: {str(e)}"
+            detail=f"Text generation failed: {str(e)}",
         )
 
 
 @router.post("/llm/render-template", response_model=TemplateRenderResponse)
 async def render_template(
-    request: TemplateRenderRequest,
-    user_id: str = Depends(verify_jwt_token)
+    request: TemplateRenderRequest, user_id: str = Depends(verify_jwt_token)
 ) -> TemplateRenderResponse:
     """
     Render a prompt template with variables.
-    
+
     Args:
         request: Template rendering parameters
         user_id: Authenticated user ID
-    
+
     Returns:
         Rendered prompt
-    
+
     Raises:
         HTTPException: If template not found
     """
     template = prompt_templates.get(request.template_name)
-    
+
     if not template:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Template '{request.template_name}' not found"
+            detail=f"Template '{request.template_name}' not found",
         )
-    
+
     # Render template
     rendered_prompt = template.template
     for key, value in request.variables.items():
         rendered_prompt = rendered_prompt.replace(f"{{{key}}}", str(value))
-    
+
     # Check for unreplaced variables
     import re
-    unreplaced = set(re.findall(r'\{(\w+)\}', rendered_prompt))
+
+    unreplaced = set(re.findall(r"\{(\w+)\}", rendered_prompt))
     if unreplaced:
         logger.warning(f"Unfilled template variables: {unreplaced}")
-    
+
     return TemplateRenderResponse(
-        rendered_prompt=rendered_prompt,
-        template_name=request.template_name
+        rendered_prompt=rendered_prompt, template_name=request.template_name
     )
 
 
@@ -1074,7 +1124,7 @@ Respond in JSON format:
     "key": "C Major"
   }}
 }}""",
-        variables=["theme", "style", "mood", "length"]
+        variables=["theme", "style", "mood", "length"],
     )
 )
 
@@ -1104,7 +1154,7 @@ Respond in JSON format:
     }}
   ]
 }}""",
-        variables=["lyrics", "bpm"]
+        variables=["lyrics", "bpm"],
     )
 )
 
@@ -1112,70 +1162,114 @@ Respond in JSON format:
 @router.get("/llm/templates")
 async def list_templates(
     template_type: Optional[PromptTemplateType] = None,
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> Dict[str, Any]:
     """
     List available prompt templates.
-    
+
     Args:
         template_type: Optional type filter
         user_id: Authenticated user ID
-    
+
     Returns:
         List of templates
     """
     templates = list(prompt_templates.values())
-    
+
     if template_type:
         templates = [t for t in templates if t.template_type == template_type]
-    
+
     return {
         "templates": [
             {
                 "name": t.name,
                 "type": t.template_type.value,
                 "variables": t.variables,
-                "template": t.template
+                "template": t.template,
             }
             for t in templates
         ],
-        "total": len(templates)
+        "total": len(templates),
     }
 
 
 @router.get("/llm/models")
 async def list_models(
-    provider: Optional[str] = None,
-    user_id: str = Depends(verify_jwt_token)
+    provider: Optional[str] = None, user_id: str = Depends(verify_jwt_token)
 ) -> Dict[str, Any]:
     """
     List available LLM models.
-    
+
     Args:
         provider: Optional provider filter
         user_id: Authenticated user ID
-    
+
     Returns:
         List of models
     """
     models = [
-        {"id": "gpt-4", "name": "GPT-4", "provider": "openai", "max_tokens": 8192, "capabilities": ["text", "reasoning"]},
-        {"id": "gpt-3.5-turbo", "name": "GPT-3.5 Turbo", "provider": "openai", "max_tokens": 16385, "capabilities": ["text"]},
-        {"id": "claude-3-haiku", "name": "Claude 3 Haiku", "provider": "anthropic", "max_tokens": 200000, "capabilities": ["text", "reasoning"]},
-        {"id": "claude-3-sonnet", "name": "Claude 3 Sonnet", "provider": "anthropic", "max_tokens": 200000, "capabilities": ["text", "reasoning"]},
-        {"id": "qwen3-vl:4b", "name": "Qwen 3 VL 4B", "provider": "ollama", "max_tokens": 32768, "capabilities": ["text", "vision", "multilingual"]},
-        {"id": "qwen3-vl:8b", "name": "Qwen 3 VL 8B", "provider": "ollama", "max_tokens": 32768, "capabilities": ["text", "vision", "multilingual"]},
-        {"id": "llama3.1:8b", "name": "Llama 3.1 8B", "provider": "ollama", "max_tokens": 128000, "capabilities": ["text", "reasoning"]},
-        {"id": "mistral", "name": "Mistral", "provider": "ollama", "max_tokens": 32768, "capabilities": ["text"]}
+        {
+            "id": "gpt-4",
+            "name": "GPT-4",
+            "provider": "openai",
+            "max_tokens": 8192,
+            "capabilities": ["text", "reasoning"],
+        },
+        {
+            "id": "gpt-3.5-turbo",
+            "name": "GPT-3.5 Turbo",
+            "provider": "openai",
+            "max_tokens": 16385,
+            "capabilities": ["text"],
+        },
+        {
+            "id": "claude-3-haiku",
+            "name": "Claude 3 Haiku",
+            "provider": "anthropic",
+            "max_tokens": 200000,
+            "capabilities": ["text", "reasoning"],
+        },
+        {
+            "id": "claude-3-sonnet",
+            "name": "Claude 3 Sonnet",
+            "provider": "anthropic",
+            "max_tokens": 200000,
+            "capabilities": ["text", "reasoning"],
+        },
+        {
+            "id": "qwen3-vl:4b",
+            "name": "Qwen 3 VL 4B",
+            "provider": "ollama",
+            "max_tokens": 32768,
+            "capabilities": ["text", "vision", "multilingual"],
+        },
+        {
+            "id": "qwen3-vl:8b",
+            "name": "Qwen 3 VL 8B",
+            "provider": "ollama",
+            "max_tokens": 32768,
+            "capabilities": ["text", "vision", "multilingual"],
+        },
+        {
+            "id": "llama3.1:8b",
+            "name": "Llama 3.1 8B",
+            "provider": "ollama",
+            "max_tokens": 128000,
+            "capabilities": ["text", "reasoning"],
+        },
+        {
+            "id": "mistral",
+            "name": "Mistral",
+            "provider": "ollama",
+            "max_tokens": 32768,
+            "capabilities": ["text"],
+        },
     ]
-    
+
     if provider:
         models = [m for m in models if m["provider"] == provider]
-    
-    return {
-        "models": models,
-        "total": len(models)
-    }
+
+    return {"models": models, "total": len(models)}
 
 
 @router.post("/llm/chat")
@@ -1183,17 +1277,17 @@ async def chat_completion(
     messages: List[Dict[str, str]],
     model: Optional[str] = None,
     temperature: Optional[float] = None,
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> Dict[str, Any]:
     """
     Chat completion with message history.
-    
+
     Args:
         messages: List of chat messages with role and content
         model: Model to use
         temperature: Temperature parameter
         user_id: Authenticated user ID
-    
+
     Returns:
         Chat completion response
     """
@@ -1201,89 +1295,76 @@ async def chat_completion(
     if not messages:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="At least one message required"
+            detail="At least one message required",
         )
-    
+
     # Build prompt from messages
-    prompt = "\n".join([
-        f"{msg['role']}: {msg['content']}"
-        for msg in messages
-    ])
-    
+    prompt = "\n".join([f"{msg['role']}: {msg['content']}" for msg in messages])
+
     # Add system message if not present
     if messages[0].get("role") != "system":
         prompt = f"system: You are a helpful AI assistant.\n\n{prompt}"
-    
+
     request = LLMRequest(
-        prompt=prompt,
-        model=model,
-        temperature=temperature,
-        context=messages
+        prompt=prompt, model=model, temperature=temperature, context=messages
     )
-    
+
     # Security: Only use mock LLM when explicitly enabled for development/testing
     # In production, USE_MOCK_LLM should be false (default) and a real provider should be configured
     if should_use_mock_llm():
-        logger.debug("Using mock LLM for chat completion (USE_MOCK_LLM=true) - DEVELOPMENT MODE ONLY")
+        logger.debug(
+            "Using mock LLM for chat completion (USE_MOCK_LLM=true) - DEVELOPMENT MODE ONLY"
+        )
         response = await call_llm_mock(request, user_id)
     else:
         # Production: Use real LLM provider (OpenAI, Anthropic, or Ollama)
-        logger.info(f"Using real LLM provider for chat completion (production mode)")
+        logger.info("Using real LLM provider for chat completion (production mode)")
         response = await call_llm_real(request, user_id)
-    
+
     return {
         "choices": [
             {
-                "message": {
-                    "role": "assistant",
-                    "content": response.text
-                },
-                "finish_reason": "stop"
+                "message": {"role": "assistant", "content": response.text},
+                "finish_reason": "stop",
             }
         ],
         "model": response.model,
-        "usage": response.usage
+        "usage": response.usage,
     }
 
 
 @router.delete("/llm/cache")
-async def clear_cache(
-    user_id: str = Depends(verify_jwt_token)
-) -> Dict[str, Any]:
+async def clear_cache(user_id: str = Depends(verify_jwt_token)) -> Dict[str, Any]:
     """
     Clear the LLM response cache.
-    
+
     Args:
         user_id: Authenticated user ID
-    
+
     Returns:
         Cache cleared confirmation
     """
     cache_size = len(response_cache)
     response_cache.clear()
-    
-    return {
-        "message": f"Cleared {cache_size} cached responses"
-    }
+
+    return {"message": f"Cleared {cache_size} cached responses"}
 
 
 @router.get("/llm/cache/stats")
-async def cache_stats(
-    user_id: str = Depends(verify_jwt_token)
-) -> Dict[str, Any]:
+async def cache_stats(user_id: str = Depends(verify_jwt_token)) -> Dict[str, Any]:
     """
     Get cache statistics.
-    
+
     Args:
         user_id: Authenticated user ID
-    
+
     Returns:
         Cache statistics
     """
     return {
         "cached_entries": len(response_cache),
         "cache_enabled": settings.cache_enabled,
-        "ttl_seconds": settings.cache_ttl_seconds
+        "ttl_seconds": settings.cache_ttl_seconds,
     }
 
 
@@ -1291,42 +1372,38 @@ async def cache_stats(
 async def streaming_generate(
     request: LLMRequest,
     user_id: str = Depends(verify_jwt_token),
-    accept: str = Header(default="application/json")
+    accept: str = Header(default="application/json"),
 ):
     """
     Streaming text generation endpoint.
-    
+
     Returns Server-Sent Events for streaming response when Accept header
     is set to 'text/event-stream', otherwise returns standard JSON response.
-    
+
     Event Types:
     - start: Generation started with request_id, model, provider
     - chunk: Text chunk received
     - usage: Token usage information (when available)
     - done: Generation complete with stats
     - error: Error occurred with message and code
-    
+
     Args:
         request: LLM generation parameters
         user_id: Authenticated user ID
         accept: Accept header to determine response format
-        
+
     Returns:
         StreamingResponse for SSE or LLMResponse for JSON
     """
     from fastapi.responses import StreamingResponse
-    from backend.llm_streaming import (
-        StreamingRequest,
-        stream_llm_response,
-        get_stream_manager
-    )
-    
+    from backend.llm_streaming import StreamingRequest, stream_llm_response
+
     # If client doesn't accept SSE, fall back to standard generation
     if accept != "text/event-stream":
         return await generate_text(request, user_id)
-    
+
     logger.info(f"Streaming LLM generation request from user {user_id}")
-    
+
     # Create streaming request
     stream_request = StreamingRequest(
         prompt=request.prompt,
@@ -1334,46 +1411,49 @@ async def streaming_generate(
         provider=request.provider,
         temperature=request.temperature,
         max_tokens=request.max_tokens,
-        context=request.context
+        context=request.context,
     )
-    
+
     # Security: Check if mock LLM should be used
     if should_use_mock_llm():
         # Use mock streaming for development
         async def mock_stream():
             import time
+
             start_time = time.time()
             request_id = str(uuid.uuid4())
-            
+
             # Send start event
-            yield f'data: {json.dumps({"type": "start", "request_id": request_id, "model": "mock", "provider": "mock"})}\n\n'
-            
+            yield f"data: {json.dumps({'type': 'start', 'request_id': request_id, 'model': 'mock', 'provider': 'mock'})}\n\n"
+
             # Simulate streaming response
-            mock_response = f"Mock streaming response for: '{request.prompt[:50]}...'\n\n"
+            mock_response = (
+                f"Mock streaming response for: '{request.prompt[:50]}...'\n\n"
+            )
             mock_response += "This is a simulated streaming response for development.\n"
-            
+
             words = mock_response.split()
             for i, word in enumerate(words):
-                yield f'data: {json.dumps({"type": "chunk", "text": word + " "})}\n\n'
+                yield f"data: {json.dumps({'type': 'chunk', 'text': word + ' '})}\n\n"
                 await asyncio.sleep(0.05)
-            
+
             # Send usage event
-            yield f'data: {json.dumps({"type": "usage", "prompt_tokens": len(request.prompt) // 4, "completion_tokens": len(mock_response) // 4, "total_tokens": (len(request.prompt) + len(mock_response)) // 4})}\n\n'
-            
+            yield f"data: {json.dumps({'type': 'usage', 'prompt_tokens': len(request.prompt) // 4, 'completion_tokens': len(mock_response) // 4, 'total_tokens': (len(request.prompt) + len(mock_response)) // 4})}\n\n"
+
             # Send done event
             latency_ms = int((time.time() - start_time) * 1000)
-            yield f'data: {json.dumps({"type": "done", "request_id": request_id, "stats": {"latency_ms": latency_ms, "total_chunks": len(words)}})}\n\n'
-        
+            yield f"data: {json.dumps({'type': 'done', 'request_id': request_id, 'stats': {'latency_ms': latency_ms, 'total_chunks': len(words)}})}\n\n"
+
         return StreamingResponse(
             mock_stream(),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
-                "X-Accel-Buffering": "no"
-            }
+                "X-Accel-Buffering": "no",
+            },
         )
-    
+
     # Production: Use real streaming
     return StreamingResponse(
         stream_llm_response(stream_request, request.provider),
@@ -1381,8 +1461,8 @@ async def streaming_generate(
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
+            "X-Accel-Buffering": "no",
+        },
     )
 
 
@@ -1404,6 +1484,7 @@ def get_or_initialize_usage_collector():
 
 class UsageQueryParams(BaseModel):
     """Query parameters for usage statistics"""
+
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     provider: Optional[str] = None
@@ -1414,6 +1495,7 @@ class UsageQueryParams(BaseModel):
 
 class CostEstimateRequest(BaseModel):
     """Request model for cost estimation"""
+
     provider: str = Field(..., description="LLM provider (openai, anthropic, ollama)")
     model: str = Field(..., description="Model name")
     prompt_tokens: int = Field(..., ge=0, description="Estimated prompt tokens")
@@ -1422,6 +1504,7 @@ class CostEstimateRequest(BaseModel):
 
 class CostEstimateResponse(BaseModel):
     """Response model for cost estimation"""
+
     provider: str
     model: str
     prompt_tokens: int
@@ -1438,40 +1521,43 @@ async def get_usage_statistics(
     end_date: Optional[datetime] = None,
     provider: Optional[str] = None,
     feature: Optional[str] = None,
-    user_id: Optional[str] = Depends(verify_jwt_token)
+    user_id: Optional[str] = Depends(verify_jwt_token),
 ) -> UsageSummary:
     """
     Get current usage statistics.
-    
+
     Args:
         start_date: Optional start date for the query period
         end_date: Optional end date for the query period
         provider: Optional filter by provider
         feature: Optional filter by feature
         user_id: Authenticated user ID
-    
+
     Returns:
         UsageSummary: Aggregated usage statistics
     """
     collector = get_or_initialize_usage_collector()
-    
+
     # Default to last 30 days if no dates provided
     if not start_date:
-        start_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        start_date = datetime.utcnow().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         from datetime import timedelta
+
         start_date = start_date - timedelta(days=30)
     if not end_date:
         end_date = datetime.utcnow()
-    
+
     # Get usage summary from aggregator
     summary = collector.aggregator.get_summary(
         start_date=start_date,
         end_date=end_date,
         provider=provider,
         feature=feature,
-        user_id=user_id
+        user_id=user_id,
     )
-    
+
     return summary
 
 
@@ -1480,69 +1566,68 @@ async def get_project_usage(
     project_id: str,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> UsageSummary:
     """
     Get project-specific usage statistics.
-    
+
     Args:
         project_id: Project ID to get usage for
         start_date: Optional start date for the query period
         end_date: Optional end date for the query period
         user_id: Authenticated user ID
-    
+
     Returns:
         UsageSummary: Aggregated usage statistics for the project
     """
     collector = get_or_initialize_usage_collector()
-    
+
     # Default to last 30 days if no dates provided
     if not start_date:
-        start_date = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        start_date = datetime.utcnow().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
         from datetime import timedelta
+
         start_date = start_date - timedelta(days=30)
     if not end_date:
         end_date = datetime.utcnow()
-    
+
     # Get usage summary for specific project
     summary = collector.aggregator.get_summary(
-        start_date=start_date,
-        end_date=end_date,
-        project_id=project_id,
-        user_id=user_id
+        start_date=start_date, end_date=end_date, project_id=project_id, user_id=user_id
     )
-    
+
     return summary
 
 
 @router.post("/llm/usage/cost-estimate", response_model=CostEstimateResponse)
 async def estimate_cost(
-    request: CostEstimateRequest,
-    user_id: str = Depends(verify_jwt_token)
+    request: CostEstimateRequest, user_id: str = Depends(verify_jwt_token)
 ) -> CostEstimateResponse:
     """
     Estimate cost for a request.
-    
+
     Args:
         request: Cost estimation request with provider, model, and token counts
         user_id: Authenticated user ID
-    
+
     Returns:
         CostEstimateResponse: Estimated cost breakdown
-    
+
     Raises:
         HTTPException: If provider or model is not supported
     """
     calculator = CostCalculator()
-    
+
     try:
         cost = calculator.calculate_cost(
             provider=request.provider,
             model=request.model,
             prompt_tokens=request.prompt_tokens,
-            completion_tokens=request.completion_tokens
+            completion_tokens=request.completion_tokens,
         )
-        
+
         return CostEstimateResponse(
             provider=request.provider,
             model=request.model,
@@ -1551,71 +1636,62 @@ async def estimate_cost(
             total_tokens=request.prompt_tokens + request.completion_tokens,
             estimated_cost=cost,
             currency="USD",
-            pricing_source="internal_pricing_table"
+            pricing_source="internal_pricing_table",
         )
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/llm/usage/history")
 async def get_usage_history(
-    limit: int = 100,
-    offset: int = 0,
-    user_id: str = Depends(verify_jwt_token)
+    limit: int = 100, offset: int = 0, user_id: str = Depends(verify_jwt_token)
 ) -> Dict[str, Any]:
     """
     Get usage history entries.
-    
+
     Args:
         limit: Maximum number of entries to return
         offset: Offset for pagination
         user_id: Authenticated user ID
-    
+
     Returns:
         Dict with usage entries and pagination info
     """
     collector = get_or_initialize_usage_collector()
-    
-    entries = collector.store.get_entries(
-        user_id=user_id,
-        limit=limit,
-        offset=offset
-    )
-    
+
+    entries = collector.store.get_entries(user_id=user_id, limit=limit, offset=offset)
+
     total_count = collector.store.count_entries(user_id=user_id)
-    
+
     return {
         "entries": [e.to_dict() for e in entries],
         "pagination": {
             "limit": limit,
             "offset": offset,
             "total": total_count,
-            "has_more": (offset + limit) < total_count
-        }
+            "has_more": (offset + limit) < total_count,
+        },
     }
 
 
 @router.get("/llm/usage/providers")
 async def get_provider_pricing(
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> Dict[str, Any]:
     """
     Get pricing information for all supported providers.
-    
+
     Args:
         user_id: Authenticated user ID
-    
+
     Returns:
         Dict with pricing information per provider and model
     """
     calculator = CostCalculator()
-    
+
     return {
         "providers": calculator.get_all_pricing(),
         "currency": "USD",
         "unit": "per 1K tokens",
-        "note": "Prices are estimates based on standard pricing. Actual costs may vary."
+        "note": "Prices are estimates based on standard pricing. Actual costs may vary.",
     }

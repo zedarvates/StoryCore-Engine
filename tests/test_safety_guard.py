@@ -11,11 +11,8 @@ Couvre :
 Tous les tests fonctionnent SANS Blender installé.
 """
 
-import ast
 import time
 import queue
-import threading
-from pathlib import Path
 import pytest
 
 from blender_bridge.safety_guard import (
@@ -32,6 +29,7 @@ from blender_bridge.safety_guard import (
 # ─────────────────────────────────────────────────────────────────────────────
 #  FIXTURES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def valid_script(tmp_path) -> str:
@@ -55,9 +53,7 @@ def invalid_syntax_script(tmp_path) -> str:
     """Script avec syntaxe Python invalide."""
     p = tmp_path / "bad_syntax.py"
     p.write_text(
-        "import bpy\n"
-        "def broken(\n"
-        "    # missing closing paren\n",
+        "import bpy\ndef broken(\n    # missing closing paren\n",
         encoding="utf-8",
     )
     return str(p)
@@ -68,8 +64,7 @@ def no_bpy_script(tmp_path) -> str:
     """Script Python valide mais sans import bpy."""
     p = tmp_path / "no_bpy.py"
     p.write_text(
-        "import os\n"
-        "print('Hello world')\n",
+        "import os\nprint('Hello world')\n",
         encoding="utf-8",
     )
     return str(p)
@@ -99,8 +94,8 @@ def runner() -> SafeBlenderRunner:
 #  TESTS : BlenderRunResult
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestBlenderRunResult:
 
+class TestBlenderRunResult:
     def test_creation_success(self):
         r = BlenderRunResult(
             success=True,
@@ -117,19 +112,26 @@ class TestBlenderRunResult:
 
     def test_log_property_combines(self):
         r = BlenderRunResult(
-            success=False, returncode=1,
-            stdout="out", stderr="err",
-            duration_seconds=1.0, script_path="s.py",
+            success=False,
+            returncode=1,
+            stdout="out",
+            stderr="err",
+            duration_seconds=1.0,
+            script_path="s.py",
         )
         assert "out" in r.log
         assert "err" in r.log
 
     def test_to_dict_keys(self):
         r = BlenderRunResult(
-            success=True, returncode=0,
-            stdout="OK", stderr="",
-            duration_seconds=5.0, script_path="test.py",
-            render_path="/out.png", attempt=2,
+            success=True,
+            returncode=0,
+            stdout="OK",
+            stderr="",
+            duration_seconds=5.0,
+            script_path="test.py",
+            render_path="/out.png",
+            attempt=2,
         )
         d = r.to_dict()
         assert d["success"] is True
@@ -143,18 +145,24 @@ class TestBlenderRunResult:
         """Le log dans to_dict est tronqué à 3000 chars."""
         long_log = "x" * 10_000
         r = BlenderRunResult(
-            success=False, returncode=1,
-            stdout=long_log, stderr="",
-            duration_seconds=1.0, script_path="s.py",
+            success=False,
+            returncode=1,
+            stdout=long_log,
+            stderr="",
+            duration_seconds=1.0,
+            script_path="s.py",
         )
         d = r.to_dict()
         assert len(d["log"]) <= 3000
 
     def test_attempt_default(self):
         r = BlenderRunResult(
-            success=True, returncode=0,
-            stdout="", stderr="",
-            duration_seconds=1.0, script_path="s.py",
+            success=True,
+            returncode=0,
+            stdout="",
+            stderr="",
+            duration_seconds=1.0,
+            script_path="s.py",
         )
         assert r.attempt == 1
 
@@ -163,8 +171,8 @@ class TestBlenderRunResult:
 #  TESTS : ScriptValidator
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestScriptValidator:
 
+class TestScriptValidator:
     def test_valid_script(self, valid_script):
         v = ScriptValidator()
         ok, reason = v.validate(valid_script)
@@ -199,9 +207,7 @@ class TestScriptValidator:
         """while True sans break → warning seulement, pas d'erreur."""
         p = tmp_path / "loop.py"
         p.write_text(
-            "import bpy\n"
-            "while True:\n"
-            "    pass\n",
+            "import bpy\nwhile True:\n    pass\n",
             encoding="utf-8",
         )
         v = ScriptValidator()
@@ -227,8 +233,8 @@ class TestScriptValidator:
 #  TESTS : SafeBlenderRunner
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestSafeBlenderRunner:
 
+class TestSafeBlenderRunner:
     def test_creation(self):
         r = SafeBlenderRunner(
             blender_executable="blender",
@@ -265,7 +271,9 @@ class TestSafeBlenderRunner:
         result = runner.execute(valid_script)
         assert result.success is False
         assert result.returncode == -2
-        assert "introuvable" in result.error.lower() or "not found" in result.error.lower()
+        assert (
+            "introuvable" in result.error.lower() or "not found" in result.error.lower()
+        )
 
     def test_execute_no_retry_on_definitive_error(self, runner, valid_script):
         """
@@ -341,6 +349,7 @@ class TestSafeBlenderRunner:
     def test_drain_pipe_no_block(self):
         """_drain_pipe lit un pipe et termine sans bloquer."""
         import io
+
         pipe = io.StringIO("line1\nline2\nline3\n")
         q = queue.Queue()
         SafeBlenderRunner._drain_pipe(pipe, q)
@@ -353,13 +362,14 @@ class TestSafeBlenderRunner:
     def test_kill_tree_safe_on_dead_process(self, runner, valid_script):
         """_kill_tree ne lève pas d'exception sur un process déjà mort."""
         import subprocess
+
         # Créer un vrai processus (python -c 'exit(0)') et le laisser se terminer
         proc = subprocess.Popen(
             [sys.executable, "-c", "import sys; sys.exit(0)"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        proc.wait()   # Laisser terminer
+        proc.wait()  # Laisser terminer
         # Kill sur un process mort → ne doit pas lever d'exception
         SafeBlenderRunner._kill_tree(proc)
 
@@ -368,8 +378,8 @@ class TestSafeBlenderRunner:
 #  TESTS : make_safe_runner
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestMakeSafeRunner:
 
+class TestMakeSafeRunner:
     def test_returns_safe_runner(self):
         r = make_safe_runner("blender", timeout_seconds=120)
         assert isinstance(r, SafeBlenderRunner)
@@ -390,8 +400,8 @@ class TestMakeSafeRunner:
 #  TESTS : Constantes de sécurité
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestSafetyConstants:
 
+class TestSafetyConstants:
     def test_max_retries_bounded(self):
         """MAX_RETRIES doit être fini et raisonnable."""
         assert 1 <= MAX_RETRIES <= 10

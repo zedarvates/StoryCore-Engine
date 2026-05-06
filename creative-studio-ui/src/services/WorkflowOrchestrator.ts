@@ -55,7 +55,7 @@ export class WorkflowOrchestrator {
         });
 
         // 2. Listen to GenerationStore (AI Assets)
-        const subGen = useGenerationStore.subscribe((state, prevState) => {
+        const subGen = useGenerationStore.subscribe((state, _prevState) => {
             const { currentPipeline } = state;
             if (!currentPipeline) return;
 

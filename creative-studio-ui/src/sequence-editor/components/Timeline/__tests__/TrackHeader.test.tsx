@@ -9,6 +9,8 @@
  * 
  * Requirements: 1.4, 1.5, 1.6, 1.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -452,7 +454,7 @@ describe('TrackHeader Component', () => {
       };
       
       expect(() => {
-        renderTrackHeader(propsWithoutMute as any);
+        renderTrackHeader(propsWithoutMute as LegacyAny);
       }).not.toThrow();
     });
 
@@ -465,7 +467,7 @@ describe('TrackHeader Component', () => {
       };
       
       expect(() => {
-        renderTrackHeader(propsWithoutSolo as any);
+        renderTrackHeader(propsWithoutSolo as LegacyAny);
       }).not.toThrow();
     });
 

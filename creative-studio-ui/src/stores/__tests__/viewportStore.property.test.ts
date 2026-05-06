@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
-import { useViewportStore, type Point } from '../viewportStore';
+import { useViewportStore, type _Point } from '../viewportStore';
 
 describe('ViewportStore Transformations - Property-Based Tests', () => {
   beforeEach(() => {
@@ -310,7 +310,7 @@ describe('ViewportStore Transformations - Property-Based Tests', () => {
             
             // Pan forward
             useViewportStore.getState().panBy(delta);
-            const panAfterForward = useViewportStore.getState().pan;
+            const _panAfterForward = useViewportStore.getState().pan;
             
             // Pan backward (negative delta)
             useViewportStore.getState().panBy({ x: -delta.x, y: -delta.y });

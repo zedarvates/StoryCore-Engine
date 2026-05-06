@@ -4,6 +4,8 @@
  * Unit tests for the PromptGenerationDialog component.
  * Tests category selection, prompt generation, editing, and integration with services.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -34,14 +36,14 @@ describe('PromptGenerationDialog', () => {
     vi.clearAllMocks();
     
     // Mock store
-    (useGenerationStore as any).mockReturnValue({
+    (useGenerationStore as LegacyAny).mockReturnValue({
       completeStage: mockCompleteStage,
       failStage: mockFailStage,
       updateStageProgress: mockUpdateStageProgress,
     });
     
     // Mock successful prompt generation
-    (generationOrchestrator.generatePrompt as any).mockResolvedValue({
+    (generationOrchestrator.generatePrompt as LegacyAny).mockResolvedValue({
       text: 'A cinematic medium shot with natural lighting',
       categories: {
         genre: 'cinematic',
@@ -191,7 +193,7 @@ describe('PromptGenerationDialog', () => {
     
     it('should show loading state during generation', async () => {
       // Make generation take some time
-      (generationOrchestrator.generatePrompt as any).mockImplementation(
+      (generationOrchestrator.generatePrompt as LegacyAny).mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 100))
       );
       
@@ -210,7 +212,7 @@ describe('PromptGenerationDialog', () => {
     });
     
     it('should handle generation errors', async () => {
-      (generationOrchestrator.generatePrompt as any).mockRejectedValue(
+      (generationOrchestrator.generatePrompt as LegacyAny).mockRejectedValue(
         new Error('Generation failed')
       );
       
@@ -478,7 +480,7 @@ describe('PromptGenerationDialog', () => {
     
     it('should not close dialog during generation', async () => {
       // Make generation take some time
-      (generationOrchestrator.generatePrompt as any).mockImplementation(
+      (generationOrchestrator.generatePrompt as LegacyAny).mockImplementation(
         () => new Promise((resolve) => setTimeout(resolve, 1000))
       );
       

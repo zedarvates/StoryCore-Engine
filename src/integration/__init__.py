@@ -3,10 +3,7 @@
 
 from .integration_manager import IntegrationManager, create_integration_manager
 
-__all__ = [
-    'IntegrationManager',
-    'create_integration_manager'
-]
+__all__ = ["IntegrationManager", "create_integration_manager"]
 
 # Package metadata
 __version__ = "1.0.0"

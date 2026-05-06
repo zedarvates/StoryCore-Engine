@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LayoutControls } from '../LayoutControls';
@@ -13,7 +14,7 @@ describe('LayoutControls', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (usePanelVisibility as any).mockReturnValue({
+    (usePanelVisibility as LegacyAny).mockReturnValue({
       showChat: false,
       toggleChat: mockToggleChat,
       toggleAssetLibrary: mockToggleAssetLibrary,
@@ -52,7 +53,7 @@ describe('LayoutControls', () => {
     });
 
     it('displays correct label when hidden', () => {
-      (usePanelVisibility as any).mockReturnValue({
+      (usePanelVisibility as LegacyAny).mockReturnValue({
         showChat: false,
         toggleChat: mockToggleChat,
         toggleAssetLibrary: mockToggleAssetLibrary,
@@ -89,7 +90,7 @@ describe('LayoutControls', () => {
     });
 
     it('has inactive styling when hidden', () => {
-      (usePanelVisibility as any).mockReturnValue({
+      (usePanelVisibility as LegacyAny).mockReturnValue({
         showChat: false,
         toggleChat: mockToggleChat,
         toggleAssetLibrary: mockToggleAssetLibrary,
@@ -119,7 +120,7 @@ describe('LayoutControls', () => {
     });
 
     it('displays correct label when visible', () => {
-      (usePanelVisibility as any).mockReturnValue({
+      (usePanelVisibility as LegacyAny).mockReturnValue({
         showChat: true,
         toggleChat: mockToggleChat,
         toggleAssetLibrary: mockToggleAssetLibrary,
@@ -148,7 +149,7 @@ describe('LayoutControls', () => {
     });
 
     it('has active styling when visible', () => {
-      (usePanelVisibility as any).mockReturnValue({
+      (usePanelVisibility as LegacyAny).mockReturnValue({
         showChat: true,
         toggleChat: mockToggleChat,
         toggleAssetLibrary: mockToggleAssetLibrary,

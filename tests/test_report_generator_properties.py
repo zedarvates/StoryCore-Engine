@@ -5,13 +5,13 @@ Tests universal properties that should hold for report generation and visualizat
 """
 
 import pytest
-import numpy as np
 from pathlib import Path
-from hypothesis import given, strategies as st, settings, assume, HealthCheck
+from hypothesis import given, strategies as st, settings, HealthCheck
 from hypothesis.strategies import composite
 
 # Import the modules to test
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from quality_validator import QualityScore, QualityIssue, ImprovementSuggestion
@@ -20,7 +20,7 @@ from report_generator import (
     AutofixComparisonGenerator,
     VisualizationGenerator,
     HTMLReportGenerator,
-    AutofixComparison
+    AutofixComparison,
 )
 
 
@@ -28,10 +28,18 @@ from report_generator import (
 @composite
 def valid_quality_issue(draw):
     """Generate valid quality issues."""
-    issue_type = draw(st.sampled_from([
-        "low_sharpness", "unnatural_motion", "metallic_voice",
-        "audio_gap", "sudden_change", "low_contrast"
-    ]))
+    issue_type = draw(
+        st.sampled_from(
+            [
+                "low_sharpness",
+                "unnatural_motion",
+                "metallic_voice",
+                "audio_gap",
+                "sudden_change",
+                "low_contrast",
+            ]
+        )
+    )
     severity = draw(st.sampled_from(["low", "medium", "high", "critical"]))
     description = draw(st.text(min_size=10, max_size=100))
     timestamp = draw(st.floats(min_value=0.0, max_value=3600.0))  # up to 1 hour
@@ -46,22 +54,32 @@ def valid_quality_issue(draw):
         timestamp=timestamp,
         frame_number=frame_number,
         metric_value=metric_value,
-        threshold_value=threshold_value
+        threshold_value=threshold_value,
     )
 
 
 @composite
 def valid_improvement_suggestion(draw):
     """Generate valid improvement suggestions."""
-    suggestion_id = draw(st.text(min_size=5, max_size=20, alphabet=st.characters(whitelist_categories=('L', 'N', 'P'))))
+    suggestion_id = draw(
+        st.text(
+            min_size=5,
+            max_size=20,
+            alphabet=st.characters(whitelist_categories=("L", "N", "P")),
+        )
+    )
     priority = draw(st.integers(min_value=1, max_value=5))
     action = draw(st.text(min_size=10, max_size=100))
-    parameters = draw(st.dictionaries(
-        keys=st.text(min_size=3, max_size=10),
-        values=st.one_of(st.floats(), st.integers(), st.text(max_size=20))
-    ))
+    parameters = draw(
+        st.dictionaries(
+            keys=st.text(min_size=3, max_size=10),
+            values=st.one_of(st.floats(), st.integers(), st.text(max_size=20)),
+        )
+    )
     expected_improvement = draw(st.floats(min_value=0.0, max_value=50.0))
-    related_issue_ids = draw(st.lists(st.text(min_size=3, max_size=15), min_size=0, max_size=5))
+    related_issue_ids = draw(
+        st.lists(st.text(min_size=3, max_size=15), min_size=0, max_size=5)
+    )
 
     return ImprovementSuggestion(
         suggestion_id=suggestion_id,
@@ -69,7 +87,7 @@ def valid_improvement_suggestion(draw):
         action=action,
         parameters=parameters,
         expected_improvement=expected_improvement,
-        related_issue_ids=related_issue_ids
+        related_issue_ids=related_issue_ids,
     )
 
 
@@ -83,10 +101,18 @@ def valid_quality_score(draw):
     continuity_score = draw(st.floats(min_value=0.0, max_value=100.0))
 
     num_issues = draw(st.integers(min_value=0, max_value=10))
-    issues = draw(st.lists(valid_quality_issue(), min_size=num_issues, max_size=num_issues))
+    issues = draw(
+        st.lists(valid_quality_issue(), min_size=num_issues, max_size=num_issues)
+    )
 
     num_suggestions = draw(st.integers(min_value=0, max_value=5))
-    suggestions = draw(st.lists(valid_improvement_suggestion(), min_size=num_suggestions, max_size=num_suggestions))
+    suggestions = draw(
+        st.lists(
+            valid_improvement_suggestion(),
+            min_size=num_suggestions,
+            max_size=num_suggestions,
+        )
+    )
 
     return QualityScore(
         overall_score=overall_score,
@@ -95,24 +121,29 @@ def valid_quality_score(draw):
         audio_score=audio_score,
         continuity_score=continuity_score,
         issues=issues,
-        suggestions=suggestions
+        suggestions=suggestions,
     )
 
 
 @composite
 def valid_autofix_comparison(draw):
     """Generate valid autofix comparisons."""
-    shot_id = draw(st.text(min_size=3, max_size=20, alphabet=st.characters(whitelist_categories=('L', 'N', 'P'))))
+    shot_id = draw(
+        st.text(
+            min_size=3,
+            max_size=20,
+            alphabet=st.characters(whitelist_categories=("L", "N", "P")),
+        )
+    )
     before_score = draw(valid_quality_score())
     after_score = draw(valid_quality_score())
 
     # Ensure improvement delta is calculated correctly
     improvement_delta = after_score.overall_score - before_score.overall_score
 
-    applied_fixes = draw(st.lists(
-        st.text(min_size=5, max_size=30),
-        min_size=0, max_size=5
-    ))
+    applied_fixes = draw(
+        st.lists(st.text(min_size=5, max_size=30), min_size=0, max_size=5)
+    )
     timestamp = draw(st.floats(min_value=0.0, max_value=3600.0))
 
     return AutofixComparison(
@@ -121,7 +152,7 @@ def valid_autofix_comparison(draw):
         after_score=after_score,
         applied_fixes=applied_fixes,
         improvement_delta=improvement_delta,
-        timestamp=timestamp
+        timestamp=timestamp,
     )
 
 
@@ -129,7 +160,11 @@ class TestReportGeneratorProperties:
     """Property-based tests for Report Generators."""
 
     @given(st.lists(valid_quality_score(), min_size=1, max_size=20))
-    @settings(max_examples=10, deadline=3000, suppress_health_check=[HealthCheck.data_too_large])
+    @settings(
+        max_examples=10,
+        deadline=3000,
+        suppress_health_check=[HealthCheck.data_too_large],
+    )
     def test_property_24_comprehensive_report_generation(self, quality_scores):
         """
         Property 24: Comprehensive Report Generation
@@ -141,8 +176,12 @@ class TestReportGeneratorProperties:
         project_name = "Test Project"
 
         # Generate report
-        report_json = generator.generate_comprehensive_report(quality_scores, project_name)
-        report_data = generator._parse_json_report(report_json)  # We'll need to add this helper
+        report_json = generator.generate_comprehensive_report(
+            quality_scores, project_name
+        )
+        report_data = generator._parse_json_report(
+            report_json
+        )  # We'll need to add this helper
 
         # Verify report structure
         assert "report_type" in report_data
@@ -197,7 +236,9 @@ class TestReportGeneratorProperties:
 
         # Generate report
         report_json = generator.generate_comparison_report(comparisons, project_name)
-        report_data = generator._parse_json_report(report_json)  # We'll need to add this helper
+        report_data = generator._parse_json_report(
+            report_json
+        )  # We'll need to add this helper
 
         # Verify report structure
         assert "report_type" in report_data
@@ -221,10 +262,14 @@ class TestReportGeneratorProperties:
         expected_total_improvement = sum(comp.improvement_delta for comp in comparisons)
         assert abs(summary["total_improvement"] - expected_total_improvement) < 0.01
 
-        expected_successful = sum(1 for comp in comparisons if comp.improvement_delta > 0)
+        expected_successful = sum(
+            1 for comp in comparisons if comp.improvement_delta > 0
+        )
         assert summary["successful_fixes"] == expected_successful
 
-        expected_success_rate = (expected_successful / len(comparisons) * 100) if comparisons else 0.0
+        expected_success_rate = (
+            (expected_successful / len(comparisons) * 100) if comparisons else 0.0
+        )
         assert abs(summary["success_rate"] - expected_success_rate) < 0.01
 
         # Verify comparisons data
@@ -256,6 +301,7 @@ class TestReportGeneratorProperties:
             assert chart_data.startswith("data:image/png;base64,")
             # Verify it's valid base64 (basic check)
             import base64
+
             base64_part = chart_data.split(",")[1]
             try:
                 decoded = base64.b64decode(base64_part)
@@ -285,6 +331,7 @@ class TestReportGeneratorProperties:
             assert chart_data.startswith("data:image/png;base64,")
             # Verify it's valid base64 (basic check)
             import base64
+
             base64_part = chart_data.split(",")[1]
             try:
                 decoded = base64.b64decode(base64_part)
@@ -308,7 +355,9 @@ class TestReportGeneratorProperties:
         project_name = "Test Project"
 
         # Generate HTML report
-        html_report = generator.generate_comprehensive_report(quality_scores, project_name)
+        html_report = generator.generate_comprehensive_report(
+            quality_scores, project_name
+        )
 
         # Verify HTML structure
         assert "<!DOCTYPE html>" in html_report
@@ -319,7 +368,9 @@ class TestReportGeneratorProperties:
 
         # Verify data inclusion
         for score in quality_scores:
-            assert str(int(score.overall_score)) in html_report  # At least the integer part
+            assert (
+                str(int(score.overall_score)) in html_report
+            )  # At least the integer part
 
         # Verify table structure
         assert "<table" in html_report
@@ -337,7 +388,9 @@ class TestReportGeneratorProperties:
         project_name = "Test Project"
 
         # Generate HTML report
-        html_report = generator.generate_autofix_comparison_report(comparisons, project_name)
+        html_report = generator.generate_autofix_comparison_report(
+            comparisons, project_name
+        )
 
         # Verify HTML structure
         assert "<!DOCTYPE html>" in html_report
@@ -360,7 +413,9 @@ class TestReportGeneratorProperties:
 def _parse_json_report(self, report_json):
     """Helper method to parse JSON report for testing."""
     import json
+
     return json.loads(report_json)
+
 
 # Monkey patch the methods for testing
 JSONReportGenerator._parse_json_report = _parse_json_report
@@ -379,7 +434,7 @@ def test_report_generator_basic_functionality():
             audio_score=85.0,
             continuity_score=90.0,
             issues=[],
-            suggestions=[]
+            suggestions=[],
         )
     ]
     report = json_gen.generate_comprehensive_report(scores)
@@ -395,7 +450,7 @@ def test_report_generator_basic_functionality():
             after_score=QualityScore(85.0, 80.0, 85.0, 85.0, 85.0, [], []),
             applied_fixes=["sharpen_image", "fix_audio"],
             improvement_delta=15.0,
-            timestamp=1000.0
+            timestamp=1000.0,
         )
     ]
     report = autofix_gen.generate_comparison_report(comparisons)

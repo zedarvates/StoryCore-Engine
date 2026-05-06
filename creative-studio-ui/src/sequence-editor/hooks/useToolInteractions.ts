@@ -7,7 +7,7 @@
  * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6
  */
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
 import { setActiveTool } from '../store/slices/toolsSlice';
 import {
@@ -22,7 +22,6 @@ import {
   handleSelectTool,
   handleShotMove,
   handleShotTrim,
-  handleShotSplit,
   handleRippleEdit,
   handleRollEdit,
   handleSlipEdit,
@@ -65,6 +64,21 @@ export function useToolInteractions(
     [dispatch]
   );
 
+  // Stable refs for values needed in handleToolAction
+  const optionsRef = useRef(options);
+  const shotsRef = useRef(shots);
+  const playheadPositionRef = useRef(playheadPosition);
+  const zoomLevelRef = useRef(zoomLevel);
+  const selectedElementsRef = useRef(selectedElements);
+
+  useEffect(() => {
+    optionsRef.current = options;
+    shotsRef.current = shots;
+    playheadPositionRef.current = playheadPosition;
+    zoomLevelRef.current = zoomLevel;
+    selectedElementsRef.current = selectedElements;
+  }, [options, shots, playheadPosition, zoomLevel, selectedElements]);
+
   // Check if tool is active
   const isToolActive = useCallback(
     (tool: ToolType) => activeTool === tool,
@@ -100,6 +114,12 @@ export function useToolInteractions(
   // Handle tool-specific actions
   const handleToolAction = useCallback(
     (action: string, data?: unknown) => {
+      const shots = shotsRef.current;
+      const playheadPosition = playheadPositionRef.current;
+      const zoomLevel = zoomLevelRef.current;
+      const selectedElements = selectedElementsRef.current;
+      const options = optionsRef.current;
+
       switch (action) {
         // Primary tools
         case 'select-shot':
@@ -131,33 +151,20 @@ export function useToolInteractions(
           break;
 
         case 'cut-shot': {
-          // Split shot at playhead
+          // Split shot at playhead using the internal slice logic
           const shotAtPlayhead = findShotAtFrame(playheadPosition, shots);
           if (shotAtPlayhead) {
-            const splitResult = handleShotSplit(
-              shotAtPlayhead.id,
-              playheadPosition,
-              shots
-            );
-            if (splitResult) {
-              dispatch(
-                splitShot({
-                  shotId: shotAtPlayhead.id,
-                  leftShot: splitResult.newShots[0],
-                  rightShot: splitResult.newShots[1],
-                })
-              );
-            }
+            dispatch(splitShot({ id: shotAtPlayhead.id, frame: playheadPosition }));
           }
           break;
         }
 
         case 'zoom-in':
-          dispatch(setZoomLevel(Math.min(100, zoomLevel * 1.5)));
+          dispatch(setZoomLevel(zoomLevel * 1.5));
           break;
 
         case 'zoom-out':
-          dispatch(setZoomLevel(Math.max(1, zoomLevel / 1.5)));
+          dispatch(setZoomLevel(zoomLevel / 1.5));
           break;
 
         case 'zoom-fit':
@@ -167,48 +174,50 @@ export function useToolInteractions(
         // Media tools
         case 'add-image':
           options.onAddImage?.();
-          // Create a placeholder image shot
+          // Create a placeholder image shot with required properties
           {
             const imageShot: Shot = {
-            id: `shot-image-${Date.now()}`,
-            name: 'Image Shot',
-            startTime: playheadPosition,
-            duration: 72, // 3 seconds at 24fps
-            layers: [
-              {
-                id: `layer-${Date.now()}`,
-                type: 'media',
-                startTime: 0,
-                duration: 72,
-                locked: false,
-                hidden: false,
-                opacity: 1,
-                blendMode: 'normal',
-                data: {
-                  sourceUrl: '',
-                  trim: { start: 0, end: 72 },
-                  transform: {
-                    position: { x: 0, y: 0 },
-                    scale: { x: 1, y: 1 },
-                    rotation: 0,
-                    anchor: { x: 0.5, y: 0.5 },
-                  },
+              id: `shot-image-${Date.now()}`,
+              name: 'Image Shot',
+              title: 'Image Shot',
+              startTime: playheadPosition,
+              duration: 72, // 3 seconds at 24fps
+              position: shots.length,
+              layers: [
+                {
+                  id: `layer-${Date.now()}`,
+                  type: 'media',
+                  startTime: 0,
+                  duration: 72,
+                  locked: false,
+                  hidden: false,
+                  opacity: 1,
+                  blendMode: 'normal',
+                  data: {
+                    sourceUrl: '',
+                    trim: { start: 0, end: 72 },
+                    transform: {
+                      position: { x: 0, y: 0 },
+                      scale: { x: 1, y: 1 },
+                      rotation: 0,
+                      anchor: { x: 0.5, y: 0.5 },
+                    },
+                  } as MediaLayerData,
                 },
+              ],
+              referenceImages: [],
+              prompt: '',
+              parameters: {
+                seed: -1,
+                denoising: 0.7,
+                steps: 20,
+                guidance: 7.0,
+                sampler: 'euler',
+                scheduler: 'normal',
               },
-            ],
-            referenceImages: [],
-            prompt: '',
-            parameters: {
-              seed: -1,
-              denoising: 0.7,
-              steps: 20,
-              guidance: 7.0,
-              sampler: 'euler',
-              scheduler: 'normal',
-            },
-            generationStatus: 'pending',
-          };
-          dispatch(addShot(imageShot));
+              generationStatus: 'pending',
+            };
+            dispatch(addShot(imageShot));
           }
           break;
 
@@ -219,8 +228,10 @@ export function useToolInteractions(
             const videoShot: Shot = {
               id: `shot-video-${Date.now()}`,
               name: 'Video Shot',
+              title: 'Video Shot',
               startTime: playheadPosition,
               duration: 120, // 5 seconds
+              position: shots.length,
               layers: [
                 {
                   id: `layer-${Date.now()}`,
@@ -240,7 +251,7 @@ export function useToolInteractions(
                       rotation: 0,
                       anchor: { x: 0.5, y: 0.5 },
                     },
-                  },
+                  } as MediaLayerData,
                 },
               ],
               referenceImages: [],
@@ -367,7 +378,7 @@ export function useToolInteractions(
               if (shot) {
                 const mediaLayer = shot.layers.find((l) => l.type === 'media');
                 if (mediaLayer) {
-                  const layerData = { ...mediaLayer.data } as MediaLayerData;
+                  const layerData = { ...(mediaLayer.data as MediaLayerData) };
                   if (layerData.trim) {
                     layerData.trim.start = result.newTrimStart;
                     layerData.trim.end = result.newTrimEnd;
@@ -433,14 +444,17 @@ export function useToolInteractions(
               shots
             );
             if (result) {
-              dispatch(
-                updateShot({
-                  id: result.shotId,
-                  updates: {
-                    layers: [...(shots.find((s) => s.id === result.shotId)?.layers || []), result.layer],
-                  },
-                })
-              );
+              const targetShot = shots.find((s) => s.id === result.shotId);
+              if (targetShot) {
+                dispatch(
+                  updateShot({
+                    id: result.shotId,
+                    updates: {
+                      layers: [...targetShot.layers, result.layer],
+                    },
+                  })
+                );
+              }
             }
           }
           break;
@@ -450,14 +464,17 @@ export function useToolInteractions(
             const { shotId, text } = data as { shotId: string; text: string };
             const result = handleAddText(shotId, playheadPosition, shots, text);
             if (result) {
-              dispatch(
-                updateShot({
-                  id: result.shotId,
-                  updates: {
-                    layers: [...(shots.find((s) => s.id === result.shotId)?.layers || []), result.layer],
-                  },
-                })
-              );
+              const targetShot = shots.find((s) => s.id === result.shotId);
+              if (targetShot) {
+                dispatch(
+                  updateShot({
+                    id: result.shotId,
+                    updates: {
+                      layers: [...targetShot.layers, result.layer],
+                    },
+                  })
+                );
+              }
             }
           }
           break;
@@ -471,32 +488,34 @@ export function useToolInteractions(
             };
             const result = handleAddKeyframe(shotId, playheadPosition, property, value, shots);
             if (result) {
-              const existingShot = shots.find((s) => s.id === shotId);
-              const existingLayerIndex = existingShot?.layers.findIndex(
-                (l) => l.id === result.layer.id
-              );
-              if (existingShot && existingLayerIndex !== undefined && existingLayerIndex >= 0) {
-                // Update existing keyframe layer
-                dispatch(
-                  updateShot({
-                    id: shotId,
-                    updates: {
-                      layers: existingShot.layers.map((l) =>
-                        l.id === result.layer.id ? result.layer : l
-                      ),
-                    },
-                  })
+              const targetShot = shots.find((s) => s.id === shotId);
+              if (targetShot) {
+                const existingLayerIndex = targetShot.layers.findIndex(
+                  (l) => l.id === result.layer.id
                 );
-              } else if (existingShot) {
-                // Add new keyframe layer
-                dispatch(
-                  updateShot({
-                    id: shotId,
-                    updates: {
-                      layers: [...existingShot.layers, result.layer],
-                    },
-                  })
-                );
+                if (existingLayerIndex !== -1) {
+                  // Update existing keyframe layer
+                  dispatch(
+                    updateShot({
+                      id: shotId,
+                      updates: {
+                        layers: targetShot.layers.map((l) =>
+                          l.id === result.layer.id ? result.layer : l
+                        ),
+                      },
+                    })
+                  );
+                } else {
+                  // Add new keyframe layer
+                  dispatch(
+                    updateShot({
+                      id: shotId,
+                      updates: {
+                        layers: [...targetShot.layers, result.layer],
+                      },
+                    })
+                  );
+                }
               }
             }
           }
@@ -506,7 +525,7 @@ export function useToolInteractions(
           console.log(`[useToolInteractions] Unknown action: ${action}`);
       }
     },
-    [dispatch, shots, playheadPosition, zoomLevel, selectedElements, options]
+    [dispatch]
   );
 
   // Keyboard shortcuts for tool switching

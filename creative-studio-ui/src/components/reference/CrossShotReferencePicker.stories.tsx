@@ -37,7 +37,7 @@ interface ShotReferenceSummary {
 // Mock Data
 // ============================================================================
 
-const mockShotSummaries: ShotReferenceSummary[] = [
+const _mockShotSummaries: ShotReferenceSummary[] = [
   {
     shotId: 'shot_1',
     shotName: 'Opening Scene',
@@ -85,7 +85,7 @@ const mockShotSummaries: ShotReferenceSummary[] = [
   },
 ];
 
-const mockReferences: ReferenceItem[] = [
+const _mockReferences: ReferenceItem[] = [
   {
     id: 'ref_1',
     url: 'https://picsum.photos/seed/ref1/400/300',

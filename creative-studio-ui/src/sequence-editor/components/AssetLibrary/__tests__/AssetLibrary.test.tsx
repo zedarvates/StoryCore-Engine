@@ -4,6 +4,8 @@
  * Tests for the Asset Library component with category tabs, search, and generation.
  * Requirements: 5.1, 5.2, 5.3, 5.7, 5.8
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -64,7 +66,7 @@ describe('AssetLibrary Component', () => {
     // Default mock for asset service
     vi.spyOn(AssetLibraryService, 'getInstance').mockReturnValue({
       getAllAssets: vi.fn().mockResolvedValue([]),
-    } as any);
+    } as LegacyAny);
   });
 
   describe('Requirement 5.1: Category Tabs', () => {
@@ -171,7 +173,7 @@ describe('AssetLibrary Component', () => {
       fireEvent.change(searchInput, { target: { value: 'tes' } });
       fireEvent.change(searchInput, { target: { value: 'test' } });
       
-      // Should show loading indicator
+      // Shoul_d show loading indicator
       await waitFor(() => {
         const loadingIndicator = screen.queryByTitle('Searching...');
         // Loading indicator appears briefly during debounce
@@ -217,7 +219,7 @@ describe('AssetLibrary Component', () => {
             assets: mockAssets,
           }
         ]),
-      } as any);
+      } as LegacyAny);
       
       // Use act to wrap render when state updates are expected
       await renderAndLoading(<AssetLibrary />);

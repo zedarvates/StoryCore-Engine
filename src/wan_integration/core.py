@@ -16,7 +16,6 @@ except ImportError:
     from advanced_workflow_config import WanVideoConfig
     from advanced_model_manager import AdvancedModelManager
     from comfyui_integration_manager import ComfyUIIntegrationManager
-    from comfy_client import ComfyUIClient
 
 from .inpainting import VideoInpaintingProcessor
 from .alpha import AlphaChannelGenerator
@@ -30,7 +29,9 @@ from .info import WanVideoInfoMixin
 logger = logging.getLogger(__name__)
 
 
-class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVideoInfoMixin):
+class WanVideoIntegration(
+    WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVideoInfoMixin
+):
     """
     Main integration class for Wan Video 2.2 workflows
 
@@ -55,7 +56,7 @@ class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVi
         model_manager: Optional[AdvancedModelManager] = None,
         timeout_seconds: float = 300.0,
         enable_circuit_breaker: bool = True,
-        comfyui_base_url: str = "http://127.0.0.1:8188"
+        comfyui_base_url: str = "http://127.0.0.1:8188",
     ):
         """
         Initialize Wan Video integration
@@ -74,7 +75,7 @@ class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVi
         # Initialize ComfyUI integration
         self.comfyui_manager = ComfyUIIntegrationManager(
             base_url=comfyui_base_url,
-            workflow_path=None  # Will be set per operation
+            workflow_path=None,  # Will be set per operation
         )
         self.comfyui_initialized = False
 
@@ -104,19 +105,23 @@ class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVi
 
         # Performance tracking
         self.generation_stats = {
-            'inpainting_count': 0,
-            'alpha_generation_count': 0,
-            'compositing_count': 0,
-            'total_frames': 0,
-            'total_time': 0.0,
-            'timeouts': 0,
-            'failures': 0,
-            'cancellations': 0
+            "inpainting_count": 0,
+            "alpha_generation_count": 0,
+            "compositing_count": 0,
+            "total_frames": 0,
+            "total_time": 0.0,
+            "timeouts": 0,
+            "failures": 0,
+            "cancellations": 0,
         }
 
         logger.info("WanVideoIntegration initialized (NON-BLOCKING MODE)")
-        logger.info(f"Config: {config.width}x{config.height}, {config.num_frames} frames")
-        logger.info(f"Timeout: {timeout_seconds}s, Circuit breaker: {enable_circuit_breaker}")
+        logger.info(
+            f"Config: {config.width}x{config.height}, {config.num_frames} frames"
+        )
+        logger.info(
+            f"Timeout: {timeout_seconds}s, Circuit breaker: {enable_circuit_breaker}"
+        )
         logger.info(f"ComfyUI URL: {comfyui_base_url}")
 
     def _check_circuit_breaker(self) -> bool:
@@ -159,10 +164,12 @@ class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVi
             self._last_failure_time = time.time()
 
             if self._failure_count >= self._max_failures:
-                logger.error(f"Circuit breaker OPENED after {self._failure_count} failures")
+                logger.error(
+                    f"Circuit breaker OPENED after {self._failure_count} failures"
+                )
                 self._circuit_open = True
 
-            self.generation_stats['failures'] += 1
+            self.generation_stats["failures"] += 1
 
     def request_cancellation(self):
         """Request cancellation of current operation"""
@@ -173,11 +180,12 @@ class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVi
         """Check if cancellation was requested"""
         if self._cancellation_requested:
             self._cancellation_requested = False
-            self.generation_stats['cancellations'] += 1
+            self.generation_stats["cancellations"] += 1
             raise asyncio.CancelledError("Operation cancelled by user request")
 
-    async def _with_timeout(self, coro, timeout: Optional[float] = None,
-                           operation_name: str = "operation"):
+    async def _with_timeout(
+        self, coro, timeout: Optional[float] = None, operation_name: str = "operation"
+    ):
         """
         Execute coroutine with timeout
 
@@ -201,7 +209,7 @@ class WanVideoIntegration(WanVideoWorkflowsMixin, WanVideoGenerationMixin, WanVi
             return result
         except asyncio.TimeoutError:
             self._current_operation = None
-            self.generation_stats['timeouts'] += 1
+            self.generation_stats["timeouts"] += 1
             logger.error(f"Operation '{operation_name}' timed out after {timeout}s")
             raise
 

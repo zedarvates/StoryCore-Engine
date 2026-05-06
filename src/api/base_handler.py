@@ -4,9 +4,8 @@ Base API Handler
 This module provides the base handler class with common middleware functionality.
 """
 
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 import logging
-import time
 from datetime import datetime
 
 from .models import (
@@ -26,7 +25,7 @@ logger = logging.getLogger(__name__)
 class BaseAPIHandler:
     """
     Base class for all API handlers.
-    
+
     Provides common middleware functionality including:
     - Request validation
     - Error handling
@@ -34,11 +33,11 @@ class BaseAPIHandler:
     - Logging
     - Authentication/authorization hooks
     """
-    
+
     def __init__(self, config: APIConfig, cache_service: Optional[CacheService] = None):
         """
         Initialize the base handler.
-        
+
         Args:
             config: API configuration
             cache_service: Optional cache service for response caching
@@ -46,7 +45,7 @@ class BaseAPIHandler:
         self.config = config
         self.cache_service = cache_service
         self.logger = logging.getLogger(self.__class__.__name__)
-    
+
     def create_success_response(
         self,
         data: Dict[str, Any],
@@ -54,11 +53,11 @@ class BaseAPIHandler:
     ) -> APIResponse:
         """
         Create a successful API response.
-        
+
         Args:
             data: Response data
             context: Request context
-            
+
         Returns:
             Formatted API response
         """
@@ -68,13 +67,13 @@ class BaseAPIHandler:
             duration_ms=context.get_duration_ms(),
             api_version=self.config.version,
         )
-        
+
         return APIResponse(
             status="success",
             data=data,
             metadata=metadata,
         )
-    
+
     def create_error_response(
         self,
         error_code: str,
@@ -85,14 +84,14 @@ class BaseAPIHandler:
     ) -> APIResponse:
         """
         Create an error API response.
-        
+
         Args:
             error_code: Error code from ErrorCodes
             message: Human-readable error message
             context: Request context
             details: Additional error details
             remediation: Suggestion for fixing the error
-            
+
         Returns:
             Formatted error response
         """
@@ -102,20 +101,20 @@ class BaseAPIHandler:
             details=details,
             remediation=remediation,
         )
-        
+
         metadata = ResponseMetadata(
             request_id=context.request_id,
             timestamp=datetime.now(),
             duration_ms=context.get_duration_ms(),
             api_version=self.config.version,
         )
-        
+
         return APIResponse(
             status="error",
             error=error,
             metadata=metadata,
         )
-    
+
     def create_pending_response(
         self,
         task_id: str,
@@ -124,32 +123,32 @@ class BaseAPIHandler:
     ) -> APIResponse:
         """
         Create a pending (async) API response.
-        
+
         Args:
             task_id: ID of the async task
             context: Request context
             additional_data: Additional data to include
-            
+
         Returns:
             Formatted pending response
         """
         data = {"task_id": task_id}
         if additional_data:
             data.update(additional_data)
-        
+
         metadata = ResponseMetadata(
             request_id=context.request_id,
             timestamp=datetime.now(),
             duration_ms=context.get_duration_ms(),
             api_version=self.config.version,
         )
-        
+
         return APIResponse(
             status="pending",
             data=data,
             metadata=metadata,
         )
-    
+
     def validate_required_params(
         self,
         params: Dict[str, Any],
@@ -158,17 +157,17 @@ class BaseAPIHandler:
     ) -> Optional[APIResponse]:
         """
         Validate that required parameters are present.
-        
+
         Args:
             params: Request parameters
             required: List of required parameter names
             context: Request context
-            
+
         Returns:
             Error response if validation fails, None if successful
         """
         missing = [key for key in required if key not in params or params[key] is None]
-        
+
         if missing:
             return self.create_error_response(
                 error_code=ErrorCodes.VALIDATION_ERROR,
@@ -177,9 +176,9 @@ class BaseAPIHandler:
                 details={"missing_fields": missing},
                 remediation=f"Provide values for: {', '.join(missing)}",
             )
-        
+
         return None
-    
+
     def log_request(
         self,
         endpoint: str,
@@ -188,7 +187,7 @@ class BaseAPIHandler:
     ) -> None:
         """
         Log an API request.
-        
+
         Args:
             endpoint: Endpoint path
             params: Request parameters (will be sanitized if configured)
@@ -196,12 +195,12 @@ class BaseAPIHandler:
         """
         if not self.config.log_api_calls:
             return
-        
+
         # Sanitize sensitive parameters if configured
         logged_params = params
         if self.config.log_sanitize_params:
             logged_params = self._sanitize_params(params)
-        
+
         self.logger.info(
             f"API Request: {endpoint}",
             extra={
@@ -209,9 +208,9 @@ class BaseAPIHandler:
                 "endpoint": endpoint,
                 "params": logged_params,
                 "user": str(context.user) if context.user else None,
-            }
+            },
         )
-    
+
     def log_response(
         self,
         endpoint: str,
@@ -220,7 +219,7 @@ class BaseAPIHandler:
     ) -> None:
         """
         Log an API response.
-        
+
         Args:
             endpoint: Endpoint path
             response: API response
@@ -228,9 +227,9 @@ class BaseAPIHandler:
         """
         if not self.config.log_api_calls:
             return
-        
+
         log_level = logging.INFO if response.status == "success" else logging.ERROR
-        
+
         self.logger.log(
             log_level,
             f"API Response: {endpoint} - {response.status}",
@@ -240,24 +239,31 @@ class BaseAPIHandler:
                 "status": response.status,
                 "duration_ms": context.get_duration_ms(),
                 "error_code": response.error.code if response.error else None,
-            }
+            },
         )
-    
+
     def _sanitize_params(self, params: Dict[str, Any]) -> Dict[str, Any]:
         """
         Sanitize sensitive parameters for logging.
-        
+
         Args:
             params: Original parameters
-            
+
         Returns:
             Sanitized parameters
         """
         sensitive_keys = {
-            "password", "token", "api_key", "secret", "credential",
-            "auth", "authorization", "private_key", "access_token",
+            "password",
+            "token",
+            "api_key",
+            "secret",
+            "credential",
+            "auth",
+            "authorization",
+            "private_key",
+            "access_token",
         }
-        
+
         sanitized = {}
         for key, value in params.items():
             if any(sensitive in key.lower() for sensitive in sensitive_keys):
@@ -266,9 +272,9 @@ class BaseAPIHandler:
                 sanitized[key] = self._sanitize_params(value)
             else:
                 sanitized[key] = value
-        
+
         return sanitized
-    
+
     def handle_exception(
         self,
         exception: Exception,
@@ -276,19 +282,19 @@ class BaseAPIHandler:
     ) -> APIResponse:
         """
         Handle an exception and convert to error response.
-        
+
         Args:
             exception: The exception that occurred
             context: Request context
-            
+
         Returns:
             Error response
         """
         self.logger.exception(
             f"Exception in API handler: {str(exception)}",
-            extra={"request_id": context.request_id}
+            extra={"request_id": context.request_id},
         )
-        
+
         # Map common exceptions to error codes
         if isinstance(exception, ValueError):
             error_code = ErrorCodes.VALIDATION_ERROR
@@ -302,7 +308,7 @@ class BaseAPIHandler:
         else:
             error_code = ErrorCodes.INTERNAL_ERROR
             message = "An internal error occurred"
-        
+
         return self.create_error_response(
             error_code=error_code,
             message=message,
@@ -310,7 +316,6 @@ class BaseAPIHandler:
             details={"exception_type": type(exception).__name__},
         )
 
-    
     def cache_response(
         self,
         response: APIResponse,
@@ -318,15 +323,15 @@ class BaseAPIHandler:
     ) -> APIResponse:
         """
         Cache a response if caching is enabled for this request.
-        
+
         This should be called by handlers after creating a successful response.
         The cache middleware sets context.cache_key and context.cache_ttl if
         the endpoint is cacheable.
-        
+
         Args:
             response: The response to cache
             context: Request context
-            
+
         Returns:
             The same response (for chaining)
         """
@@ -339,17 +344,17 @@ class BaseAPIHandler:
         ):
             cache_key = context.cache_key
             cache_ttl = context.cache_ttl
-            
+
             # Cache the response
             self.cache_service.set(cache_key, response, ttl=cache_ttl)
-            
+
             self.logger.debug(
                 f"Cached response for {context.endpoint}",
                 extra={
                     "request_id": context.request_id,
                     "cache_key": cache_key,
                     "ttl": cache_ttl,
-                }
+                },
             )
-        
+
         return response

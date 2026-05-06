@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Save, Eye, Volume2 } from 'lucide-react';
 import { LLMService } from '../../../services/llmService';
@@ -10,7 +11,7 @@ export interface CharacterCreatorWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (character: unknown) => void;
-  worldContext?: any; // From project world/lore
+  worldContext?: LegacyAny; // From project world/lore
 }
 
 interface CharacterData {
@@ -44,7 +45,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
     worldRelation: ''
   });
 
-  const [, setLlmSuggestions] = useState<any>({});
+  const [, setLlmSuggestions] = useState<LegacyAny>({});
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<{[key: number]: string[]}>({});
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
@@ -240,7 +241,7 @@ export const CharacterCreatorWizard: React.FC<CharacterCreatorWizardProps> = ({
       // Get properly configured LLM service from ConfigManager
       const llmConfig = ConfigManager.getLLMConfig();
       // Cast to required type to fix type mismatch
-      const llmService = new LLMService(llmConfig as any);
+      const llmService = new LLMService(llmConfig as LegacyAny);
 
       // Safely get genre string with proper error handling
       const genreString = getGenreString(worldContext.genre);
@@ -579,9 +580,9 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
                 />
                 <EnhancedCharacterAssistant
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  worldContext={worldContext as any}
+                  worldContext={worldContext as LegacyAny}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  characterData={character as any}
+                  characterData={character as LegacyAny}
                   onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                   suggestionType="name"
                 />
@@ -591,7 +592,7 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
                 <select
                   id="gender"
                   value={character.gender}
-                  onChange={(e) => updateCharacter('gender', e.target.value as any)}
+                  onChange={(e) => updateCharacter('gender', e.target.value as LegacyAny)}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   title="Sélectionnez le genre du personnage"
                 >
@@ -636,9 +637,9 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
                   </div>
                   <EnhancedCharacterAssistant
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    worldContext={worldContext as any}
+                    worldContext={worldContext as LegacyAny}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    characterData={character as any}
+                    characterData={character as LegacyAny}
                     onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                     suggestionType="personality"
                   />
@@ -655,9 +656,9 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
                 />
                 <EnhancedCharacterAssistant
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  worldContext={worldContext as any}
+                  worldContext={worldContext as LegacyAny}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  characterData={character as any}
+                  characterData={character as LegacyAny}
                   onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                   suggestionType="appearance"
                 />
@@ -678,9 +679,9 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
                 />
                 <EnhancedCharacterAssistant
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  worldContext={worldContext as any}
+                  worldContext={worldContext as LegacyAny}
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  characterData={character as any}
+                  characterData={character as LegacyAny}
                   onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                   suggestionType="backstory"
                 />
@@ -723,9 +724,9 @@ Réponds UNIQUEMENT avec un objet JSON valide suivant ce format:
                   </div>
                   <EnhancedCharacterAssistant
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    worldContext={worldContext as any}
+                    worldContext={worldContext as LegacyAny}
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    characterData={character as any}
+                    characterData={character as LegacyAny}
                     onSuggestion={(field, value) => updateCharacter(field as keyof CharacterData, value)}
                     suggestionType="abilities"
                   />

@@ -6,6 +6,8 @@
  * 
  * Requirements: 19.4, 19.6, 19.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useCallback, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store';
@@ -157,7 +159,7 @@ export function useProjectFile(): UseProjectFileResult {
       // Restore tools state
       if (projectData.tools) {
         if (projectData.tools.activeTool) {
-          dispatch(setActiveTool(projectData.tools.activeTool as any));
+          dispatch(setActiveTool(projectData.tools.activeTool as LegacyAny));
         }
       }
       

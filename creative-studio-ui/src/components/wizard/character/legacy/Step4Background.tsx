@@ -4,7 +4,7 @@ import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Sparkles, X, History, Calendar, Briefcase, GraduationCap, Users, Flag, Terminal, Microscope, Activity } from 'lucide-react';
+import { _Sparkles, X, History, _Calendar, Briefcase, GraduationCap, Users, Flag, Terminal, Microscope, Activity } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';

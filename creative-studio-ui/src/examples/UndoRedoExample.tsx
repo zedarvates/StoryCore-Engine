@@ -69,7 +69,7 @@ export const UndoRedoExample: React.FC = () => {
   useUndoRedoShortcuts({
     onUndo: undo,
     onRedo: redo,
-    onShortcutTriggered: (action) => {
+    onShortcutTriggered: (_action) => {
       ;
     }
   });

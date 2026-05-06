@@ -10,7 +10,7 @@ import { ComfyUIParameterPanel } from '@/components/ComfyUIParameterPanel';
 import {
   Server,
   Play,
-  Square,
+  _Square,
   Settings,
   RefreshCw,
   Zap,
@@ -298,7 +298,7 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
       {/* Media Upload */}
       <div className="p-4 border-b border-border">
         <ComfyUIMediaUpload
-          onFileUploaded={(file, uploadUrl) => {
+          onFileUploaded={(file, _uploadUrl) => {
             toast({
               title: 'Media Ready',
               description: `${file.name} can now be used in ComfyUI workflows`,
@@ -370,7 +370,7 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
         <ComfyUIParameterPanel
           parameters={generationParams}
           onParametersChange={setGenerationParams}
-          onExecuteWorkflow={(params) => executeWorkflow('image')} // Default to image generation
+          onExecuteWorkflow={(_params) => executeWorkflow('image')} // Default to image generation
         />
       </div>
 

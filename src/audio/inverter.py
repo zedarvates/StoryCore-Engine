@@ -6,6 +6,7 @@ This module provides functionality for inverting audio signals.
 
 import numpy as np
 
+
 class Inverter:
     """Audio inverter for reversing audio signals."""
 

@@ -3,12 +3,18 @@ asset_placer.py - Plantation procedurale d'assets 3D et sprites 2D
 ===================================================================
 Genere du code Python Blender (mesh 3D procéduraux + sprites billboard).
 """
+
 from __future__ import annotations
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Tuple
 from blender_projection.asset_library import (
-    AssetLibrary, AssetDef, AssetType, AssetCategory, SceneContext,
+    AssetLibrary,
+    AssetDef,
+    AssetType,
+    AssetCategory,
+    SceneContext,
 )
+
 _LIB = AssetLibrary()
 
 
@@ -51,10 +57,15 @@ class AssetPlacer:
             area = p.get("area", (-5.0, 5.0, 0.0, 8.0))
             seed = p.get("seed", 42 + i)
             lines.append(f"# --- {asset_id} x{count} ---")
-            lines.append(self.generate_placement_code(
-                asset_id=asset_id, count=count,
-                area_bounds=tuple(area), seed=seed, camera_name=camera_name,
-            ))
+            lines.append(
+                self.generate_placement_code(
+                    asset_id=asset_id,
+                    count=count,
+                    area_bounds=tuple(area),
+                    seed=seed,
+                    camera_name=camera_name,
+                )
+            )
         script = "\n".join(lines)
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "w", encoding="utf-8") as f:
@@ -68,7 +79,11 @@ class AssetPlacer:
         density: str = "medium",
         output_path: str = "./exports/blender/auto_placement.py",
     ) -> str:
-        ctx = SceneContext.EXTERIOR if scene_context == "exterior" else SceneContext.INTERIOR
+        ctx = (
+            SceneContext.EXTERIOR
+            if scene_context == "exterior"
+            else SceneContext.INTERIOR
+        )
         suggestions = self.lib.suggest_for_scene(narrative_tags, context=ctx)
         density_map = {"light": 2, "medium": 5, "heavy": 10}
         base_count = density_map.get(density, 5)
@@ -80,17 +95,25 @@ class AssetPlacer:
                     count = base_count * 3
                 if category == AssetCategory.PROPS:
                     count = max(1, base_count // 2)
-                placements.append({
-                    "asset_id": asset.id, "count": count,
-                    "area": (-8.0, 8.0, 0.0, 12.0),
-                    "seed": abs(hash(asset.id)) % 9999,
-                })
+                placements.append(
+                    {
+                        "asset_id": asset.id,
+                        "count": count,
+                        "area": (-8.0, 8.0, 0.0, 12.0),
+                        "seed": abs(hash(asset.id)) % 9999,
+                    }
+                )
         return self.generate_full_script(placements, output_path=output_path)
 
     # ── GENERATEURS INTERNES ─────────────────────────────────────────────────
 
-    def _mesh3d_code(self, asset: AssetDef, count: int,
-                     area_bounds: Tuple[float,float,float,float], seed: int) -> str:
+    def _mesh3d_code(
+        self,
+        asset: AssetDef,
+        count: int,
+        area_bounds: Tuple[float, float, float, float],
+        seed: int,
+    ) -> str:
         x0, x1, y0, y1 = area_bounds
         s0, s1 = asset.scale_range
         r0, r1 = asset.rot_y_range
@@ -119,9 +142,14 @@ def {fn}():
 {fn}()
 """
 
-    def _sprite_code(self, asset: AssetDef, count: int,
-                     area_bounds: Tuple[float,float,float,float],
-                     seed: int, camera_name: str) -> str:
+    def _sprite_code(
+        self,
+        asset: AssetDef,
+        count: int,
+        area_bounds: Tuple[float, float, float, float],
+        seed: int,
+        camera_name: str,
+    ) -> str:
         x0, x1, y0, y1 = area_bounds
         s0, s1 = asset.scale_range
         r0, r1 = asset.rot_y_range
@@ -176,6 +204,7 @@ def _conifer():
     bpy.ops.object.join()
     return bpy.context.active_object"""
 
+
 def _g_deciduous(aid):
     return """_deciduous()
 def _deciduous():
@@ -191,6 +220,7 @@ def _deciduous():
     cr.select_set(True); t.select_set(True)
     bpy.context.view_layer.objects.active=t; bpy.ops.object.join()
     return bpy.context.active_object"""
+
 
 def _g_palm(aid):
     return """_palm()
@@ -213,6 +243,7 @@ def _palm():
     t.select_set(True); bpy.context.view_layer.objects.active=t
     bpy.ops.object.join(); return bpy.context.active_object"""
 
+
 def _g_dead(aid):
     return """_dead_tree()
 def _dead_tree():
@@ -231,6 +262,7 @@ def _dead_tree():
     t.select_set(True); bpy.context.view_layer.objects.active=t
     bpy.ops.object.join(); return bpy.context.active_object"""
 
+
 def _g_rock(aid):
     return """_rock()
 def _rock():
@@ -248,6 +280,7 @@ def _rock():
     m.diffuse_color=(_rnd.uniform(.35,.55),_rnd.uniform(.3,.45),_rnd.uniform(.28,.4),1.0)
     m.roughness=0.9; r.data.materials.append(m); return r"""
 
+
 def _g_boulder(aid):
     return """_boulder()
 def _boulder():
@@ -263,6 +296,7 @@ def _boulder():
     r.scale=(1.0,_rnd.uniform(.7,1.0),_rnd.uniform(.5,.8))
     m=bpy.data.materials.new("boulder"); m.diffuse_color=(.42,.38,.33,1.0); m.roughness=0.95
     r.data.materials.append(m); return r"""
+
 
 def _g_rock_cluster(aid):
     return """_rock_cluster()
@@ -282,6 +316,7 @@ def _rock_cluster():
         bpy.context.view_layer.objects.active=objs[0]; bpy.ops.object.join()
     return bpy.context.active_object"""
 
+
 def _g_bush(aid):
     return """_bush()
 def _bush():
@@ -300,6 +335,7 @@ def _bush():
         bpy.context.view_layer.objects.active=spheres[0]; bpy.ops.object.join()
     return bpy.context.active_object"""
 
+
 def _g_fern(aid):
     return """_fern()
 def _fern():
@@ -316,6 +352,7 @@ def _fern():
     for f in fronds: f.select_set(True)
     bpy.context.view_layer.objects.active=fronds[0]; bpy.ops.object.join()
     return bpy.context.active_object"""
+
 
 def _g_cactus(aid):
     return """_cactus()
@@ -336,6 +373,7 @@ def _cactus():
     b.select_set(True); bpy.context.view_layer.objects.active=b
     bpy.ops.object.join(); return bpy.context.active_object"""
 
+
 def _g_lamp(aid):
     return """_lamp()
 def _lamp():
@@ -353,6 +391,7 @@ def _lamp():
     bpy.context.view_layer.objects.active=p; bpy.ops.object.join()
     return bpy.context.active_object"""
 
+
 def _g_crate(aid):
     return """_crate()
 def _crate():
@@ -361,6 +400,7 @@ def _crate():
     m=bpy.data.materials.new("crate"); m.diffuse_color=(.55,.38,.2,1); m.roughness=.85
     o.data.materials.append(m); return o"""
 
+
 def _g_barrel(aid):
     return """_barrel()
 def _barrel():
@@ -368,6 +408,7 @@ def _barrel():
     o=bpy.context.active_object
     m=bpy.data.materials.new("barrel"); m.diffuse_color=(.25,.2,.15,1); m.metallic=.3; m.roughness=.8
     o.data.materials.append(m); return o"""
+
 
 def _g_debris(aid):
     return """_debris()
@@ -387,6 +428,7 @@ def _debris():
         bpy.context.view_layer.objects.active=pieces[0]; bpy.ops.object.join()
     return bpy.context.active_object"""
 
+
 def _g_default(aid):
     return """_default_asset()
 def _default_asset():
@@ -395,14 +437,26 @@ def _default_asset():
     m=bpy.data.materials.new("default"); m.diffuse_color=(.5,.5,.5,1.0)
     o.data.materials.append(m); return o"""
 
+
 _GENERATORS = {
-    "tree_conifer": _g_conifer, "tree_deciduous": _g_deciduous,
-    "tree_palm": _g_palm, "tree_dead": _g_dead, "tree_willow": _g_deciduous,
-    "rock_medium": _g_rock, "rock_boulder": _g_boulder, "rock_cluster": _g_rock_cluster,
-    "plant_bush": _g_bush, "plant_fern": _g_fern, "plant_tall_grass": _g_bush,
-    "plant_cactus": _g_cactus, "plant_mushroom": _g_rock,
-    "foliage_ivy": _g_bush, "foliage_moss": _g_rock_cluster,
-    "prop_streetlamp": _g_lamp, "prop_crate": _g_crate,
-    "prop_barrel": _g_barrel, "prop_debris": _g_debris,
+    "tree_conifer": _g_conifer,
+    "tree_deciduous": _g_deciduous,
+    "tree_palm": _g_palm,
+    "tree_dead": _g_dead,
+    "tree_willow": _g_deciduous,
+    "rock_medium": _g_rock,
+    "rock_boulder": _g_boulder,
+    "rock_cluster": _g_rock_cluster,
+    "plant_bush": _g_bush,
+    "plant_fern": _g_fern,
+    "plant_tall_grass": _g_bush,
+    "plant_cactus": _g_cactus,
+    "plant_mushroom": _g_rock,
+    "foliage_ivy": _g_bush,
+    "foliage_moss": _g_rock_cluster,
+    "prop_streetlamp": _g_lamp,
+    "prop_crate": _g_crate,
+    "prop_barrel": _g_barrel,
+    "prop_debris": _g_debris,
     "_default": _g_default,
 }

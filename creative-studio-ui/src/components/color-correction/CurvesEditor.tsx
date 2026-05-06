@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, _useEffect } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
-import { ColorCurves, CurvePoint } from '../../types/color-correction';
+import { _ColorCurves, CurvePoint } from '../../types/color-correction';
 import styles from './ColorCorrectionPanel.module.css';
 
 interface CurvesEditorProps {}
@@ -10,7 +10,7 @@ export const CurvesEditor: React.FC<CurvesEditorProps> = () => {
   const [activeChannel, setActiveChannel] = useState<'rgb' | 'luma'>('rgb');
   const [selectedChannel, setSelectedChannel] = useState<'r' | 'g' | 'b' | 'luma'>('r');
 
-  const handleCurvePointChange = (channel: 'r' | 'g' | 'b' | 'luma', points: CurvePoint[]) => {
+  const _handleCurvePointChange = (channel: 'r' | 'g' | 'b' | 'luma', points: CurvePoint[]) => {
     const newCurves = { ...state.primaryGrade.curves };
     newCurves.rgb[channel === 'r' ? 0 : channel === 'g' ? 1 : channel === 'b' ? 2 : 3] = points;
     setPrimaryColorGrade({ ...state.primaryGrade, curves: newCurves });

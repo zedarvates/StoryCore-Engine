@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ModelSelector, type ModelSelectorProps } from '../ModelSelector';
+import { ModelSelector, type _ModelSelectorProps } from '../ModelSelector';
 import type { ModelMetadata } from '@/services/llm';
 
 describe('ModelSelector', () => {

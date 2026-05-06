@@ -3,15 +3,15 @@ Memory Export command handler - Export memory system data and state.
 """
 
 import argparse
-import json
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import List
 import shutil
 import zipfile
 import tarfile
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.memory_system.memory_system_core import MemorySystemCore
 
 
 class MemoryExportHandler(BaseHandler):
@@ -26,19 +26,18 @@ class MemoryExportHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
         parser.add_argument(
-            "--output", "-o",
-            help="Output directory or file for export"
+            "--output", "-o", help="Output directory or file for export"
         )
 
         parser.add_argument(
             "--format",
             choices=["directory", "zip", "tar"],
             default="directory",
-            help="Export format (default: directory)"
+            help="Export format (default: directory)",
         )
 
         parser.add_argument(
@@ -46,13 +45,13 @@ class MemoryExportHandler(BaseHandler):
             nargs="+",
             choices=["memory", "discussions", "assets", "config", "all"],
             default=["all"],
-            help="Export scope (default: all)"
+            help="Export scope (default: all)",
         )
 
         parser.add_argument(
             "--include-summaries",
             action="store_true",
-            help="Include generated summaries in export"
+            help="Include generated summaries in export",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -63,7 +62,7 @@ class MemoryExportHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             # Import memory system
@@ -72,7 +71,7 @@ class MemoryExportHandler(BaseHandler):
             except ImportError as e:
                 raise SystemError(
                     f"Memory system not available: {e}",
-                    "Ensure memory_system module is installed"
+                    "Ensure memory_system module is installed",
                 )
 
             # Initialize memory system
@@ -102,7 +101,7 @@ class MemoryExportHandler(BaseHandler):
                 "output": str(output_path.absolute()),
                 "format": args.format,
                 "scopes": scopes,
-                "exported_files": []
+                "exported_files": [],
             }
 
             if "memory" in scopes or "all" in scopes:
@@ -110,7 +109,9 @@ class MemoryExportHandler(BaseHandler):
                 export_results["exported_files"].extend(memory_files)
 
             if "discussions" in scopes or "all" in scopes:
-                discussion_files = self._export_discussions(memory_system, export_dir, args.include_summaries)
+                discussion_files = self._export_discussions(
+                    memory_system, export_dir, args.include_summaries
+                )
                 export_results["exported_files"].extend(discussion_files)
 
             if "assets" in scopes or "all" in scopes:
@@ -123,15 +124,17 @@ class MemoryExportHandler(BaseHandler):
 
             # Create archive if requested
             if args.format != "directory":
-                archive_path = self._create_archive(export_dir, output_path, args.format)
+                archive_path = self._create_archive(
+                    export_dir, output_path, args.format
+                )
                 export_results["archive_path"] = str(archive_path)
-                
+
                 # Clean up temporary directory
                 shutil.rmtree(export_dir)
                 export_dir = archive_path
 
             # Output results
-            print(f"Memory System Export Complete")
+            print("Memory System Export Complete")
             print(f"Project: {export_results['project']}")
             print(f"Output: {export_results['output']}")
             print(f"Format: {export_results['format']}")
@@ -139,7 +142,7 @@ class MemoryExportHandler(BaseHandler):
             print(f"Files exported: {len(export_results['exported_files'])}")
             print()
             print("Exported files:")
-            for file_path in export_results['exported_files']:
+            for file_path in export_results["exported_files"]:
                 print(f"  • {file_path}")
 
             return 0
@@ -147,7 +150,9 @@ class MemoryExportHandler(BaseHandler):
         except Exception as e:
             return self.handle_error(e, "memory export")
 
-    def _export_memory(self, memory_system: 'MemorySystemCore', export_dir: Path) -> List[str]:
+    def _export_memory(
+        self, memory_system: "MemorySystemCore", export_dir: Path
+    ) -> List[str]:
         """Export memory system data."""
         exported_files = []
 
@@ -173,17 +178,24 @@ class MemoryExportHandler(BaseHandler):
 
         return exported_files
 
-    def _export_discussions(self, memory_system: 'MemorySystemCore', export_dir: Path, include_summaries: bool) -> List[str]:
+    def _export_discussions(
+        self,
+        memory_system: "MemorySystemCore",
+        export_dir: Path,
+        include_summaries: bool,
+    ) -> List[str]:
         """Export discussion data."""
         exported_files = []
 
         try:
             # Export raw discussions
-            discussions_dir = memory_system.project_path / "assistant" / "discussions_raw"
+            discussions_dir = (
+                memory_system.project_path / "assistant" / "discussions_raw"
+            )
             if discussions_dir.exists():
                 dest_dir = export_dir / "discussions" / "raw"
                 dest_dir.mkdir(parents=True, exist_ok=True)
-                
+
                 for file_path in discussions_dir.glob("*.json"):
                     dest_path = dest_dir / file_path.name
                     shutil.copy(file_path, dest_path)
@@ -191,11 +203,13 @@ class MemoryExportHandler(BaseHandler):
 
             # Export discussion summaries if requested
             if include_summaries:
-                summaries_dir = memory_system.project_path / "assistant" / "discussions_summary"
+                summaries_dir = (
+                    memory_system.project_path / "assistant" / "discussions_summary"
+                )
                 if summaries_dir.exists():
                     dest_dir = export_dir / "discussions" / "summaries"
                     dest_dir.mkdir(parents=True, exist_ok=True)
-                    
+
                     for file_path in summaries_dir.glob("*.json"):
                         dest_path = dest_dir / file_path.name
                         shutil.copy(file_path, dest_path)
@@ -206,7 +220,9 @@ class MemoryExportHandler(BaseHandler):
 
         return exported_files
 
-    def _export_assets(self, memory_system: 'MemorySystemCore', export_dir: Path) -> List[str]:
+    def _export_assets(
+        self, memory_system: "MemorySystemCore", export_dir: Path
+    ) -> List[str]:
         """Export asset data."""
         exported_files = []
 
@@ -215,7 +231,18 @@ class MemoryExportHandler(BaseHandler):
             assets_dir = memory_system.project_path / "assets"
             if assets_dir.exists():
                 # Copy asset files
-                for ext in ['*.jpg', '*.jpeg', '*.png', '*.gif', '*.mp4', '*.avi', '*.mov', '*.mp3', '*.wav', '*.flac']:
+                for ext in [
+                    "*.jpg",
+                    "*.jpeg",
+                    "*.png",
+                    "*.gif",
+                    "*.mp4",
+                    "*.avi",
+                    "*.mov",
+                    "*.mp3",
+                    "*.wav",
+                    "*.flac",
+                ]:
                     for file_path in assets_dir.glob(ext):
                         dest_path = export_dir / "assets" / file_path.name
                         dest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -227,7 +254,9 @@ class MemoryExportHandler(BaseHandler):
 
         return exported_files
 
-    def _export_config(self, memory_system: 'MemorySystemCore', export_dir: Path) -> List[str]:
+    def _export_config(
+        self, memory_system: "MemorySystemCore", export_dir: Path
+    ) -> List[str]:
         """Export configuration data."""
         exported_files = []
 
@@ -249,15 +278,15 @@ class MemoryExportHandler(BaseHandler):
         """Create archive from exported files."""
         try:
             if format == "zip":
-                with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                    for file_path in source_dir.rglob('*'):
+                with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+                    for file_path in source_dir.rglob("*"):
                         if file_path.is_file():
                             arcname = file_path.relative_to(source_dir)
                             zipf.write(file_path, arcname)
 
             elif format == "tar":
-                with tarfile.open(output_path, 'w:gz') as tar:
-                    for file_path in source_dir.rglob('*'):
+                with tarfile.open(output_path, "w:gz") as tar:
+                    for file_path in source_dir.rglob("*"):
                         if file_path.is_file():
                             arcname = file_path.relative_to(source_dir)
                             tar.add(file_path, arcname)

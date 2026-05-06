@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useRef, useEffect, useState } from 'react';
 import styles from './AudioWaveformEditor.module.css';
 
@@ -14,7 +15,7 @@ interface AudioWaveformEditorProps {
 }
 
 export const AudioWaveformEditor: React.FC<AudioWaveformEditorProps> = ({
-  audioUrl,
+  _audioUrl,
   duration,
   onCurveChange
 }) => {
@@ -73,7 +74,7 @@ export const AudioWaveformEditor: React.FC<AudioWaveformEditorProps> = ({
             <button
               key={mode}
               className={`${styles.viewBtn} ${viewMode === mode ? styles.active : ''}`}
-              onClick={() => setViewMode(mode as any)}
+              onClick={() => setViewMode(mode as LegacyAny)}
             >
               {mode}
             </button>

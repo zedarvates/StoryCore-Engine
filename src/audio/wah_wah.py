@@ -7,6 +7,7 @@ This module provides wah-wah effect functionality for audio processing.
 import numpy as np
 from scipy import signal
 
+
 class WahWah:
     """Wah-wah effect processor for audio signals."""
 
@@ -42,34 +43,42 @@ class WahWah:
 
         # Apply wah-wah effect
         output = np.zeros_like(audio_data)
-        
+
         for i in range(num_samples):
             # Calculate modulated center frequency
-            modulated_freq = self.center_freq + self.center_freq * lfo_signal[i] * self.depth
-            
+            modulated_freq = (
+                self.center_freq + self.center_freq * lfo_signal[i] * self.depth
+            )
+
             # Ensure modulated frequency is within valid range
             modulated_freq = max(10.0, min(modulated_freq, self.sample_rate / 2 - 10.0))
-            
+
             # Create bandpass filter
             nyquist = 0.5 * self.sample_rate
             freq = modulated_freq / nyquist
             bandwidth = 0.2  # Fixed bandwidth for wah-wah effect
-            
+
             # Ensure bandwidth is valid
-            lower_freq = freq - bandwidth/2
-            upper_freq = freq + bandwidth/2
-            
+            lower_freq = freq - bandwidth / 2
+            upper_freq = freq + bandwidth / 2
+
             if lower_freq <= 0 or upper_freq >= 1.0:
                 # Skip filter if frequencies are out of bounds
                 output[i] = audio_data[i]
                 continue
-            
+
             # Design bandpass filter
-            b, a = signal.iirfilter(4, [lower_freq, upper_freq], btype='band', ftype='butter')
-            
+            b, a = signal.iirfilter(
+                4, [lower_freq, upper_freq], btype="band", ftype="butter"
+            )
+
             # Apply filter (simplified)
             if i > 0:
-                output[i] = b[0] * audio_data[i] + b[1] * audio_data[i-1] - a[1] * output[i-1]
+                output[i] = (
+                    b[0] * audio_data[i]
+                    + b[1] * audio_data[i - 1]
+                    - a[1] * output[i - 1]
+                )
             else:
                 output[i] = b[0] * audio_data[i]
 

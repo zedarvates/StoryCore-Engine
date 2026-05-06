@@ -226,7 +226,7 @@ export function BaseWizard<T>({
   // =========================================================================
 
   const currentStepData = stepData[currentStep] || {};
-  const currentErrors = stepErrors[currentStep] || {};
+  const _currentErrors = stepErrors[currentStep] || {};
 
   return (
     <WizardErrorBoundary

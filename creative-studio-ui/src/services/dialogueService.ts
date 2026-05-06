@@ -7,6 +7,8 @@
  * - Audio recording and processing
  * - Prompt generation for images/videos
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { llmService } from '../services/llmService';
 import { logger } from '@/utils/logger';
@@ -481,7 +483,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
       };
 
       // Store chunks for later retrieval
-      (mediaRecorder as any).audioChunks = audioChunks;
+      (mediaRecorder as LegacyAny).audioChunks = audioChunks;
 
       mediaRecorder.start(100); // Collect data every 100ms
       return mediaRecorder;
@@ -497,7 +499,7 @@ Génère ${context.length === 'long' ? '8-12' : context.length === 'medium' ? '4
   async stopAudioRecording(mediaRecorder: MediaRecorder): Promise<Blob> {
     return new Promise((resolve, reject) => {
       mediaRecorder.onstop = () => {
-        const audioChunks = (mediaRecorder as any).audioChunks || [];
+        const audioChunks = (mediaRecorder as LegacyAny).audioChunks || [];
         if (audioChunks.length === 0) {
           reject(new Error('Aucun audio enregistré'));
           return;

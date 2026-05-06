@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 class StructureType(Enum):
     """Story structure types."""
+
     THREE_ACT = "three_act"
     FIVE_ACT = "five_act"
     HEROS_JOURNEY = "heros_journey"
@@ -24,6 +25,7 @@ class StructureType(Enum):
 
 class PlotPointType(Enum):
     """Types of plot points."""
+
     INCITING_INCIDENT = "inciting_incident"
     MIDPOINT = "midpoint"
     ALL_IS_LOST = "all_is_lost"
@@ -34,13 +36,14 @@ class PlotPointType(Enum):
 @dataclass
 class PlotPoint:
     """A significant plot point in the story."""
+
     name: str
     point_type: PlotPointType
     chapter: int
     description: str
     tension_level: float
     characters_involved: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
@@ -53,6 +56,7 @@ class PlotPoint:
 @dataclass
 class Act:
     """A structural act in the story."""
+
     act_number: int
     name: str
     start_chapter: int
@@ -62,7 +66,7 @@ class Act:
     tension_start: float = 0.0
     tension_end: float = 0.0
     themes: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "act_number": self.act_number,
@@ -76,13 +80,14 @@ class Act:
 @dataclass
 class CharacterArc:
     """A character's journey through the story."""
+
     character_name: str
     role: str
     arc_type: str
     starting_state: str
     ending_state: str
     key_moments: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "character": self.character_name,
@@ -94,10 +99,11 @@ class CharacterArc:
 @dataclass
 class Theme:
     """A theme identified in the story."""
+
     name: str
     strength: float
     occurrences: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
@@ -108,21 +114,23 @@ class Theme:
 @dataclass
 class TensionPoint:
     """A tension measurement at a specific point."""
+
     chapter: int
     tension_level: float
     event_summary: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "chapter": self.chapter,
             "tension": round(self.tension_level, 2),
-            "event": self.event_summary
+            "event": self.event_summary,
         }
 
 
 @dataclass
 class StoryStructureAnalysis:
     """Complete story structure analysis."""
+
     title: str = ""
     genre: str = ""
     total_chapters: int = 0
@@ -136,7 +144,7 @@ class StoryStructureAnalysis:
     complexity_score: float = 0.0
     pacing_assessment: str = ""
     analyzed_at: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "title": self.title,
@@ -147,19 +155,19 @@ class StoryStructureAnalysis:
             "plot_points": [p.to_dict() for p in self.plot_points],
             "themes": [t.to_dict() for t in self.themes],
             "trend": self.overall_tension_trend,
-            "analyzed_at": self.analyzed_at.isoformat()
+            "analyzed_at": self.analyzed_at.isoformat(),
         }
 
 
 @dataclass
 class VisualizationData:
     """Data formatted for visualization libraries."""
+
     tension_chart: Dict[str, Any] = field(default_factory=dict)
     structure_chart: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "tension_chart": self.tension_chart,
             "structure_chart": self.structure_chart,
         }
-

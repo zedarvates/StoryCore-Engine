@@ -124,7 +124,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should update active state when tool changes', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       const trimButton = screen.getByLabelText('Trim');
       fireEvent.click(trimButton);
@@ -259,7 +259,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should apply cursor class for cut tool', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       const cutButton = screen.getByLabelText('Cut');
       fireEvent.click(cutButton);
@@ -268,7 +268,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should apply cursor class for move tool', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       const moveButton = screen.getByLabelText('Move');
       fireEvent.click(moveButton);
@@ -277,7 +277,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should apply cursor class for zoom tool', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       const zoomButton = screen.getByLabelText('Zoom');
       fireEvent.click(zoomButton);
@@ -286,7 +286,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should apply cursor class for trim tool', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       const trimButton = screen.getByLabelText('Trim');
       fireEvent.click(trimButton);
@@ -295,7 +295,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should apply cursor class for text tool', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       const textButton = screen.getByLabelText('Text');
       fireEvent.click(textButton);
@@ -304,7 +304,7 @@ describe('ToolBar Component', () => {
     });
 
     it('should remove previous cursor class when tool changes', () => {
-      const { store } = renderWithRedux(<ToolBar />);
+      const { _store } = renderWithRedux(<ToolBar />);
       
       // Select cut tool
       const cutButton = screen.getByLabelText('Cut');
@@ -438,7 +438,7 @@ describe('ToolBar Component', () => {
 
   describe('Visual Feedback', () => {
     it('should show shortcut on hover', () => {
-      const { container } = renderWithRedux(<ToolBar />);
+      const { _container } = renderWithRedux(<ToolBar />);
       
       const selectButton = screen.getByLabelText('Select');
       const shortcut = selectButton.querySelector('.tool-shortcut');

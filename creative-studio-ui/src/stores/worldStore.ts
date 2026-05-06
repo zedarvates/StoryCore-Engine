@@ -22,7 +22,7 @@ interface WorldState {
 
 export const useWorldStore = create<WorldState>()(
   devtools(
-    (set, get) => ({
+    (set, _get) => ({
       worlds: [],
       isLoading: false,
       error: null,

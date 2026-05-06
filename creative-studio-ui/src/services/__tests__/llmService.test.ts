@@ -182,7 +182,7 @@ describe('LLMService', () => {
       const chunks = ['Hello', ' from', ' Claude'];
       const mockStream = new ReadableStream({
         start(controller) {
-          chunks.forEach((chunk, i) => {
+          chunks.forEach((chunk, _i) => {
             const data = JSON.stringify({
               type: 'content_block_delta',
               delta: { text: chunk },

@@ -20,8 +20,10 @@ import uuid
 # Enums
 # =============================================================================
 
+
 class EditorMode(Enum):
     """Editor mode selection."""
+
     VIDEO = "video"
     IMAGE = "image"
     AUDIO = "audio"
@@ -29,6 +31,7 @@ class EditorMode(Enum):
 
 class TrackType(Enum):
     """Types of tracks in the timeline."""
+
     VIDEO = "video"
     AUDIO = "audio"
     TEXT = "text"
@@ -39,6 +42,7 @@ class TrackType(Enum):
 
 class BlendMode(Enum):
     """Video blend modes."""
+
     NORMAL = "normal"
     MULTIPLY = "multiply"
     SCREEN = "screen"
@@ -59,6 +63,7 @@ class BlendMode(Enum):
 
 class ExportFormat(Enum):
     """Video export formats."""
+
     MP4 = "mp4"
     WEBM = "webm"
     MOV = "mov"
@@ -68,6 +73,7 @@ class ExportFormat(Enum):
 
 class ExportCodec(Enum):
     """Video codec options."""
+
     H264 = "libx264"
     H265 = "libx265"
     VP9 = "libvpx-vp9"
@@ -78,18 +84,20 @@ class ExportCodec(Enum):
 
 class AspectRatio(Enum):
     """Aspect ratio presets."""
+
     RATIO_16_9 = (16, 9)  # YouTube, standard
     RATIO_9_16 = (9, 16)  # TikTok, Reels, Shorts
-    RATIO_1_1 = (1, 1)    # Instagram square
-    RATIO_4_5 = (4, 5)    # Instagram portrait
-    RATIO_4_3 = (4, 3)    # Standard TV
+    RATIO_1_1 = (1, 1)  # Instagram square
+    RATIO_4_5 = (4, 5)  # Instagram portrait
+    RATIO_4_3 = (4, 3)  # Standard TV
     RATIO_21_9 = (21, 9)  # Ultrawide
     RATIO_9_21 = (9, 21)  # Vertical ultrawide
-    FREE = (0, 0)         # Custom
+    FREE = (0, 0)  # Custom
 
 
 class TransitionType(Enum):
     """Transition types."""
+
     FADE = "fade"
     DISSOLVE = "dissolve"
     WIPE = "wipe"
@@ -106,6 +114,7 @@ class TransitionType(Enum):
 
 class TextAnimationType(Enum):
     """Text animation types."""
+
     NONE = "none"
     FADE_IN = "fade_in"
     FADE_OUT = "fade_out"
@@ -124,6 +133,7 @@ class TextAnimationType(Enum):
 
 class FilterType(Enum):
     """Video/image filter types."""
+
     NONE = "none"
     BLACK_WHITE = "black_white"
     SEPIA = "sepia"
@@ -142,6 +152,7 @@ class FilterType(Enum):
 
 class AudioTransitionType(Enum):
     """Audio transition types."""
+
     CROSSFADE = "crossfade"
     FADE_IN = "fade_in"
     FADE_OUT = "fade_out"
@@ -149,6 +160,7 @@ class AudioTransitionType(Enum):
 
 class ExportPreset(Enum):
     """Social media export presets."""
+
     YOUTUBE_1080P = "youtube_1080p"
     YOUTUBE_4K = "youtube_4k"
     TIKTOK = "tiktok"
@@ -165,40 +177,43 @@ class ExportPreset(Enum):
 # Data Classes - Core Objects
 # =============================================================================
 
+
 @dataclass
 class TimeRange:
     """Time range for clips and regions."""
+
     start: float  # Start time in seconds
     duration: float  # Duration in seconds
-    
+
     @property
     def end(self) -> float:
         return self.start + self.duration
-    
-    def overlaps(self, other: 'TimeRange') -> bool:
+
+    def overlaps(self, other: "TimeRange") -> bool:
         return self.start < other.end and self.end > other.start
-    
+
     def contains(self, time: float) -> bool:
         return self.start <= time <= self.end
-    
-    def trim(self, new_start: float, new_end: float) -> 'TimeRange':
+
+    def trim(self, new_start: float, new_end: float) -> "TimeRange":
         """Create a trimmed version of this range."""
         return TimeRange(
             start=max(self.start, new_start),
-            duration=min(self.end, new_end) - max(self.start, new_start)
+            duration=min(self.end, new_end) - max(self.start, new_start),
         )
 
 
 @dataclass
 class Resolution:
     """Video/image resolution."""
+
     width: int
     height: int
-    
+
     @property
     def aspect_ratio(self) -> float:
         return self.width / self.height
-    
+
     def __str__(self) -> str:
         return f"{self.width}x{self.height}"
 
@@ -206,6 +221,7 @@ class Resolution:
 @dataclass
 class MediaMetadata:
     """Metadata for media files."""
+
     path: str
     filename: str
     file_type: str  # video, audio, image
@@ -225,6 +241,7 @@ class MediaMetadata:
 @dataclass
 class Transform:
     """Transform properties for clips."""
+
     position_x: float = 0.0  # X position (percentage or pixels)
     position_y: float = 0.0  # Y position (percentage or pixels)
     scale_x: float = 1.0  # Scale factor X
@@ -238,17 +255,21 @@ class Transform:
 @dataclass
 class Keyframe:
     """Animation keyframe."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     time: float = 0.0  # Time in seconds
     property_name: str = ""
     value: float = 0.0
     easing: str = "linear"  # linear, ease_in, ease_out, ease_in_out, bezier
-    bezier_control_points: Optional[Tuple[float, float, float, float]] = None  # cp1x, cp1y, cp2x, cp2y
+    bezier_control_points: Optional[Tuple[float, float, float, float]] = (
+        None  # cp1x, cp1y, cp2x, cp2y
+    )
 
 
 @dataclass
 class ColorCorrection:
     """Color correction settings."""
+
     brightness: float = 0.0  # -100 to 100
     contrast: float = 0.0  # -100 to 100
     saturation: float = 0.0  # -100 to 100
@@ -266,6 +287,7 @@ class ColorCorrection:
 @dataclass
 class Filter:
     """Video/image filter."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     type: FilterType = FilterType.NONE
     intensity: float = 1.0  # 0 to 1
@@ -275,6 +297,7 @@ class Filter:
 @dataclass
 class Transition:
     """Transition between clips."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     type: TransitionType = TransitionType.FADE
     duration: float = 0.5  # seconds
@@ -287,6 +310,7 @@ class Transition:
 @dataclass
 class TextStyle:
     """Text styling properties."""
+
     font_family: str = "Arial"
     font_size: int = 48
     font_weight: str = "normal"  # normal, bold
@@ -308,6 +332,7 @@ class TextStyle:
 @dataclass
 class TextAnimation:
     """Text animation settings."""
+
     type: TextAnimationType = TextAnimationType.NONE
     duration: float = 0.5
     delay: float = 0
@@ -318,6 +343,7 @@ class TextAnimation:
 @dataclass
 class TextLayer:
     """Text layer on the timeline."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Text Layer"
     track_id: str = ""
@@ -335,6 +361,7 @@ class TextLayer:
 @dataclass
 class AudioEffect:
     """Audio effect."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     type: str = "eq"  # eq, compressor, limiter, reverb, noise_reduction, etc.
     enabled: bool = True
@@ -344,6 +371,7 @@ class AudioEffect:
 @dataclass
 class AudioTrack:
     """Audio track configuration."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Audio Track"
     track_type: TrackType = TrackType.AUDIO
@@ -361,6 +389,7 @@ class AudioTrack:
 @dataclass
 class AudioClip:
     """Audio clip on the timeline."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Audio Clip"
     track_id: str = ""
@@ -381,6 +410,7 @@ class AudioClip:
 @dataclass
 class VideoClip:
     """Video clip on the timeline."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Video Clip"
     track_id: str = ""
@@ -407,6 +437,7 @@ class VideoClip:
 @dataclass
 class ImageClip:
     """Image clip on the timeline."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Image"
     track_id: str = ""
@@ -426,6 +457,7 @@ class ImageClip:
 @dataclass
 class OverlayClip:
     """Overlay/watermark clip."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Overlay"
     track_id: str = ""
@@ -442,10 +474,13 @@ class OverlayClip:
 @dataclass
 class Track:
     """Timeline track."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Track"
     type: TrackType = TrackType.VIDEO
-    clips: List[Union[VideoClip, AudioClip, ImageClip, OverlayClip]] = field(default_factory=list)
+    clips: List[Union[VideoClip, AudioClip, ImageClip, OverlayClip]] = field(
+        default_factory=list
+    )
     locked: bool = False
     hidden: bool = False
     muted: bool = False
@@ -457,6 +492,7 @@ class Track:
 @dataclass
 class SubtitleEntry:
     """Subtitle entry (SRT format)."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     start_time: float = 0.0
     end_time: float = 0.0
@@ -469,6 +505,7 @@ class SubtitleEntry:
 @dataclass
 class Marker:
     """Timeline marker."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     time: float = 0.0
     name: str = ""
@@ -479,6 +516,7 @@ class Marker:
 @dataclass
 class ChapterPoint:
     """Chapter point for navigation."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     time: float = 0.0
     title: str = ""
@@ -489,39 +527,41 @@ class ChapterPoint:
 # Project & Export Classes
 # =============================================================================
 
+
 @dataclass
 class EditorProject:
     """Video editor project."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = "Untitled Project"
     path: Optional[str] = None
     created_at: datetime = field(default_factory=datetime.now)
     modified_at: datetime = field(default_factory=datetime.now)
-    
+
     # Project settings
     resolution: Resolution = field(default_factory=lambda: Resolution(1920, 1080))
     frame_rate: float = 30.0
     aspect_ratio: AspectRatio = AspectRatio.RATIO_16_9
     sample_rate: int = 44100
     channels: int = 2
-    
+
     # Timeline data
     duration: float = 0.0
     tracks: List[Track] = field(default_factory=list)
-    
+
     # Media library
     media_items: List[MediaMetadata] = field(default_factory=list)
-    
+
     # Subtitles
     subtitles: List[SubtitleEntry] = field(default_factory=list)
-    
+
     # Markers and chapters
     markers: List[Marker] = field(default_factory=list)
     chapters: List[ChapterPoint] = field(default_factory=list)
-    
+
     # Export history
     export_history: List[Dict[str, Any]] = field(default_factory=list)
-    
+
     # Project metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -529,6 +569,7 @@ class EditorProject:
 @dataclass
 class ExportSettings:
     """Export configuration."""
+
     format: ExportFormat = ExportFormat.MP4
     codec: ExportCodec = ExportCodec.H264
     resolution: Optional[Resolution] = None
@@ -553,6 +594,7 @@ class ExportSettings:
 @dataclass
 class ExportJob:
     """Export job for queue management."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     project_id: str = ""
     settings: ExportSettings = field(default_factory=ExportSettings)
@@ -569,6 +611,7 @@ class ExportJob:
 @dataclass
 class ExportQueue:
     """Export job queue."""
+
     jobs: List[ExportJob] = field(default_factory=list)
     concurrent_exports: int = 1
 
@@ -577,9 +620,11 @@ class ExportQueue:
 # AI Feature Classes
 # =============================================================================
 
+
 @dataclass
 class AutoCaptionSettings:
     """Auto captioning settings."""
+
     enabled: bool = False
     language: str = "auto"  # auto, en, fr, es, etc.
     model_size: str = "base"  # tiny, base, small, medium, large
@@ -591,6 +636,7 @@ class AutoCaptionSettings:
 @dataclass
 class SmartCropSettings:
     """Smart crop settings for aspect ratio conversion."""
+
     enabled: bool = False
     target_ratio: AspectRatio = AspectRatio.RATIO_9_16
     focus_point: Tuple[float, float] = (0.5, 0.5)  # Center default
@@ -601,6 +647,7 @@ class SmartCropSettings:
 @dataclass
 class SceneDetectionSettings:
     """Scene detection settings."""
+
     enabled: bool = False
     threshold: float = 30.0  # Scene change threshold
     min_scene_duration: float = 1.0
@@ -610,6 +657,7 @@ class SceneDetectionSettings:
 @dataclass
 class SilenceDetectionSettings:
     """Silence detection settings."""
+
     enabled: bool = False
     threshold_db: float = -50.0
     min_silence_duration: float = 0.5
@@ -620,6 +668,7 @@ class SilenceDetectionSettings:
 @dataclass
 class TTSettings:
     """Text-to-speech settings."""
+
     enabled: bool = False
     engine: str = "local"  # local, api
     voice: str = ""
@@ -632,10 +681,15 @@ class TTSettings:
 @dataclass
 class AIFeatures:
     """AI features configuration."""
+
     auto_captions: AutoCaptionSettings = field(default_factory=AutoCaptionSettings)
     smart_crop: SmartCropSettings = field(default_factory=SmartCropSettings)
-    scene_detection: SceneDetectionSettings = field(default_factory=SceneDetectionSettings)
-    silence_detection: SilenceDetectionSettings = field(default_factory=SilenceDetectionSettings)
+    scene_detection: SceneDetectionSettings = field(
+        default_factory=SceneDetectionSettings
+    )
+    silence_detection: SilenceDetectionSettings = field(
+        default_factory=SilenceDetectionSettings
+    )
     text_to_speech: TTSettings = field(default_factory=TTSettings)
     background_removal: bool = False
     upscaling: bool = False
@@ -645,9 +699,11 @@ class AIFeatures:
 # Timeline Operations
 # =============================================================================
 
+
 @dataclass
 class ClipOperation:
     """Single clip operation for undo/redo."""
+
     type: str  # add, remove, move, trim, split, update
     track_id: str
     clip_id: str
@@ -659,6 +715,7 @@ class ClipOperation:
 @dataclass
 class TimelineHistory:
     """Timeline history for undo/redo."""
+
     operations: List[ClipOperation] = field(default_factory=list)
     current_index: int = -1
     max_history: int = 50
@@ -667,6 +724,7 @@ class TimelineHistory:
 @dataclass
 class Selection:
     """Timeline selection state."""
+
     selected_clip_ids: List[str] = field(default_factory=list)
     selected_track_ids: List[str] = field(default_factory=list)
     selected_time_range: Optional[TimeRange] = None
@@ -676,26 +734,29 @@ class Selection:
 # Import/Export Formats
 # =============================================================================
 
+
 @dataclass
 class SRTEntry:
     """SRT subtitle entry."""
+
     index: int
     start_time: str  # HH:MM:SS,mmm
     end_time: str
     text: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "index": self.index,
             "start_time": self.start_time,
             "end_time": self.end_time,
-            "text": self.text
+            "text": self.text,
         }
 
 
 @dataclass
 class ProjectTemplate:
     """Project template."""
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     description: str = ""
@@ -711,9 +772,11 @@ class ProjectTemplate:
 # Utility Functions
 # =============================================================================
 
+
 def generate_thumbnail_path(project_path: str, media_path: str) -> str:
     """Generate thumbnail path for a media file."""
     import hashlib
+
     media_hash = hashlib.md5(media_path.encode()).hexdigest()[:8]
     return str(Path(project_path) / "thumbnails" / f"{media_hash}.jpg")
 
@@ -755,4 +818,3 @@ def srt_time_to_seconds(time_str: str) -> float:
         hours, minutes, seconds, millis = parts
         return int(hours) * 3600 + int(minutes) * 60 + int(seconds) + int(millis) / 1000
     return 0.0
-

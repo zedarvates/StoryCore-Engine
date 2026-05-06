@@ -4,6 +4,8 @@
  * 
  * Requirements: 9.5, 9.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { WizardState } from '../../types/wizard';
 import { logger } from '@/utils/logger';
@@ -37,7 +39,7 @@ interface SerializableWizardState {
   shots: WizardState['shots'];
   draftId: string | null;
   lastSaved: string | null;
-  validationErrors: Array<[number, any[]]>;
+  validationErrors: Array<[number, LegacyAny[]]>;
 }
 
 /**
@@ -105,9 +107,9 @@ class FileSystemAdapter implements StorageAdapter {
 
   async save(key: string, data: string): Promise<void> {
     // Check if running in Electron
-    if (typeof window !== 'undefined' && (window as any).electron) {
+    if (typeof window !== 'undefined' && (window as LegacyAny).electron) {
       try {
-        await (window as any).electron.saveDraft(this.draftsDir, key, data);
+        await (window as LegacyAny).electron.saveDraft(this.draftsDir, key, data);
       } catch (error) {
         throw new Error(`Failed to save draft to file system: ${error}`);
       }
@@ -119,9 +121,9 @@ class FileSystemAdapter implements StorageAdapter {
   }
 
   async load(key: string): Promise<string | null> {
-    if (typeof window !== 'undefined' && (window as any).electron) {
+    if (typeof window !== 'undefined' && (window as LegacyAny).electron) {
       try {
-        return await (window as any).electron.loadDraft(this.draftsDir, key);
+        return await (window as LegacyAny).electron.loadDraft(this.draftsDir, key);
       } catch (error) {
         throw new Error(`Failed to load draft from file system: ${error}`);
       }
@@ -132,9 +134,9 @@ class FileSystemAdapter implements StorageAdapter {
   }
 
   async list(): Promise<string[]> {
-    if (typeof window !== 'undefined' && (window as any).electron) {
+    if (typeof window !== 'undefined' && (window as LegacyAny).electron) {
       try {
-        return await (window as any).electron.listDrafts(this.draftsDir);
+        return await (window as LegacyAny).electron.listDrafts(this.draftsDir);
       } catch (error) {
         throw new Error(`Failed to list drafts from file system: ${error}`);
       }
@@ -145,9 +147,9 @@ class FileSystemAdapter implements StorageAdapter {
   }
 
   async delete(key: string): Promise<void> {
-    if (typeof window !== 'undefined' && (window as any).electron) {
+    if (typeof window !== 'undefined' && (window as LegacyAny).electron) {
       try {
-        await (window as any).electron.deleteDraft(this.draftsDir, key);
+        await (window as LegacyAny).electron.deleteDraft(this.draftsDir, key);
       } catch (error) {
         throw new Error(`Failed to delete draft from file system: ${error}`);
       }
@@ -415,5 +417,5 @@ export class DraftPersistence {
  */
 export const draftPersistence = new DraftPersistence(
   // Use file system if running in Electron
-  typeof window !== 'undefined' && !!(window as any).electron
+  typeof window !== 'undefined' && !!(window as LegacyAny).electron
 );

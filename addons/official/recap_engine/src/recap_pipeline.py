@@ -10,7 +10,6 @@ Workflow :
   5. Concatener + soundtrack + sous-titres → Export final
 """
 
-import asyncio
 import json
 import logging
 from dataclasses import asdict
@@ -19,8 +18,13 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Callable
 
 from .types import (
-    RecapTimeline, RecapState, RecapGenerationRequest, RecapGenerationResult,
-    RecapRenderResult, RecapExportResult, RecapStyle, TTSProvider,
+    RecapTimeline,
+    RecapState,
+    RecapGenerationResult,
+    RecapRenderResult,
+    RecapExportResult,
+    RecapStyle,
+    TTSProvider,
 )
 from .script_builder import RecapScriptBuilder
 from .tts_generator import TTSGenerator
@@ -33,13 +37,14 @@ logger = logging.getLogger(__name__)
 # Recap Pipeline
 # ============================================================================
 
+
 class RecapPipeline:
     """
     Orchestrateur principal du Recap Engine.
-    
+
     Usage :
         pipeline = RecapPipeline()
-        
+
         # Depuis un export BD JSON
         result = await pipeline.generate_from_comic_json(
             project_id="my_project",
@@ -47,7 +52,7 @@ class RecapPipeline:
             story_context="Dans un Tokyo futuriste…",
             characters=[...],
         )
-        
+
         if result.success:
             render = await pipeline.render(result.timeline.timeline_id)
             export = await pipeline.export(result.timeline.timeline_id)
@@ -111,7 +116,9 @@ class RecapPipeline:
             logger.error(f"[RecapPipeline] Erreur sauvegarde state : {e}")
             return False
 
-    def load_timeline(self, project_id: str, timeline_id: str) -> Optional[RecapTimeline]:
+    def load_timeline(
+        self, project_id: str, timeline_id: str
+    ) -> Optional[RecapTimeline]:
         path = self._timeline_path(project_id, timeline_id)
         if not path.exists():
             return None
@@ -133,7 +140,7 @@ class RecapPipeline:
                 return [serialize(i) for i in obj]
             elif isinstance(obj, dict):
                 return {k: serialize(v) for k, v in obj.items()}
-            elif hasattr(obj, "value"):   # Enum
+            elif hasattr(obj, "value"):  # Enum
                 return obj.value
             return obj
 
@@ -162,7 +169,7 @@ class RecapPipeline:
     ) -> RecapGenerationResult:
         """
         Pipeline complet depuis un fichier JSON de BD exporté.
-        
+
         Étape 1 : Lecture + construction timeline
         Étape 2 : Génération TTS
         """
@@ -172,8 +179,11 @@ class RecapPipeline:
         comic_path = Path(comic_json_path)
         if not comic_path.exists():
             return RecapGenerationResult(
-                success=False, timeline=None, scenes_count=0,
-                estimated_duration=0.0, error=f"Fichier BD introuvable : {comic_json_path}",
+                success=False,
+                timeline=None,
+                scenes_count=0,
+                estimated_duration=0.0,
+                error=f"Fichier BD introuvable : {comic_json_path}",
             )
 
         try:
@@ -182,8 +192,11 @@ class RecapPipeline:
             comic_data.setdefault("project_id", project_id)
         except Exception as e:
             return RecapGenerationResult(
-                success=False, timeline=None, scenes_count=0,
-                estimated_duration=0.0, error=f"Erreur lecture JSON BD : {e}",
+                success=False,
+                timeline=None,
+                scenes_count=0,
+                estimated_duration=0.0,
+                error=f"Erreur lecture JSON BD : {e}",
             )
 
         # 2. Construire le script
@@ -223,7 +236,7 @@ class RecapPipeline:
 
         logger.info(
             f"[RecapPipeline] Timeline générée : {timeline.timeline_id} "
-            f"({result.scenes_count} scènes, ~{result.estimated_duration/60:.1f} min)"
+            f"({result.scenes_count} scènes, ~{result.estimated_duration / 60:.1f} min)"
         )
         return result
 
@@ -242,7 +255,9 @@ class RecapPipeline:
         pages_dir = self._comic_dir / project_id / chapter_id
         if not pages_dir.exists():
             return RecapGenerationResult(
-                success=False, timeline=None, scenes_count=0,
+                success=False,
+                timeline=None,
+                scenes_count=0,
                 estimated_duration=0.0,
                 error=f"Dossier de planches introuvable : {pages_dir}",
             )
@@ -267,7 +282,8 @@ class RecapPipeline:
         # Persister
         self.save_timeline(project_id, timeline)
         state = self.load_state(project_id) or RecapState(
-            project_id=project_id, timelines=[],
+            project_id=project_id,
+            timelines=[],
             active_timeline_id=None,
             created_at=datetime.now().isoformat(),
             updated_at=datetime.now().isoformat(),
@@ -297,8 +313,11 @@ class RecapPipeline:
         timeline = self.load_timeline(project_id, timeline_id)
         if not timeline:
             return RecapRenderResult(
-                success=False, video_path=None, duration=0.0,
-                file_size_mb=0.0, render_time=0.0,
+                success=False,
+                video_path=None,
+                duration=0.0,
+                file_size_mb=0.0,
+                render_time=0.0,
                 error=f"Timeline {timeline_id} introuvable",
             )
 
@@ -306,8 +325,11 @@ class RecapPipeline:
         has_ffmpeg = await self._renderer.check_ffmpeg()
         if not has_ffmpeg:
             return RecapRenderResult(
-                success=False, video_path=None, duration=0.0,
-                file_size_mb=0.0, render_time=0.0,
+                success=False,
+                video_path=None,
+                duration=0.0,
+                file_size_mb=0.0,
+                render_time=0.0,
                 error="ffmpeg non disponible. Installez ffmpeg pour le rendu vidéo.",
             )
 
@@ -336,7 +358,10 @@ class RecapPipeline:
         timeline = self.load_timeline(project_id, timeline_id)
         if not timeline:
             return RecapExportResult(
-                success=False, video_path=None, subtitle_path=None, duration=0.0,
+                success=False,
+                video_path=None,
+                subtitle_path=None,
+                duration=0.0,
                 error=f"Timeline {timeline_id} introuvable",
             )
 
@@ -345,18 +370,24 @@ class RecapPipeline:
         else:
             # Export direct sans sous-titres
             import shutil
+
             dest = output_path or str(
-                self._output_dir / timeline_id / f"recap_FINAL.mp4"
+                self._output_dir / timeline_id / "recap_FINAL.mp4"
             )
             if timeline.final_video_path and Path(timeline.final_video_path).exists():
                 shutil.copy2(timeline.final_video_path, dest)
                 srt_path = self._renderer.generate_srt(timeline)
                 return RecapExportResult(
-                    success=True, video_path=dest, subtitle_path=srt_path,
+                    success=True,
+                    video_path=dest,
+                    subtitle_path=srt_path,
                     duration=timeline.actual_duration,
                 )
             return RecapExportResult(
-                success=False, video_path=None, subtitle_path=None, duration=0.0,
+                success=False,
+                video_path=None,
+                subtitle_path=None,
+                duration=0.0,
                 error="Vidéo non encore rendue",
             )
 
@@ -374,49 +405,58 @@ class RecapPipeline:
         for tid in state.timelines:
             timeline = self.load_timeline(project_id, tid)
             if timeline:
-                result.append({
-                    "timeline_id": timeline.timeline_id,
-                    "title": timeline.title,
-                    "scenes_count": len(timeline.scenes),
-                    "estimated_duration": timeline.actual_duration,
-                    "render_progress": timeline.render_progress,
-                    "final_video_path": timeline.final_video_path,
-                    "created_at": timeline.created_at,
-                    "style": timeline.style.value if hasattr(timeline.style, "value") else timeline.style,
-                })
+                result.append(
+                    {
+                        "timeline_id": timeline.timeline_id,
+                        "title": timeline.title,
+                        "scenes_count": len(timeline.scenes),
+                        "estimated_duration": timeline.actual_duration,
+                        "render_progress": timeline.render_progress,
+                        "final_video_path": timeline.final_video_path,
+                        "created_at": timeline.created_at,
+                        "style": timeline.style.value
+                        if hasattr(timeline.style, "value")
+                        else timeline.style,
+                    }
+                )
         return result
 
     def _deserialize_timeline(self, data: Dict[str, Any]) -> RecapTimeline:
         """Reconstruit une RecapTimeline depuis un dict JSON."""
         from .types import (
-            RecapScene, RecapCharacterStyle, CameraMove, TransitionType,
+            RecapScene,
+            RecapCharacterStyle,
+            CameraMove,
+            TransitionType,
         )
 
         scenes = []
         for s in data.get("scenes", []):
-            scenes.append(RecapScene(
-                scene_id=s["scene_id"],
-                panel_id=s["panel_id"],
-                source_page_number=s["source_page_number"],
-                source_panel_index=s["source_panel_index"],
-                narration_text=s["narration_text"],
-                narrator_character_id=s["narrator_character_id"],
-                subtitle_text=s.get("subtitle_text", ""),
-                image_path=s.get("image_path", ""),
-                duration=s["duration"],
-                camera_move=CameraMove(s.get("camera_move", "slow_push")),
-                camera_intensity=s.get("camera_intensity", 0.08),
-                transition_in=TransitionType(s.get("transition_in", "dissolve")),
-                transition_out=TransitionType(s.get("transition_out", "dissolve")),
-                transition_duration=s.get("transition_duration", 0.5),
-                highlight_bubbles=s.get("highlight_bubbles", False),
-                highlight_characters=s.get("highlight_characters", []),
-                audio_path=s.get("audio_path"),
-                background_music_volume=s.get("background_music_volume", 0.15),
-                sfx_tags=s.get("sfx_tags", []),
-                rendered_clip_path=s.get("rendered_clip_path"),
-                render_status=s.get("render_status", "pending"),
-            ))
+            scenes.append(
+                RecapScene(
+                    scene_id=s["scene_id"],
+                    panel_id=s["panel_id"],
+                    source_page_number=s["source_page_number"],
+                    source_panel_index=s["source_panel_index"],
+                    narration_text=s["narration_text"],
+                    narrator_character_id=s["narrator_character_id"],
+                    subtitle_text=s.get("subtitle_text", ""),
+                    image_path=s.get("image_path", ""),
+                    duration=s["duration"],
+                    camera_move=CameraMove(s.get("camera_move", "slow_push")),
+                    camera_intensity=s.get("camera_intensity", 0.08),
+                    transition_in=TransitionType(s.get("transition_in", "dissolve")),
+                    transition_out=TransitionType(s.get("transition_out", "dissolve")),
+                    transition_duration=s.get("transition_duration", 0.5),
+                    highlight_bubbles=s.get("highlight_bubbles", False),
+                    highlight_characters=s.get("highlight_characters", []),
+                    audio_path=s.get("audio_path"),
+                    background_music_volume=s.get("background_music_volume", 0.15),
+                    sfx_tags=s.get("sfx_tags", []),
+                    rendered_clip_path=s.get("rendered_clip_path"),
+                    render_status=s.get("render_status", "pending"),
+                )
+            )
 
         char_styles = {}
         for cid, cs in data.get("character_styles", {}).items():

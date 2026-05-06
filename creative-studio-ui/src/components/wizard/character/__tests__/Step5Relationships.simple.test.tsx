@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, _beforeEach, _afterEach } from 'vitest';
+import { render, screen, waitFor, _cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CharacterWizard } from '../CharacterWizard';
-import type { Character } from '@/types/character';
+import type { _Character } from '@/types/character';
 
 // Mock the store to provide test characters
 vi.mock('@/store', () => ({

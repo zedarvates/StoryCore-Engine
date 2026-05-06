@@ -1,6 +1,8 @@
 /**
  * Tests for useProgressTracking Hook
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
@@ -39,7 +41,7 @@ describe('useProgressTracking', () => {
     vi.useFakeTimers();
     
     // Setup store mock
-    (useAppStore as any).mockImplementation((selector: any) => {
+    (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
       const state = {
         taskQueue: [mockTask],
         reorderTasks: vi.fn(),
@@ -47,7 +49,7 @@ describe('useProgressTracking', () => {
       return selector ? selector(state) : state;
     });
 
-    (useAppStore as any).getState = vi.fn(() => ({
+    (useAppStore as LegacyAny).getState = vi.fn(() => ({
       taskQueue: [mockTask],
       reorderTasks: vi.fn(),
     }));
@@ -148,7 +150,7 @@ describe('useProgressTracking', () => {
         status: 'processing',
       };
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           taskQueue: [processingTask],
           reorderTasks: vi.fn(),
@@ -171,7 +173,7 @@ describe('useProgressTracking', () => {
         status: 'pending',
       };
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           taskQueue: [pendingTask],
           reorderTasks: vi.fn(),
@@ -247,7 +249,7 @@ describe('useProgressTracking', () => {
         status: 'processing',
       };
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           taskQueue: [processingTask],
           reorderTasks: vi.fn(),
@@ -268,7 +270,7 @@ describe('useProgressTracking', () => {
         status: 'processing',
       };
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           taskQueue: [processingTask],
           reorderTasks: vi.fn(),
@@ -286,7 +288,7 @@ describe('useProgressTracking', () => {
     it('should update store when task status changes', async () => {
       const reorderTasks = vi.fn();
       
-      (useAppStore as any).getState = vi.fn(() => ({
+      (useAppStore as LegacyAny).getState = vi.fn(() => ({
         taskQueue: [mockTask],
         reorderTasks,
       }));

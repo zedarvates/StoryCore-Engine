@@ -6,7 +6,6 @@ Shows how to validate application configuration files using JSON schema
 
 import json
 from jsonschema import validate, ValidationError
-from pathlib import Path
 
 # Application configuration schema
 CONFIG_SCHEMA = {
@@ -18,9 +17,9 @@ CONFIG_SCHEMA = {
             "properties": {
                 "name": {"type": "string", "minLength": 1},
                 "version": {"type": "string", "pattern": r"^\d+\.\d+\.\d+$"},
-                "debug": {"type": "boolean"}
+                "debug": {"type": "boolean"},
             },
-            "required": ["name", "version"]
+            "required": ["name", "version"],
         },
         "database": {
             "type": "object",
@@ -28,33 +27,34 @@ CONFIG_SCHEMA = {
                 "host": {"type": "string"},
                 "port": {"type": "integer", "minimum": 1, "maximum": 65535},
                 "name": {"type": "string"},
-                "ssl": {"type": "boolean"}
+                "ssl": {"type": "boolean"},
             },
-            "required": ["host", "port", "name"]
+            "required": ["host", "port", "name"],
         },
         "logging": {
             "type": "object",
             "properties": {
                 "level": {"enum": ["DEBUG", "INFO", "WARNING", "ERROR"]},
                 "file": {"type": "string"},
-                "max_size": {"type": "integer", "minimum": 1}
+                "max_size": {"type": "integer", "minimum": 1},
             },
-            "required": ["level"]
-        }
+            "required": ["level"],
+        },
     },
-    "required": ["app", "database"]
+    "required": ["app", "database"],
 }
+
 
 def validate_config(config_path):
     """Validate configuration file against schema"""
     try:
-        with open(config_path, 'r') as f:
+        with open(config_path, "r") as f:
             config = json.load(f)
-        
+
         validate(config, CONFIG_SCHEMA)
         print(f"✓ Configuration {config_path} is valid")
         return True, config
-        
+
     except FileNotFoundError:
         print(f"✗ Configuration file {config_path} not found")
         return False, None
@@ -66,28 +66,25 @@ def validate_config(config_path):
         print(f"  Path: {' -> '.join(str(p) for p in e.absolute_path)}")
         return False, None
 
+
 # Create sample configuration files
 def create_sample_configs():
     # Valid configuration
     valid_config = {
-        "app": {
-            "name": "MyApplication",
-            "version": "1.0.0",
-            "debug": False
-        },
+        "app": {"name": "MyApplication", "version": "1.0.0", "debug": False},
         "database": {
             "host": "localhost",
             "port": 5432,
             "name": "myapp_db",
-            "ssl": True
+            "ssl": True,
         },
         "logging": {
             "level": "INFO",
             "file": "/var/log/myapp.log",
-            "max_size": 10485760
-        }
+            "max_size": 10485760,
+        },
     }
-    
+
     # Invalid configuration (missing required fields)
     invalid_config = {
         "app": {
@@ -97,27 +94,28 @@ def create_sample_configs():
         "database": {
             "host": "localhost",
             "port": "invalid_port",  # Should be integer
-            "name": "myapp_db"
-        }
+            "name": "myapp_db",
+        },
     }
-    
-    with open('config_valid.json', 'w') as f:
+
+    with open("config_valid.json", "w") as f:
         json.dump(valid_config, f, indent=2)
-    
-    with open('config_invalid.json', 'w') as f:
+
+    with open("config_invalid.json", "w") as f:
         json.dump(invalid_config, f, indent=2)
+
 
 if __name__ == "__main__":
     # Create sample files
     create_sample_configs()
-    
+
     print("=== Configuration Validation Example ===")
-    
+
     # Test valid configuration
-    validate_config('config_valid.json')
-    
+    validate_config("config_valid.json")
+
     # Test invalid configuration
-    validate_config('config_invalid.json')
-    
+    validate_config("config_invalid.json")
+
     # Test non-existent file
-    validate_config('nonexistent.json')
+    validate_config("nonexistent.json")

@@ -1,5 +1,4 @@
 import requests
-import json
 import sys
 import os
 import jwt
@@ -7,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 # Add project root to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def create_dev_token():
     """Create a temporary JWT token for development testing."""
@@ -16,9 +16,10 @@ def create_dev_token():
         "sub": "test_user",
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),
         "iat": datetime.now(timezone.utc),
-        "iss": "storycore-api"
+        "iss": "storycore-api",
     }
     return jwt.encode(payload, secret, algorithm="HS256")
+
 
 def test_p1_pipeline():
     """Test the P1 Pipeline (Identity + Rhythm + J/L Cut)."""
@@ -26,7 +27,6 @@ def test_p1_pipeline():
     url_rhythm = f"{base_url}/api/audio/analyze-rhythm"
     url_invisible = f"{base_url}/api/automation/invisible-editing/apply"
     url_llm = f"{base_url}/api/llm/render-template"
-    url_generate = f"{base_url}/api/llm/generate"
 
     token = create_dev_token()
     headers = {"Authorization": f"Bearer {token}"}
@@ -34,20 +34,37 @@ def test_p1_pipeline():
     print("=" * 70)
     print("P1 PIPELINE TEST - Cinematic Assembly Integration")
     print("=" * 70)
-    
+
     # 1. SETUP: 3 Basic Shots (Scenario P0 Output)
     shots = [
-        {"id": "shot_01", "prompt": "An old watchmaker working in his shop", "duration": 4.0},
-        {"id": "shot_02", "prompt": "Close up of gears and springs moving", "duration": 3.5},
-        {"id": "shot_03", "prompt": "The watchmaker looks at a picture of his son", "duration": 5.0}
+        {
+            "id": "shot_01",
+            "prompt": "An old watchmaker working in his shop",
+            "duration": 4.0,
+        },
+        {
+            "id": "shot_02",
+            "prompt": "Close up of gears and springs moving",
+            "duration": 3.5,
+        },
+        {
+            "id": "shot_03",
+            "prompt": "The watchmaker looks at a picture of his son",
+            "duration": 5.0,
+        },
     ]
-    
+
     # 2. STEP 1: IDENTITY LOCK (P1)
     # Simulation: We add the character 'Dupont' to the prompts
-    character = {"name": "Dupont", "description": "Elderly man with gray hair, wearing a jeweler's loupe, gentle eyes"}
+    character = {
+        "name": "Dupont",
+        "description": "Elderly man with gray hair, wearing a jeweler's loupe, gentle eyes",
+    }
     print(f"\n[1/4] Applying Identity Lock: {character['name']}...")
     for shot in shots:
-        shot["prompt"] = f"{character['name']} ({character['description']}): {shot['prompt']}"
+        shot["prompt"] = (
+            f"{character['name']} ({character['description']}): {shot['prompt']}"
+        )
     print("ok Identity info injected into prompts.")
 
     # 3. STEP 2: RHYTHM SYNC (P1)
@@ -60,15 +77,19 @@ def test_p1_pipeline():
             bpm = rhythm_data.get("bpm", 120)
             markers = rhythm_data.get("markers", [])
             major_markers = [m for m in markers if m["type"] == "major"]
-            
+
             print(f"ok Audio footprint detected: {bpm} BPM.")
             print(f"   Synchronizing {len(shots)} shots to major transition points...")
-            
+
             # Align shot durations to major markers
             for i in range(len(shots)):
                 if i < len(major_markers):
                     start = major_markers[i]["time"]
-                    end = major_markers[i+1]["time"] if i+1 < len(major_markers) else start + 5.0
+                    end = (
+                        major_markers[i + 1]["time"]
+                        if i + 1 < len(major_markers)
+                        else start + 5.0
+                    )
                     shots[i]["duration"] = round(end - start, 2)
                     shots[i]["start_time"] = start
         else:
@@ -82,9 +103,11 @@ def test_p1_pipeline():
         invisible_req = {
             "shots": [{"id": s["id"], "duration": s["duration"]} for s in shots],
             "overlap_duration": 1.25,
-            "pattern": "smart"
+            "pattern": "smart",
         }
-        resp = requests.post(url_invisible, json=invisible_req, headers=headers, timeout=10)
+        resp = requests.post(
+            url_invisible, json=invisible_req, headers=headers, timeout=10
+        )
         if resp.status_code == 200:
             inv_data = resp.json()["shots"]
             print(f"ok J/L cuts applied (Pattern: {resp.json()['applied_pattern']}).")
@@ -108,8 +131,8 @@ def test_p1_pipeline():
                 "characters": character["name"],
                 "genre": "Documentary",
                 "style": "Cinematic Photorealistic",
-                "tone": "Nostalgic"
-            }
+                "tone": "Nostalgic",
+            },
         }
         resp = requests.post(url_llm, json=refine_payload, headers=headers, timeout=30)
         if resp.status_code == 200:
@@ -135,9 +158,10 @@ def test_p1_pipeline():
         if "cinematic_prompt" in s:
             print(f"  > AI DIRECTOR PROMPT: {s['cinematic_prompt']}")
         print("-" * 40)
-    
+
     print("\n[SUCCESS] P1 PIPELINE TEST COMPLETED !")
     return True
+
 
 if __name__ == "__main__":
     success = test_p1_pipeline()

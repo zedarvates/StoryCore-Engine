@@ -7,7 +7,7 @@
  * Requirements: 2.1, 5.3, 5.4, 5.5, 13.2
  */
 
-import React, { useEffect } from 'react';
+import React, { _useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { Image } from 'lucide-react';

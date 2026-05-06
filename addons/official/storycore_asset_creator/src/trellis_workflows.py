@@ -7,12 +7,13 @@ Permet de :
   - Patcher le nom de sortie (prefix GLB)
   - Selectionner le preset (lowvram / highquality / lowpoly / trunk_only)
 """
+
 from __future__ import annotations
 
 import copy
 import json
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 # Dossier des workflows (relatif a ce fichier)
 _WORKFLOWS_DIR = Path(__file__).parent.parent / "workflows"
@@ -21,15 +22,15 @@ _WORKFLOWS_DIR = Path(__file__).parent.parent / "workflows"
 # ── Noms des workflows disponibles ──────────────────────────────────────────
 
 WORKFLOW_STANDARD = "trellis2_standard.json"
-WORKFLOW_LOWVRAM  = "trellis2_lowvram.json"
-WORKFLOW_LOWPOLY  = "trellis2_lowpoly.json"
-WORKFLOW_TRUNK    = "trellis2_trunk_only.json"
+WORKFLOW_LOWVRAM = "trellis2_lowvram.json"
+WORKFLOW_LOWPOLY = "trellis2_lowpoly.json"
+WORKFLOW_TRUNK = "trellis2_trunk_only.json"
 
 # Mapping preset -> fichier
 PRESETS = {
-    "standard":   WORKFLOW_STANDARD,
-    "lowvram":    WORKFLOW_LOWVRAM,
-    "lowpoly":    WORKFLOW_LOWPOLY,
+    "standard": WORKFLOW_STANDARD,
+    "lowvram": WORKFLOW_LOWVRAM,
+    "lowpoly": WORKFLOW_LOWPOLY,
     "trunk_only": WORKFLOW_TRUNK,
 }
 
@@ -97,7 +98,9 @@ def patch_seed(workflow: Dict[str, Any], seed: int) -> Dict[str, Any]:
     return workflow
 
 
-def patch_remove_background(workflow: Dict[str, Any], enabled: bool = True) -> Dict[str, Any]:
+def patch_remove_background(
+    workflow: Dict[str, Any], enabled: bool = True
+) -> Dict[str, Any]:
     """
     Active/desactive la suppression de fond dans Trellis2PreProcessImage.
 
@@ -170,9 +173,9 @@ def get_expected_output_names(asset_name: str, preset: str = "lowvram") -> list[
       - {name}_Textured_00001_.glb   (mesh texture final)
     """
     bases = {
-        "lowvram":    ["WhiteMesh", "Refined", "Textured"],
-        "standard":   ["Textured"],
-        "lowpoly":    ["LowPoly"],
+        "lowvram": ["WhiteMesh", "Refined", "Textured"],
+        "standard": ["Textured"],
+        "lowpoly": ["LowPoly"],
         "trunk_only": ["Trunk_WhiteMesh", "Trunk_Textured"],
     }
     suffixes = bases.get(preset, ["Textured"])

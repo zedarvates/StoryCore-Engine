@@ -1,0 +1,49 @@
+/* Neural Orchestration Master - Phase 10 Premium Styles */
+
+.neural-orchestration-master {
+  animation: neural-master-slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at 10% 20%, #1e1b4b, #020617);
+}
+
+@keyframes neural-master-slide-in {
+  from { opacity: 0; transform: translateY(50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Service Card Hover */
+.neural-orchestration-master .p-6:hover {
+  transform: translateY(-4px) scale(1.02);
+  background-color: rgba(79, 70, 229, 0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Progress bar dynamic coloring */
+.neural-orchestration-master [role="progressbar"].bg-emerald-500 > div { background-color: #10b981 !important; }
+.neural-orchestration-master [role="progressbar"].bg-indigo-500 > div { background-color: #6366f1 !important; }
+.neural-orchestration-master [role="progressbar"].bg-amber-500 > div { background-color: #f59e0b !important; }
+
+/* Dashboard animations */
+@keyframes pulse-indigo {
+  0%, 100% { border-color: rgba(99, 102, 241, 0.2); }
+  50% { border-color: rgba(99, 102, 241, 0.6); }
+}
+
+.neural-orchestration-master .border-indigo-500\/10 {
+  animation: pulse-indigo 3s infinite ease-in-out;
+}
+
+/* Button focus glow */
+.neural-orchestration-master .bg-indigo-600:hover {
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.4);
+}
+
+/* Background pulse line */
+.neural-orchestration-master .absolute.top-0.left-0 {
+  background-size: 200% 200%;
+  animation: moving-gradient 3s linear infinite;
+}
+
+@keyframes moving-gradient {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}

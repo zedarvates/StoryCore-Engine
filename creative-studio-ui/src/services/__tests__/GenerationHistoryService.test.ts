@@ -6,9 +6,9 @@
  * Requirements: 14.1, 14.3, 14.4
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, _vi } from 'vitest';
 import { GenerationHistoryService } from '../GenerationHistoryService';
-import type { GeneratedAsset, HistoryEntry } from '../../types/generation';
+import type { GeneratedAsset, _HistoryEntry } from '../../types/generation';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -396,7 +396,7 @@ describe('GenerationHistoryService', () => {
       
       // Wait a bit and log second entry
       const entries1 = service.getAllEntries();
-      const oldTimestamp = entries1[0].timestamp;
+      const _oldTimestamp = entries1[0].timestamp;
       
       // Manually set older timestamp for testing
       entries1[0].timestamp = now - 10000;

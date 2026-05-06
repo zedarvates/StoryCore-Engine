@@ -16,7 +16,7 @@ import type {
   GenerationResults,
 } from '../types/projectDashboard';
 import type { Project } from '../types';
-import { Shot } from '../types';
+import { _Shot } from '../types';
 import { useProjectStore } from '../stores/useProjectStore';
 import { memoizedValidatePrompt } from '../utils/performanceOptimizations';
 import {

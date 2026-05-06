@@ -4,6 +4,8 @@
  * Implements all menu action handlers for the MenuBar component.
  * Organized by menu category: File, Edit, View, Project, Tools, Help.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { ActionContext } from '../../types/menuConfig';
 import type { Project } from '../../types';
@@ -18,7 +20,7 @@ interface ElectronDialogAPI {
     filePaths: string[];
   }>;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  showSaveDialog: (options: any) => Promise<unknown>;
+  showSaveDialog: (options: LegacyAny) => Promise<unknown>;
 }
 
 // Type declaration for File System Access API
@@ -56,7 +58,7 @@ async function withErrorHandling<T>(
     console.log(`[MenuAction] Starting: ${actionName}`, {
       timestamp: new Date().toISOString(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      project: (ctx.state.project as any)?.project_name,
+      project: (ctx.state.project as LegacyAny)?.project_name,
       hasUnsavedChanges: ctx.state.hasUnsavedChanges,
     });
 
@@ -82,7 +84,7 @@ async function withErrorHandling<T>(
       error,
       stack: error instanceof Error ? error.stack : undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      project: (ctx.state.project as any)?.project_name,
+      project: (ctx.state.project as LegacyAny)?.project_name,
     });
 
     const errorMessage = getErrorMessage(error, errorPrefix);
@@ -116,7 +118,7 @@ async function withErrorHandling<T>(
  * Get user-friendly error message from error object
  */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getErrorMessage(error: any, prefix?: string): string {
+function getErrorMessage(error: LegacyAny, prefix?: string): string {
   const basePrefix = prefix || 'Operation failed';
 
   if (error instanceof Error) {
@@ -194,7 +196,7 @@ export const fileActions = {
           });
           // Get the path from the handle (may not be available in all browsers)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          projectPath = (dirHandle as any).name || null;
+          projectPath = (dirHandle as LegacyAny).name || null;
         } catch (dirPickerError) {
           console.warn('[MenuAction] Directory picker canceled or not supported:', dirPickerError);
         }
@@ -226,9 +228,9 @@ export const fileActions = {
         path: projectPath,
         project_name: projectData.project_name,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        shots: (projectData.storyboard || []).flatMap((seq: any) =>
+        shots: (projectData.storyboard || []).flatMap((seq: LegacyAny) =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (seq.shots || []).map((shot: any) => ({
+          (seq.shots || []).map((shot: LegacyAny) => ({
             id: shot.shot_id,
             sequenceId: seq.sequence_id,
             shotNumber: shot.shot_number,
@@ -237,17 +239,17 @@ export const fileActions = {
           }))
         ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        assets: (projectData.assets || []).map((asset: any) => ({
+        assets: (projectData.assets || []).map((asset: LegacyAny) => ({
           id: asset.id || `asset_${Date.now()}_${Math.random()}`,
           name: asset.filename || asset.name || 'Unnamed Asset',
           type: asset.type || 'image',
           url: asset.path || asset.url || '',
           thumbnail: asset.thumbnail,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          metadata: asset as any,
+          metadata: asset as LegacyAny,
         })),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        characters: (projectData.characters || []).map((char: any) => ({
+        characters: (projectData.characters || []).map((char: LegacyAny) => ({
           character_id: char.character_id || char.id || `char_${Date.now()}_${Math.random()}`,
           name: char.name || 'Unnamed Character',
           role: char.role || 'supporting',
@@ -339,7 +341,7 @@ export const fileActions = {
     ctx.services.notification.show({
       type: 'success',
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      message: `Project "${(ctx.state.project as any).project_name}" saved successfully`,
+      message: `Project "${(ctx.state.project as LegacyAny).project_name}" saved successfully`,
       duration: 3000,
     });
   },
@@ -366,7 +368,7 @@ export const fileActions = {
     console.log('[MenuAction] Exit Project');
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const projectName = (ctx.state.project as any)?.project_name || 'Current project';
+    const projectName = (ctx.state.project as LegacyAny)?.project_name || 'Current project';
 
     // Show confirmation notification
     ctx.services.notification.show({
@@ -375,11 +377,13 @@ export const fileActions = {
       duration: 2000,
     });
 
-    // Dispatch event to clear project and navigate to dashboard
-    window.dispatchEvent(new CustomEvent('storycore:exit-project'));
+    // Call project change callback if available
+    if (ctx.onProjectChange) {
+      ctx.onProjectChange(null);
+    }
 
-    // Also dispatch navigate-to-dashboard event as fallback
-    window.dispatchEvent(new CustomEvent('storycore:navigate-to-dashboard'));
+    // Dispatch event to clear project and navigate to dashboard as fallback
+    window.dispatchEvent(new CustomEvent('storycore:exit-project'));
   },
 
   async quitApplication(ctx: ActionContext): Promise<void> {
@@ -978,7 +982,7 @@ export const wizardsActions = {
   audioProduction(ctx: ActionContext): void {
     console.log('[MenuAction] Audio Production Wizard');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const store = useAppStore.getState() as any;
+    const store = useAppStore.getState() as LegacyAny;
     store.closeActiveWizard();
     // Open audio production wizard
     if (typeof store.openAudioProductionWizard === 'function') {
@@ -996,7 +1000,7 @@ export const wizardsActions = {
   videoProduction(ctx: ActionContext): void {
     console.log('[MenuAction] Video Production Wizard');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const store = useAppStore.getState() as any;
+    const store = useAppStore.getState() as LegacyAny;
     store.closeActiveWizard();
     // Open video production wizard
     if (typeof store.openVideoProductionWizard === 'function') {
@@ -1115,7 +1119,7 @@ export const continuousCreationActions = {
     // This will trigger the consistency engine via the store
     const store = useAppStore.getState();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (store as any).runConsistencyCheck?.();
+    (store as LegacyAny).runConsistencyCheck?.();
   },
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

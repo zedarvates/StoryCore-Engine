@@ -65,6 +65,13 @@ const electronAPI: ElectronAPI = {
       }
       return result.project;
     },
+    delete: async (path: string) => {
+      const result = await ipcRenderer.invoke('project:delete', path);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to delete project');
+      }
+      return true;
+    },
   },
 
   // Sequence management

@@ -124,7 +124,7 @@ describe('useVoiceOverGenerator', () => {
     await act(async () => {
       try {
         await result.current.generateVoiceOver(voiceOver, 'shot-1');
-      } catch (error) {
+      } catch (_error) {
         // Expected to throw
       }
     });
@@ -152,7 +152,7 @@ describe('useVoiceOverGenerator', () => {
     await act(async () => {
       try {
         await result.current.generateVoiceOver(voiceOver, 'shot-1');
-      } catch (error) {
+      } catch (_error) {
         // Expected
       }
     });

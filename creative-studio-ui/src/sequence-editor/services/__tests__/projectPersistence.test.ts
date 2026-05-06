@@ -3,6 +3,8 @@
  * 
  * Tests for file-based project save/load operations.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
@@ -117,14 +119,14 @@ describe('projectPersistence', () => {
           ...mockState.project,
           metadata: {
             ...mockState.project.metadata,
-            created: '2024-01-01T00:00:00.000Z' as any,
-            modified: '2024-01-02T00:00:00.000Z' as any,
+            created: '2024-01-01T00:00:00.000Z' as LegacyAny,
+            modified: '2024-01-02T00:00:00.000Z' as LegacyAny,
           },
           saveStatus: {
             ...mockState.project.saveStatus,
-            lastSaveTime: '2024-01-02T00:00:00.000Z' as any,
+            lastSaveTime: '2024-01-02T00:00:00.000Z' as LegacyAny,
           },
-        } as any,
+        } as LegacyAny,
         timeline: mockState.timeline,
         assets: mockState.assets,
         panels: mockState.panels,
@@ -188,7 +190,7 @@ describe('projectPersistence', () => {
       schema_version: '1.0',
       created: '2024-01-01T00:00:00.000Z',
       modified: '2024-01-02T00:00:00.000Z',
-      project: mockState.project as any,
+      project: mockState.project as LegacyAny,
       timeline: mockState.timeline,
       assets: mockState.assets,
       panels: mockState.panels,
@@ -217,7 +219,7 @@ describe('projectPersistence', () => {
     it('should detect missing sections', () => {
       const incompleteProject = {
         ...validProject,
-        timeline: undefined as any,
+        timeline: undefined as LegacyAny,
       };
       
       const result = validateProjectCompatibility(incompleteProject);
@@ -255,7 +257,7 @@ describe('projectPersistence', () => {
         click: mockClick,
       };
       
-      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as any);
+      vi.spyOn(document, 'createElement').mockReturnValue(mockLink as LegacyAny);
       
       saveProjectToFile(mockState, 'test-project.json');
       
@@ -275,14 +277,14 @@ describe('projectPersistence', () => {
           ...mockState.project,
           metadata: {
             ...mockState.project.metadata,
-            created: '2024-01-01T00:00:00.000Z' as any,
-            modified: '2024-01-02T00:00:00.000Z' as any,
+            created: '2024-01-01T00:00:00.000Z' as LegacyAny,
+            modified: '2024-01-02T00:00:00.000Z' as LegacyAny,
           },
           saveStatus: {
             ...mockState.project.saveStatus,
-            lastSaveTime: '2024-01-02T00:00:00.000Z' as any,
+            lastSaveTime: '2024-01-02T00:00:00.000Z' as LegacyAny,
           },
-        } as any,
+        } as LegacyAny,
         timeline: mockState.timeline,
         assets: mockState.assets,
         panels: mockState.panels,

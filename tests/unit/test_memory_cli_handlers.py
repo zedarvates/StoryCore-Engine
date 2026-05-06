@@ -4,14 +4,14 @@ Unit tests for memory system CLI handlers.
 
 import unittest
 import argparse
-import json
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
 
 # Mock the memory system modules before importing handlers
 import sys
-sys.modules['memory_system'] = MagicMock()
-sys.modules['memory_system.data_models'] = MagicMock()
+
+sys.modules["memory_system"] = MagicMock()
+sys.modules["memory_system.data_models"] = MagicMock()
 
 from src.cli.handlers.memory_validate import MemoryValidateHandler
 from src.cli.handlers.memory_recover import MemoryRecoverHandler
@@ -45,11 +45,11 @@ class TestMemoryValidateHandler(unittest.TestCase):
             scope=["structure", "config", "memory"],
             format="human",
             strict=False,
-            fix=False
+            fix=False,
         )
 
         # Mock memory system
-        with patch('memory_system.MemorySystemCore') as MockCore:
+        with patch("memory_system.MemorySystemCore") as MockCore:
             mock_system = Mock()
             mock_system.project_path = Path(".")
             mock_system.config_manager.load_config.return_value = Mock()
@@ -57,13 +57,13 @@ class TestMemoryValidateHandler(unittest.TestCase):
             MockCore.return_value = mock_system
 
             # Mock validation methods
-            with patch.object(self.handler, '_validate_structure') as mock_structure:
+            with patch.object(self.handler, "_validate_structure") as mock_structure:
                 mock_structure.return_value = {"passed": True, "errors": []}
 
-                with patch.object(self.handler, '_validate_config') as mock_config:
+                with patch.object(self.handler, "_validate_config") as mock_config:
                     mock_config.return_value = {"passed": True, "errors": []}
 
-                    with patch.object(self.handler, '_validate_memory') as mock_memory:
+                    with patch.object(self.handler, "_validate_memory") as mock_memory:
                         mock_memory.return_value = {"passed": True, "errors": []}
 
                         result = self.handler.execute(args)
@@ -76,7 +76,7 @@ class TestMemoryValidateHandler(unittest.TestCase):
             scope=["structure"],
             format="human",
             strict=False,
-            fix=False
+            fix=False,
         )
 
         result = self.handler.execute(args)
@@ -102,14 +102,11 @@ class TestMemoryRecoverHandler(unittest.TestCase):
     def test_execute_with_no_errors(self):
         """Test execute when no errors are detected."""
         args = argparse.Namespace(
-            project=".",
-            mode="automatic",
-            format="human",
-            force=False
+            project=".", mode="automatic", format="human", force=False
         )
 
         # Mock memory system
-        with patch('memory_system.MemorySystemCore') as MockCore:
+        with patch("memory_system.MemorySystemCore") as MockCore:
             mock_system = Mock()
             mock_system.project_path = Path(".")
             mock_system.validate_project_state.return_value = Mock(valid=True)
@@ -121,18 +118,15 @@ class TestMemoryRecoverHandler(unittest.TestCase):
     def test_execute_with_errors(self):
         """Test execute when errors are detected."""
         args = argparse.Namespace(
-            project=".",
-            mode="automatic",
-            format="human",
-            force=False
+            project=".", mode="automatic", format="human", force=False
         )
 
         # Mock memory system
-        with patch('memory_system.MemorySystemCore') as MockCore:
+        with patch("memory_system.MemorySystemCore") as MockCore:
             mock_system = Mock()
             mock_system.project_path = Path(".")
             mock_system.validate_project_state.return_value = Mock(valid=False)
-            
+
             # Mock recovery report
             mock_report = Mock()
             mock_report.success = True
@@ -142,7 +136,7 @@ class TestMemoryRecoverHandler(unittest.TestCase):
             mock_report.warnings = []
             mock_report.recommendations = []
             mock_report.timestamp = "2023-01-01T00:00:00"
-            
+
             mock_system.trigger_recovery.return_value = mock_report
             MockCore.return_value = mock_system
 
@@ -169,14 +163,11 @@ class TestMemorySummaryHandler(unittest.TestCase):
     def test_execute_overview_summary(self):
         """Test execute with overview summary."""
         args = argparse.Namespace(
-            project=".",
-            type="overview",
-            format="human",
-            limit=10
+            project=".", type="overview", format="human", limit=10
         )
 
         # Mock memory system
-        with patch('memory_system.MemorySystemCore') as MockCore:
+        with patch("memory_system.MemorySystemCore") as MockCore:
             mock_system = Mock()
             mock_system.project_path = Path(".")
             mock_system.get_project_context.return_value = Mock()
@@ -211,31 +202,35 @@ class TestMemoryExportHandler(unittest.TestCase):
             output=None,
             format="directory",
             scope=["all"],
-            include_summaries=False
+            include_summaries=False,
         )
 
         # Mock memory system
-        with patch('memory_system.MemorySystemCore') as MockCore:
+        with patch("memory_system.MemorySystemCore") as MockCore:
             mock_system = Mock()
             mock_system.project_path = Path(".")
             MockCore.return_value = mock_system
 
             # Mock export methods
-            with patch.object(self.handler, '_export_memory') as mock_memory:
+            with patch.object(self.handler, "_export_memory") as mock_memory:
                 mock_memory.return_value = []
 
-                with patch.object(self.handler, '_export_discussions') as mock_discussions:
+                with patch.object(
+                    self.handler, "_export_discussions"
+                ) as mock_discussions:
                     mock_discussions.return_value = []
 
-                    with patch.object(self.handler, '_export_assets') as mock_assets:
+                    with patch.object(self.handler, "_export_assets") as mock_assets:
                         mock_assets.return_value = []
 
-                        with patch.object(self.handler, '_export_config') as mock_config:
+                        with patch.object(
+                            self.handler, "_export_config"
+                        ) as mock_config:
                             mock_config.return_value = []
 
                             result = self.handler.execute(args)
                             self.assertEqual(result, 0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -1,11 +1,12 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import styles from './CollaborationPanel.module.css';
 
 interface CollaborationPageProps {}
 
 export const CollaborationPage: React.FC<CollaborationPageProps> = () => {
-  const [activeTab, setActiveTab] = useState<'projects' | 'users' | 'sync' | 'version'>('projects');
-  const [projects, setProjects] = useState<any[]>([
+  const [activeTab,_ setActiveTab] = useState<'projects' | 'users' | 'sync' | 'version'>('projects');
+  const [projects, setProjects] = useState<LegacyAny[]>([
     {
       id: 'project_1',
       name: 'My First Project',
@@ -28,7 +29,7 @@ export const CollaborationPage: React.FC<CollaborationPageProps> = () => {
       lastModified: '1 week ago'
     }
   ]);
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([
+  const [onlineUsers, setOnlineUsers] = useState<LegacyAny[]>([
     { id: 'user_1', name: 'John Doe', avatar: '👤', status: 'editing' },
     { id: 'user_2', name: 'Jane Smith', avatar: '👩‍💻', status: 'reviewing' },
     { id: 'user_3', name: 'Mike Johnson', avatar: '👨‍🎨', status: 'color' }

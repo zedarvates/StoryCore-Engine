@@ -47,8 +47,30 @@ export class UpdateManager {
     this.rollbackManager = new RollbackManager();
     this.updateInstaller = new UpdateInstaller(this.rollbackManager);
 
+    // Set application icon for Windows
+    this.setApplicationIcon();
+
     // Set up periodic checks
     this.setupPeriodicChecks(checkIntervalHours * 60 * 60 * 1000); // Convert hours to milliseconds
+  }
+
+  /**
+   * Set application icon for Windows
+   */
+  private setApplicationIcon(): void {
+    if (process.platform === 'win32') {
+      try {
+        const iconPath = app.isPackaged
+          ? `${process.resourcesPath}/app-icon.ico`
+          : `${__dirname}/../../resources/app-icon.ico`;
+        
+        if (require('fs').existsSync(iconPath)) {
+          console.log('Application icon found:', iconPath);
+        }
+      } catch (error) {
+        console.warn('Could not set application icon:', error);
+      }
+    }
   }
 
   /**
@@ -63,12 +85,9 @@ export class UpdateManager {
    */
   async initialize(): Promise<void> {
     try {
-      // Perform health check on startup
       const isFailed = await this.rollbackManager.detectInstallationFailure();
       if (isFailed) {
         console.warn('Installation failure detected on startup, attempting automatic recovery...');
-
-        // Attempt automatic rollback
         const rollbackResult = await this.rollbackManager.rollbackToLastGoodVersion();
         if (rollbackResult.success) {
           console.log(`Automatically rolled back to version ${rollbackResult.rolledBackToVersion}`);
@@ -78,7 +97,6 @@ export class UpdateManager {
           this.showNotification('Recovery Failed', 'Application may be in an unstable state. Please reinstall.');
         }
       }
-
       await this.checkForUpdates();
     } catch (error) {
       console.error('Failed to initialize update system:', error);
@@ -93,8 +111,6 @@ export class UpdateManager {
    * Set up periodic update checks
    */
   private setupPeriodicChecks(intervalMs: number): void {
-    // Check immediately on startup (done in initialize)
-    // Then set up periodic checks
     this.checkInterval = setInterval(async () => {
       if (!this.isUpdating) {
         try {
@@ -118,15 +134,12 @@ export class UpdateManager {
 
     try {
       const updateInfo = await this.updateChecker.checkForUpdates();
-
       if (updateInfo) {
         this.updateStatus({
           state: 'available',
           message: `Update ${updateInfo.version} is available`,
           updateInfo
         });
-
-        // Notify user
         this.notifyUserOfUpdate(updateInfo);
       } else {
         this.updateStatus({ state: 'idle', message: 'No updates available' });
@@ -153,7 +166,6 @@ export class UpdateManager {
 
     try {
       this.updateStatus({ state: 'downloading', message: 'Downloading update...', progress: 0 });
-
       this.downloadedPackagePath = await this.updateDownloader.download(
         updateInfo.downloadUrl,
         (progress: number) => {
@@ -170,8 +182,6 @@ export class UpdateManager {
         message: 'Update downloaded successfully',
         progress: 1
       });
-
-      // Ask user if they want to install now
       await this.promptInstall(updateInfo);
     } catch (error) {
       console.error('Download failed:', error);
@@ -181,11 +191,10 @@ export class UpdateManager {
         error: error instanceof Error ? error.message : 'Failed to download update'
       });
 
-      // Retry logic
       if (this.retryCount < this.maxRetries) {
         this.retryCount++;
         console.log(`Retrying download (attempt ${this.retryCount}/${this.maxRetries})`);
-        setTimeout(() => this.downloadUpdate(), 5000 * this.retryCount); // Exponential backoff
+        setTimeout(() => this.downloadUpdate(), 5000 * this.retryCount);
       }
     }
   }
@@ -200,33 +209,21 @@ export class UpdateManager {
 
     try {
       this.updateStatus({ state: 'installing', message: 'Installing update...' });
-
-      // For now, we'll simulate installation
-      // In a real implementation, this would handle the actual installation
       await this.performInstallation();
-
       this.updateStatus({ state: 'idle', message: 'Update installed successfully' });
       this.isUpdating = false;
       this.retryCount = 0;
-
-      // Notify user
       this.showNotification('Update Complete', 'StoryCore has been updated successfully!');
-
     } catch (error) {
       console.error('Installation failed:', error);
       this.isUpdating = false;
-
-      // Record failed installation
       if (this.currentStatus.updateInfo) {
         await this.rollbackManager.recordFailedInstallation(this.currentStatus.updateInfo.version);
       }
-
       this.updateStatus({
         state: 'error',
         error: error instanceof Error ? error.message : 'Failed to install update'
       });
-
-      // Offer rollback option
       await this.offerRollback();
     }
   }
@@ -285,7 +282,7 @@ export class UpdateManager {
       const notification = new Notification({
         title,
         body,
-        icon: 'path/to/icon.png' // TODO: Add app icon
+        icon: 'path/to/icon.png'
       });
       notification.show();
     }
@@ -345,14 +342,10 @@ export class UpdateManager {
 
     if (choice.response === 0) {
       this.updateStatus({ state: 'installing', message: 'Rolling back to previous version...' });
-
       const rollbackResult = await this.rollbackManager.rollbackToLastGoodVersion();
-
       if (rollbackResult.success) {
         this.showNotification('Rollback Complete', `Successfully rolled back to version ${rollbackResult.rolledBackToVersion}`);
         this.updateStatus({ state: 'idle', message: 'Rollback completed successfully' });
-
-        // Restart the application after rollback
         setTimeout(() => {
           app.relaunch();
           app.exit(0);
@@ -391,10 +384,7 @@ export class UpdateManager {
       throw new Error(result.error || 'Installation failed');
     }
 
-    // Record successful installation
     await this.rollbackManager.recordSuccessfulInstallation(result.version!, result.backupPath ? await this.rollbackManager.recordBackup(result.backupPath, app.getVersion(), result.version!) : undefined);
-
-    // Restart the application
     await this.updateInstaller.restartApplication();
   }
 }

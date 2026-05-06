@@ -211,7 +211,7 @@ export function SuccessCheckmark({ className = '' }: { className?: string }) {
  * Validates: Requirements 11.3
  */
 export function ErrorIcon({ className = '' }: { className?: string }) {
-  const { isAnimationEnabled } = useAnimationConfig();
+  const { _isAnimationEnabled } = useAnimationConfig();
 
   return (
     <motion.div

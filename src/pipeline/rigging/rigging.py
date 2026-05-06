@@ -6,7 +6,9 @@ from pathlib import Path
 # Configure structured logger
 logger = logging.getLogger("rigging")
 handler = logging.StreamHandler()
-formatter = logging.Formatter('{"time":"%(asctime)s","level":"%(levelname)s","msg":"%(message)s"}')
+formatter = logging.Formatter(
+    '{"time":"%(asctime)s","level":"%(levelname)s","msg":"%(message)s"}'
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -31,10 +33,12 @@ EXPECTED_POINTS = [
     "right_foot",
 ]
 
+
 def _hash_keypoints(keypoints: dict) -> str:
     """Compute SHA256 hash of the canonical JSON representation of keypoints."""
     canonical = json.dumps(keypoints, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
 
 def _validate_keypoints(keypoints: dict) -> None:
     """Raise an error if required points are missing."""
@@ -42,6 +46,7 @@ def _validate_keypoints(keypoints: dict) -> None:
     if missing:
         logger.error(f"Missing keypoints: {missing}")
         raise ValueError(f"Missing required keypoints: {missing}")
+
 
 def _build_bone_hierarchy(keypoints: dict) -> list:
     """Return a list of bone dictionaries with name and parent index.
@@ -72,6 +77,7 @@ def _build_bone_hierarchy(keypoints: dict) -> list:
     # Here we simply return the hierarchy.
     return bones
 
+
 def _export_gltf(bones: list, output_path: Path) -> None:
     """Export a minimal glTF file containing the bone nodes.
     This is a placeholder implementation that creates a glTF JSON structure.
@@ -95,6 +101,7 @@ def _export_gltf(bones: list, output_path: Path) -> None:
         json.dump(gltf, f, ensure_ascii=False, indent=2)
     logger.info(f"Exported glTF skeleton to {output_path}")
 
+
 def rig_character(keypoints: dict) -> dict:
     """Public API to rig a character from keypoints.
     Returns metadata: {'file_path': str, 'bone_count': int, 'hash': str}
@@ -115,8 +122,10 @@ def rig_character(keypoints: dict) -> dict:
     logger.info(f"Rigging completed: {result}")
     return result
 
+
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) != 2:
         print("Usage: python -m src.pipeline.rigging <keypoints_json_path>")
         sys.exit(1)

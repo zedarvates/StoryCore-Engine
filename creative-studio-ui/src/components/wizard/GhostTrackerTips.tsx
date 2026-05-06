@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Lightbulb, RefreshCw, ChevronRight, X } from 'lucide-react';
+import { Lightbulb, RefreshCw, ChevronRight, _X } from 'lucide-react';
 import './GhostTrackerTips.css';
 
 interface GhostTrackerTipsProps {
@@ -323,7 +323,7 @@ export function GhostTrackerTips({
  * Compact version of tips for small spaces
  */
 export function GhostTrackerTipsCompact({
-  onTipClick
+  _onTipClick
 }: {
   onTipClick?: (tip: GhostTrackerTip) => void;
 }) {

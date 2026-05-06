@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // CharacterList Component Tests
 // ============================================================================
@@ -91,7 +92,7 @@ const createMockCharacter = (overrides: Partial<Character> = {}): Character => (
 
 describe('CharacterList', () => {
   let mockCharacters: Character[];
-  let mockStoreState: any;
+  let mockStoreState: LegacyAny;
 
   beforeEach(() => {
     // Create mock characters with different timestamps for sorting tests
@@ -124,7 +125,7 @@ describe('CharacterList', () => {
       setCharacterSearchQuery: vi.fn((query: string) => {
         mockStoreState.characterSearchQuery = query;
       }),
-      setCharacterFilters: vi.fn((filters: any) => {
+      setCharacterFilters: vi.fn((filters: LegacyAny) => {
         mockStoreState.characterFilters = filters;
       }),
       setSelectedCharacterIds: vi.fn((ids: string[]) => {
@@ -133,7 +134,7 @@ describe('CharacterList', () => {
     };
 
     // Mock useStore hook
-    vi.mocked(useStore).mockImplementation((selector: any) => {
+    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
       if (typeof selector === 'function') {
         return selector(mockStoreState);
       }

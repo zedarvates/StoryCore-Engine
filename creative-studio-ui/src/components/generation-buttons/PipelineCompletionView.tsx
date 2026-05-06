@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { useGenerationStore } from '../../stores/generationStore';
 import { PipelineStateMachine } from '../../services/PipelineStateMachine';
-import type { GeneratedAsset, GeneratedPrompt } from '../../types/generation';
+import type { GeneratedAsset, _GeneratedPrompt } from '../../types/generation';
 
 export interface PipelineCompletionViewProps {
   pipelineId: string;

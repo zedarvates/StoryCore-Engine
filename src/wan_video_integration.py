@@ -35,14 +35,12 @@ if __name__ == "__main__":
             num_frames=81,
             enable_inpainting=True,
             enable_alpha=True,
-            enable_lora=True
+            enable_lora=True,
         )
 
         # Create integration with non-blocking features
         integration = WanVideoIntegration(
-            config,
-            timeout_seconds=300.0,
-            enable_circuit_breaker=True
+            config, timeout_seconds=300.0, enable_circuit_breaker=True
         )
 
         try:
@@ -56,7 +54,7 @@ if __name__ == "__main__":
             rgba_frames = await integration.create_transparent_video(
                 prompt="A floating ghost character with transparent background",
                 alpha_mode=AlphaChannelMode.THRESHOLD,
-                timeout=60.0
+                timeout=60.0,
             )
             print(f"Generated {len(rgba_frames)} RGBA frames")
 
@@ -65,14 +63,12 @@ if __name__ == "__main__":
                 print("\nGenerating inpainted video...")
                 # Create mock input frames
                 input_frames = [
-                    Image.new('RGB', (720, 480), (100, 100, 100))
-                    for _ in range(10)
+                    Image.new("RGB", (720, 480), (100, 100, 100)) for _ in range(10)
                 ]
 
                 # Create mask
                 mask = InpaintingMask(
-                    mask_image=Image.new('L', (720, 480), 255),
-                    blur_radius=4
+                    mask_image=Image.new("L", (720, 480), 255), blur_radius=4
                 )
 
                 inpainted_frames = await integration.generate_video_with_inpainting(
@@ -80,17 +76,17 @@ if __name__ == "__main__":
                     video_frames=input_frames,
                     mask=mask,
                     use_multi_stage=True,
-                    timeout=120.0
+                    timeout=120.0,
                 )
                 print(f"Inpainted {len(inpainted_frames)} frames")
 
             # Example 4: Test cancellation
             print("\nTesting cancellation...")
+
             async def long_operation():
                 await asyncio.sleep(10)
                 return await integration.create_transparent_video(
-                    prompt="This should be cancelled",
-                    timeout=5.0
+                    prompt="This should be cancelled", timeout=5.0
                 )
 
             # Start operation and cancel it
@@ -105,7 +101,7 @@ if __name__ == "__main__":
 
             # Print statistics
             stats = integration.get_stats()
-            print(f"\nStatistics:")
+            print("\nStatistics:")
             print(f"  Total frames: {stats['total_frames']}")
             print(f"  Inpainting count: {stats['inpainting_count']}")
             print(f"  Alpha generation count: {stats['alpha_generation_count']}")
@@ -116,7 +112,7 @@ if __name__ == "__main__":
 
             # Get model info
             model_info = integration.get_model_info()
-            print(f"\nModel Info:")
+            print("\nModel Info:")
             print(f"  Models loaded: {model_info['model_loaded']}")
             print(f"  Circuit breaker open: {model_info['circuit_breaker']['open']}")
             print(f"  Failure count: {model_info['circuit_breaker']['failure_count']}")

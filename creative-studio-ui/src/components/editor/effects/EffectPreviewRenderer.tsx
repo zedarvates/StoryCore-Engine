@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
-import { Effect, EffectParameter } from './EffectsLibrary';
+import { Effect, _EffectParameter } from './EffectsLibrary';
 import { gpuResourceManager } from './GPUResourceManager';
 import './EffectPreviewRenderer.css';
 
@@ -405,7 +405,7 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        currentTexture = tempTexture;
+        _currentTexture = tempTexture;
       } else {
         // Render to canvas
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);

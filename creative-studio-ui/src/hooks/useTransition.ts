@@ -2,20 +2,22 @@
  * useTransition Hook
  * React hook for managing component transitions with GPU acceleration
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   TransitionConfig,
   TransitionState,
   TransitionMetrics,
-  TransitionPreset,
+  _TransitionPreset,
   TransitionEngine,
   WebGLRenderer,
   FadeTransitionConfig,
-  SlideTransitionConfig,
-  ZoomTransitionConfig,
-  WipeTransitionConfig,
-  GlitchTransitionConfig,
+  _SlideTransitionConfig,
+  _ZoomTransitionConfig,
+  _WipeTransitionConfig,
+  _GlitchTransitionConfig,
   GPUMode,
   PerformanceTier,
   TransitionCategory,
@@ -183,7 +185,7 @@ export function useTransition(
     }, 16); // ~60fps polling
 
     // Store interval for cleanup
-    (engine as any)._pollInterval = pollInterval;
+    (engine as LegacyAny)._pollInterval = pollInterval;
   }, [initialConfig, updateState]);
 
   // Cancel transition
@@ -191,7 +193,7 @@ export function useTransition(
     if (!engineRef.current) return;
     engineRef.current.cancel();
     
-    const pollInterval = (engineRef.current as any)._pollInterval;
+    const pollInterval = (engineRef.current as LegacyAny)._pollInterval;
     if (pollInterval) {
       clearInterval(pollInterval);
     }

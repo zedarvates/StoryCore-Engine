@@ -5,6 +5,8 @@
  * Unfied with the global location system and file-based storage.
  */
 
+
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
@@ -33,12 +35,11 @@ import {
   WavesIcon,
   CastleIcon,
   StoreIcon,
-  ChurchIcon,
   RefreshCwIcon,
 } from 'lucide-react';
 import { useAppStore } from '@/stores/useAppStore';
-import { useLocationStore } from '@/stores/locationStore';
 import { notificationService } from '@/services/NotificationService';
+import { useLocationStore } from '@/stores/locationStore';
 import { Location, LocationType } from '@/types/location';
 import { saveLocationToProject, deleteLocationFromProject } from '@/utils/locationStorage';
 
@@ -421,7 +422,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
               <label className="text-sm font-medium text-gray-700">Type</label>
               <Select
                 value={editedLocation.location_type}
-                onValueChange={(val: any) => setEditedLocation({ ...editedLocation, location_type: val })}
+                onValueChange={(val: LocationType) => setEditedLocation({ ...editedLocation, location_type: val })}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -457,7 +458,7 @@ function LocationEditModal({ location, onSave, onCancel, isOpen }: LocationEditM
               <label className="text-sm font-medium text-gray-700">Importance</label>
               <Select
                 value={editedLocation.metadata?.importance || 'medium'}
-                onValueChange={(val: any) => handleUpdateMetadata({ importance: val })}
+                onValueChange={(val: 'high' | 'medium' | 'low') => handleUpdateMetadata({ importance: val })}
               >
                 <SelectTrigger>
                   <SelectValue />

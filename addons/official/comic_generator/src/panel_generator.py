@@ -5,11 +5,7 @@ Creates placeholder images when no visual backend is available.
 """
 
 import asyncio
-import base64
-import hashlib
-import json
 import logging
-import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -22,10 +18,11 @@ logger = logging.getLogger(__name__)
 # Panel Generator
 # ============================================================================
 
+
 class PanelGenerator:
     """
     Generates visual assets (images) for individual comic panels.
-    
+
     Supports:
     - ComfyUI backend for AI image generation
     - Placeholder generation when no backend is available
@@ -56,7 +53,7 @@ class PanelGenerator:
         """
         Generate (or attempt to generate) an image for a panel.
         Falls back to creating a placeholder if no backend is available.
-        
+
         Returns: path to generated image (relative to output_dir)
         """
         panel_dir = page_dir / "panels"
@@ -70,10 +67,14 @@ class PanelGenerator:
                 image_data = await self._generate_via_comfyui(panel, style)
                 if image_data:
                     output_path.write_bytes(image_data)
-                    logger.info(f"[PanelGenerator] Generated panel image via ComfyUI: {output_path}")
+                    logger.info(
+                        f"[PanelGenerator] Generated panel image via ComfyUI: {output_path}"
+                    )
                     return str(output_path)
             except Exception as e:
-                logger.warning(f"[PanelGenerator] ComfyUI generation failed, using placeholder: {e}")
+                logger.warning(
+                    f"[PanelGenerator] ComfyUI generation failed, using placeholder: {e}"
+                )
 
         # Create a description placeholder (SVG-based)
         placeholder = self._create_placeholder_svg(panel, style)
@@ -90,6 +91,7 @@ class PanelGenerator:
         """Check if ComfyUI is reachable."""
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     f"{self._comfyui_endpoint}/system_stats",
@@ -109,7 +111,7 @@ class PanelGenerator:
             import aiohttp
 
             workflow = self._build_comfyui_workflow(panel, style)
-            
+
             async with aiohttp.ClientSession() as session:
                 # Queue prompt
                 async with session.post(
@@ -158,21 +160,15 @@ class PanelGenerator:
     ) -> Dict[str, Any]:
         """Build a minimal ComfyUI workflow for comic panel generation."""
         seed = self._seed_base + panel.panel_index * 100
-        
+
         return {
             "6": {
-                "inputs": {
-                    "text": panel.image_prompt,
-                    "clip": ["4", 1]
-                },
-                "class_type": "CLIPTextEncode"
+                "inputs": {"text": panel.image_prompt, "clip": ["4", 1]},
+                "class_type": "CLIPTextEncode",
             },
             "7": {
-                "inputs": {
-                    "text": panel.negative_prompt,
-                    "clip": ["4", 1]
-                },
-                "class_type": "CLIPTextEncode"
+                "inputs": {"text": panel.negative_prompt, "clip": ["4", 1]},
+                "class_type": "CLIPTextEncode",
             },
             "3": {
                 "inputs": {
@@ -185,38 +181,29 @@ class PanelGenerator:
                     "model": ["4", 0],
                     "positive": ["6", 0],
                     "negative": ["7", 0],
-                    "latent_image": ["5", 0]
+                    "latent_image": ["5", 0],
                 },
-                "class_type": "KSampler"
+                "class_type": "KSampler",
             },
             "4": {
-                "inputs": {
-                    "ckpt_name": "v1-5-pruned-emaonly.ckpt"
-                },
-                "class_type": "CheckpointLoaderSimple"
+                "inputs": {"ckpt_name": "v1-5-pruned-emaonly.ckpt"},
+                "class_type": "CheckpointLoaderSimple",
             },
             "5": {
-                "inputs": {
-                    "width": 512,
-                    "height": 512,
-                    "batch_size": 1
-                },
-                "class_type": "EmptyLatentImage"
+                "inputs": {"width": 512, "height": 512, "batch_size": 1},
+                "class_type": "EmptyLatentImage",
             },
             "8": {
-                "inputs": {
-                    "samples": ["3", 0],
-                    "vae": ["4", 2]
-                },
-                "class_type": "VAEDecode"
+                "inputs": {"samples": ["3", 0], "vae": ["4", 2]},
+                "class_type": "VAEDecode",
             },
             "9": {
                 "inputs": {
                     "filename_prefix": f"comic_panel_{panel.id}",
-                    "images": ["8", 0]
+                    "images": ["8", 0],
                 },
-                "class_type": "SaveImage"
-            }
+                "class_type": "SaveImage",
+            },
         }
 
     # ------------------------------------------------------------------
@@ -228,15 +215,19 @@ class PanelGenerator:
         # Determine color scheme based on style
         style_colors = {
             ComicStyle.FRANCO_BELGE: ("#2C3E50", "#ECF0F1", "#E74C3C"),
-            ComicStyle.COMICS_US:    ("#1A1A2E", "#E94560", "#0F3460"),
-            ComicStyle.MANGA:        ("#1C1C1C", "#F5F5F5", "#FF6B6B"),
-            ComicStyle.WEBTOON:      ("#0D0D0D", "#FFFFFF", "#7C4DFF"),
+            ComicStyle.COMICS_US: ("#1A1A2E", "#E94560", "#0F3460"),
+            ComicStyle.MANGA: ("#1C1C1C", "#F5F5F5", "#FF6B6B"),
+            ComicStyle.WEBTOON: ("#0D0D0D", "#FFFFFF", "#7C4DFF"),
         }
-        bg, text_color, accent = style_colors.get(style, ("#1A1A2E", "#FFFFFF", "#E94560"))
+        bg, text_color, accent = style_colors.get(
+            style, ("#1A1A2E", "#FFFFFF", "#E94560")
+        )
 
         char_names = ", ".join(panel.character_names) or "Scene"
         dialogue_text = panel.dialogue[0].text if panel.dialogue else "..."
-        visual_cue_short = panel.visual_cue[:80] + ("..." if len(panel.visual_cue) > 80 else "")
+        visual_cue_short = panel.visual_cue[:80] + (
+            "..." if len(panel.visual_cue) > 80 else ""
+        )
 
         # Wrap long text
         def wrap(text: str, width: int = 35) -> list:

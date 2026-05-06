@@ -18,11 +18,9 @@ import hmac
 import json
 import logging
 import os
-from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +31,10 @@ router = APIRouter(tags=["GemReward Webhooks"])
 # Vérification signature GitHub
 # ─────────────────────────────────────────────
 
-def verify_github_signature(body: bytes, signature_header: Optional[str], secret: str) -> bool:
+
+def verify_github_signature(
+    body: bytes, signature_header: Optional[str], secret: str
+) -> bool:
     """
     Vérifie la signature HMAC-SHA256 d'un webhook GitHub.
 
@@ -50,12 +51,8 @@ def verify_github_signature(body: bytes, signature_header: Optional[str], secret
         logger.warning(f"Unexpected signature format: {signature_header[:20]}")
         return False
 
-    received_sig = signature_header[len("sha256="):]
-    expected_sig = hmac.new(
-        secret.encode("utf-8"),
-        body,
-        hashlib.sha256
-    ).hexdigest()
+    received_sig = signature_header[len("sha256=") :]
+    expected_sig = hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
 
     # Comparaison sécurisée (timing-safe)
     return hmac.compare_digest(received_sig, expected_sig)
@@ -67,15 +64,16 @@ def verify_github_signature(body: bytes, signature_header: Optional[str], secret
 
 LABEL_ACTIONS = {
     "gem-awarded": "award",
-    "duplicate":   "duplicate",
-    "wontfix":     "reject",
-    "invalid":     "reject",
+    "duplicate": "duplicate",
+    "wontfix": "reject",
+    "invalid": "reject",
 }
 
 
 # ─────────────────────────────────────────────
 # Endpoint Webhook
 # ─────────────────────────────────────────────
+
 
 @router.post(
     "/api/webhooks/github",
@@ -115,7 +113,7 @@ async def handle_github_webhook(request: Request):
             )
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid webhook signature"
+                detail="Invalid webhook signature",
             )
     else:
         logger.warning(
@@ -152,6 +150,7 @@ async def handle_github_webhook(request: Request):
 # ─────────────────────────────────────────────
 # Handler des événements "issues"
 # ─────────────────────────────────────────────
+
 
 async def _handle_issues_event(payload: dict) -> dict:
     """
@@ -197,7 +196,9 @@ async def _handle_issues_event(payload: dict) -> dict:
                     "status": "gem_awarded",
                     "issue_number": issue_number,
                     "gems_awarded": result.get("gems"),
-                    "user_id": result.get("user_id") if "user_id" in (result or {}) else None,
+                    "user_id": result.get("user_id")
+                    if "user_id" in (result or {})
+                    else None,
                 }
             else:
                 return {
@@ -237,6 +238,7 @@ async def _handle_issues_event(payload: dict) -> dict:
 # Factory GemEngine (injection de dépendances)
 # ─────────────────────────────────────────────
 
+
 async def _get_gem_engine():
     """
     Crée une instance du GemEngine.
@@ -249,10 +251,11 @@ async def _get_gem_engine():
 
         # Créer une session DB manuellement pour le webhook (contexte hors-request)
         db_session = AsyncSessionLocal()
-        
+
         return GemEngine(db_session=db_session, websocket_manager=ws_manager)
 
     except Exception as e:
         logger.error(f"Failed to initialize GemEngine in webhook: {e}")
         from backend.gem_engine import GemEngine
+
         return GemEngine()

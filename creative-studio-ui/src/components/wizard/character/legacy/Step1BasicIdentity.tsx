@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
@@ -11,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Textarea }_ from '@/components/ui/textarea';
 import { Sparkles, X, Activity, Fingerprint, User, Clock } from 'lucide-react';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
@@ -288,7 +289,7 @@ Format as a JSON array of strings: ["Name1", "Name2", "Name3"]`;
             helpText="Internal and external identity alignment"
           >
             <Select
-              value={GENDER_OPTIONS.includes(formData.visual_identity?.gender as any) ? formData.visual_identity?.gender || '' : formData.visual_identity?.gender ? 'Other' : ''}
+              value={GENDER_OPTIONS.includes(formData.visual_identity?.gender as LegacyAny) ? formData.visual_identity?.gender || '' : formData.visual_identity?.gender ? 'Other' : ''}
               onValueChange={(val) => updateFormData({ visual_identity: { ...formData.visual_identity, gender: val } as Character['visual_identity'] })}
             >
               <SelectTrigger>

@@ -4,6 +4,8 @@
  * Cinematic color & volumetric lighting orchestration for Phase 8: Visual Mastery.
  * Allows directors to master the look and atmosphere of each sequence with surgical precision.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { 
@@ -138,7 +140,12 @@ export const AtmosphericGradingStudio: React.FC<AtmosphericGradingStudioProps> =
                             <span className={wb.value > 0 ? 'text-amber-400' : wb.value < 0 ? 'text-indigo-400' : 'text-slate-500'}>{wb.value > 0 ? `+${wb.value}` : wb.value}</span>
                         </div>
                         <div className="relative h-1.5 flex items-center">
-                            <div className="absolute inset-0 rounded-full opacity-30" style={{ background: `linear-gradient(to right, ${wb.leftColor}, transparent, ${wb.rightColor})` }} />
+                            <div 
+                                className="wb-gradient-track" 
+                                style={{ 
+                                    background: `linear-gradient(to right, ${wb.leftColor}, transparent, ${wb.rightColor})` as string
+                                }} 
+                            />
                             <input 
                                 type="range" 
                                 min={wb.min}
@@ -165,7 +172,7 @@ export const AtmosphericGradingStudio: React.FC<AtmosphericGradingStudioProps> =
                  {effects.map((fx) => (
                     <button 
                        key={fx.id}
-                       onClick={() => setAtmosEffect(fx.id as any)}
+                       onClick={() => setAtmosEffect(fx.id as GradingConfig['atmosEffect'])}
                        className={`flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all ${
                           atmosEffect === fx.id ? 'bg-amber-600 border-amber-400 text-white shadow-lg shadow-amber-600/20' : 'bg-slate-900/50 border-slate-800 text-slate-500 hover:border-slate-700'
                        }`}
@@ -194,7 +201,7 @@ export const AtmosphericGradingStudio: React.FC<AtmosphericGradingStudioProps> =
                     >
                        <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest">
                           <div 
-                            className="w-8 h-3 rounded-full border border-white/20" 
+                            className="lut-swatch" 
                             style={{ background: l.color }} 
                           />
                           {l.name}
@@ -220,10 +227,11 @@ export const AtmosphericGradingStudio: React.FC<AtmosphericGradingStudioProps> =
               )}
               
               {/* Overlay simulation */}
-              <div className="absolute inset-0 pointer-events-none transition-all duration-500" style={{
+              <div className="preview-overlay" style={{
                   background: lut === 'classic_noir' ? 'rgba(0,0,0,0.2)' : 'transparent',
                   backdropFilter: `blur(${density / 10}px)`,
-                  mixBlendMode: 'overlay'
+                  WebkitBackdropFilter: `blur(${density / 10}px)`,
+                  mixBlendMode: 'overlay' as LegacyAny
               }} />
 
               <div className="absolute top-6 left-6 flex items-center gap-2 px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10">

@@ -41,8 +41,12 @@ def build_parser() -> argparse.ArgumentParser:
     gen.add_argument("--characters-file", help="JSON file with character data")
     gen.add_argument("--locations-file", help="JSON file with location data")
     gen.add_argument("--objects-file", help="JSON file with object data")
-    gen.add_argument("--generate-images", action="store_true", help="Call image backend")
-    gen.add_argument("--direction", help="Narrative direction hint (tension/revelation/climax)")
+    gen.add_argument(
+        "--generate-images", action="store_true", help="Call image backend"
+    )
+    gen.add_argument(
+        "--direction", help="Narrative direction hint (tension/revelation/climax)"
+    )
 
     # --- export ---
     exp = sub.add_parser("export", help="Export comic to file")
@@ -102,14 +106,16 @@ async def run_generate(args, pipeline: ComicPipeline):
         print(f"   ID: {page.id}")
         print(f"   Summary: {page.narrative_summary}")
         print(f"   Panels: {len(page.panels)}")
-        print(f"\n📝 Panel scripts:")
+        print("\n📝 Panel scripts:")
         for panel in page.panels:
-            print(f"\n  Panel {panel.panel_index + 1} [{panel.narrative_beat.value.upper()}]")
+            print(
+                f"\n  Panel {panel.panel_index + 1} [{panel.narrative_beat.value.upper()}]"
+            )
             print(f"  Location: {panel.location}")
             print(f"  Characters: {', '.join(panel.character_names) or 'None'}")
             print(f"  Visual: {panel.visual_cue[:80]}...")
             for d in panel.dialogue:
-                print(f"  💬 {d.character_name}: \"{d.text}\"")
+                print(f'  💬 {d.character_name}: "{d.text}"')
             if panel.generated_image_path:
                 print(f"  🖼️  Image: {panel.generated_image_path}")
     else:
@@ -118,7 +124,9 @@ async def run_generate(args, pipeline: ComicPipeline):
 
 
 async def run_export(args, pipeline: ComicPipeline):
-    print(f"📦 Exporting comic for project '{args.project_id}' as {args.format.upper()}...")
+    print(
+        f"📦 Exporting comic for project '{args.project_id}' as {args.format.upper()}..."
+    )
     if args.format == "pdf":
         result = await pipeline.export_to_pdf(args.project_id, args.output)
     else:

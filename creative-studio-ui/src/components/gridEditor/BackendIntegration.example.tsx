@@ -10,6 +10,8 @@
  * 
  * This example shows how all the backend integration pieces work together.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import { useGridStore } from '../../stores/gridEditorStore';
@@ -128,7 +130,7 @@ export const BackendIntegrationExample: React.FC = () => {
   };
 
   /**
-   * Handle panel modification (e.g., after transform)
+   * Han_dle panel modification (e.g., after transform)
    */
   const handlePanelModified = (panelId: string) => {
     markPanelAsModified(panelId);
@@ -188,7 +190,7 @@ export const BackendIntegrationExample: React.FC = () => {
               >
                 {panel.layers[0]?.content.type === 'image' ? (
                   <img
-                    src={(panel.layers[0].content as any).url}
+                    src={(panel.layers[0].content as LegacyAny).url}
                     alt={`Panel ${panel.position.row}-${panel.position.col}`}
                     className="w-full h-full object-cover"
                   />

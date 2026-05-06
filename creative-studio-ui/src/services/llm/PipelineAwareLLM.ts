@@ -10,8 +10,8 @@
 
 import { useGenerationStore } from '../../stores/generationStore';
 import { useAppStore } from '../../stores/useAppStore';
-import { useEditorStore } from '../../stores/editorStore';
-import type { GenerationPipelineState, GeneratedAsset } from '../../types/generation';
+import { _useEditorStore } from '../../stores/editorStore';
+import type { _GenerationPipelineState, _GeneratedAsset } from '../../types/generation';
 
 // =============================================================================
 // Types
@@ -373,7 +373,7 @@ ${projectStatus.missingSteps.map(s => `- ${s}`).join('\n')}`;
      * Parse user intent from a message for generation-related commands
      */
     static parseGenerationIntent(message: string): RegenerationRequest | null {
-        const lower = message.toLowerCase();
+        const _lower = message.toLowerCase();
 
         // Detect re-generation requests
         const regenPatterns = [

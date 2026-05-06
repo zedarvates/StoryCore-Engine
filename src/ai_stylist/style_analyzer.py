@@ -1,4 +1,3 @@
-
 """
 Style Analyzer Module - Extraction of fashion and cinematic style from images.
 Part of the StoryCore-Engine AI Stylist Suite.
@@ -8,10 +7,12 @@ import logging
 import asyncio
 from typing import Any, Dict
 
+
 class StyleAnalyzer:
     """
     Analyzes images to extract clothing types, colors, and overall aesthetic style.
     """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
@@ -26,5 +27,5 @@ class StyleAnalyzer:
             "bottom": "denim_jeans",
             "primary_color": "black",
             "aesthetic": "urban_cinematic",
-            "detected_era": "modern"
+            "detected_era": "modern",
         }

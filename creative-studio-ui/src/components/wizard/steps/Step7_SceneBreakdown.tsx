@@ -8,7 +8,7 @@ import { Plus, Edit2, Trash2, GripVertical, Clock, MapPin, Users, AlertTriangle,
 import { WizardFormLayout, FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { _Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -250,7 +250,7 @@ export function Step7_SceneBreakdown({
   };
 
   // Get character names by IDs
-  const getCharacterNames = (characterIds: string[]) => {
+  const _getCharacterNames = (characterIds: string[]) => {
     return characterIds
       .map((id) => characters.find((char) => char.id === id)?.name)
       .filter(Boolean)

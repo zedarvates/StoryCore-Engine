@@ -10,7 +10,7 @@ import { AddonsPanel } from '../AddonsPanel';
 import { addonManager } from '@/services/AddonManager';
 import { fileSystemService } from '@/services/FileSystemService';
 import { promises as fs } from 'fs';
-import path from 'path';
+import _path from 'path';
 import { vi } from 'vitest';
 
 // Mock useToast hook

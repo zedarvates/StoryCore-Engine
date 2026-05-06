@@ -156,6 +156,7 @@ interface LocationState {
   addPlacedAsset: (locationId: string, asset: PlacedAsset) => void;
   updatePlacedAsset: (locationId: string, assetId: string, updates: Partial<PlacedAsset>) => void;
   removePlacedAsset: (locationId: string, assetId: string) => void;
+  reset: () => void;
 }
 
 // ============================================================================
@@ -244,7 +245,19 @@ export const useLocationStore = create<LocationState>()(
             } as Location));
 
             console.log(`LocationStore: Successfully fetched ${mappedLocations.length} central locations`);
-            set({ locations: mappedLocations });
+            set((state) => {
+              const uniqueMap = new Map<string, Location>();
+              // Keep existing locations (including project ones)
+              state.locations.forEach(loc => {
+                if (loc.location_id) uniqueMap.set(loc.location_id, loc);
+              });
+              // Add or update with central locations
+              mappedLocations.forEach(loc => {
+                if (loc.location_id) uniqueMap.set(loc.location_id, loc);
+              });
+              
+              return { locations: Array.from(uniqueMap.values()) };
+            });
           } catch (error) {
             // Log warning only in development mode to avoid noise
             if (import.meta.env.DEV) {
@@ -311,19 +324,21 @@ export const useLocationStore = create<LocationState>()(
               }
             }
 
-            // Sync with store
             set((state) => {
-              const existingIds = new Set(state.locations.map(l => l.location_id));
-              const newLocations = [...state.locations];
-
-              for (const location of projectLocations) {
-                if (!existingIds.has(location.location_id)) {
-                  newLocations.push(location);
-                }
-              }
+              const uniqueMap = new Map<string, Location>();
+              
+              // 1. Add current locations to map
+              state.locations.forEach(loc => {
+                if (loc.location_id) uniqueMap.set(loc.location_id, loc);
+              });
+              
+              // 2. Add/Update with project locations
+              projectLocations.forEach(loc => {
+                if (loc.location_id) uniqueMap.set(loc.location_id, loc);
+              });
 
               return { 
-                locations: newLocations,
+                locations: Array.from(uniqueMap.values()),
                 projectLocationIds: projectLocations.map(l => l.location_id)
               };
             });
@@ -679,6 +694,19 @@ export const useLocationStore = create<LocationState>()(
             };
           }),
         })),
+
+        reset: () => set({
+          locations: [],
+          sceneLocations: [],
+          projectLocationIds: [],
+          selectedLocationId: null,
+          editingLocationId: null,
+          selectedSceneLocationId: null,
+          isLoading: false,
+          isSaving: false,
+          error: null,
+          searchQuery: ''
+        }),
       }),
       {
         name: 'location-store',

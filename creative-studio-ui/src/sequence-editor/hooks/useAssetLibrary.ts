@@ -4,6 +4,8 @@
  * Manages asset loading, search indexing (Fuse.js), and category filtering
  * for both AssetNavigator and AssetBrowser components.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Fuse from 'fuse.js';
@@ -25,18 +27,18 @@ export interface CategoryConfig {
 }
 
 export const CATEGORY_CONFIGS: CategoryConfig[] = [
-  { id: 'characters', name: 'Characters', icon: Users as any },
-  { id: 'environments', name: 'Environments', icon: Mountain as any },
-  { id: 'props', name: 'Props & Objects', icon: Box as any },
-  { id: 'visual-styles', name: 'Visual Styles', icon: Palette as any },
-  { id: 'templates', name: 'Templates', icon: Layout as any },
-  { id: 'camera-presets', name: 'Camera Presets', icon: Camera as any },
-  { id: 'transitions', name: 'Transitions', icon: FlipHorizontal as any },
-  { id: 'effects', name: 'Effects', icon: Sparkles as any },
-  { id: 'audio-sound', name: 'Audio & Sound', icon: Music as any },
-  { id: 'video-footage', name: 'Videos', icon: Video as any },
-  { id: '3d-models', name: '3D Models', icon: Binary as any },
-  { id: 'custom-presets', name: 'My Presets', icon: Save as any },
+  { id: 'characters', name: 'Characters', icon: Users as LegacyAny },
+  { id: 'environments', name: 'Environments', icon: Mountain as LegacyAny },
+  { id: 'props', name: 'Props & Objects', icon: Box as LegacyAny },
+  { id: 'visual-styles', name: 'Visual Styles', icon: Palette as LegacyAny },
+  { id: 'templates', name: 'Templates', icon: Layout as LegacyAny },
+  { id: 'camera-presets', name: 'Camera Presets', icon: Camera as LegacyAny },
+  { id: 'transitions', name: 'Transitions', icon: FlipHorizontal as LegacyAny },
+  { id: 'effects', name: 'Effects', icon: Sparkles as LegacyAny },
+  { id: 'audio-sound', name: 'Audio & Sound', icon: Music as LegacyAny },
+  { id: 'video-footage', name: 'Videos', icon: Video as LegacyAny },
+  { id: '3d-models', name: '3D Models', icon: Binary as LegacyAny },
+  { id: 'custom-presets', name: 'My Presets', icon: Save as LegacyAny },
 ];
 
 function getAssetsForCategory(categoryId: string, sources: AssetSource[]): ServiceAsset[] {

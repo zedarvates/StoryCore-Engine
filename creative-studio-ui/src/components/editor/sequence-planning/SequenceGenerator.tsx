@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, FC } from 'react';
 import { Pause, Square, CheckCircle, Clock, Image as ImageIcon, Video } from 'lucide-react';
 import { SequencePlan, Scene } from '@/types/sequencePlan';
@@ -8,7 +9,7 @@ import { toast } from '@/hooks/use-toast';
 
 export interface SequenceGeneratorProps {
   sequencePlan: SequencePlan;
-  onGenerationComplete?: (results: any) => void;
+  onGenerationComplete?: (results: LegacyAny) => void;
   onSceneUpdate?: (sceneId: string, updates: Partial<Scene>) => void;
   onClose: () => void;
   className?: string;

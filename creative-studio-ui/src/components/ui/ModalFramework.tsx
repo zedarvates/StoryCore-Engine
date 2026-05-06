@@ -57,7 +57,7 @@ export function ModalFramework({
     try {
       await onSubmit(modalState.data);
       modalState.close();
-    } catch (error) {
+    } catch (_error) {
       // Error handling is done by the parent component
     } finally {
       modalState.setLoadingState('submit', false);
@@ -77,7 +77,7 @@ export function ModalFramework({
       } else {
         modalState.setConnectionStatus('error');
       }
-    } catch (error) {
+    } catch (_error) {
       modalState.setConnectionStatus('error');
     } finally {
       modalState.setLoadingState('connectionTest', false);
@@ -89,7 +89,7 @@ export function ModalFramework({
     try {
       await saveDraft(modalState.data);
       // Could show a toast notification here
-    } catch (error) {
+    } catch (_error) {
       // Error handling for draft save
     }
   }, [modalState.data, saveDraft]);

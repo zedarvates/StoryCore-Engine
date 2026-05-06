@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, _useState, useMemo } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useGenerationStore } from '@/stores/generationStore';
 import { ChatPanel } from './ChatPanel';

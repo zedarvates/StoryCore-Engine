@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useMemo } from 'react';
 import { AssetGrid } from './AssetGrid';
 import type { AssetSource } from '../../../services/assetLibraryService';
@@ -13,7 +14,7 @@ export const EffectLibrary: React.FC<EffectLibraryProps> = ({
     searchQuery,
 }) => {
     const effectAssets = useMemo(() => {
-        const allAssets: any[] = [];
+        const allAssets: LegacyAny[] = [];
         for (const source of sources) {
             const sourceAssets = source.assets || [];
             allAssets.push(...sourceAssets.filter(a =>

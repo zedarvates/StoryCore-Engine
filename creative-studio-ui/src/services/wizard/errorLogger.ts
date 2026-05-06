@@ -147,7 +147,7 @@ export class ErrorLogger {
   private persistErrorLog(entry: ErrorLogEntry): void {
     try {
       const logPath = this.getLogFilePath();
-      const logLine = this.formatLogEntry(entry);
+      const _logLine = this.formatLogEntry(entry);
 
       // In browser environment, use localStorage with project-specific key
       const storageKey = this.getStorageKey();

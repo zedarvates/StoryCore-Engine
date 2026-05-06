@@ -2,12 +2,11 @@
 Generation Methods Module for Wan Video Integration
 """
 
-import asyncio
 import logging
 import tempfile
 import shutil
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from PIL import Image
 
@@ -26,7 +25,7 @@ class WanVideoGenerationMixin:
         video_frames: List[Image.Image],
         mask: InpaintingMask,
         use_multi_stage: bool = True,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> List[Image.Image]:
         """
         Generate video with inpainting (NON-BLOCKING with timeout)
@@ -50,6 +49,7 @@ class WanVideoGenerationMixin:
             raise RuntimeError("Circuit breaker is OPEN, cannot generate video")
 
         try:
+
             async def _generate():
                 if not self.model_loaded:
                     await self.load_models()
@@ -82,19 +82,19 @@ class WanVideoGenerationMixin:
                         "start_image": str(start_image_path),
                         "end_image": str(end_image_path),
                         "mask": str(mask_path),
-                        "prompt": prompt
+                        "prompt": prompt,
                     }
 
                     workflow_result = await self._execute_comfyui_workflow(
                         "assets/workflows/workflow_wan_video_inpainting.json",
                         workflow_inputs,
                         "inpainting_workflow",
-                        timeout
+                        timeout,
                     )
 
                     result_frames = workflow_result["video_frames"]
-                    self.generation_stats['inpainting_count'] += 1
-                    self.generation_stats['total_frames'] += len(result_frames)
+                    self.generation_stats["inpainting_count"] += 1
+                    self.generation_stats["total_frames"] += len(result_frames)
 
                 finally:
                     # Clean up temporary files
@@ -103,7 +103,9 @@ class WanVideoGenerationMixin:
                 logger.info("Video inpainting complete")
                 return result_frames
 
-            result = await self._with_timeout(_generate(), timeout, "generate_video_with_inpainting")
+            result = await self._with_timeout(
+                _generate(), timeout, "generate_video_with_inpainting"
+            )
             self._record_success()
             return result
 
@@ -119,7 +121,7 @@ class WanVideoGenerationMixin:
         height: Optional[int] = None,
         num_frames: Optional[int] = None,
         alpha_mode: AlphaChannelMode = AlphaChannelMode.THRESHOLD,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> Tuple[List[Image.Image], List[Image.Image]]:
         """
         Generate video with alpha channel (NON-BLOCKING with timeout)
@@ -144,6 +146,7 @@ class WanVideoGenerationMixin:
             raise RuntimeError("Circuit breaker is OPEN, cannot generate video")
 
         try:
+
             async def _generate():
                 if not self.model_loaded:
                     await self.load_models()
@@ -154,7 +157,9 @@ class WanVideoGenerationMixin:
 
                 logger.info("Generating video with alpha channel")
                 logger.info(f"Prompt: {prompt[:100]}...")
-                logger.info(f"Resolution: {width_val}x{height_val}, Frames: {num_frames_val}")
+                logger.info(
+                    f"Resolution: {width_val}x{height_val}, Frames: {num_frames_val}"
+                )
                 logger.info(f"Alpha mode: {alpha_mode.value}")
 
                 # Check for cancellation
@@ -163,7 +168,7 @@ class WanVideoGenerationMixin:
                 # Mock video generation
                 if Image:
                     rgb_frames = [
-                        Image.new('RGB', (width_val, height_val), (128, 128, 128))
+                        Image.new("RGB", (width_val, height_val), (128, 128, 128))
                         for _ in range(num_frames_val)
                     ]
                 else:
@@ -186,7 +191,7 @@ class WanVideoGenerationMixin:
                     # Save mask (create a default mask for alpha generation)
                     mask_path = temp_dir / "inpainting_mask.png"
                     # Create a mask image (white = process, black = keep original)
-                    mask_img = Image.new('L', (width_val, height_val), 255)
+                    mask_img = Image.new("L", (width_val, height_val), 255)
                     mask_img.save(mask_path)
 
                     # Execute ComfyUI workflow for alpha inpainting
@@ -195,23 +200,29 @@ class WanVideoGenerationMixin:
                         "end_image": str(end_image_path),
                         "mask": str(mask_path),
                         "prompt": prompt,
-                        "alpha_mode": alpha_mode.value
+                        "alpha_mode": alpha_mode.value,
                     }
 
                     workflow_result = await self._execute_comfyui_workflow(
                         "assets/workflows/workflow_wan_video_alpha_inpainting.json",
                         workflow_inputs,
                         "alpha_inpainting_workflow",
-                        timeout
+                        timeout,
                     )
 
                     # For alpha workflow, we get RGBA frames directly
                     rgba_frames = workflow_result["video_frames"]
-                    rgb_frames = [frame.convert('RGB') if hasattr(frame, 'convert') else frame for frame in rgba_frames]
-                    alpha_masks = [frame.split()[-1] if hasattr(frame, 'split') else None for frame in rgba_frames]
+                    rgb_frames = [
+                        frame.convert("RGB") if hasattr(frame, "convert") else frame
+                        for frame in rgba_frames
+                    ]
+                    alpha_masks = [
+                        frame.split()[-1] if hasattr(frame, "split") else None
+                        for frame in rgba_frames
+                    ]
 
-                    self.generation_stats['alpha_generation_count'] += 1
-                    self.generation_stats['total_frames'] += len(rgb_frames)
+                    self.generation_stats["alpha_generation_count"] += 1
+                    self.generation_stats["total_frames"] += len(rgb_frames)
 
                 finally:
                     # Clean up temporary files
@@ -220,7 +231,9 @@ class WanVideoGenerationMixin:
                 logger.info("Video with alpha generation complete")
                 return rgb_frames, alpha_masks
 
-            result = await self._with_timeout(_generate(), timeout, "generate_video_with_alpha")
+            result = await self._with_timeout(
+                _generate(), timeout, "generate_video_with_alpha"
+            )
             self._record_success()
             return result
 
@@ -236,7 +249,7 @@ class WanVideoGenerationMixin:
         width: Optional[int] = None,
         height: Optional[int] = None,
         num_frames: Optional[int] = None,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> List[Image.Image]:
         """
         Generate video with dual image guidance (NON-BLOCKING with timeout)
@@ -261,6 +274,7 @@ class WanVideoGenerationMixin:
             raise RuntimeError("Circuit breaker is OPEN, cannot generate video")
 
         try:
+
             async def _generate():
                 if not self.model_loaded:
                     await self.load_models()
@@ -271,13 +285,15 @@ class WanVideoGenerationMixin:
 
                 logger.info("Generating video with dual guidance")
                 logger.info(f"Prompt: {prompt[:100]}...")
-                logger.info(f"Resolution: {width_val}x{height_val}, Frames: {num_frames_val}")
+                logger.info(
+                    f"Resolution: {width_val}x{height_val}, Frames: {num_frames_val}"
+                )
 
                 # Check for cancellation
                 self._check_cancellation()
 
                 # Prepare guidance
-                prepared_guidance = self.guidance_system.prepare_guidance(guidance)
+                self.guidance_system.prepare_guidance(guidance)
 
                 # Check for cancellation before generation
                 self._check_cancellation()
@@ -303,18 +319,18 @@ class WanVideoGenerationMixin:
                         "prompt": prompt,
                         "reference_strength": guidance.reference_strength,
                         "style_strength": guidance.style_strength,
-                        "blend_mode": guidance.blend_mode
+                        "blend_mode": guidance.blend_mode,
                     }
 
                     workflow_result = await self._execute_comfyui_workflow(
                         "assets/workflows/workflow_wan_video_dual_guidance.json",
                         workflow_inputs,
                         "dual_guidance_workflow",
-                        timeout
+                        timeout,
                     )
 
                     video_frames = workflow_result["video_frames"]
-                    self.generation_stats['total_frames'] += len(video_frames)
+                    self.generation_stats["total_frames"] += len(video_frames)
 
                 finally:
                     # Clean up temporary files
@@ -323,7 +339,9 @@ class WanVideoGenerationMixin:
                 logger.info("Video with dual guidance generation complete")
                 return video_frames
 
-            result = await self._with_timeout(_generate(), timeout, "generate_with_dual_guidance")
+            result = await self._with_timeout(
+                _generate(), timeout, "generate_with_dual_guidance"
+            )
             self._record_success()
             return result
 
@@ -336,7 +354,7 @@ class WanVideoGenerationMixin:
         self,
         layers: List[CompositeLayer],
         background_color: Tuple[int, int, int, int] = (0, 0, 0, 0),
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> List[Image.Image]:
         """
         Composite multiple video layers (NON-BLOCKING with timeout)
@@ -358,6 +376,7 @@ class WanVideoGenerationMixin:
             raise RuntimeError("Circuit breaker is OPEN, cannot composite videos")
 
         try:
+
             async def _composite():
                 logger.info("Compositing video layers")
 
@@ -368,8 +387,8 @@ class WanVideoGenerationMixin:
                     layers, background_color
                 )
 
-                self.generation_stats['compositing_count'] += 1
-                self.generation_stats['total_frames'] += len(result_frames)
+                self.generation_stats["compositing_count"] += 1
+                self.generation_stats["total_frames"] += len(result_frames)
 
                 logger.info("Video compositing complete")
                 return result_frames
@@ -390,7 +409,7 @@ class WanVideoGenerationMixin:
         width: Optional[int] = None,
         height: Optional[int] = None,
         num_frames: Optional[int] = None,
-        timeout: Optional[float] = None
+        timeout: Optional[float] = None,
     ) -> List[Image.Image]:
         """
         Create video with transparent background (NON-BLOCKING with timeout)
@@ -412,9 +431,12 @@ class WanVideoGenerationMixin:
         """
         # Check circuit breaker
         if not self._check_circuit_breaker():
-            raise RuntimeError("Circuit breaker is OPEN, cannot create transparent video")
+            raise RuntimeError(
+                "Circuit breaker is OPEN, cannot create transparent video"
+            )
 
         try:
+
             async def _create():
                 logger.info("Creating transparent video")
 
@@ -437,7 +459,9 @@ class WanVideoGenerationMixin:
                 logger.info("Transparent video creation complete")
                 return rgba_frames
 
-            result = await self._with_timeout(_create(), timeout, "create_transparent_video")
+            result = await self._with_timeout(
+                _create(), timeout, "create_transparent_video"
+            )
             self._record_success()
             return result
 

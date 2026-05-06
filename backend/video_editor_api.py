@@ -8,12 +8,10 @@ Author: StoryCore Team
 Version: 1.0.0
 """
 
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Query
+from fastapi import APIRouter, HTTPException, UploadFile, File, BackgroundTasks, Query
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 import uuid
@@ -27,35 +25,26 @@ import logging
 import re
 import bcrypt  # SECURITY: Using bcrypt for secure password hashing
 import asyncio
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent))
+
+from timeline_service import TimelineService, ClipType
+from ttt_lrm_service import (
+    TTTLRMService,
+    TTTLRMConfig,
+    OutputFormat,
+    ReconstructionMode,
+)
+from backend.config import settings, get_redis_url
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Import existing types
-import sys
-sys.path.insert(0, str(Path(__file__).parent))
-from video_editor_types import (
-    EditorProject, ExportFormat, ExportPreset, AspectRatio,
-    VideoClip, AudioClip, TextLayer, Track, MediaMetadata,
-    TimeRange, Resolution, TrackType
+VIDEO_EDITOR_ROUTER = APIRouter(
+    prefix="/api/video-editor", tags=["Video Editor Wizard"]
 )
-from timeline_service import TimelineService, ClipType
-from ttt_lrm_service import TTTLRMService, TTTLRMConfig, OutputFormat, ReconstructionMode
-
-# =============================================================================
-# =============================================================================
-# Configuration - USING CENTRALIZED CONFIG from backend.config
-# =============================================================================
-#
-# NOTE: This file now uses centralized configuration from backend.config
-# All service URLs, JWT settings, and Redis are imported from settings
-# instead of being hardcoded.
-
-# Import centralized configuration
-from backend.config import settings, get_redis_url
-
-VIDEO_EDITOR_ROUTER = APIRouter(prefix="/api/video-editor", tags=["Video Editor Wizard"])
 
 # JWT Configuration - Using centralized settings
 # =============================================================================
@@ -79,8 +68,10 @@ EXPORT_DIR = Path(settings.OUTPUT_FOLDER) / "exports"
 # Pydantic Models for API
 # =============================================================================
 
+
 class Token(BaseModel):
     """Token response model."""
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
@@ -89,6 +80,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     """Token payload data."""
+
     user_id: str
     email: str
     exp: datetime
@@ -96,6 +88,7 @@ class TokenData(BaseModel):
 
 class UserCreate(BaseModel):
     """User registration model."""
+
     email: str = Field(..., min_length=5, max_length=255)
     password: str = Field(..., min_length=8)
     name: str = Field(..., min_length=1, max_length=255)
@@ -103,12 +96,14 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     """User login model."""
+
     email: str
     password: str
 
 
 class UserResponse(BaseModel):
     """User response model."""
+
     id: str
     email: str
     name: str
@@ -118,12 +113,13 @@ class UserResponse(BaseModel):
 
 class ProjectCreate(BaseModel):
     """Project creation model."""
+
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     aspect_ratio: str = "16:9"
     resolution: Union[str, Dict[str, int]] = "1920x1080"
     frame_rate: float = Field(30.0, alias="frameRate")
-    
+
     class Config:
         allow_population_by_field_name = True
         populate_by_name = True
@@ -131,16 +127,17 @@ class ProjectCreate(BaseModel):
 
 class ProjectUpdate(BaseModel):
     """Project update model."""
+
     name: Optional[str] = None
     description: Optional[str] = None
     aspect_ratio: Optional[str] = None
     resolution: Optional[Union[str, Dict[str, int]]] = None
     frame_rate: Optional[float] = Field(None, alias="frameRate")
     tracks: Optional[List[Dict[str, Any]]] = None
-    clips: Optional[List[Dict[str, Any]]] = None,
-    media: Optional[List[Dict[str, Any]]] = None,
-    project_setup: Optional[Dict[str, Any]] = Field(None, alias="projectSetup"),
-    
+    clips: Optional[List[Dict[str, Any]]] = (None,)
+    media: Optional[List[Dict[str, Any]]] = (None,)
+    project_setup: Optional[Dict[str, Any]] = (Field(None, alias="projectSetup"),)
+
     class Config:
         allow_population_by_field_name = True
         populate_by_name = True
@@ -148,6 +145,7 @@ class ProjectUpdate(BaseModel):
 
 class ProjectResponse(BaseModel):
     """Project response model."""
+
     id: str
     name: str
     description: Optional[str] = None
@@ -159,21 +157,20 @@ class ProjectResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     modified_at: datetime = Field(..., alias="updatedAt")
     thumbnail_path: Optional[str] = Field(None, alias="thumbnailPath")
-    tracks: List[Dict[str, Any]] = [],
-    clips: List[Dict[str, Any]] = [],
-    media: List[Dict[str, Any]] = [],
+    tracks: List[Dict[str, Any]] = ([],)
+    clips: List[Dict[str, Any]] = ([],)
+    media: List[Dict[str, Any]] = ([],)
     project_setup: Optional[Dict[str, Any]] = Field(None, alias="projectSetup")
-    
+
     class Config:
         allow_population_by_field_name = True
         populate_by_name = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class MediaUpload(BaseModel):
     """Media upload metadata."""
+
     project_id: str
     media_type: str  # video, audio, image
     name: Optional[str] = None
@@ -181,6 +178,7 @@ class MediaUpload(BaseModel):
 
 class MediaResponse(BaseModel):
     """Media item response."""
+
     id: str
     name: str
     media_type: str = Field(..., alias="type")
@@ -193,7 +191,7 @@ class MediaResponse(BaseModel):
     created_at: datetime = Field(..., alias="createdAt")
     tags: List[str] = []
     metadata: Dict[str, Any] = {}
-    
+
     class Config:
         allow_population_by_field_name = True
         populate_by_name = True
@@ -201,6 +199,7 @@ class MediaResponse(BaseModel):
 
 class ExportRequest(BaseModel):
     """Export request model."""
+
     project_id: Optional[str] = None
     format: str = "mp4"
     preset: str = "custom"
@@ -213,6 +212,7 @@ class ExportRequest(BaseModel):
 
 class ExportResponse(BaseModel):
     """Export job response."""
+
     id: str = Field(..., alias="id")
     project_id: str = Field(..., alias="projectId")
     status: str
@@ -223,17 +223,16 @@ class ExportResponse(BaseModel):
     settings: Optional[Dict[str, Any]] = None
     started_at: datetime = Field(default_factory=datetime.utcnow, alias="startedAt")
     completed_at: Optional[datetime] = Field(None, alias="completedAt")
-    
+
     class Config:
         allow_population_by_field_name = True
         populate_by_name = True
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
 class ExportStatusResponse(BaseModel):
     """Export status response."""
+
     id: str = Field(..., alias="id")
     status: str
     progress: float
@@ -241,7 +240,7 @@ class ExportStatusResponse(BaseModel):
     output_path: Optional[str] = Field(None, alias="outputPath")
     error: Optional[str] = None
     download_url: Optional[str] = Field(None, alias="downloadUrl")
-    
+
     class Config:
         allow_population_by_field_name = True
         populate_by_name = True
@@ -251,8 +250,10 @@ class ExportStatusResponse(BaseModel):
 # AI Service Models
 # =============================================================================
 
+
 class TranscriptionRequest(BaseModel):
     """Transcription request."""
+
     media_id: str
     language: Optional[str] = None
     enable_speakers: bool = False
@@ -260,6 +261,7 @@ class TranscriptionRequest(BaseModel):
 
 class TranscriptionResponse(BaseModel):
     """Transcription response."""
+
     job_id: str
     status: str
     text: Optional[str]
@@ -269,6 +271,7 @@ class TranscriptionResponse(BaseModel):
 
 class TranslationRequest(BaseModel):
     """Translation request."""
+
     text: str
     source_language: str
     target_language: str
@@ -276,11 +279,13 @@ class TranslationRequest(BaseModel):
 
 class TranslationResponse(BaseModel):
     """Translation response."""
+
     translated_text: str
 
 
 class TTSRequest(BaseModel):
     """Text-to-speech request."""
+
     text: str
     voice: str = "fr-FR-Denise"
     speed: float = 1.0
@@ -289,6 +294,7 @@ class TTSRequest(BaseModel):
 
 class TTSResponse(BaseModel):
     """Text-to-speech response."""
+
     job_id: str
     status: str
     audio_path: Optional[str]
@@ -296,6 +302,7 @@ class TTSResponse(BaseModel):
 
 class SmartCropRequest(BaseModel):
     """Smart crop request."""
+
     media_id: str
     target_ratio: str = "9:16"
     focus_mode: str = "auto"  # auto, face, center
@@ -303,116 +310,145 @@ class SmartCropRequest(BaseModel):
 
 class SmartCropResponse(BaseModel):
     """Smart crop response."""
+
     job_id: str
     status: str
     crop_regions: Optional[List[Dict]]
 
+
 class BeatDetectionRequest(BaseModel):
     """Beat detection request."""
+
     media_id: str
+
 
 class BeatDetectionResponse(BaseModel):
     """Beat detection response."""
+
     job_id: str
     status: str
     beats: Optional[List[float]]
 
+
 class AutoTrimRequest(BaseModel):
     """Auto trim silence request."""
+
     media_id: str
     threshold: float = -30.0
     min_duration: float = 0.5
 
+
 class AutoTrimResponse(BaseModel):
     """Auto trim silence response."""
+
     job_id: str
     status: str
     output_path: Optional[str]
 
+
 class VideoEnhanceRequest(BaseModel):
     """Video enhancement request."""
+
     media_id: str
-    enhancements: List[Dict[str, Any]] # e.g. [{"type": "halation", "strength": 0.5}]
+    enhancements: List[Dict[str, Any]]  # e.g. [{"type": "halation", "strength": 0.5}]
+
 
 class SearchRequest(BaseModel):
     """General AI search request."""
+
     query: str
     project_id: Optional[str] = None
 
+
 class VideoOCRRequest(BaseModel):
     """Video OCR indexing request."""
+
     media_id: str
+
 
 class MagicMaskRequest(BaseModel):
     """Magic mask request."""
+
     media_id: str
     strength: float = 0.5
 
+
 class DialogueAutomationRequest(BaseModel):
     """Dialogue automation request."""
+
     clips: List[Dict[str, Any]]
-    type: str # "j-cut", "l-cut", "balanced"
+    type: str  # "j-cut", "l-cut", "balanced"
     overlap: float = 1.5
+
 
 class VoiceIsolationRequest(BaseModel):
     """Voice isolation request."""
+
     media_id: str
+
 
 class AutoDuckingRequest(BaseModel):
     """Auto-ducking request."""
+
     music_id: str
     speech_id: str
 
+
 class PanScanRequest(BaseModel):
     """Smart pan & scan request."""
+
     media_id: str
+
 
 class MultiAngleRequest(BaseModel):
     """Multi-angle generation request."""
+
     base_prompt: str
     angles: List[str] = ["low angle", "high angle", "canted angle", "aerial"]
 
+
 class CharacterSheetRequest(BaseModel):
     """Character consistency sheet request."""
+
     name: str
     reference_images: List[str]
 
+
 class PublishRequest(BaseModel):
     """Social publishing request."""
+
     media_id: str
     platforms: List[str]
     title: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
     tags: List[str] = []
-    privacy: str = "public" # public, private, unlisted
+    privacy: str = "public"  # public, private, unlisted
+
 
 class PublishResponse(BaseModel):
     """Publish job response."""
+
     job_id: str
     status: str
     platform_results: Dict[str, Dict[str, Any]]
 
-class PublishRequest(BaseModel):
-    """Social publishing request."""
-    media_id: str
-    platforms: List[str]
-    title: str = Field(..., min_length=1, max_length=100)
-    description: Optional[str] = None
-    tags: List[str] = []
-    privacy: str = "public" # public, private, unlisted
 
 class Forge3DRequest(BaseModel):
     """3D asset forging request."""
+
     project_id: str = Field(..., alias="projectId")
     object_id: str = Field(..., alias="objectId")
     image_path: str = Field(..., alias="imagePath")
-    mode: str = "feedforward" # feedforward, ttt_adapted
+    mode: str = "feedforward"  # feedforward, ttt_adapted
+
 
 class Forge3DResponse(BaseModel):
     """3D asset forging response."""
+
     status: str
     model_path: Optional[str] = Field(None, alias="modelPath")
     error: Optional[str] = None
+
 
 # =============================================================================
 # In-Memory Storage (Replace with database in production)
@@ -456,51 +492,53 @@ def get_redis():
 # Authentication Helpers
 # =============================================================================
 
+
 def hash_password(password: str) -> str:
     """
     Hash password using bcrypt with automatic salt generation.
-    
+
     SECURITY: Uses bcrypt which is resistant to rainbow table attacks and
     incorporates a work factor (cost) that can be adjusted as hardware improves.
-    
+
     Args:
         password: Plain text password to hash
-        
+
     Returns:
         str: Bcrypt hashed password as string
     """
     # bcrypt generates a salt automatically and includes it in the hash
     salt = bcrypt.gensalt(rounds=12)  # Cost factor of 12 (default is 12)
-    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
-    return hashed.decode('utf-8')
+    hashed = bcrypt.hashpw(password.encode("utf-8"), salt)
+    return hashed.decode("utf-8")
 
 
 def verify_password(password: str, hashed: str) -> bool:
     """
     Verify password against a bcrypt hash.
-    
+
     Supports both bcrypt hashes (new) and legacy SHA-256 hashes (old) for
     backward compatibility during migration.
-    
+
     Args:
         password: Plain text password to verify
         hashed: Stored password hash (bcrypt or legacy SHA-256)
-        
+
     Returns:
         bool: True if password matches, False otherwise
     """
     # Check if this is a bcrypt hash (starts with $2b$)
-    if hashed.startswith('$2b$') or hashed.startswith('$2a$'):
-        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
-    
+    if hashed.startswith("$2b$") or hashed.startswith("$2a$"):
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+
     # LEGACY SUPPORT: Fall back to SHA-256 for existing passwords
     # This allows gradual migration of passwords as users log in
     # TODO: Remove this fallback after all passwords have been migrated
     import warnings
+
     warnings.warn(
         "Verifying legacy SHA-256 password hash. "
         "Consider re-hashing with bcrypt on next login.",
-        DeprecationWarning
+        DeprecationWarning,
     )
     return hashlib.sha256(password.encode()).hexdigest() == hashed
 
@@ -508,12 +546,7 @@ def verify_password(password: str, hashed: str) -> bool:
 def create_access_token(user_id: str, email: str) -> Tuple[str, datetime]:
     """Create JWT access token."""
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {
-        "user_id": user_id,
-        "email": email,
-        "exp": expire,
-        "type": "access"
-    }
+    payload = {"user_id": user_id, "email": email, "exp": expire, "type": "access"}
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
     return token, expire
 
@@ -524,7 +557,7 @@ def create_refresh_token(user_id: str) -> str:
         "user_id": user_id,
         "exp": datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
         "type": "refresh",
-        "rand": secrets.token_hex(16)
+        "rand": secrets.token_hex(16),
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -544,6 +577,7 @@ def decode_token(token: str) -> Optional[Dict]:
 # Authentication Endpoints
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.post("/auth/register", response_model=UserResponse)
 async def register(user_data: UserCreate):
     """Register a new user."""
@@ -551,11 +585,11 @@ async def register(user_data: UserCreate):
     for user in users_db.values():
         if user["email"] == user_data.email:
             raise HTTPException(status_code=400, detail="Email already registered")
-    
+
     # Create user
     user_id = str(uuid.uuid4())
     now = datetime.utcnow()
-    
+
     users_db[user_id] = {
         "id": user_id,
         "email": user_data.email,
@@ -563,15 +597,15 @@ async def register(user_data: UserCreate):
         "name": user_data.name,
         "plan": "free",
         "created_at": now,
-        "projects": []
+        "projects": [],
     }
-    
+
     return UserResponse(
         id=user_id,
         email=user_data.email,
         name=user_data.name,
         created_at=now,
-        plan="free"
+        plan="free",
     )
 
 
@@ -584,22 +618,22 @@ async def login(credentials: UserLogin):
         if u["email"] == credentials.email:
             user = u
             break
-    
+
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
     if not verify_password(credentials.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
     # Create tokens
     access_token, expires = create_access_token(user["id"], user["email"])
     refresh_token = create_refresh_token(user["id"])
-    
+
     return Token(
         access_token=access_token,
         refresh_token=refresh_token,
         token_type="bearer",
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 
@@ -607,25 +641,25 @@ async def login(credentials: UserLogin):
 async def refresh_token(refresh_token: str):
     """Refresh access token."""
     payload = decode_token(refresh_token)
-    
+
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="Invalid refresh token")
-    
+
     user_id = payload["user_id"]
     user = users_db.get(user_id)
-    
+
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
-    
+
     # Create new tokens
     new_access_token, expires = create_access_token(user["id"], user["email"])
     new_refresh_token = create_refresh_token(user["id"])
-    
+
     return Token(
         access_token=new_access_token,
         refresh_token=new_refresh_token,
         token_type="bearer",
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60
+        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
 
 
@@ -634,24 +668,24 @@ async def get_current_user(authorization: str = None):
     """Get current user profile."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     token = authorization.replace("Bearer ", "")
     payload = decode_token(token)
-    
+
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     user = users_db.get(payload["user_id"])
-    
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return UserResponse(
         id=user["id"],
         email=user["email"],
         name=user["name"],
         created_at=user["created_at"],
-        plan=user["plan"]
+        plan=user["plan"],
     )
 
 
@@ -659,22 +693,23 @@ async def get_current_user(authorization: str = None):
 # Project Management Endpoints
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.post("/projects", response_model=ProjectResponse)
 async def create_project(project_data: ProjectCreate, authorization: str = None):
     """Create a new video editing project."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     token = authorization.replace("Bearer ", "")
     payload = decode_token(token)
-    
+
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     user_id = payload["user_id"]
     project_id = str(uuid.uuid4())
     now = datetime.utcnow()
-    
+
     # Parse resolution
     resolution = project_data.resolution
     if isinstance(resolution, dict):
@@ -685,14 +720,14 @@ async def create_project(project_data: ProjectCreate, authorization: str = None)
         resolution_str = resolution
         try:
             width, height = map(int, resolution_str.split("x"))
-        except:
+        except Exception:
             width, height = 1920, 1080
             resolution_str = "1920x1080"
-    
+
     # Create project directory
     project_path = PROJECTS_DIR / user_id / project_id
     project_path.mkdir(parents=True, exist_ok=True)
-    
+
     # Create project
     project = {
         "id": project_id,
@@ -709,16 +744,16 @@ async def create_project(project_data: ProjectCreate, authorization: str = None)
         "created_at": now,
         "modified_at": now,
         "thumbnail_path": None,
-        "path": str(project_path)
+        "path": str(project_path),
     }
-    
+
     projects_db[project_id] = project
-    
+
     # Save project metadata
     metadata_file = project_path / "project.json"
     with open(metadata_file, "w") as f:
         json.dump(project, f, default=str)
-    
+
     return ProjectResponse(
         id=project_id,
         name=project_data.name,
@@ -729,7 +764,7 @@ async def create_project(project_data: ProjectCreate, authorization: str = None)
         frame_rate=project_data.frame_rate,
         duration=0.0,
         created_at=now,
-        modified_at=now
+        modified_at=now,
     )
 
 
@@ -738,15 +773,15 @@ async def list_projects(authorization: str = None):
     """List all projects for the current user."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     token = authorization.replace("Bearer ", "")
     payload = decode_token(token)
-    
+
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     user_id = payload["user_id"]
-    
+
     user_projects = [
         ProjectResponse(
             id=p["id"],
@@ -759,12 +794,12 @@ async def list_projects(authorization: str = None):
             duration=p["duration"],
             created_at=p["created_at"],
             modified_at=p["modified_at"],
-            thumbnail_path=p.get("thumbnail_path")
+            thumbnail_path=p.get("thumbnail_path"),
         )
         for p in projects_db.values()
         if p["user_id"] == user_id
     ]
-    
+
     return user_projects
 
 
@@ -773,9 +808,9 @@ async def get_project(project_id: str, authorization: str = None):
     """Get a specific project."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     project = projects_db.get(project_id)
-    
+
     # If not in memory, try to load from disk
     if not project:
         project_path = PROJECTS_DIR / project_id
@@ -785,17 +820,25 @@ async def get_project(project_id: str, authorization: str = None):
                 with open(project_file, "r") as f:
                     project = json.load(f)
                     # Convert strings to datetime if needed
-                    if "created_at" in project and isinstance(project["created_at"], str):
-                        project["created_at"] = datetime.fromisoformat(project["created_at"])
-                    if "modified_at" in project and isinstance(project["modified_at"], str):
-                        project["modified_at"] = datetime.fromisoformat(project["modified_at"])
+                    if "created_at" in project and isinstance(
+                        project["created_at"], str
+                    ):
+                        project["created_at"] = datetime.fromisoformat(
+                            project["created_at"]
+                        )
+                    if "modified_at" in project and isinstance(
+                        project["modified_at"], str
+                    ):
+                        project["modified_at"] = datetime.fromisoformat(
+                            project["modified_at"]
+                        )
                     projects_db[project_id] = project
             except Exception as e:
                 logger.error(f"Error loading project {project_id} from disk: {e}")
-    
+
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     return ProjectResponse(
         id=project["id"],
         name=project["name"],
@@ -807,7 +850,7 @@ async def get_project(project_id: str, authorization: str = None):
         duration=project["duration"],
         created_at=project["created_at"],
         modified_at=project["modified_at"],
-        thumbnail_path=project.get("thumbnail_path")
+        thumbnail_path=project.get("thumbnail_path"),
     )
 
 
@@ -815,14 +858,14 @@ async def get_project(project_id: str, authorization: str = None):
 async def list_project_assets(project_id: str, authorization: str = None):
     """
     List assets stored in the project vault.
-    
+
     This endpoint is used by the dashboard to show recent exports and generations.
     """
     try:
         # 1. Ensure project exists (try loading from disk if needed)
         project_path = PROJECTS_DIR / project_id
         found = False
-        
+
         if not project_path.exists():
             # Maybe it's in the subfolder by user_id?
             # Check if PROJECTS_DIR exists before iterating
@@ -832,26 +875,30 @@ async def list_project_assets(project_id: str, authorization: str = None):
                         project_path = user_dir / project_id
                         found = True
                         break
-            
+
             if not found:
-                logger.warning(f"Project folder not found for {project_id} in {PROJECTS_DIR}")
+                logger.warning(
+                    f"Project folder not found for {project_id} in {PROJECTS_DIR}"
+                )
                 return {"assets": [], "message": "Project folder not found"}
 
         # 2. Try to read project_assets.json
         index_path = project_path / "project_assets.json"
         assets = []
-        
+
         if index_path.exists():
             try:
-                with open(index_path, 'r') as f:
+                with open(index_path, "r") as f:
                     data = json.load(f)
                     if isinstance(data, list):
                         assets = data
                     else:
-                        logger.warning(f"project_assets.json for {project_id} is not a list, it is a {type(data)}")
+                        logger.warning(
+                            f"project_assets.json for {project_id} is not a list, it is a {type(data)}"
+                        )
             except Exception as e:
                 logger.error(f"Error reading project_assets.json for {project_id}: {e}")
-        
+
         # 3. If empty or missing, try to scan for generated files
         if not assets:
             # Scan exports folder if it exists
@@ -860,38 +907,49 @@ async def list_project_assets(project_id: str, authorization: str = None):
                 for f in exports_dir.glob("*.*"):
                     try:
                         if f.suffix.lower() in [".mp4", ".mov", ".avi", ".gif"]:
-                            assets.append({
-                                "id": f.stem,
-                                "name": f.name,
-                                "type": "video",
-                                "path": f"projects/{project_id}/exports/{f.name}",
-                                "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
-                            })
+                            assets.append(
+                                {
+                                    "id": f.stem,
+                                    "name": f.name,
+                                    "type": "video",
+                                    "path": f"projects/{project_id}/exports/{f.name}",
+                                    "added_at": datetime.fromtimestamp(
+                                        f.stat().st_mtime
+                                    ).isoformat(),
+                                }
+                            )
                     except Exception as e:
                         logger.warning(f"Error scanning exports file {f}: {e}")
-            
+
             # Scan media folder
             media_dir = project_path / "media"
             if media_dir.exists():
                 for f in media_dir.glob("*.*"):
                     try:
                         if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-                            assets.append({
-                                "id": f.stem,
-                                "name": f.name,
-                                "type": "image",
-                                "path": f"projects/{project_id}/media/{f.name}",
-                                "added_at": datetime.fromtimestamp(f.stat().st_mtime).isoformat()
-                            })
+                            assets.append(
+                                {
+                                    "id": f.stem,
+                                    "name": f.name,
+                                    "type": "image",
+                                    "path": f"projects/{project_id}/media/{f.name}",
+                                    "added_at": datetime.fromtimestamp(
+                                        f.stat().st_mtime
+                                    ).isoformat(),
+                                }
+                            )
                     except Exception as e:
                         logger.warning(f"Error scanning media file {f}: {e}")
-        
+
         return {"assets": assets}
     except Exception as e:
-        logger.error(f"Critical error in list_project_assets for {project_id}: {e}", exc_info=True)
+        logger.error(
+            f"Critical error in list_project_assets for {project_id}: {e}",
+            exc_info=True,
+        )
         return JSONResponse(
             status_code=500,
-            content={"error": "Failed to list project assets", "detail": str(e)}
+            content={"error": "Failed to list project assets", "detail": str(e)},
         )
 
 
@@ -899,7 +957,7 @@ async def list_project_assets(project_id: str, authorization: str = None):
 async def get_raw_media(
     project_id: str,
     path: str = Query(..., description="Path relative to the projects directory"),
-    authorization: str = None
+    authorization: str = None,
 ):
     """
     Serve raw media files from the project directory.
@@ -907,29 +965,29 @@ async def get_raw_media(
     """
     # Security note: In a production app, we would strictly validate
     # that the user has access to this project_id.
-    
+
     # Path is expected to be like "projects/{project_id}/media/filename.png"
     # or "projects/{project_id}/exports/filename.mp4"
-    
+
     # Normalize path and check if it's within the PROJECTS_DIR
     try:
         # Convert path to a relative path from the projects directory
         # If the path starts with "projects/", remove it
         if path.startswith("projects/"):
-            rel_path = path.replace(f"projects/", "", 1)
+            rel_path = path.replace("projects/", "", 1)
         else:
             rel_path = path
-            
+
         # Search for the file in the projects directory
         # Projects can be in PROJECTS_DIR / PROJECT_ID or PROJECTS_DIR / USER_ID / PROJECT_ID
-        
+
         # 1. Try directly in PROJECTS_DIR / rel_path (if rel_path already contains the project_id)
         full_path = PROJECTS_DIR / rel_path
-        
+
         # 2. Try in PROJECTS_DIR / PROJECT_ID / rel_path
         if not full_path.exists():
             full_path = PROJECTS_DIR / project_id / rel_path
-            
+
         # 3. Try searching one level deep for USER_ID / PROJECT_ID
         if not full_path.exists():
             for user_dir in PROJECTS_DIR.iterdir():
@@ -938,32 +996,32 @@ async def get_raw_media(
                     if path_in_user.exists():
                         full_path = path_in_user
                         break
-        
+
         if not full_path.exists():
             # Final fallback: search for rel_path in any subdirectory
             found = False
-            for entry in PROJECTS_DIR.rglob(rel_path.split('/')[-1]):
-                if rel_path in str(entry).replace('\\', '/'):
+            for entry in PROJECTS_DIR.rglob(rel_path.split("/")[-1]):
+                if rel_path in str(entry).replace("\\", "/"):
                     full_path = entry
                     found = True
                     break
-            
+
             if not found:
                 raise HTTPException(status_code=404, detail=f"File not found: {path}")
-        
+
         # Detect media type
         suffix = full_path.suffix.lower()
-        if suffix in ['.png', '.jpg', '.jpeg', '.webp']:
+        if suffix in [".png", ".jpg", ".jpeg", ".webp"]:
             media_type = f"image/{suffix[1:] if suffix != '.jpg' else 'jpeg'}"
-        elif suffix in ['.mp4', '.webm', '.mov']:
+        elif suffix in [".mp4", ".webm", ".mov"]:
             media_type = f"video/{suffix[1:] if suffix != '.mov' else 'quicktime'}"
-        elif suffix in ['.glb', '.gltf']:
-            media_type = "model/gltf-binary" if suffix == '.glb' else "model/gltf+json"
+        elif suffix in [".glb", ".gltf"]:
+            media_type = "model/gltf-binary" if suffix == ".glb" else "model/gltf+json"
         else:
             media_type = "application/octet-stream"
-            
+
         return FileResponse(path=full_path, media_type=media_type)
-        
+
     except Exception as e:
         if isinstance(e, HTTPException):
             raise e
@@ -973,19 +1031,17 @@ async def get_raw_media(
 
 @VIDEO_EDITOR_ROUTER.put("/projects/{project_id}", response_model=ProjectResponse)
 async def update_project(
-    project_id: str,
-    update_data: ProjectUpdate,
-    authorization: str = None
+    project_id: str, update_data: ProjectUpdate, authorization: str = None
 ):
     """Update a project."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     project = projects_db.get(project_id)
-    
+
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     # Apply updates
     if update_data.name is not None:
         project["name"] = update_data.name
@@ -1003,16 +1059,18 @@ async def update_project(
         project["clips"] = update_data.clips
     if update_data.media is not None:
         project["media"] = update_data.media
-        
+
     project["modified_at"] = datetime.utcnow()
-    
+
     # Save project metadata
-    project_path = Path(project.get("path", PROJECTS_DIR / project["user_id"] / project_id))
+    project_path = Path(
+        project.get("path", PROJECTS_DIR / project["user_id"] / project_id)
+    )
     project_path.mkdir(parents=True, exist_ok=True)
     metadata_file = project_path / "project.json"
     with open(metadata_file, "w") as f:
         json.dump(project, f, default=str)
-    
+
     return ProjectResponse(**project)
 
 
@@ -1021,26 +1079,28 @@ async def delete_project(project_id: str, authorization: str = None):
     """Delete a project."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     if project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     # Delete project directory
     project = projects_db[project_id]
     project_path = Path(project["path"])
     if project_path.exists():
         import shutil
+
         shutil.rmtree(project_path)
-    
+
     # Remove from database
     del projects_db[project_id]
-    
+
     return {"message": "Project deleted successfully"}
 
 
 # =============================================================================
 # Media Management Endpoints
 # =============================================================================
+
 
 @VIDEO_EDITOR_ROUTER.post("/media/upload", response_model=MediaResponse)
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/media", response_model=MediaResponse)
@@ -1049,99 +1109,114 @@ async def upload_media(
     project_id: str = None,
     media_type: str = "video",
     name: str = None,
-    authorization: str = None
+    authorization: str = None,
 ):
     """Upload a media file to a project."""
     # Authentication check
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     # Project validation
     if project_id and project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     # ========== FILE UPLOAD SECURITY VALIDATIONS ==========
-    
+
     # 1. Validate content-type
     allowed_content_types = {
-        'video': ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/x-matroska'],
-        'audio': ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/aac'],
-        'image': ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml']
+        "video": [
+            "video/mp4",
+            "video/webm",
+            "video/quicktime",
+            "video/x-msvideo",
+            "video/x-matroska",
+        ],
+        "audio": ["audio/mpeg", "audio/wav", "audio/ogg", "audio/flac", "audio/aac"],
+        "image": [
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+            "image/svg+xml",
+        ],
     }
-    
-    content_type = file.content_type or 'application/octet-stream'
-    media_content_types = allowed_content_types.get(media_type, allowed_content_types['video'])
-    
+
+    content_type = file.content_type or "application/octet-stream"
+    media_content_types = allowed_content_types.get(
+        media_type, allowed_content_types["video"]
+    )
+
     if content_type not in media_content_types:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid content-type '{content_type}'. Allowed: {', '.join(media_content_types)}"
+            detail=f"Invalid content-type '{content_type}'. Allowed: {', '.join(media_content_types)}",
         )
-    
+
     # 2. Validate file extension
     allowed_extensions = {
-        'video': ['.mp4', '.webm', '.mov', '.avi', '.mkv', '.flv', '.wmv'],
-        'audio': ['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a'],
-        'image': ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg']
+        "video": [".mp4", ".webm", ".mov", ".avi", ".mkv", ".flv", ".wmv"],
+        "audio": [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
+        "image": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
     }
-    
-    original_filename = file.filename or 'unnamed_file'
+
+    original_filename = file.filename or "unnamed_file"
     safe_name = name or original_filename
     file_ext = Path(original_filename).suffix.lower()
-    allowed_exts = allowed_extensions.get(media_type, allowed_extensions['video'])
-    
+    allowed_exts = allowed_extensions.get(media_type, allowed_extensions["video"])
+
     if file_ext not in [ext.lower() for ext in allowed_exts]:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file extension '{file_ext}'. Allowed: {', '.join(allowed_exts)}"
+            detail=f"Invalid file extension '{file_ext}'. Allowed: {', '.join(allowed_exts)}",
         )
-    
+
     # 3. Limit file size (50MB max)
     MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
-    
+
     # Read content to check size
     content = await file.read()
     file_size = len(content)
-    
+
     if file_size > MAX_FILE_SIZE:
         raise HTTPException(
-            status_code=400,
-            detail=f"File size exceeds maximum allowed size of 50MB"
+            status_code=400, detail="File size exceeds maximum allowed size of 50MB"
         )
-    
+
     # 4. Sanitize filename
-    safe_filename = re.sub(r'[^a-zA-Z0-9._-]', '_', original_filename)
+    safe_filename = re.sub(r"[^a-zA-Z0-9._-]", "_", original_filename)
     safe_filename = safe_filename[:100]  # Limit length
-    
+
     # ========== END SECURITY VALIDATIONS ==========
-    
+
     media_id = str(uuid.uuid4())
     now = datetime.utcnow()
-    
+
     # Determine storage path (using pathlib for safety)
     if project_id:
-        storage_path = MEDIA_DIR / projects_db[project_id]["user_id"] / project_id / media_id
+        storage_path = (
+            MEDIA_DIR / projects_db[project_id]["user_id"] / project_id / media_id
+        )
     else:
         storage_path = MEDIA_DIR / "temp" / media_id
-    
+
     # Add file extension to storage path
     storage_path = storage_path.with_suffix(file_ext)
-    
+
     storage_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Save file
     with open(storage_path, "wb") as f:
         f.write(content)
-    
+
     # Create thumbnail (placeholder)
     thumbnail_path = None
     duration = None
-    
+
     # Get media metadata (simplified - use actual ffprobe in production)
     if media_type == "video":
         duration = 0.0  # Will be extracted by ffprobe
         thumbnail_path = str(storage_path) + "_thumb.jpg"
-    
+
     # Store media metadata
     media = {
         "id": media_id,
@@ -1153,11 +1228,11 @@ async def upload_media(
         "thumbnail_path": thumbnail_path,
         "file_size": file_size,
         "created_at": now,
-        "project_id": project_id
+        "project_id": project_id,
     }
-    
+
     media_db[media_id] = media
-    
+
     return MediaResponse(
         id=media_id,
         name=safe_name,
@@ -1167,7 +1242,7 @@ async def upload_media(
         resolution=None,
         thumbnail_path=thumbnail_path,
         file_size=file_size,
-        created_at=now
+        created_at=now,
     )
 
 
@@ -1176,12 +1251,12 @@ async def get_media(media_id: str, authorization: str = None):
     """Get media metadata."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     media = media_db.get(media_id)
-    
+
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     return MediaResponse(
         id=media["id"],
         name=media["name"],
@@ -1191,7 +1266,7 @@ async def get_media(media_id: str, authorization: str = None):
         resolution=media.get("resolution"),
         thumbnail_path=media.get("thumbnail_path"),
         file_size=media["file_size"],
-        created_at=media["created_at"]
+        created_at=media["created_at"],
     )
 
 
@@ -1200,24 +1275,24 @@ async def delete_media(media_id: str, authorization: str = None):
     """Delete a media file."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     media = media_db.get(media_id)
-    
+
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     # Delete file
     media_path = Path(media["path"])
     if media_path.exists():
         media_path.unlink()
-    
+
     # Delete thumbnail
     thumbnail_path = Path(media.get("thumbnail_path", ""))
     if thumbnail_path.exists():
         thumbnail_path.unlink()
-    
+
     del media_db[media_id]
-    
+
     return {"message": "Media deleted successfully"}
 
 
@@ -1225,24 +1300,27 @@ async def delete_media(media_id: str, authorization: str = None):
 # Export Endpoints
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.post("/export", response_model=ExportResponse)
-@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/export", response_model=ExportResponse)
+@VIDEO_EDITOR_ROUTER.post(
+    "/projects/{project_id}/export", response_model=ExportResponse
+)
 async def start_export(
-    export_request: ExportRequest, 
+    export_request: ExportRequest,
     background_tasks: BackgroundTasks,
-    project_id: str = None
+    project_id: str = None,
 ):
     """Start a video export job."""
     current_project_id = project_id or export_request.project_id
-    
+
     if not current_project_id:
         raise HTTPException(status_code=400, detail="Project ID is required")
-        
+
     if current_project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-        
+
     job_id = str(uuid.uuid4())
-    
+
     # Create export job
     job = {
         "id": job_id,
@@ -1257,34 +1335,38 @@ async def start_export(
         "output_path": None,
         "error": None,
         "settings": export_request.dict(),
-        "started_at": datetime.utcnow()
+        "started_at": datetime.utcnow(),
     }
-    
+
     jobs_db[job_id] = job
-    
+
     # Add export task to background
     background_tasks.add_task(process_export, job_id)
-    
+
     return ExportResponse(**job)
 
 
 @VIDEO_EDITOR_ROUTER.get("/export/{job_id}/status", response_model=ExportStatusResponse)
-@VIDEO_EDITOR_ROUTER.get("/export/{job_id}/progress", response_model=ExportStatusResponse)
+@VIDEO_EDITOR_ROUTER.get(
+    "/export/{job_id}/progress", response_model=ExportStatusResponse
+)
 async def get_export_status(job_id: str):
     """Get export job status."""
     job = jobs_db.get(job_id)
-    
+
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    
+
     return ExportStatusResponse(
         id=job["id"],
         status=job["status"],
         progress=job["progress"],
         message=job["message"],
         output_path=job.get("output_path"),
-        download_url=f"/api/video-editor/export/{job_id}/download" if job["status"] == "completed" else None,
-        error=job.get("error")
+        download_url=f"/api/video-editor/export/{job_id}/download"
+        if job["status"] == "completed"
+        else None,
+        error=job.get("error"),
     )
 
 
@@ -1292,58 +1374,61 @@ async def get_export_status(job_id: str):
 async def download_export(job_id: str):
     """Download exported video."""
     job = jobs_db.get(job_id)
-    
+
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    
+
     if job["status"] != "completed":
         raise HTTPException(status_code=400, detail="Export not ready")
-    
+
     if not job.get("download_url"):
         raise HTTPException(status_code=404, detail="Export file not found")
-    
+
     return {"url": job["download_url"]}
 
 
 async def process_export(job_id: str):
     """Background task to process video export with real FFmpeg/GPU."""
     from video_editor_ai_service import create_ai_service
+
     service = create_ai_service()
-    
+
     job = jobs_db[job_id]
     job["status"] = "processing"
     job["message"] = "Starting high-quality export..."
-    
+
     project_id = job.get("projectId") or job.get("project_id")
     format_ext = job.get("format", "mp4")
-    
+
     try:
         # En production, on rendrait la timeline. Ici on simule sur le premier média pour la démo
         # Mais avec les vrais réglages de qualité/format/transparent
         project = projects_db.get(project_id)
         if not project:
             raise ValueError(f"Project {project_id} not found")
-            
+
         # Try both media and media_items for compatibility
         media_list = project.get("media", project.get("media_items", []))
         if not media_list:
-             raise FileNotFoundError("No media in project to export")
-             
+            raise FileNotFoundError("No media in project to export")
+
         input_path = media_list[0]["path"]
         output_filename = f"{project_id}_{job_id}.{format_ext}"
         output_path = str(EXPORT_DIR / output_filename)
-        
+
         job["progress"] = 30.0
         job["message"] = f"Encoding {format_ext}..."
-        
+
         success = await service.export.export_video(
             input_path=input_path,
             output_path=output_path,
             format=format_ext,
             quality=job.get("quality", 23),
-            transparent=(format_ext == "webm" and job.get("quality") == 100) # Hack démo
+            transparent=(
+                format_ext == "webm" and job.get("quality") == 100
+            ),  # Hack démo
         )
-        
+
         if success:
             job["status"] = "completed"
             job["progress"] = 100.0
@@ -1355,7 +1440,7 @@ async def process_export(job_id: str):
             job["message"] = "FFmpeg export failed"
             job["error"] = "Process failed internally"
             job["completed_at"] = datetime.utcnow()
-        
+
     except Exception as e:
         job["status"] = "failed"
         job["error"] = str(e)
@@ -1368,16 +1453,19 @@ async def process_export(job_id: str):
 # AI Service Endpoints
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.post("/ai/transcribe", response_model=TranscriptionResponse)
-async def transcribe_media(request: TranscriptionRequest, background_tasks: BackgroundTasks):
+async def transcribe_media(
+    request: TranscriptionRequest, background_tasks: BackgroundTasks
+):
     """Start transcription of media."""
     media = media_db.get(request.media_id)
-    
+
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
-    
+
     job = {
         "id": job_id,
         "type": "transcription",
@@ -1386,19 +1474,19 @@ async def transcribe_media(request: TranscriptionRequest, background_tasks: Back
         "status": "pending",
         "text": None,
         "segments": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
-    
+
     jobs_db[job_id] = job
-    
+
     background_tasks.add_task(process_transcription, job_id)
-    
+
     return TranscriptionResponse(
         job_id=job_id,
         status="pending",
         text=None,
         segments=None,
-        language=request.language or "auto-detected"
+        language=request.language or "auto-detected",
     )
 
 
@@ -1415,7 +1503,7 @@ async def translate_text(request: TranslationRequest):
 async def text_to_speech(request: TTSRequest, background_tasks: BackgroundTasks):
     """Convert text to speech."""
     job_id = str(uuid.uuid4())
-    
+
     job = {
         "id": job_id,
         "type": "tts",
@@ -1424,30 +1512,28 @@ async def text_to_speech(request: TTSRequest, background_tasks: BackgroundTasks)
         "speed": request.speed,
         "status": "pending",
         "audio_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
-    
+
     jobs_db[job_id] = job
-    
+
     background_tasks.add_task(process_tts, job_id)
-    
-    return TTSResponse(
-        job_id=job_id,
-        status="pending",
-        audio_path=None
-    )
+
+    return TTSResponse(job_id=job_id, status="pending", audio_path=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/smart-crop", response_model=SmartCropResponse)
-async def smart_crop_media(request: SmartCropRequest, background_tasks: BackgroundTasks):
+async def smart_crop_media(
+    request: SmartCropRequest, background_tasks: BackgroundTasks
+):
     """Smart crop media to target aspect ratio."""
     media = media_db.get(request.media_id)
-    
+
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
-    
+
     job = {
         "id": job_id,
         "type": "smart_crop",
@@ -1456,27 +1542,25 @@ async def smart_crop_media(request: SmartCropRequest, background_tasks: Backgrou
         "focus_mode": request.focus_mode,
         "status": "pending",
         "crop_regions": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
-    
+
     jobs_db[job_id] = job
-    
+
     background_tasks.add_task(process_smart_crop, job_id)
-    
-    return SmartCropResponse(
-        job_id=job_id,
-        status="pending",
-        crop_regions=None
-    )
+
+    return SmartCropResponse(job_id=job_id, status="pending", crop_regions=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/detect-beats", response_model=BeatDetectionResponse)
-async def detect_beats(request: BeatDetectionRequest, background_tasks: BackgroundTasks):
+async def detect_beats(
+    request: BeatDetectionRequest, background_tasks: BackgroundTasks
+):
     """Detect beats in audio media."""
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1484,21 +1568,23 @@ async def detect_beats(request: BeatDetectionRequest, background_tasks: Backgrou
         "media_id": request.media_id,
         "status": "pending",
         "beats": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_beat_detection, job_id)
-    
+
     return BeatDetectionResponse(job_id=job_id, status="pending", beats=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/auto-trim", response_model=AutoTrimResponse)
-async def auto_trim_silence(request: AutoTrimRequest, background_tasks: BackgroundTasks):
+async def auto_trim_silence(
+    request: AutoTrimRequest, background_tasks: BackgroundTasks
+):
     """Automatically trim silence from media."""
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1508,21 +1594,23 @@ async def auto_trim_silence(request: AutoTrimRequest, background_tasks: Backgrou
         "min_duration": request.min_duration,
         "status": "pending",
         "output_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_auto_trim, job_id)
-    
+
     return AutoTrimResponse(job_id=job_id, status="pending", output_path=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/enhance")
-async def enhance_video(request: VideoEnhanceRequest, background_tasks: BackgroundTasks):
+async def enhance_video(
+    request: VideoEnhanceRequest, background_tasks: BackgroundTasks
+):
     """Apply AI enhancements (Hellation, Super-res, etc.) to video."""
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1531,11 +1619,11 @@ async def enhance_video(request: VideoEnhanceRequest, background_tasks: Backgrou
         "enhancements": request.enhancements,
         "status": "pending",
         "output_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_video_enhance, job_id)
-    
+
     return {"job_id": job_id, "status": "pending"}
 
 
@@ -1544,33 +1632,43 @@ async def search_ai_content(request: SearchRequest):
     """Search across transcriptions and OCR results."""
     query = request.query.lower()
     results = []
-    
+
     for job_id, job in jobs_db.items():
         # Search in transcriptions
         if job.get("type") == "transcription" and job.get("status") == "completed":
             text = job.get("text", "")
             if query in text.lower():
-                results.append({
-                    "id": job_id,
-                    "media_id": job.get("media_id"),
-                    "type": "transcription",
-                    "preview": text[:100] + "...",
-                    "matches": [s for s in job.get("segments", []) if query in s.get("text", "").lower()]
-                })
-        
+                results.append(
+                    {
+                        "id": job_id,
+                        "media_id": job.get("media_id"),
+                        "type": "transcription",
+                        "preview": text[:100] + "...",
+                        "matches": [
+                            s
+                            for s in job.get("segments", [])
+                            if query in s.get("text", "").lower()
+                        ],
+                    }
+                )
+
         # Search in OCR
         elif job.get("type") == "video_ocr" and job.get("status") == "completed":
             ocr_data = job.get("ocr_results", [])
-            matches = [item for item in ocr_data if query in item.get("text", "").lower()]
+            matches = [
+                item for item in ocr_data if query in item.get("text", "").lower()
+            ]
             if matches:
-                results.append({
-                    "id": job_id,
-                    "media_id": job.get("media_id"),
-                    "type": "video_ocr",
-                    "preview": f"{len(matches)} occurrences trouvées",
-                    "matches": matches
-                })
-    
+                results.append(
+                    {
+                        "id": job_id,
+                        "media_id": job.get("media_id"),
+                        "type": "video_ocr",
+                        "preview": f"{len(matches)} occurrences trouvées",
+                        "matches": matches,
+                    }
+                )
+
     return {"query": query, "results": results}
 
 
@@ -1580,7 +1678,7 @@ async def index_video_ocr(request: VideoOCRRequest, background_tasks: Background
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1588,21 +1686,23 @@ async def index_video_ocr(request: VideoOCRRequest, background_tasks: Background
         "media_id": request.media_id,
         "status": "pending",
         "ocr_results": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_video_ocr, job_id)
-    
+
     return {"job_id": job_id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/magic-mask")
-async def apply_magic_mask(request: MagicMaskRequest, background_tasks: BackgroundTasks):
+async def apply_magic_mask(
+    request: MagicMaskRequest, background_tasks: BackgroundTasks
+):
     """Start Magic Mask background removal."""
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     # On réutilise VideoEnhanceRequest structure pour le background task
     enhancement = [{"type": "magic_mask", "strength": request.strength}]
     job_id = str(uuid.uuid4())
@@ -1612,11 +1712,11 @@ async def apply_magic_mask(request: MagicMaskRequest, background_tasks: Backgrou
         "media_id": request.media_id,
         "status": "pending",
         "output_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_video_enhance, job_id, enhancement)
-    
+
     return {"job_id": job_id, "status": "pending"}
 
 
@@ -1624,17 +1724,22 @@ async def apply_magic_mask(request: MagicMaskRequest, background_tasks: Backgrou
 async def automate_dialogue(request: DialogueAutomationRequest):
     """Automate dialogue cuts (J-cut, L-cut)."""
     from video_editor_ai_service import create_ai_service
+
     service = create_ai_service()
-    
+
     results = []
     if request.type == "j-cut":
         # On suppose clips[0] est vidéo, clips[1] est audio
-        res = service.dialogue_automation.apply_j_cut(request.clips[0], request.clips[1], request.overlap)
+        res = service.dialogue_automation.apply_j_cut(
+            request.clips[0], request.clips[1], request.overlap
+        )
         results.append(res)
     elif request.type == "l-cut":
-        res = service.dialogue_automation.apply_l_cut(request.clips[0], request.clips[1], request.overlap)
+        res = service.dialogue_automation.apply_l_cut(
+            request.clips[0], request.clips[1], request.overlap
+        )
         results.append(res)
-    
+
     return {"status": "success", "results": results}
 
 
@@ -1648,12 +1753,14 @@ async def get_ai_job_status(job_id: str):
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/voice-isolation")
-async def isolate_voice(request: VoiceIsolationRequest, background_tasks: BackgroundTasks):
+async def isolate_voice(
+    request: VoiceIsolationRequest, background_tasks: BackgroundTasks
+):
     """Start voice isolation background task."""
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1661,11 +1768,11 @@ async def isolate_voice(request: VoiceIsolationRequest, background_tasks: Backgr
         "media_id": request.media_id,
         "status": "pending",
         "output_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_voice_isolation, job_id)
-    
+
     return {"job_id": job_id, "status": "pending"}
 
 
@@ -1676,7 +1783,7 @@ async def auto_ducking(request: AutoDuckingRequest, background_tasks: Background
     speech = media_db.get(request.speech_id)
     if not music or not speech:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1685,11 +1792,11 @@ async def auto_ducking(request: AutoDuckingRequest, background_tasks: Background
         "speech_id": request.speech_id,
         "status": "pending",
         "output_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_auto_ducking, job_id)
-    
+
     return {"job_id": job_id, "status": "pending"}
 
 
@@ -1699,7 +1806,7 @@ async def pan_and_scan(request: PanScanRequest, background_tasks: BackgroundTask
     media = media_db.get(request.media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-    
+
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1707,11 +1814,11 @@ async def pan_and_scan(request: PanScanRequest, background_tasks: BackgroundTask
         "media_id": request.media_id,
         "status": "pending",
         "output_path": None,
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_pan_scan, job_id)
-    
+
     return {"job_id": job_id, "status": "pending"}
 
 
@@ -1719,8 +1826,11 @@ async def pan_and_scan(request: PanScanRequest, background_tasks: BackgroundTask
 async def generate_multi_angle(request: MultiAngleRequest):
     """Generate prompts for multiple camera angles."""
     from video_editor_ai_service import create_ai_service
+
     service = create_ai_service()
-    prompts = await service.multi_angle.generate_angles(request.base_prompt, request.angles)
+    prompts = await service.multi_angle.generate_angles(
+        request.base_prompt, request.angles
+    )
     return {"status": "success", "prompts": prompts}
 
 
@@ -1728,10 +1838,14 @@ async def generate_multi_angle(request: MultiAngleRequest):
 async def generate_character_sheet(request: CharacterSheetRequest):
     """Generate a character consistency sheet."""
     from video_editor_ai_service import create_ai_service
+
     service = create_ai_service()
-    char_id = service.character_consistency.create_character_profile(request.name, request.reference_images)
+    char_id = service.character_consistency.create_character_profile(
+        request.name, request.reference_images
+    )
     sheet = await service.character_consistency.generate_character_sheet(char_id)
     return {"status": "success", "char_id": char_id, "sheet": sheet}
+
 
 @VIDEO_EDITOR_ROUTER.post("/ai/sprite")
 async def generate_sprites(media_id: str):
@@ -1739,20 +1853,21 @@ async def generate_sprites(media_id: str):
     media = media_db.get(media_id)
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
-        
+
     from video_editor_ai_service import create_ai_service
+
     service = create_ai_service()
-    
+
     output_dir = os.path.join(os.path.dirname(media["path"]), "sprites")
     sprites = await service.sprite.generate_sprite(media["path"], output_dir)
-    
+
     return {"status": "success", "sprites": sprites}
 
 
 @VIDEO_EDITOR_ROUTER.post("/publish", response_model=PublishResponse)
 async def publish_video(request: PublishRequest, background_tasks: BackgroundTasks):
     """Publish media to social platforms."""
-    media = media_db.get(request.media_id)
+    media_db.get(request.media_id)
     job_id = str(uuid.uuid4())
     job = {
         "id": job_id,
@@ -1765,41 +1880,38 @@ async def publish_video(request: PublishRequest, background_tasks: BackgroundTas
         "privacy": request.privacy,
         "status": "pending",
         "platform_results": {},
-        "created_at": datetime.utcnow()
+        "created_at": datetime.utcnow(),
     }
     jobs_db[job_id] = job
     background_tasks.add_task(process_publish, job_id)
-    
-    return PublishResponse(
-        job_id=job_id,
-        status="pending",
-        platform_results={}
-    )
+
+    return PublishResponse(job_id=job_id, status="pending", platform_results={})
+
 
 async def process_publish(job_id: str):
     """Background task for multi-platform publishing."""
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     platforms = job["platforms"]
     results = {}
-    
+
     for platform in platforms:
         results[platform] = {"status": "publishing", "url": None}
         job["platform_results"] = results
         await asyncio.sleep(2)
-        
+
         if platform == "storycore_blog":
             url = f"{settings.STORYCORE_WORDPRESS_URL}/?storycore_showcase={uuid.uuid4().hex[:8]}"
         elif platform == "storycore_market":
             url = f"{settings.STORYCORE_WORDPRESS_URL}/shop"
         else:
             url = f"https://{platform}.com/watch?v={uuid.uuid4().hex[:11]}"
-            
+
         results[platform] = {
-            "status": "completed", 
+            "status": "completed",
             "url": url,
-            "published_at": datetime.utcnow().isoformat()
+            "published_at": datetime.utcnow().isoformat(),
         }
         job["platform_results"] = results
 
@@ -1811,15 +1923,18 @@ async def process_publish(job_id: str):
 # Timeline & Track Operations
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks")
-async def add_track(project_id: str, track_data: Dict[str, Any], authorization: str = None):
+async def add_track(
+    project_id: str, track_data: Dict[str, Any], authorization: str = None
+):
     """Add a new track to the project timeline."""
     if project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     project = projects_db[project_id]
     track_id = str(uuid.uuid4())
-    
+
     new_track = {
         "id": track_id,
         "name": track_data.get("name", "New Track"),
@@ -1827,26 +1942,27 @@ async def add_track(project_id: str, track_data: Dict[str, Any], authorization: 
         "clips": [],
         "muted": False,
         "locked": False,
-        "height": 60
+        "height": 60,
     }
-    
+
     project["tracks"].append(new_track)
     project["modified_at"] = datetime.utcnow()
-    
+
     return new_track
+
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks/{track_id}/clips")
 async def add_clip(project_id: str, track_id: str, clip_data: Dict[str, Any]):
     """Add a clip to a specific track."""
     if project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     project = projects_db[project_id]
     track = next((t for t in project["tracks"] if t["id"] == track_id), None)
-    
+
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
-    
+
     clip_id = str(uuid.uuid4())
     new_clip = {
         "id": clip_id,
@@ -1857,62 +1973,117 @@ async def add_clip(project_id: str, track_id: str, clip_data: Dict[str, Any]):
         "name": clip_data.get("name", "Untitled Clip"),
         "media_id": clip_data.get("mediaId"),
         "file_path": clip_data.get("file_path"),
-        "metadata": {}
+        "metadata": {},
     }
-    
+
     track["clips"].append(new_clip)
     project["modified_at"] = datetime.utcnow()
-    
+
     return new_clip
+
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/clips/{clip_id}/move")
 async def move_clip(project_id: str, clip_id: str, move_data: Dict[str, Any]):
     """Move a clip with optional ripple effect."""
     if project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     project = projects_db[project_id]
     use_ripple = move_data.get("ripple", False)
     new_start = move_data.get("startTime", 0.0)
     new_track_id = move_data.get("trackId")
-    
+
     # We use a temporary Timeline object for the service
     # In production, we would persist the Timeline objects directly
     tl = timeline_service.create_timeline(project["name"])
     temp_timeline_id = tl.id
-    
+
     # Sync project tracks to service
     for p_track in project["tracks"]:
-        t = timeline_service.add_track(temp_timeline_id, p_track["name"], ClipType(p_track["type"]))
+        t = timeline_service.add_track(
+            temp_timeline_id, p_track["name"], ClipType(p_track["type"])
+        )
         t.id = p_track["id"]
         for p_clip in p_track["clips"]:
-            c = timeline_service.add_clip(temp_timeline_id, t.id, {
-                "id": p_clip["id"],
-                "type": ClipType(p_clip["type"]),
-                "track_id": t.id,
-                "start_time": p_clip["start_time"],
-                "end_time": p_clip["end_time"],
-                "name": p_clip["name"]
-            })
-    
+            timeline_service.add_clip(
+                temp_timeline_id,
+                t.id,
+                {
+                    "id": p_clip["id"],
+                    "type": ClipType(p_clip["type"]),
+                    "track_id": t.id,
+                    "start_time": p_clip["start_time"],
+                    "end_time": p_clip["end_time"],
+                    "name": p_clip["name"],
+                },
+            )
+
     # Perform operation
     success = False
     if use_ripple:
-        success = timeline_service.ripple_move_clip(temp_timeline_id, clip_id, new_start)
+        success = timeline_service.ripple_move_clip(
+            temp_timeline_id, clip_id, new_start
+        )
     else:
-        success = timeline_service.move_clip(temp_timeline_id, clip_id, new_start, new_track_id)
-        
+        success = timeline_service.move_clip(
+            temp_timeline_id, clip_id, new_start, new_track_id
+        )
+
     if not success:
         raise HTTPException(status_code=400, detail="Move operation failed")
-        
+
     # Sync back to project_db
     updated_tl = timeline_service.get_timeline(temp_timeline_id)
     project["tracks"] = []
     for t in updated_tl.tracks:
-        project["tracks"].append({
-            "id": t.id,
-            "name": t.name,
-            "type": t.type.value,
+        project["tracks"].append(
+            {
+                "id": t.id,
+                "name": t.name,
+                "type": t.type.value,
+                "clips": [
+                    {
+                        "id": c.id,
+                        "type": c.type.value,
+                        "track_id": c.track_id,
+                        "start_time": c.start_time,
+                        "end_time": c.end_time,
+                        "name": c.name,
+                    }
+                    for c in t.clips
+                ],
+            }
+        )
+
+    project["modified_at"] = datetime.utcnow()
+    return {"status": "success", "project": project}
+
+
+@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/auto-assemble")
+async def auto_assemble(project_id: str, assembly_data: Dict[str, Any]):
+    """Automatically assemble shots into a timeline sequence."""
+    if project_id not in projects_db:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    project = projects_db[project_id]
+    shots = assembly_data.get("shots", [])
+
+    # Use TimelineService to assemble
+    temp_tl = timeline_service.create_timeline(project["name"])
+    success = timeline_service.auto_assemble_sequence(temp_tl.id, shots)
+
+    if not success:
+        raise HTTPException(status_code=500, detail="Auto-assembly failed")
+
+    # Add the assembled track to our project
+    new_tl = timeline_service.get_timeline(temp_tl.id)
+    assembled_track = new_tl.tracks[0]
+
+    project["tracks"].append(
+        {
+            "id": assembled_track.id,
+            "name": assembled_track.name,
+            "type": assembled_track.type.value,
             "clips": [
                 {
                     "id": c.id,
@@ -1920,174 +2091,137 @@ async def move_clip(project_id: str, clip_id: str, move_data: Dict[str, Any]):
                     "track_id": c.track_id,
                     "start_time": c.start_time,
                     "end_time": c.end_time,
-                    "name": c.name
-                } for c in t.clips
-            ]
-        })
-    
-    project["modified_at"] = datetime.utcnow()
-    return {"status": "success", "project": project}
+                    "name": c.name,
+                    "file_path": c.file_path,
+                }
+                for c in assembled_track.clips
+            ],
+        }
+    )
 
-@VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/auto-assemble")
-async def auto_assemble(project_id: str, assembly_data: Dict[str, Any]):
-    """Automatically assemble shots into a timeline sequence."""
-    if project_id not in projects_db:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    project = projects_db[project_id]
-    shots = assembly_data.get("shots", [])
-    
-    # Use TimelineService to assemble
-    temp_tl = timeline_service.create_timeline(project["name"])
-    success = timeline_service.auto_assemble_sequence(temp_tl.id, shots)
-    
-    if not success:
-        raise HTTPException(status_code=500, detail="Auto-assembly failed")
-        
-    # Add the assembled track to our project
-    new_tl = timeline_service.get_timeline(temp_tl.id)
-    assembled_track = new_tl.tracks[0]
-    
-    project["tracks"].append({
-        "id": assembled_track.id,
-        "name": assembled_track.name,
-        "type": assembled_track.type.value,
-        "clips": [
-            {
-                "id": c.id,
-                "type": c.type.value,
-                "track_id": c.track_id,
-                "start_time": c.start_time,
-                "end_time": c.end_time,
-                "name": c.name,
-                "file_path": c.file_path
-            } for c in assembled_track.clips
-        ]
-    })
-    
     project["modified_at"] = datetime.utcnow()
     return {"status": "success", "track_id": assembled_track.id}
+
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks/{track_id}/fill-gaps")
 async def fill_gaps(project_id: str, track_id: str, filler_data: Dict[str, Any]):
     """Fill gaps in a track with ambiance/silence."""
     if project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     project = projects_db[project_id]
-    
+
     # We use a temporary Timeline object for the service
     tl = timeline_service.create_timeline(project["name"])
     temp_timeline_id = tl.id
-    
+
     # Sync project tracks to service
     p_track = next((t for t in project["tracks"] if t["id"] == track_id), None)
     if not p_track:
         raise HTTPException(status_code=404, detail="Track not found")
-        
-    t = timeline_service.add_track(temp_timeline_id, p_track["name"], ClipType(p_track["type"]))
+
+    t = timeline_service.add_track(
+        temp_timeline_id, p_track["name"], ClipType(p_track["type"])
+    )
     t.id = p_track["id"]
     for p_clip in p_track["clips"]:
-        timeline_service.add_clip(temp_timeline_id, t.id, {
-            "id": p_clip["id"],
-            "type": ClipType(p_clip["type"]),
-            "track_id": t.id,
-            "start_time": p_clip["start_time"],
-            "end_time": p_clip["end_time"],
-            "name": p_clip.get("name", "Untitled")
-        })
-        
+        timeline_service.add_clip(
+            temp_timeline_id,
+            t.id,
+            {
+                "id": p_clip["id"],
+                "type": ClipType(p_clip["type"]),
+                "track_id": t.id,
+                "start_time": p_clip["start_time"],
+                "end_time": p_clip["end_time"],
+                "name": p_clip.get("name", "Untitled"),
+            },
+        )
+
     # Perform operation
     new_ids = timeline_service.fill_track_gaps(temp_timeline_id, track_id, filler_data)
-    
+
     if not new_ids:
         return {"status": "success", "message": "No gaps found to fill", "clips": []}
-    
+
     return {"status": "success", "filled_clips": new_ids, "project": project}
+
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/ai/generate-ambiance")
 async def generate_ambiance(project_id: str, gen_data: Dict[str, Any]):
     """Generate custom ambiance audio using AI (CineProductionService)."""
     if project_id not in projects_db:
         raise HTTPException(status_code=404, detail="Project not found")
-        
+
     prompt = gen_data.get("prompt")
     if not prompt:
         raise HTTPException(status_code=400, detail="Prompt is required")
-        
+
     # Use CineProductionService for high-fidelity generation
-    from backend.cine_production_service import CineProductionService, CineProductionRequest, CineChainType
+    from backend.cine_production_service import (
+        CineProductionService,
+        CineProductionRequest,
+        CineChainType,
+    )
+
     cine_service = CineProductionService()
-    
+
     request = CineProductionRequest(
         chain_type=CineChainType.MUSIC_PRO,
         project_id=project_id,
         scene_id=str(uuid.uuid4()),
-        sound_prompt=prompt
+        sound_prompt=prompt,
     )
-    
+
     # Start job
     job = cine_service.start_production_job(request)
-    
+
     # Wait for completion (simple polling loop for this API call)
-    max_wait = 60 # 1 minute max for ambiance
+    max_wait = 60  # 1 minute max for ambiance
     slept = 0
     while slept < max_wait:
         status_job = cine_service.get_job_status(job.id)
         if status_job.status == "completed":
             # Extract file path from results
-            audio_result = next((r for r in status_job.results if r.get("type") == "audio"), None)
+            audio_result = next(
+                (r for r in status_job.results if r.get("type") == "audio"), None
+            )
             if audio_result and audio_result.get("path"):
                 return {"status": "success", "file_path": audio_result["path"]}
             break
         elif status_job.status == "failed":
-            raise HTTPException(status_code=500, detail=f"Generation failed: {status_job.error}")
-            
+            raise HTTPException(
+                status_code=500, detail=f"Generation failed: {status_job.error}"
+            )
+
         await asyncio.sleep(2)
         slept += 2
-        
+
     raise HTTPException(status_code=504, detail="Audio generation timed out")
-        
-    # Sync back the track to project_db
-    updated_tl = timeline_service.get_timeline(temp_timeline_id)
-    updated_track = next((tr for tr in updated_tl.tracks if tr.id == track_id), None)
-    
-    p_track["clips"] = [
-        {
-            "id": c.id,
-            "type": c.type.value,
-            "track_id": c.track_id,
-            "start_time": c.start_time,
-            "end_time": c.end_time,
-            "name": c.name,
-            "file_path": c.file_path
-        } for c in updated_track.clips
-    ]
-    
-    project["modified_at"] = datetime.utcnow()
-    return {"status": "success", "filled_clips": new_ids, "project": project}
+
 
 async def process_transcription(job_id: str):
     """Background task for transcription."""
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         # Use actual AI Service
         from backend.video_editor_ai_service import TranscriptionService
+
         service = TranscriptionService()
-        
+
         media_path = job.get("media_path")
         if not media_path:
             raise ValueError("media_path is missing in job data")
-            
+
         result = await service.transcribe(media_path, language=job.get("language"))
-        
+
         job["status"] = "completed"
         job["text"] = result.text
         # Adjusting segments to expected format if needed
         job["segments"] = result.segments
-        
+
     except FileNotFoundError as e:
         # Media file not found for transcription
         job["status"] = "failed"
@@ -2104,27 +2238,26 @@ async def process_tts(job_id: str):
     """Background task for text-to-speech."""
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         from backend.video_editor_ai_service import TTSService
+
         service = TTSService()
-        
+
         text = job.get("text")
         if not text:
             raise ValueError("text is missing in job data")
-            
+
         audio_path = str(MEDIA_DIR / "tts" / f"{job_id}.wav")
         Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
-        
+
         result = await service.text_to_speech(
-            text=text,
-            voice=job.get("voice"),
-            output_path=audio_path
+            text=text, voice=job.get("voice"), output_path=audio_path
         )
-        
+
         job["status"] = "completed"
         job["audio_path"] = result.audio_path
-        
+
     except PermissionError as e:
         # Permission denied for TTS output directory
         job["status"] = "failed"
@@ -2141,24 +2274,25 @@ async def process_smart_crop(job_id: str):
     """Background task for smart crop."""
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         from backend.video_editor_ai_service import SmartCropService
+
         service = SmartCropService()
-        
+
         media_path = job.get("media_path")
         if not media_path:
             raise ValueError("media_path is missing in job data")
-            
+
         result = await service.smart_crop(
             video_path=media_path,
             target_ratio=job.get("target_ratio", "9:16"),
-            focus_mode=job.get("focus_mode", "auto")
+            focus_mode=job.get("focus_mode", "auto"),
         )
-        
+
         job["status"] = "completed"
         job["crop_regions"] = result.regions
-        
+
     except FileNotFoundError as e:
         # Media file not found for smart crop
         job["status"] = "failed"
@@ -2174,14 +2308,15 @@ async def process_smart_crop(job_id: str):
 async def process_beat_detection(job_id: str):
     """Background task for beat detection."""
     from video_editor_ai_service import create_ai_service
+
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         media = media_db[job["media_id"]]
         service = create_ai_service()
         beats = await service.detect_beats(media["path"])
-        
+
         job["status"] = "completed"
         job["beats"] = beats
     except Exception as e:
@@ -2193,18 +2328,19 @@ async def process_beat_detection(job_id: str):
 async def process_auto_trim(job_id: str):
     """Background task for auto trim silence."""
     from video_editor_ai_service import create_ai_service
+
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         media = media_db[job["media_id"]]
         service = create_ai_service()
-        
+
         input_path = media["path"]
         output_path = input_path.replace(".", "_trimmed.")
-        
+
         success = await service.auto_trim_silence(input_path, output_path)
-        
+
         if success:
             job["status"] = "completed"
             job["output_path"] = output_path
@@ -2219,28 +2355,35 @@ async def process_auto_trim(job_id: str):
 
 async def process_video_enhance(job_id: str):
     """Background task for video enhancement."""
-    from video_enhancement_service import get_enhancement_service, EnhancementConfig, EnhancementType
+    from video_enhancement_service import (
+        get_enhancement_service,
+        EnhancementConfig,
+        EnhancementType,
+    )
+
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         media = media_db[job["media_id"]]
         service = get_enhancement_service()
-        
+
         input_path = media["path"]
         output_path = input_path.replace(".", "_enhanced.")
-        
+
         enhancements = []
         for enc in job["enhancements"]:
-            enhancements.append(EnhancementConfig(
-                type=EnhancementType(enc["type"]),
-                strength=enc.get("strength", 0.5),
-                model=enc.get("model", "default"),
-                preset=enc.get("preset", "natural")
-            ))
-            
+            enhancements.append(
+                EnhancementConfig(
+                    type=EnhancementType(enc["type"]),
+                    strength=enc.get("strength", 0.5),
+                    model=enc.get("model", "default"),
+                    preset=enc.get("preset", "natural"),
+                )
+            )
+
         result = service.enhance_video(input_path, output_path, enhancements)
-        
+
         if result.get("success"):
             job["status"] = "completed"
             job["output_path"] = output_path
@@ -2256,13 +2399,16 @@ async def process_video_enhance(job_id: str):
 async def process_voice_isolation(job_id: str):
     """Background task for voice isolation."""
     from video_editor_ai_service import create_ai_service
+
     job = jobs_db[job_id]
     job["status"] = "processing"
     try:
         media = media_db[job["media_id"]]
         service = create_ai_service()
         output_path = media["path"].replace(".", "_isolated.")
-        success = await service.audio_cleaning.voice_isolation(media["path"], output_path)
+        success = await service.audio_cleaning.voice_isolation(
+            media["path"], output_path
+        )
         if success:
             job["status"] = "completed"
             job["output_path"] = output_path
@@ -2278,6 +2424,7 @@ async def process_voice_isolation(job_id: str):
 async def process_auto_ducking(job_id: str):
     """Background task for auto-ducking."""
     from video_editor_ai_service import create_ai_service
+
     job = jobs_db[job_id]
     job["status"] = "processing"
     try:
@@ -2285,7 +2432,9 @@ async def process_auto_ducking(job_id: str):
         speech = media_db[job["speech_id"]]
         service = create_ai_service()
         output_path = music["path"].replace(".", "_ducked.")
-        success = await service.dialogue_automation.apply_auto_ducking(music["path"], speech["path"], output_path)
+        success = await service.dialogue_automation.apply_auto_ducking(
+            music["path"], speech["path"], output_path
+        )
         if success:
             job["status"] = "completed"
             job["output_path"] = output_path
@@ -2301,6 +2450,7 @@ async def process_auto_ducking(job_id: str):
 async def process_pan_scan(job_id: str):
     """Background task for pan & scan."""
     from video_editor_ai_service import create_ai_service
+
     job = jobs_db[job_id]
     job["status"] = "processing"
     try:
@@ -2323,15 +2473,16 @@ async def process_pan_scan(job_id: str):
 async def process_video_ocr(job_id: str):
     """Background task for video OCR indexing."""
     from video_editor_ai_service import create_ai_service
+
     job = jobs_db[job_id]
     job["status"] = "processing"
-    
+
     try:
         media = media_db[job["media_id"]]
         service = create_ai_service()
-        
+
         results = await service.video_ocr.index_video_text(media["path"])
-        
+
         job["status"] = "completed"
         job["ocr_results"] = results
     except Exception as e:
@@ -2344,6 +2495,7 @@ async def process_video_ocr(job_id: str):
 # Health Check
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.get("/health")
 async def health_check():
     """API health check."""
@@ -2353,8 +2505,8 @@ async def health_check():
         "services": {
             "api": "running",
             "database": "connected",
-            "redis": get_redis() is not None
-        }
+            "redis": get_redis() is not None,
+        },
     }
 
 
@@ -2362,17 +2514,48 @@ async def health_check():
 # Utility Functions
 # =============================================================================
 
+
 @VIDEO_EDITOR_ROUTER.get("/presets")
 async def get_export_presets():
     """Get available export presets."""
     return {
         "presets": [
-            {"id": "youtube_1080p", "name": "YouTube 1080p", "resolution": "1920x1080", "format": "mp4"},
-            {"id": "youtube_4k", "name": "YouTube 4K", "resolution": "3840x2160", "format": "mp4"},
-            {"id": "tiktok", "name": "TikTok/Reels", "resolution": "1080x1920", "format": "mp4"},
-            {"id": "instagram_feed", "name": "Instagram Feed", "resolution": "1080x1080", "format": "mp4"},
-            {"id": "twitter", "name": "Twitter/X", "resolution": "1280x720", "format": "mp4"},
-            {"id": "custom", "name": "Custom", "resolution": "1920x1080", "format": "mp4"}
+            {
+                "id": "youtube_1080p",
+                "name": "YouTube 1080p",
+                "resolution": "1920x1080",
+                "format": "mp4",
+            },
+            {
+                "id": "youtube_4k",
+                "name": "YouTube 4K",
+                "resolution": "3840x2160",
+                "format": "mp4",
+            },
+            {
+                "id": "tiktok",
+                "name": "TikTok/Reels",
+                "resolution": "1080x1920",
+                "format": "mp4",
+            },
+            {
+                "id": "instagram_feed",
+                "name": "Instagram Feed",
+                "resolution": "1080x1080",
+                "format": "mp4",
+            },
+            {
+                "id": "twitter",
+                "name": "Twitter/X",
+                "resolution": "1280x720",
+                "format": "mp4",
+            },
+            {
+                "id": "custom",
+                "name": "Custom",
+                "resolution": "1920x1080",
+                "format": "mp4",
+            },
         ]
     }
 
@@ -2387,12 +2570,15 @@ async def get_aspect_ratios():
             {"id": "1:1", "name": "Instagram Square", "width": 1, "height": 1},
             {"id": "4:5", "name": "Instagram Portrait", "width": 4, "height": 5},
             {"id": "4:3", "name": "Standard TV", "width": 4, "height": 3},
-            {"id": "21:9", "name": "Ultrawide", "width": 21, "height": 9}
+            {"id": "21:9", "name": "Ultrawide", "width": 21, "height": 9},
         ]
     }
+
+
 # =============================================================================
 # 3D Asset Forging Endpoints
 # =============================================================================
+
 
 @VIDEO_EDITOR_ROUTER.post("/forge-3d-asset", response_model=Forge3DResponse)
 async def forge_3d_asset(request: Forge3DRequest, authorization: str = None):
@@ -2400,65 +2586,74 @@ async def forge_3d_asset(request: Forge3DRequest, authorization: str = None):
     Forge a 3D asset (.glb) from a 2D image using tttLRM.
     """
     if not authorization:
-       # For local development, we might skip authorization if needed, 
-       # but let's assume it's required as per other endpoints
-       pass
-    
+        # For local development, we might skip authorization if needed,
+        # but let's assume it's required as per other endpoints
+        pass
+
     try:
         # 1. Resolve paths
         project_path = PROJECTS_DIR / request.project_id
         if not project_path.exists():
             # Try UUID based path if absolute path not found
-            project_path = Path(request.project_id) if Path(request.project_id).is_absolute() else PROJECTS_DIR / request.project_id
-            
+            project_path = (
+                Path(request.project_id)
+                if Path(request.project_id).is_absolute()
+                else PROJECTS_DIR / request.project_id
+            )
+
         if not project_path.exists():
-             raise HTTPException(status_code=404, detail=f"Project path not found: {request.project_id}")
+            raise HTTPException(
+                status_code=404, detail=f"Project path not found: {request.project_id}"
+            )
 
         input_image_path = project_path / request.image_path
         if not input_image_path.exists():
             # Try as relative path if it's already absolute-ish in the request
-             input_image_path = Path(request.image_path)
-             if not input_image_path.is_absolute():
-                 input_image_path = project_path / request.image_path
+            input_image_path = Path(request.image_path)
+            if not input_image_path.is_absolute():
+                input_image_path = project_path / request.image_path
 
         if not input_image_path.exists():
-            raise HTTPException(status_code=404, detail=f"Input image not found: {request.image_path}")
+            raise HTTPException(
+                status_code=404, detail=f"Input image not found: {request.image_path}"
+            )
 
         # 2. Configure reconstruction
         output_dir = project_path / "objects" / "models"
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         config = TTTLRMConfig(
             input_path=str(input_image_path),
             output_dir=str(output_dir),
-            mode=ReconstructionMode.TTT_ADAPTED if request.mode == "ttt_adapted" else ReconstructionMode.FEEDFORWARD,
-            output_format=OutputFormat.MESH
+            mode=ReconstructionMode.TTT_ADAPTED
+            if request.mode == "ttt_adapted"
+            else ReconstructionMode.FEEDFORWARD,
+            output_format=OutputFormat.MESH,
         )
 
         # 3. Trigger reconstruction
         result = await ttt_lrm_service.reconstruct_single_image(config)
-        
+
         if not result.success:
             return Forge3DResponse(status="failed", error="Reconstruction failed")
 
         # 4. Convert GS to Mesh (.glb)
-        # The service reconstruct_single_image simulated PLY creation, 
+        # The service reconstruct_single_image simulated PLY creation,
         # now we "convert" it to GLB
         model_filename = f"obj_{request.object_id}.glb"
         model_path = output_dir / model_filename
-        
-        success = ttt_lrm_service.convert_gs_to_mesh(result.output_path, str(model_path))
-        
+
+        success = ttt_lrm_service.convert_gs_to_mesh(
+            result.output_path, str(model_path)
+        )
+
         if not success:
             return Forge3DResponse(status="failed", error="Mesh conversion failed")
 
         # 5. Return relative path for frontend
         relative_model_path = f"objects/models/{model_filename}"
-        
-        return Forge3DResponse(
-            status="success",
-            model_path=relative_model_path
-        )
+
+        return Forge3DResponse(status="success", model_path=relative_model_path)
 
     except Exception as e:
         logger.error(f"Error forging 3D asset: {e}")

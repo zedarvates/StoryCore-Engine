@@ -66,7 +66,7 @@ export interface NarrativePreset {
 export function applySceneTemplate(
   template: SceneTemplate,
   startTime: number,
-  fps: number = 24
+  _fps: number = 24
 ): Shot[] {
   const shots: Shot[] = [];
   let currentTime = startTime;

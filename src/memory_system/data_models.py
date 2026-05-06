@@ -74,7 +74,7 @@ class ProjectConfig:
                 "error_detection_enabled": self.memory_system_config.error_detection_enabled,
                 "auto_recovery_enabled": self.memory_system_config.auto_recovery_enabled,
                 "max_recovery_attempts": self.memory_system_config.max_recovery_attempts,
-            }
+            },
         }
 
     @classmethod
@@ -82,14 +82,16 @@ class ProjectConfig:
         config_data = data.get("memory_system_config", {})
         memory_config = MemorySystemConfig(
             auto_summarize=config_data.get("auto_summarize", True),
-            summarization_threshold_kb=config_data.get("summarization_threshold_kb", 50),
+            summarization_threshold_kb=config_data.get(
+                "summarization_threshold_kb", 50
+            ),
             auto_translate=config_data.get("auto_translate", True),
             target_languages=config_data.get("target_languages", ["en", "fr"]),
             error_detection_enabled=config_data.get("error_detection_enabled", True),
             auto_recovery_enabled=config_data.get("auto_recovery_enabled", True),
             max_recovery_attempts=config_data.get("max_recovery_attempts", 3),
         )
-        
+
         return cls(
             schema_version=data.get("schema_version", "1.0"),
             project_name=data.get("project_name", ""),
@@ -177,13 +179,66 @@ class ProjectMemory:
         return {
             "schema_version": self.schema_version,
             "last_updated": self.last_updated,
-            "objectives": [{"id": o.id, "description": o.description, "status": o.status, "added": o.added} for o in self.objectives],
-            "entities": [{"id": e.id, "name": e.name, "type": e.type, "description": e.description, "attributes": e.attributes, "added": e.added} for e in self.entities],
-            "constraints": [{"id": c.id, "description": c.description, "type": c.type, "added": c.added} for c in self.constraints],
-            "decisions": [{"id": d.id, "description": d.description, "rationale": d.rationale, "alternatives_considered": d.alternatives_considered, "timestamp": d.timestamp} for d in self.decisions],
-            "style_rules": [{"category": s.category, "rule": s.rule, "added": s.added} for s in self.style_rules],
-            "task_backlog": [{"id": t.id, "description": t.description, "priority": t.priority, "status": t.status, "added": t.added} for t in self.task_backlog],
-            "current_state": {"phase": self.current_state.phase, "progress_percentage": self.current_state.progress_percentage, "active_tasks": self.current_state.active_tasks, "blockers": self.current_state.blockers, "last_activity": self.current_state.last_activity}
+            "objectives": [
+                {
+                    "id": o.id,
+                    "description": o.description,
+                    "status": o.status,
+                    "added": o.added,
+                }
+                for o in self.objectives
+            ],
+            "entities": [
+                {
+                    "id": e.id,
+                    "name": e.name,
+                    "type": e.type,
+                    "description": e.description,
+                    "attributes": e.attributes,
+                    "added": e.added,
+                }
+                for e in self.entities
+            ],
+            "constraints": [
+                {
+                    "id": c.id,
+                    "description": c.description,
+                    "type": c.type,
+                    "added": c.added,
+                }
+                for c in self.constraints
+            ],
+            "decisions": [
+                {
+                    "id": d.id,
+                    "description": d.description,
+                    "rationale": d.rationale,
+                    "alternatives_considered": d.alternatives_considered,
+                    "timestamp": d.timestamp,
+                }
+                for d in self.decisions
+            ],
+            "style_rules": [
+                {"category": s.category, "rule": s.rule, "added": s.added}
+                for s in self.style_rules
+            ],
+            "task_backlog": [
+                {
+                    "id": t.id,
+                    "description": t.description,
+                    "priority": t.priority,
+                    "status": t.status,
+                    "added": t.added,
+                }
+                for t in self.task_backlog
+            ],
+            "current_state": {
+                "phase": self.current_state.phase,
+                "progress_percentage": self.current_state.progress_percentage,
+                "active_tasks": self.current_state.active_tasks,
+                "blockers": self.current_state.blockers,
+                "last_activity": self.current_state.last_activity,
+            },
         }
 
 
@@ -234,7 +289,17 @@ class Error:
     recovery_attempts: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
-        return {"id": self.id, "type": self.type.value, "severity": self.severity.value, "detected": self.detected, "description": self.description, "affected_components": self.affected_components, "diagnostic_info": self.diagnostic_info, "status": self.status, "recovery_attempts": self.recovery_attempts}
+        return {
+            "id": self.id,
+            "type": self.type.value,
+            "severity": self.severity.value,
+            "detected": self.detected,
+            "description": self.description,
+            "affected_components": self.affected_components,
+            "diagnostic_info": self.diagnostic_info,
+            "status": self.status,
+            "recovery_attempts": self.recovery_attempts,
+        }
 
 
 @dataclass
@@ -252,7 +317,19 @@ class Variables:
     variables: Dict[str, Variable] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {"schema_version": self.schema_version, "last_updated": self.last_updated, "variables": {name: {"value": v.value, "type": v.type, "description": v.description, "last_modified": v.last_modified} for name, v in self.variables.items()}}
+        return {
+            "schema_version": self.schema_version,
+            "last_updated": self.last_updated,
+            "variables": {
+                name: {
+                    "value": v.value,
+                    "type": v.type,
+                    "description": v.description,
+                    "last_modified": v.last_modified,
+                }
+                for name, v in self.variables.items()
+            },
+        }
 
 
 @dataclass
@@ -319,4 +396,3 @@ class QAReport:
     recommendations: List[str] = field(default_factory=list)
     auto_fixed: List[str] = field(default_factory=list)
     requires_attention: List[str] = field(default_factory=list)
-

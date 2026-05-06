@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { AlertCircle, Settings, ExternalLink } from 'lucide-react';
+import { AlertCircle, Settings, _ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { llmConfigService } from '@/services/llmConfigService';

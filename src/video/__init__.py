@@ -24,64 +24,78 @@ from .multi_frame_interpolator import MultiFrameInterpolator, InterpolationResul
 from .frame_rate_converter import FrameRateConverter, FrameRateConversionResult
 
 # Phase 3: Video Quality Enhancement
-from .ai_denoiser import AIDenoiser, NoiseAnalysis, DenoiseResult, NoiseType, DenoiseMethod
-from .ai_deblurrer import AIDeblurrer, BlurAnalysis, DeblurResult, BlurType, DeblurMethod
-from .color_grading_ai import ColorGradingAI, ColorAnalysis, ColorGradingResult, ColorGradingStyle
-from .hdr_tone_mapper import HDRToneMapper, DynamicRangeAnalysis, ToneMappingResult, ToneMappingMethod, HDRStandard
+from .ai_denoiser import (
+    AIDenoiser,
+    NoiseAnalysis,
+    DenoiseResult,
+    NoiseType,
+    DenoiseMethod,
+)
+from .ai_deblurrer import (
+    AIDeblurrer,
+    BlurAnalysis,
+    DeblurResult,
+    BlurType,
+    DeblurMethod,
+)
+from .color_grading_ai import (
+    ColorGradingAI,
+    ColorAnalysis,
+    ColorGradingResult,
+    ColorGradingStyle,
+)
+from .hdr_tone_mapper import (
+    HDRToneMapper,
+    DynamicRangeAnalysis,
+    ToneMappingResult,
+    ToneMappingMethod,
+    HDRStandard,
+)
 
 __all__ = [
     # Scene Detection
-    'SceneDetector',
-    'Scene',
-    'SceneChange',
-    
+    "SceneDetector",
+    "Scene",
+    "SceneChange",
     # Optical Flow
-    'OpticalFlowAnalyzer',
-    'FlowField',
-    'MotionVector',
-    
+    "OpticalFlowAnalyzer",
+    "FlowField",
+    "MotionVector",
     # Temporal Consistency
-    'TemporalConsistencyEnforcer',
-    'ConsistencyMetrics',
-    
+    "TemporalConsistencyEnforcer",
+    "ConsistencyMetrics",
     # Motion Compensation
-    'MotionCompensator',
-    'CompensationResult',
-    
+    "MotionCompensator",
+    "CompensationResult",
     # Multi-Frame Interpolation
-    'MultiFrameInterpolator',
-    'InterpolationResult',
-    
+    "MultiFrameInterpolator",
+    "InterpolationResult",
     # Frame Rate Conversion
-    'FrameRateConverter',
-    'FrameRateConversionResult',
-    
+    "FrameRateConverter",
+    "FrameRateConversionResult",
     # AI Denoising
-    'AIDenoiser',
-    'NoiseAnalysis',
-    'DenoiseResult',
-    'NoiseType',
-    'DenoiseMethod',
-    
+    "AIDenoiser",
+    "NoiseAnalysis",
+    "DenoiseResult",
+    "NoiseType",
+    "DenoiseMethod",
     # AI Deblurring
-    'AIDeblurrer',
-    'BlurAnalysis',
-    'DeblurResult',
-    'BlurType',
-    'DeblurMethod',
-    
+    "AIDeblurrer",
+    "BlurAnalysis",
+    "DeblurResult",
+    "BlurType",
+    "DeblurMethod",
     # Color Grading
-    'ColorGradingAI',
-    'ColorAnalysis',
-    'ColorGradingResult',
-    'ColorGradingStyle',
-    
+    "ColorGradingAI",
+    "ColorAnalysis",
+    "ColorGradingResult",
+    "ColorGradingStyle",
     # HDR Tone Mapping
-    'HDRToneMapper',
-    'DynamicRangeAnalysis',
-    'ToneMappingResult',
-    'ToneMappingMethod',
-    'HDRStandard',
+    "HDRToneMapper",
+    "DynamicRangeAnalysis",
+    "ToneMappingResult",
+    "ToneMappingMethod",
+    "HDRStandard",
 ]
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

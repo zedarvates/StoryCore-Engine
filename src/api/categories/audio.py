@@ -7,24 +7,17 @@ music generation, effects, mixing, synchronization, and analysis.
 
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import time
-import os
 
 from ..base_handler import BaseAPIHandler
 from ..models import APIResponse, RequestContext, ErrorCodes
 from ..config import APIConfig
 from .audio_models import (
-    VoiceGenerationRequest,
     VoiceGenerationResult,
-    MusicGenerationRequest,
     MusicGenerationResult,
-    AudioEffectRequest,
     AudioEffectResult,
-    AudioTrack,
-    AudioMixRequest,
     AudioMixResult,
-    AudioSyncRequest,
     AudioSyncResult,
     AudioQualityMetrics,
     AudioAnalysisResult,
@@ -37,7 +30,7 @@ logger = logging.getLogger(__name__)
 class AudioCategoryHandler(BaseAPIHandler):
     """
     Handler for audio production API endpoints.
-    
+
     Implements 6 endpoints:
     - storycore.audio.voice.generate: Generate speech from text
     - storycore.audio.music.generate: Generate background music
@@ -46,26 +39,27 @@ class AudioCategoryHandler(BaseAPIHandler):
     - storycore.audio.sync: Synchronize audio with video
     - storycore.audio.analyze: Analyze audio quality
     """
-    
+
     def __init__(self, config: APIConfig):
         """Initialize the audio category handler."""
         super().__init__(config)
         self.audio_engine = None
         self._initialize_audio_engine()
-    
+
     def _initialize_audio_engine(self) -> None:
         """Initialize audio generation engine if available."""
         try:
             from comfyui_audio_engine import ComfyUIAudioEngine
+
             self.audio_engine = ComfyUIAudioEngine(
                 comfyui_url="http://127.0.0.1:8188",
-                mock_mode=True  # Default to mock mode for safety
+                mock_mode=True,  # Default to mock mode for safety
             )
             logger.info("Audio engine initialized successfully")
         except ImportError:
             logger.warning("ComfyUI audio engine not available, using mock mode")
             self.audio_engine = None
-    
+
     def voice_generate(
         self,
         params: Dict[str, Any],
@@ -73,33 +67,31 @@ class AudioCategoryHandler(BaseAPIHandler):
     ) -> APIResponse:
         """
         Generate speech from text.
-        
+
         Endpoint: storycore.audio.voice.generate
-        
+
         Args:
             params: Request parameters including text, voice_id, voice_parameters
             context: Request context
-            
+
         Returns:
             API response with voice generation result or task ID
         """
         self.log_request("storycore.audio.voice.generate", params, context)
-        
+
         try:
             # Validate required parameters
-            error_response = self.validate_required_params(
-                params, ["text"], context
-            )
+            error_response = self.validate_required_params(params, ["text"], context)
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             text = params["text"]
             voice_id = params.get("voice_id")
             voice_parameters = params.get("voice_parameters", {})
             output_format = params.get("output_format", "wav")
             sample_rate = params.get("sample_rate", 44100)
-            
+
             # Validate text length
             if len(text) > 10000:
                 return self.create_error_response(
@@ -109,15 +101,15 @@ class AudioCategoryHandler(BaseAPIHandler):
                     details={"text_length": len(text), "max_length": 10000},
                     remediation="Reduce text length or split into multiple requests",
                 )
-            
+
             # This is a long-running operation, should be async
             # For now, we'll simulate the generation
             start_time = time.time()
-            
+
             # Mock voice generation
             output_path = f"assets/audio/voice_{int(time.time())}.{output_format}"
             duration = len(text.split()) * 0.5  # Rough estimate: 0.5s per word
-            
+
             result = VoiceGenerationResult(
                 audio_path=output_path,
                 text=text,
@@ -130,9 +122,9 @@ class AudioCategoryHandler(BaseAPIHandler):
                 metadata={
                     "voice_parameters": voice_parameters,
                     "word_count": len(text.split()),
-                }
+                },
             )
-            
+
             response_data = {
                 "audio_path": result.audio_path,
                 "text": result.text,
@@ -144,14 +136,14 @@ class AudioCategoryHandler(BaseAPIHandler):
                 "generation_time_ms": result.generation_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.audio.voice.generate", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def music_generate(
         self,
         params: Dict[str, Any],
@@ -159,18 +151,18 @@ class AudioCategoryHandler(BaseAPIHandler):
     ) -> APIResponse:
         """
         Generate background music.
-        
+
         Endpoint: storycore.audio.music.generate
-        
+
         Args:
             params: Request parameters including mood, duration, genre, tempo
             context: Request context
-            
+
         Returns:
             API response with music generation result or task ID
         """
         self.log_request("storycore.audio.music.generate", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -178,7 +170,7 @@ class AudioCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             mood = params["mood"]
             duration_seconds = params["duration_seconds"]
@@ -188,7 +180,7 @@ class AudioCategoryHandler(BaseAPIHandler):
             instruments = params.get("instruments", [])
             output_format = params.get("output_format", "wav")
             sample_rate = params.get("sample_rate", 44100)
-            
+
             # Validate duration
             if duration_seconds <= 0 or duration_seconds > 600:
                 return self.create_error_response(
@@ -198,13 +190,15 @@ class AudioCategoryHandler(BaseAPIHandler):
                     details={"duration_seconds": duration_seconds},
                     remediation="Provide a duration between 0 and 600 seconds",
                 )
-            
+
             # This is a long-running operation, should be async
             start_time = time.time()
-            
+
             # Mock music generation
-            output_path = f"assets/audio/music_{mood}_{int(time.time())}.{output_format}"
-            
+            output_path = (
+                f"assets/audio/music_{mood}_{int(time.time())}.{output_format}"
+            )
+
             result = MusicGenerationResult(
                 audio_path=output_path,
                 mood=mood,
@@ -218,9 +212,9 @@ class AudioCategoryHandler(BaseAPIHandler):
                 generation_time_ms=(time.time() - start_time) * 1000,
                 metadata={
                     "instruments": instruments,
-                }
+                },
             )
-            
+
             response_data = {
                 "audio_path": result.audio_path,
                 "mood": result.mood,
@@ -234,14 +228,14 @@ class AudioCategoryHandler(BaseAPIHandler):
                 "generation_time_ms": result.generation_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.audio.music.generate", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def effects_add(
         self,
         params: Dict[str, Any],
@@ -249,18 +243,18 @@ class AudioCategoryHandler(BaseAPIHandler):
     ) -> APIResponse:
         """
         Apply audio effects.
-        
+
         Endpoint: storycore.audio.effects.add
-        
+
         Args:
             params: Request parameters including audio_path, effect_type, effect_parameters
             context: Request context
-            
+
         Returns:
             API response with effect application result
         """
         self.log_request("storycore.audio.effects.add", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -268,13 +262,13 @@ class AudioCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             audio_path = params["audio_path"]
             effect_type = params["effect_type"]
             effect_parameters = params.get("effect_parameters", {})
             output_path = params.get("output_path")
-            
+
             # Validate audio file exists
             if not Path(audio_path).exists():
                 return self.create_error_response(
@@ -284,25 +278,38 @@ class AudioCategoryHandler(BaseAPIHandler):
                     details={"audio_path": audio_path},
                     remediation="Provide a valid audio file path",
                 )
-            
+
             # Validate effect type
-            valid_effects = ["reverb", "echo", "fade_in", "fade_out", "normalize", "compress", "eq"]
+            valid_effects = [
+                "reverb",
+                "echo",
+                "fade_in",
+                "fade_out",
+                "normalize",
+                "compress",
+                "eq",
+            ]
             if effect_type not in valid_effects:
                 return self.create_error_response(
                     error_code=ErrorCodes.VALIDATION_ERROR,
                     message=f"Invalid effect type: {effect_type}",
                     context=context,
-                    details={"effect_type": effect_type, "valid_effects": valid_effects},
+                    details={
+                        "effect_type": effect_type,
+                        "valid_effects": valid_effects,
+                    },
                     remediation=f"Use one of: {', '.join(valid_effects)}",
                 )
-            
+
             start_time = time.time()
-            
+
             # Generate output path if not provided
             if not output_path:
                 path_obj = Path(audio_path)
-                output_path = str(path_obj.parent / f"{path_obj.stem}_{effect_type}{path_obj.suffix}")
-            
+                output_path = str(
+                    path_obj.parent / f"{path_obj.stem}_{effect_type}{path_obj.suffix}"
+                )
+
             # Mock effect application
             result = AudioEffectResult(
                 audio_path=output_path,
@@ -311,9 +318,9 @@ class AudioCategoryHandler(BaseAPIHandler):
                 effect_parameters=effect_parameters,
                 duration_seconds=10.0,  # Mock duration
                 processing_time_ms=(time.time() - start_time) * 1000,
-                metadata={}
+                metadata={},
             )
-            
+
             response_data = {
                 "audio_path": result.audio_path,
                 "original_path": result.original_path,
@@ -323,14 +330,14 @@ class AudioCategoryHandler(BaseAPIHandler):
                 "processing_time_ms": result.processing_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.audio.effects.add", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def mix(
         self,
         params: Dict[str, Any],
@@ -338,18 +345,18 @@ class AudioCategoryHandler(BaseAPIHandler):
     ) -> APIResponse:
         """
         Mix multiple audio tracks.
-        
+
         Endpoint: storycore.audio.mix
-        
+
         Args:
             params: Request parameters including tracks, output_path
             context: Request context
-            
+
         Returns:
             API response with mixing result
         """
         self.log_request("storycore.audio.mix", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -357,14 +364,14 @@ class AudioCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             tracks_data = params["tracks"]
             output_path = params["output_path"]
             output_format = params.get("output_format", "wav")
             sample_rate = params.get("sample_rate", 44100)
             normalize = params.get("normalize", True)
-            
+
             # Validate tracks
             if not tracks_data or len(tracks_data) == 0:
                 return self.create_error_response(
@@ -373,7 +380,7 @@ class AudioCategoryHandler(BaseAPIHandler):
                     context=context,
                     remediation="Provide one or more audio tracks to mix",
                 )
-            
+
             # Validate each track
             for i, track_data in enumerate(tracks_data):
                 if "path" not in track_data or "name" not in track_data:
@@ -384,7 +391,7 @@ class AudioCategoryHandler(BaseAPIHandler):
                         details={"track_index": i, "track_data": track_data},
                         remediation="Each track must have 'path' and 'name' fields",
                     )
-                
+
                 # Check if file exists
                 if not Path(track_data["path"]).exists():
                     return self.create_error_response(
@@ -394,15 +401,15 @@ class AudioCategoryHandler(BaseAPIHandler):
                         details={"track_index": i, "path": track_data["path"]},
                         remediation="Provide valid audio file paths for all tracks",
                     )
-            
+
             start_time = time.time()
-            
+
             # Mock mixing
             max_duration = max(
                 track_data.get("start_time_seconds", 0.0) + 10.0  # Mock 10s per track
                 for track_data in tracks_data
             )
-            
+
             result = AudioMixResult(
                 audio_path=output_path,
                 track_count=len(tracks_data),
@@ -416,9 +423,9 @@ class AudioCategoryHandler(BaseAPIHandler):
                 metadata={
                     "normalized": normalize,
                     "track_names": [t["name"] for t in tracks_data],
-                }
+                },
             )
-            
+
             response_data = {
                 "audio_path": result.audio_path,
                 "track_count": result.track_count,
@@ -431,14 +438,14 @@ class AudioCategoryHandler(BaseAPIHandler):
                 "rms_level": result.rms_level,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.audio.mix", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def sync(
         self,
         params: Dict[str, Any],
@@ -446,18 +453,18 @@ class AudioCategoryHandler(BaseAPIHandler):
     ) -> APIResponse:
         """
         Synchronize audio with video.
-        
+
         Endpoint: storycore.audio.sync
-        
+
         Args:
             params: Request parameters including audio_path, video_path, output_path
             context: Request context
-            
+
         Returns:
             API response with synchronization result
         """
         self.log_request("storycore.audio.sync", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -465,7 +472,7 @@ class AudioCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             audio_path = params["audio_path"]
             video_path = params["video_path"]
@@ -473,7 +480,7 @@ class AudioCategoryHandler(BaseAPIHandler):
             sync_method = params.get("sync_method", "auto")
             offset_seconds = params.get("offset_seconds", 0.0)
             trim_audio = params.get("trim_audio", True)
-            
+
             # Validate files exist
             if not Path(audio_path).exists():
                 return self.create_error_response(
@@ -483,7 +490,7 @@ class AudioCategoryHandler(BaseAPIHandler):
                     details={"audio_path": audio_path},
                     remediation="Provide a valid audio file path",
                 )
-            
+
             if not Path(video_path).exists():
                 return self.create_error_response(
                     error_code=ErrorCodes.NOT_FOUND,
@@ -492,7 +499,7 @@ class AudioCategoryHandler(BaseAPIHandler):
                     details={"video_path": video_path},
                     remediation="Provide a valid video file path",
                 )
-            
+
             # Validate sync method
             valid_methods = ["auto", "manual", "timecode"]
             if sync_method not in valid_methods:
@@ -500,16 +507,19 @@ class AudioCategoryHandler(BaseAPIHandler):
                     error_code=ErrorCodes.VALIDATION_ERROR,
                     message=f"Invalid sync method: {sync_method}",
                     context=context,
-                    details={"sync_method": sync_method, "valid_methods": valid_methods},
+                    details={
+                        "sync_method": sync_method,
+                        "valid_methods": valid_methods,
+                    },
                     remediation=f"Use one of: {', '.join(valid_methods)}",
                 )
-            
+
             start_time = time.time()
-            
+
             # Mock synchronization
             audio_duration = 27.0  # Mock duration
             video_duration = 27.0  # Mock duration
-            
+
             result = AudioSyncResult(
                 output_path=output_path,
                 audio_path=audio_path,
@@ -522,9 +532,9 @@ class AudioCategoryHandler(BaseAPIHandler):
                 metadata={
                     "sync_method": sync_method,
                     "trim_audio": trim_audio,
-                }
+                },
             )
-            
+
             response_data = {
                 "output_path": result.output_path,
                 "audio_path": result.audio_path,
@@ -536,14 +546,14 @@ class AudioCategoryHandler(BaseAPIHandler):
                 "processing_time_ms": result.processing_time_ms,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.audio.sync", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)
-    
+
     def analyze(
         self,
         params: Dict[str, Any],
@@ -551,18 +561,18 @@ class AudioCategoryHandler(BaseAPIHandler):
     ) -> APIResponse:
         """
         Analyze audio quality.
-        
+
         Endpoint: storycore.audio.analyze
-        
+
         Args:
             params: Request parameters including audio_path
             context: Request context
-            
+
         Returns:
             API response with audio analysis result
         """
         self.log_request("storycore.audio.analyze", params, context)
-        
+
         try:
             # Validate required parameters
             error_response = self.validate_required_params(
@@ -570,10 +580,10 @@ class AudioCategoryHandler(BaseAPIHandler):
             )
             if error_response:
                 return error_response
-            
+
             # Extract parameters
             audio_path = params["audio_path"]
-            
+
             # Validate file exists
             if not Path(audio_path).exists():
                 return self.create_error_response(
@@ -583,9 +593,9 @@ class AudioCategoryHandler(BaseAPIHandler):
                     details={"audio_path": audio_path},
                     remediation="Provide a valid audio file path",
                 )
-            
+
             start_time = time.time()
-            
+
             # Mock audio analysis
             metrics = AudioQualityMetrics(
                 audio_path=audio_path,
@@ -607,42 +617,54 @@ class AudioCategoryHandler(BaseAPIHandler):
                 clarity_score=0.85,
                 quality_score=0.88,
                 analysis_time_ms=(time.time() - start_time) * 1000,
-                metadata={}
+                metadata={},
             )
-            
+
             # Generate recommendations
             recommendations = []
             issues = []
-            
+
             if metrics.peak_level > -1.0:
-                issues.append({
-                    "type": "peak_level_high",
-                    "severity": "warning",
-                    "description": "Peak level is very high, may cause clipping",
-                })
-                recommendations.append("Consider reducing overall volume to prevent clipping")
-            
+                issues.append(
+                    {
+                        "type": "peak_level_high",
+                        "severity": "warning",
+                        "description": "Peak level is very high, may cause clipping",
+                    }
+                )
+                recommendations.append(
+                    "Consider reducing overall volume to prevent clipping"
+                )
+
             if metrics.dynamic_range < 10.0:
-                issues.append({
-                    "type": "low_dynamic_range",
-                    "severity": "info",
-                    "description": "Dynamic range is low, audio may sound compressed",
-                })
-                recommendations.append("Consider using less compression or normalization")
-            
+                issues.append(
+                    {
+                        "type": "low_dynamic_range",
+                        "severity": "info",
+                        "description": "Dynamic range is low, audio may sound compressed",
+                    }
+                )
+                recommendations.append(
+                    "Consider using less compression or normalization"
+                )
+
             if metrics.clarity_score < 0.7:
-                recommendations.append("Audio clarity could be improved with EQ adjustments")
-            
+                recommendations.append(
+                    "Audio clarity could be improved with EQ adjustments"
+                )
+
             if not recommendations:
-                recommendations.append("Audio quality is good, no major issues detected")
-            
+                recommendations.append(
+                    "Audio quality is good, no major issues detected"
+                )
+
             result = AudioAnalysisResult(
                 metrics=metrics,
                 recommendations=recommendations,
                 issues=issues,
-                metadata={}
+                metadata={},
             )
-            
+
             response_data = {
                 "metrics": {
                     "audio_path": metrics.audio_path,
@@ -669,10 +691,10 @@ class AudioCategoryHandler(BaseAPIHandler):
                 "issues": result.issues,
                 "metadata": result.metadata,
             }
-            
+
             response = self.create_success_response(response_data, context)
             self.log_response("storycore.audio.analyze", response, context)
             return response
-            
+
         except Exception as e:
             return self.handle_exception(e, context)

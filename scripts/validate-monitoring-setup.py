@@ -6,14 +6,12 @@ Validates the complete monitoring and alerting setup for StoryCore Engine.
 
 import asyncio
 import json
-import os
 import sys
 import yaml
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import List
 import requests
-import subprocess
-import time
+
 
 class MonitoringValidator:
     """Validates monitoring configuration and setup."""
@@ -42,8 +40,8 @@ class MonitoringValidator:
     def validate_yaml_file(self, file_path: Path, schema_check: bool = False) -> bool:
         """Validate YAML file syntax."""
         try:
-            with open(file_path, 'r') as f:
-                data = yaml.safe_load(f)
+            with open(file_path, "r") as f:
+                yaml.safe_load(f)
             self.log_success(f"YAML syntax valid: {file_path.name}")
             return True
         except yaml.YAMLError as e:
@@ -61,31 +59,33 @@ class MonitoringValidator:
 
         # Additional Prometheus-specific validation
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 config = yaml.safe_load(f)
 
             # Check required sections
-            required_sections = ['global', 'rule_files', 'scrape_configs']
+            required_sections = ["global", "rule_files", "scrape_configs"]
             for section in required_sections:
                 if section not in config:
-                    self.log_error(f"Missing required section '{section}' in prometheus.yml")
+                    self.log_error(
+                        f"Missing required section '{section}' in prometheus.yml"
+                    )
                     return False
 
             # Check scrape configs
-            scrape_configs = config.get('scrape_configs', [])
+            scrape_configs = config.get("scrape_configs", [])
             if not scrape_configs:
                 self.log_error("No scrape configurations found")
                 return False
 
             # Validate job names and targets
             for job in scrape_configs:
-                if 'job_name' not in job:
+                if "job_name" not in job:
                     self.log_error("Scrape config missing job_name")
                     continue
 
-                job_name = job['job_name']
-                if 'static_configs' in job:
-                    targets = job['static_configs'][0].get('targets', [])
+                job_name = job["job_name"]
+                if "static_configs" in job:
+                    targets = job["static_configs"][0].get("targets", [])
                     if not targets:
                         self.log_warning(f"No targets configured for job '{job_name}'")
 
@@ -103,26 +103,28 @@ class MonitoringValidator:
             return False
 
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 config = yaml.safe_load(f)
 
             # Check required sections
-            required_sections = ['global', 'route', 'receivers']
+            required_sections = ["global", "route", "receivers"]
             for section in required_sections:
                 if section not in config:
-                    self.log_error(f"Missing required section '{section}' in alertmanager.yml")
+                    self.log_error(
+                        f"Missing required section '{section}' in alertmanager.yml"
+                    )
                     return False
 
             # Validate receivers
-            receivers = config.get('receivers', [])
+            receivers = config.get("receivers", [])
             if not receivers:
                 self.log_error("No receivers configured")
                 return False
 
             # Check for environment variables in sensitive data
-            global_config = config.get('global', {})
-            smtp_password = global_config.get('smtp_auth_password', '')
-            if smtp_password and not smtp_password.startswith('${'):
+            global_config = config.get("global", {})
+            smtp_password = global_config.get("smtp_auth_password", "")
+            if smtp_password and not smtp_password.startswith("${"):
                 self.log_warning("SMTP password should be environment variable")
 
             self.log_success("Alertmanager configuration validation passed")
@@ -139,36 +141,40 @@ class MonitoringValidator:
             return False
 
         try:
-            with open(rules_file, 'r') as f:
+            with open(rules_file, "r") as f:
                 config = yaml.safe_load(f)
 
-            groups = config.get('groups', [])
+            groups = config.get("groups", [])
             if not groups:
                 self.log_error("No alert rule groups found")
                 return False
 
             total_rules = 0
             for group in groups:
-                group_name = group.get('name', 'unnamed')
-                rules = group.get('rules', [])
+                group_name = group.get("name", "unnamed")
+                rules = group.get("rules", [])
 
                 if not rules:
                     self.log_warning(f"No rules in group '{group_name}'")
                     continue
 
                 for rule in rules:
-                    if 'alert' not in rule:
-                        self.log_error(f"Rule missing 'alert' field in group '{group_name}'")
+                    if "alert" not in rule:
+                        self.log_error(
+                            f"Rule missing 'alert' field in group '{group_name}'"
+                        )
                         continue
 
-                    alert_name = rule['alert']
-                    if 'expr' not in rule:
+                    alert_name = rule["alert"]
+                    if "expr" not in rule:
                         self.log_error(f"Alert '{alert_name}' missing 'expr' field")
                         continue
 
                     total_rules += 1
 
-            self.log_success(f"Alert rules validation passed: {total_rules} rules in {len(groups)} groups")
+            self.log_success(
+                f"Alert rules validation passed: {total_rules} rules in {len(groups)} groups"
+            )
             return True
 
         except Exception as e:
@@ -191,16 +197,18 @@ class MonitoringValidator:
         valid_dashboards = 0
         for dashboard_file in dashboard_files:
             try:
-                with open(dashboard_file, 'r') as f:
+                with open(dashboard_file, "r") as f:
                     dashboard = json.load(f)
 
                 # Basic validation
-                if 'dashboard' not in dashboard:
-                    self.log_error(f"Dashboard {dashboard_file.name} missing 'dashboard' key")
+                if "dashboard" not in dashboard:
+                    self.log_error(
+                        f"Dashboard {dashboard_file.name} missing 'dashboard' key"
+                    )
                     continue
 
-                dashboard_config = dashboard['dashboard']
-                title = dashboard_config.get('title', 'Untitled')
+                dashboard_config = dashboard["dashboard"]
+                title = dashboard_config.get("title", "Untitled")
 
                 self.log_success(f"Dashboard '{title}' JSON valid")
 
@@ -227,17 +235,19 @@ class MonitoringValidator:
 
         # Basic INI validation (simplified)
         try:
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 content = f.read()
 
             # Check for required sections
-            required_sections = ['[server]', '[security]', '[database]']
+            required_sections = ["[server]", "[security]", "[database]"]
             for section in required_sections:
                 if section not in content:
                     self.log_error(f"Missing section '{section}' in grafana.ini")
                     return False
 
-            self.log_success("Grafana configuration file exists and has required sections")
+            self.log_success(
+                "Grafana configuration file exists and has required sections"
+            )
             return True
 
         except Exception as e:
@@ -253,11 +263,15 @@ class MonitoringValidator:
             return False
 
         try:
-            with open(api_server, 'r') as f:
+            with open(api_server, "r") as f:
                 content = f.read()
 
             # Check for health endpoints
-            health_endpoints = ['@app.get("/health")', '@app.get("/ready")', '@app.get("/metrics")']
+            health_endpoints = [
+                '@app.get("/health")',
+                '@app.get("/ready")',
+                '@app.get("/metrics")',
+            ]
 
             for endpoint in health_endpoints:
                 if endpoint not in content:
@@ -319,7 +333,9 @@ class MonitoringValidator:
         # At least some services should be testable
         successful_tests = sum(1 for r in connectivity_results if r is True)
         if successful_tests == 0:
-            self.log_warning("No services are currently running - this is OK for config validation")
+            self.log_warning(
+                "No services are currently running - this is OK for config validation"
+            )
             return True
 
         return True
@@ -334,7 +350,10 @@ class MonitoringValidator:
             ("Alert Rules", self.validate_alert_rules),
             ("Grafana Dashboards", self.validate_grafana_dashboards),
             ("Grafana Configuration", self.validate_grafana_config),
-            ("Application Health Endpoints", self.validate_application_health_endpoints),
+            (
+                "Application Health Endpoints",
+                self.validate_application_health_endpoints,
+            ),
             ("Runbooks", self.validate_runbooks),
         ]
 
@@ -370,7 +389,9 @@ class MonitoringValidator:
         overall_success = len(self.errors) == 0 and all_passed
 
         if overall_success:
-            print("\n🎉 All validations passed! Monitoring setup is ready for production.")
+            print(
+                "\n🎉 All validations passed! Monitoring setup is ready for production."
+            )
         else:
             print("\n💥 Validation failed. Please fix the errors before deploying.")
         return overall_success

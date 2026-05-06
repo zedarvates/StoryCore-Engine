@@ -4,6 +4,8 @@
  * Provides Text-to-Speech using Windows native SAPI voices.
  * Integrates with the existing TTS service architecture.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { VoiceOver, Voice } from '../types';
 
@@ -57,11 +59,11 @@ class SapiTTSProvider {
    */
   private async getCoquiTTSVoices(): Promise<Voice[]> {
     // Check if Coqui TTS is available
-    if (!(window as any).coquiTTS) {
+    if (!(window as LegacyAny).coquiTTS) {
       throw new Error('Coqui TTS not loaded');
     }
 
-    const tts = (window as any).coquiTTS;
+    const tts = (window as LegacyAny).coquiTTS;
     const speakers = await tts.getSpeakers?.() || [];
     
     return speakers.map((speaker: unknown) => ({
@@ -224,7 +226,7 @@ class SapiTTSProvider {
 
   /**
    * Create a placeholder audio URL
-   * Note: In production, you'd want to capture the actual audio
+   * Note: In production,_ you'd want to capture the actual audio
    */
   private createAudioUrl(voiceOver: VoiceOver): string {
     // This is a placeholder - actual implementation would capture

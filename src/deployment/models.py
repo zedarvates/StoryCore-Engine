@@ -43,18 +43,21 @@ class DeploymentConfig:
     # Alerting settings
     alert_email: Optional[str] = None
     alert_webhook: Optional[str] = None
-    alert_thresholds: Dict[str, float] = field(default_factory=lambda: {
-        "cpu_usage": 80.0,
-        "memory_usage": 85.0,
-        "gpu_usage": 90.0,
-        "error_rate": 5.0,
-        "response_time": 30.0
-    })
+    alert_thresholds: Dict[str, float] = field(
+        default_factory=lambda: {
+            "cpu_usage": 80.0,
+            "memory_usage": 85.0,
+            "gpu_usage": 90.0,
+            "error_rate": 5.0,
+            "response_time": 30.0,
+        }
+    )
 
 
 @dataclass
 class HealthCheckResult:
     """Result of a health check"""
+
     component: str
     status: str  # healthy, warning, critical
     message: str
@@ -65,6 +68,7 @@ class HealthCheckResult:
 @dataclass
 class DeploymentStatus:
     """Current deployment status"""
+
     deployment_id: str
     status: str  # deploying, healthy, degraded, failed
     version: str

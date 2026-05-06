@@ -13,17 +13,17 @@ import type {
   VoiceProfile,
   VoiceType,
   VoiceFilterType,
-  MultitrackGenerationRequest,
-  MultitrackGenerationResponse,
-  ProfileBuildResponse,
-  MixResult,
-  GeneratedPrompt,
-  PromptExport,
-  ActionContext,
+  _MultitrackGenerationRequest,
+  _MultitrackGenerationResponse,
+  _ProfileBuildResponse,
+  _MixResult,
+  _GeneratedPrompt,
+  _PromptExport,
+  _ActionContext,
   MufflingSettings,
-  VoiceFilter,
+  _VoiceFilter,
   MufflingType,
-  SyncSettings,
+  _SyncSettings,
   SFXTrackType,
   SFXTrack,
   VoiceTrack
@@ -33,7 +33,7 @@ import type {
 // API BASE URL
 // =============================================================================
 
-const API_BASE = '/api';
+const _API_BASE = '/api';
 
 // =============================================================================
 // TIMEOUT HELPER
@@ -45,7 +45,7 @@ const API_BASE = '/api';
  * @param options - Fetch options
  * @param timeout - Timeout in milliseconds (default: 5 minutes)
  */
-async function fetchWithTimeout<T>(
+async function _fetchWithTimeout<T>(
   url: string,
   options: RequestInit = {},
   timeout = 300000
@@ -597,7 +597,7 @@ export class AudioMultitrackService {
   /**
    * Create a channel strip for mixing
    */
-  createChannelStrip(channelIndex: number): GainNode | null {
+  createChannelStrip(_channelIndex: number): GainNode | null {
     if (!this.audioContext || !this.masterGain) return null;
     
     const gain = this.audioContext.createGain();
@@ -650,7 +650,7 @@ export class AudioMultitrackService {
 // TYPE GUARDS
 // =============================================================================
 
-function isMusicProfile(obj: unknown): obj is MusicProfile {
+function _isMusicProfile(obj: unknown): obj is MusicProfile {
   if (!obj || typeof obj !== 'object') return false;
   const p = obj as Record<string, unknown>;
   return (
@@ -661,7 +661,7 @@ function isMusicProfile(obj: unknown): obj is MusicProfile {
   );
 }
 
-function isSFXProfile(obj: unknown): obj is SFXProfile {
+function _isSFXProfile(obj: unknown): obj is SFXProfile {
   if (!obj || typeof obj !== 'object') return false;
   const p = obj as Record<string, unknown>;
   return (
@@ -672,7 +672,7 @@ function isSFXProfile(obj: unknown): obj is SFXProfile {
   );
 }
 
-function isVoiceProfile(obj: unknown): obj is VoiceProfile {
+function _isVoiceProfile(obj: unknown): obj is VoiceProfile {
   if (!obj || typeof obj !== 'object') return false;
   const p = obj as Record<string, unknown>;
   return (

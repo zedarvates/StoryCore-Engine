@@ -4,11 +4,9 @@ Client pour communiquer avec l'API Seedance 2.0
 """
 
 import asyncio
-import json
 import logging
 import time
 import uuid
-from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
 from enum import Enum
@@ -24,6 +22,7 @@ class PhysicsFidelity(str, Enum):
 @dataclass
 class SeedanceConfig:
     """Configuration pour l'API Seedance"""
+
     engine: str = "seedance-v2-turbo"
     fps: int = 60
     resolution: str = "2k"
@@ -46,6 +45,7 @@ class SeedanceConfig:
 @dataclass
 class SeedanceGenerationRequest:
     """Requête de génération vidéo"""
+
     scene: Dict[str, Any]
     references: List[Dict[str, Any]] = field(default_factory=list)
     config: Dict[str, Any] = field(default_factory=dict)
@@ -54,6 +54,7 @@ class SeedanceGenerationRequest:
 @dataclass
 class SeedanceGenerationResult:
     """Résultat de génération vidéo"""
+
     success: bool = False
     generation_id: str = ""
     video_path: Optional[str] = None
@@ -74,7 +75,7 @@ class SeedanceGenerationResult:
 class SeedanceAPIClient:
     """
     Client API pour Seedance 2.0
-    
+
     Gère la communication avec l'API Seedance pour:
     - Génération de vidéos
     - Génération audio
@@ -84,7 +85,7 @@ class SeedanceAPIClient:
     def __init__(self, config: SeedanceConfig, logger: logging.Logger):
         """
         Initialise le client API
-        
+
         Args:
             config: Configuration Seedance
             logger: Logger pour les messages
@@ -98,6 +99,7 @@ class SeedanceAPIClient:
         """Récupère ou crée une session HTTP"""
         if self._session is None:
             import aiohttp
+
             self._session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=self.config.timeout)
             )
@@ -112,61 +114,61 @@ class SeedanceAPIClient:
     async def health_check(self) -> bool:
         """
         Vérifie la connexion à l'API Seedance
-        
+
         Returns:
             True si l'API est disponible
         """
         try:
             session = await self._get_session()
-            
+
             if not self.config.api_key:
-                self.logger.warning("Clé API Seedance non configurée. (Mode simulation retiré)")
+                self.logger.warning(
+                    "Clé API Seedance non configurée. (Mode simulation retiré)"
+                )
                 return False
-            
+
             async with session.get(f"{self._base_url}/health") as response:
                 return response.status == 200
-                
+
         except Exception as e:
             self.logger.warning(f"Health check échoué: {e}")
             return False
 
-    async def generate_video(self, request: SeedanceGenerationRequest) -> SeedanceGenerationResult:
+    async def generate_video(
+        self, request: SeedanceGenerationRequest
+    ) -> SeedanceGenerationResult:
         """
         Génère une vidéo via l'API Seedance
-        
+
         Args:
             request: Requête de génération
-            
+
         Returns:
             Résultat de la génération
         """
         start_time = time.time()
-        
+
         if not self.config.api_key:
             error_msg = "Clé API Seedance manquante. Fin de la simulation, veuillez configurer une vraie clé."
             self.logger.error(error_msg)
             return SeedanceGenerationResult(
-                success=False,
-                error=error_msg,
-                processing_time=time.time() - start_time
+                success=False, error=error_msg, processing_time=time.time() - start_time
             )
-        
+
         try:
             session = await self._get_session()
-            
+
             # Préparer les données de la requête
             payload = self._prepare_payload(request)
-            
+
             # Envoyer la requête
             headers = {
                 "Authorization": f"Bearer {self.config.api_key}",
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
-            
+
             async with session.post(
-                f"{self._base_url}/generate",
-                json=payload,
-                headers=headers
+                f"{self._base_url}/generate", json=payload, headers=headers
             ) as response:
                 if response.status == 200:
                     data = await response.json()
@@ -176,59 +178,54 @@ class SeedanceAPIClient:
                     return SeedanceGenerationResult(
                         success=False,
                         error=f"API Error {response.status}: {error_text}",
-                        processing_time=time.time() - start_time
+                        processing_time=time.time() - start_time,
                     )
-                    
+
         except asyncio.TimeoutError:
             return SeedanceGenerationResult(
                 success=False,
                 error="Délai d'attente dépassé",
-                processing_time=time.time() - start_time
+                processing_time=time.time() - start_time,
             )
         except Exception as e:
             self.logger.error(f"Erreur lors de la génération: {e}")
             return SeedanceGenerationResult(
-                success=False,
-                error=str(e),
-                processing_time=time.time() - start_time
+                success=False, error=str(e), processing_time=time.time() - start_time
             )
 
     async def get_generation_status(self, generation_id: str) -> Dict[str, Any]:
         """
         Récupère le statut d'une génération
-        
+
         Args:
             generation_id: ID de la génération
-            
+
         Returns:
             Statut de la génération
         """
         try:
             session = await self._get_session()
-            
-            headers = {
-                "Authorization": f"Bearer {self.config.api_key}"
-            }
-            
+
+            headers = {"Authorization": f"Bearer {self.config.api_key}"}
+
             async with session.get(
-                f"{self._base_url}/generations/{generation_id}",
-                headers=headers
+                f"{self._base_url}/generations/{generation_id}", headers=headers
             ) as response:
                 if response.status == 200:
                     return await response.json()
                 else:
                     return {"status": "error", "error": f"HTTP {response.status}"}
-                    
+
         except Exception as e:
             self.logger.error(f"Erreur lors de la récupération du statut: {e}")
             return {"status": "error", "error": str(e)}
 
     def _prepare_payload(self, request: SeedanceGenerationRequest) -> Dict[str, Any]:
         """Prépare le payload pour l'API Seedance"""
-        
+
         # Convertir la scène StoryCore en prompt Seedance
         scene_data = self._convert_scene_to_prompt(request.scene)
-        
+
         payload = {
             "generation_id": str(uuid.uuid4()),
             "engine": request.config.get("engine", self.config.engine),
@@ -236,27 +233,39 @@ class SeedanceAPIClient:
             "negative_prompt": scene_data.get("negative_prompt", ""),
             "fps": request.config.get("fps", self.config.fps),
             "resolution": request.config.get("resolution", self.config.resolution),
-            "creativity_scale": request.config.get("creativity_scale", self.config.creativity_scale),
-            "physics_fidelity": request.config.get("physics_fidelity", self.config.physics_fidelity),
-            "aspect_ratio": request.config.get("aspect_ratio", self.config.default_aspect_ratio),
-            "quality_preset": request.config.get("quality_preset", self.config.quality_preset),
+            "creativity_scale": request.config.get(
+                "creativity_scale", self.config.creativity_scale
+            ),
+            "physics_fidelity": request.config.get(
+                "physics_fidelity", self.config.physics_fidelity
+            ),
+            "aspect_ratio": request.config.get(
+                "aspect_ratio", self.config.default_aspect_ratio
+            ),
+            "quality_preset": request.config.get(
+                "quality_preset", self.config.quality_preset
+            ),
             "seed": request.config.get("seed", self.config.seed),
-            "enable_audio": request.config.get("enable_audio", self.config.enable_audio),
-            "enable_3d_export": request.config.get("enable_3d_export", self.config.enable_3d_export),
+            "enable_audio": request.config.get(
+                "enable_audio", self.config.enable_audio
+            ),
+            "enable_3d_export": request.config.get(
+                "enable_3d_export", self.config.enable_3d_export
+            ),
             "character_consistency": scene_data.get("character_consistency", False),
             "multishot": scene_data.get("multishot", False),
-            "references": request.references
+            "references": request.references,
         }
-        
+
         return payload
 
     def _convert_scene_to_prompt(self, scene: Dict[str, Any]) -> Dict[str, Any]:
         """Convertit une scène StoryCore en prompt Seedance"""
-        
+
         # Extraire les informations pertinentes
         prompt_parts = []
         negative_prompt = ""
-        
+
         # Priority 1: Specific Prompts
         if "video_prompt" in scene and scene["video_prompt"]:
             prompt_parts.append(scene["video_prompt"])
@@ -264,7 +273,7 @@ class SeedanceAPIClient:
             prompt_parts.append(scene["image_prompt"])
         elif "description" in scene and scene["description"]:
             prompt_parts.append(scene["description"])
-        
+
         # Personnages
         if "characters" in scene and isinstance(scene["characters"], list):
             for char in scene["characters"]:
@@ -275,38 +284,44 @@ class SeedanceAPIClient:
                     char_desc.append(char["appearance"])
                 if char_desc:
                     prompt_parts.append(", ".join(char_desc))
-        
+
         # Actions
         if "actions" in scene and isinstance(scene["actions"], list):
             prompt_parts.append(", ".join(scene["actions"]))
-        
+
         # Environnement
         if "environment" in scene and scene["environment"]:
             prompt_parts.append(f"Environment: {scene['environment']}")
-        
+
         # Style
         if "style" in scene and scene["style"]:
             prompt_parts.append(f"Style: {scene['style']}")
-        
+
         # Mouvement/Caméra
         if "camera_movement" in scene and scene["camera_movement"]:
             prompt_parts.append(f"Camera: {scene['camera_movement']}")
-        
+
         # Assembler le prompt
-        prompt = ". ".join(prompt_parts) if prompt_parts else scene.get("name", "Generate a cinematic video")
-        
+        prompt = (
+            ". ".join(prompt_parts)
+            if prompt_parts
+            else scene.get("name", "Generate a cinematic video")
+        )
+
         return {
             "prompt": prompt,
             "negative_prompt": negative_prompt,
             "character_consistency": scene.get("character_consistency", False),
-            "multishot": scene.get("multishot", False)
+            "multishot": scene.get("multishot", False),
         }
 
-    def _parse_response(self, data: Dict[str, Any], start_time: float) -> SeedanceGenerationResult:
+    def _parse_response(
+        self, data: Dict[str, Any], start_time: float
+    ) -> SeedanceGenerationResult:
         """Parse la réponse de l'API"""
-        
+
         processing_time = time.time() - start_time
-        
+
         return SeedanceGenerationResult(
             success=data.get("status") == "completed",
             generation_id=data.get("generation_id", ""),
@@ -322,6 +337,5 @@ class SeedanceAPIClient:
             multishot_enabled=data.get("multishot", False),
             credits_used=data.get("credits_used", 0),
             timestamp=data.get("timestamp", ""),
-            error=data.get("error")
+            error=data.get("error"),
         )
-

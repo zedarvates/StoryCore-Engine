@@ -2,6 +2,8 @@
  * PerformanceMonitor - Monitors and displays timeline performance metrics
  * Tracks FPS, render time, and memory usage
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { memo, useEffect, useState, useRef, useCallback } from 'react';
 import { Activity, AlertTriangle, CheckCircle } from 'lucide-react';
@@ -81,8 +83,8 @@ export const PerformanceMonitor = memo<PerformanceMonitorProps>(({
 
   // Measure memory usage
   const measureMemory = useCallback((): number => {
-    if ('memory' in performance && (performance as any).memory) {
-      const memory = (performance as any).memory;
+    if ('memory' in performance && (performance as LegacyAny).memory) {
+      const memory = (performance as LegacyAny).memory;
       return Math.round(memory.usedJSHeapSize / (1024 * 1024));
     }
     return 0;

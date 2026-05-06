@@ -11,6 +11,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 class ComponentTests:
     """Handles component integration validation"""
 
@@ -39,7 +40,9 @@ class ComponentTests:
 
             duration = time.time() - test_start
             result.add_test_result("Component Integration", True, duration)
-            result.add_performance_metric("component_integration_time", duration, "seconds")
+            result.add_performance_metric(
+                "component_integration_time", duration, "seconds"
+            )
 
         except Exception as e:
             duration = time.time() - test_start
@@ -56,11 +59,7 @@ class ComponentTests:
             from video_engine import VideoEngine, VideoConfig
 
             # Test basic initialization
-            config = VideoConfig(
-                frame_rate=24,
-                resolution=(1920, 1080),
-                quality="high"
-            )
+            config = VideoConfig(frame_rate=24, resolution=(1920, 1080), quality="high")
 
             engine = VideoEngine(config)
 
@@ -87,7 +86,7 @@ class ComponentTests:
         try:
             from advanced_interpolation_engine import (
                 AdvancedInterpolationEngine,
-                create_cinematic_preset
+                create_cinematic_preset,
             )
 
             # Test preset creation
@@ -102,7 +101,7 @@ class ComponentTests:
             # Test basic interpolation
             keyframes = [
                 np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8),
-                np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8)
+                np.random.randint(0, 255, (1080, 1920, 3), dtype=np.uint8),
             ]
 
             camera_movement = {
@@ -110,7 +109,7 @@ class ComponentTests:
                 "direction": "right",
                 "amount": 0.1,
                 "duration": 2.0,
-                "easing": "ease_in_out"
+                "easing": "ease_in_out",
             }
 
             interpolated_frames = engine.interpolate_frames(
@@ -148,7 +147,9 @@ class ComponentTests:
             # Test serialization
             config = config_manager.load_preset("cinematic")
             json_data = config_manager.serialize_configuration(config, "json")
-            restored_config = config_manager.deserialize_configuration(json_data, "json")
+            restored_config = config_manager.deserialize_configuration(
+                json_data, "json"
+            )
 
             # Validate round-trip
             if config.frame_rate != restored_config.frame_rate:
@@ -170,7 +171,7 @@ class ComponentTests:
             project_path = Path(temp_project_dir)
             project_file = project_path / "project.json"
 
-            with open(project_file, 'r') as f:
+            with open(project_file, "r") as f:
                 project_data = json.load(f)
 
             # Validate required fields
@@ -215,7 +216,7 @@ class ComponentTests:
                 "output_format": "png",
                 "organize_by_shot": True,
                 "include_metadata": True,
-                "generate_timeline": True
+                "generate_timeline": True,
             }
 
             # Mock export test (would normally export actual frames)
@@ -227,7 +228,7 @@ class ComponentTests:
             export_result = export_manager.export_frame_sequence(
                 mock_frames,
                 str(Path(temp_project_dir) / "output" / "test_export"),
-                export_config
+                export_config,
             )
 
             if not export_result.success:

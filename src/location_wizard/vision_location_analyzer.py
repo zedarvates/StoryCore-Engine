@@ -18,13 +18,14 @@ import os
 from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 
 import numpy as np
 
 # Try to import requests for API calls
 try:
     import requests
+
     REQUESTS_AVAILABLE = True
 except ImportError:
     REQUESTS_AVAILABLE = False
@@ -35,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class VisionProvider(str, Enum):
     """Available vision model providers"""
+
     OLLAMA = "ollama"
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
@@ -42,6 +44,7 @@ class VisionProvider(str, Enum):
 
 class AtmosphereType(str, Enum):
     """Location atmosphere types"""
+
     PEACEFUL = "peaceful"
     MYSTERIOUS = "mysterious"
     TENSE = "tense"
@@ -61,6 +64,7 @@ class AtmosphereType(str, Enum):
 
 class TimeOfDay(str, Enum):
     """Time of day options"""
+
     DAWN = "dawn"
     MORNING = "morning"
     MIDDAY = "midday"
@@ -74,6 +78,7 @@ class TimeOfDay(str, Enum):
 
 class WeatherCondition(str, Enum):
     """Weather conditions"""
+
     CLEAR = "clear"
     SUNNY = "sunny"
     CLOUDY = "cloudy"
@@ -89,6 +94,7 @@ class WeatherCondition(str, Enum):
 
 class LocationType(str, Enum):
     """Types of locations"""
+
     INTERIOR = "interior"
     EXTERIOR = "exterior"
     URBAN = "urban"
@@ -105,42 +111,43 @@ class LocationType(str, Enum):
 @dataclass
 class LocationAttributes:
     """Extracted location attributes"""
+
     # Basic identification
     location_type: Optional[str] = None
     sub_type: Optional[str] = None
     setting: Optional[str] = None  # indoor, outdoor, mixed
-    
+
     # Physical characteristics
     architectural_style: Optional[str] = None
     era_period: Optional[str] = None
     primary_materials: List[str] = field(default_factory=list)
     dominant_colors: List[str] = field(default_factory=list)
     lighting_type: Optional[str] = None
-    
+
     # Environment
     terrain: Optional[str] = None
     vegetation: List[str] = field(default_factory=list)
     water_features: List[str] = field(default_factory=list)
     landscape_elements: List[str] = field(default_factory=list)
-    
+
     # Atmosphere
     atmosphere: Optional[str] = None
     mood: Optional[str] = None
     time_of_day: Optional[str] = None
     weather: Optional[str] = None
     season: Optional[str] = None
-    
+
     # Details
     key_features: List[str] = field(default_factory=list)
     landmarks: List[str] = field(default_factory=list)
     props: List[str] = field(default_factory=list)
     population_density: Optional[str] = None  # empty, sparse, moderate, dense, crowded
-    
+
     # Technical
     perspective: Optional[str] = None  # eye-level, bird's-eye, worm's-eye, etc.
     depth: Optional[str] = None  # shallow, medium, deep
     focal_point: Optional[str] = None
-    
+
     # Genre adaptability
     genre_hints: List[str] = field(default_factory=list)
 
@@ -148,6 +155,7 @@ class LocationAttributes:
 @dataclass
 class LocationAnalyzerConfig:
     """Configuration for location analyzer"""
+
     provider: VisionProvider = VisionProvider.OLLAMA
     model: Optional[str] = None
     ollama_url: str = "http://localhost:11434"
@@ -156,7 +164,7 @@ class LocationAnalyzerConfig:
     max_tokens: int = 2048
     temperature: float = 0.3
     timeout: int = 120
-    
+
     # Analysis options
     detect_time_of_day: bool = True
     detect_weather: bool = True
@@ -167,6 +175,7 @@ class LocationAnalyzerConfig:
 @dataclass
 class LocationAnalysisResult:
     """Result of location analysis"""
+
     success: bool
     description: str = ""
     short_description: str = ""
@@ -184,59 +193,61 @@ class LocationAnalysisResult:
 class VisionLocationAnalyzer:
     """
     Analyzes images to extract location information using vision models.
-    
+
     Supports:
     - Ollama (LLaVA, BakLLaVA, etc.)
     - OpenAI (GPT-4 Vision)
     - Anthropic (Claude Vision)
     """
-    
+
     def __init__(self, config: Optional[LocationAnalyzerConfig] = None):
         """Initialize location analyzer"""
         self.config = config or LocationAnalyzerConfig()
-        
+
         # Set API keys from environment if not provided
         if self.config.openai_api_key is None:
             self.config.openai_api_key = os.environ.get("OPENAI_API_KEY")
         if self.config.anthropic_api_key is None:
             self.config.anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
-        
-        logger.info(f"Location analyzer initialized with provider: {self.config.provider.value}")
-    
+
+        logger.info(
+            f"Location analyzer initialized with provider: {self.config.provider.value}"
+        )
+
     async def analyze_image(
         self,
         image: np.ndarray,
         genre: Optional[str] = None,
         style: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
     ) -> LocationAnalysisResult:
         """
         Analyze an image to extract location information.
-        
+
         Args:
             image: numpy array of the image (RGB)
             genre: Optional genre for style adaptation
             style: Optional visual style
             additional_context: Additional context for analysis
-            
+
         Returns:
             LocationAnalysisResult with extracted information
         """
         import time
+
         start_time = time.time()
-        
+
         try:
             # Convert image to base64
             image_base64 = self._array_to_base64(image)
             if not image_base64:
                 return LocationAnalysisResult(
-                    success=False,
-                    error_message="Failed to encode image"
+                    success=False, error_message="Failed to encode image"
                 )
-            
+
             # Build prompt
             prompt = self._build_analysis_prompt(genre, style, additional_context)
-            
+
             # Call vision model based on provider
             if self.config.provider == VisionProvider.OLLAMA:
                 response = await self._call_ollama(image_base64, prompt)
@@ -247,38 +258,34 @@ class VisionLocationAnalyzer:
             else:
                 return LocationAnalysisResult(
                     success=False,
-                    error_message=f"Unsupported provider: {self.config.provider}"
+                    error_message=f"Unsupported provider: {self.config.provider}",
                 )
-            
+
             if response is None:
                 return LocationAnalysisResult(
-                    success=False,
-                    error_message="No response from vision model"
+                    success=False, error_message="No response from vision model"
                 )
-            
+
             # Parse response
             result = self._parse_response(response, genre)
-            
+
             result.processing_time_ms = int((time.time() - start_time) * 1000)
             result.success = True
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Location analysis failed: {e}")
-            return LocationAnalysisResult(
-                success=False,
-                error_message=str(e)
-            )
-    
+            return LocationAnalysisResult(success=False, error_message=str(e))
+
     def _build_analysis_prompt(
         self,
         genre: Optional[str] = None,
         style: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
     ) -> str:
         """Build analysis prompt for vision model"""
-        
+
         prompt = """Analyze this location/environment image in detail. Provide your analysis in the following JSON format:
 
 {
@@ -319,27 +326,27 @@ Be specific about materials, colors, and atmospheric elements."""
 
         if genre:
             prompt += f"\n\nConsider how this location could be adapted for a {genre} genre story."
-        
+
         if style:
             prompt += f"\n\nConsider the visual style: {style}."
-        
+
         if additional_context:
             prompt += f"\n\nAdditional context: {additional_context}"
-        
+
         return prompt
-    
+
     async def _call_ollama(self, image_base64: str, prompt: str) -> Optional[str]:
         """Call Ollama API for vision analysis"""
         if not REQUESTS_AVAILABLE:
             logger.error("Requests not available")
             return None
-        
+
         model = self.config.model or "llava:13b"
-        
+
         try:
             # Use sync requests in async context
             loop = asyncio.get_event_loop()
-            
+
             def make_request():
                 return requests.post(
                     f"{self.config.ollama_url}/api/generate",
@@ -350,40 +357,42 @@ Be specific about materials, colors, and atmospheric elements."""
                         "stream": False,
                         "options": {
                             "num_predict": self.config.max_tokens,
-                            "temperature": self.config.temperature
-                        }
+                            "temperature": self.config.temperature,
+                        },
                     },
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
-            
+
             response = await loop.run_in_executor(None, make_request)
-            
+
             if response.status_code == 200:
                 result = response.json()
                 return result.get("response", "")
             else:
-                logger.error(f"Ollama API error: {response.status_code} - {response.text}")
+                logger.error(
+                    f"Ollama API error: {response.status_code} - {response.text}"
+                )
                 return None
-                
+
         except Exception as e:
             logger.error(f"Ollama API call failed: {e}")
             return None
-    
+
     async def _call_openai(self, image_base64: str, prompt: str) -> Optional[str]:
         """Call OpenAI GPT-4 Vision API"""
         if not REQUESTS_AVAILABLE or not self.config.openai_api_key:
             logger.error("OpenAI API key not configured")
             return None
-        
+
         try:
             loop = asyncio.get_event_loop()
-            
+
             def make_request():
                 return requests.post(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
                         "Authorization": f"Bearer {self.config.openai_api_key}",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     json={
                         "model": "gpt-4-vision-preview",
@@ -396,47 +405,47 @@ Be specific about materials, colors, and atmospheric elements."""
                                         "type": "image_url",
                                         "image_url": {
                                             "url": f"data:image/jpeg;base64,{image_base64}",
-                                            "detail": "high"
-                                        }
-                                    }
-                                ]
+                                            "detail": "high",
+                                        },
+                                    },
+                                ],
                             }
                         ],
                         "max_tokens": self.config.max_tokens,
-                        "temperature": self.config.temperature
+                        "temperature": self.config.temperature,
                     },
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
-            
+
             response = await loop.run_in_executor(None, make_request)
-            
+
             if response.status_code == 200:
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
             else:
                 logger.error(f"OpenAI API error: {response.status_code}")
                 return None
-                
+
         except Exception as e:
             logger.error(f"OpenAI API call failed: {e}")
             return None
-    
+
     async def _call_anthropic(self, image_base64: str, prompt: str) -> Optional[str]:
         """Call Anthropic Claude Vision API"""
         if not REQUESTS_AVAILABLE or not self.config.anthropic_api_key:
             logger.error("Anthropic API key not configured")
             return None
-        
+
         try:
             loop = asyncio.get_event_loop()
-            
+
             def make_request():
                 return requests.post(
                     "https://api.anthropic.com/v1/messages",
                     headers={
                         "x-api-key": self.config.anthropic_api_key,
                         "anthropic-version": "2023-06-01",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     json={
                         "model": "claude-3-opus-20240229",
@@ -450,34 +459,33 @@ Be specific about materials, colors, and atmospheric elements."""
                                         "source": {
                                             "type": "base64",
                                             "media_type": "image/jpeg",
-                                            "data": image_base64
-                                        }
+                                            "data": image_base64,
+                                        },
                                     },
-                                    {
-                                        "type": "text",
-                                        "text": prompt
-                                    }
-                                ]
+                                    {"type": "text", "text": prompt},
+                                ],
                             }
-                        ]
+                        ],
                     },
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
-            
+
             response = await loop.run_in_executor(None, make_request)
-            
+
             if response.status_code == 200:
                 result = response.json()
                 return result["content"][0]["text"]
             else:
                 logger.error(f"Anthropic API error: {response.status_code}")
                 return None
-                
+
         except Exception as e:
             logger.error(f"Anthropic API call failed: {e}")
             return None
-    
-    def _parse_response(self, response: str, genre: Optional[str] = None) -> LocationAnalysisResult:
+
+    def _parse_response(
+        self, response: str, genre: Optional[str] = None
+    ) -> LocationAnalysisResult:
         """Parse vision model response into LocationAnalysisResult"""
         try:
             # Extract JSON from response
@@ -487,7 +495,7 @@ Be specific about materials, colors, and atmospheric elements."""
             else:
                 # Fallback: try to parse entire response as JSON
                 data = json.loads(response)
-            
+
             # Build attributes
             attributes = LocationAttributes(
                 location_type=data.get("location_type"),
@@ -514,14 +522,14 @@ Be specific about materials, colors, and atmospheric elements."""
                 perspective=data.get("perspective"),
                 depth=data.get("depth"),
                 focal_point=data.get("focal_point"),
-                genre_hints=data.get("genre_hints", [])
+                genre_hints=data.get("genre_hints", []),
             )
-            
+
             # Build style adaptations
             style_adaptations = {}
             if genre:
                 style_adaptations = self._generate_style_adaptations(attributes, genre)
-            
+
             return LocationAnalysisResult(
                 success=True,
                 description=data.get("description", ""),
@@ -532,9 +540,9 @@ Be specific about materials, colors, and atmospheric elements."""
                 narrative_purpose=data.get("narrative_purpose"),
                 story_potential=data.get("story_potential", []),
                 style_adaptations=style_adaptations,
-                confidence=0.85
+                confidence=0.85,
             )
-            
+
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse response as JSON: {e}")
             # Return a basic result with raw response
@@ -542,97 +550,118 @@ Be specific about materials, colors, and atmospheric elements."""
                 success=True,
                 description=response,
                 short_description=response[:200] if len(response) > 200 else response,
-                confidence=0.5
+                confidence=0.5,
             )
         except Exception as e:
             logger.error(f"Failed to parse response: {e}")
-            return LocationAnalysisResult(
-                success=False,
-                error_message=str(e)
-            )
-    
+            return LocationAnalysisResult(success=False, error_message=str(e))
+
     def _extract_json(self, text: str) -> Optional[str]:
         """Extract JSON from text that might contain other content"""
         import re
-        
+
         # Try to find JSON block
         json_patterns = [
-            r'```json\s*([\s\S]*?)\s*```',  # JSON in code block
-            r'```\s*([\s\S]*?)\s*```',      # Any code block
-            r'\{[\s\S]*\}'                   # Raw JSON object
+            r"```json\s*([\s\S]*?)\s*```",  # JSON in code block
+            r"```\s*([\s\S]*?)\s*```",  # Any code block
+            r"\{[\s\S]*\}",  # Raw JSON object
         ]
-        
+
         for pattern in json_patterns:
             match = re.search(pattern, text)
             if match:
                 try:
                     # Validate it's valid JSON
-                    json_str = match.group(1) if '```' in pattern else match.group(0)
+                    json_str = match.group(1) if "```" in pattern else match.group(0)
                     json.loads(json_str)
                     return json_str
                 except json.JSONDecodeError:
                     continue
-        
+
         return None
-    
+
     def _generate_style_adaptations(
-        self,
-        attributes: LocationAttributes,
-        genre: str
+        self, attributes: LocationAttributes, genre: str
     ) -> Dict[str, str]:
         """Generate style adaptations for a specific genre"""
         adaptations = {}
-        
+
         genre_lower = genre.lower()
-        
+
         if "cyberpunk" in genre_lower or "sci-fi" in genre_lower:
-            adaptations["lighting"] = "Add neon lighting, holographic elements, or futuristic light sources"
-            adaptations["atmosphere"] = "Enhance with tech elements, digital displays, synthetic materials"
-            adaptations["props"] = "Add futuristic vehicles, drones, holographic interfaces"
-            
+            adaptations["lighting"] = (
+                "Add neon lighting, holographic elements, or futuristic light sources"
+            )
+            adaptations["atmosphere"] = (
+                "Enhance with tech elements, digital displays, synthetic materials"
+            )
+            adaptations["props"] = (
+                "Add futuristic vehicles, drones, holographic interfaces"
+            )
+
         elif "fantasy" in genre_lower:
-            adaptations["lighting"] = "Add magical glows, ethereal lighting, or mystical elements"
-            adaptations["atmosphere"] = "Enhance with magical elements, ancient runes, fantasy creatures"
-            adaptations["props"] = "Add fantasy elements like crystals, potions, ancient tomes"
-            
+            adaptations["lighting"] = (
+                "Add magical glows, ethereal lighting, or mystical elements"
+            )
+            adaptations["atmosphere"] = (
+                "Enhance with magical elements, ancient runes, fantasy creatures"
+            )
+            adaptations["props"] = (
+                "Add fantasy elements like crystals, potions, ancient tomes"
+            )
+
         elif "horror" in genre_lower:
-            adaptations["lighting"] = "Add dramatic shadows, flickering lights, eerie atmosphere"
+            adaptations["lighting"] = (
+                "Add dramatic shadows, flickering lights, eerie atmosphere"
+            )
             adaptations["atmosphere"] = "Enhance with decay, cobwebs, ominous elements"
-            adaptations["props"] = "Add horror elements like blood trails, broken objects, sinister symbols"
-            
+            adaptations["props"] = (
+                "Add horror elements like blood trails, broken objects, sinister symbols"
+            )
+
         elif "noir" in genre_lower:
-            adaptations["lighting"] = "Add dramatic chiaroscuro, venetian blind shadows, smoke"
+            adaptations["lighting"] = (
+                "Add dramatic chiaroscuro, venetian blind shadows, smoke"
+            )
             adaptations["atmosphere"] = "Enhance with rain, fog, reflective surfaces"
-            adaptations["props"] = "Add period-appropriate elements, vintage items, shadows"
-            
+            adaptations["props"] = (
+                "Add period-appropriate elements, vintage items, shadows"
+            )
+
         elif "western" in genre_lower:
-            adaptations["lighting"] = "Add warm sunlight, dusty atmosphere, long shadows"
-            adaptations["atmosphere"] = "Enhance with desert elements, wooden structures, horses"
-            adaptations["props"] = "Add western elements like wagons, barrels, hitching posts"
-        
+            adaptations["lighting"] = (
+                "Add warm sunlight, dusty atmosphere, long shadows"
+            )
+            adaptations["atmosphere"] = (
+                "Enhance with desert elements, wooden structures, horses"
+            )
+            adaptations["props"] = (
+                "Add western elements like wagons, barrels, hitching posts"
+            )
+
         return adaptations
-    
+
     def _array_to_base64(self, array: np.ndarray) -> Optional[str]:
         """Convert numpy array to base64 string"""
         try:
             from PIL import Image
-            
+
             # Convert array to PIL Image
             if array.dtype != np.uint8:
                 array = (array * 255).astype(np.uint8)
-            
+
             if len(array.shape) == 3 and array.shape[2] == 3:
                 image = Image.fromarray(array)
             elif len(array.shape) == 3 and array.shape[2] == 4:
-                image = Image.fromarray(array, mode='RGBA')
+                image = Image.fromarray(array, mode="RGBA")
             else:
-                image = Image.fromarray(array, mode='L')
-            
+                image = Image.fromarray(array, mode="L")
+
             # Convert to base64
             buffer = BytesIO()
             image.save(buffer, format="JPEG", quality=90)
-            return base64.b64encode(buffer.getvalue()).decode('utf-8')
-            
+            return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
         except Exception as e:
             logger.error(f"Failed to convert array to base64: {e}")
             return None
@@ -643,7 +672,7 @@ _location_analyzer: Optional[VisionLocationAnalyzer] = None
 
 
 def get_location_analyzer(
-    config: Optional[LocationAnalyzerConfig] = None
+    config: Optional[LocationAnalyzerConfig] = None,
 ) -> VisionLocationAnalyzer:
     """Get singleton instance of location analyzer"""
     global _location_analyzer

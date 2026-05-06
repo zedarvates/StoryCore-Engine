@@ -10,12 +10,12 @@ import {
   getModelRecommendation,
   checkOllamaStatus,
   getInstalledModels,
-  isModelInstalled,
+  _isModelInstalled,
   GEMMA3_MODELS,
   DEFAULT_OLLAMA_CONFIG,
   type ModelRecommendation,
   type SystemCapabilities,
-  type OllamaModelConfig,
+  type _OllamaModelConfig,
 } from '@/services/ollamaConfig';
 
 export interface OllamaSettingsProps {
@@ -97,7 +97,7 @@ export function OllamaSettings({ onConfigChange }: OllamaSettingsProps) {
         const models = await getInstalledModels(endpoint);
         setInstalledModels(models);
       }
-    } catch (err) {
+    } catch (_err) {
       setError('Failed to connect to Ollama');
     } finally {
       setIsLoading(false);

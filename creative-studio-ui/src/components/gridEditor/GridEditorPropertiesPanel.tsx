@@ -8,6 +8,8 @@
  * 
  * Requirements: 4.8 (crop indicator), future: layer management
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { useGridStore } from '../../stores/gridEditorStore';
@@ -107,7 +109,7 @@ export const GridEditorPropertiesPanel: React.FC<GridEditorPropertiesPanelProps>
             <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
               Generation
             </h3>
-            <PanelGenerationControls panel={panel as any} />
+            <PanelGenerationControls panel={panel as LegacyAny} />
           </div>
 
           {/* Transform Properties */}

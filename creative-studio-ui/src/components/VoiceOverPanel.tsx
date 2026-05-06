@@ -13,7 +13,7 @@ interface VoiceOverPanelProps {
 }
 
 export const VoiceOverPanel: React.FC<VoiceOverPanelProps> = ({ shotId, onClose }) => {
-  const { isGenerating, error, generateVoiceOver, clearError } = useVoiceOverGenerator();
+  const { isGenerating, error, generateVoiceOver, _clearError } = useVoiceOverGenerator();
   const [selectedVoice, setSelectedVoice] = useState<string>('female');
 
   const handleGenerate = async (voiceOver: VoiceOver) => {

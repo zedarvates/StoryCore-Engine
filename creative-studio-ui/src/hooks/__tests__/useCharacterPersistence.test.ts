@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Character Persistence Hook Tests
 // ============================================================================
@@ -80,7 +81,7 @@ describe('useCharacterPersistence', () => {
         relationships: [],
       };
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ ...mockCharacter, character_id: 'test-uuid' }),
       });
@@ -153,7 +154,7 @@ describe('useCharacterPersistence', () => {
         relationships: [],
       };
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => existingCharacter,
       });
@@ -214,7 +215,7 @@ describe('useCharacterPersistence', () => {
         relationships: [],
       };
 
-      (global.fetch as any).mockRejectedValueOnce(new Error('API Error'));
+      (global.fetch as LegacyAny).mockRejectedValueOnce(new Error('API Error'));
 
       const { result } = renderHook(() => useCharacterPersistence());
 
@@ -282,7 +283,7 @@ describe('useCharacterPersistence', () => {
         relationships: [],
       };
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => mockCharacter,
       });
@@ -349,7 +350,7 @@ describe('useCharacterPersistence', () => {
 
       localStorage.setItem('character-test-uuid', JSON.stringify(mockCharacter));
 
-      (global.fetch as any).mockRejectedValueOnce(new Error('API Error'));
+      (global.fetch as LegacyAny).mockRejectedValueOnce(new Error('API Error'));
 
       const { result } = renderHook(() => useCharacterPersistence());
 
@@ -364,7 +365,7 @@ describe('useCharacterPersistence', () => {
 
   describe('removeCharacter', () => {
     it('deletes a character from API and store', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
       });
 
@@ -385,7 +386,7 @@ describe('useCharacterPersistence', () => {
     it('removes from localStorage when API fails', async () => {
       localStorage.setItem('character-test-uuid', JSON.stringify({ id: 'test-uuid' }));
 
-      (global.fetch as any).mockRejectedValueOnce(new Error('API Error'));
+      (global.fetch as LegacyAny).mockRejectedValueOnce(new Error('API Error'));
 
       const { result } = renderHook(() => useCharacterPersistence());
 

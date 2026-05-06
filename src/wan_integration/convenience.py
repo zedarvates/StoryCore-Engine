@@ -2,7 +2,6 @@
 Convenience Functions for Wan Video Integration
 """
 
-import asyncio
 from typing import List, Optional
 
 from PIL import Image
@@ -21,7 +20,7 @@ async def generate_inpainted_video(
     video_frames: List[Image.Image],
     mask: InpaintingMask,
     config: Optional[WanVideoConfig] = None,
-    **kwargs
+    **kwargs,
 ) -> List[Image.Image]:
     """
     Convenience function for video inpainting
@@ -51,9 +50,7 @@ async def generate_inpainted_video(
 
 
 async def generate_transparent_video(
-    prompt: str,
-    config: Optional[WanVideoConfig] = None,
-    **kwargs
+    prompt: str, config: Optional[WanVideoConfig] = None, **kwargs
 ) -> List[Image.Image]:
     """
     Convenience function for transparent video generation

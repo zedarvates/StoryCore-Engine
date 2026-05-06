@@ -4,7 +4,6 @@
  * Tests the complete integration of generation buttons, dialogs, and modals.
  * Validates that all components are properly wired together.
  */
-
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { GenerationButtonToolbar } from '../GenerationButtonToolbar';
@@ -137,7 +136,7 @@ describe('Generation Buttons Integration', () => {
   
   describe('Progress Modal Integration', () => {
     it('should show progress modal when generation is in progress', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             image: {

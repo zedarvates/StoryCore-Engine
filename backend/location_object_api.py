@@ -8,18 +8,13 @@ This module provides:
 - Options listing endpoints
 """
 
-import base64
 import io
 import logging
-import os
 import uuid
-from datetime import datetime
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends, status
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from backend.auth import verify_jwt_token
 
@@ -32,7 +27,7 @@ try:
         LocationStyle,
         TimeVariation,
         WeatherVariation,
-        SeasonType
+        SeasonType,
     )
     from src.object_wizard import (
         get_image_to_object_service,
@@ -40,8 +35,9 @@ try:
         get_object_variation_generator,
         ObjectStyle,
         MaterialVariation,
-        ConditionVariation
+        ConditionVariation,
     )
+
     SERVICES_AVAILABLE = True
 except ImportError:
     SERVICES_AVAILABLE = False
@@ -58,8 +54,10 @@ router = APIRouter()
 # Request/Response Models
 # ============================================================================
 
+
 class LocationFromImageResponse(BaseModel):
     """Response for location creation"""
+
     success: bool
     location_id: Optional[str] = None
     name: Optional[str] = None
@@ -80,6 +78,7 @@ class LocationFromImageResponse(BaseModel):
 
 class ObjectFromImageResponse(BaseModel):
     """Response for object creation"""
+
     success: bool
     object_id: Optional[str] = None
     name: Optional[str] = None
@@ -100,6 +99,7 @@ class ObjectFromImageResponse(BaseModel):
 
 class LocationVariationRequest(BaseModel):
     """Request for location variations"""
+
     location_description: str
     location_id: str
     styles: List[str] = ["realistic"]
@@ -110,6 +110,7 @@ class LocationVariationRequest(BaseModel):
 
 class ObjectVariationRequest(BaseModel):
     """Request for object variations"""
+
     object_description: str
     object_id: str
     styles: List[str] = ["realistic"]
@@ -120,6 +121,7 @@ class ObjectVariationRequest(BaseModel):
 
 class VariationResponse(BaseModel):
     """Response for variation"""
+
     variation_id: str
     prompt: str
     negative_prompt: str
@@ -132,6 +134,7 @@ class VariationResponse(BaseModel):
 # Location Endpoints
 # ============================================================================
 
+
 @router.post("/location/from-image", response_model=LocationFromImageResponse)
 async def create_location_from_image(
     file: UploadFile = File(..., description="Image file for location"),
@@ -140,39 +143,38 @@ async def create_location_from_image(
     genre: Optional[str] = Form(None),
     visual_style: Optional[str] = Form(None),
     additional_context: Optional[str] = Form(None),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> LocationFromImageResponse:
     """Create a location from an uploaded image"""
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Location services not available"
+            detail="Location services not available",
         )
-    
+
     try:
         from PIL import Image
         import numpy as np
-        
+
         image_data = await file.read()
         image = Image.open(io.BytesIO(image_data))
         image_array = np.array(image)
-        
+
         service = get_image_to_location_service()
         result = await service.create_location_from_image(
             image=image_array,
             name=name,
             location_type=location_type,
-            additional_context=additional_context
+            additional_context=additional_context,
         )
-        
+
         if not result.success:
             return LocationFromImageResponse(
-                success=False,
-                error_message=result.error_message
+                success=False, error_message=result.error_message
             )
-        
+
         location_id = str(uuid.uuid4())
-        
+
         return LocationFromImageResponse(
             success=True,
             location_id=location_id,
@@ -188,14 +190,13 @@ async def create_location_from_image(
             atmospheric_prompt=result.atmospheric_prompt,
             style_adaptations=result.style_adaptations,
             confidence=result.confidence,
-            processing_time_ms=result.processing_time_ms
+            processing_time_ms=result.processing_time_ms,
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to create location: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -205,21 +206,20 @@ async def get_location_options() -> Dict[str, Any]:
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Services not available"
+            detail="Services not available",
         )
-    
+
     try:
         generator = get_location_variation_generator()
         return {
             "styles": generator.get_available_styles(),
             "times_of_day": generator.get_available_times(),
             "weather": generator.get_available_weather(),
-            "seasons": generator.get_available_seasons()
+            "seasons": generator.get_available_seasons(),
         }
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -230,37 +230,37 @@ async def generate_location_prompts(
     time_of_day: Optional[str] = Form(None),
     weather: Optional[str] = Form(None),
     season: Optional[str] = Form(None),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> Dict[str, str]:
     """Generate location variation prompts"""
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Services not available"
+            detail="Services not available",
         )
-    
+
     try:
         generator = get_location_variation_generator()
-        
+
         result = generator.generate_prompts_only(
             location_description=description,
             style=LocationStyle(style),
             time_of_day=TimeVariation(time_of_day) if time_of_day else None,
             weather=WeatherVariation(weather) if weather else None,
-            season=SeasonType(season) if season else None
+            season=SeasonType(season) if season else None,
         )
-        
+
         return result
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
 # ============================================================================
 # Object Endpoints
 # ============================================================================
+
 
 @router.post("/object/from-image", response_model=ObjectFromImageResponse)
 async def create_object_from_image(
@@ -270,39 +270,38 @@ async def create_object_from_image(
     genre: Optional[str] = Form(None),
     visual_style: Optional[str] = Form(None),
     additional_context: Optional[str] = Form(None),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> ObjectFromImageResponse:
     """Create an object from an uploaded image"""
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Object services not available"
+            detail="Object services not available",
         )
-    
+
     try:
         from PIL import Image
         import numpy as np
-        
+
         image_data = await file.read()
         image = Image.open(io.BytesIO(image_data))
         image_array = np.array(image)
-        
+
         service = get_image_to_object_service()
         result = await service.create_object_from_image(
             image=image_array,
             name=name,
             object_type=object_type,
-            additional_context=additional_context
+            additional_context=additional_context,
         )
-        
+
         if not result.success:
             return ObjectFromImageResponse(
-                success=False,
-                error_message=result.error_message
+                success=False, error_message=result.error_message
             )
-        
+
         object_id = str(uuid.uuid4())
-        
+
         return ObjectFromImageResponse(
             success=True,
             object_id=object_id,
@@ -317,14 +316,13 @@ async def create_object_from_image(
             detail_shot_prompt=result.detail_shot_prompt,
             context_shot_prompt=result.context_shot_prompt,
             confidence=result.confidence,
-            processing_time_ms=result.processing_time_ms
+            processing_time_ms=result.processing_time_ms,
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to create object: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -334,23 +332,22 @@ async def get_object_options() -> Dict[str, Any]:
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Services not available"
+            detail="Services not available",
         )
-    
+
     try:
         generator = get_object_variation_generator()
         service = get_image_to_object_service()
-        
+
         return {
             "styles": generator.get_available_styles(),
             "materials": generator.get_available_materials(),
             "conditions": generator.get_available_conditions(),
-            "categories": service.get_object_categories()
+            "categories": service.get_object_categories(),
         }
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -360,30 +357,29 @@ async def generate_object_prompts(
     style: str = Form("realistic"),
     material: Optional[str] = Form(None),
     condition: Optional[str] = Form(None),
-    user_id: str = Depends(verify_jwt_token)
+    user_id: str = Depends(verify_jwt_token),
 ) -> Dict[str, str]:
     """Generate object variation prompts"""
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Services not available"
+            detail="Services not available",
         )
-    
+
     try:
         generator = get_object_variation_generator()
-        
+
         result = generator.generate_prompts_only(
             object_description=description,
             style=ObjectStyle(style),
             material=MaterialVariation(material) if material else None,
-            condition=ConditionVariation(condition) if condition else None
+            condition=ConditionVariation(condition) if condition else None,
         )
-        
+
         return result
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -393,16 +389,15 @@ async def get_object_categories() -> List[Dict[str, str]]:
     if not SERVICES_AVAILABLE:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Services not available"
+            detail="Services not available",
         )
-    
+
     try:
         service = get_image_to_object_service()
         return service.get_object_categories()
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
         )
 
 
@@ -415,5 +410,5 @@ __all__ = [
     "LocationFromImageResponse",
     "ObjectFromImageResponse",
     "LocationVariationRequest",
-    "ObjectVariationRequest"
+    "ObjectVariationRequest",
 ]

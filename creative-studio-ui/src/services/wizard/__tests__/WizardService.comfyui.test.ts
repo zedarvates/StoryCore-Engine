@@ -3,8 +3,10 @@
  * 
  * Tests for the fixed ComfyUI connection logic
  */
+import { LegacyAny } from '@/types/legacy';
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+import { describe, it, expect, vi, _beforeEach, afterEach } from 'vitest';
 import { WizardService } from '../WizardService';
 import { getComfyUIServersService, resetComfyUIServersService } from '../../comfyuiServersService';
 import { testComfyUIConnection } from '../../comfyuiService';
@@ -22,8 +24,8 @@ vi.mock('../../comfyuiService', () => ({
 
 describe('WizardService ComfyUI Connection Tests', () => {
   let wizardService: WizardService;
-  let mockComfyuiServersService: any;
-  let mockTestComfyUIConnection: any;
+  let mockComfyuiServersService: LegacyAny;
+  let mockTestComfyUIConnection: LegacyAny;
 
   beforeEach(() => {
     wizardService = new WizardService();

@@ -4,6 +4,8 @@
  * Tests for cut/copy/paste menu actions and clipboard state integration.
  * Validates Requirements 2.5-2.9.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { editActions } from '../menuActions';
@@ -50,15 +52,15 @@ describe('Clipboard Operations', () => {
         promotion: 'pending',
       },
       selectedShotId: 'shot-1', // Selected shot
-    } as any;
+    } as LegacyAny;
 
     // Create mock clipboard
     mockClipboard = {
-      hasContent: false,
+      hasContent: _false,
       contentType: null,
       cut: vi.fn((content) => {
         mockClipboard.hasContent = true;
-        mockClipboard.contentType = 'shot';
+        mockClipboa_rd.contentType = 'shot';
       }),
       copy: vi.fn((content) => {
         mockClipboard.hasContent = true;
@@ -136,7 +138,7 @@ describe('Clipboard Operations', () => {
       mockContext.state.project = {
         ...mockProject,
         selectedShotId: null,
-      } as any;
+      } as LegacyAny;
 
       // Execute cut action
       editActions.cut(mockContext);
@@ -171,7 +173,7 @@ describe('Clipboard Operations', () => {
       mockContext.state.project = {
         ...mockProject,
         selectedShotId: 'non-existent-shot',
-      } as any;
+      } as LegacyAny;
 
       // Execute cut action
       editActions.cut(mockContext);
@@ -209,7 +211,7 @@ describe('Clipboard Operations', () => {
       mockContext.state.project = {
         ...mockProject,
         selectedShotId: null,
-      } as any;
+      } as LegacyAny;
 
       // Execute copy action
       editActions.copy(mockContext);
@@ -244,7 +246,7 @@ describe('Clipboard Operations', () => {
       mockContext.state.project = {
         ...mockProject,
         selectedShotId: 'non-existent-shot',
-      } as any;
+      } as LegacyAny;
 
       // Execute copy action
       editActions.copy(mockContext);
@@ -358,7 +360,7 @@ describe('Clipboard Operations', () => {
       // Test the enabled function directly
       const enabledFn = (state: AppState) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = (state.project as LegacyAny).selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       };
 
@@ -371,12 +373,12 @@ describe('Clipboard Operations', () => {
       mockContext.state.project = {
         ...mockProject,
         selectedShotId: null,
-      } as any;
+      } as LegacyAny;
 
       // Test the enabled function directly
       const enabledFn = (state: AppState) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = (state.project as LegacyAny).selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       };
 
@@ -388,7 +390,7 @@ describe('Clipboard Operations', () => {
       // Test the enabled function directly
       const enabledFn = (state: AppState) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = (state.project as LegacyAny).selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       };
 
@@ -401,12 +403,12 @@ describe('Clipboard Operations', () => {
       mockContext.state.project = {
         ...mockProject,
         selectedShotId: null,
-      } as any;
+      } as LegacyAny;
 
       // Test the enabled function directly
       const enabledFn = (state: AppState) => {
         if (!state.project) return false;
-        const selectedShotId = (state.project as any).selectedShotId;
+        const selectedShotId = (state.project as LegacyAny).selectedShotId;
         return selectedShotId !== null && selectedShotId !== undefined;
       };
 

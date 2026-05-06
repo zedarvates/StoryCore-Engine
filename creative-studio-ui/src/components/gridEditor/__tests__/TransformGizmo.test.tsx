@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, _screen } from '@testing-library/react';
 import { TransformGizmo } from '../TransformGizmo';
 import { createEmptyPanel } from '../../../types/gridEditor.factories';
 import type { Rectangle, Transform } from '../../../stores/gridEditorStore';

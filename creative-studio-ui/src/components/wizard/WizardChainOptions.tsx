@@ -1,7 +1,8 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp, UserPlus, MapPin, Sparkles, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { _Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export interface WizardChainOption {
@@ -75,7 +76,7 @@ export const WizardChainOptions: React.FC<WizardChainOptionsProps> = ({
           <div className="grid gap-3 md:grid-cols-2">
             {remainingWizards.map((wizard) => {
               const iconKey = wizard.icon || 'default';
-              const Icon = (IconMap as any)[iconKey] || (IconMap as any)['default'];
+              const Icon = (IconMap as LegacyAny)[iconKey] || (IconMap as LegacyAny)['default'];
               return (
                 <button
                   key={wizard.wizardType}

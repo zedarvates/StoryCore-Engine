@@ -34,7 +34,7 @@ export function ErrorNotification({
   notifications,
   onDismiss
 }: ErrorNotificationProps) {
-  const [visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
+  const [_visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     setVisibleNotifications(notifications);
@@ -147,7 +147,7 @@ export interface NotificationContainerProps {
 export function NotificationContainer({
   notifications,
   onRemove,
-  position = 'top-right',
+  _position = 'top-right',
 }: NotificationContainerProps) {
   return <ErrorNotification notifications={notifications} onDismiss={onRemove} />;
 }

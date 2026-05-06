@@ -25,12 +25,15 @@ from __future__ import annotations
 import re
 import uuid
 import logging
-from typing import Optional, List, Tuple, Dict, Any
+from typing import Optional, List
 
 from blender_bridge.scene_types import (
-    SceneJSON, SceneType, CameraConfig, ShotType,
-    CharacterRig, RigType, AtmosphereConfig, AtmosphereType,
-    LightingConfig, LightConfig, LightType, PropObject, RenderSettings,
+    SceneJSON,
+    SceneType,
+    CameraConfig,
+    CharacterRig,
+    AtmosphereConfig,
+    AtmosphereType,
 )
 from blender_bridge.camera_system import CinematicCameraSystem
 from blender_bridge.location_manager import LocationManager
@@ -45,48 +48,109 @@ logger = logging.getLogger(__name__)
 # Mots déclencheurs → type de commande
 # Ordre d'importance : vérifier dans cet ordre
 _COMMAND_TRIGGERS = {
-    "create_scene":     ["crée", "cree", "créer", "créé", "génère", "genere", "nouvelle scène", "new scene"],
-    "set_camera":       ["caméra", "camera", "plan", "cadrage", "focale", "angle", "vue"],
-    "add_atmosphere":   ["brouillard", "fog", "pluie", "rain", "brume", "fumée", "poussière", "dust", "atmosphère"],
-    "place_character":  ["place", "positionne", "ajoute personnage", "personnage", "character"],
-    "set_location":     ["fond", "background", "lieu", "décor", "intérieur", "extérieur", "scène"],
-    "set_lighting":     ["lumière", "éclairage", "nuit", "jour", "soleil", "ombre", "néon"],
-    "render":           ["rends", "render", "génère image", "calcule", "lance rendu"],
+    "create_scene": [
+        "crée",
+        "cree",
+        "créer",
+        "créé",
+        "génère",
+        "genere",
+        "nouvelle scène",
+        "new scene",
+    ],
+    "set_camera": ["caméra", "camera", "plan", "cadrage", "focale", "angle", "vue"],
+    "add_atmosphere": [
+        "brouillard",
+        "fog",
+        "pluie",
+        "rain",
+        "brume",
+        "fumée",
+        "poussière",
+        "dust",
+        "atmosphère",
+    ],
+    "place_character": [
+        "place",
+        "positionne",
+        "ajoute personnage",
+        "personnage",
+        "character",
+    ],
+    "set_location": [
+        "fond",
+        "background",
+        "lieu",
+        "décor",
+        "intérieur",
+        "extérieur",
+        "scène",
+    ],
+    "set_lighting": ["lumière", "éclairage", "nuit", "jour", "soleil", "ombre", "néon"],
+    "render": ["rends", "render", "génère image", "calcule", "lance rendu"],
 }
 
 # Mapping des ambiances vers des paramètres techniques
 _ATMOSPHERE_PRESETS = {
     # ── Combinés en PREMIER — priorité max (évite faux positifs sur mots isolés) ──
-    "brouillard volumétrique": AtmosphereConfig(type=AtmosphereType.VOLUMETRIC, density=0.025, color=(0.7, 0.75, 0.9)),
-    "brouillard volumetrique": AtmosphereConfig(type=AtmosphereType.VOLUMETRIC, density=0.025, color=(0.7, 0.75, 0.9)),
-    "fog volumetrique":        AtmosphereConfig(type=AtmosphereType.VOLUMETRIC, density=0.025, color=(0.7, 0.75, 0.9)),
+    "brouillard volumétrique": AtmosphereConfig(
+        type=AtmosphereType.VOLUMETRIC, density=0.025, color=(0.7, 0.75, 0.9)
+    ),
+    "brouillard volumetrique": AtmosphereConfig(
+        type=AtmosphereType.VOLUMETRIC, density=0.025, color=(0.7, 0.75, 0.9)
+    ),
+    "fog volumetrique": AtmosphereConfig(
+        type=AtmosphereType.VOLUMETRIC, density=0.025, color=(0.7, 0.75, 0.9)
+    ),
     # ── Simples ──
-    "pluie":                AtmosphereConfig(type=AtmosphereType.RAIN,       density=0.03),
-    "rain":                 AtmosphereConfig(type=AtmosphereType.RAIN,       density=0.03),
-    "volumétrique":         AtmosphereConfig(type=AtmosphereType.VOLUMETRIC, density=0.02,  color=(0.7, 0.75, 0.9)),
-    "volumetrique":         AtmosphereConfig(type=AtmosphereType.VOLUMETRIC, density=0.02,  color=(0.7, 0.75, 0.9)),
-    "brouillard":           AtmosphereConfig(type=AtmosphereType.FOG,        density=0.04),
-    "fog":                  AtmosphereConfig(type=AtmosphereType.FOG,        density=0.04),
-    "brume":                AtmosphereConfig(type=AtmosphereType.MIST,       density=0.025),
-    "mist":                 AtmosphereConfig(type=AtmosphereType.MIST,       density=0.025),
-    "fumée":                AtmosphereConfig(type=AtmosphereType.SMOKE,      density=0.05,  color=(0.6, 0.6, 0.6)),
-    "fumee":                AtmosphereConfig(type=AtmosphereType.SMOKE,      density=0.05,  color=(0.6, 0.6, 0.6)),
-    "poussière":            AtmosphereConfig(type=AtmosphereType.DUST,       density=0.015, color=(0.9, 0.8, 0.6)),
-    "poussiere":            AtmosphereConfig(type=AtmosphereType.DUST,       density=0.015, color=(0.9, 0.8, 0.6)),
+    "pluie": AtmosphereConfig(type=AtmosphereType.RAIN, density=0.03),
+    "rain": AtmosphereConfig(type=AtmosphereType.RAIN, density=0.03),
+    "volumétrique": AtmosphereConfig(
+        type=AtmosphereType.VOLUMETRIC, density=0.02, color=(0.7, 0.75, 0.9)
+    ),
+    "volumetrique": AtmosphereConfig(
+        type=AtmosphereType.VOLUMETRIC, density=0.02, color=(0.7, 0.75, 0.9)
+    ),
+    "brouillard": AtmosphereConfig(type=AtmosphereType.FOG, density=0.04),
+    "fog": AtmosphereConfig(type=AtmosphereType.FOG, density=0.04),
+    "brume": AtmosphereConfig(type=AtmosphereType.MIST, density=0.025),
+    "mist": AtmosphereConfig(type=AtmosphereType.MIST, density=0.025),
+    "fumée": AtmosphereConfig(
+        type=AtmosphereType.SMOKE, density=0.05, color=(0.6, 0.6, 0.6)
+    ),
+    "fumee": AtmosphereConfig(
+        type=AtmosphereType.SMOKE, density=0.05, color=(0.6, 0.6, 0.6)
+    ),
+    "poussière": AtmosphereConfig(
+        type=AtmosphereType.DUST, density=0.015, color=(0.9, 0.8, 0.6)
+    ),
+    "poussiere": AtmosphereConfig(
+        type=AtmosphereType.DUST, density=0.015, color=(0.9, 0.8, 0.6)
+    ),
 }
 
 # Mots-clés qualifiant l'intensité de l'atmosphère
 _ATMOSPHERE_INTENSITY = {
-    "léger": 0.4, "legere": 0.4, "faible": 0.4, "light": 0.4,
-    "modéré": 0.7, "modere": 0.7, "medium": 0.7,
-    "dense": 1.5, "fort": 1.5, "épais": 1.5, "heavy": 1.5,
-    "très dense": 2.5, "tres dense": 2.5,
+    "léger": 0.4,
+    "legere": 0.4,
+    "faible": 0.4,
+    "light": 0.4,
+    "modéré": 0.7,
+    "modere": 0.7,
+    "medium": 0.7,
+    "dense": 1.5,
+    "fort": 1.5,
+    "épais": 1.5,
+    "heavy": 1.5,
+    "très dense": 2.5,
+    "tres dense": 2.5,
 }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  BRIDGE PRINCIPAL
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class VoiceToSceneBridge:
     """
@@ -168,7 +232,9 @@ class VoiceToSceneBridge:
             SceneJSON modifié
         """
         cmd_lower = command.lower().strip()
-        scene.voice_command = f"{scene.voice_command} | {command}" if scene.voice_command else command
+        scene.voice_command = (
+            f"{scene.voice_command} | {command}" if scene.voice_command else command
+        )
 
         command_type = self._detect_command_type(cmd_lower)
 
@@ -182,7 +248,9 @@ class VoiceToSceneBridge:
                 scene.atmosphere = new_atm
 
         elif command_type == "place_character":
-            new_chars = self._extract_characters_from_text(cmd_lower, command, scene.camera)
+            new_chars = self._extract_characters_from_text(
+                cmd_lower, command, scene.camera
+            )
             for char in new_chars:
                 # Éviter les doublons
                 if not any(c.name == char.name for c in scene.characters):
@@ -221,9 +289,33 @@ class VoiceToSceneBridge:
             return scene
 
         # Déduire le type de scène (intérieur / extérieur)
-        if any(k in cmd for k in ["intérieur", "interieur", "int.", "pièce", "piece", "salle", "bureau", "salon"]):
+        if any(
+            k in cmd
+            for k in [
+                "intérieur",
+                "interieur",
+                "int.",
+                "pièce",
+                "piece",
+                "salle",
+                "bureau",
+                "salon",
+            ]
+        ):
             scene.scene_type = SceneType.INTERIOR
-        elif any(k in cmd for k in ["extérieur", "exterieur", "ext.", "dehors", "rue", "ruelle", "forêt", "plage"]):
+        elif any(
+            k in cmd
+            for k in [
+                "extérieur",
+                "exterieur",
+                "ext.",
+                "dehors",
+                "rue",
+                "ruelle",
+                "forêt",
+                "plage",
+            ]
+        ):
             scene.scene_type = SceneType.EXTERIOR
 
         return scene
@@ -263,10 +355,25 @@ class VoiceToSceneBridge:
         """Détecte et applique la configuration caméra."""
         # Vérifier si la commande contient des éléments de caméra
         has_camera_info = any(
-            k in cmd for k in [
-                "caméra", "camera", "plan", "focale", "mm", "angle",
-                "contre-plongée", "plongée", "wide", "close", "serré",
-                "gros plan", "over", "épaule", "pov", "basse", "haute",
+            k in cmd
+            for k in [
+                "caméra",
+                "camera",
+                "plan",
+                "focale",
+                "mm",
+                "angle",
+                "contre-plongée",
+                "plongée",
+                "wide",
+                "close",
+                "serré",
+                "gros plan",
+                "over",
+                "épaule",
+                "pov",
+                "basse",
+                "haute",
             ]
         )
 
@@ -282,7 +389,9 @@ class VoiceToSceneBridge:
         cmd_original: str,
     ) -> SceneJSON:
         """Détecte et place les personnages dans la scène."""
-        chars = self._extract_characters_from_text(cmd_lower, cmd_original, scene.camera)
+        chars = self._extract_characters_from_text(
+            cmd_lower, cmd_original, scene.camera
+        )
         scene.characters.extend(chars)
         return scene
 
@@ -294,6 +403,7 @@ class VoiceToSceneBridge:
     ) -> List[CharacterRig]:
         """Extrait la liste des personnages depuis le texte."""
         from blender_bridge.rig_generator import RigGenerator
+
         rig_gen = RigGenerator()
         characters = []
 
@@ -307,9 +417,28 @@ class VoiceToSceneBridge:
 
         # Mots communs à exclure (ne sont pas des noms de personnages)
         _STOP_NAMES = {
-            "le", "la", "les", "un", "une", "des", "devant", "derrière", "à",
-            "personnage", "character", "caméra", "camera", "mètre", "metre",
-            "avant", "après", "apres", "gauche", "droite", "centre", "center",
+            "le",
+            "la",
+            "les",
+            "un",
+            "une",
+            "des",
+            "devant",
+            "derrière",
+            "à",
+            "personnage",
+            "character",
+            "caméra",
+            "camera",
+            "mètre",
+            "metre",
+            "avant",
+            "après",
+            "apres",
+            "gauche",
+            "droite",
+            "centre",
+            "center",
         }
 
         found_names = set()
@@ -351,10 +480,16 @@ class VoiceToSceneBridge:
         if any(k in cmd for k in ["nuit", "night", "sombre", "dark", "nocturne"]):
             scene.lighting.world_color = (0.01, 0.01, 0.03)
             scene.lighting.world_strength = 0.2
-        elif any(k in cmd for k in ["aube", "lever", "dawn", "crépuscule", "crepuscule", "dusk"]):
+        elif any(
+            k in cmd
+            for k in ["aube", "lever", "dawn", "crépuscule", "crepuscule", "dusk"]
+        ):
             scene.lighting.world_color = (0.6, 0.4, 0.3)
             scene.lighting.world_strength = 0.8
-        elif any(k in cmd for k in ["midi", "soleil", "sun", "ensoleillé", "ensoleille", "bright"]):
+        elif any(
+            k in cmd
+            for k in ["midi", "soleil", "sun", "ensoleillé", "ensoleille", "bright"]
+        ):
             scene.lighting.world_color = (0.7, 0.8, 1.0)
             scene.lighting.world_strength = 1.5
         elif any(k in cmd for k in ["coucher", "sunset", "orange", "rouge"]):
@@ -385,15 +520,36 @@ class VoiceToSceneBridge:
         """Génère un ID de scène depuis la commande."""
         # Supprimer les mots courants pour ne garder que les mots-clés
         stop_words = {
-            "crée", "cree", "une", "un", "de", "la", "le", "les", "avec", "sous",
-            "dans", "sur", "et", "ou", "pour", "par", "à", "en", "au", "aux",
-            "nouvelle", "scène", "scene", "génère", "genere", "creer"
+            "crée",
+            "cree",
+            "une",
+            "un",
+            "de",
+            "la",
+            "le",
+            "les",
+            "avec",
+            "sous",
+            "dans",
+            "sur",
+            "et",
+            "ou",
+            "pour",
+            "par",
+            "à",
+            "en",
+            "au",
+            "aux",
+            "nouvelle",
+            "scène",
+            "scene",
+            "génère",
+            "genere",
+            "creer",
         }
         words = cmd.split()
         key_words = [
-            w.strip(".,!?;:")
-            for w in words
-            if w not in stop_words and len(w) > 2
+            w.strip(".,!?;:") for w in words if w not in stop_words and len(w) > 2
         ][:4]  # Garder les 4 premiers mots-clés
 
         if key_words:
@@ -410,14 +566,14 @@ class VoiceToSceneBridge:
         tags = []
         tag_keywords = {
             "cyberpunk": ["cyberpunk", "cyber", "néon", "neon", "dystopie"],
-            "nature":    ["forêt", "foret", "nature", "arbre", "bois"],
-            "urban":     ["urbain", "ville", "rue", "ruelle"],
-            "night":     ["nuit", "night", "nocturne", "sombre"],
-            "rain":      ["pluie", "rain", "pluie", "mouillé"],
-            "fog":       ["brume", "brouillard", "fog", "mist"],
-            "interior":  ["intérieur", "bureau", "salle", "pièce"],
-            "exterior":  ["extérieur", "dehors", "rue"],
-            "dramatic":  ["dramatique", "intense", "tension"],
+            "nature": ["forêt", "foret", "nature", "arbre", "bois"],
+            "urban": ["urbain", "ville", "rue", "ruelle"],
+            "night": ["nuit", "night", "nocturne", "sombre"],
+            "rain": ["pluie", "rain", "pluie", "mouillé"],
+            "fog": ["brume", "brouillard", "fog", "mist"],
+            "interior": ["intérieur", "bureau", "salle", "pièce"],
+            "exterior": ["extérieur", "dehors", "rue"],
+            "dramatic": ["dramatique", "intense", "tension"],
             "cinematic": ["cinéma", "cinema", "film", "cinématique"],
         }
 
@@ -431,6 +587,7 @@ class VoiceToSceneBridge:
 # ─────────────────────────────────────────────────────────────────────────────
 #  FONCTION UTILITAIRE RAPIDE
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def voice_to_scene(command: str) -> SceneJSON:
     """

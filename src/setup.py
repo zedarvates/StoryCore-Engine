@@ -12,7 +12,9 @@ from pathlib import Path
 
 # Read long description from README
 readme_file = Path(__file__).parent / "README.md"
-long_description = readme_file.read_text(encoding="utf-8") if readme_file.exists() else ""
+long_description = (
+    readme_file.read_text(encoding="utf-8") if readme_file.exists() else ""
+)
 
 setup(
     name="storycore-engine",
@@ -22,35 +24,27 @@ setup(
     long_description_content_type="text/markdown",
     author="StoryCore Team",
     url="https://github.com/storycore/storycore-engine",
-    
     # Package discovery - includes all packages under src/
     packages=find_packages(where="."),
     package_dir={"": "."},
-    
     # Include all Python packages in src/
     # This ensures cli/, cli/handlers/, cli/utils/, engines/, etc. are all included
     include_package_data=True,
-    
     python_requires=">=3.8",
-    
     # Core dependencies
     install_requires=[
         # Image processing
         "Pillow>=10.4.0",
-        
         # ComfyUI integration
         "aiohttp>=3.10.0",
-        
         # Real-time preview
         "websockets>=13.0.0",
-        
         # Security
         "cryptography>=43.0.0",
         "certifi>=2024.8.30",
         # Explicitly require ecdsa>=0.18.0 to fix Minerva timing attack vulnerability
         # (CVE-2024-23342) - transitive dependency from python-jose
         "ecdsa>=0.18.0",
-        
         # API server (optional)
         "fastapi>=0.104.0",
         "uvicorn[standard]>=0.24.0",
@@ -66,7 +60,6 @@ setup(
         "httpx>=0.25.0",
         "python-dotenv>=1.0.0",
     ],
-    
     # Development dependencies
     extras_require={
         "dev": [
@@ -83,7 +76,6 @@ setup(
             "pytest-cov>=4.1.0",
         ],
     },
-    
     # Single entry point for CLI
     # This maintains backward compatibility while using modular architecture
     entry_points={
@@ -91,7 +83,6 @@ setup(
             "storycore=src.storycore_cli:main",
         ],
     },
-    
     # Package metadata
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -107,9 +98,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
     ],
-    
     keywords="ai video generation cli modular storycore",
-    
     project_urls={
         "Documentation": "https://github.com/storycore/storycore-engine/docs",
         "Source": "https://github.com/storycore/storycore-engine",

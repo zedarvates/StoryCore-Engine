@@ -38,7 +38,7 @@ import type { ImagePreset } from '../../services/PresetManagementService';
 import {
   categorizeError,
   preserveStateOnError,
-  restorePreservedState,
+  _restorePreservedState,
   suggestParameterAdjustments,
   type CategorizedError,
   type PreservedState,
@@ -135,7 +135,7 @@ export const ImageGenerationDialog: React.FC<ImageGenerationDialogProps> = ({
   const [params, setParams] = useState<ImageGenerationParams>(DEFAULT_PARAMS);
   const [isGenerating, setIsGenerating] = useState(false);
   const [categorizedError, setCategorizedError] = useState<CategorizedError | null>(null);
-  const [preservedState, setPreservedState] = useState<PreservedState | null>(null);
+  const [_preservedState, setPreservedState] = useState<PreservedState | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
   // Pre-fill prompt from previous step

@@ -13,6 +13,8 @@
  *
  * Requirements: Phase 3 of R&D plan
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { Layer, LayerData, TextLayerData, MediaLayerData, RichTextStyle, Transform } from '../../sequence-editor/types';
 
@@ -397,7 +399,7 @@ export class CompositionTemplateService {
 
             // Apply text overrides if provided
             if (tl.isEditable && tl.type === 'text' && overrides?.[tl.label]) {
-                (data as any).content = overrides[tl.label];
+                (data as LegacyAny).content = overrides[tl.label];
             }
 
             return {

@@ -311,7 +311,7 @@ describe('CharacterWizard - Comprehensive Tests', () => {
     });
 
     it('validates required relationship fields', async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
 
       // Try to add without filling required fields
       const addButton = screen.getByRole('button', { name: /add relationship/i });

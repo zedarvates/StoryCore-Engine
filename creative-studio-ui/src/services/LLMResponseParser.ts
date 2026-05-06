@@ -429,7 +429,7 @@ class LLMResponseParserImpl {
         return null;
     }
 
-    private normalizeData(data: Record<string, unknown>, type: ContentType): Record<string, unknown> {
+    private normalizeData(data: Record<string, unknown>, _type: ContentType): Record<string, unknown> {
         const normalized: Record<string, unknown> = {};
 
         // Copy all known fields

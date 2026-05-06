@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Character Persistence Integration Tests
 // ============================================================================
@@ -41,7 +42,7 @@ describe('Character Persistence Integration', () => {
     const onComplete = vi.fn();
 
     // Mock successful API response
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch as LegacyAny).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         character_id: 'test-uuid',
@@ -161,7 +162,7 @@ describe('Character Persistence Integration', () => {
       relationships: [],
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch as LegacyAny).mockResolvedValueOnce({
       ok: true,
       json: async () => savedCharacter,
     });
@@ -207,7 +208,7 @@ describe('Character Persistence Integration', () => {
     const onComplete = vi.fn();
 
     // Mock API failure
-    (global.fetch as any).mockRejectedValueOnce(new Error('API Error'));
+    (global.fetch as LegacyAny).mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <CharacterWizard
@@ -259,7 +260,7 @@ describe('Character Persistence Integration', () => {
 
     window.addEventListener('character-created', eventListener);
 
-    (global.fetch as any).mockResolvedValueOnce({
+    (global.fetch as LegacyAny).mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         character_id: 'test-uuid',
@@ -309,7 +310,7 @@ describe('Character Persistence Integration', () => {
     const user = userEvent.setup();
     const onComplete = vi.fn();
 
-    (global.fetch as any).mockImplementation(async (url: string, options: any) => {
+    (global.fetch as LegacyAny).mockImplementation(async (url: string, options: LegacyAny) => {
       const body = JSON.parse(options.body);
       return {
         ok: true,

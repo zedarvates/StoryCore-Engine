@@ -1,10 +1,11 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { _Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { _Badge } from _'@/comp_onent_s/ui/badge';
 import { Sparkles, X, Brain, Cpu, Database, Zap, Activity, Layers, Settings, Microscope } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
@@ -32,7 +33,7 @@ interface Step3PersonalityProps {
   storyContext?: StoryContext;
 }
 
-export function Step3Personality({ storyContext }: Step3PersonalityProps = {}) {
+export function Step3Personality({ s_toryContext }: Step3PersonalityProps = {}) {
   const { formData, updateFormData, validationErrors } = useWizard<Character>();
   const [newTrait, setNewTrait] = useState('');
   const [newValue, setNewValue] = useState('');
@@ -399,7 +400,7 @@ Format as JSON with keys: traits (array), values (array), fears (array), desires
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <FormField label="Emotional Baseline" name="temperament">
             <Select
-              value={TEMPERAMENTS.includes(formData.personality?.temperament as any) ? formData.personality?.temperament : (formData.personality?.temperament ? 'Other' : '')}
+              value={TEMPERAMENTS.includes(formData.personality?.temperament as LegacyAny) ? formData.personality?.temperament : (formData.personality?.temperament ? 'Other' : '')}
               onValueChange={(val) => updatePersonality({ temperament: val === 'Other' ? '' : val })}
             >
               <SelectTrigger className="bg-primary/5 border-primary/20">
@@ -415,7 +416,7 @@ Format as JSON with keys: traits (array), values (array), fears (array), desires
 
           <FormField label="Interface Protocol" name="communication_style">
             <Select
-              value={COMMUNICATION_STYLES.includes(formData.personality?.communication_style as any) ? formData.personality?.communication_style : (formData.personality?.communication_style ? 'Other' : '')}
+              value={COMMUNICATION_STYLES.includes(formData.personality?.communication_style as LegacyAny) ? formData.personality?.communication_style : (formData.personality?.communication_style ? 'Other' : '')}
               onValueChange={(val) => updatePersonality({ communication_style: val === 'Other' ? '' : val })}
             >
               <SelectTrigger className="bg-primary/5 border-primary/20">

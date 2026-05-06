@@ -82,7 +82,7 @@ export function validateContrast(
   level: 'AA' | 'AAA' | 'FAIL';
   recommendation?: string;
 } {
-  const { isLargeText = false, level = 'AA' } = options;
+  const { isLargeText = false, _level = 'AA' } = options;
   const ratio = getContrastRatio(foreground, background);
 
   const meetsAA = meetsWCAG_AA(ratio, isLargeText);

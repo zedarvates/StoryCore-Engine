@@ -3,6 +3,8 @@
  * 
  * Handles exporting and importing configuration files
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { ProjectConfiguration, GlobalConfiguration } from '../types/configuration';
 import { validateProjectConfiguration } from './configurationValidator';
@@ -274,7 +276,7 @@ export function mergeConfigurations<T extends Record<string, unknown>>(
   
   for (const key in imported) {
     if (!(key in base)) {
-      merged[key] = imported[key] as any;
+      merged[key] = imported[key] as LegacyAny;
     }
   }
 

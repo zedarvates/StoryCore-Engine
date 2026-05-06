@@ -6,6 +6,8 @@
  * - Form validation
  * - State management
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -563,11 +565,11 @@ describe('FeedbackPanel', () => {
       // Mock FileReader for screenshot encoding
       const mockFileReader = {
         readAsDataURL: vi.fn(),
-        onload: null as any,
-        onerror: null as any,
+        onload: null as LegacyAny,
+        onerror: null as LegacyAny,
         result: 'data:image/png;base64,mockbase64data',
       };
-      global.FileReader = vi.fn(() => mockFileReader) as any;
+      global.FileReader = vi.fn(() => mockFileReader) as LegacyAny;
 
       render(<FeedbackPanel isOpen={true} onClose={mockOnClose} />);
       
@@ -593,7 +595,7 @@ describe('FeedbackPanel', () => {
       // Trigger FileReader onload
       setTimeout(() => {
         if (mockFileReader.onload) {
-          mockFileReader.onload({ target: mockFileReader } as any);
+          mockFileReader.onload({ target: mockFileReader } as LegacyAny);
         }
       }, 0);
 

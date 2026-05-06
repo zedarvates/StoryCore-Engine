@@ -6,6 +6,8 @@
  * 
  * Exigences: 12.1, 12.2, 12.3, 12.4, 12.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -86,9 +88,9 @@ const getOrientation = (width: number, height: number): 'portrait' | 'landscape'
 const checkFullscreen = (): boolean => {
   return !!(
     document.fullscreenElement ||
-    (document as any).webkitFullscreenElement ||
-    (document as any).mozFullScreenElement ||
-    (document as any).msFullscreenElement
+    (document as LegacyAny).webkitFullscreenElement ||
+    (document as LegacyAny).mozFullScreenElement ||
+    (document as LegacyAny).msFullscreenElement
   );
 };
 
@@ -194,9 +196,28 @@ export const useResponsiveGridWithBreakpoints = (
   customBreakpoints: ResponsiveBreakpoint[]
 ): ResponsiveGridState => {
   const [state, setState] = useState<ResponsiveGridState>(() => {
+    if (typeof window === 'undefined') {
+      return {
+        breakpoint: customBreakpoints[0],
+        columns: customBreakpoints[0].columns,
+        useListMode: customBreakpoints[0].useListMode,
+        width: 1920,
+        height: 1080,
+        orientation: 'landscape',
+        isFullscreen: false
+      };
+    }
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const breakpoint = getBreakpoint(width);
+    
+    // Find matching custom breakpoint
+    let breakpoint = customBreakpoints.find(bp => 
+      width >= bp.minWidth && (!bp.maxWidth || width <= bp.maxWidth)
+    );
+    
+    if (!breakpoint) {
+      breakpoint = customBreakpoints[customBreakpoints.length - 1];
+    }
     
     return {
       breakpoint,
@@ -209,7 +230,10 @@ export const useResponsiveGridWithBreakpoints = (
     };
   });
 
+  const breakpointsString = JSON.stringify(customBreakpoints);
+
   const handleResize = useCallback(() => {
+    if (typeof window === 'undefined') return;
     const width = window.innerWidth;
     const height = window.innerHeight;
     
@@ -234,7 +258,8 @@ export const useResponsiveGridWithBreakpoints = (
       orientation,
       isFullscreen
     });
-  }, [customBreakpoints]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [breakpointsString]);
 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { AudioRecorder } from '../AudioRecorder';
 import { AudioFileManager } from '../AudioFileManager';
 
@@ -6,7 +7,7 @@ describe('AudioRecorder', () => {
   let audioFileManager: AudioFileManager;
 
   beforeEach(() => {
-    audioFileManager = new AudioFileManager(null as any);
+    audioFileManager = new AudioFileManager(null as LegacyAny);
     audioRecorder = new AudioRecorder(audioFileManager);
   });
 
@@ -30,23 +31,23 @@ describe('AudioRecorder', () => {
     };
     
     global.navigator.mediaDevices = {
-      getUserMedia: jest.fn().mockResolvedValue(mockStream as any)
-    } as any;
+      getUserMedia: jest.fn().mockResolvedValue(mockStream as LegacyAny)
+    } as LegacyAny;
 
     // Mock MediaRecorder
     const mockMediaRecorder = {
       start: jest.fn(),
       stop: jest.fn(),
-      ondataavailable: null as any,
-      onstop: null as any
+      ondataavailable: null as LegacyAny,
+      onstop: null as LegacyAny
     };
 
     global.MediaRecorder = jest.fn().mockImplementation(() => {
-      const instance = mockMediaRecorder as any;
+      const instance = mockMediaRecorder as LegacyAny;
       instance.ondataavailable = null;
       instance.onstop = null;
       return instance;
-    }) as any;
+    }) as LegacyAny;
 
     // Mock saveAudioFile
     jest.spyOn(audioFileManager, 'saveAudioFile').mockResolvedValue('mock-url');

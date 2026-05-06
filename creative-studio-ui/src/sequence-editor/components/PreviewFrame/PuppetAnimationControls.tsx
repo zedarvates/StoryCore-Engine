@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import { 
   Plus, Trash2, Box, ChevronDown, ChevronUp, 
@@ -77,7 +78,7 @@ export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = (
   }, [currentFrame, selectedPose, onKeyframeAdd]);
 
   const handleApplyCinematicRig = useCallback((shotId: string) => {
-    const rigConfig = neuralPuppetService.getRigForCinematography({ framing: shotId as any });
+    const rigConfig = neuralPuppetService.getRigForCinematography({ framing: shotId as LegacyAny });
     
     // Map rigConfig.joints (array) to the keyframe's joints (Record)
     const jointsRecord: Record<string, { x: number; y: number; z: number }> = {};
@@ -167,9 +168,9 @@ export const PuppetAnimationControls: React.FC<PuppetAnimationControlsProps> = (
                 key={id}
                 className={`pose-btn ${selectedPose === id ? 'selected' : ''}`}
                 onClick={() => setSelectedPose(id)}
-                title={(data as any).description}
+                title={(data as LegacyAny).description}
               >
-                <span className="icon-wrapper">{(data as any).icon}</span>
+                <span className="icon-wrapper">{(data as LegacyAny).icon}</span>
                 <span className="label-text">{id}</span>
               </button>
             ))}

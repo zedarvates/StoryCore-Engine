@@ -16,7 +16,7 @@ import type {
   PacingEnergy,
   EnhancedShot,
   CompleteSequence,
-  PacingConfig 
+  _PacingConfig 
 } from '@/types/cinematicTypes';
 import { PACING_CONFIGS } from '@/types/cinematicTypes';
 import './PacingAnalyzer.css';
@@ -42,7 +42,7 @@ interface PacingSegment {
 type ViewMode = 'timeline' | 'waveform' | 'bars' | 'heatmap';
 
 export function PacingAnalyzer({
-  sequence,
+  _sequence,
   shots,
   onUpdatePacing,
   className

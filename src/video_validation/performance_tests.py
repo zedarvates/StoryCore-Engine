@@ -5,9 +5,9 @@ Validates performance targets are met.
 
 import time
 import logging
-import gc
 
 logger = logging.getLogger(__name__)
+
 
 class PerformanceTests:
     """Handles performance validation"""
@@ -21,37 +21,67 @@ class PerformanceTests:
 
         try:
             # Performance target: < 30 seconds per second of video
-            target_fps_threshold = 1.0 / 30.0  # 1 second of video in 30 seconds = ~0.033 processing FPS
+            target_fps_threshold = (
+                1.0 / 30.0
+            )  # 1 second of video in 30 seconds = ~0.033 processing FPS
 
             # Test performance with different configurations
-            performance_results = PerformanceTests._run_performance_tests(temp_project_dir)
+            performance_results = PerformanceTests._run_performance_tests(
+                temp_project_dir
+            )
 
             # Validate performance targets
             successful_configs = []
             for config_name, result_data in performance_results.items():
-                if result_data.get("success", False) and "processing_fps" in result_data:
+                if (
+                    result_data.get("success", False)
+                    and "processing_fps" in result_data
+                ):
                     processing_fps = result_data["processing_fps"]
 
                     if processing_fps >= target_fps_threshold:
-                        logger.info(f"    ✅ {config_name}: {processing_fps:.3f} FPS (target: {target_fps_threshold:.3f})")
-                        result.add_performance_metric(f"{config_name}_fps", processing_fps, "fps")
+                        logger.info(
+                            f"    ✅ {config_name}: {processing_fps:.3f} FPS (target: {target_fps_threshold:.3f})"
+                        )
+                        result.add_performance_metric(
+                            f"{config_name}_fps", processing_fps, "fps"
+                        )
                         successful_configs.append(config_name)
                     else:
-                        logger.warning(f"    ⚠️  {config_name}: {processing_fps:.3f} FPS (below target)")
-                        result.add_warning(f"{config_name} below performance target", "Performance Validation")
+                        logger.warning(
+                            f"    ⚠️  {config_name}: {processing_fps:.3f} FPS (below target)"
+                        )
+                        result.add_warning(
+                            f"{config_name} below performance target",
+                            "Performance Validation",
+                        )
 
                     # Add detailed metrics
-                    result.add_performance_metric(f"{config_name}_processing_time", result_data["processing_time"], "seconds")
-                    result.add_performance_metric(f"{config_name}_memory_usage", result_data["memory_usage_mb"], "MB")
+                    result.add_performance_metric(
+                        f"{config_name}_processing_time",
+                        result_data["processing_time"],
+                        "seconds",
+                    )
+                    result.add_performance_metric(
+                        f"{config_name}_memory_usage",
+                        result_data["memory_usage_mb"],
+                        "MB",
+                    )
                 else:
                     error_msg = result_data.get("error", "Unknown error")
                     logger.error(f"    ❌ {config_name}: {error_msg}")
-                    result.add_error(f"{config_name} performance test failed: {error_msg}")
+                    result.add_error(
+                        f"{config_name} performance test failed: {error_msg}"
+                    )
 
             # Overall performance validation
             if successful_configs:
-                successful_results = [performance_results[name] for name in successful_configs]
-                best_fps = max(result["processing_fps"] for result in successful_results)
+                successful_results = [
+                    performance_results[name] for name in successful_configs
+                ]
+                best_fps = max(
+                    result["processing_fps"] for result in successful_results
+                )
                 performance_passed = best_fps >= target_fps_threshold
             else:
                 best_fps = 0.0
@@ -85,22 +115,22 @@ class PerformanceTests:
                 resolution=(1920, 1080),
                 quality="medium",
                 gpu_acceleration=True,
-                parallel_processing=True
+                parallel_processing=True,
             ),
             "cpu_optimized": VideoConfig(
                 frame_rate=24,
                 resolution=(1280, 720),
                 quality="medium",
                 gpu_acceleration=False,
-                parallel_processing=True
+                parallel_processing=True,
             ),
             "balanced": VideoConfig(
                 frame_rate=24,
                 resolution=(1920, 1080),
                 quality="medium",
                 gpu_acceleration=True,
-                parallel_processing=False
-            )
+                parallel_processing=False,
+            ),
         }
 
         results = {}
@@ -127,7 +157,9 @@ class PerformanceTests:
                 if result.success:
                     processing_time = end_time - start_time
                     video_duration = result.duration  # seconds of video
-                    processing_fps = video_duration / processing_time if processing_time > 0 else 0
+                    processing_fps = (
+                        video_duration / processing_time if processing_time > 0 else 0
+                    )
 
                     results[config_name] = {
                         "success": True,
@@ -135,14 +167,16 @@ class PerformanceTests:
                         "video_duration": video_duration,
                         "processing_fps": processing_fps,
                         "frame_count": result.frame_count,
-                        "memory_usage_mb": memory_after - memory_before
+                        "memory_usage_mb": memory_after - memory_before,
                     }
 
-                    logger.info(f"    ✅ {config_name}: {processing_fps:.3f} FPS, {processing_time:.1f}s")
+                    logger.info(
+                        f"    ✅ {config_name}: {processing_fps:.3f} FPS, {processing_time:.1f}s"
+                    )
                 else:
                     results[config_name] = {
                         "success": False,
-                        "error": result.error_message
+                        "error": result.error_message,
                     }
                     logger.error(f"    ❌ {config_name}: {result.error_message}")
 
@@ -150,10 +184,7 @@ class PerformanceTests:
                 gc.collect()
 
             except Exception as e:
-                results[config_name] = {
-                    "success": False,
-                    "error": str(e)
-                }
+                results[config_name] = {"success": False, "error": str(e)}
                 logger.error(f"    ❌ {config_name}: {e}")
 
         return results

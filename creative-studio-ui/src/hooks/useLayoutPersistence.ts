@@ -76,7 +76,7 @@ export function useLayoutPersistence() {
   const hasSavedLayout = (): boolean => {
     try {
       return localStorage.getItem(LAYOUT_STORAGE_KEY) !== null;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   };

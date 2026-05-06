@@ -4,10 +4,8 @@ Coordinates the full page generation workflow:
 fetch narrative state → generate script → generate images → export.
 """
 
-import asyncio
 import json
 import logging
-import os
 from copy import deepcopy
 from dataclasses import asdict
 from datetime import datetime
@@ -16,9 +14,16 @@ from typing import List, Optional, Dict, Any
 from uuid import uuid4
 
 from .types import (
-    ComicStyle, ComicPage, ComicChapter, ComicState, NarrativeCheckpoint,
-    PageGenerationRequest, PageGenerationResult, ComicExportResult,
-    BubbleShape, PanelScript, DialogueLine, NarrativeBeat, MotionEffect,
+    ComicStyle,
+    ComicPage,
+    ComicState,
+    PageGenerationRequest,
+    PageGenerationResult,
+    ComicExportResult,
+    BubbleShape,
+    PanelScript,
+    DialogueLine,
+    NarrativeBeat,
 )
 from .narrative_adapter import NarrativeAdapter
 from .panel_generator import PanelGenerator
@@ -30,17 +35,18 @@ logger = logging.getLogger(__name__)
 # Comic Pipeline
 # ============================================================================
 
+
 class ComicPipeline:
     """
     Master orchestrator for the comic generation pipeline.
-    
+
     Workflow:
     1. Load project narrative state
     2. Call NarrativeAdapter to generate page script
     3. Call PanelGenerator to produce images
     4. Save page and update checkpoint
     5. Optionally export to PDF/JSON
-    
+
     Features:
     - Error handling and rollback support
     - Pre-generation preview (script without images)
@@ -83,8 +89,10 @@ class ComicPipeline:
             checkpoint = None
             if checkpoint_data:
                 from .types import CharacterState, NarrativeCheckpoint
+
                 char_states = [
-                    CharacterState(**cs) for cs in checkpoint_data.get("active_characters", [])
+                    CharacterState(**cs)
+                    for cs in checkpoint_data.get("active_characters", [])
                 ]
                 checkpoint = NarrativeCheckpoint(
                     checkpoint_id=checkpoint_data["checkpoint_id"],
@@ -98,7 +106,7 @@ class ComicPipeline:
                     story_summary=checkpoint_data.get("story_summary", ""),
                     created_at=checkpoint_data.get("created_at", ""),
                 )
-            
+
             return ComicState(
                 project_id=data["project_id"],
                 last_page_generated=data.get("last_page_generated"),
@@ -136,7 +144,9 @@ class ComicPipeline:
                 return obj
 
             data = to_dict(state)
-            path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+            path.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
             return True
         except Exception as e:
             logger.error(f"[ComicPipeline] Failed to save state: {e}")
@@ -180,7 +190,7 @@ class ComicPipeline:
     ) -> PageGenerationResult:
         """
         Generate the next comic page for a project.
-        
+
         Args:
             project_id: StoryCore project ID
             story_context: Current story text / summary
@@ -213,7 +223,8 @@ class ComicPipeline:
             story_context=story_context,
             previous_page_summary=(
                 state.narrative_checkpoint.last_dramatic_event
-                if state.narrative_checkpoint else None
+                if state.narrative_checkpoint
+                else None
             ),
             narrative_checkpoint=state.narrative_checkpoint,
             characters=characters,
@@ -232,7 +243,9 @@ class ComicPipeline:
             result = await self._adapter.generate_page_script(request)
 
             if not result.success or not result.page:
-                logger.error(f"[ComicPipeline] Script generation failed: {result.error}")
+                logger.error(
+                    f"[ComicPipeline] Script generation failed: {result.error}"
+                )
                 return result
 
             page = result.page
@@ -244,7 +257,12 @@ class ComicPipeline:
 
             # Generate images if requested
             if generate_images:
-                page_dir = self._output_dir / project_id / chapter_id / f"page_{page.page_number:03d}"
+                page_dir = (
+                    self._output_dir
+                    / project_id
+                    / chapter_id
+                    / f"page_{page.page_number:03d}"
+                )
                 page_dir.mkdir(parents=True, exist_ok=True)
 
                 for panel in page.panels:
@@ -257,11 +275,22 @@ class ComicPipeline:
                         panel.generated_image_path = img_path
             else:
                 # Always generate placeholder SVGs
-                page_dir = self._output_dir / project_id / chapter_id / f"page_{page.page_number:03d}"
+                page_dir = (
+                    self._output_dir
+                    / project_id
+                    / chapter_id
+                    / f"page_{page.page_number:03d}"
+                )
                 page_dir.mkdir(parents=True, exist_ok=True)
                 for panel in page.panels:
-                    svg = self._generator._create_placeholder_svg(panel, effective_style)
-                    svg_path = page_dir / "panels" / f"panel_{panel.panel_index:02d}_{panel.id}.svg"
+                    svg = self._generator._create_placeholder_svg(
+                        panel, effective_style
+                    )
+                    svg_path = (
+                        page_dir
+                        / "panels"
+                        / f"panel_{panel.panel_index:02d}_{panel.id}.svg"
+                    )
                     svg_path.parent.mkdir(parents=True, exist_ok=True)
                     svg_path.write_text(svg, encoding="utf-8")
                     panel.generated_image_path = str(svg_path)
@@ -280,7 +309,9 @@ class ComicPipeline:
                 # Update three-level memory
                 state.local_memory = [page.narrative_summary]
                 state.arc_memory = (state.arc_memory + [page.narrative_summary])[-20:]
-                state.global_memory = (state.global_memory + [page.narrative_summary])[-100:]
+                state.global_memory = (state.global_memory + [page.narrative_summary])[
+                    -100:
+                ]
 
             self.save_state(state)
 
@@ -292,7 +323,9 @@ class ComicPipeline:
 
         except Exception as e:
             # Rollback state
-            logger.error(f"[ComicPipeline] Pipeline error, rolling back: {e}", exc_info=True)
+            logger.error(
+                f"[ComicPipeline] Pipeline error, rolling back: {e}", exc_info=True
+            )
             self.save_state(rollback_state)
             return PageGenerationResult(
                 success=False,
@@ -327,7 +360,12 @@ class ComicPipeline:
         state = self.load_state(project_id)
         effective_style = state.style_preset if state else ComicStyle.MANGA
 
-        page_dir = self._output_dir / project_id / page.chapter_id / f"page_{page.page_number:03d}"
+        page_dir = (
+            self._output_dir
+            / project_id
+            / page.chapter_id
+            / f"page_{page.page_number:03d}"
+        )
 
         if generate_image:
             img_path = await self._generator.generate_panel_image(
@@ -337,7 +375,11 @@ class ComicPipeline:
             )
         else:
             svg = self._generator._create_placeholder_svg(panel, effective_style)
-            svg_path = page_dir / "panels" / f"panel_{panel.panel_index:02d}_{panel.id}_regen.svg"
+            svg_path = (
+                page_dir
+                / "panels"
+                / f"panel_{panel.panel_index:02d}_{panel.id}_regen.svg"
+            )
             svg_path.parent.mkdir(parents=True, exist_ok=True)
             svg_path.write_text(svg, encoding="utf-8")
             img_path = str(svg_path)
@@ -354,7 +396,9 @@ class ComicPipeline:
 
     def _save_page(self, project_id: str, chapter_id: str, page: ComicPage) -> None:
         """Save a page's script and metadata to JSON."""
-        page_dir = self._output_dir / project_id / chapter_id / f"page_{page.page_number:03d}"
+        page_dir = (
+            self._output_dir / project_id / chapter_id / f"page_{page.page_number:03d}"
+        )
         page_dir.mkdir(parents=True, exist_ok=True)
 
         def to_dict(obj):
@@ -374,11 +418,16 @@ class ComicPipeline:
             encoding="utf-8",
         )
 
-    def load_page(self, project_id: str, chapter_id: str, page_number: int) -> Optional[ComicPage]:
+    def load_page(
+        self, project_id: str, chapter_id: str, page_number: int
+    ) -> Optional[ComicPage]:
         """Load a saved page from disk."""
         page_path = (
-            self._output_dir / project_id / chapter_id
-            / f"page_{page_number:03d}" / "page.json"
+            self._output_dir
+            / project_id
+            / chapter_id
+            / f"page_{page_number:03d}"
+            / "page.json"
         )
         if not page_path.exists():
             return None
@@ -404,23 +453,25 @@ class ComicPipeline:
                 )
                 for d in p_data.get("dialogue", [])
             ]
-            panels.append(PanelScript(
-                id=p_data["id"],
-                page_id=p_data["page_id"],
-                panel_index=p_data["panel_index"],
-                characters=p_data.get("characters", []),
-                character_names=p_data.get("character_names", []),
-                location=p_data["location"],
-                location_id=p_data.get("location_id"),
-                dialogue=dialogue,
-                visual_cue=p_data["visual_cue"],
-                image_prompt=p_data["image_prompt"],
-                negative_prompt=p_data.get("negative_prompt", ""),
-                seed=p_data.get("seed", 42),
-                narrative_beat=NarrativeBeat(p_data.get("narrative_beat", "setup")),
-                generated_image_path=p_data.get("generated_image_path"),
-                panel_size=p_data.get("panel_size", "normal"),
-            ))
+            panels.append(
+                PanelScript(
+                    id=p_data["id"],
+                    page_id=p_data["page_id"],
+                    panel_index=p_data["panel_index"],
+                    characters=p_data.get("characters", []),
+                    character_names=p_data.get("character_names", []),
+                    location=p_data["location"],
+                    location_id=p_data.get("location_id"),
+                    dialogue=dialogue,
+                    visual_cue=p_data["visual_cue"],
+                    image_prompt=p_data["image_prompt"],
+                    negative_prompt=p_data.get("negative_prompt", ""),
+                    seed=p_data.get("seed", 42),
+                    narrative_beat=NarrativeBeat(p_data.get("narrative_beat", "setup")),
+                    generated_image_path=p_data.get("generated_image_path"),
+                    panel_size=p_data.get("panel_size", "normal"),
+                )
+            )
 
         return ComicPage(
             id=data["id"],
@@ -454,14 +505,16 @@ class ComicPipeline:
             if page_file.exists():
                 try:
                     data = json.loads(page_file.read_text(encoding="utf-8"))
-                    pages.append({
-                        "id": data.get("id"),
-                        "page_number": data.get("page_number"),
-                        "narrative_summary": data.get("narrative_summary"),
-                        "panels_count": len(data.get("panels", [])),
-                        "style": data.get("style"),
-                        "arc_position": data.get("arc_position"),
-                    })
+                    pages.append(
+                        {
+                            "id": data.get("id"),
+                            "page_number": data.get("page_number"),
+                            "narrative_summary": data.get("narrative_summary"),
+                            "panels_count": len(data.get("panels", [])),
+                            "style": data.get("style"),
+                            "arc_position": data.get("arc_position"),
+                        }
+                    )
                 except Exception:
                     pass
         return pages
@@ -477,8 +530,11 @@ class ComicPipeline:
         state = self.load_state(project_id)
         if not state:
             return ComicExportResult(
-                success=False, format="json", output_path=None,
-                pages_exported=0, error="No comic state found"
+                success=False,
+                format="json",
+                output_path=None,
+                pages_exported=0,
+                error="No comic state found",
             )
 
         export_data = {
@@ -490,6 +546,7 @@ class ComicPipeline:
         }
 
         total_pages = 0
+
         def to_dict(obj):
             if hasattr(obj, "__dataclass_fields__"):
                 return {k: to_dict(v) for k, v in asdict(obj).items()}
@@ -504,13 +561,18 @@ class ComicPipeline:
         for chapter_id in state.chapters:
             pages = self.get_chapter_pages(project_id, chapter_id)
             total_pages += len(pages)
-            export_data["chapters"].append({
-                "id": chapter_id,
-                "pages": pages,
-            })
+            export_data["chapters"].append(
+                {
+                    "id": chapter_id,
+                    "pages": pages,
+                }
+            )
 
         out_path = output_path or str(
-            self._output_dir / project_id / "export" / f"comic_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            self._output_dir
+            / project_id
+            / "export"
+            / f"comic_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
         Path(out_path).parent.mkdir(parents=True, exist_ok=True)
         Path(out_path).write_text(
@@ -518,8 +580,10 @@ class ComicPipeline:
         )
 
         return ComicExportResult(
-            success=True, format="json", output_path=out_path,
-            pages_exported=total_pages
+            success=True,
+            format="json",
+            output_path=out_path,
+            pages_exported=total_pages,
         )
 
     async def export_to_pdf(
@@ -530,15 +594,21 @@ class ComicPipeline:
             from fpdf import FPDF
         except ImportError:
             return ComicExportResult(
-                success=False, format="pdf", output_path=None,
-                pages_exported=0, error="fpdf2 not installed. Run: pip install fpdf2"
+                success=False,
+                format="pdf",
+                output_path=None,
+                pages_exported=0,
+                error="fpdf2 not installed. Run: pip install fpdf2",
             )
 
         state = self.load_state(project_id)
         if not state:
             return ComicExportResult(
-                success=False, format="pdf", output_path=None,
-                pages_exported=0, error="No comic state found"
+                success=False,
+                format="pdf",
+                output_path=None,
+                pages_exported=0,
+                error="No comic state found",
             )
 
         pdf = FPDF(orientation="P", unit="mm", format="A4")
@@ -548,7 +618,9 @@ class ComicPipeline:
         for chapter_id in state.chapters:
             pages_meta = self.get_chapter_pages(project_id, chapter_id)
             for page_meta in pages_meta:
-                loaded = self.load_page(project_id, chapter_id, page_meta["page_number"])
+                loaded = self.load_page(
+                    project_id, chapter_id, page_meta["page_number"]
+                )
                 if not loaded:
                     continue
 
@@ -557,13 +629,23 @@ class ComicPipeline:
 
                 # Title
                 pdf.set_font("Helvetica", "B", 14)
-                pdf.cell(0, 10, f"Page {loaded.page_number} - {loaded.emotional_tone.capitalize()}", ln=True)
+                pdf.cell(
+                    0,
+                    10,
+                    f"Page {loaded.page_number} - {loaded.emotional_tone.capitalize()}",
+                    ln=True,
+                )
 
                 # Panels
                 pdf.set_font("Helvetica", size=9)
                 for i, panel in enumerate(loaded.panels):
                     pdf.set_font("Helvetica", "B", 10)
-                    pdf.cell(0, 6, f"Panel {i+1}: {panel.narrative_beat.value.upper()}", ln=True)
+                    pdf.cell(
+                        0,
+                        6,
+                        f"Panel {i + 1}: {panel.narrative_beat.value.upper()}",
+                        ln=True,
+                    )
                     pdf.set_font("Helvetica", size=9)
                     pdf.multi_cell(0, 5, f"Visual: {panel.visual_cue[:120]}")
                     for line in panel.dialogue:
@@ -574,7 +656,10 @@ class ComicPipeline:
                 pdf.multi_cell(0, 5, f"Summary: {loaded.narrative_summary}")
 
         out_path = output_path or str(
-            self._output_dir / project_id / "export" / f"comic_{datetime.now().strftime('%Y%m%d')}.pdf"
+            self._output_dir
+            / project_id
+            / "export"
+            / f"comic_{datetime.now().strftime('%Y%m%d')}.pdf"
         )
         Path(out_path).parent.mkdir(parents=True, exist_ok=True)
         pdf.output(out_path)

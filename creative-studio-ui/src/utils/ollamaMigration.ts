@@ -6,7 +6,7 @@
  */
 
 import type { ChatboxLLMConfig } from './llmConfigStorage';
-import { saveConfiguration, saveLanguagePreference, STORAGE_KEYS } from './llmConfigStorage';
+import { saveConfiguration, _saveLanguagePreference, STORAGE_KEYS } from './llmConfigStorage';
 
 // ============================================================================
 // Types
@@ -65,7 +65,7 @@ const LEGACY_STORAGE_KEYS = {
 /**
  * Default Ollama endpoint
  */
-const DEFAULT_OLLAMA_ENDPOINT = 'http://localhost:11434';
+const _DEFAULT_OLLAMA_ENDPOINT = 'http://localhost:11434';
 
 /**
  * Default Ollama model

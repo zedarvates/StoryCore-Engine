@@ -4,12 +4,13 @@
  * Modal for the Roger Data Extractor wizard that allows users to select
  * text files and extract project data from stories, novels, or LLM discussions.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import type { WizardDefinition } from '../../types/configuration';
 import { WizardService } from '../../services/wizard/WizardService';
-import { useAppStore } from '../../stores/useAppStore';
 import { useEditorStore } from '../../stores/editorStore';
 import './WizardModal.css';
 import './RogerWizardModal.css';
@@ -35,9 +36,9 @@ interface FilePreview {
 export function RogerWizardModal({ isOpen, wizard, onClose }: RogerWizardModalProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<FilePreview | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [_isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
-  const [extractionResult, setExtractionResult] = useState<any>(null);
+  const [extractionResult, setExtractionResult] = useState<LegacyAny>(null);
   const [error, setError] = useState<string | null>(null);
   const [focusAreas, setFocusAreas] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState<'select' | 'preview' | 'extract' | 'result'>('select');
@@ -103,7 +104,8 @@ export function RogerWizardModal({ isOpen, wizard, onClose }: RogerWizardModalPr
     try {
       // Get file preview using Electron API
       if (window.electronAPI?.fs?.readFile) {
-        const content = await window.electronAPI.fs.readFile(file.path, 'utf-8');
+        const bufferContent = await window.electronAPI.fs.readFile((file as LegacyAny).path);
+        const content = bufferContent.toString('utf-8') as unknown as string;
 
         // Calculate basic stats
         const wordCount = content.split(/\s+/).length;
@@ -177,7 +179,7 @@ export function RogerWizardModal({ isOpen, wizard, onClose }: RogerWizardModalPr
       // For Roger wizard, we need to pass the file path
       // This would typically call the CLI command via Electron
       const result = await wizardService.launchWizard('roger-wizard', projectPath, {
-        file: selectedFile.path,
+        file: (selectedFile as LegacyAny).path,
         focus: focusAreas.length > 0 ? focusAreas : undefined,
         format: 'summary'
       });
@@ -256,11 +258,12 @@ export function RogerWizardModal({ isOpen, wizard, onClose }: RogerWizardModalPr
 
                 <div className="file-upload-area">
                   <input
+                    title="Select File"
                     ref={fileInputRef}
                     type="file"
                     accept=".txt,.md,.story,.novel,.doc,.docx"
                     onChange={handleFileSelect}
-                    style={{ display: 'none' }}
+                    className="hidden"
                   />
 
                   <button

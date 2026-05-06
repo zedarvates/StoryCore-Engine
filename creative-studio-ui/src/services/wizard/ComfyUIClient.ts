@@ -6,6 +6,8 @@
  * 
  * Requirements: 3.3, 5.3, 8.2
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { ComfyUIRequest, ComfyUIResponse, ComfyUIImageOutput } from './types';
 import { WizardError } from './types';
@@ -304,7 +306,7 @@ export class ComfyUIClient {
     promptId: string,
     timeoutMs: number = 300000, // 5 minutes default
     pollIntervalMs: number = 1000 // 1 second default
-  ): Promise<any> {
+  ): Promise<LegacyAny> {
     this.logger.info('comfyui', 'Waiting for prompt completion', {
       promptId,
       timeoutMs,

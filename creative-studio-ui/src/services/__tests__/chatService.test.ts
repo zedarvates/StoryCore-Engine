@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ChatService } from '../chatService';
 import type { ChatContext, ProjectCreationRequest } from '../chatService';
@@ -155,7 +156,7 @@ describe('ChatService', () => {
       expect(response.actions).toBeDefined();
       expect(response.actions?.length).toBe(1);
       expect(response.actions?.[0].type).toBe('addShot');
-      const payload = response.actions?.[0].payload as any;
+      const payload = response.actions?.[0].payload as LegacyAny;
       expect(payload.title).toContain('sunset');
     });
 
@@ -170,7 +171,7 @@ describe('ChatService', () => {
     it('extracts theme from input', async () => {
       const response = await chatService.processMessage('Add 2 action shots');
 
-      const payload = response.actions?.[0].payload as any;
+      const payload = response.actions?.[0].payload as LegacyAny;
       expect(payload.title).toContain('action');
     });
 
@@ -437,7 +438,7 @@ describe('ChatService', () => {
       expect(response.message).toContain('Petit Chaperon rouge 2048');
       expect(response.actions).toBeDefined();
       expect(response.actions?.[0].type).toBe('createProject');
-      const payload = response.actions?.[0].payload as any;
+      const payload = response.actions?.[0].payload as LegacyAny;
       expect(payload.name).toContain('Petit Chaperon rouge 2048');
     });
 
@@ -445,7 +446,7 @@ describe('ChatService', () => {
       const input = "Créer un projet intitulé Le Retour du Roi";
       const response = await chatService.processMessage(input);
 
-      const payload = response.actions?.[0].payload as any;
+      const payload = response.actions?.[0].payload as LegacyAny;
       expect(payload.name).toContain('Le Retour du Roi');
     });
 
@@ -468,7 +469,7 @@ describe('ChatService', () => {
 
       expect(response.actions).toBeDefined();
       expect(response.actions?.[0].type).toBe('createProject');
-      const payload = response.actions?.[0].payload as any;
+      const payload = response.actions?.[0].payload as LegacyAny;
       // It should likely pick up 'Snow White' or generate a generic name if it fails to find a name pattern
       // The current logic might fail to find a name, let's see what it does
       console.log('Project Name:', payload.name);

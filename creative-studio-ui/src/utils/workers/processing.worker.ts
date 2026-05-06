@@ -18,7 +18,7 @@ interface TaskResult {
 }
 
 // Worker state
-let workerId: number;
+let _workerId: number | undefined;
 
 // Task handlers
 const taskHandlers = {
@@ -26,9 +26,9 @@ const taskHandlers = {
     try {
       // Simulate thumbnail generation
       // In real implementation, this would extract frames from video
-      await delay(100); // Simulate processing time
+      await de_lay(100); // Simulate processing time
 
-      const { videoUrl, timestamp, width = 160, height = 90 } = taskData as any;
+      const { timestamp, width = 160, height = 90 } = taskData as { timestamp: number; width?: number; height?: number };
 
       // Mock thumbnail generation
       const thumbnail = {
@@ -36,27 +36,50 @@ const taskHandlers = {
         timestamp,
         width,
         height,
-        data: new ArrayBuffer(width * height * 4) // Mock RGBA data
       };
 
-      return { success: true, result: thumbnail };
+      return {
+        success: true,
+        result: thumbnail,
+      };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  },
+
+  async video_processing(_taskData: unknown): Promise<TaskResult> {
+    try {
+      // Simulate video processing
+      await de_lay(200);
+
+      return {
+        success: true,
+        result: { processed: true },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   },
 
   async video_encoding(taskData: unknown): Promise<TaskResult> {
     try {
-      const { videoBlob, format, quality = 0.8 } = taskData as any;
+      const { timestamp, width = 160, height = 90 } = taskData as { timestamp: number; width?: number; height?: number };
 
       // Simulate video encoding
       await delay(500);
 
       const encodedVideo = {
-        blob: videoBlob, // In real impl, this would be the encoded result
-        format,
-        quality,
-        size: videoBlob.size * quality // Mock size reduction
+        url: `encoded-${Date.now()}.mp4`,
+        timestamp,
+        width,
+        height,
+        size: width * height * 0.8, // Mock size
       };
 
       return { success: true, result: encodedVideo };
@@ -67,7 +90,7 @@ const taskHandlers = {
 
   async batch_processing(taskData: unknown): Promise<TaskResult> {
     try {
-      const { items, operation } = taskData as any;
+      const items = Array.isArray(taskData) ? taskData : [];
       const results = [];
 
       for (let i = 0; i < items.length; i++) {
@@ -80,13 +103,12 @@ const taskHandlers = {
         const progress = ((i + 1) / items.length) * 100;
         self.postMessage({
           type: 'TASK_PROGRESS',
-          taskId: (taskData as any).taskId,
           progress,
           message: `Processing item ${i + 1}/${items.length}`
         });
 
         // Apply operation (mock)
-        const result = { ...item, processed: true, operation };
+        const result = { ...item, processed: true };
         results.push(result);
       }
 

@@ -4,6 +4,8 @@
  * Analyzes sequence metadata to generate narrative tension metrics.
  * Based on March 2026 Production Roadmap (Phase 6).
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { Shot } from '@/types';
 
@@ -38,7 +40,7 @@ export class CinematicTensionService {
       let baseTension = 0.2 + (storyProgress * 0.4);
 
       // 2. Shot type modifier
-      const angleVal = (shot.cinematography as any)?.cameraAngle || 'eye';
+      const angleVal = (shot.cinematography as LegacyAny)?.cameraAngle || 'eye';
       const angle = String(angleVal).toLowerCase();
       if (angle.includes('close')) baseTension += 0.2;
       if (angle.includes('wide')) baseTension -= 0.1;

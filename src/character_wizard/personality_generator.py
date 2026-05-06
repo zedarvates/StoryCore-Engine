@@ -17,7 +17,9 @@ class PersonalityGenerator:
         """Initialize the personality generator"""
         self.trait_combinations = self._load_trait_combinations()
 
-    def generate_personality(self, params: AutoGenerationParams, archetype: CharacterArchetype) -> PersonalityProfile:
+    def generate_personality(
+        self, params: AutoGenerationParams, archetype: CharacterArchetype
+    ) -> PersonalityProfile:
         """
         Generate personality using psychological models
 
@@ -54,27 +56,27 @@ class PersonalityGenerator:
         personality.openness = self._apply_trait_modifiers(
             trait_base["openness"],
             genre_modifiers.get("openness", 0.0),
-            variation_range
+            variation_range,
         )
         personality.conscientiousness = self._apply_trait_modifiers(
             trait_base["conscientiousness"],
             genre_modifiers.get("conscientiousness", 0.0),
-            variation_range
+            variation_range,
         )
         personality.extraversion = self._apply_trait_modifiers(
             trait_base["extraversion"],
             genre_modifiers.get("extraversion", 0.0),
-            variation_range
+            variation_range,
         )
         personality.agreeableness = self._apply_trait_modifiers(
             trait_base["agreeableness"],
             genre_modifiers.get("agreeableness", 0.0),
-            variation_range
+            variation_range,
         )
         personality.neuroticism = self._apply_trait_modifiers(
             trait_base["neuroticism"],
             genre_modifiers.get("neuroticism", 0.0),
-            variation_range
+            variation_range,
         )
 
         # Step 4: Generate primary traits based on Big Five scores
@@ -86,29 +88,25 @@ class PersonalityGenerator:
         personality.strengths = self._generate_coherent_strengths(
             personality, archetype
         )
-        personality.flaws = self._generate_coherent_flaws(
-            personality, archetype
-        )
+        personality.flaws = self._generate_coherent_flaws(personality, archetype)
 
         # Step 6: Generate goals and motivations aligned with personality
         personality.external_goal = self._generate_external_goal(
             archetype, personality, params.genre
         )
-        personality.internal_need = self._generate_internal_need(
-            archetype, personality
-        )
-        personality.fears = self._generate_coherent_fears(
-            personality, archetype
-        )
-        personality.values = self._generate_values(
-            archetype, params.genre
-        )
+        personality.internal_need = self._generate_internal_need(archetype, personality)
+        personality.fears = self._generate_coherent_fears(personality, archetype)
+        personality.values = self._generate_values(archetype, params.genre)
 
         # Step 7: Generate behavioral patterns derived from Big Five
         personality.stress_response = self._generate_stress_response(personality)
         personality.conflict_style = self._generate_conflict_style(personality)
-        personality.emotional_expression = self._generate_emotional_expression(personality)
-        personality.decision_making_style = self._generate_decision_making_style(personality)
+        personality.emotional_expression = self._generate_emotional_expression(
+            personality
+        )
+        personality.decision_making_style = self._generate_decision_making_style(
+            personality
+        )
 
         # Step 8: Generate relationship patterns
         personality.attachment_style = self._generate_attachment_style(personality)
@@ -133,40 +131,42 @@ class PersonalityGenerator:
                 "conscientiousness": 0.05,
                 "extraversion": 0.0,
                 "agreeableness": 0.05,
-                "neuroticism": -0.05
+                "neuroticism": -0.05,
             },
             "sci-fi": {
                 "openness": 0.15,  # Sci-fi characters embrace new technology/ideas
                 "conscientiousness": 0.1,  # Often more methodical
                 "extraversion": -0.05,
                 "agreeableness": 0.0,
-                "neuroticism": 0.0
+                "neuroticism": 0.0,
             },
             "horror": {
                 "openness": -0.05,
                 "conscientiousness": 0.0,
                 "extraversion": -0.1,  # Horror characters often more introverted
                 "agreeableness": 0.0,
-                "neuroticism": 0.15  # Higher anxiety/stress
+                "neuroticism": 0.15,  # Higher anxiety/stress
             },
             "modern": {
                 "openness": 0.0,
                 "conscientiousness": 0.0,
                 "extraversion": 0.05,
                 "agreeableness": 0.05,
-                "neuroticism": 0.0
+                "neuroticism": 0.0,
             },
             "romance": {
                 "openness": 0.1,
                 "conscientiousness": 0.0,
                 "extraversion": 0.1,
                 "agreeableness": 0.15,  # Romance characters tend to be more agreeable
-                "neuroticism": 0.05
-            }
+                "neuroticism": 0.05,
+            },
         }
         return modifiers.get(genre, {})
 
-    def _apply_trait_modifiers(self, base_value: float, modifier: float, variation_range: float) -> float:
+    def _apply_trait_modifiers(
+        self, base_value: float, modifier: float, variation_range: float
+    ) -> float:
         """
         Apply modifiers and variation to a trait value
 
@@ -188,8 +188,9 @@ class PersonalityGenerator:
         # Clamp to valid range
         return max(0.0, min(1.0, value))
 
-    def _derive_traits_from_big_five(self, personality: PersonalityProfile,
-                                     archetype: CharacterArchetype) -> List[str]:
+    def _derive_traits_from_big_five(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> List[str]:
         """
         Derive descriptive traits from Big Five scores
 
@@ -257,8 +258,9 @@ class PersonalityGenerator:
 
         return final_traits
 
-    def _generate_coherent_strengths(self, personality: PersonalityProfile,
-                                     archetype: CharacterArchetype) -> List[str]:
+    def _generate_coherent_strengths(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> List[str]:
         """
         Generate strengths that align with personality traits
 
@@ -277,14 +279,17 @@ class PersonalityGenerator:
         if personality.agreeableness > 0.7:
             potential_strengths.extend(["empathy", "cooperation", "diplomacy"])
         if personality.neuroticism < 0.3:
-            potential_strengths.extend(["emotional stability", "composure", "confidence"])
+            potential_strengths.extend(
+                ["emotional stability", "composure", "confidence"]
+            )
 
         # Remove duplicates and select 2-3 strengths
         unique_strengths = list(set(potential_strengths))
         return random.sample(unique_strengths, min(3, len(unique_strengths)))
 
-    def _generate_coherent_flaws(self, personality: PersonalityProfile,
-                                 archetype: CharacterArchetype) -> List[str]:
+    def _generate_coherent_flaws(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> List[str]:
         """
         Generate flaws that align with personality traits
 
@@ -321,8 +326,9 @@ class PersonalityGenerator:
         unique_flaws = list(set(potential_flaws))
         return random.sample(unique_flaws, min(3, len(unique_flaws)))
 
-    def _generate_external_goal(self, archetype: CharacterArchetype,
-                                personality: PersonalityProfile, genre: str) -> str:
+    def _generate_external_goal(
+        self, archetype: CharacterArchetype, personality: PersonalityProfile, genre: str
+    ) -> str:
         """
         Generate external goal aligned with archetype and personality
 
@@ -333,11 +339,23 @@ class PersonalityGenerator:
 
         # Add genre-specific goals
         genre_goals = {
-            "fantasy": ["find magical artifact", "defeat dark lord", "save the kingdom"],
-            "sci-fi": ["discover new technology", "prevent catastrophe", "explore unknown space"],
+            "fantasy": [
+                "find magical artifact",
+                "defeat dark lord",
+                "save the kingdom",
+            ],
+            "sci-fi": [
+                "discover new technology",
+                "prevent catastrophe",
+                "explore unknown space",
+            ],
             "horror": ["survive the night", "uncover the truth", "escape the threat"],
             "modern": ["achieve success", "find love", "solve the mystery"],
-            "romance": ["win their heart", "overcome obstacles to love", "find true connection"]
+            "romance": [
+                "win their heart",
+                "overcome obstacles to love",
+                "find true connection",
+            ],
         }
 
         if genre in genre_goals:
@@ -346,14 +364,19 @@ class PersonalityGenerator:
         # Select goal that fits personality
         # High conscientiousness prefers structured goals
         if personality.conscientiousness > 0.7:
-            structured_goals = [g for g in base_goals if any(word in g for word in ["achieve", "complete", "master"])]
+            structured_goals = [
+                g
+                for g in base_goals
+                if any(word in g for word in ["achieve", "complete", "master"])
+            ]
             if structured_goals:
                 return random.choice(structured_goals)
 
         return random.choice(base_goals)
 
-    def _generate_coherent_fears(self, personality: PersonalityProfile,
-                                 archetype: CharacterArchetype) -> List[str]:
+    def _generate_coherent_fears(
+        self, personality: PersonalityProfile, archetype: CharacterArchetype
+    ) -> List[str]:
         """
         Generate fears that align with personality and archetype
 
@@ -364,11 +387,17 @@ class PersonalityGenerator:
 
         # Add fears based on personality traits
         if personality.neuroticism > 0.7:
-            potential_fears.extend(["making mistakes", "being judged", "losing control"])
+            potential_fears.extend(
+                ["making mistakes", "being judged", "losing control"]
+            )
         if personality.agreeableness > 0.7:
-            potential_fears.extend(["conflict", "disappointing others", "being disliked"])
+            potential_fears.extend(
+                ["conflict", "disappointing others", "being disliked"]
+            )
         if personality.extraversion < 0.3:
-            potential_fears.extend(["social situations", "public speaking", "being center of attention"])
+            potential_fears.extend(
+                ["social situations", "public speaking", "being center of attention"]
+            )
         if personality.conscientiousness > 0.7:
             potential_fears.extend(["failure", "chaos", "unpredictability"])
         if personality.openness < 0.3:
@@ -391,7 +420,7 @@ class PersonalityGenerator:
             "loyal": ["disloyal", "betrayer"],
             "honest": ["deceitful", "liar"],
             "kind": ["cruel", "mean"],
-            "confident": ["insecure", "self-doubting"]
+            "confident": ["insecure", "self-doubting"],
         }
 
         # Remove contradictory flaws
@@ -403,24 +432,36 @@ class PersonalityGenerator:
 
         # Ensure we have minimum required elements
         if len(personality.primary_traits) < 3:
-            personality.primary_traits.extend(["determined", "capable", "complex"][:3 - len(personality.primary_traits)])
+            personality.primary_traits.extend(
+                ["determined", "capable", "complex"][
+                    : 3 - len(personality.primary_traits)
+                ]
+            )
 
         if len(personality.strengths) < 2:
-            personality.strengths.extend(["resilience", "adaptability"][:2 - len(personality.strengths)])
+            personality.strengths.extend(
+                ["resilience", "adaptability"][: 2 - len(personality.strengths)]
+            )
 
         if len(personality.flaws) < 2:
-            personality.flaws.extend(["stubborn", "impulsive"][:2 - len(personality.flaws)])
+            personality.flaws.extend(
+                ["stubborn", "impulsive"][: 2 - len(personality.flaws)]
+            )
 
-    def _generate_internal_need(self, archetype: CharacterArchetype, personality: PersonalityProfile) -> str:
+    def _generate_internal_need(
+        self, archetype: CharacterArchetype, personality: PersonalityProfile
+    ) -> str:
         """Generate internal need based on archetype and personality"""
         needs_by_archetype = {
             ArchetypeRole.HERO: ["acceptance", "self-worth", "belonging", "purpose"],
             ArchetypeRole.VILLAIN: ["control", "recognition", "revenge", "validation"],
             ArchetypeRole.MENTOR: ["redemption", "legacy", "peace", "wisdom"],
             ArchetypeRole.ALLY: ["belonging", "recognition", "friendship", "purpose"],
-            ArchetypeRole.TRICKSTER: ["freedom", "attention", "chaos", "fun"]
+            ArchetypeRole.TRICKSTER: ["freedom", "attention", "chaos", "fun"],
         }
-        return random.choice(needs_by_archetype.get(archetype.role, ["acceptance", "purpose"]))
+        return random.choice(
+            needs_by_archetype.get(archetype.role, ["acceptance", "purpose"])
+        )
 
     def _generate_values(self, archetype: CharacterArchetype, genre: str) -> List[str]:
         """Generate character values"""
@@ -429,7 +470,7 @@ class PersonalityGenerator:
             ArchetypeRole.VILLAIN: ["power", "control", "superiority", "order"],
             ArchetypeRole.MENTOR: ["wisdom", "guidance", "tradition", "growth"],
             ArchetypeRole.ALLY: ["friendship", "loyalty", "support", "teamwork"],
-            ArchetypeRole.TRICKSTER: ["freedom", "creativity", "change", "humor"]
+            ArchetypeRole.TRICKSTER: ["freedom", "creativity", "change", "humor"],
         }
         values = base_values.get(archetype.role, ["honesty", "family", "growth"])
         return random.sample(values, min(3, len(values)))
@@ -509,34 +550,34 @@ class PersonalityGenerator:
                 "conscientiousness": 0.8,
                 "extraversion": 0.6,
                 "agreeableness": 0.8,
-                "neuroticism": 0.4
+                "neuroticism": 0.4,
             },
             "villain": {
                 "openness": 0.6,
                 "conscientiousness": 0.7,
                 "extraversion": 0.5,
                 "agreeableness": 0.2,
-                "neuroticism": 0.6
+                "neuroticism": 0.6,
             },
             "mentor": {
                 "openness": 0.9,
                 "conscientiousness": 0.8,
                 "extraversion": 0.4,
                 "agreeableness": 0.7,
-                "neuroticism": 0.3
+                "neuroticism": 0.3,
             },
             "ally": {
                 "openness": 0.6,
                 "conscientiousness": 0.7,
                 "extraversion": 0.7,
                 "agreeableness": 0.8,
-                "neuroticism": 0.4
+                "neuroticism": 0.4,
             },
             "trickster": {
                 "openness": 0.9,
                 "conscientiousness": 0.3,
                 "extraversion": 0.8,
                 "agreeableness": 0.4,
-                "neuroticism": 0.5
-            }
+                "neuroticism": 0.5,
+            },
         }

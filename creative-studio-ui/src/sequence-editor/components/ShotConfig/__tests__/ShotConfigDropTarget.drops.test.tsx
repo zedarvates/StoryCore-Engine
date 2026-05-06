@@ -4,6 +4,8 @@
  * Tests for enhanced drop handlers with multi-select support, validation, and undo/redo.
  * Requirements: 15.5, 15.7 - Apply assets to shots with multi-select
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
@@ -74,7 +76,7 @@ function DraggableTestAsset({ asset }: { asset: Asset }) {
   }));
 
   return (
-    <div ref={drag as any} data-testid="draggable-asset">
+    <div ref={drag as LegacyAny} data-testid="draggable-asset">
       {asset.name}
     </div>
   );

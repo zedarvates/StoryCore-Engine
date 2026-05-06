@@ -441,7 +441,7 @@ export class DragDropAnimationManager {
    * @param targetElement - Drop target element
    * @returns Promise that resolves when animation completes
    */
-  async endDragSuccess(targetElement: HTMLElement): Promise<void> {
+  async endDragSuccess(_targetElement: HTMLElement): Promise<void> {
     if (this.ghost) {
       await removeDragGhost(this.ghost);
       this.ghost = null;

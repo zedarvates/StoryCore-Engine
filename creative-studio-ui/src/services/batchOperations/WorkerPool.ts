@@ -9,6 +9,8 @@
  * 
  * Exigences: 10.1, 10.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { WorkerTask, WorkerMessage } from '../../types';
 
@@ -101,14 +103,14 @@ export class WorkerPool {
     worker.postMessage(message);
     
     // Stocker la tâche pour la résolution
-    (worker as any).__currentTask = task;
+    (worker as LegacyAny).__currentTask = task;
   }
   
   /**
    * Gère les messages des workers
    */
   private handleWorkerMessage(worker: Worker, message: unknown): void {
-    const task = (worker as any).__currentTask as WorkerTask;
+    const task = (worker as LegacyAny).__currentTask as WorkerTask;
     
     if (task && message.id === task.id) {
       if (message.status === 'completed') {
@@ -128,11 +130,11 @@ export class WorkerPool {
    * Gère les erreurs des workers
    */
   private handleWorkerError(worker: Worker, error: ErrorEvent): void {
-    const task = (worker as any).__currentTask as WorkerTask;
+    const task = (worker as LegacyAny).__currentTask as WorkerTask;
     
     if (task) {
       task.reject(new Error(error.message));
-      delete (worker as any).__currentTask;
+      delete (worker as LegacyAny).__currentTask;
     }
     
     // Recréer le worker
@@ -168,7 +170,7 @@ export class WorkerPool {
    * Exigence: 10.6 - File d'attente de tâches
    */
   private releaseWorker(worker: Worker): void {
-    delete (worker as any).__currentTask;
+    delete (worker as LegacyAny).__currentTask;
     
     // Traiter la prochaine tâche en attente
     const nextTask = this.taskQueue.shift();
@@ -193,12 +195,12 @@ export class WorkerPool {
     
     // Annuler les tâches en cours
     for (const worker of this.workers) {
-      const task = (worker as any).__currentTask as WorkerTask;
+      const task = (worker as LegacyAny).__currentTask as WorkerTask;
       if (task) {
         // Envoyer un message d'annulation au worker
         worker.postMessage({ id: task.id, type: 'cancel' });
         task.reject(new Error('Task cancelled'));
-        delete (worker as any).__currentTask;
+        delete (worker as LegacyAny).__currentTask;
       }
     }
     

@@ -3,7 +3,7 @@
  * ME2: Lottie Integration - Support for Lottie animations
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { _useEffect, useRef, useState } from 'react';
 import { useLottieStore } from '../../stores/lottieStore';
 import { lottieService } from '../../services/LottieService';
 import styles from './LottiePanel.module.css';

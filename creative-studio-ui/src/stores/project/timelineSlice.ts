@@ -294,4 +294,102 @@ export const createTimelineSlice: StateCreator<
       nextState: { shots: get().shots }
     });
   },
+
+  splitShot: (shotId: string, splitTime: number) => {
+    const prevState = { shots: get().shots };
+    const shots = get().shots;
+    const shotIndex = shots.findIndex(s => s.id === shotId);
+    if (shotIndex === -1) return;
+
+    const shot = shots[shotIndex];
+    const relativeSplitTime = splitTime - shot.startTime;
+    if (relativeSplitTime <= 0 || relativeSplitTime >= shot.duration) return;
+
+    const firstShot: Shot = {
+      ...shot,
+      id: generateId(),
+      duration: relativeSplitTime,
+      name: `${shot.name || 'Shot'} (A)`,
+    };
+
+    const secondShot: Shot = {
+      ...shot,
+      id: generateId(),
+      startTime: splitTime,
+      duration: shot.duration - relativeSplitTime,
+      name: `${shot.name || 'Shot'} (B)`,
+      metadata: {
+        ...shot.metadata,
+        contentOffset: (Number(shot.metadata?.contentOffset) || 0) + relativeSplitTime,
+      },
+    };
+
+    const updatedShots = [...shots];
+    updatedShots.splice(shotIndex, 1, firstShot, secondShot);
+
+    set({ shots: updatedShots });
+
+    get().pushHistory({
+      id: generateId(),
+      timestamp: Date.now(),
+      action: `Split Shot: ${shotId}`,
+      previousState: prevState,
+      nextState: { shots: get().shots }
+    });
+  },
+
+  // Transitions
+  addCrossDissolve: (leftShotId: string, rightShotId: string, duration: number) => {
+    const prevState = { shots: get().shots };
+    set((state) => ({
+      shots: state.shots.map(s => {
+        if (s.id === leftShotId) {
+          return {
+            ...s,
+            transitions: {
+              ...s.transitions,
+              out: { type: 'dissolve', duration, appliedAt: Date.now() },
+            },
+          };
+        }
+        if (s.id === rightShotId) {
+          return {
+            ...s,
+            transitions: {
+              ...s.transitions,
+              in: { type: 'dissolve', duration, appliedAt: Date.now() },
+            },
+          };
+        }
+        return s;
+      })
+    }));
+    get().pushHistory({
+      id: generateId(),
+      timestamp: Date.now(),
+      action: `Add Cross-Dissolve: ${leftShotId} → ${rightShotId}`,
+      previousState: prevState,
+      nextState: { shots: get().shots }
+    });
+  },
+
+  removeTransition: (shotId: string, side: 'in' | 'out') => {
+    const prevState = { shots: get().shots };
+    set((state) => ({
+      shots: state.shots.map(s => {
+        if (s.id !== shotId) return s;
+        const transitions = { ...s.transitions };
+        if (side === 'in') transitions.in = undefined;
+        if (side === 'out') transitions.out = undefined;
+        return { ...s, transitions };
+      })
+    }));
+    get().pushHistory({
+      id: generateId(),
+      timestamp: Date.now(),
+      action: `Remove Transition: ${shotId} ${side}`,
+      previousState: prevState,
+      nextState: { shots: get().shots }
+    });
+  },
 });

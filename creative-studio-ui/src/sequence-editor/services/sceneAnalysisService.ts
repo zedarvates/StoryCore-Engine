@@ -36,10 +36,10 @@ class SceneAnalysisService {
     shotId: string,
     startFrame: number,
     endFrame: number,
-    sensitivity: number = 0.7
+    _sensitivity: number = 0.7
   ): Promise<SceneCut[]> {
     const cuts: SceneCut[] = [];
-    const totalFrames = endFrame - startFrame + 1;
+    const _totalFrames = endFrame - startFrame + 1;
 
     // Simulate scene cut detection
     for (let frame = startFrame; frame < endFrame; frame += Math.floor(Math.random() * 50) + 20) {

@@ -9,7 +9,7 @@
  * - Statistiques
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { CacheService, CacheEntry, CacheOptions } from '@/services/CacheService';
+import { CacheService, _CacheEntry, _CacheOptions } from '@/services/CacheService';
 
 // Mock du logger
 vi.mock('@/utils/logger', () => ({

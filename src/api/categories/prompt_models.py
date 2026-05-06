@@ -12,6 +12,7 @@ from datetime import datetime
 @dataclass
 class PromptTemplate:
     """Prompt template structure."""
+
     id: str
     name: str
     description: str
@@ -27,6 +28,7 @@ class PromptTemplate:
 @dataclass
 class PromptTestResult:
     """Result of prompt testing."""
+
     template_id: str
     inputs: Dict[str, Any]
     output: str
@@ -39,6 +41,7 @@ class PromptTestResult:
 @dataclass
 class PromptOptimizationResult:
     """Result of prompt optimization."""
+
     original_template: str
     optimized_template: str
     improvements: List[str] = field(default_factory=list)
@@ -50,8 +53,11 @@ class PromptOptimizationResult:
 @dataclass
 class PromptVariables:
     """Extracted prompt variables."""
+
     template: str
-    variables: List[Dict[str, Any]] = field(default_factory=list)  # name, type, description, required
+    variables: List[Dict[str, Any]] = field(
+        default_factory=list
+    )  # name, type, description, required
     variable_count: int = 0
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -59,10 +65,13 @@ class PromptVariables:
 @dataclass
 class PromptChain:
     """Prompt chain structure."""
+
     id: str
     name: str
     description: str
-    steps: List[Dict[str, Any]] = field(default_factory=list)  # template_id, inputs, output_mapping
+    steps: List[Dict[str, Any]] = field(
+        default_factory=list
+    )  # template_id, inputs, output_mapping
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -71,6 +80,7 @@ class PromptChain:
 @dataclass
 class PromptChainExecutionResult:
     """Result of prompt chain execution."""
+
     chain_id: str
     steps_executed: int
     step_results: List[Dict[str, Any]] = field(default_factory=list)

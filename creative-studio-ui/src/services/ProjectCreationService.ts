@@ -1,4 +1,5 @@
-/* cspell:ignore ProjectCreationService projectCreationService createProjectAndNavigate */
+import { LegacyAny } from '@/types/legacy';
+/* cspell:ignore ProjectCreationService projectCreationService createProjectAndNavigate tracklist */
 import { type ProjectCreationRequest } from './chatService';
 import { useAppStore } from '@/stores/useAppStore';
 import { useStore } from '@/store';
@@ -70,7 +71,7 @@ export function convertElectronProjectToStore(electronProject: {
       promotion: 'pending',
     },
     casting: config.casting as StoreProject['casting'],
-    global_resume: (electronProject as any).global_resume || (config.global_resume as string) || (config.metadata as any)?.description || (config.projectDescription as string) || '',
+    global_resume: (electronProject as LegacyAny).global_resume || (config.global_resume as string) || (config.metadata as LegacyAny)?.description || (config.projectDescription as string) || '',
     metadata: {
       id: electronProject.id || Date.now().toString(),
       path: electronProject.path || (config.path as string) || '',
@@ -116,6 +117,7 @@ export class ProjectCreationService {
   initialize(toastInstance: ReturnType<typeof useToast>) {
     this.toast = toastInstance;
   }
+
 
   /**
    * Create a project from a ProjectCreationRequest (from chat or other sources)

@@ -8,6 +8,8 @@
  * - Empty state
  * - Download functionality
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -308,7 +310,7 @@ describe('ResultsGrid', () => {
       const resultsWithUnknownAngle: CameraAngleResult[] = [
         {
           ...mockResults[0],
-          angleId: 'unknown_angle' as any,
+          angleId: 'unknown_angle' as LegacyAny,
         },
       ];
 

@@ -10,7 +10,6 @@ Providers supportés :
 """
 
 import asyncio
-import io
 import logging
 import os
 from pathlib import Path
@@ -25,10 +24,11 @@ logger = logging.getLogger(__name__)
 # TTS Generator
 # ============================================================================
 
+
 class TTSGenerator:
     """
     Génère les fichiers audio TTS pour chaque scène du recap.
-    
+
     Chaque scène produit un fichier .mp3 ou .wav dont la durée
     correspond à la lecture du texte de narration.
     """
@@ -81,9 +81,7 @@ class TTSGenerator:
             # Fallback silencieux
             return await self._generate_mock(scene, audio_path)
 
-    async def generate_timeline_audio(
-        self, scenes, timeline_id: str
-    ) -> int:
+    async def generate_timeline_audio(self, scenes, timeline_id: str) -> int:
         """
         Génère l'audio pour toutes les scènes d'une timeline.
         Retourne le nombre de fichiers générés.
@@ -103,7 +101,9 @@ class TTSGenerator:
     # Provider Implementations
     # ------------------------------------------------------------------
 
-    async def _generate_gtts(self, scene: RecapScene, output_path: Path) -> Optional[str]:
+    async def _generate_gtts(
+        self, scene: RecapScene, output_path: Path
+    ) -> Optional[str]:
         """Google TTS (simple, gratuit, nécessite connexion réseau)."""
         try:
             from gtts import gTTS
@@ -125,7 +125,9 @@ class TTSGenerator:
         logger.debug(f"[TTS/gTTS] Généré : {output_path}")
         return str(output_path)
 
-    async def _generate_edge_tts(self, scene: RecapScene, output_path: Path) -> Optional[str]:
+    async def _generate_edge_tts(
+        self, scene: RecapScene, output_path: Path
+    ) -> Optional[str]:
         """
         Microsoft Edge TTS - Voix neurales de haute qualité.
         Recommandé pour la production. Requiert : pip install edge-tts
@@ -133,14 +135,18 @@ class TTSGenerator:
         try:
             import edge_tts
         except ImportError:
-            logger.warning("[TTS] edge-tts non installé. pip install edge-tts. Fallback gTTS.")
+            logger.warning(
+                "[TTS] edge-tts non installé. pip install edge-tts. Fallback gTTS."
+            )
             return await self._generate_gtts(scene, output_path)
 
         # Choisir la voix selon le personnage
         voice = scene.narrator_character_id  # Peut être un voice ID direct
         if not voice.startswith("fr-") and not voice.startswith("en-"):
             # Voix par défaut selon la langue
-            voice = "fr-FR-DeniseNeural" if self.language == "fr" else "en-US-JennyNeural"
+            voice = (
+                "fr-FR-DeniseNeural" if self.language == "fr" else "en-US-JennyNeural"
+            )
 
         try:
             communicate = edge_tts.Communicate(scene.narration_text, voice)
@@ -151,26 +157,31 @@ class TTSGenerator:
             logger.error(f"[TTS/EdgeTTS] Erreur : {e}")
             return await self._generate_gtts(scene, output_path)
 
-    async def _generate_piper(self, scene: RecapScene, output_path: Path) -> Optional[str]:
+    async def _generate_piper(
+        self, scene: RecapScene, output_path: Path
+    ) -> Optional[str]:
         """
         Piper TTS - Entièrement local, offline.
         Requiert l'installation de Piper + modèles.
         """
         piper_exe = os.environ.get("PIPER_PATH", "piper")
         model_path = os.environ.get(
-            "PIPER_MODEL",
-            "models/piper/fr_FR-upmc-medium.onnx"
+            "PIPER_MODEL", "models/piper/fr_FR-upmc-medium.onnx"
         )
 
         if not Path(model_path).exists():
-            logger.warning(f"[TTS/Piper] Modèle introuvable : {model_path}. Fallback gTTS.")
+            logger.warning(
+                f"[TTS/Piper] Modèle introuvable : {model_path}. Fallback gTTS."
+            )
             return await self._generate_gtts(scene, output_path)
 
         wav_path = output_path.with_suffix(".wav")
         cmd = [
             piper_exe,
-            "--model", model_path,
-            "--output-file", str(wav_path),
+            "--model",
+            model_path,
+            "--output-file",
+            str(wav_path),
         ]
 
         process = await asyncio.create_subprocess_exec(
@@ -196,11 +207,18 @@ class TTSGenerator:
         duration = max(1.0, scene.duration)
         try:
             process = await asyncio.create_subprocess_exec(
-                "ffmpeg", "-y",
-                "-f", "lavfi",
-                "-i", f"anullsrc=r=44100:cl=mono",
-                "-t", str(duration),
-                "-q:a", "9", "-acodec", "libmp3lame",
+                "ffmpeg",
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                "anullsrc=r=44100:cl=mono",
+                "-t",
+                str(duration),
+                "-q:a",
+                "9",
+                "-acodec",
+                "libmp3lame",
                 str(output_path),
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
@@ -216,8 +234,14 @@ class TTSGenerator:
         """Convertit WAV en MP3 via ffmpeg."""
         try:
             process = await asyncio.create_subprocess_exec(
-                "ffmpeg", "-y", "-i", str(wav_path),
-                "-codec:a", "libmp3lame", "-q:a", "2",
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(wav_path),
+                "-codec:a",
+                "libmp3lame",
+                "-q:a",
+                "2",
                 str(mp3_path),
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
@@ -233,6 +257,7 @@ class TTSGenerator:
         if self.provider == TTSProvider.EDGE_TTS:
             try:
                 import edge_tts
+
                 voices = await edge_tts.list_voices()
                 lang_prefix = "fr-" if self.language == "fr" else "en-"
                 return [

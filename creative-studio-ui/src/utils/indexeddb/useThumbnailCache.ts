@@ -22,9 +22,20 @@ export function useThumbnailCache(videoUrl: string, timestamp: number, options: 
   const { preloadAdjacent = true, adjacentCount = 5 } = options;
   const [state, setState] = useState<ThumbnailState>({
     data: null,
-    loading: true,
+    loading: !!videoUrl,
     error: null
   });
+
+  // Sync loading state if videoUrl changes
+  const [prevUrl, setPrevUrl] = useState(videoUrl);
+  if (prevUrl !== videoUrl) {
+    setPrevUrl(videoUrl);
+    setState({
+      data: null,
+      loading: !!videoUrl,
+      error: null
+    });
+  }
 
   const cacheRef = useRef(globalCache);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -32,7 +43,7 @@ export function useThumbnailCache(videoUrl: string, timestamp: number, options: 
   const loadThumbnail = useCallback(async () => {
     if (!videoUrl) return;
 
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    // Loading state is already set by render-phase sync or initial state
 
     try {
       await cacheRef.current.initialize();
@@ -145,28 +156,23 @@ export function useThumbnailCacheStats() {
     diskSizeMB: number;
   } | null>(null);
 
-  const loadStats = useCallback(async () => {
-    try {
-      await globalCache.initialize();
-      const currentStats = await globalCache.getStats();
-      setStats(currentStats);
-    } catch (error) {
-      console.warn('Failed to load cache stats:', error);
-    }
-  }, []);
-
-  const clearCache = useCallback(async () => {
-    try {
-      await globalCache.clear();
-      await loadStats();
-    } catch (error) {
-      console.warn('Failed to clear cache:', error);
-    }
-  }, [loadStats]);
-
   useEffect(() => {
-    loadStats();
-  }, [loadStats]);
+    let isMounted = true;
+    const fetchStats = async () => {
+      try {
+        await globalCache.initialize();
+        const currentStats = await globalCache.getStats();
+        if (isMounted) {
+          setStats(currentStats);
+        }
+      } catch (error) {
+        console.warn('Failed to load cache stats:', error);
+      }
+    };
+    
+    fetchStats();
+    return () => { isMounted = false; };
+  }, []);
 
   return {
     stats,

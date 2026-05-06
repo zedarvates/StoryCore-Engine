@@ -13,7 +13,7 @@
 
 import React, { useState } from 'react';
 import { WizardContainer } from './WizardContainer';
-import { WizardFormLayout, FormField, FormSection, FormGrid } from './WizardFormLayout';
+import { WizardFormLayout, FormField, FormSection, _FormGrid } from './WizardFormLayout';
 import { ValidationErrorSummary } from './ValidationDisplay';
 import { LoadingOverlay, ProgressBar, IndeterminateProgress } from './LoadingStates';
 import { Input } from '@/components/ui/input';

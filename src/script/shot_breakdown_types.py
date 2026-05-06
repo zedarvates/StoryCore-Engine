@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 class ShotType(Enum):
     """Cinematic shot types."""
+
     EXTREME_WIDE_SHOT = "ews"
     WIDE_SHOT = "ws"
     FULL_SHOT = "fs"
@@ -33,6 +34,7 @@ class ShotType(Enum):
 
 class CameraMovement(Enum):
     """Camera movement types."""
+
     STATIC = "static"
     PAN_LEFT = "pan_left"
     PAN_RIGHT = "pan_right"
@@ -51,6 +53,7 @@ class CameraMovement(Enum):
 
 class CameraAngle(Enum):
     """Camera angle types."""
+
     EYE_LEVEL = "eye_level"
     LOW_ANGLE = "low_angle"
     HIGH_ANGLE = "high_angle"
@@ -61,6 +64,7 @@ class CameraAngle(Enum):
 
 class ShotDuration(Enum):
     """Shot duration estimates."""
+
     VERY_SHORT = "very_short"
     SHORT = "short"
     MEDIUM = "medium"
@@ -71,25 +75,27 @@ class ShotDuration(Enum):
 @dataclass
 class ShotContent:
     """Content description for a shot."""
+
     action_description: str = ""
     dialogue: Optional[str] = None
     characters: List[str] = field(default_factory=list)
     props: List[str] = field(default_factory=list)
     location_hint: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "action": self.action_description,
             "dialogue": self.dialogue,
             "characters": self.characters,
             "props": self.props,
-            "location": self.location_hint
+            "location": self.location_hint,
         }
 
 
 @dataclass
 class Shot:
     """A single shot in the breakdown."""
+
     shot_number: int
     scene_number: int
     shot_type: ShotType
@@ -103,7 +109,7 @@ class Shot:
     lighting_notes: str = ""
     confidence: float = 0.8
     reasoning: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "shot_number": self.shot_number,
@@ -121,25 +127,27 @@ class Shot:
 @dataclass
 class SceneShotBreakdown:
     """Shot breakdown for a single scene."""
+
     scene_number: int
     scene_heading: str
     shots: List[Shot] = field(default_factory=list)
     total_duration: float = 0.0
     shot_count: int = 0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "scene_number": self.scene_number,
             "scene_heading": self.scene_heading,
             "shots": [s.to_dict() for s in self.shots],
             "total_duration": round(self.total_duration, 1),
-            "shot_count": self.shot_count
+            "shot_count": self.shot_count,
         }
 
 
 @dataclass
 class ShotBreakdownAnalysis:
     """Complete shot breakdown analysis for a script."""
+
     script_title: str = ""
     total_scenes: int = 0
     total_shots: int = 0
@@ -151,7 +159,7 @@ class ShotBreakdownAnalysis:
     camera_movement_counts: Dict[str, int] = field(default_factory=dict)
     key_shots: List[Shot] = field(default_factory=list)
     analyzed_at: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "title": self.script_title,
@@ -160,21 +168,30 @@ class ShotBreakdownAnalysis:
             "total_duration_minutes": round(self.total_duration / 60, 1),
             "shot_distribution": self.shot_type_counts,
             "scene_breakdowns": [sb.to_dict() for sb in self.scene_breakdowns],
-            "analyzed_at": self.analyzed_at.isoformat()
+            "analyzed_at": self.analyzed_at.isoformat(),
         }
 
 
 @dataclass
 class ShotListExport:
     """Export format for shot list."""
+
     script_title: str = ""
     export_format: str = "csv"
     rows: List[Dict[str, Any]] = field(default_factory=list)
-    
+
     def to_csv(self) -> str:
         if not self.rows:
             return ""
-        headers = ["Shot", "Scene", "Type", "Movement", "Angle", "Duration", "Description"]
+        headers = [
+            "Shot",
+            "Scene",
+            "Type",
+            "Movement",
+            "Angle",
+            "Duration",
+            "Description",
+        ]
         lines = [",".join(headers)]
         for row in self.rows:
             line = [
@@ -184,15 +201,14 @@ class ShotListExport:
                 row.get("camera_movement", ""),
                 row.get("camera_angle", ""),
                 str(row.get("estimated_duration", "")),
-                row.get("description", "").replace(",", ";")
+                row.get("description", "").replace(",", ";"),
             ]
             lines.append(",".join(line))
         return "\n".join(lines)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "title": self.script_title,
             "format": self.export_format,
-            "row_count": len(self.rows)
+            "row_count": len(self.rows),
         }
-

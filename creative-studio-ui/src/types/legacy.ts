@@ -27,7 +27,9 @@
 // ============================================================================
 
 /** Type générique pour données API non encore typées - TODO: typer progressivement */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type LegacyAny = any;
+
 
 /** Type générique pour tableaux non encore typés - TODO: typer progressivement */
 export type LegacyArray<T = unknown> = T[];

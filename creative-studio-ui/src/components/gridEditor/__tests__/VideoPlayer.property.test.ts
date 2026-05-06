@@ -63,7 +63,7 @@ test('VideoPlayer maintains time synchronization during playback', () => {
       fc.float({ min: 0, max: 3600 }), // time in seconds
       fc.integer({ min: 1, max: 60 }), // frame rate
       fc.float({ min: 0, max: 1 }), // playback rate
-      (currentTime, frameRate, playbackRate) => {
+      (currentTime, frameRate, _playbackRate) => {
         // Calculate expected frame position
         const expectedFrame = Math.round(currentTime * frameRate);
         const actualFrame = Math.round(currentTime * frameRate);
@@ -90,7 +90,7 @@ test('VideoPlayer seeking operations maintain frame accuracy', () => {
       fc.integer({ min: 1, max: 60 }), // frame rate
       fc.integer({ min: 0, max: 10000 }), // target frame
       fc.float({ min: 0.001, max: 0.1 }), // tolerance
-      (frameRate, targetFrame, tolerance) => {
+      (frameRate, targetFrame, _tolerance) => {
         const targetTime = targetFrame / frameRate;
         const calculatedFrame = Math.round(targetTime * frameRate);
 
@@ -179,7 +179,7 @@ test('Playback rate changes maintain timing relationships', () => {
         const frameCount = Math.round(realTime * frameRate);
 
         // Higher playback rates should result in fewer frames for same real duration
-        const normalFrameCount = Math.round(duration * frameRate);
+        const _normalFrameCount = Math.round(duration * frameRate);
         const adjustedFrameCount = Math.round(realTime * frameRate);
 
         expect(adjustedFrameCount).toBe(frameCount);

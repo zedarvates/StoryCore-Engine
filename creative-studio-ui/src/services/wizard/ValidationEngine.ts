@@ -208,7 +208,7 @@ export function validateCharacterStep1(data: CharacterStepData): ValidationResul
   return createInvalidResult(errors, warnings);
 }
 
-export function validateCharacterStep2(data: CharacterStepData): ValidationResult {
+export function validateCharacterStep2(_data: CharacterStepData): ValidationResult {
   // Step 2 (Physical Appearance) is optional - LLM can help fill in
   return createValidResult();
 }
@@ -230,7 +230,7 @@ export function validateCharacterStep3(data: CharacterStepData): ValidationResul
   return createInvalidResult(errors, warnings);
 }
 
-export function validateCharacterStep4(data: CharacterStepData): ValidationResult {
+export function validateCharacterStep4(_data: CharacterStepData): ValidationResult {
   // Step 4 (Background) is optional
   return createValidResult();
 }
@@ -403,7 +403,7 @@ export function validateStorytellerStep2(data: StorytellerStepData): ValidationR
   return createInvalidResult(errors);
 }
 
-export function validateStorytellerStep3(data: StorytellerStepData): ValidationResult {
+export function validateStorytellerStep3(_data: StorytellerStepData): ValidationResult {
   // Location selection - optional
   return createValidResult();
 }

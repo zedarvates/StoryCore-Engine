@@ -247,7 +247,7 @@ describe('Backend API Service - ComfyUI Integration (Simple Tests)', () => {
         inpainting: '',
       };
 
-      const taskType = 'image';
+      const _taskType = 'image';
       const workflowId = workflows.imageGeneration;
       const hasWorkflow = workflowId !== '';
 

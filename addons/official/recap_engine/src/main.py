@@ -4,7 +4,6 @@ FastAPI router exposant l'API REST du Recap Engine.
 Enregistré sous /api/addons/recap_engine/
 """
 
-import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -14,6 +13,7 @@ try:
     from fastapi import APIRouter, BackgroundTasks, HTTPException
     from fastapi.responses import FileResponse, JSONResponse
     from pydantic import BaseModel
+
     HAS_FASTAPI = True
 except ImportError:
     HAS_FASTAPI = False
@@ -31,6 +31,7 @@ def get_extractor() -> NarrativeExtractor:
     if _extractor is None:
         _extractor = NarrativeExtractor(output_dir="data/continuity")
     return _extractor
+
 
 # ============================================================================
 # Singleton Pipeline
@@ -57,6 +58,7 @@ def get_pipeline() -> RecapPipeline:
 # ============================================================================
 
 if HAS_FASTAPI:
+
     class GenerateFromComicRequest(BaseModel):
         project_id: str
         comic_json_path: str
@@ -139,7 +141,7 @@ if HAS_FASTAPI:
     ):
         """
         Génère un recap depuis un fichier JSON de BD exporté.
-        
+
         Pipeline :
         1. Lecture JSON → Construction timeline
         2. Génération TTS (asyncrone en arrière-plan si long)
@@ -151,7 +153,7 @@ if HAS_FASTAPI:
         except ValueError:
             raise HTTPException(
                 status_code=400,
-                detail=f"Style invalide '{req.style}'. Valides : {[s.value for s in RecapStyle]}"
+                detail=f"Style invalide '{req.style}'. Valides : {[s.value for s in RecapStyle]}",
             )
 
         try:
@@ -179,7 +181,9 @@ if HAS_FASTAPI:
             "scenes_count": result.scenes_count,
             "estimated_duration": result.estimated_duration,
             "estimated_duration_min": round(result.estimated_duration / 60, 1),
-            "style": timeline.style.value if hasattr(timeline.style, "value") else timeline.style,
+            "style": timeline.style.value
+            if hasattr(timeline.style, "value")
+            else timeline.style,
         }
 
     @router.post("/generate/pages")
@@ -291,7 +295,9 @@ if HAS_FASTAPI:
             "timeline_id": timeline.timeline_id,
             "title": timeline.title,
             "subtitle": timeline.subtitle,
-            "style": timeline.style.value if hasattr(timeline.style, "value") else timeline.style,
+            "style": timeline.style.value
+            if hasattr(timeline.style, "value")
+            else timeline.style,
             "scenes_count": len(timeline.scenes),
             "actual_duration": timeline.actual_duration,
             "actual_duration_min": round(timeline.actual_duration / 60, 1),
@@ -303,9 +309,13 @@ if HAS_FASTAPI:
                     "scene_id": s.scene_id,
                     "page": s.source_page_number,
                     "panel": s.source_panel_index,
-                    "narration": s.narration_text[:100] + "…" if len(s.narration_text) > 100 else s.narration_text,
+                    "narration": s.narration_text[:100] + "…"
+                    if len(s.narration_text) > 100
+                    else s.narration_text,
                     "duration": s.duration,
-                    "camera_move": s.camera_move.value if hasattr(s.camera_move, "value") else s.camera_move,
+                    "camera_move": s.camera_move.value
+                    if hasattr(s.camera_move, "value")
+                    else s.camera_move,
                     "render_status": s.render_status,
                 }
                 for s in timeline.scenes
@@ -336,6 +346,7 @@ if HAS_FASTAPI:
         if not timeline or not timeline.final_video_path:
             raise HTTPException(status_code=404, detail="Vidéo non disponible")
         from pathlib import Path
+
         path = Path(timeline.final_video_path)
         if not path.exists():
             raise HTTPException(status_code=404, detail="Fichier vidéo introuvable")
@@ -359,7 +370,10 @@ if HAS_FASTAPI:
 
         comic_path = Path(req.comic_json_path)
         if not comic_path.exists():
-            raise HTTPException(status_code=404, detail=f"Fichier BD introuvable : {req.comic_json_path}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Fichier BD introuvable : {req.comic_json_path}",
+            )
 
         try:
             comic_data = json.loads(comic_path.read_text(encoding="utf-8"))
@@ -444,6 +458,7 @@ if HAS_FASTAPI:
             raise HTTPException(status_code=404, detail="Timeline introuvable")
 
         from dataclasses import asdict
+
         timeline_dict = {}
         try:
             # Sérialiser la timeline pour l'extracteur
@@ -457,9 +472,12 @@ if HAS_FASTAPI:
                 elif hasattr(obj, "value"):
                     return obj.value
                 return obj
+
             timeline_dict = ser(timeline)
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Erreur sérialisation timeline : {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Erreur sérialisation timeline : {e}"
+            )
 
         extractor = get_extractor()
         previous = extractor.load_package(req.project_id, req.chapter_number - 1)
@@ -528,7 +546,7 @@ if HAS_FASTAPI:
         if not package:
             raise HTTPException(
                 status_code=404,
-                detail=f"Aucun package de continuité pour le chapitre {chapter_number} du projet {project_id}."
+                detail=f"Aucun package de continuité pour le chapitre {chapter_number} du projet {project_id}.",
             )
 
         next_input = extractor.to_comic_generator_input(package)
@@ -554,6 +572,7 @@ else:
 # Lazy import pour éviter l'import circulaire dans la route /voices
 def TTSGenerator_lazy(provider_str: str, language: str):
     from .tts_generator import TTSGenerator
+
     try:
         provider = TTSProvider(provider_str)
     except ValueError:

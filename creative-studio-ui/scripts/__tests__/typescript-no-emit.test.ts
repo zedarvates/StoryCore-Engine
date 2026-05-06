@@ -7,7 +7,7 @@
  * .js files when configured with noEmit: true.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, _beforeEach, _afterEach } from 'vitest';
 import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -89,7 +89,7 @@ function cleanupTestFiles(files: string[]) {
           fs.unlinkSync(jsFile);
         }
       }
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors
     }
   }
@@ -141,7 +141,7 @@ describe('Feature: typescript-build-configuration', () => {
                   stdio: 'pipe',
                   timeout: 30000 
                 });
-              } catch (error) {
+              } catch (_error) {
                 // tsc might fail due to type errors, but we still check for .js files
               }
 
@@ -187,7 +187,7 @@ describe('Feature: typescript-build-configuration', () => {
                 
                 // At least one condition should be true
                 expect(hasNoEmit || outDirNotSrc).toBe(true);
-              } catch (error) {
+              } catch (_error) {
                 // If JSON parsing fails, check the raw content for noEmit
                 const hasNoEmitInContent = content.includes('"noEmit": true') || 
                                           content.includes('"noEmit":true');
@@ -222,7 +222,7 @@ describe('Feature: typescript-build-configuration', () => {
                   stdio: 'pipe',
                   timeout: 30000 
                 });
-              } catch (error) {
+              } catch (_error) {
                 // Type checking might fail, but we still verify no .js files
               }
 

@@ -6,7 +6,7 @@
  * Requirements: 3.6, 20.1, 22.3
  */
 
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useCallback, _useMemo } from 'react';
 
 // ============================================================================
 // useWhyDidYouUpdate Hook

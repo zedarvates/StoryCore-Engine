@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ComfyUIClient } from '@/services/wizard/ComfyUIClient';
 import { backendApi } from '@/services/backendApiService';
 import {
-  Play,
-  Pause,
+  _Play,
+  _Pause,
   Square,
   RefreshCw,
   CheckCircle,

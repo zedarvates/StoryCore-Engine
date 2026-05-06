@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 /* cspell:ignore ella spanish él nyquist */
 /**
  * New Project Dashboard Component
@@ -1745,7 +1746,7 @@ export function ProjectDashboardNew({
         
         // FIX: Also update the sequence plan in the store if it's a formal plan
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const seqService = (window as any).sequencePlanService;
+        const seqService = (window as LegacyAny).sequencePlanService;
         if (seq.isFormal && seqService?.saveSequencePlan) {
             await seqService.saveSequencePlan(seq, projectPath);
         }

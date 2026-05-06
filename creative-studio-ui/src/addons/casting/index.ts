@@ -86,20 +86,20 @@ export const castingPlugin: CastingPlugin = {
     return castingManagerInstance;
   },
 
-  onCharacterCreated: (characterId: string) => {
+  onCharacterCreated: (_characterId: string) => {
   },
 
-  onCharacterUpdated: (characterId: string) => {
+  onCharacterUpdated: (_characterId: string) => {
   },
 
-  onCharacterDeleted: (characterId: string) => {
+  onCharacterDeleted: (_characterId: string) => {
   },
 
-  getActorForCharacter: (characterId: string) => {
+  getActorForCharacter: (_characterId: string) => {
     return null;
   },
 
-  getActorsForCharacters: (characterIds: string[]) => {
+  getActorsForCharacters: (_characterIds: string[]) => {
     return {};
   },
 };

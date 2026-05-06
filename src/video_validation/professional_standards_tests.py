@@ -9,6 +9,7 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
+
 class ProfessionalStandardsTests:
     """Handles professional standards validation"""
 
@@ -35,12 +36,16 @@ class ProfessionalStandardsTests:
 
             # Test 3: Color space compliance
             total_professional_tests += 1
-            if ProfessionalStandardsTests._test_color_space_compliance(result, temp_project_dir):
+            if ProfessionalStandardsTests._test_color_space_compliance(
+                result, temp_project_dir
+            ):
                 professional_tests_passed += 1
 
             # Test 4: Metadata standards
             total_professional_tests += 1
-            if ProfessionalStandardsTests._test_metadata_standards(result, temp_project_dir):
+            if ProfessionalStandardsTests._test_metadata_standards(
+                result, temp_project_dir
+            ):
                 professional_tests_passed += 1
 
             # Test 5: Export format compliance
@@ -49,19 +54,31 @@ class ProfessionalStandardsTests:
                 professional_tests_passed += 1
 
             # Calculate success rate
-            professional_success_rate = (professional_tests_passed / total_professional_tests) * 100
-            professional_passed = professional_success_rate >= 90.0  # 90% threshold for professional standards
+            professional_success_rate = (
+                professional_tests_passed / total_professional_tests
+            ) * 100
+            professional_passed = (
+                professional_success_rate >= 90.0
+            )  # 90% threshold for professional standards
 
             duration = time.time() - test_start
-            result.add_test_result("Professional Standards", professional_passed, duration)
-            result.add_performance_metric("professional_standards_success_rate", professional_success_rate, "%")
+            result.add_test_result(
+                "Professional Standards", professional_passed, duration
+            )
+            result.add_performance_metric(
+                "professional_standards_success_rate", professional_success_rate, "%"
+            )
 
-            logger.info(f"    📊 Professional standards success rate: {professional_success_rate:.1f}%")
+            logger.info(
+                f"    📊 Professional standards success rate: {professional_success_rate:.1f}%"
+            )
 
             if professional_passed:
                 logger.info("    ✅ Professional standards validation passed")
             else:
-                logger.warning("    ⚠️  Professional standards validation needs improvement")
+                logger.warning(
+                    "    ⚠️  Professional standards validation needs improvement"
+                )
 
         except Exception as e:
             duration = time.time() - test_start
@@ -87,7 +104,7 @@ class ProfessionalStandardsTests:
                     config = VideoConfig(
                         frame_rate=int(frame_rate),  # Simplified to int for testing
                         resolution=(1920, 1080),
-                        quality="medium"
+                        quality="medium",
                     )
 
                     engine = VideoEngine(config)
@@ -97,7 +114,9 @@ class ProfessionalStandardsTests:
                         supported_rates += 1
                         logger.info(f"      ✅ {frame_rate} fps supported")
                     else:
-                        logger.warning(f"      ⚠️  {frame_rate} fps not supported: {issues}")
+                        logger.warning(
+                            f"      ⚠️  {frame_rate} fps not supported: {issues}"
+                        )
 
                 except Exception as e:
                     logger.warning(f"      ⚠️  {frame_rate} fps failed: {e}")
@@ -106,7 +125,9 @@ class ProfessionalStandardsTests:
             success_rate = (supported_rates / len(broadcast_frame_rates)) * 100
             success = success_rate >= 80.0
 
-            logger.info(f"      📊 Frame rate support: {supported_rates}/{len(broadcast_frame_rates)} ({success_rate:.1f}%)")
+            logger.info(
+                f"      📊 Frame rate support: {supported_rates}/{len(broadcast_frame_rates)} ({success_rate:.1f}%)"
+            )
 
             return success
 
@@ -124,11 +145,11 @@ class ProfessionalStandardsTests:
 
             # Standard broadcast resolutions
             standard_resolutions = [
-                (1280, 720),    # 720p HD
-                (1920, 1080),   # 1080p Full HD
-                (3840, 2160),   # 4K UHD
-                (854, 480),     # 480p SD
-                (640, 360)      # 360p
+                (1280, 720),  # 720p HD
+                (1920, 1080),  # 1080p Full HD
+                (3840, 2160),  # 4K UHD
+                (854, 480),  # 480p SD
+                (640, 360),  # 360p
             ]
 
             supported_resolutions = 0
@@ -136,9 +157,7 @@ class ProfessionalStandardsTests:
             for width, height in standard_resolutions:
                 try:
                     config = VideoConfig(
-                        frame_rate=24,
-                        resolution=(width, height),
-                        quality="medium"
+                        frame_rate=24, resolution=(width, height), quality="medium"
                     )
 
                     engine = VideoEngine(config)
@@ -148,7 +167,9 @@ class ProfessionalStandardsTests:
                         supported_resolutions += 1
                         logger.info(f"      ✅ {width}x{height} supported")
                     else:
-                        logger.warning(f"      ⚠️  {width}x{height} not supported: {issues}")
+                        logger.warning(
+                            f"      ⚠️  {width}x{height} not supported: {issues}"
+                        )
 
                 except Exception as e:
                     logger.warning(f"      ⚠️  {width}x{height} failed: {e}")
@@ -157,7 +178,9 @@ class ProfessionalStandardsTests:
             success_rate = (supported_resolutions / len(standard_resolutions)) * 100
             success = success_rate >= 80.0
 
-            logger.info(f"      📊 Resolution support: {supported_resolutions}/{len(standard_resolutions)} ({success_rate:.1f}%)")
+            logger.info(
+                f"      📊 Resolution support: {supported_resolutions}/{len(standard_resolutions)} ({success_rate:.1f}%)"
+            )
 
             return success
 
@@ -174,11 +197,7 @@ class ProfessionalStandardsTests:
             # Test that generated frames have proper color space
             from video_engine import VideoEngine, VideoConfig
 
-            config = VideoConfig(
-                frame_rate=24,
-                resolution=(1920, 1080),
-                quality="high"
-            )
+            config = VideoConfig(frame_rate=24, resolution=(1920, 1080), quality="high")
 
             engine = VideoEngine(config)
             engine.load_project(temp_project_dir)
@@ -186,7 +205,9 @@ class ProfessionalStandardsTests:
             result_data = engine.generate_video_sequence("shot_001")
 
             if not result_data.success:
-                logger.error(f"      ❌ Failed to generate test sequence: {result_data.error_message}")
+                logger.error(
+                    f"      ❌ Failed to generate test sequence: {result_data.error_message}"
+                )
                 return False
 
             # Check frame properties
@@ -198,17 +219,23 @@ class ProfessionalStandardsTests:
 
             # Check frame format
             if sample_frame.dtype != np.uint8:
-                logger.warning(f"      ⚠️  Frame dtype is {sample_frame.dtype}, expected uint8")
+                logger.warning(
+                    f"      ⚠️  Frame dtype is {sample_frame.dtype}, expected uint8"
+                )
                 return False
 
             # Check color range (0-255 for uint8)
             if sample_frame.min() < 0 or sample_frame.max() > 255:
-                logger.warning(f"      ⚠️  Frame values out of range: {sample_frame.min()}-{sample_frame.max()}")
+                logger.warning(
+                    f"      ⚠️  Frame values out of range: {sample_frame.min()}-{sample_frame.max()}"
+                )
                 return False
 
             # Check dimensions
             if len(sample_frame.shape) != 3 or sample_frame.shape[2] != 3:
-                logger.warning(f"      ⚠️  Frame shape is {sample_frame.shape}, expected (H, W, 3)")
+                logger.warning(
+                    f"      ⚠️  Frame shape is {sample_frame.shape}, expected (H, W, 3)"
+                )
                 return False
 
             logger.info("      ✅ Color space compliance verified")
@@ -239,7 +266,7 @@ class ProfessionalStandardsTests:
                 "total_frames",
                 "frame_rate",
                 "resolution",
-                "shots"
+                "shots",
             ]
 
             missing_fields = []
@@ -291,7 +318,7 @@ class ProfessionalStandardsTests:
                     export_config = {
                         "output_format": format_name,
                         "organize_by_shot": True,
-                        "include_metadata": True
+                        "include_metadata": True,
                     }
 
                     # Test format validation
@@ -309,7 +336,9 @@ class ProfessionalStandardsTests:
             # Require support for at least 2 standard formats
             success = supported_formats >= 2
 
-            logger.info(f"      📊 Export format support: {supported_formats}/{len(standard_formats)}")
+            logger.info(
+                f"      📊 Export format support: {supported_formats}/{len(standard_formats)}"
+            )
 
             return success
 

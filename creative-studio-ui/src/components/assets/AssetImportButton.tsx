@@ -6,7 +6,7 @@
 
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { UploadIcon, CheckCircle2Icon, XCircleIcon } from 'lucide-react';
+import { UploadIcon, _CheckCircle2Icon, _XCircleIcon } from 'lucide-react';
 import { AssetService } from '@/services/assets/AssetService';
 import type { ImportResult } from '@/types/asset';
 import { Progress } from '@/components/ui/progress';

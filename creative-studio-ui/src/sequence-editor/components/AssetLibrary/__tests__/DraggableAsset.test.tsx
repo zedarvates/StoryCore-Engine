@@ -4,6 +4,8 @@
  * Tests for the draggable asset component with drag-and-drop functionality.
  * Requirements: 15.1 - Drag-and-drop interaction system
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -52,9 +54,9 @@ const renderWithDnd = (component: React.ReactElement) => {
 // ============================================================================
 
 describe('DraggableAsset', () => {
-  let onPreview: any;
-  let onEdit: any;
-  let onDelete: any;
+  let onPreview: LegacyAny;
+  let onEdit: LegacyAny;
+  let onDelete: LegacyAny;
 
   beforeEach(() => {
     onPreview = vi.fn();

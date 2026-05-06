@@ -20,13 +20,15 @@ Version: 1.0.0
 import logging
 from datetime import datetime
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Request, Query, status
+from fastapi import APIRouter, Request, Query, status
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/gems", tags=["💎 GemReward"])
-agent_keys_router = APIRouter(prefix="/api/agent-keys", tags=["💎 GemReward - Agent Keys"])
+agent_keys_router = APIRouter(
+    prefix="/api/agent-keys", tags=["💎 GemReward - Agent Keys"]
+)
 report_router = APIRouter(prefix="/api/v1/report", tags=["💎 GemReward - Reports"])
 
 
@@ -34,13 +36,14 @@ report_router = APIRouter(prefix="/api/v1/report", tags=["💎 GemReward - Repor
 # Schémas Pydantic
 # ─────────────────────────────────────────────
 
+
 class GemBalanceResponse(BaseModel):
     user_id: str
     gem_balance: int
     gem_total_earned: int
     gem_tier: str
     tier_label: str
-    tier_progress: float       # 0.0 → 1.0 (progression vers le tier suivant)
+    tier_progress: float  # 0.0 → 1.0 (progression vers le tier suivant)
     next_tier: Optional[str]
     gems_to_next_tier: Optional[int]
 
@@ -105,19 +108,24 @@ class TierInfo(BaseModel):
 
 
 class CreateAgentKeyRequest(BaseModel):
-    agent_name: str = Field(..., min_length=3, max_length=100,
-                            description="Nom de l'agent (ex: 'MyAutoTester v2.1')")
+    agent_name: str = Field(
+        ...,
+        min_length=3,
+        max_length=100,
+        description="Nom de l'agent (ex: 'MyAutoTester v2.1')",
+    )
     agent_description: Optional[str] = Field(None, max_length=500)
-    framework: Optional[str] = Field(None, max_length=50,
-                                     description="Framework utilisé (MCP, LangChain, custom...)")
+    framework: Optional[str] = Field(
+        None, max_length=50, description="Framework utilisé (MCP, LangChain, custom...)"
+    )
     agent_version: Optional[str] = Field(None, max_length=50)
 
 
 class AgentKeyResponse(BaseModel):
     id: str
     agent_name: str
-    key_prefix: str            # "sc_agent_abc12345..."
-    full_key: Optional[str]    # Retourné UNE SEULE FOIS à la création
+    key_prefix: str  # "sc_agent_abc12345..."
+    full_key: Optional[str]  # Retourné UNE SEULE FOIS à la création
     framework: Optional[str]
     agent_version: Optional[str]
     is_active: bool
@@ -151,26 +159,51 @@ class DuplicateCheckResponse(BaseModel):
 
 TIER_CONFIG = {
     "contributor": {
-        "label": "Contributeur", "min_gems": 0,   "max_gems": 9,
-        "color": "#94a3b8", "icon": "💎",
+        "label": "Contributeur",
+        "min_gems": 0,
+        "max_gems": 9,
+        "color": "#94a3b8",
+        "icon": "💎",
         "benefits": ["Badge Contributeur", "Accès au leaderboard"],
     },
     "silver": {
-        "label": "Argent",       "min_gems": 10,  "max_gems": 29,
-        "color": "#cbd5e1", "icon": "💎",
-        "benefits": ["Badge Argent", "Preview des features en beta", "+5% gemmes bonus"],
+        "label": "Argent",
+        "min_gems": 10,
+        "max_gems": 29,
+        "color": "#cbd5e1",
+        "icon": "💎",
+        "benefits": [
+            "Badge Argent",
+            "Preview des features en beta",
+            "+5% gemmes bonus",
+        ],
     },
     "gold": {
-        "label": "Or",           "min_gems": 30,  "max_gems": 99,
-        "color": "#fbbf24", "icon": "💎",
-        "benefits": ["Badge Or", "Accès anticipé aux nouvelles versions", "+10% gemmes bonus",
-                     "Mention dans le CHANGELOG"],
+        "label": "Or",
+        "min_gems": 30,
+        "max_gems": 99,
+        "color": "#fbbf24",
+        "icon": "💎",
+        "benefits": [
+            "Badge Or",
+            "Accès anticipé aux nouvelles versions",
+            "+10% gemmes bonus",
+            "Mention dans le CHANGELOG",
+        ],
     },
     "legend": {
-        "label": "Légende",      "min_gems": 100, "max_gems": None,
-        "color": "#a78bfa", "icon": "👑",
-        "benefits": ["Badge Légende", "Crédit officiel dans le README", "Accès Bêta privée",
-                     "+20% gemmes bonus", "Invitation Discord contributeurs VIP"],
+        "label": "Légende",
+        "min_gems": 100,
+        "max_gems": None,
+        "color": "#a78bfa",
+        "icon": "👑",
+        "benefits": [
+            "Badge Légende",
+            "Crédit officiel dans le README",
+            "Accès Bêta privée",
+            "+20% gemmes bonus",
+            "Invitation Discord contributeurs VIP",
+        ],
     },
 }
 
@@ -208,6 +241,7 @@ def _mock_user_gems(user_id: str) -> dict:
 # GET /api/gems/balance
 # ─────────────────────────────────────────────
 
+
 @router.get(
     "/balance",
     response_model=GemBalanceResponse,
@@ -219,6 +253,7 @@ async def get_gem_balance(request: Request):
     Authentification requise (JWT ou API Key agent).
     """
     from backend.contributor_auth import resolve_contributor
+
     contributor = await resolve_contributor(request)
     user_id = contributor.user_id
 
@@ -244,6 +279,7 @@ async def get_gem_balance(request: Request):
 # GET /api/gems/history
 # ─────────────────────────────────────────────
 
+
 @router.get(
     "/history",
     response_model=GemHistoryResponse,
@@ -258,7 +294,8 @@ async def get_gem_history(
     Retourne l'historique paginé des transactions de gemmes de l'utilisateur.
     """
     from backend.contributor_auth import resolve_contributor
-    contributor = await resolve_contributor(request)
+
+    await resolve_contributor(request)
 
     # Mock en dev
     mock_transactions = [
@@ -290,6 +327,7 @@ async def get_gem_history(
 # GET /api/gems/stats
 # ─────────────────────────────────────────────
 
+
 @router.get(
     "/stats",
     response_model=GemStatsResponse,
@@ -298,6 +336,7 @@ async def get_gem_history(
 async def get_gem_stats(request: Request):
     """Retourne les statistiques de contribution de l'utilisateur."""
     from backend.contributor_auth import resolve_contributor
+
     contributor = await resolve_contributor(request)
 
     return GemStatsResponse(
@@ -321,13 +360,16 @@ async def get_gem_stats(request: Request):
 # GET /api/gems/leaderboard
 # ─────────────────────────────────────────────
 
+
 @router.get(
     "/leaderboard",
     response_model=List[LeaderboardEntry],
     summary="Top 20 contributeurs — Leaderboard",
 )
 async def get_leaderboard(
-    period: Optional[str] = Query(None, description="Période : 'monthly' ou 'all-time'"),
+    period: Optional[str] = Query(
+        None, description="Période : 'monthly' ou 'all-time'"
+    ),
 ):
     """
     Retourne le classement des 20 meilleurs contributeurs.
@@ -351,6 +393,7 @@ async def get_leaderboard(
 # ─────────────────────────────────────────────
 # GET /api/gems/tiers
 # ─────────────────────────────────────────────
+
 
 @router.get(
     "/tiers",
@@ -376,6 +419,7 @@ async def get_tiers():
 # ─────────────────────────────────────────────
 # POST /api/v1/report/check-dup
 # ─────────────────────────────────────────────
+
 
 @report_router.post(
     "/check-dup",
@@ -431,6 +475,7 @@ async def check_duplicate_before_report(
 # POST /api/agent-keys — Créer une clé agent
 # ─────────────────────────────────────────────
 
+
 @agent_keys_router.post(
     "",
     response_model=AgentKeyResponse,
@@ -447,7 +492,6 @@ async def create_agent_key(request: Request, body: CreateAgentKeyRequest):
     Format de la clé : sc_agent_{64_hex_chars}
     """
     from backend.contributor_auth import resolve_contributor, generate_agent_api_key
-    from backend.gem_models import AgentApiKey
 
     contributor = await resolve_contributor(request)
 
@@ -484,6 +528,7 @@ async def create_agent_key(request: Request, body: CreateAgentKeyRequest):
 # GET /api/agent-keys — Lister ses clés
 # ─────────────────────────────────────────────
 
+
 @agent_keys_router.get(
     "",
     response_model=List[AgentKeyResponse],
@@ -492,7 +537,8 @@ async def create_agent_key(request: Request, body: CreateAgentKeyRequest):
 async def list_agent_keys(request: Request):
     """Retourne toutes les clés API agents de l'utilisateur connecté."""
     from backend.contributor_auth import resolve_contributor
-    contributor = await resolve_contributor(request)
+
+    await resolve_contributor(request)
 
     # Mock — en prod : requête DB filtrée par owner_user_id
     return []
@@ -501,6 +547,7 @@ async def list_agent_keys(request: Request):
 # ─────────────────────────────────────────────
 # DELETE /api/agent-keys/{key_id} — Révoquer
 # ─────────────────────────────────────────────
+
 
 @agent_keys_router.delete(
     "/{key_id}",
@@ -512,6 +559,7 @@ async def revoke_agent_key(key_id: str, request: Request):
     La clé devient immédiatement invalide.
     """
     from backend.contributor_auth import resolve_contributor
+
     contributor = await resolve_contributor(request)
 
     # Mock — en prod : vérifier ownership + soft-delete

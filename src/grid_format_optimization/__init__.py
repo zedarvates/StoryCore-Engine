@@ -17,13 +17,13 @@ from .types import (
     CoherenceMetrics,
     PerformanceMetrics,
     FormatPreferences,
-    OptimizationConfig
+    OptimizationConfig,
 )
 
 __version__ = "1.0.0"
 __all__ = [
     "GridFormatOptimizer",
-    "FormatSelector", 
+    "FormatSelector",
     "QualityPredictor",
     "TemporalCoherenceEngine",
     "SpecializedQualityAnalyzer",
@@ -35,5 +35,5 @@ __all__ = [
     "CoherenceMetrics",
     "PerformanceMetrics",
     "FormatPreferences",
-    "OptimizationConfig"
+    "OptimizationConfig",
 ]

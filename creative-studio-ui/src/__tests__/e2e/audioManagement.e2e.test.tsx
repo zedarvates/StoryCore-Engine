@@ -373,7 +373,7 @@ describe('Audio Management E2E Workflow', () => {
 
     it('should apply audio preset', async () => {
       const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
-      const track = shot?.audioTracks[0];
+      const _track = shot?.audioTracks[0];
 
       // Podcast preset: voice clarity + limiter
       const effects: AudioEffect[] = [

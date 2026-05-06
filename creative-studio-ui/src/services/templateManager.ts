@@ -8,22 +8,22 @@ import { SequenceTemplate, ShotTemplate, GenerationPreset, AssetTemplate } from 
 import {
   SEQUENCE_TEMPLATES,
   getSequenceTemplateById,
-  getSequenceTemplatesByCategory,
+  _getSequenceTemplatesByCategory,
 } from '../data/templates/sequenceTemplates';
 import {
   SHOT_TEMPLATES,
   getShotTemplateById,
-  getShotTemplatesByCategory,
+  _getShotTemplatesByCategory,
 } from '../data/templates/shotTemplates';
 import {
   GENERATION_PRESETS,
   getGenerationPresetById,
-  getGenerationPresetsByCategory,
+  _getGenerationPresetsByCategory,
 } from '../data/templates/generationPresets';
 import {
   assetTemplates,
   getAssetTemplateById,
-  getAssetTemplatesByCategory,
+  _getAssetTemplatesByCategory,
 } from '../data/assetTemplates';
 
 // ============================================================================
@@ -823,7 +823,7 @@ export class TemplateManager {
   }
 
   private async saveCustomTemplates(): Promise<void> {
-    const data = {
+    const _data = {
       sequenceTemplates: Array.from(this.customSequenceTemplates.entries()),
       shotTemplates: Array.from(this.customShotTemplates.entries()),
       generationPresets: Array.from(this.customGenerationPresets.entries()),
@@ -838,7 +838,7 @@ export class TemplateManager {
     try {
       // Load from draftStorage
       // This will be implemented when we integrate with the draft storage service
-    } catch (error) {
+    } catch (_error) {
       // Failed to load custom templates
     }
   }

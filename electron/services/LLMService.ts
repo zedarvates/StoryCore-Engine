@@ -21,7 +21,7 @@ let llmConfigStore: LLMConfiguration = {
 
 export interface LLMProvider {
   name: string;
-  type: 'ollama' | 'openai' | 'anthropic' | 'custom';
+  type: 'ollama' | 'openai' | 'anthropic' | 'lmstudio' | 'custom';
   baseUrl?: string;
   apiKey?: string;
   model?: string;
@@ -91,6 +91,8 @@ export class LLMService {
           return await this.testOpenAIConnection(provider);
         case 'anthropic':
           return await this.testAnthropicConnection(provider);
+        case 'lmstudio':
+          return await this.testLMStudioConnection(provider);
         default:
           return { success: false, message: 'Unknown provider type' };
       }
@@ -177,6 +179,30 @@ export class LLMService {
   }
 
   /**
+   * Test LM Studio connection
+   */
+  private async testLMStudioConnection(provider: LLMProvider): Promise<{ success: boolean; message: string }> {
+    const baseUrl = provider.baseUrl || 'http://localhost:1234';
+    try {
+      const response = await fetch(`${baseUrl}/v1/models`);
+      if (!response.ok) {
+        return { success: false, message: `LM Studio returned ${response.status}` };
+      }
+      const data = (await response.json()) as any;
+      const models = (data.data || []).map((m: any) => m.id);
+      return {
+        success: true,
+        message: `Connected to LM Studio. Available models: ${models.join(', ') || 'none'}`,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to connect to LM Studio at ${baseUrl}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
+    }
+  }
+
+  /**
    * Get available models for a provider
    */
   async getAvailableModels(provider: LLMProvider): Promise<string[]> {
@@ -186,6 +212,8 @@ export class LLMService {
           return await this.getOllamaModels(provider);
         case 'openai':
           return await this.getOpenAIModels(provider);
+        case 'lmstudio':
+          return await this.getLMStudioModels(provider);
         default:
           return [];
       }
@@ -219,5 +247,21 @@ export class LLMService {
     if (!response.ok) return [];
     const data = (await response.json()) as any;
     return (data.data || []).map((m: any) => m.id);
+  }
+
+  /**
+   * Get LM Studio models
+   */
+  private async getLMStudioModels(provider: LLMProvider): Promise<string[]> {
+    const baseUrl = provider.baseUrl || 'http://localhost:1234';
+    try {
+      const response = await fetch(`${baseUrl}/v1/models`);
+      if (!response.ok) return [];
+      const data = (await response.json()) as any;
+      return (data.data || []).map((m: any) => m.id);
+    } catch (error) {
+      console.error('Failed to get LM Studio models:', error);
+      return [];
+    }
   }
 }

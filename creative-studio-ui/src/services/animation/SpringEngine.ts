@@ -118,7 +118,7 @@ export class SpringEngine {
         this.lastFrameTime = currentTime;
 
         // Limit delta time to prevent spiral of death
-        const dt = Math.min(deltaTime, 0.1);
+        const _dt = Math.min(deltaTime, 0.1);
 
         // Run physics simulation
         const result = animate();
@@ -245,7 +245,7 @@ export class SpringEngine {
   /**
    * Calculate final spring value without animation
    */
-  static calculateFinalValue(from: number, to: number, config: SpringConfig): number {
+  static calculateFinalValue(from: number, to: number, _config: SpringConfig): number {
     return to;
   }
 
@@ -253,7 +253,7 @@ export class SpringEngine {
    * Estimate animation duration based on spring parameters
    */
   static estimateDuration(from: number, to: number, config: SpringConfig): number {
-    const delta = Math.abs(to - from);
+    const _delta = Math.abs(to - from);
     // Rough estimate based on spring characteristics
     const dampingRatio = config.damping / (2 * Math.sqrt(config.mass * config.stiffness));
     

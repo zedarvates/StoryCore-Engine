@@ -8,6 +8,7 @@ without affecting pitch.
 import numpy as np
 import librosa
 
+
 class SpeedChanger:
     """Audio speed changer with pitch preservation."""
 
@@ -48,12 +49,10 @@ class SpeedChanger:
         """
         # First apply time stretching
         stretched_audio = librosa.effects.time_stretch(audio_data, rate=speed_factor)
-        
+
         # Then apply pitch shifting
         pitch_shifted_audio = librosa.effects.pitch_shift(
-            stretched_audio, 
-            sr=self.sample_rate, 
-            n_steps=np.log2(pitch_factor)
+            stretched_audio, sr=self.sample_rate, n_steps=np.log2(pitch_factor)
         )
-        
+
         return pitch_shifted_audio

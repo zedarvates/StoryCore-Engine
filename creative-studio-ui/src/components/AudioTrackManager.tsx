@@ -179,7 +179,7 @@ export const AudioTrackManager: React.FC<AudioTrackManagerProps> = ({
    * Handle voice preview
    * Requirements: 5.4
    */
-  const handleVoicePreview = useCallback((audioUrl: string) => {
+  const handleVoicePreview = useCallback((_audioUrl: string) => {
     ;
     // Audio preview is handled internally by VoiceGenerationPanel
   }, []);

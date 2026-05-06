@@ -3,6 +3,8 @@
  * 
  * React hook for backend API integration with task submission and status tracking
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
@@ -39,7 +41,7 @@ export interface UseBackendIntegrationReturn {
   /**
    * Invoke StoryCore-Engine CLI command
    */
-  invokeCliCommand: (command: string, args: Record<string, unknown>) => Promise<any>;
+  invokeCliCommand: (command: string, args: Record<string, unknown>) => Promise<LegacyAny>;
   
   /**
    * Current submission state
@@ -267,7 +269,7 @@ export function useBackendIntegration(
    * Invoke StoryCore-Engine CLI command
    */
   const invokeCliCommand = useCallback(
-    async (command: string, args: Record<string, unknown>): Promise<any> => {
+    async (command: string, args: Record<string, unknown>): Promise<LegacyAny> => {
       setIsSubmitting(true);
       setError(null);
 

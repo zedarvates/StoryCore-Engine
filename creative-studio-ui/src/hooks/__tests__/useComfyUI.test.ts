@@ -4,6 +4,8 @@
  * Tests for the useComfyUI hook that provides UI integration
  * with ComfyUI services for connection management and generation.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useComfyUI } from '../useComfyUI';
@@ -18,7 +20,7 @@ const mockGetComfyUIServersService = getComfyUIServersService as jest.MockedFunc
 const mockResetComfyUIServersService = resetComfyUIServersService as jest.MockedFunction<typeof resetComfyUIServersService>;
 
 describe('useComfyUI Hook', () => {
-  let mockService: any;
+  let mockService: LegacyAny;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -296,7 +298,7 @@ describe('useComfyUI Hook', () => {
         try {
           await result.current.addServer({
             name: 'Failing Server',
-            serverUrl: 'http://localhost:8188',
+            serve_rUrl: 'http://localhost:8188',
           });
         } catch (e) {
           // Expected to throw
@@ -345,7 +347,7 @@ describe('useComfyUI Hook', () => {
         try {
           await result.current.addServer({
             name: 'Failing Server',
-            serverUrl: 'http://localhost:8188',
+            serve_rUrl: 'http://localhost:8188',
           });
         } catch (e) {
           // Expected to throw
@@ -368,7 +370,7 @@ describe('useComfyUI Hook', () => {
 
   describe('Loading States', () => {
     it('should show loading during async operations', async () => {
-      let resolveAddServer: (value: any) => void;
+      let resolveAddServer: (value: LegacyAny) => void;
       const addServerPromise = new Promise((resolve) => {
         resolveAddServer = resolve;
       });
@@ -403,8 +405,8 @@ describe('useComfyUI Hook', () => {
     });
 
     it('should handle multiple concurrent operations', async () => {
-      const promises: Promise<any>[] = [];
-      const resolves: ((value: any) => void)[] = [];
+      const promises: Promise<LegacyAny>[] = [];
+      const resolves: ((value: LegacyAny) => void)[] = [];
 
       // Create multiple pending promises
       for (let i = 0; i < 3; i++) {

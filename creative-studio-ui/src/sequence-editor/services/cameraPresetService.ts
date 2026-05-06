@@ -558,7 +558,7 @@ export function getCameraPresetTypes(): Array<{ type: CameraMovementType; count:
  */
 export function applyCameraPresetToShot(
   preset: CameraPreset,
-  shotId: string
+  _shotId: string
 ): CameraPresetParameters {
   return {
     ...preset.metadata.cameraMetadata.parameters,

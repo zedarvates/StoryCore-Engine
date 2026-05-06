@@ -19,6 +19,7 @@ interface UseRecentProjectsReturn {
   // Actions
   refresh: () => Promise<void>;
   remove: (projectPath: string) => Promise<void>;
+  deleteProject: (projectPath: string) => Promise<void>;
   checkExistence: () => Promise<void>;
   cleanupMissing: () => Promise<void>;
 }
@@ -75,6 +76,30 @@ export function useRecentProjects(autoLoad = true): UseRecentProjectsReturn {
         setError(errorMessage);
         console.error('Failed to remove project:', err);
         throw err;
+      }
+    },
+    [loadProjects]
+  );
+
+  // Delete a project (files + recent list)
+  const deleteProject = useCallback(
+    async (projectPath: string) => {
+      try {
+        setIsLoading(true);
+        if (window.electronAPI) {
+          await window.electronAPI.project.delete(projectPath);
+          await loadProjects(); // Reload after deletion
+        } else {
+          // Demo mode - remove from local state
+          setProjects((prev) => prev.filter((p) => p.path !== projectPath));
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to delete project';
+        setError(errorMessage);
+        console.error('Failed to delete project:', err);
+        throw err;
+      } finally {
+        setIsLoading(false);
       }
     },
     [loadProjects]
@@ -150,6 +175,7 @@ export function useRecentProjects(autoLoad = true): UseRecentProjectsReturn {
     // Actions
     refresh,
     remove,
+    deleteProject,
     checkExistence,
     cleanupMissing,
   };

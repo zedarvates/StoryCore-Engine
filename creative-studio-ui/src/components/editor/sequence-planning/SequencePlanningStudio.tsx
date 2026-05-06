@@ -1,30 +1,31 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import {
-  Play,
-  Pause,
-  Square,
+  _Play,
+  _Pause,
+  _Square,
   RotateCcw,
   Save,
-  Download,
+  _Download,
   Upload,
-  Settings,
-  Eye,
+  _Settings,
+  _Eye,
   EyeOff,
-  Zap,
-  Wand2,
+  _Zap,
+  _Wand2,
   Layers,
   Users,
-  Home,
+  _Home,
   Camera,
-  Film,
+  _Film,
   Send,
-  CheckCircle,
+  _CheckCircle,
   AlertCircle,
   Clock,
   Volume2,
   Speaker,
   Package,
-  Image as ImageIcon,
+  _Image as ImageIcon,
   Video,
   Accessibility
 } from 'lucide-react';
@@ -37,7 +38,7 @@ import { PuppetLibrary } from './PuppetLibrary';
 import { SceneLibrary } from './SceneLibrary';
 import { ObjectLibrary } from './ObjectLibrary';
 import { ElementPropertiesPanel } from './ElementPropertiesPanel';
-import { SceneSelector } from './SceneSelector';
+import { SceneSelector } from './SceneS_elector';
 import { PlanningState, CanvasElement, ViewMode } from './types';
 import { useAudioSpatialization } from './useAudioSpatialization';
 import { AudioSurroundPreview } from './AudioSurroundPreview';
@@ -73,7 +74,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
       elements: [],
       camera: { position: { x: 0, y: 0, z: 5 }, target: { x: 0, y: 0, z: 0 }, fov: 75 },
       lighting: { ambient: 0.5, directional: { x: 1, y: 1, z: 1 } }
-    } as any,
+    } as LegacyAny,
     selectedElement: null,
     viewMode: '2d',
     showGrid: true,
@@ -111,7 +112,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
           elements: [], // TODO: Load elements from scene data
           camera: { position: { x: 0, y: 0, z: 5 }, target: { x: 0, y: 0, z: 0 }, fov: 75 },
           lighting: { ambient: 0.5, directional: { x: 1, y: 1, z: 1 } }
-        } as any,
+        } as LegacyAny,
         selectedElement: null
       });
     }
@@ -197,13 +198,13 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
 
   // Dialogue management hook
   const {
-    dialogueState,
-    generateDialoguesForShot,
+    _dialogueState,
+    _generateDialoguesForShot,
     addManualDialogue,
     updateDialogue,
     updateDialogueSpatialization,
-    deleteDialogue,
-    selectDialogue,
+    _deleteDialogue,
+    _selectDialogue,
     clearDialogues
   } = useDialogueManagement();
 
@@ -378,24 +379,24 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
           {leftPanel === 'puppets' && (
             <PuppetLibrary
               worldId={sequencePlan.worldId}
-              onElementSelect={(el: any) => handleElementSelect(el)}
+              onElementSelect={(el: LegacyAny) => handleElementSelect(el)}
             />
           )}
           {leftPanel === 'scenes' && (
             <SceneLibrary
-              onElementSelect={(el: any) => handleElementSelect(el)}
+              onElementSelect={(el: LegacyAny) => handleElementSelect(el)}
             />
           )}
           {leftPanel === 'objects' && (
             <ObjectLibrary
-              onElementSelect={(el: any) => handleElementSelect(el)}
+              onElementSelect={(el: LegacyAny) => handleElementSelect(el)}
             />
           )}
           {leftPanel === 'poses' && (
             <PoseLibrary
               onPoseSelect={(poseId) => {
                 if (planningState.selectedElement && planningState.selectedElement.type === 'puppet') {
-                  handleElementUpdate(planningState.selectedElement.id, { pose: poseId } as any);
+                  handleElementUpdate(planningState.selectedElement.id, { pose: poseId } as LegacyAny);
                 }
               }}
             />
@@ -483,7 +484,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
                   soundEffects: [],
                   dialogues: dialogueState.dialogues
                 }
-              } as any}
+              } as LegacyAny}
               onDialoguesGenerated={(dialogues) => {
                 // Les dialogues sont déjà gérés par le hook useDialogueManagement
                 console.log('Dialogues mis à jour:', dialogues);
@@ -499,7 +500,7 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
           {rightPanel === 'media' && planningState.currentScene && (
             <SceneMediaPanel
               scene={planningState.currentScene}
-              onUpdate={(updates: any) => {
+              onUpdate={(updates: LegacyAny) => {
                 // Update local state
                 const updatedScene = { ...planningState.currentScene, ...updates };
                 updatePlanningState({ currentScene: updatedScene });

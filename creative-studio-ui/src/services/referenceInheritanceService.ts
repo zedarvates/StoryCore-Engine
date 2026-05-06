@@ -1,3 +1,4 @@
+// cspell:ignore uuidv
 /**
  * ReferenceInheritanceService - Propagates references between levels
  * 
@@ -11,9 +12,10 @@
  * - Override management for shot-level modifications
  * - Change propagation across the inheritance chain
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type {
-  MasterReferenceSheet,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
   GlobalStyleSheet,
@@ -150,7 +152,7 @@ export class ReferenceInheritanceService {
         const json = JSON.stringify(data, null, 2);
         const encoder = new TextEncoder();
         const uint8Array = encoder.encode(json);
-        await window.electronAPI.fs.writeFile(filePath, uint8Array as any);
+        await window.electronAPI.fs.writeFile(filePath, uint8Array as LegacyAny);
       } else {
         console.warn('[ReferenceInheritanceService] File system not available, data not persisted');
       }
@@ -413,7 +415,7 @@ export class ReferenceInheritanceService {
    */
   async resolveReference(
     source: 'master' | 'sequence',
-    referenceId: string
+    _referenceId: string
   ): Promise<CharacterAppearanceSheet | LocationAppearanceSheet | GlobalStyleSheet | null> {
     if (!this.referenceSheetService) {
       throw new Error('ReferenceSheetService not set');

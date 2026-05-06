@@ -2,17 +2,18 @@ import pytest
 import json
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from music_lyrics_service import (
-    MusicLyricsService, 
-    LyricsGenerationRequest, 
-    MusicStyleRequest
+    MusicLyricsService,
+    LyricsGenerationRequest,
+    MusicStyleRequest,
 )
 from llm_api import LLMResponse
+
 
 class TestMusicLyricsService:
     @pytest.fixture
@@ -23,22 +24,19 @@ class TestMusicLyricsService:
     async def test_generate_lyrics_success(self, service):
         mock_data = {
             "lyrics": "Verse 1: Hello world\nChorus: This is a test",
-            "structure": {"bpm_guess": 120, "energy_level": "high", "key": "C Major"}
+            "structure": {"bpm_guess": 120, "energy_level": "high", "key": "C Major"},
         }
         mock_response = LLMResponse(
             text=json.dumps(mock_data),
             model="gpt-4",
             provider="openai",
             usage={"total_tokens": 100},
-            latency_ms=500
+            latency_ms=500,
         )
 
-        with patch('music_lyrics_service.generate_text', return_value=mock_response):
+        with patch("music_lyrics_service.generate_text", return_value=mock_response):
             request = LyricsGenerationRequest(
-                theme="Testing",
-                style="pop",
-                mood=["happy"],
-                length="short"
+                theme="Testing", style="pop", mood=["happy"], length="short"
             )
             response = await service.generate_lyrics(request)
 
@@ -51,21 +49,19 @@ class TestMusicLyricsService:
         mock_data = {
             "suno_prompt": "pop, happy, 120bpm",
             "udio_prompt": "A happy pop song at 120bpm",
-            "technical_specs": {"bpm": 120, "key": "C Major", "energy": "high"}
+            "technical_specs": {"bpm": 120, "key": "C Major", "energy": "high"},
         }
         mock_response = LLMResponse(
             text=json.dumps(mock_data),
             model="gpt-4",
             provider="openai",
             usage={"total_tokens": 100},
-            latency_ms=500
+            latency_ms=500,
         )
 
-        with patch('music_lyrics_service.generate_text', return_value=mock_response):
+        with patch("music_lyrics_service.generate_text", return_value=mock_response):
             request = MusicStyleRequest(
-                prompt="A happy song",
-                style="pop",
-                mood=["happy"]
+                prompt="A happy song", style="pop", mood=["happy"]
             )
             response = await service.generate_music_style(request)
 
@@ -81,15 +77,12 @@ class TestMusicLyricsService:
             model="gpt-4",
             provider="openai",
             usage={"total_tokens": 100},
-            latency_ms=500
+            latency_ms=500,
         )
 
-        with patch('music_lyrics_service.generate_text', return_value=mock_response):
+        with patch("music_lyrics_service.generate_text", return_value=mock_response):
             request = LyricsGenerationRequest(
-                theme="Testing",
-                style="pop",
-                mood=["happy"],
-                length="short"
+                theme="Testing", style="pop", mood=["happy"], length="short"
             )
             response = await service.generate_lyrics(request)
 

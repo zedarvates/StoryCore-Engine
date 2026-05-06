@@ -6,6 +6,7 @@ This module provides functionality for amplifying audio signals.
 
 import numpy as np
 
+
 class Amplifier:
     """Audio amplifier for increasing signal amplitude."""
 
@@ -31,10 +32,10 @@ class Amplifier:
         """
         # Convert dB to linear scale
         linear_gain = 10 ** (gain_db / 20)
-        
+
         # Apply gain
         amplified_audio = audio_data * linear_gain
-        
+
         # Clip to prevent overflow
         return np.clip(amplified_audio, -1.0, 1.0)
 
@@ -51,12 +52,12 @@ class Amplifier:
         """
         # Calculate current RMS
         rms = np.sqrt(np.mean(audio_data**2))
-        
+
         if rms > 0:
             # Calculate required gain
             current_db = 20 * np.log10(rms)
             gain_db = target_db - current_db
-            
+
             # Apply amplification
             return self.amplify(audio_data, gain_db)
         else:

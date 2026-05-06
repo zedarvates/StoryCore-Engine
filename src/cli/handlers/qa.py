@@ -12,44 +12,42 @@ from ..memory_integration import log_qa_scoring
 
 class QAHandler(BaseHandler):
     """Handler for the qa command - quality assurance scoring."""
-    
+
     command_name = "qa"
     description = "Run quality assurance scoring on project"
-    
+
     def setup_parser(self, parser: argparse.ArgumentParser) -> None:
         """Set up qa command arguments."""
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
-        
+
         parser.add_argument(
             "--threshold",
             type=float,
             default=3.0,
-            help="Minimum acceptable quality score (default: 3.0)"
+            help="Minimum acceptable quality score (default: 3.0)",
         )
-        
+
         parser.add_argument(
-            "--detailed",
-            action="store_true",
-            help="Show detailed per-panel analysis"
+            "--detailed", action="store_true", help="Show detailed per-panel analysis"
         )
-        
+
         # ComfyUI integration flags (Validates: Requirements 1.4, 11.7)
         parser.add_argument(
             "--mock",
             action="store_true",
-            help="Force mock mode (disable real backend generation)"
+            help="Force mock mode (disable real backend generation)",
         )
-        
+
         parser.add_argument(
             "--backend-url",
             type=str,
-            help="Override ComfyUI backend URL (default: http://localhost:8000)"
+            help="Override ComfyUI backend URL (default: http://localhost:8000)",
         )
-    
+
     def execute(self, args: argparse.Namespace) -> int:
         """Execute the qa command."""
         try:
@@ -59,102 +57,104 @@ class QAHandler(BaseHandler):
             except ImportError as e:
                 raise SystemError(
                     f"QAEngine not available: {e}",
-                    "Ensure qa_engine module is installed"
+                    "Ensure qa_engine module is installed",
                 )
-            
+
             # Validate project path
             project_path = Path(args.project)
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
-            
+
             # Validate threshold
             if args.threshold < 0 or args.threshold > 5:
                 raise UserError(
                     f"Invalid threshold: {args.threshold}",
-                    "Threshold must be between 0 and 5"
+                    "Threshold must be between 0 and 5",
                 )
-            
+
             # Display QA info
             print(f"Running QA scoring on: {project_path.absolute()}")
             if args.threshold != 3.0:
                 print(f"Quality threshold: {args.threshold}/5.0")
-            
+
             # Show backend mode
             if args.mock:
-                print(f"Backend mode: Mock (forced)")
+                print("Backend mode: Mock (forced)")
             elif args.backend_url:
                 print(f"Backend URL: {args.backend_url}")
-            
+
             # Run QA scoring with integrated quality validation
             qa_engine = QAEngine()
-            
+
             # Pass backend configuration if provided
             backend_config = {}
             if args.mock:
-                backend_config['force_mock'] = True
+                backend_config["force_mock"] = True
             if args.backend_url:
-                backend_config['backend_url'] = args.backend_url
-            
+                backend_config["backend_url"] = args.backend_url
+
             qa_report = qa_engine.run_qa_scoring(
                 str(project_path),
                 enable_advanced_validation=True,
                 enable_audio_mixing=True,
-                **backend_config
+                **backend_config,
             )
-            
+
             # Display results
-            print(f"\nQA Scoring Results:")
+            print("\nQA Scoring Results:")
             print(f"Overall Score: {qa_report['overall_score']:.1f}/5.0")
-            
+
             # Check if passed based on threshold
-            passed = qa_report['overall_score'] >= args.threshold
+            passed = qa_report["overall_score"] >= args.threshold
             status_text = "PASSED" if passed else "FAILED"
             status_icon = "[PASS]" if passed else "[FAIL]"
             print(f"Status: {status_icon} {status_text}")
-            
+
             # Log to memory system if enabled
             issues_count = len(qa_report.get("issues", []))
             log_qa_scoring(
                 project_path=project_path,
-                overall_score=qa_report['overall_score'],
+                overall_score=qa_report["overall_score"],
                 threshold=args.threshold,
                 passed=passed,
-                issues_count=issues_count
+                issues_count=issues_count,
             )
-            
+
             # Display category scores
             if qa_report.get("categories"):
                 print("\nCategory Scores:")
                 for category, score in qa_report["categories"].items():
                     status = "[PASS]" if score >= args.threshold else "[FAIL]"
-                    category_name = category.replace('_', ' ').title()
+                    category_name = category.replace("_", " ").title()
                     print(f"  {status} {category_name}: {score:.1f}/5.0")
-            
+
             # Display issues if any
             if qa_report.get("issues"):
                 print(f"\nIssues Found: {len(qa_report['issues'])}")
                 for issue in qa_report["issues"]:
                     print(f"  - {issue['description']}")
-                    if issue.get('suggested_fix'):
+                    if issue.get("suggested_fix"):
                         print(f"    Fix: {issue['suggested_fix']}")
-            
+
             # Display detailed analysis if requested
             if args.detailed and qa_report.get("panel_scores"):
-                print(f"\nPer-Panel Analysis:")
+                print("\nPer-Panel Analysis:")
                 for panel_id, panel_score in qa_report["panel_scores"].items():
                     status = "[PASS]" if panel_score >= args.threshold else "[FAIL]"
                     print(f"  {status} {panel_id}: {panel_score:.1f}/5.0")
-            
+
             # Return appropriate exit code
             if not passed:
-                self.print_error(f"QA scoring failed (score {qa_report['overall_score']:.1f} < threshold {args.threshold})")
+                self.print_error(
+                    f"QA scoring failed (score {qa_report['overall_score']:.1f} < threshold {args.threshold})"
+                )
                 return 1
-            
+
             self.print_success("QA scoring passed")
             return 0
-            
+
         except Exception as e:
             return self.handle_error(e, "QA scoring")

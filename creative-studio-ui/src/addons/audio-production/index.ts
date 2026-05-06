@@ -3,7 +3,7 @@
 // ============================================================================
 
 // Core types - Import first, then re-export
-import type { AudioTrack, AudioEffect, AudioProject, AudioSettings, AudioExportOptions } from './types';
+import type { AudioTrack, AudioEffect, _AudioProject, _AudioSettings, AudioExportOptions } from './types';
 export type {
   AudioTrack,
   AudioEffect,

@@ -4,6 +4,8 @@
  * Requirements: 2.3
  * Phase 2: Advanced Diagnostics
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -111,8 +113,8 @@ describe('ErrorBoundary', () => {
 
   it('should provide reload button', () => {
     // Mock window.location.reload
-    delete (window as any).location;
-    window.location = { reload: vi.fn() } as any;
+    delete (window as LegacyAny).location;
+    window.location = { reload: vi.fn() } as LegacyAny;
 
     render(
       <ErrorBoundary>

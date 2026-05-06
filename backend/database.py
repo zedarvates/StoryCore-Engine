@@ -35,20 +35,18 @@ engine = create_async_engine(
     poolclass=AsyncAdaptedQueuePool,
     pool_size=settings.DATABASE_POOL_SIZE,
     max_overflow=settings.DATABASE_MAX_OVERFLOW,
-    echo=settings.DEBUG
+    echo=settings.DEBUG,
 )
 
 # Async session factory
 AsyncSessionLocal = sessionmaker(
-    engine, 
-    class_=AsyncSession, 
-    expire_on_commit=False,
-    autoflush=False
+    engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
 )
 
 # =============================================================================
 # Dependency Injection
 # =============================================================================
+
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
@@ -65,9 +63,11 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
+
 # =============================================================================
 # Database Initialization
 # =============================================================================
+
 
 async def init_db():
     """
@@ -76,6 +76,7 @@ async def init_db():
     """
     try:
         from backend.database_models import Base
+
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         logger.info("✅ Database tables initialized successfully")

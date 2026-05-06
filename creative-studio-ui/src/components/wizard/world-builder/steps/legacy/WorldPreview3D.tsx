@@ -6,7 +6,7 @@ interface WorldPreview3DProps {
   onElementSelect: (element: unknown) => void;
 }
 
-export const WorldPreview3D: React.FC<WorldPreview3DProps> = ({ worldData, onElementSelect }) => {
+export const WorldPreview3D: React.FC<WorldPreview3DProps> = ({ worldData, _onElementSelect }) => {
   return (
     <div className="world-preview-3d">
       <h3>World Preview (3D)</h3>

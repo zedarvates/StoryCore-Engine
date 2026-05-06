@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { z } from 'zod';
 
@@ -52,7 +53,7 @@ interface ProductionWizardProviderProps<T> {
 // Context Creation
 // ============================================================================
 
-const ProductionWizardContext = createContext<ProductionWizardContextValue<any> | null>(null);
+const ProductionWizardContext = createContext<ProductionWizardContextValue<LegacyAny> | null>(null);
 
 // ============================================================================
 // Production Wizard Provider Component

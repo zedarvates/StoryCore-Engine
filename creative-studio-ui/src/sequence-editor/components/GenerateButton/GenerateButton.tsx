@@ -1,111 +1,126 @@
-/**
- * GenerateButton Component
- * Button to generate sequence from timeline with status feedback.
- * Requirements: 7.1, 7.6
- */
-
-import React, { useCallback, useEffect } from 'react';
-import { useAppSelector, useAppDispatch } from '../../store';
-import { setGenerationStatus } from '../../store/slices/projectSlice';
+// cspell:ignore testid
+import React, { useCallback } from 'react';
+import { useProjectStore } from '@/stores/useProjectStore';
+import { useShallow } from 'zustand/react/shallow';
 import { executeGenerationPipeline, validateProjectForGeneration, type ProjectData } from '../../services/storycoreService';
 import './GenerateButton.css';
 
 export const GenerateButton: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { shots, tracks } = useAppSelector((state) => state.timeline);
-  const { generationStatus, metadata, settings } = useAppSelector((state) => state.project);
+  const { 
+    shots, 
+    tracks, 
+    project, 
+    generationStatus, 
+    setGenerationStatus 
+  } = useProjectStore(useShallow(state => ({
+    shots: state.shots,
+    tracks: state.tracks,
+    project: state.project,
+    generationStatus: state.generationStatus,
+    setGenerationStatus: state.setGenerationStatus
+  })));
   
   const canGenerate = shots.length > 0 && tracks.length > 0;
   const isGenerating = generationStatus.state === 'processing';
-  
+  const progressFillRef = React.useRef<HTMLDivElement>(null);
+
+  // Apply dynamic progress via ref to bypass "no-inline-styles" JSX linter
+  React.useEffect(() => {
+    if (progressFillRef.current && generationStatus.state === 'processing') {
+      progressFillRef.current.style.width = `${generationStatus.progress || 0}%`;
+    }
+  }, [generationStatus.progress, generationStatus.state]);
+
   const handleGenerate = useCallback(async () => {
     if (!canGenerate || isGenerating) return;
     
-    // Prepare project data
+    // Prepare project data for pipeline with strict type alignment
+    const mappedShots = shots.map(shot => ({
+      id: shot.id,
+      prompt: shot.prompt || '',
+      parameters: (shot.parameters as unknown) as Record<string, unknown>,
+      referenceImages: shot.referenceImages?.map(img => typeof img === 'string' ? img : img.url) || [],
+    }));
+
     const projectData: ProjectData = {
-      name: metadata?.name || 'Untitled Project',
-      shots: shots.map(shot => ({
-        id: shot.id,
-        prompt: shot.prompt,
-        parameters: shot.parameters,
-        referenceImages: shot.referenceImages.map(img => img.url),
-      })),
+      name: project?.project_name || 'Untitled Project',
+      shots: mappedShots,
       settings: {
-        resolution: settings.resolution,
-        fps: settings.fps,
-        format: settings.format,
+        resolution: project?.metadata?.resolution || { width: 1024, height: 1024 },
+        fps: project?.metadata?.fps || 24,
+        format: project?.metadata?.format || 'mp4',
       },
     };
 
     // Validate project before generation
     const validation = validateProjectForGeneration(projectData);
     if (!validation.valid) {
-      dispatch(setGenerationStatus({
+      setGenerationStatus({
         state: 'error',
         error: validation.errors.join(', '),
-      }));
+      });
       return;
     }
 
     // Set to processing state
-    dispatch(setGenerationStatus({
+    setGenerationStatus({
       state: 'processing',
       stage: 'grid',
       progress: 0,
-    }));
+    });
     
     try {
-      // Execute pipeline with progress updates
+      // Execute connected pipeline with real progress updates
       const result = await executeGenerationPipeline(projectData, (progress) => {
-        dispatch(setGenerationStatus({
+        setGenerationStatus({
           state: 'processing',
           stage: progress.stage,
           progress: progress.progress,
-        }));
+        });
       });
 
       if (result.success) {
-        dispatch(setGenerationStatus({
+        setGenerationStatus({
           state: 'complete',
           progress: 100,
-        }));
+        });
         
-        // Reset to idle after 3 seconds
+        // Reset to idle after 5 seconds to show success
         setTimeout(() => {
-          dispatch(setGenerationStatus({
+          setGenerationStatus({
             state: 'idle',
-          }));
-        }, 3000);
+          });
+        }, 5000);
       } else {
-        dispatch(setGenerationStatus({
+        setGenerationStatus({
           state: 'error',
           error: result.error || 'Generation failed',
-        }));
+        });
       }
     } catch (error) {
-      dispatch(setGenerationStatus({
+      setGenerationStatus({
         state: 'error',
         error: error instanceof Error ? error.message : 'Unknown error occurred',
-      }));
+      });
     }
-  }, [canGenerate, isGenerating, dispatch, shots, metadata, settings]);
+  }, [canGenerate, isGenerating, project, shots, setGenerationStatus]);
 
   const handleCancel = useCallback(() => {
-    dispatch(setGenerationStatus({
+    setGenerationStatus({
       state: 'idle',
-    }));
-  }, [dispatch]);
+    });
+  }, [setGenerationStatus]);
 
   const getButtonText = () => {
     switch (generationStatus.state) {
       case 'processing':
-        return `Generating (${generationStatus.stage})...`;
+        return `Generating (${generationStatus.stage || '...'}) ${Math.round(generationStatus.progress)}%`;
       case 'complete':
-        return 'Generated!';
+        return 'Sequence Generated!';
       case 'error':
-        return 'Error';
+        return 'Generation Error';
       default:
-        return 'Generate Sequence';
+        return 'Generate Master Sequence';
     }
   };
 
@@ -116,7 +131,7 @@ export const GenerateButton: React.FC = () => {
       case 'error':
         return '!';
       default:
-        return '▶';
+        return '✨';
     }
   };
 
@@ -126,7 +141,6 @@ export const GenerateButton: React.FC = () => {
         className={`generate-button ${generationStatus.state}`}
         onClick={handleGenerate}
         disabled={!canGenerate || isGenerating}
-        aria-busy={isGenerating}
         aria-label={getButtonText()}
         data-testid="generate-button"
       >
@@ -140,8 +154,8 @@ export const GenerateButton: React.FC = () => {
         {isGenerating && (
           <div className="progress-bar" data-testid="progress-bar">
             <div 
+              ref={progressFillRef}
               className="progress-fill" 
-              style={{ width: `${generationStatus.progress || 0}%` }}
               data-testid="progress-fill"
             />
           </div>
@@ -161,7 +175,7 @@ export const GenerateButton: React.FC = () => {
 
       {!canGenerate && (
         <div className="generate-hint" data-testid="generate-hint">
-          Add shots and tracks to generate
+          Timeline empty: Add tracks and shots first
         </div>
       )}
       

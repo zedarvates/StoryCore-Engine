@@ -545,6 +545,7 @@ export interface PanelsState {
   markersVisible: boolean; // Toggle for timeline markers
   promptsVisible: boolean; // Toggle for shot prompts on timeline
   showAlignmentDashboard: boolean;
+  productionStudioMode: boolean;
 }
 
 // ============================================================================

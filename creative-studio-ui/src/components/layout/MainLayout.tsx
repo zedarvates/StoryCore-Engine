@@ -287,7 +287,7 @@ export function ResizablePanelContainer({
 }: ResizablePanelProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [currentLeftWidth, setCurrentLeftWidth] = useState(leftWidth);
-  const [currentRightWidth, setCurrentRightWidth] = useState(rightWidth);
+  const [currentRightWidth, _setCurrentRightWidth] = useState(rightWidth);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();

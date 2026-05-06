@@ -12,6 +12,7 @@ from datetime import datetime
 @dataclass
 class Shot:
     """Represents a single shot in a storyboard."""
+
     shot_id: str
     description: str
     duration_seconds: float
@@ -31,6 +32,7 @@ class Shot:
 @dataclass
 class Storyboard:
     """Represents a complete storyboard."""
+
     storyboard_id: str
     project_name: str
     title: str
@@ -45,6 +47,7 @@ class Storyboard:
 @dataclass
 class StoryboardCreateRequest:
     """Request to create a new storyboard."""
+
     project_name: str
     title: str
     description: Optional[str] = None
@@ -57,6 +60,7 @@ class StoryboardCreateRequest:
 @dataclass
 class StoryboardCreateResult:
     """Result of storyboard creation."""
+
     storyboard_id: str
     project_name: str
     title: str
@@ -69,6 +73,7 @@ class StoryboardCreateResult:
 @dataclass
 class ShotAddRequest:
     """Request to add a shot to a storyboard."""
+
     storyboard_id: str
     description: str
     duration_seconds: float
@@ -85,6 +90,7 @@ class ShotAddRequest:
 @dataclass
 class ShotAddResult:
     """Result of adding a shot."""
+
     shot_id: str
     storyboard_id: str
     sequence_number: int
@@ -95,6 +101,7 @@ class ShotAddResult:
 @dataclass
 class ShotUpdateRequest:
     """Request to update an existing shot."""
+
     storyboard_id: str
     shot_id: str
     description: Optional[str] = None
@@ -111,6 +118,7 @@ class ShotUpdateRequest:
 @dataclass
 class ShotUpdateResult:
     """Result of updating a shot."""
+
     shot_id: str
     storyboard_id: str
     updated_fields: List[str]
@@ -120,6 +128,7 @@ class ShotUpdateResult:
 @dataclass
 class ShotDeleteRequest:
     """Request to delete a shot."""
+
     storyboard_id: str
     shot_id: str
 
@@ -127,6 +136,7 @@ class ShotDeleteRequest:
 @dataclass
 class ShotDeleteResult:
     """Result of deleting a shot."""
+
     shot_id: str
     storyboard_id: str
     deleted: bool
@@ -136,6 +146,7 @@ class ShotDeleteResult:
 @dataclass
 class ShotReorderRequest:
     """Request to reorder shots."""
+
     storyboard_id: str
     shot_order: List[str]  # List of shot_ids in desired order
 
@@ -143,6 +154,7 @@ class ShotReorderRequest:
 @dataclass
 class ShotReorderResult:
     """Result of reordering shots."""
+
     storyboard_id: str
     reordered_count: int
     new_sequence: List[Dict[str, Any]]  # List of {shot_id, sequence_number}
@@ -151,6 +163,7 @@ class ShotReorderResult:
 @dataclass
 class TimelineEntry:
     """Represents a single entry in a timeline."""
+
     shot_id: str
     start_time_seconds: float
     end_time_seconds: float
@@ -163,6 +176,7 @@ class TimelineEntry:
 @dataclass
 class Timeline:
     """Represents a complete timeline."""
+
     storyboard_id: str
     project_name: str
     entries: List[TimelineEntry]
@@ -175,6 +189,7 @@ class Timeline:
 @dataclass
 class TimelineGenerateRequest:
     """Request to generate a timeline."""
+
     storyboard_id: str
     include_transitions: bool = False
     transition_duration_seconds: float = 0.5
@@ -184,6 +199,7 @@ class TimelineGenerateRequest:
 @dataclass
 class TimelineGenerateResult:
     """Result of timeline generation."""
+
     storyboard_id: str
     timeline: Timeline
     generated_at: datetime
@@ -192,6 +208,7 @@ class TimelineGenerateResult:
 @dataclass
 class StoryboardValidationIssue:
     """Represents a validation issue."""
+
     severity: str  # "error", "warning", "info"
     category: str  # "structure", "duration", "sequence", "content"
     message: str
@@ -202,6 +219,7 @@ class StoryboardValidationIssue:
 @dataclass
 class StoryboardValidationResult:
     """Result of storyboard validation."""
+
     storyboard_id: str
     valid: bool
     issues: List[StoryboardValidationIssue]
@@ -215,6 +233,7 @@ class StoryboardValidationResult:
 @dataclass
 class StoryboardExportRequest:
     """Request to export a storyboard."""
+
     storyboard_id: str
     format: str  # "json", "pdf", "html", "csv"
     include_images: bool = False
@@ -225,6 +244,7 @@ class StoryboardExportRequest:
 @dataclass
 class StoryboardExportResult:
     """Result of storyboard export."""
+
     storyboard_id: str
     format: str
     output_path: str

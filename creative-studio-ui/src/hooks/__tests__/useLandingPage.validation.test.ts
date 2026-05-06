@@ -11,6 +11,8 @@
  * - Validation with project.json files (parent directory should be validated)
  * - Error messages for validation failures
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useLandingPage } from '../useLandingPage';
@@ -22,7 +24,7 @@ vi.mock('@/stores/useAppStore');
 describe('useLandingPage - Project Validation Integration', () => {
   let mockSetProject: ReturnType<typeof vi.fn>;
   let mockSetShots: ReturnType<typeof vi.fn>;
-  let mockElectronAPI: any;
+  let mockElectronAPI: LegacyAny;
 
   beforeEach(() => {
     // Reset mocks
@@ -30,7 +32,7 @@ describe('useLandingPage - Project Validation Integration', () => {
     mockSetShots = vi.fn();
 
     // Mock store - need to mock the selector function
-    (useAppStore as any).mockImplementation((selector: any) => {
+    (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
       const state = {
         setProject: mockSetProject,
         setShots: mockSetShots,
@@ -50,12 +52,12 @@ describe('useLandingPage - Project Validation Integration', () => {
     };
 
     // Set up window.electronAPI
-    (window as any).electronAPI = mockElectronAPI;
+    (window as LegacyAny).electronAPI = mockElectronAPI;
   });
 
   afterEach(() => {
     // Clean up
-    delete (window as any).electronAPI;
+    delete (window as LegacyAny).electronAPI;
     vi.clearAllMocks();
   });
 
@@ -540,7 +542,7 @@ describe('useLandingPage - Project Validation Integration', () => {
     it('should set loading state during validation', async () => {
       // Arrange
       const projectPath = '/path/to/project';
-      let resolveOpen: any;
+      let resolveOpen: LegacyAny;
       const openPromise = new Promise((resolve) => {
         resolveOpen = resolve;
       });

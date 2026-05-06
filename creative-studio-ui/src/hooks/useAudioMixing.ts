@@ -5,7 +5,7 @@
  * into StoryCore components with automatic lifecycle management.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   AudioTrack,
   AudioTrackState,
@@ -92,7 +92,7 @@ interface UseAudioMixingReturn {
 export function useAudioMixing(): UseAudioMixingReturn {
   // State
   const [state, setState] = useState<AudioMixingState>(audioMixingService.getState());
-  const [trackStates, setTrackStates] = useState<Map<string, AudioTrackState>>(new Map());
+  const [trackStates, _setTrackStates] = useState<Map<string, AudioTrackState>>(new Map());
   const [isReady, setIsReady] = useState(false);
   
   // ==========================================================================
@@ -377,14 +377,18 @@ export function useAudioMixing(): UseAudioMixingReturn {
 // ============================================================================
 
 export function useAudioTrack(trackId: string) {
-  const [track, setTrack] = useState<AudioTrack | null>(null);
-  const [trackState, setTrackState] = useState<AudioTrackState | null>(null);
+  const [track, setTrack] = useState<AudioTrack | null>(() => audioMixingService.getState().tracks.get(trackId) || null);
+  const [trackState, setTrackState] = useState<AudioTrackState | null>(() => audioMixingService.getTrackState(trackId) || null);
+
+  // Sync initial state if trackId changes
+  const [prevTrackId, setPrevTrackId] = useState(trackId);
+  if (prevTrackId !== trackId) {
+    setPrevTrackId(trackId);
+    setTrack(audioMixingService.getState().tracks.get(trackId) || null);
+    setTrackState(audioMixingService.getTrackState(trackId) || null);
+  }
 
   useEffect(() => {
-    const state = audioMixingService.getState();
-    setTrack(state.tracks.get(trackId) || null);
-    setTrackState(audioMixingService.getTrackState(trackId) || null);
-
     const handleUpdate = () => {
       const newState = audioMixingService.getState();
       setTrack(newState.tracks.get(trackId) || null);

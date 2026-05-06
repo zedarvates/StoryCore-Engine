@@ -54,7 +54,7 @@ import { referenceInheritanceService } from '@/services/referenceInheritanceServ
 import { referenceSheetService } from '@/services/referenceSheetService';
 import type {
   ReferenceImage,
-  ShotReference,
+  _ShotReference,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
 } from '@/types/reference';
@@ -113,7 +113,7 @@ type ReferenceFilter = 'all' | 'character' | 'location' | 'style';
 
 export function CrossShotReferencePicker({
   currentShotId,
-  sequenceId,
+  _sequenceId,
   onSelect,
   onClose,
 }: CrossShotPickerProps) {
@@ -668,7 +668,7 @@ function ShotCard({
   summary,
   isExpanded,
   onToggle,
-  selectedReferences,
+  _selectedReferences,
   onToggleReference,
   isSelected,
   onPreview,

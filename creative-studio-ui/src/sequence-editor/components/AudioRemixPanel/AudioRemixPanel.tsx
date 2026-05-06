@@ -134,7 +134,7 @@ export const AudioRemixPanel: React.FC<AudioRemixPanelProps> = ({
           <input
             type="text"
             value={audioUrl || ''}
-            onChange={(e) => {
+            onChange={(_e) => {
               setAudioId(`audio_${Date.now()}`);
             }}
             placeholder="/assets/audio/musique.mp3"

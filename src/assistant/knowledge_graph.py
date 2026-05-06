@@ -29,12 +29,14 @@ from typing import Any, Dict, List, Optional, Tuple
 # Data models
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class GraphNode:
     """A narrative entity in the knowledge graph."""
+
     id: str
     name: str
-    entity_type: str           # "character" | "location" | "object" | "event"
+    entity_type: str  # "character" | "location" | "object" | "event"
     attributes: Dict[str, Any] = field(default_factory=dict)
     # Lightweight vector: character-frequency over a fixed 26-dim alphabet.
     # Replaced by a real embedding model when available.
@@ -48,18 +50,22 @@ class GraphNode:
 @dataclass
 class GraphEdge:
     """A directed, labelled relationship between two nodes."""
+
     id: str
     source_id: str
     target_id: str
-    relation: str              # e.g. "ally_of", "enemy_of", "owns", "located_in"
+    relation: str  # e.g. "ally_of", "enemy_of", "owns", "located_in"
     attributes: Dict[str, Any] = field(default_factory=dict)
-    scene_context: Optional[str] = None   # Scene ID where this was established
-    timestamp: Optional[int] = None        # Logical ordering (scene number or sequential insert)
+    scene_context: Optional[str] = None  # Scene ID where this was established
+    timestamp: Optional[int] = (
+        None  # Logical ordering (scene number or sequential insert)
+    )
 
 
 # ---------------------------------------------------------------------------
 # Tiny vector helpers (no ML dependency)
 # ---------------------------------------------------------------------------
+
 
 def _text_vector(text: str, dim: int = 26) -> List[float]:
     """
@@ -71,7 +77,7 @@ def _text_vector(text: str, dim: int = 26) -> List[float]:
     counts = [0.0] * dim
     for ch in text:
         if ch.isalpha():
-            counts[ord(ch) - ord('a')] += 1.0
+            counts[ord(ch) - ord("a")] += 1.0
     norm = math.sqrt(sum(v * v for v in counts)) or 1.0
     return [v / norm for v in counts]
 
@@ -88,6 +94,7 @@ def _cosine_similarity(a: List[float], b: List[float]) -> float:
 # ---------------------------------------------------------------------------
 # Core graph store
 # ---------------------------------------------------------------------------
+
 
 class StoryGraph:
     """
@@ -107,11 +114,13 @@ class StoryGraph:
     # Mutation
     # ------------------------------------------------------------------
 
-    def add_node(self,
-                 name: str,
-                 entity_type: str,
-                 attributes: Optional[Dict[str, Any]] = None,
-                 node_id: Optional[str] = None) -> GraphNode:
+    def add_node(
+        self,
+        name: str,
+        entity_type: str,
+        attributes: Optional[Dict[str, Any]] = None,
+        node_id: Optional[str] = None,
+    ) -> GraphNode:
         """Add or update a node by name (case-insensitive)."""
         existing = self._find_node_by_name(name)
         if existing:
@@ -123,28 +132,32 @@ class StoryGraph:
             id=node_id or str(uuid.uuid4()),
             name=name,
             entity_type=entity_type,
-            attributes=attributes or {}
+            attributes=attributes or {},
         )
         self._nodes[node.id] = node
         return node
 
-    def add_edge(self,
-                 source_name: str,
-                 relation: str,
-                 target_name: str,
-                 source_type: str = "character",
-                 target_type: str = "character",
-                 attributes: Optional[Dict[str, Any]] = None,
-                 scene_context: Optional[str] = None) -> GraphEdge:
+    def add_edge(
+        self,
+        source_name: str,
+        relation: str,
+        target_name: str,
+        source_type: str = "character",
+        target_type: str = "character",
+        attributes: Optional[Dict[str, Any]] = None,
+        scene_context: Optional[str] = None,
+    ) -> GraphEdge:
         """Add a directed relationship, creating nodes if they don't exist."""
         source = self.add_node(source_name, source_type)
         target = self.add_node(target_name, target_type)
 
         # Deduplicate: same source-relation-target
         for edge in self._edges.values():
-            if (edge.source_id == source.id and
-                    edge.relation == relation and
-                    edge.target_id == target.id):
+            if (
+                edge.source_id == source.id
+                and edge.relation == relation
+                and edge.target_id == target.id
+            ):
                 return edge
 
         edge = GraphEdge(
@@ -153,20 +166,25 @@ class StoryGraph:
             target_id=target.id,
             relation=relation,
             attributes=attributes or {},
-            scene_context=scene_context
+            scene_context=scene_context,
         )
         self._edges[edge.id] = edge
         return edge
 
-    def remove_edge_by_relation(self, source_name: str, relation: str, target_name: str):
+    def remove_edge_by_relation(
+        self, source_name: str, relation: str, target_name: str
+    ):
         """Remove a specific relationship (e.g., when lore changes)."""
         src = self._find_node_by_name(source_name)
         tgt = self._find_node_by_name(target_name)
         if not src or not tgt:
             return
         to_delete = [
-            eid for eid, e in self._edges.items()
-            if e.source_id == src.id and e.relation == relation and e.target_id == tgt.id
+            eid
+            for eid, e in self._edges.items()
+            if e.source_id == src.id
+            and e.relation == relation
+            and e.target_id == tgt.id
         ]
         for eid in to_delete:
             del self._edges[eid]
@@ -175,9 +193,9 @@ class StoryGraph:
     # Graph traversal
     # ------------------------------------------------------------------
 
-    def get_subgraph(self,
-                     entity_names: List[str],
-                     max_depth: int = 1) -> Dict[str, Any]:
+    def get_subgraph(
+        self, entity_names: List[str], max_depth: int = 1
+    ) -> Dict[str, Any]:
         """
         BFS from the named entities up to max_depth hops.
 
@@ -214,11 +232,13 @@ class StoryGraph:
         for nid in visited_ids:
             node = self._nodes.get(nid)
             if node:
-                result_nodes.append({
-                    "name": node.name,
-                    "type": node.entity_type,
-                    "attributes": node.attributes
-                })
+                result_nodes.append(
+                    {
+                        "name": node.name,
+                        "type": node.entity_type,
+                        "attributes": node.attributes,
+                    }
+                )
 
         result_edges = []
         for edge in self._edges.values():
@@ -226,12 +246,14 @@ class StoryGraph:
                 src = self._nodes.get(edge.source_id)
                 tgt = self._nodes.get(edge.target_id)
                 if src and tgt:
-                    result_edges.append({
-                        "source": src.name,
-                        "relation": edge.relation,
-                        "target": tgt.name,
-                        "scene_context": edge.scene_context
-                    })
+                    result_edges.append(
+                        {
+                            "source": src.name,
+                            "relation": edge.relation,
+                            "target": tgt.name,
+                            "scene_context": edge.scene_context,
+                        }
+                    )
 
         return {"nodes": result_nodes, "edges": result_edges}
 
@@ -239,7 +261,9 @@ class StoryGraph:
     # Semantic (vector) fuzzy search
     # ------------------------------------------------------------------
 
-    def find_similar_entities(self, query: str, top_k: int = 5) -> List[Tuple[str, float]]:
+    def find_similar_entities(
+        self, query: str, top_k: int = 5
+    ) -> List[Tuple[str, float]]:
         """
         Return the top-k nodes most similar to the query string by cosine similarity.
         """
@@ -283,9 +307,11 @@ class StoryGraph:
                 continue
 
             for edge in self._edges.values():
-                if (edge.source_id == src_node.id and
-                        edge.relation == opposite and
-                        edge.target_id == tgt_node.id):
+                if (
+                    edge.source_id == src_node.id
+                    and edge.relation == opposite
+                    and edge.target_id == tgt_node.id
+                ):
                     contradictions.append(
                         f"CONTRADICTION: '{src_node.name}' cannot be "
                         f"'{candidate['relation']}' to '{tgt_node.name}' "
@@ -305,7 +331,7 @@ class StoryGraph:
         (characters, scenes, sequences).
         """
         characters = project_data.get("characters", [])
-        scenes     = project_data.get("scenes", [])
+        scenes = project_data.get("scenes", [])
 
         # Add character nodes
         for char in characters:
@@ -316,11 +342,16 @@ class StoryGraph:
                     "role": char.get("role"),
                     "personality": char.get("personality"),
                     "appearance": char.get("appearance"),
-                }
+                },
             )
             # Self-relationship: alive by default
-            self.add_edge(node.name, "status", "alive",
-                          source_type="character", target_type="state")
+            self.add_edge(
+                node.name,
+                "status",
+                "alive",
+                source_type="character",
+                target_type="state",
+            )
 
         # Add scene nodes and location edges
         for scene in scenes:
@@ -330,7 +361,7 @@ class StoryGraph:
                 attributes={
                     "description": scene.get("description"),
                     "time_of_day": scene.get("time_of_day"),
-                }
+                },
             )
             loc = scene.get("location")
             if loc:
@@ -341,7 +372,7 @@ class StoryGraph:
                     target_name=loc,
                     source_type="event",
                     target_type="location",
-                    scene_context=scene.get("id")
+                    scene_context=scene.get("id"),
                 )
             for char_name in scene.get("characters", []):
                 self.add_edge(
@@ -350,7 +381,7 @@ class StoryGraph:
                     target_name=scene_node.name,
                     source_type="character",
                     target_type="event",
-                    scene_context=scene.get("id")
+                    scene_context=scene.get("id"),
                 )
 
         return self
@@ -366,7 +397,7 @@ class StoryGraph:
         self._persistence_path.parent.mkdir(parents=True, exist_ok=True)
         data = {
             "nodes": {nid: asdict(n) for nid, n in self._nodes.items()},
-            "edges": {eid: asdict(e) for eid, e in self._edges.items()}
+            "edges": {eid: asdict(e) for eid, e in self._edges.items()},
         }
         with open(self._persistence_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -395,7 +426,7 @@ class StoryGraph:
         type_counts: Dict[str, int] = {}
         for node in self._nodes.values():
             type_counts[node.entity_type] = type_counts.get(node.entity_type, 0) + 1
-        
+
         relation_types = set(e.relation for e in self._edges.values())
         return {
             "nodes": len(self._nodes),
@@ -420,17 +451,23 @@ class StoryGraph:
         arc_events: List[Dict[str, Any]] = []
         for edge in self._edges.values():
             if edge.source_id == char_node.id or edge.target_id == char_node.id:
-                other_id = edge.target_id if edge.source_id == char_node.id else edge.source_id
+                other_id = (
+                    edge.target_id if edge.source_id == char_node.id else edge.source_id
+                )
                 other_node = self._nodes.get(other_id)
                 if other_node:
-                    arc_events.append({
-                        "scene": edge.scene_context,
-                        "relation": edge.relation,
-                        "direction": "outgoing" if edge.source_id == char_node.id else "incoming",
-                        "other_entity": other_node.name,
-                        "other_type": other_node.entity_type,
-                        "timestamp": edge.timestamp or 0,
-                    })
+                    arc_events.append(
+                        {
+                            "scene": edge.scene_context,
+                            "relation": edge.relation,
+                            "direction": "outgoing"
+                            if edge.source_id == char_node.id
+                            else "incoming",
+                            "other_entity": other_node.name,
+                            "other_type": other_node.entity_type,
+                            "timestamp": edge.timestamp or 0,
+                        }
+                    )
 
         # Sort by timestamp or scene reference
         arc_events.sort(key=lambda x: x["timestamp"])
@@ -453,30 +490,36 @@ class StoryGraph:
             if scene_key not in scene_map:
                 scene_map[scene_key] = []
 
-            scene_map[scene_key].append({
-                "source": src.name,
-                "relation": edge.relation,
-                "target": tgt.name,
-                "timestamp": edge.timestamp or 0,
-            })
+            scene_map[scene_key].append(
+                {
+                    "source": src.name,
+                    "relation": edge.relation,
+                    "target": tgt.name,
+                    "timestamp": edge.timestamp or 0,
+                }
+            )
 
         timeline = []
-        for scene_key, events in sorted(scene_map.items(), key=lambda x: min(e["timestamp"] for e in x[1])):
+        for scene_key, events in sorted(
+            scene_map.items(), key=lambda x: min(e["timestamp"] for e in x[1])
+        ):
             # Find the scene node if it exists
             scene_node = self._find_node_by_name(scene_key)
             scene_info = scene_node.attributes if scene_node else {}
-            
+
             characters_involved = set()
             for evt in events:
                 characters_involved.add(evt["source"])
                 characters_involved.add(evt["target"])
 
-            timeline.append({
-                "scene": scene_key,
-                "scene_details": scene_info,
-                "characters": list(characters_involved),
-                "events": events,
-            })
+            timeline.append(
+                {
+                    "scene": scene_key,
+                    "scene_details": scene_info,
+                    "characters": list(characters_involved),
+                    "events": events,
+                }
+            )
 
         return timeline
 
@@ -484,6 +527,7 @@ class StoryGraph:
 # ---------------------------------------------------------------------------
 # High-level GraphRAG API
 # ---------------------------------------------------------------------------
+
 
 class GraphRAG:
     """
@@ -513,22 +557,31 @@ class GraphRAG:
             if similar:
                 hints = ", ".join(f"'{n}' ({s:.2f})" for n, s in similar)
                 return (
-                    f"No exact match for {entities}. "
-                    f"Closest known entities: {hints}."
+                    f"No exact match for {entities}. Closest known entities: {hints}."
                 )
             return f"No known entities for {entities} in the Knowledge Graph."
 
-        lines: List[str] = [f"Knowledge Graph — {len(nodes)} nodes, {len(edges)} edges:\n"]
+        lines: List[str] = [
+            f"Knowledge Graph — {len(nodes)} nodes, {len(edges)} edges:\n"
+        ]
 
         for node in nodes:
             attrs = ", ".join(f"{k}={v}" for k, v in node["attributes"].items() if v)
-            lines.append(f"  [{node['type'].upper()}] {node['name']}" +
-                         (f" ({attrs})" if attrs else ""))
+            lines.append(
+                f"  [{node['type'].upper()}] {node['name']}"
+                + (f" ({attrs})" if attrs else "")
+            )
 
         lines.append("\nRelationships:")
         for edge in edges:
-            ctx = f" [scene: {edge['scene_context']}]" if edge.get("scene_context") else ""
-            lines.append(f"  {edge['source']}  --{edge['relation']}-->  {edge['target']}{ctx}")
+            ctx = (
+                f" [scene: {edge['scene_context']}]"
+                if edge.get("scene_context")
+                else ""
+            )
+            lines.append(
+                f"  {edge['source']}  --{edge['relation']}-->  {edge['target']}{ctx}"
+            )
 
         return "\n".join(lines)
 
@@ -543,8 +596,8 @@ class GraphRAG:
             (r"(\w+)\s+is the enemy of\s+(\w+)", "enemy_of"),
             (r"(\w+)\s+is an ally of\s+(\w+)", "ally_of"),
             (r"(\w+)\s+owns\s+the\s+(\w+)", "owns"),
-            (r"(\w+)\s+is dead",   "dead"),
-            (r"(\w+)\s+is alive",  "alive"),
+            (r"(\w+)\s+is dead", "dead"),
+            (r"(\w+)\s+is alive", "alive"),
             (r"(\w+)\s+betrays?\s+(\w+)", "enemy_of"),
             (r"(\w+)\s+loves?\s+(\w+)", "ally_of"),
             (r"(\w+)\s+possesses?\s+(?:the\s+)?(\w+)", "owns"),
@@ -559,9 +612,13 @@ class GraphRAG:
             for match in re.finditer(pattern, generated_text, re.IGNORECASE):
                 groups = match.groups()
                 if len(groups) == 2:
-                    candidates.append({"source": groups[0], "relation": relation, "target": groups[1]})
+                    candidates.append(
+                        {"source": groups[0], "relation": relation, "target": groups[1]}
+                    )
                 elif len(groups) == 1:
-                    candidates.append({"source": groups[0], "relation": relation, "target": groups[0]})
+                    candidates.append(
+                        {"source": groups[0], "relation": relation, "target": groups[0]}
+                    )
 
         if not candidates:
             return "No relational patterns detected in the generated text — consistency looks fine."
@@ -570,8 +627,8 @@ class GraphRAG:
         if contradictions:
             severity = "CRITICAL" if len(contradictions) > 2 else "WARNING"
             return (
-                f"⚠️ CONSISTENCY {severity} ({len(contradictions)} issues):\n" +
-                "\n".join(f"  • {c}" for c in contradictions)
+                f"⚠️ CONSISTENCY {severity} ({len(contradictions)} issues):\n"
+                + "\n".join(f"  • {c}" for c in contradictions)
             )
 
         return f"✅ No contradictions detected — {len(candidates)} relationships verified against Knowledge Graph."
@@ -618,10 +675,13 @@ class GraphRAG:
                 lines.append(f"     {desc}")
             lines.append(f"     Characters: {chars}")
             for evt in scene_block["events"][:3]:
-                lines.append(f"       • {evt['source']} --{evt['relation']}--> {evt['target']}")
+                lines.append(
+                    f"       • {evt['source']} --{evt['relation']}--> {evt['target']}"
+                )
             if len(scene_block["events"]) > 3:
-                lines.append(f"       ... and {len(scene_block['events']) - 3} more events")
+                lines.append(
+                    f"       ... and {len(scene_block['events']) - 3} more events"
+                )
             lines.append("")
 
         return "\n".join(lines)
-

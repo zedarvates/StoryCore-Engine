@@ -44,6 +44,7 @@ export function LandingPageWithHooks() {
     error: projectsError,
     refresh: refreshProjects,
     remove: removeRecentProject,
+    deleteProject: deleteFullProject,
   } = useRecentProjects(true);
 
   // Refresh projects when dialogs close
@@ -82,6 +83,7 @@ export function LandingPageWithHooks() {
         recentProjects={recentProjects}
         onRecentProjectClick={handleRecentProjectClick}
         onRemoveRecentProject={removeRecentProject}
+        onDeleteProject={deleteFullProject}
         onShowDocumentation={() => setShowDocumentationModal(true)}
         onShowSupport={() => setShowFeedbackPanel(true)}
         onShowAbout={() => setShowAboutModal(true)}

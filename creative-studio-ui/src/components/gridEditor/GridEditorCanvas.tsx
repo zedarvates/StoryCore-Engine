@@ -71,8 +71,8 @@ export const GridEditorCanvas: React.FC<GridEditorCanvasProps> = ({
   }), [viewportZoom, viewportPan, viewportBounds, viewportFocusedPanelId]);
   
   // Extract undo/redo functions separately to avoid object creation
-  const undo = useUndoRedoStore((state) => state.undo);
-  const redo = useUndoRedoStore((state) => state.redo);
+  const _undo = useUndoRedoStore((state) => state.undo);
+  const _redo = useUndoRedoStore((state) => state.redo);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const announcerRef = useRef<ScreenReaderAnnouncer | null>(null);
@@ -113,11 +113,11 @@ export const GridEditorCanvas: React.FC<GridEditorCanvasProps> = ({
     enablePinchZoom: true,
     enablePan: true,
     enableLongPress: true,
-    onLongPress: (point) => {
+    onLongPress: (_point) => {
       ;
       // Could trigger context menu or other actions
     },
-    onSwipe: (direction) => {
+    onSwipe: (_direction) => {
       ;
       // Could trigger panel navigation or other actions
     },

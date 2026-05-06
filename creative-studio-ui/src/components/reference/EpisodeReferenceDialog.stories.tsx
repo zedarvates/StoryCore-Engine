@@ -13,7 +13,7 @@ import type { PreviousEpisodeReference } from '../../types/reference';
 // Mock Data
 // ============================================================================
 
-const mockReferences: PreviousEpisodeReference[] = [
+const _mockReferences: PreviousEpisodeReference[] = [
   {
     episodeId: 'ep_1',
     episodeName: 'Episode 1: The Beginning',

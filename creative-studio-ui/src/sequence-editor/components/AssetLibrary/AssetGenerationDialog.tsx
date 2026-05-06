@@ -79,7 +79,7 @@ export const AssetGenerationDialog: React.FC<AssetGenerationDialogProps> = ({
         sampler: 'euler',
         scheduler: 'normal',
         workflowType: 'z_image_turbo'
-      }, (prog, msg) => {
+      }, (prog, _msg) => {
         setProgress(Math.round(prog * 100));
       });
 

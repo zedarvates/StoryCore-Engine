@@ -1,6 +1,7 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect } from 'react';
 import { X, Image as ImageIcon, Video, Loader2, Sparkles, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { _Button } from '@/components/ui/button';
 import { Scene } from '@/types/sequencePlan'; // Ensure this path is correct based on previous reads
 import { ComfyUIService } from '@/services/comfyuiService';
 import { videoEditorAPI } from '@/services/videoEditorAPI';
@@ -9,8 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
 export interface SceneMediaPanelProps {
-    scene: any; // Using any for flexibility with the Studio's scene object structure
-    onUpdate: (updates: any) => void;
+    scene: LegacyAny; // Using any for flexibility with the Studio's scene object structure
+    onUpdate: (updates: LegacyAny) => void;
     onClose: () => void;
     projectId?: string;
 }

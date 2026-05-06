@@ -91,7 +91,7 @@ if (typeof window !== 'undefined') {
       addColorStop: vi.fn(),
     })),
     createPattern: vi.fn(),
-  }) as any;
+  }) as RenderingContext2D;
 }
 
 
@@ -138,12 +138,12 @@ if (typeof window !== 'undefined') {
     
     // Simulate async success
     setTimeout(() => {
-      if (request.onsuccess) (request.onsuccess as any)({ target: request });
+      if (request.onsuccess) (request.onsuccess as (evt: { target: IDBOpenDBRequest }) => void)({ target: request });
     }, 0);
     
     return request as unknown as IDBOpenDBRequest;
   };
-
+  
   Object.defineProperty(window, 'indexedDB', {
     value: {
       open: vi.fn().mockImplementation(mockRequest),
@@ -153,4 +153,21 @@ if (typeof window !== 'undefined') {
     },
     writable: true,
   });
+}
+
+// Mock Worker for web worker tests
+if (typeof window !== 'undefined') {
+  global.Worker = class Worker {
+    onmessage: (event: MessageEvent) => void;
+    onerror: (event: Event) => void;
+    constructor(_url: string | URL, _options?: WorkerOptions) {
+      this.onmessage = vi.fn();
+      this.onerror = vi.fn();
+    }
+    postMessage(_message: unknown) { }
+    terminate() { }
+    addEventListener(_type: string, _listener: EventListenerOrEventListenerObject) { }
+    removeEventListener(_type: string, _listener: EventListenerOrEventListenerObject) { }
+    dispatchEvent(_event: Event): boolean { return true; }
+  } as unknown as typeof Worker;
 }

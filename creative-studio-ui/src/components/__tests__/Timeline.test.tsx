@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Timeline } from '../Timeline';
@@ -76,7 +77,7 @@ describe('Timeline Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+    (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
       const state = {
         shots: mockShots,
         currentTime: 0,
@@ -158,7 +159,7 @@ describe('Timeline Component', () => {
     });
 
     it('should show pause button when playing', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: mockShots,
           currentTime: 0,
@@ -177,7 +178,7 @@ describe('Timeline Component', () => {
     });
 
     it('should call pause when pause button is clicked', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: mockShots,
           currentTime: 0,
@@ -199,7 +200,7 @@ describe('Timeline Component', () => {
     });
 
     it('should skip back 5 seconds when skip back button is clicked', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: mockShots,
           currentTime: 10,
@@ -221,7 +222,7 @@ describe('Timeline Component', () => {
     });
 
     it('should skip forward 5 seconds when skip forward button is clicked', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: mockShots,
           currentTime: 10,
@@ -243,7 +244,7 @@ describe('Timeline Component', () => {
     });
 
     it('should not skip back below 0', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: mockShots,
           currentTime: 2,
@@ -265,7 +266,7 @@ describe('Timeline Component', () => {
     });
 
     it('should not skip forward beyond total duration', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: mockShots,
           currentTime: 18,
@@ -333,7 +334,7 @@ describe('Timeline Component', () => {
         },
       ];
 
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: shotsWithoutTransitions,
           currentTime: 0,
@@ -355,7 +356,7 @@ describe('Timeline Component', () => {
 
   describe('Empty State', () => {
     it('should render with no shots', () => {
-      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: any) => {
+      (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [],
           currentTime: 0,

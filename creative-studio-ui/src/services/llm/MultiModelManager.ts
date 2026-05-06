@@ -198,7 +198,7 @@ export class MultiModelManager {
   /**
    * Get model usage statistics (placeholder for future implementation)
    */
-  getModelStats(modelName: string): {
+  getModelStats(_modelName: string): {
     usageCount: number;
     lastUsed?: Date;
     averageLatency?: number;

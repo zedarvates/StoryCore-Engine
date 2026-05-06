@@ -16,9 +16,13 @@ import { pathToFileURL } from 'url';
 
 // Register custom protocol for local files before app is ready
 // Requirements: 99335124-d3ad-4905-a578-646dbeda00bc (CSP fix)
-protocol.registerSchemesAsPrivileged([
-  { scheme: 'sc-file', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true } }
-]);
+if (protocol && typeof protocol.registerSchemesAsPrivileged === 'function') {
+  protocol.registerSchemesAsPrivileged([
+    { scheme: 'sc-file', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true, stream: true } }
+  ]);
+} else {
+  console.log('protocol.registerSchemesAsPrivileged not available — running Electron 40+');
+}
 
 
 let mainWindow: BrowserWindow | null = null;

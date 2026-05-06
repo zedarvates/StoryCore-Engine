@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 /* cspell:ignore ollama Agentic Methode Bartelemi euler openrouter mistralai gemini */
 import React, { useState, useCallback, useEffect } from 'react';
 import {
@@ -103,7 +104,7 @@ export function NeuralProductionAssistant() {
     const [isSavingMetadata, setIsSavingMetadata] = useState(false);
     const [isSavingPrompt, setIsSavingPrompt] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const [metadataReport, setMetadataReport] = useState<any>(null);
+    const [metadataReport, setMetadataReport] = useState<LegacyAny>(null);
     const [ledgerFilter, setLedgerFilter] = useState<'ALL' | 'CHARACTER_REFERENCE_SHEET' | 'LOCATION_REFERENCE_SHEET' | 'OBJECT_REFERENCE_SHEET'>('ALL');
 
     const { insights, workingContext, promoteInsight, removeInsight, addInsight } = useMemoryStore();
@@ -314,7 +315,7 @@ export function NeuralProductionAssistant() {
                 responseText = final_answer;
                 // Steps from backend are NSMStep objects {type, message, timestamp}
                 // We map them to the UI trajectory format
-                const mappedTrajectory: RLMTrajectoryStep[] = (steps as any[]).map((s: { type: string; message: string; timestamp?: string }, _idx: number) => ({
+                const mappedTrajectory: RLMTrajectoryStep[] = (steps as LegacyAny[]).map((s: { type: string; message: string; timestamp?: string }, _idx: number) => ({
                     depth: 0,
                     task: prompt,
                     thought: s.type === 'thinking' ? s.message : undefined,
@@ -397,7 +398,7 @@ export function NeuralProductionAssistant() {
             const report = metadataEnrichmentService.checkCompleteness(
                 [], // TODO: Pass actual enhanced scenes
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (currentPlan?.shots || []) as any[]
+                (currentPlan?.shots || []) as LegacyAny[]
             );
             
             setMetadataReport(report);
@@ -409,7 +410,7 @@ export function NeuralProductionAssistant() {
                     report,
                     scenes: [],
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    shots: (currentPlan?.shots || []) as any[],
+                    shots: (currentPlan?.shots || []) as LegacyAny[],
                     lastUpdated: Date.now()
                 }, project.path);
                 

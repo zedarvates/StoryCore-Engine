@@ -15,7 +15,6 @@ Status: BETA — basic_ffmpeg mode is production-ready.
 import asyncio
 import json
 import logging
-import subprocess
 import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -27,9 +26,9 @@ logger = logging.getLogger(__name__)
 # Addon API
 # ---------------------------------------------------------------------------
 
-ADDON_ID   = "lip_sync"
+ADDON_ID = "lip_sync"
 ADDON_NAME = "Lip-Sync & Audio"
-VERSION    = "0.9.0"
+VERSION = "0.9.0"
 
 
 def get_manifest() -> Dict[str, Any]:
@@ -51,7 +50,10 @@ def initialize(config: Dict[str, Any]) -> None:
 # Hook handlers
 # ---------------------------------------------------------------------------
 
-async def on_audio_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+
+async def on_audio_ready(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Triggered when a TTS audio clip is ready.
     Payload keys:
@@ -77,7 +79,9 @@ async def on_audio_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dic
     return payload
 
 
-async def on_video_clip_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+async def on_video_clip_ready(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Triggered when a video clip is ready.
     Payload keys:
@@ -89,17 +93,19 @@ async def on_video_clip_ready(payload: Dict[str, Any], config: Dict[str, Any]) -
     Returns:
         Updated payload with synced_video_path
     """
-    mode      = config.get("mode", "basic_ffmpeg")
-    video_in  = Path(payload.get("video_path", ""))
-    audio_in  = Path(payload.get("audio_path", ""))
-    scene_id  = payload.get("scene_id", "unknown")
-    bbox      = payload.get("bbox")
+    mode = config.get("mode", "basic_ffmpeg")
+    video_in = Path(payload.get("video_path", ""))
+    audio_in = Path(payload.get("audio_path", ""))
+    scene_id = payload.get("scene_id", "unknown")
+    bbox = payload.get("bbox")
 
     if not video_in.exists():
         logger.error(f"[{ADDON_NAME}] Video not found: {video_in}")
         return payload
     if not audio_in.exists():
-        logger.warning(f"[{ADDON_NAME}] Audio not found: {audio_in} — skipping lip-sync")
+        logger.warning(
+            f"[{ADDON_NAME}] Audio not found: {audio_in} — skipping lip-sync"
+        )
         return payload
 
     synced_path = video_in.parent / f"{video_in.stem}_synced{video_in.suffix}"
@@ -109,7 +115,9 @@ async def on_video_clip_ready(payload: Dict[str, Any], config: Dict[str, Any]) -
             success = await _sync_wav2lip(video_in, audio_in, synced_path, bbox)
         elif mode == "rhubarb":
             phoneme_map = payload.get("phoneme_map")
-            success = await _sync_rhubarb(video_in, audio_in, synced_path, phoneme_map, bbox)
+            success = await _sync_rhubarb(
+                video_in, audio_in, synced_path, phoneme_map, bbox
+            )
         else:
             # basic_ffmpeg: mux audio into video (no facial animation)
             success = await _sync_basic_ffmpeg(video_in, audio_in, synced_path)
@@ -126,7 +134,9 @@ async def on_video_clip_ready(payload: Dict[str, Any], config: Dict[str, Any]) -
     return payload
 
 
-async def on_export_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+async def on_export_ready(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Final pass: verify all clips have synced audio, apply audio mastering.
     Payload keys:
@@ -157,6 +167,7 @@ async def on_export_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Di
 # Backend implementations
 # ---------------------------------------------------------------------------
 
+
 async def _sync_basic_ffmpeg(
     video_path: Path,
     audio_path: Path,
@@ -165,19 +176,22 @@ async def _sync_basic_ffmpeg(
     """Mux audio into video using FFmpeg (no facial animation)."""
     ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
     cmd = [
-        ffmpeg, "-y",
-        "-i", str(video_path),
-        "-i", str(audio_path),
-        "-c:v", "copy",
-        "-c:a", "aac",
+        ffmpeg,
+        "-y",
+        "-i",
+        str(video_path),
+        "-i",
+        str(audio_path),
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
         "-shortest",
         str(output_path),
     ]
     try:
         proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
         if proc.returncode != 0:
@@ -203,23 +217,28 @@ async def _sync_wav2lip(
         # Attempt to use wav2lip via subprocess (local install)
         wav2lip_script = Path(__file__).parent / "wav2lip" / "inference.py"
         if not wav2lip_script.exists():
-            logger.warning("Wav2Lip script not found — falling back to basic FFmpeg mux")
+            logger.warning(
+                "Wav2Lip script not found — falling back to basic FFmpeg mux"
+            )
             return await _sync_basic_ffmpeg(video_path, audio_path, output_path)
 
         cmd = [
-            "python", str(wav2lip_script),
-            "--checkpoint_path", str(Path(__file__).parent / "wav2lip" / "wav2lip_gan.pth"),
-            "--face", str(video_path),
-            "--audio", str(audio_path),
-            "--outfile", str(output_path),
+            "python",
+            str(wav2lip_script),
+            "--checkpoint_path",
+            str(Path(__file__).parent / "wav2lip" / "wav2lip_gan.pth"),
+            "--face",
+            str(video_path),
+            "--audio",
+            str(audio_path),
+            "--outfile",
+            str(output_path),
         ]
         if bbox:
             cmd += ["--pads", str(bbox[1]), "0", "0", "0"]
 
         proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         _, stderr = await asyncio.wait_for(proc.communicate(), timeout=600)
         if proc.returncode != 0:
@@ -241,9 +260,7 @@ async def _extract_phonemes_rhubarb(audio_path: Path) -> Optional[Path]:
     cmd = [rhubarb, "-f", "json", "-o", str(out_json), str(audio_path)]
     try:
         proc = await asyncio.create_subprocess_exec(
-            *cmd,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
+            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         await asyncio.wait_for(proc.communicate(), timeout=60)
         return out_json if out_json.exists() else None
@@ -271,6 +288,7 @@ async def _sync_rhubarb(
 # ---------------------------------------------------------------------------
 # Dependency checks
 # ---------------------------------------------------------------------------
+
 
 def _check_wav2lip() -> None:
     wav2lip_dir = Path(__file__).parent / "wav2lip"

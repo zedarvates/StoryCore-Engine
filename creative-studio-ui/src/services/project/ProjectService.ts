@@ -8,6 +8,8 @@
  * - Data Contract v1 schema validation
  * - Legacy project migration
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { Shot } from '../../types';
 import type {
@@ -203,7 +205,7 @@ export class ProjectService {
         // Convert string to Uint8Array for Electron
         const encoder = new TextEncoder();
         const uint8Array = encoder.encode(projectJson);
-        await window.electronAPI.fs.writeFile(projectFilePath, uint8Array as any);
+        await window.electronAPI.fs.writeFile(projectFilePath, uint8Array as LegacyAny);
 
       } else if (typeof window !== 'undefined' && window.showSaveFilePicker) {
         // Fallback: Use browser File System Access API if available

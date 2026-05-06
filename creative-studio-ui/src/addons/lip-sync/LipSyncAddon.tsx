@@ -4,7 +4,7 @@
  * Simplified version without external dependencies
  */
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, _useCallback } from 'react';
 import styles from './LipSync.module.css';
 
 interface LipSyncState {

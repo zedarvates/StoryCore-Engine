@@ -3,9 +3,7 @@ Workflow Execution Module for Wan Video Integration
 """
 
 import logging
-import asyncio
-from pathlib import Path
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 
 try:
     from PIL import Image
@@ -20,8 +18,13 @@ logger = logging.getLogger(__name__)
 class WanVideoWorkflowsMixin:
     """Mixin class for workflow execution methods"""
 
-    async def _execute_comfyui_workflow(self, workflow_path: str, inputs: Dict[str, Any],
-                                       operation_name: str, timeout: Optional[float] = None) -> Dict[str, Any]:
+    async def _execute_comfyui_workflow(
+        self,
+        workflow_path: str,
+        inputs: Dict[str, Any],
+        operation_name: str,
+        timeout: Optional[float] = None,
+    ) -> Dict[str, Any]:
         """
         Execute a ComfyUI workflow with given inputs
 
@@ -56,7 +59,7 @@ class WanVideoWorkflowsMixin:
             result = await self._with_timeout(
                 self._execute_workflow_async(configured_workflow, inputs),
                 timeout,
-                operation_name
+                operation_name,
             )
 
             return result
@@ -65,7 +68,9 @@ class WanVideoWorkflowsMixin:
             logger.error(f"ComfyUI workflow execution failed for {operation_name}: {e}")
             raise RuntimeError(f"Workflow execution failed: {e}")
 
-    async def _execute_workflow_async(self, workflow: Dict[str, Any], inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_workflow_async(
+        self, workflow: Dict[str, Any], inputs: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Execute workflow asynchronously using ComfyUI"""
         try:
             # Use ComfyUI manager to process the workflow
@@ -73,11 +78,13 @@ class WanVideoWorkflowsMixin:
             # we adapt it for video workflows
 
             # Check if we can use the manager directly
-            if hasattr(self.comfyui_manager, 'client'):
+            if hasattr(self.comfyui_manager, "client"):
                 client = self.comfyui_manager.client
 
                 # Queue the workflow
-                prompt_id = client.queue_workflow(workflow, seed=42, prompt=inputs.get('prompt', ''))
+                prompt_id = client.queue_workflow(
+                    workflow, seed=42, prompt=inputs.get("prompt", "")
+                )
                 if not prompt_id:
                     raise RuntimeError("Failed to queue ComfyUI workflow")
 
@@ -87,7 +94,6 @@ class WanVideoWorkflowsMixin:
                 if result.get("status") == "completed":
                     # Process video outputs
                     from pathlib import Path
-                    import json
 
                     # Assume the workflow outputs to a known location
                     # This is a simplification - in practice, we'd parse the workflow output nodes
@@ -103,7 +109,8 @@ class WanVideoWorkflowsMixin:
                         # For now, return mock frames
                         if Image:
                             video_frames = [
-                                Image.new('RGB', (832, 480), (100, 150, 200)) for _ in range(16)
+                                Image.new("RGB", (832, 480), (100, 150, 200))
+                                for _ in range(16)
                             ]
                         else:
                             video_frames = [None] * 16
@@ -112,14 +119,17 @@ class WanVideoWorkflowsMixin:
                             "status": "completed",
                             "video_frames": video_frames,
                             "output_path": str(video_path),
-                            "execution_time": result.get("execution_time", 0.0)
+                            "execution_time": result.get("execution_time", 0.0),
                         }
                     else:
                         # Fallback: generate mock frames if video file not found
-                        logger.warning(f"Expected video output not found at {video_path}")
+                        logger.warning(
+                            f"Expected video output not found at {video_path}"
+                        )
                         if Image:
                             video_frames = [
-                                Image.new('RGB', (832, 480), (255, 100, 100)) for _ in range(16)
+                                Image.new("RGB", (832, 480), (255, 100, 100))
+                                for _ in range(16)
                             ]
                         else:
                             video_frames = [None] * 16
@@ -128,10 +138,12 @@ class WanVideoWorkflowsMixin:
                             "status": "completed",
                             "video_frames": video_frames,
                             "output_path": str(video_path),
-                            "execution_time": result.get("execution_time", 0.0)
+                            "execution_time": result.get("execution_time", 0.0),
                         }
                 else:
-                    raise RuntimeError(f"Workflow execution failed: {result.get('error', 'Unknown error')}")
+                    raise RuntimeError(
+                        f"Workflow execution failed: {result.get('error', 'Unknown error')}"
+                    )
 
             else:
                 # Fallback if manager not available
@@ -142,7 +154,7 @@ class WanVideoWorkflowsMixin:
             # Return mock result as fallback
             if Image:
                 video_frames = [
-                    Image.new('RGB', (832, 480), (255, 0, 0)) for _ in range(16)
+                    Image.new("RGB", (832, 480), (255, 0, 0)) for _ in range(16)
                 ]
             else:
                 video_frames = [None] * 16
@@ -151,7 +163,7 @@ class WanVideoWorkflowsMixin:
                 "status": "failed",
                 "video_frames": video_frames,
                 "error": str(e),
-                "execution_time": 0.0
+                "execution_time": 0.0,
             }
 
     async def load_models(self) -> bool:
@@ -175,9 +187,9 @@ class WanVideoWorkflowsMixin:
 
         # Mock model loading (models are loaded within ComfyUI workflows)
         self.models = {
-            'main_model': {'path': self.config.model_path, 'loaded': True},
-            'text_encoder': {'path': self.config.text_encoder_path, 'loaded': True},
-            'vae': {'path': self.config.vae_path, 'loaded': True}
+            "main_model": {"path": self.config.model_path, "loaded": True},
+            "text_encoder": {"path": self.config.text_encoder_path, "loaded": True},
+            "vae": {"path": self.config.vae_path, "loaded": True},
         }
 
         # Load LoRA if enabled

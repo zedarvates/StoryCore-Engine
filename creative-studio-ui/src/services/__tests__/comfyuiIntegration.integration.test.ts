@@ -4,6 +4,8 @@
  * End-to-end integration tests validating real HTTP/WebSocket communication
  * with ComfyUI server, workflow execution, and error handling.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import {
   testComfyUIConnection,
@@ -462,7 +464,7 @@ describe('ComfyUI Integration Tests', () => {
   });
 
   describe('WebSocket Integration', () => {
-    let mockWebSocket: any;
+    let mockWebSocket: LegacyAny;
 
     beforeEach(() => {
       // Mock WebSocket for testing

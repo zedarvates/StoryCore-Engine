@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import {
   LightingRig,
   LightingRigParameters,
-  LightConfiguration,
+  _LightConfiguration,
   lightingRigService
 } from '../../services/lightingRigService';
 import { LightingRigLibrary } from '../LightingRigLibrary';
@@ -101,7 +101,7 @@ export const LightingRigControls: React.FC<LightingRigControlsProps> = ({
     onParametersChange(shotId, updatedParams);
   };
 
-  const selectedLight = currentParameters?.lights.find(
+  const _selectedLight = currentParameters?.lights.find(
     light => light.id === selectedLightId
   );
 

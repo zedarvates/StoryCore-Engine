@@ -102,7 +102,7 @@ describe('NavigationContext', () => {
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Create a scenario where hash change might fail
-      const originalHash = window.location.hash;
+      const _originalHash = window.location.hash;
       
       const { result } = renderHook(() => useNavigation(), {
         wrapper: ({ children }: { children: ReactNode }) => (

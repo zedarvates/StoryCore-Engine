@@ -9,7 +9,6 @@ Grammaire cinématographique : position + focale + DoF + shot_type
 """
 
 from __future__ import annotations
-from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 import math
 import re
@@ -24,90 +23,90 @@ from blender_bridge.scene_types import CameraConfig, ShotType
 # Format : (position_xyz, rotation_xyz_deg, lens_mm, f_stop, focus_dist)
 _SHOT_PRESETS: Dict[ShotType, dict] = {
     ShotType.WIDE: {
-        "position":   (0.0, -8.0, 1.7),
-        "rotation":   (88.0, 0.0, 0.0),
-        "lens":       24.0,
-        "f_stop":     5.6,
+        "position": (0.0, -8.0, 1.7),
+        "rotation": (88.0, 0.0, 0.0),
+        "lens": 24.0,
+        "f_stop": 5.6,
         "focus_dist": 8.0,
         "description": "Plan large - établit l'espace, montre l'environnement complet",
     },
     ShotType.MEDIUM: {
-        "position":   (0.0, -3.5, 1.6),
-        "rotation":   (88.0, 0.0, 0.0),
-        "lens":       50.0,
-        "f_stop":     2.8,
+        "position": (0.0, -3.5, 1.6),
+        "rotation": (88.0, 0.0, 0.0),
+        "lens": 50.0,
+        "f_stop": 2.8,
         "focus_dist": 3.5,
         "description": "Plan moyen - taille humaine, dialogue standard",
     },
     ShotType.CLOSE_UP: {
-        "position":   (0.0, -1.2, 1.65),
-        "rotation":   (88.0, 0.0, 0.0),
-        "lens":       85.0,
-        "f_stop":     1.8,
+        "position": (0.0, -1.2, 1.65),
+        "rotation": (88.0, 0.0, 0.0),
+        "lens": 85.0,
+        "f_stop": 1.8,
         "focus_dist": 1.2,
         "description": "Gros plan - visage, émotion intense, détail important",
     },
     ShotType.OVER_SHOULDER: {
-        "position":   (0.4, -1.8, 1.7),
-        "rotation":   (80.0, 0.0, -8.0),
-        "lens":       50.0,
-        "f_stop":     2.8,
+        "position": (0.4, -1.8, 1.7),
+        "rotation": (80.0, 0.0, -8.0),
+        "lens": 50.0,
+        "f_stop": 2.8,
         "focus_dist": 2.5,
         "description": "Over-shoulder - dialogue entre 2 personnages",
     },
     ShotType.LOW_ANGLE: {
-        "position":   (0.0, -4.0, 0.4),
-        "rotation":   (70.0, 0.0, 0.0),
-        "lens":       28.0,
-        "f_stop":     4.0,
+        "position": (0.0, -4.0, 0.4),
+        "rotation": (70.0, 0.0, 0.0),
+        "lens": 28.0,
+        "f_stop": 4.0,
         "focus_dist": 4.0,
         "description": "Contre-plongée - personnage dominant, imposant, héroïque",
     },
     ShotType.HIGH_ANGLE: {
-        "position":   (0.0, -3.0, 5.0),
-        "rotation":   (120.0, 0.0, 0.0),
-        "lens":       35.0,
-        "f_stop":     4.0,
+        "position": (0.0, -3.0, 5.0),
+        "rotation": (120.0, 0.0, 0.0),
+        "lens": 35.0,
+        "f_stop": 4.0,
         "focus_dist": 4.0,
         "description": "Plongée - personnage vulnérable, écrasé, environnement dominé",
     },
     ShotType.LOW_ANGLE_CLOSE: {
-        "position":   (0.0, -1.5, 0.3),
-        "rotation":   (65.0, 0.0, 0.0),
-        "lens":       35.0,
-        "f_stop":     2.0,
+        "position": (0.0, -1.5, 0.3),
+        "rotation": (65.0, 0.0, 0.0),
+        "lens": 35.0,
+        "f_stop": 2.0,
         "focus_dist": 1.6,
         "description": "Contre-plongée serrée - héroïsme dramatique, tension maximale",
     },
     ShotType.BIRD_EYE: {
-        "position":   (0.0, 0.0, 12.0),
-        "rotation":   (0.0, 0.0, 0.0),
-        "lens":       28.0,
-        "f_stop":     8.0,
+        "position": (0.0, 0.0, 12.0),
+        "rotation": (0.0, 0.0, 0.0),
+        "lens": 28.0,
+        "f_stop": 8.0,
         "focus_dist": 12.0,
         "description": "Vue aérienne - vue d'ensemble, cartographie de l'espace",
     },
     ShotType.WORM_EYE: {
-        "position":   (0.0, -2.0, 0.05),
-        "rotation":   (60.0, 0.0, 0.0),
-        "lens":       14.0,
-        "f_stop":     5.6,
+        "position": (0.0, -2.0, 0.05),
+        "rotation": (60.0, 0.0, 0.0),
+        "lens": 14.0,
+        "f_stop": 5.6,
         "focus_dist": 2.0,
         "description": "Oeil de ver - perspective extrême depuis le sol",
     },
     ShotType.DUTCH_ANGLE: {
-        "position":   (0.0, -3.5, 1.6),
-        "rotation":   (88.0, 0.0, 18.0),
-        "lens":       35.0,
-        "f_stop":     3.2,
+        "position": (0.0, -3.5, 1.6),
+        "rotation": (88.0, 0.0, 18.0),
+        "lens": 35.0,
+        "f_stop": 3.2,
         "focus_dist": 3.5,
         "description": "Angle hollandais - déstabilisant, inquiétant, psychologique",
     },
     ShotType.POV: {
-        "position":   (0.0, -0.3, 1.7),
-        "rotation":   (88.0, 0.0, 0.0),
-        "lens":       50.0,
-        "f_stop":     1.4,
+        "position": (0.0, -0.3, 1.7),
+        "rotation": (88.0, 0.0, 0.0),
+        "lens": 50.0,
+        "f_stop": 1.4,
         "focus_dist": 3.0,
         "description": "Point de vue subjectif - immersion totale dans le personnage",
     },
@@ -117,6 +116,7 @@ _SHOT_PRESETS: Dict[ShotType, dict] = {
 # ─────────────────────────────────────────────────────────────────────────────
 #  SYSTÈME DE CAMÉRAS CINÉMATOGRAPHIQUES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class CinematicCameraSystem:
     """
@@ -178,7 +178,6 @@ class CinematicCameraSystem:
           135mm : télé, compression forte, bokeh intense
           200mm+: très compressé, surveillance, distance
         """
-        from dataclasses import replace
         return CameraConfig(
             position=config.position,
             rotation=config.rotation,
@@ -254,32 +253,63 @@ class CinematicCameraSystem:
 
         # Contre-plongée — AVANT plongée pour éviter le faux positif
         # "contre-plongee" contient "plongee" donc tester en premier
-        if any(k in desc for k in [
-            "contre-plongée", "contre-plongee", "contre plongée", "contre plongee",
-            "low angle", "basse", "sol", "contreplon",
-        ]):
-            if any(k in desc for k in ["serrée", "serree", "serre", "gros", "close", "visage"]):
+        if any(
+            k in desc
+            for k in [
+                "contre-plongée",
+                "contre-plongee",
+                "contre plongée",
+                "contre plongee",
+                "low angle",
+                "basse",
+                "sol",
+                "contreplon",
+            ]
+        ):
+            if any(
+                k in desc
+                for k in ["serrée", "serree", "serre", "gros", "close", "visage"]
+            ):
                 return ShotType.LOW_ANGLE_CLOSE
             return ShotType.LOW_ANGLE
 
         # Plongée (après contre-plongée pour éviter le faux positif)
-        if any(k in desc for k in ["plongée", "plongee", "high angle", "haute", "au-dessus", "dessus"]):
+        if any(
+            k in desc
+            for k in [
+                "plongée",
+                "plongee",
+                "high angle",
+                "haute",
+                "au-dessus",
+                "dessus",
+            ]
+        ):
             return ShotType.HIGH_ANGLE
 
         # Vue aérienne
-        if any(k in desc for k in ["aérien", "aérie", "bird", "oiseau", "drone", "aerial"]):
+        if any(
+            k in desc for k in ["aérien", "aérie", "bird", "oiseau", "drone", "aerial"]
+        ):
             return ShotType.BIRD_EYE
 
         # Oeil de ver (seulement si "sol" est un mot isolé ou combiné à worm/ver/terre)
-        if any(k in desc for k in ["worm", "ver", "terre"]) or re.search(r"\bsol\b", desc):
+        if any(k in desc for k in ["worm", "ver", "terre"]) or re.search(
+            r"\bsol\b", desc
+        ):
             return ShotType.WORM_EYE
 
         # Gros plan / close-up
-        if any(k in desc for k in ["gros plan", "close", "serré", "visage", "face", "portrait"]):
+        if any(
+            k in desc
+            for k in ["gros plan", "close", "serré", "visage", "face", "portrait"]
+        ):
             return ShotType.CLOSE_UP
 
         # Plan large
-        if any(k in desc for k in ["large", "wide", "grand", "ensemble", "establishing"]):
+        if any(
+            k in desc for k in ["large", "wide", "grand", "ensemble", "establishing"]
+        ):
             return ShotType.WIDE
 
         # Plan moyen (défaut)
@@ -299,6 +329,7 @@ class CinematicCameraSystem:
     def _detect_lens(self, desc: str) -> Optional[float]:
         """Extrait la focale en mm depuis une description textuelle."""
         import re
+
         # Chercher des patterns comme "35mm", "85 mm", "24mm"
         match = re.search(r"(\d+)\s*mm", desc)
         if match:

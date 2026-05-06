@@ -37,13 +37,12 @@ export function useTemplates() {
   const { shots, playheadPosition } = useAppSelector((state) => state.timeline);
   const { selectedElements } = useAppSelector((state) => state.timeline);
   
-  const [customTemplates, setCustomTemplates] = useState<SceneTemplate[]>([]);
-  const [customPresets, setCustomPresets] = useState<NarrativePreset[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<SceneTemplate[]>(() => loadCustomTemplates());
+  const [customPresets, setCustomPresets] = useState<NarrativePreset[]>(() => loadNarrativePresets());
 
-  // Load custom templates and presets on mount
+  // Refresh if needed, but initial load is handled by useState
   useEffect(() => {
-    setCustomTemplates(loadCustomTemplates());
-    setCustomPresets(loadNarrativePresets());
+    // Optional: add a refresh if local storage changes externally
   }, []);
 
   /**

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChatToggleButton } from '../ChatToggleButton';
@@ -11,7 +12,7 @@ describe('ChatToggleButton', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       showChat: false,
       setShowChat: mockSetShowChat,
       chatMessages: [],
@@ -33,7 +34,7 @@ describe('ChatToggleButton', () => {
   });
 
   it('displays close icon when chat is open', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       showChat: true,
       setShowChat: mockSetShowChat,
       chatMessages: [],
@@ -55,7 +56,7 @@ describe('ChatToggleButton', () => {
   });
 
   it('closes chat when clicked while open', () => {
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       showChat: true,
       setShowChat: mockSetShowChat,
       chatMessages: [],

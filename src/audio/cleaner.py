@@ -8,6 +8,7 @@ background noise and artifacts.
 import numpy as np
 from scipy import signal
 
+
 class Cleaner:
     """Audio cleaner for removing background noise and artifacts."""
 
@@ -51,10 +52,10 @@ class Cleaner:
         nyquist = 0.5 * self.sample_rate
         low = low_cut / nyquist
         high = high_cut / nyquist
-        
+
         # Create butterworth filter
-        b, a = signal.butter(4, [low, high], btype='band')
-        
+        b, a = signal.butter(4, [low, high], btype="band")
+
         # Apply filter
         return signal.filtfilt(b, a, audio_data)
 
@@ -70,8 +71,8 @@ class Cleaner:
         """
         # Remove DC offset
         audio_data = self.remove_dc_offset(audio_data)
-        
+
         # Apply bandpass filter
         audio_data = self.apply_bandpass_filter(audio_data)
-        
+
         return audio_data

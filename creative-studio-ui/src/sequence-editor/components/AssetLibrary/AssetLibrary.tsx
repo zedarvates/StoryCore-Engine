@@ -5,6 +5,8 @@
  * Features a vertical navigation bar on the left (LibraryNavigator)
  * and a main content grid on the right (LibraryBrowser).
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Fuse from 'fuse.js';
@@ -53,7 +55,7 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
 ];
 
 // Helper to get assets (keep original logic)
-function getAssetsForCategory(categoryId: string, sources: AssetSource[], neuralAssets: any[]): ServiceAsset[] {
+function getAssetsForCategory(categoryId: string, sources: AssetSource[], neuralAssets: LegacyAny[]): ServiceAsset[] {
   const allAssets: ServiceAsset[] = [];
   
   if (categoryId === 'neural') {

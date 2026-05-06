@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Scissors, Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
@@ -175,7 +176,7 @@ export function ClipSplitter({ clip, onSplit, onClose, currentTime = 0 }: ClipSp
               {/* Split point indicator */}
               <div
                 className="split-indicator"
-                style={{ ['--left' as any]: `${getSplitPercentage(splitTime)}%` }}
+                style={{ ['--left' as LegacyAny]: `${getSplitPercentage(splitTime)}%` }}
               >
                 <div className="split-line" />
                 <div className="split-handle" />
@@ -185,7 +186,7 @@ export function ClipSplitter({ clip, onSplit, onClose, currentTime = 0 }: ClipSp
               {/* Current time indicator */}
               <div
                 className="current-time-indicator"
-                style={{ ['--left' as any]: `${getSplitPercentage(localCurrentTime)}%` }}
+                style={{ ['--left' as LegacyAny]: `${getSplitPercentage(localCurrentTime)}%` }}
               />
             </div>
           </div>

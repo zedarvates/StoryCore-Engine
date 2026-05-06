@@ -15,15 +15,8 @@ Version: 1.0.0
 """
 
 from datetime import datetime
-from typing import Optional
-import uuid
 
-from sqlalchemy import (
-    Column, String, DateTime, Integer, Boolean,
-    Text, JSON, ForeignKey, Index, UniqueConstraint, Enum
-)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, DateTime, Integer, Boolean, Text, JSON, Index
 import enum
 
 # Réutilise la même Base que database_models.py
@@ -37,6 +30,7 @@ except ImportError:
 # Enums
 # ─────────────────────────────────────────────
 
+
 class ContributorType(str, enum.Enum):
     human = "human"
     llm_assisted = "llm_assisted"
@@ -45,11 +39,11 @@ class ContributorType(str, enum.Enum):
 
 
 class RewardStatus(str, enum.Enum):
-    pending = "pending"       # Issue créée, en attente validation mainteneur
-    rewarded = "rewarded"     # Gemmes créditées
-    rejected = "rejected"     # Report rejeté (non-valide, hors-scope)
-    duplicate = "duplicate"   # Doublon d'une issue existante
-    expired = "expired"       # Trop ancien sans réponse
+    pending = "pending"  # Issue créée, en attente validation mainteneur
+    rewarded = "rewarded"  # Gemmes créditées
+    rejected = "rejected"  # Report rejeté (non-valide, hors-scope)
+    duplicate = "duplicate"  # Doublon d'une issue existante
+    expired = "expired"  # Trop ancien sans réponse
 
 
 class TransactionType(str, enum.Enum):
@@ -59,19 +53,20 @@ class TransactionType(str, enum.Enum):
     bonus = "bonus"
     streak_bonus = "streak_bonus"
     referral = "referral"
-    spent = "spent"           # Utilisation future (marketplace, etc.)
+    spent = "spent"  # Utilisation future (marketplace, etc.)
 
 
 class GemTier(str, enum.Enum):
-    contributor = "contributor"   # 0–9 gemmes
-    silver = "silver"             # 10–29 gemmes
-    gold = "gold"                 # 30–99 gemmes
-    legend = "legend"             # 100+ gemmes
+    contributor = "contributor"  # 0–9 gemmes
+    silver = "silver"  # 10–29 gemmes
+    gold = "gold"  # 30–99 gemmes
+    legend = "legend"  # 100+ gemmes
 
 
 # ─────────────────────────────────────────────
 # AgentApiKey — Clés d'API pour agents automatisés
 # ─────────────────────────────────────────────
+
 
 class AgentApiKey(Base, TimestampMixin):
     """
@@ -97,8 +92,10 @@ class AgentApiKey(Base, TimestampMixin):
     agent_version = Column(String(50), nullable=True)
 
     # La clé (stockée hashée en prod, affichée une seule fois à la création)
-    key_prefix = Column(String(20), nullable=False)      # "sc_agent_" + 8 premiers chars
-    key_hash = Column(String(128), nullable=False, unique=True)  # SHA256 de la clé complète
+    key_prefix = Column(String(20), nullable=False)  # "sc_agent_" + 8 premiers chars
+    key_hash = Column(
+        String(128), nullable=False, unique=True
+    )  # SHA256 de la clé complète
 
     # Statut
     is_active = Column(Boolean, default=True, nullable=False)
@@ -139,15 +136,13 @@ class AgentApiKey(Base, TimestampMixin):
     @property
     def should_be_flagged(self) -> bool:
         """Détermine si la clé devrait être flaggée automatiquement."""
-        return (
-            self.total_reports_submitted >= 10 and
-            self.duplicate_ratio > 0.80
-        )
+        return self.total_reports_submitted >= 10 and self.duplicate_ratio > 0.80
 
 
 # ─────────────────────────────────────────────
 # GemTransaction — Historique des gemmes
 # ─────────────────────────────────────────────
+
 
 class GemTransaction(Base, TimestampMixin):
     """
@@ -203,6 +198,7 @@ class GemTransaction(Base, TimestampMixin):
 # ContributionReport — Tracking des reports
 # ─────────────────────────────────────────────
 
+
 class ContributionReport(Base, TimestampMixin):
     """
     Tracking de chaque report soumis et son statut de récompense.
@@ -228,11 +224,11 @@ class ContributionReport(Base, TimestampMixin):
 
     # Métadonnées du report
     report_type = Column(String(50), nullable=False)  # bug | enhancement | question
-    severity = Column(String(50), nullable=True)       # critical | major | minor
+    severity = Column(String(50), nullable=True)  # critical | major | minor
 
     # Duplicate detection
     description_fingerprint = Column(String(64), nullable=False)  # SHA256
-    description_summary = Column(String(300), nullable=True)      # Résumé pour affichage
+    description_summary = Column(String(300), nullable=True)  # Résumé pour affichage
 
     # Statut de récompense
     reward_status = Column(String(50), default="pending", nullable=False)
@@ -275,6 +271,7 @@ class ContributionReport(Base, TimestampMixin):
 # ─────────────────────────────────────────────
 # GemLeaderboardEntry — Cache du leaderboard
 # ─────────────────────────────────────────────
+
 
 class GemLeaderboardCache(Base):
     """

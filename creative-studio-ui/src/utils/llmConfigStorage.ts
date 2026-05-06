@@ -110,7 +110,7 @@ async function getEncryptionKey(): Promise<CryptoKey> {
         true,
         ['encrypt', 'decrypt']
       );
-    } catch (error) {
+    } catch (_error) {
       console.warn('Failed to import stored encryption key, generating new one');
     }
   }

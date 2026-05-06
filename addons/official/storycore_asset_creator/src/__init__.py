@@ -18,27 +18,49 @@ Installation:
 Dependances (pip install dans le Python de Blender):
   requests, Pillow
 """
+
 from __future__ import annotations
 
 try:
     import bpy
     from bpy.types import AddonPreferences, Panel, Operator, PropertyGroup
     from bpy.props import (
-        StringProperty, EnumProperty, BoolProperty,
-        FloatProperty, IntProperty, PointerProperty,
+        StringProperty,
+        EnumProperty,
+        BoolProperty,
+        FloatProperty,
+        IntProperty,
+        PointerProperty,
     )
+
     BLENDER_AVAILABLE = True
 except ImportError:
     BLENDER_AVAILABLE = False
+
     # Mocking basic types for non-Blender environment imports (like CLI registry discovery)
-    class MockType: pass
+    class MockType:
+        pass
+
     AddonPreferences = Panel = Operator = PropertyGroup = MockType
-    def StringProperty(**kwargs): return None
-    def EnumProperty(**kwargs): return None
-    def BoolProperty(**kwargs): return None
-    def FloatProperty(**kwargs): return None
-    def IntProperty(**kwargs): return None
-    def PointerProperty(**kwargs): return None
+
+    def StringProperty(**kwargs):
+        return None
+
+    def EnumProperty(**kwargs):
+        return None
+
+    def BoolProperty(**kwargs):
+        return None
+
+    def FloatProperty(**kwargs):
+        return None
+
+    def IntProperty(**kwargs):
+        return None
+
+    def PointerProperty(**kwargs):
+        return None
+
 
 bl_info = {
     "name": "StoryCore Asset Creator",
@@ -54,6 +76,7 @@ bl_info = {
 
 # ── PREFERENCES ──────────────────────────────────────────────────────────────
 
+
 class StoryCoreAssetPreferences(AddonPreferences):
     bl_idname = __package__
 
@@ -65,7 +88,8 @@ class StoryCoreAssetPreferences(AddonPreferences):
     comfyui_port: IntProperty(
         name="ComfyUI Port (override)",
         default=0,
-        min=0, max=65535,
+        min=0,
+        max=65535,
         description=(
             "Override port ComfyUI. 0 = utiliser config/comfyui_config.json.\n"
             "ComfyUI Standard = 8188 | ComfyUI Desktop = 8000"
@@ -83,16 +107,25 @@ class StoryCoreAssetPreferences(AddonPreferences):
 
         # Affichage de la config active
         box = layout.box()
-        box.label(text="Configuration active (lue depuis config/comfyui_config.json):", icon="FILE_TEXT")
+        box.label(
+            text="Configuration active (lue depuis config/comfyui_config.json):",
+            icon="FILE_TEXT",
+        )
         try:
             from .config_loader import describe_config
+
             box.label(text=describe_config(), icon="NETWORK_DRIVE")
         except Exception as e:
             box.label(text=f"Config non lisible: {e}", icon="ERROR")
 
         layout.separator()
-        layout.label(text="Overrides Blender (optionnel - surcharge le fichier JSON):", icon="PREFERENCES")
-        layout.label(text="Port 0 = lire depuis config/comfyui_config.json", icon="INFO")
+        layout.label(
+            text="Overrides Blender (optionnel - surcharge le fichier JSON):",
+            icon="PREFERENCES",
+        )
+        layout.label(
+            text="Port 0 = lire depuis config/comfyui_config.json", icon="INFO"
+        )
 
         row = layout.row()
         row.prop(self, "comfyui_host")
@@ -100,11 +133,16 @@ class StoryCoreAssetPreferences(AddonPreferences):
         layout.prop(self, "output_dir")
 
         layout.separator()
-        layout.label(text="Fichier de config: config/comfyui_config.json", icon="FILEBROWSER")
-        layout.label(text="Ports: Standard=8188 | Desktop=8000 | Remote=custom", icon="INFO")
+        layout.label(
+            text="Fichier de config: config/comfyui_config.json", icon="FILEBROWSER"
+        )
+        layout.label(
+            text="Ports: Standard=8188 | Desktop=8000 | Remote=custom", icon="INFO"
+        )
 
 
 # ── PROPRIETES DE SCENE ───────────────────────────────────────────────────────
+
 
 class StoryCoreAssetProperties(PropertyGroup):
     # Proprietes communes
@@ -121,9 +159,9 @@ class StoryCoreAssetProperties(PropertyGroup):
     preset: EnumProperty(
         name="Qualite",
         items=[
-            ("lowvram",  "Low VRAM (rapide)",   "Moins de VRAM, moins de details"),
-            ("standard", "Standard",             "Qualite standard"),
-            ("lowpoly",  "Low Poly",             "Mesh basse resolution"),
+            ("lowvram", "Low VRAM (rapide)", "Moins de VRAM, moins de details"),
+            ("standard", "Standard", "Qualite standard"),
+            ("lowpoly", "Low Poly", "Mesh basse resolution"),
         ],
         default="lowvram",
     )
@@ -155,19 +193,20 @@ class StoryCoreAssetProperties(PropertyGroup):
     foliage_style: EnumProperty(
         name="Style feuillage",
         items=[
-            ("deciduous", "Feuillu",    "Arbre a feuilles caduques"),
-            ("conifer",   "Conifere",   "Sapin, epicea..."),
-            ("palm",      "Palmier",    "Palmier tropical"),
-            ("bush",      "Arbuste",    "Buisson dense"),
-            ("dead",      "Mort",       "Arbre mort, branches nues"),
-            ("tropical",  "Tropical",   "Vegetation tropicale"),
+            ("deciduous", "Feuillu", "Arbre a feuilles caduques"),
+            ("conifer", "Conifere", "Sapin, epicea..."),
+            ("palm", "Palmier", "Palmier tropical"),
+            ("bush", "Arbuste", "Buisson dense"),
+            ("dead", "Mort", "Arbre mort, branches nues"),
+            ("tropical", "Tropical", "Vegetation tropicale"),
         ],
         default="deciduous",
     )
     foliage_density: FloatProperty(
         name="Densite feuillage",
         default=1.0,
-        min=0.1, max=3.0,
+        min=0.1,
+        max=3.0,
         description="Multiplicateur de densite du feuillage",
     )
 
@@ -178,8 +217,10 @@ class StoryCoreAssetProperties(PropertyGroup):
 
 # ── OPERATEURS ────────────────────────────────────────────────────────────────
 
+
 class STORYCORE_OT_image_to_3d(Operator):
     """Convertit une image en asset 3D via ComfyUI Trellis2"""
+
     bl_idname = "storycore.image_to_3d"
     bl_label = "Image -> 3D"
     bl_options = {"REGISTER", "UNDO"}
@@ -199,7 +240,9 @@ class STORYCORE_OT_image_to_3d(Operator):
             from .pipeline_image_to_3d import ImageTo3DPipeline
 
             client = ComfyUIClient.from_project_config(blender_prefs=bl_prefs)
-            out_dir = get_output_dir("assets_3d", getattr(bl_prefs, "output_dir", "") or None)
+            out_dir = get_output_dir(
+                "assets_3d", getattr(bl_prefs, "output_dir", "") or None
+            )
 
             def _progress(msg):
                 props.status_text = msg
@@ -213,14 +256,18 @@ class STORYCORE_OT_image_to_3d(Operator):
                 preset=props.preset,
                 remove_background=props.remove_background,
                 seed=props.seed,
-                output_dir=bpy.path.abspath(out_dir) if out_dir.startswith("//") else out_dir,
+                output_dir=bpy.path.abspath(out_dir)
+                if out_dir.startswith("//")
+                else out_dir,
                 timeout=get_timeout(),
                 progress_callback=_progress,
             )
 
             # Importer dans Blender
             pipeline.import_glb_in_blender(result["glb_path"], result["asset_name"])
-            props.status_text = f"OK: {result['asset_name']} en {result['duration']:.1f}s"
+            props.status_text = (
+                f"OK: {result['asset_name']} en {result['duration']:.1f}s"
+            )
             self.report({"INFO"}, f"Asset 3D importe: {result['asset_name']}")
 
         except ConnectionError as e:
@@ -237,6 +284,7 @@ class STORYCORE_OT_image_to_3d(Operator):
 
 class STORYCORE_OT_create_puppet(Operator):
     """Cree un puppet (marionnette articulee) depuis une image de personnage"""
+
     bl_idname = "storycore.create_puppet"
     bl_label = "Creer Puppet"
     bl_options = {"REGISTER", "UNDO"}
@@ -256,7 +304,9 @@ class STORYCORE_OT_create_puppet(Operator):
             from .pipeline_puppet import PuppetPipeline
 
             client = ComfyUIClient.from_project_config(blender_prefs=bl_prefs)
-            out_dir = get_output_dir("puppets", getattr(bl_prefs, "output_dir", "") or None)
+            out_dir = get_output_dir(
+                "puppets", getattr(bl_prefs, "output_dir", "") or None
+            )
             host, port = client.base_url.replace("http://", "").rsplit(":", 1)
 
             def _progress(msg):
@@ -274,7 +324,9 @@ class STORYCORE_OT_create_puppet(Operator):
                 progress_callback=_progress,
             )
 
-            props.status_text = f"Puppet: {result['character_name']} ({len(result['rig_bones'])} os)"
+            props.status_text = (
+                f"Puppet: {result['character_name']} ({len(result['rig_bones'])} os)"
+            )
             self.report({"INFO"}, f"Puppet cree: {result['character_name']}")
 
         except Exception as e:
@@ -287,6 +339,7 @@ class STORYCORE_OT_create_puppet(Operator):
 
 class STORYCORE_OT_create_organic(Operator):
     """Cree un asset organique (tronc 3D + feuillage procedural)"""
+
     bl_idname = "storycore.create_organic"
     bl_label = "Creer Arbre/Plante"
     bl_options = {"REGISTER", "UNDO"}
@@ -307,7 +360,9 @@ class STORYCORE_OT_create_organic(Operator):
             from .pipeline_organic import OrganicAssetPipeline
 
             client = ComfyUIClient.from_project_config(blender_prefs=bl_prefs)
-            out_dir = get_output_dir("organic", getattr(bl_prefs, "output_dir", "") or None)
+            out_dir = get_output_dir(
+                "organic", getattr(bl_prefs, "output_dir", "") or None
+            )
             host, port = client.base_url.replace("http://", "").rsplit(":", 1)
 
             def _progress(msg):
@@ -327,7 +382,9 @@ class STORYCORE_OT_create_organic(Operator):
                 progress_callback=_progress,
             )
 
-            props.status_text = f"Organique: {result['asset_name']} ({result['foliage_style']})"
+            props.status_text = (
+                f"Organique: {result['asset_name']} ({result['foliage_style']})"
+            )
             self.report({"INFO"}, f"Asset organique cree: {result['asset_name']}")
 
         except Exception as e:
@@ -340,6 +397,7 @@ class STORYCORE_OT_create_organic(Operator):
 
 class STORYCORE_OT_check_comfyui(Operator):
     """Verifie la connexion a ComfyUI"""
+
     bl_idname = "storycore.check_comfyui"
     bl_label = "Tester ComfyUI"
 
@@ -350,6 +408,7 @@ class STORYCORE_OT_check_comfyui(Operator):
         try:
             from .comfyui_client import ComfyUIClient
             from .config_loader import describe_config
+
             client = ComfyUIClient.from_project_config(blender_prefs=bl_prefs)
             info = describe_config()
             if client.is_alive():
@@ -357,11 +416,15 @@ class STORYCORE_OT_check_comfyui(Operator):
                 context.scene.storycore_assets.status_text = f"ComfyUI: OK ({info})"
             else:
                 self.report({"WARNING"}, f"ComfyUI ne repond pas — {info}")
-                context.scene.storycore_assets.status_text = f"ComfyUI: non accessible ({info})"
+                context.scene.storycore_assets.status_text = (
+                    f"ComfyUI: non accessible ({info})"
+                )
         except ValueError as e:
             # Port non configure
             self.report({"ERROR"}, str(e))
-            context.scene.storycore_assets.status_text = "Config manquante: voir config/comfyui_config.json"
+            context.scene.storycore_assets.status_text = (
+                "Config manquante: voir config/comfyui_config.json"
+            )
         except Exception as e:
             self.report({"ERROR"}, f"Erreur: {e}")
 
@@ -370,8 +433,10 @@ class STORYCORE_OT_check_comfyui(Operator):
 
 # ── PANNEAU UI ────────────────────────────────────────────────────────────────
 
+
 class STORYCORE_PT_main_panel(Panel):
     """Panneau principal StoryCore Asset Creator"""
+
     bl_label = "StoryCore Assets"
     bl_idname = "STORYCORE_PT_main_panel"
     bl_space_type = "VIEW_3D"
@@ -402,6 +467,7 @@ class STORYCORE_PT_main_panel(Panel):
 
 class STORYCORE_PT_image_to_3d(Panel):
     """Pipeline Image -> 3D"""
+
     bl_label = "Image -> Asset 3D"
     bl_idname = "STORYCORE_PT_image_to_3d"
     bl_space_type = "VIEW_3D"
@@ -418,6 +484,7 @@ class STORYCORE_PT_image_to_3d(Panel):
 
 class STORYCORE_PT_puppet(Panel):
     """Pipeline Personnage -> Puppet"""
+
     bl_label = "Personnage -> Puppet"
     bl_idname = "STORYCORE_PT_puppet"
     bl_space_type = "VIEW_3D"
@@ -435,6 +502,7 @@ class STORYCORE_PT_puppet(Panel):
 
 class STORYCORE_PT_organic(Panel):
     """Pipeline Organique (arbres, plantes)"""
+
     bl_label = "Arbres / Plantes"
     bl_idname = "STORYCORE_PT_organic"
     bl_space_type = "VIEW_3D"
@@ -445,7 +513,10 @@ class STORYCORE_PT_organic(Panel):
     def draw(self, context):
         layout = self.layout
         props = context.scene.storycore_assets
-        layout.label(text="Tronc seul -> 3D + Feuillage procédural", icon="OUTLINER_OB_FORCE_FIELD")
+        layout.label(
+            text="Tronc seul -> 3D + Feuillage procédural",
+            icon="OUTLINER_OB_FORCE_FIELD",
+        )
         layout.label(text="Conseil: image de tronc sans feuilles!", icon="ERROR")
         layout.prop(props, "trunk_image_path")
         layout.prop(props, "foliage_style")

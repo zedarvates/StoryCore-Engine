@@ -3,6 +3,8 @@
  * 
  * Tests for VideoGenerationButton component functionality.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -21,7 +23,7 @@ describe('VideoGenerationButton', () => {
     // Default mock: no pipeline
     vi.mocked(useGenerationStore).mockReturnValue({
       currentPipeline: null,
-    } as any);
+    } as LegacyAny);
   });
   
   it('should render button with correct label', () => {
@@ -38,7 +40,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -65,7 +67,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -92,7 +94,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -121,7 +123,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'in_progress', attempts: 1 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} isGenerating={true} />);
     
@@ -163,7 +165,7 @@ describe('VideoGenerationButton', () => {
           },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -193,7 +195,7 @@ describe('VideoGenerationButton', () => {
           },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -221,7 +223,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -239,7 +241,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -275,7 +277,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'in_progress', attempts: 1 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     
@@ -291,7 +293,7 @@ describe('VideoGenerationButton', () => {
           video: { status: 'pending', attempts: 0 },
         },
       },
-    } as any);
+    } as LegacyAny);
     
     render(<VideoGenerationButton onClick={mockOnClick} />);
     

@@ -32,13 +32,20 @@ sys.path.insert(0, str(ROOT))
 
 from blender_bridge import BlenderBridge
 from blender_bridge.scene_types import (
-    SceneJSON, SceneType, ShotType, AtmosphereType,
-    CameraConfig, CharacterRig, AtmosphereConfig,
+    SceneJSON,
+    SceneType,
+    ShotType,
+    AtmosphereType,
+    CameraConfig,
+    CharacterRig,
 )
-from blender_bridge.voice_bridge import VoiceToSceneBridge, voice_to_scene
+from blender_bridge.voice_bridge import VoiceToSceneBridge
 from blender_bridge.camera_system import CinematicCameraSystem
 from blender_bridge.location_manager import LocationManager
-from blender_bridge.headless_runner import BlenderHeadlessRunner, _load_blender_project_config
+from blender_bridge.headless_runner import (
+    BlenderHeadlessRunner,
+    _load_blender_project_config,
+)
 from blender_projection.scene_builder import build_projected_scene, ProjectionConfig
 
 
@@ -46,21 +53,26 @@ from blender_projection.scene_builder import build_projected_scene, ProjectionCo
 #  FIXTURES
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture(scope="module")
 def bridge():
     return BlenderBridge()
+
 
 @pytest.fixture(scope="module")
 def voice_bridge():
     return VoiceToSceneBridge()
 
+
 @pytest.fixture(scope="module")
 def camera_sys():
     return CinematicCameraSystem()
 
+
 @pytest.fixture(scope="module")
 def location_mgr():
     return LocationManager()
+
 
 @pytest.fixture(scope="module")
 def runner():
@@ -70,6 +82,7 @@ def runner():
 # ─────────────────────────────────────────────────────────────────────────────
 #  TESTS : CONFIG PROJET
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestBlenderConfig:
     def test_config_loads(self):
@@ -102,6 +115,7 @@ class TestBlenderConfig:
 # ─────────────────────────────────────────────────────────────────────────────
 #  TESTS : TYPES DE DONNÉES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestSceneTypes:
     def test_scenejson_creation(self):
@@ -146,6 +160,7 @@ class TestSceneTypes:
 #  TESTS : CAMÉRA SYSTÈME
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestCameraSystem:
     def test_list_shot_types(self, camera_sys):
         shots = camera_sys.list_shot_types()
@@ -170,15 +185,18 @@ class TestCameraSystem:
         assert cam.lens == 35.0
         assert cam.shot_type == ShotType.WIDE
 
-    @pytest.mark.parametrize("description,expected_shot", [
-        ("camera basse 35mm contre-plongee",           ShotType.LOW_ANGLE),
-        ("contre-plongee serree plan serre visage",    ShotType.LOW_ANGLE_CLOSE),
-        ("plongee high angle",                          ShotType.HIGH_ANGLE),
-        ("gros plan close visage",                      ShotType.CLOSE_UP),
-        ("plan large wide",                             ShotType.WIDE),
-        ("over shoulder dialogue",                      ShotType.OVER_SHOULDER),
-        ("medium plan moyen standard",                  ShotType.MEDIUM),
-    ])
+    @pytest.mark.parametrize(
+        "description,expected_shot",
+        [
+            ("camera basse 35mm contre-plongee", ShotType.LOW_ANGLE),
+            ("contre-plongee serree plan serre visage", ShotType.LOW_ANGLE_CLOSE),
+            ("plongee high angle", ShotType.HIGH_ANGLE),
+            ("gros plan close visage", ShotType.CLOSE_UP),
+            ("plan large wide", ShotType.WIDE),
+            ("over shoulder dialogue", ShotType.OVER_SHOULDER),
+            ("medium plan moyen standard", ShotType.MEDIUM),
+        ],
+    )
     def test_shot_detection_from_voice(self, camera_sys, description, expected_shot):
         cam = camera_sys.from_voice_description(description)
         assert cam.shot_type == expected_shot, (
@@ -195,7 +213,9 @@ class TestCameraSystem:
 
     def test_contre_plongee_not_haute(self, camera_sys):
         """Bug fix: contre-plongee ne doit PAS donner HIGH_ANGLE."""
-        cam = camera_sys.from_voice_description("camera basse 35mm legere contre-plongee plan serre")
+        cam = camera_sys.from_voice_description(
+            "camera basse 35mm legere contre-plongee plan serre"
+        )
         assert cam.shot_type != ShotType.HIGH_ANGLE, (
             "contre-plongee ne doit pas être détecté comme high_angle"
         )
@@ -205,6 +225,7 @@ class TestCameraSystem:
 # ─────────────────────────────────────────────────────────────────────────────
 #  TESTS : VOICE BRIDGE
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestVoiceBridge:
     def test_parse_basic_scene(self, voice_bridge):
@@ -246,7 +267,9 @@ class TestVoiceBridge:
 
     def test_parse_character_without_accent(self, voice_bridge):
         """Bug fix: Personnage avec 'a' sans accent doit aussi être détecté."""
-        scene = voice_bridge.parse("Cree ruelle cyberpunk avec Alpha a 2 metres devant camera")
+        scene = voice_bridge.parse(
+            "Cree ruelle cyberpunk avec Alpha a 2 metres devant camera"
+        )
         names = [c.name for c in scene.characters]
         assert "Alpha" in names, f"Alpha non détecté, personnages: {names}"
 
@@ -266,7 +289,9 @@ class TestVoiceBridge:
 
     def test_apply_command_atmosphere(self, voice_bridge):
         scene = voice_bridge.parse("Desert aride")
-        scene = voice_bridge.apply_command(scene, "Ajoute brouillard volumetrique dense")
+        scene = voice_bridge.apply_command(
+            scene, "Ajoute brouillard volumetrique dense"
+        )
         assert scene.atmosphere.type == AtmosphereType.VOLUMETRIC
         assert scene.atmosphere.density > 0.02
 
@@ -293,6 +318,7 @@ class TestVoiceBridge:
 # ─────────────────────────────────────────────────────────────────────────────
 #  TESTS : LOCATION MANAGER
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestLocationManager:
     def test_list_all_returns_builtins(self, location_mgr):
@@ -361,6 +387,7 @@ class TestLocationManager:
 #  TESTS : BRIDGE PRINCIPAL (sans Blender)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestBlenderBridge:
     def test_status_has_required_keys(self, bridge):
         status = bridge.status()
@@ -408,7 +435,9 @@ class TestBlenderBridge:
         assert "cam_data.lens" in content
 
     def test_script_contains_character(self, bridge):
-        script_path = bridge.generate_script_only("Ruelle avec Alpha a 2 metres devant camera")
+        script_path = bridge.generate_script_only(
+            "Ruelle avec Alpha a 2 metres devant camera"
+        )
         content = Path(script_path).read_text(encoding="utf-8")
         assert "Alpha" in content
 
@@ -438,6 +467,7 @@ class TestBlenderBridge:
 # ─────────────────────────────────────────────────────────────────────────────
 #  TESTS : HEADLESS RUNNER
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestHeadlessRunner:
     def test_is_blender_available_returns_bool(self, runner):
@@ -476,6 +506,7 @@ class TestHeadlessRunner:
 # ─────────────────────────────────────────────────────────────────────────────
 #  TESTS : PROJECTION 2.5D
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestProjectionScene:
     def test_exterior_script_generated(self, tmp_path):
@@ -529,12 +560,14 @@ class TestProjectionScene:
         assert "plant_assets" in content
 
     def test_projection_config_from_dict(self):
-        cfg = ProjectionConfig.from_dict({
-            "scene_type": "interior",
-            "camera_mode": "over_shoulder",
-            "engine": "CYCLES",
-            "samples": 128,
-        })
+        cfg = ProjectionConfig.from_dict(
+            {
+                "scene_type": "interior",
+                "camera_mode": "over_shoulder",
+                "engine": "CYCLES",
+                "samples": 128,
+            }
+        )
         assert cfg.scene_type == "interior"
         assert cfg.camera_mode == "over_shoulder"
         assert cfg.engine == "CYCLES"
@@ -555,19 +588,24 @@ class TestProjectionScene:
 #  TESTS : NARRATIVE PIPELINE BRIDGE
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestNarrativePipelineBridge:
     def test_beat_to_scene(self, bridge):
         from blender_bridge.backend_integration import NarrativePipelineBridge
+
         nb = NarrativePipelineBridge(blender_bridge=bridge)
-        scene = nb.beat_to_scene({
-            "beat": "Alpha arrive dans la ruelle cyberpunk",
-            "characters": [],
-        })
+        scene = nb.beat_to_scene(
+            {
+                "beat": "Alpha arrive dans la ruelle cyberpunk",
+                "characters": [],
+            }
+        )
         assert isinstance(scene, SceneJSON)
         assert "ruelle_cyberpunk" in scene.location_preset_id or True  # peut matcher
 
     def test_beats_to_scenes(self, bridge):
         from blender_bridge.backend_integration import NarrativePipelineBridge
+
         nb = NarrativePipelineBridge(blender_bridge=bridge)
         beats = [
             {"beat": "Ruelle cyberpunk nocturne", "characters": []},
@@ -580,6 +618,7 @@ class TestNarrativePipelineBridge:
 
     def test_location_carry_over(self, bridge):
         from blender_bridge.backend_integration import NarrativePipelineBridge
+
         nb = NarrativePipelineBridge(blender_bridge=bridge)
         beats = [
             {"beat": "Ruelle cyberpunk neon"},
@@ -592,6 +631,7 @@ class TestNarrativePipelineBridge:
 
     def test_export_storyboard(self, bridge, tmp_path):
         from blender_bridge.backend_integration import NarrativePipelineBridge
+
         nb = NarrativePipelineBridge(blender_bridge=bridge)
         beats = [{"beat": "Ruelle cyberpunk"}, {"beat": "Gros plan alpha"}]
         nb.beats_to_scenes(beats)
@@ -610,17 +650,21 @@ class TestNarrativePipelineBridge:
 #  TESTS D'INTÉGRATION : pipeline complet sans Blender
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestIntegrationDryRun:
     """Tests du pipeline complet en mode dry-run (sans Blender)."""
 
-    @pytest.mark.parametrize("command", [
-        "Cree une ruelle cyberpunk sous pluie",
-        "Camera basse 35mm legere contre-plongee plan serre",
-        "Foret brumeuse au lever du jour large angle",
-        "Bureau sombre de detective interieur",
-        "Desert aride soleil rasant occidental",
-        "Studio neutre fond blanc portrait",
-    ])
+    @pytest.mark.parametrize(
+        "command",
+        [
+            "Cree une ruelle cyberpunk sous pluie",
+            "Camera basse 35mm legere contre-plongee plan serre",
+            "Foret brumeuse au lever du jour large angle",
+            "Bureau sombre de detective interieur",
+            "Desert aride soleil rasant occidental",
+            "Studio neutre fond blanc portrait",
+        ],
+    )
     def test_dry_run_all_commands(self, bridge, command):
         """Chaque commande produit un script valide."""
         result = bridge.dry_run(command)

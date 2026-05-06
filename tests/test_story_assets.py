@@ -13,9 +13,6 @@ Tous les tests fonctionnent SANS Blender installé.
 """
 
 import json
-import math
-import tempfile
-import shutil
 from pathlib import Path
 import pytest
 
@@ -27,13 +24,13 @@ from story_assets import (
     SceneObjectInjector,
     OBJECT_TYPES,
     MATERIAL_PRESETS,
-    INVENTORY_SLOTS,
 )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  FIXTURES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def tmp_dir(tmp_path):
@@ -99,8 +96,8 @@ def inventory(epee, manteau):
 #  TESTS : StoryObject
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestStoryObject:
 
+class TestStoryObject:
     def test_creation_defaults(self):
         obj = StoryObject(name="Objet test")
         assert obj.id.startswith("obj_")
@@ -140,6 +137,7 @@ class TestStoryObject:
     def test_blender_object_name_clean(self, epee):
         name = epee.blender_object_name
         import re
+
         assert re.match(r"^[a-zA-Z0-9_]+$", name)
         assert len(name) <= 63
 
@@ -203,8 +201,8 @@ class TestStoryObject:
 #  TESTS : CharacterInventory
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestCharacterInventory:
 
+class TestCharacterInventory:
     def test_creation_empty(self):
         inv = CharacterInventory("Beta")
         assert inv.character_name == "Beta"
@@ -323,8 +321,8 @@ class TestCharacterInventory:
 #  TESTS : StoryObjectRegistry
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestStoryObjectRegistry:
 
+class TestStoryObjectRegistry:
     def test_empty_registry(self, registry):
         assert len(registry) == 0
         assert registry.all_objects() == []
@@ -403,8 +401,9 @@ class TestStoryObjectRegistry:
         assert inv.item_count == 2
 
     def test_all_characters(self, registry, epee):
-        lanterne = StoryObject(id="lanterne_beta", name="Lanterne", owner="Beta",
-                               object_type="lantern")
+        lanterne = StoryObject(
+            id="lanterne_beta", name="Lanterne", owner="Beta", object_type="lantern"
+        )
         registry.register(epee)
         registry.register(lanterne)
         chars = registry.all_characters()
@@ -425,7 +424,9 @@ class TestStoryObjectRegistry:
     def test_persistence_reload(self, registry, epee, tmp_dir):
         registry.register(epee)
         # Créer un nouveau registre (recharge depuis disque)
-        registry2 = StoryObjectRegistry(project_id="test_project", projects_dir=str(tmp_dir))
+        registry2 = StoryObjectRegistry(
+            project_id="test_project", projects_dir=str(tmp_dir)
+        )
         assert len(registry2) == 1
         loaded = registry2.get("epee_alpha_001")
         assert loaded is not None
@@ -449,8 +450,8 @@ class TestStoryObjectRegistry:
 #  TESTS : StoryAssetBuilder
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestStoryAssetBuilder:
 
+class TestStoryAssetBuilder:
     def test_build_script_creates_file(self, epee, tmp_dir):
         builder = StoryAssetBuilder(output_dir=str(tmp_dir / "scripts"))
         script_path = builder.build_script(epee, render_preview=False)
@@ -525,14 +526,32 @@ class TestStoryAssetBuilder:
 
     def test_all_geometry_types_generate_code(self, tmp_dir):
         builder = StoryAssetBuilder(output_dir=str(tmp_dir / "scripts"))
-        geom_types = list(builder._geometry_code.__func__.__code__.co_consts
-                          if False else ["blade", "cylinder", "box", "sphere",
-                                         "disc", "gem", "lantern", "book",
-                                         "bottle", "flat_plane", "scroll",
-                                         "gun_body", "key_shape"])
+        geom_types = list(
+            builder._geometry_code.__func__.__code__.co_consts
+            if False
+            else [
+                "blade",
+                "cylinder",
+                "box",
+                "sphere",
+                "disc",
+                "gem",
+                "lantern",
+                "book",
+                "bottle",
+                "flat_plane",
+                "scroll",
+                "gun_body",
+                "key_shape",
+            ]
+        )
         for geom in geom_types:
-            obj = StoryObject(id=f"test_{geom}", name=f"Test {geom}",
-                              object_type="misc", material="metal_shiny")
+            StoryObject(
+                id=f"test_{geom}",
+                name=f"Test {geom}",
+                object_type="misc",
+                material="metal_shiny",
+            )
             lines = builder._geometry_code(geom, "test_obj", (1.0, 1.0, 1.0))
             assert len(lines) > 0
 
@@ -559,8 +578,8 @@ class TestStoryAssetBuilder:
 #  TESTS : SceneObjectInjector
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestSceneObjectInjector:
 
+class TestSceneObjectInjector:
     def _make_scene_script(self, tmp_dir: Path) -> str:
         """Crée un faux script de scène Blender pour les tests."""
         script = tmp_dir / "scene_test.py"
@@ -579,7 +598,9 @@ class TestSceneObjectInjector:
     def test_inject_into_script(self, epee, tmp_dir):
         script_path = self._make_scene_script(tmp_dir)
         injector = SceneObjectInjector()
-        result = injector.inject_into_script(script_path, [epee], character_name="Alpha")
+        result = injector.inject_into_script(
+            script_path, [epee], character_name="Alpha"
+        )
         content = Path(result).read_text(encoding="utf-8")
         assert "OBJETS D'HISTOIRE" in content
         assert "Alpha" in content
@@ -678,8 +699,8 @@ class TestSceneObjectInjector:
 #  TESTS : Intégration complète
 # ─────────────────────────────────────────────────────────────────────────────
 
-class TestStoryAssetsIntegration:
 
+class TestStoryAssetsIntegration:
     def test_full_pipeline_weapon_to_scene(self, tmp_dir):
         """Pipeline complet : StoryObject → inventaire → registre → script → injection."""
 
@@ -772,12 +793,14 @@ class TestStoryAssetsIntegration:
             projects_dir=str(tmp_dir),
         )
         for i in range(3):
-            registry.register(StoryObject(
-                id=f"item_{i}",
-                name=f"Item {i}",
-                owner=f"Char_{i % 2}",
-                object_type="misc",
-            ))
+            registry.register(
+                StoryObject(
+                    id=f"item_{i}",
+                    name=f"Item {i}",
+                    owner=f"Char_{i % 2}",
+                    object_type="misc",
+                )
+            )
 
         manifest_path = registry.export_manifest()
         with open(manifest_path, encoding="utf-8") as f:

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { LegacyAny } from '@/types/legacy';
+import Re_act, { useState } from 'react';
 import { HSLQualifierSettings } from '../../types/color-correction';
 import styles from './ColorCorrectionPanel.module.css';
 
@@ -6,7 +7,7 @@ interface PowerWindowsPanelProps {}
 
 export const PowerWindowsPanel: React.FC<PowerWindowsPanelProps> = () => {
   const [activeWindow, setActiveWindow] = useState<'circle' | 'polygon' | 'gradient'>('circle');
-  const [windows, setWindows] = useState<any[]>([]);
+  const [windows, setWindows] = useState<LegacyAny[]>([]);
 
   const handleAddWindow = (type: 'circle' | 'polygon' | 'gradient') => {
     const newWindow = {
@@ -20,7 +21,7 @@ export const PowerWindowsPanel: React.FC<PowerWindowsPanelProps> = () => {
     setWindows([...windows, newWindow]);
   };
 
-  const handleWindowChange = (id: string, changes: any) => {
+  const handleWindowChange = (id: string, changes: LegacyAny) => {
     setWindows(windows.map(window => 
       window.id === id ? { ...window, ...changes } : window
     ));

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -77,7 +78,7 @@ describe('CharacterEditor', () => {
     mockCheckDependencies.mockReturnValue({ stories: [], relationships: [] });
     mockGetAllCharacters.mockReturnValue([]);
     
-    (useCharacterManager as any).mockReturnValue({
+    (useCharacterManager as LegacyAny).mockReturnValue({
       getCharacter: mockGetCharacter,
       updateCharacter: mockUpdateCharacter,
       deleteCharacter: mockDeleteCharacter,

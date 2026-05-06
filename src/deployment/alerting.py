@@ -7,7 +7,7 @@ This module handles alerts and notifications for the deployment system.
 import logging
 import time
 from datetime import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 from .models import DeploymentConfig
 
@@ -30,7 +30,7 @@ class AlertingSystem:
                 "severity": severity,
                 "message": message,
                 "component": component,
-                "status": "sent"
+                "status": "sent",
             }
 
             # Log alert
@@ -58,7 +58,9 @@ class AlertingSystem:
         """Send email alert"""
         try:
             # This would integrate with email service
-            logger.info(f"Email alert sent to {self.config.alert_email}: {alert['message']}")
+            logger.info(
+                f"Email alert sent to {self.config.alert_email}: {alert['message']}"
+            )
 
         except Exception as e:
             logger.error(f"Email alert failed: {e}")
@@ -67,7 +69,9 @@ class AlertingSystem:
         """Send webhook alert"""
         try:
             # This would send HTTP POST to webhook URL
-            logger.info(f"Webhook alert sent to {self.config.alert_webhook}: {alert['message']}")
+            logger.info(
+                f"Webhook alert sent to {self.config.alert_webhook}: {alert['message']}"
+            )
 
         except Exception as e:
             logger.error(f"Webhook alert failed: {e}")
@@ -78,6 +82,7 @@ class AlertingSystem:
         cutoff_timestamp = cutoff_time.isoformat()
 
         return [
-            alert for alert in self.alert_history
+            alert
+            for alert in self.alert_history
             if alert["timestamp"] > cutoff_timestamp
         ]

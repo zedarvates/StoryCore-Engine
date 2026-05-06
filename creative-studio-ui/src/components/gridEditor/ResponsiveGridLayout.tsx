@@ -7,13 +7,14 @@
  * Exigences: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8
  */
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useResponsiveGrid } from '../../hooks/useResponsiveGrid';
 import { getLayoutPreferencesManager } from '../../services/responsive/LayoutPreferences';
 import type { GridLayoutConfig, GridPanel } from '../../types/gridEditorAdvanced';
 import { GridLayout } from './GridLayout';
 import { GridListView } from './GridListView';
+import './ResponsiveGridLayout.css';
 
 export interface ResponsiveGridLayoutProps {
   items: GridPanel[];
@@ -34,87 +35,85 @@ export const ResponsiveGridLayout: React.FC<ResponsiveGridLayoutProps> = ({
   const [config, setConfig] = useState<GridLayoutConfig>(baseConfig);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const preferencesManager = useMemo(() => getLayoutPreferencesManager(), []);
-
-  /**
-   * Load preferences for current breakpoint
-   * Exigence: 12.8
-   */
+  
+  // Stable refs for props that might change on every render
+  const onLayoutChangeRef = useRef(onLayoutChange);
   useEffect(() => {
-    if (!enablePreferences) return;
+    onLayoutChangeRef.current = onLayoutChange;
+  }, [onLayoutChange]);
 
-    const preference = preferencesManager.getPreference(responsive.breakpoint);
-    if (preference) {
-      setConfig(prev => ({
-        ...prev,
-        columns: preference.columns ?? prev.columns,
-        showGridLines: preference.showGridLines ?? prev.showGridLines,
-        snapEnabled: preference.snapEnabled ?? prev.snapEnabled,
-        cellSize: preference.gridSize 
-          ? { width: preference.gridSize, height: preference.gridSize }
-          : prev.cellSize
-      }));
-    }
-  }, [responsive.breakpoint, enablePreferences, preferencesManager]);
+  const baseConfigString = JSON.stringify({ gap: baseConfig.gap, showGridLines: baseConfig.showGridLines });
 
-  /**
-   * Update config when breakpoint changes
-   * Exigences: 12.2, 12.3, 12.4
-   */
+  // Handle transition state when breakpoint changes
+  const lastBreakpointRef = useRef(responsive.breakpoint.name);
   useEffect(() => {
-    setConfig(prev => ({
-      ...prev,
-      columns: responsive.columns
-    }));
-  }, [responsive.columns]);
-
-  /**
-   * Handle window resize with animation
-   * Exigences: 12.1, 12.6
-   */
-  useEffect(() => {
-    if (animateTransitions) {
+    if (lastBreakpointRef.current !== responsive.breakpoint.name) {
       setIsTransitioning(true);
       const timer = setTimeout(() => setIsTransitioning(false), 300);
+      lastBreakpointRef.current = responsive.breakpoint.name;
       return () => clearTimeout(timer);
     }
-  }, [responsive.width, responsive.height, animateTransitions]);
+  }, [responsive.breakpoint.name]);
 
   /**
-   * Adjust layout for fullscreen mode
-   * Exigence: 12.5
+   * Synchronize layout configuration with responsive state and preferences
+   * Exigences: 12.2, 12.3, 12.4, 12.5, 12.7, 12.8
    */
   useEffect(() => {
-    if (responsive.isFullscreen) {
-      // Maximize space utilization in fullscreen
-      setConfig(prev => ({
-        ...prev,
-        gap: Math.max(4, prev.gap - 4), // Reduce gap slightly
-        showGridLines: false // Hide grid lines for cleaner look
-      }));
-    } else {
-      // Restore normal config
-      setConfig(prev => ({
-        ...prev,
-        gap: baseConfig.gap,
-        showGridLines: baseConfig.showGridLines
-      }));
-    }
-  }, [responsive.isFullscreen, baseConfig.gap, baseConfig.showGridLines]);
+    setConfig(prev => {
+      let next = { ...prev, columns: responsive.columns };
 
-  /**
-   * Handle orientation change
-   * Exigence: 12.7
-   */
-  useEffect(() => {
-    // Recalculate layout immediately on orientation change
-    if (responsive.orientation === 'portrait' && responsive.width < 1024) {
-      // Force list mode in portrait on smaller screens
-      setConfig(prev => ({
-        ...prev,
-        columns: 1
-      }));
-    }
-  }, [responsive.orientation, responsive.width]);
+      // Apply preferences if enabled
+      if (enablePreferences) {
+        const preference = preferencesManager.getPreference(responsive.breakpoint);
+        if (preference) {
+          next = {
+            ...next,
+            columns: preference.columns ?? next.columns,
+            showGridLines: preference.showGridLines ?? next.showGridLines,
+            snapEnabled: preference.snapEnabled ?? next.snapEnabled,
+            cellSize: preference.gridSize 
+              ? { width: preference.gridSize, height: preference.gridSize }
+              : next.cellSize
+          };
+        }
+      }
+
+      // Apply fullscreen adjustments
+      if (responsive.isFullscreen) {
+        next = {
+          ...next,
+          gap: Math.max(4, baseConfig.gap - 4),
+          showGridLines: false
+        };
+      } else if (!enablePreferences) {
+        // Restore from baseConfig if preferences are off
+        next = {
+          ...next,
+          gap: baseConfig.gap,
+          showGridLines: baseConfig.showGridLines
+        };
+      }
+
+      // Portrait overrides
+      if (responsive.orientation === 'portrait' && responsive.width < 1024) {
+        next = { ...next, columns: 1 };
+      }
+
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    responsive.columns, 
+    responsive.breakpoint, 
+    responsive.isFullscreen, 
+    responsive.orientation, 
+    responsive.width,
+    enablePreferences, 
+    preferencesManager, 
+    baseConfigString
+  ]);
+
 
   /**
    * Save preferences when config changes
@@ -152,8 +151,8 @@ export const ResponsiveGridLayout: React.FC<ResponsiveGridLayoutProps> = ({
       };
     });
 
-    onLayoutChange?.(scaledItems);
-  }, [config.cellSize, onLayoutChange]);
+    onLayoutChangeRef.current?.(scaledItems);
+  }, [config.cellSize]);
 
   /**
    * Render appropriate view based on breakpoint
@@ -184,12 +183,6 @@ export const ResponsiveGridLayout: React.FC<ResponsiveGridLayoutProps> = ({
   return (
     <motion.div
       className="responsive-grid-layout"
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
       animate={{
         opacity: isTransitioning ? 0.8 : 1
       }}
@@ -200,20 +193,7 @@ export const ResponsiveGridLayout: React.FC<ResponsiveGridLayoutProps> = ({
     >
       {/* Breakpoint indicator (dev mode) */}
       {process.env.NODE_ENV === 'development' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            padding: '4px 8px',
-            background: 'rgba(0, 0, 0, 0.7)',
-            color: 'white',
-            fontSize: '12px',
-            borderRadius: '4px',
-            zIndex: 9999,
-            pointerEvents: 'none'
-          }}
-        >
+        <div className="breakpoint-indicator">
           {responsive.breakpoint.name} ({responsive.width}x{responsive.height})
           {responsive.isFullscreen && ' [Fullscreen]'}
         </div>
@@ -230,10 +210,7 @@ export const ResponsiveGridLayout: React.FC<ResponsiveGridLayoutProps> = ({
             duration: animateTransitions ? 0.3 : 0,
             ease: 'easeInOut'
           }}
-          style={{
-            width: '100%',
-            height: '100%'
-          }}
+          className="view-container"
         >
           {renderView()}
         </motion.div>
@@ -268,16 +245,6 @@ const ResponsiveGridControls: React.FC<ResponsiveGridControlsProps> = ({
   return (
     <motion.div
       className="responsive-grid-controls"
-      style={{
-        position: 'absolute',
-        bottom: 16,
-        right: 16,
-        background: 'white',
-        borderRadius: '8px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        overflow: 'hidden',
-        zIndex: 1000
-      }}
       initial={false}
       animate={{
         width: isExpanded ? 280 : 48,
@@ -286,61 +253,58 @@ const ResponsiveGridControls: React.FC<ResponsiveGridControlsProps> = ({
     >
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        style={{
-          width: '100%',
-          padding: '12px',
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
+        className="controls-trigger"
+        aria-label={isExpanded ? "Close controls" : "Open controls"}
+        title={isExpanded ? "Close controls" : "Open controls"}
       >
         ⚙️
       </button>
 
       {isExpanded && (
-        <div style={{ padding: '0 16px 16px' }}>
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'block', marginBottom: '4px', fontSize: '12px' }}>
+        <div className="controls-content">
+          <div className="control-group">
+            <label htmlFor="columns-range" className="control-label">
               Columns: {config.columns}
             </label>
             <input
+              id="columns-range"
               type="range"
               min="1"
               max="6"
               value={config.columns}
               onChange={(e) => onConfigChange({ columns: parseInt(e.target.value) })}
-              style={{ width: '100%' }}
+              className="control-input-range"
+              title="Columns range"
             />
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', fontSize: '12px' }}>
+          <div className="control-group">
+            <label className="control-checkbox-label">
               <input
                 type="checkbox"
                 checked={config.showGridLines}
                 onChange={(e) => onConfigChange({ showGridLines: e.target.checked })}
-                style={{ marginRight: '8px' }}
+                className="control-checkbox"
+                title="Show Grid Lines"
               />
               Show Grid Lines
             </label>
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', fontSize: '12px' }}>
+          <div className="control-group">
+            <label className="control-checkbox-label">
               <input
                 type="checkbox"
                 checked={config.snapEnabled}
                 onChange={(e) => onConfigChange({ snapEnabled: e.target.checked })}
-                style={{ marginRight: '8px' }}
+                className="control-checkbox"
+                title="Snap to Grid"
               />
               Snap to Grid
             </label>
           </div>
 
-          <div style={{ fontSize: '10px', color: '#666', marginTop: '12px' }}>
+          <div className="controls-footer">
             {responsive.breakpoint.name} • {responsive.orientation}
           </div>
         </div>

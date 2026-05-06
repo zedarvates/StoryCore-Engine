@@ -74,7 +74,7 @@ export const ObjectPlacer: React.FC<ObjectPlacerProps> = ({
   onObjectSelect,
   availableObjects,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const _canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 

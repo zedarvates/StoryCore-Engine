@@ -1,10 +1,11 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { _Badge } from '@/co_mponents/u_i/bad_ge';
 import { Sparkles, X, Zap, Scissors, Eye, User, Palette, Microscope, Activity } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
@@ -24,7 +25,7 @@ import {
   BODY_BUILDS,
   HEIGHT_CATEGORIES,
   POSTURE_OPTIONS,
-} from '@/constants/characterOptions';
+} from '@_/constants/characterOptions';
 import { cn } from '@/lib/utils';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
@@ -240,7 +241,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
             <div className="grid grid-cols-1 gap-4 mt-2">
               <FormField label="Follicular Chroma" name="hair_color">
                 <Select
-                  value={HAIR_COLORS.includes(formData.visual_identity?.hair_color as any) ? formData.visual_identity?.hair_color : (formData.visual_identity?.hair_color ? 'Other' : '')}
+                  value={HAIR_COLORS.includes(formData.visual_identity?.hair_color as LegacyAny) ? formData.visual_identity?.hair_color : (formData.visual_identity?.hair_color ? 'Other' : '')}
                   onValueChange={(val) => updateVisualIdentity({ hair_color: val === 'Other' ? '' : val })}
                 >
                   <SelectTrigger className="bg-primary/5 border-primary/20">
@@ -253,7 +254,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
                     <SelectItem value="Other" className="focus:bg-primary/20 focus:text-primary uppercase text-[10px] font-mono border-t border-primary/10 mt-1 pt-1 font-bold">Custom Signature</SelectItem>
                   </SelectContent>
                 </Select>
-                {(!HAIR_COLORS.includes(formData.visual_identity?.hair_color as any) && formData.visual_identity?.hair_color || formData.visual_identity?.hair_color === '') && (
+                {(!HAIR_COLORS.includes(formData.visual_identity?.hair_color as LegacyAny) && formData.visual_identity?.hair_color || formData.visual_identity?.hair_color === '') && (
                   <Input
                     value={formData.visual_identity?.hair_color || ''}
                     onChange={(e) => updateVisualIdentity({ hair_color: e.target.value })}
@@ -293,7 +294,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
             <div className="grid grid-cols-1 gap-4 mt-2">
               <FormField label="Ocular Hue" name="eye_color">
                 <Select
-                  value={EYE_COLORS.includes(formData.visual_identity?.eye_color as any) ? formData.visual_identity?.eye_color : (formData.visual_identity?.eye_color ? 'Other' : '')}
+                  value={EYE_COLORS.includes(formData.visual_identity?.eye_color as LegacyAny) ? formData.visual_identity?.eye_color : (formData.visual_identity?.eye_color ? 'Other' : '')}
                   onValueChange={(val) => updateVisualIdentity({ eye_color: val === 'Other' ? '' : val })}
                 >
                   <SelectTrigger className="bg-primary/5 border-primary/20">
@@ -306,7 +307,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
                     <SelectItem value="Other" className="focus:bg-primary/20 focus:text-primary uppercase text-[10px] font-mono border-t border-primary/10 mt-1 pt-1 font-bold">Custom Hue</SelectItem>
                   </SelectContent>
                 </Select>
-                {(!EYE_COLORS.includes(formData.visual_identity?.eye_color as any) && formData.visual_identity?.eye_color || formData.visual_identity?.eye_color === '') && (
+                {(!EYE_COLORS.includes(formData.visual_identity?.eye_color as LegacyAny) && formData.visual_identity?.eye_color || formData.visual_identity?.eye_color === '') && (
                   <Input
                     value={formData.visual_identity?.eye_color || ''}
                     onChange={(e) => updateVisualIdentity({ eye_color: e.target.value })}
@@ -332,7 +333,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FormField label="Vertical Amplitude" name="height">
             <Select
-              value={HEIGHT_CATEGORIES.includes(formData.visual_identity?.height as any) ? formData.visual_identity?.height : (formData.visual_identity?.height ? 'Other' : '')}
+              value={HEIGHT_CATEGORIES.includes(formData.visual_identity?.height as LegacyAny) ? formData.visual_identity?.height : (formData.visual_identity?.height ? 'Other' : '')}
               onValueChange={(val) => updateVisualIdentity({ height: val === 'Other' ? '' : val })}
             >
               <SelectTrigger className="bg-primary/5 border-primary/20">
@@ -348,7 +349,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
 
           <FormField label="Structural Mass" name="build">
             <Select
-              value={BODY_BUILDS.includes(formData.visual_identity?.build as any) ? formData.visual_identity?.build : (formData.visual_identity?.build ? 'Other' : '')}
+              value={BODY_BUILDS.includes(formData.visual_identity?.build as LegacyAny) ? formData.visual_identity?.build : (formData.visual_identity?.build ? 'Other' : '')}
               onValueChange={(val) => updateVisualIdentity({ build: val === 'Other' ? '' : val })}
             >
               <SelectTrigger className="bg-primary/5 border-primary/20">
@@ -364,7 +365,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
 
           <FormField label="Kinetic Alignment" name="posture">
             <Select
-              value={POSTURE_OPTIONS.includes(formData.visual_identity?.posture as any) ? formData.visual_identity?.posture : (formData.visual_identity?.posture ? 'Other' : '')}
+              value={POSTURE_OPTIONS.includes(formData.visual_identity?.posture as LegacyAny) ? formData.visual_identity?.posture : (formData.visual_identity?.posture ? 'Other' : '')}
               onValueChange={(val) => updateVisualIdentity({ posture: val === 'Other' ? '' : val })}
             >
               <SelectTrigger className="bg-primary/5 border-primary/20">
@@ -383,7 +384,7 @@ Format as JSON with keys: hair_color, hair_style, hair_length, eye_color, eye_sh
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <FormField label="Dermal Surface Hue" name="skin_tone">
             <Select
-              value={SKIN_TONES.includes(formData.visual_identity?.skin_tone as any) ? formData.visual_identity?.skin_tone : (formData.visual_identity?.skin_tone ? 'Other' : '')}
+              value={SKIN_TONES.includes(formData.visual_identity?.skin_tone as LegacyAny) ? formData.visual_identity?.skin_tone : (formData.visual_identity?.skin_tone ? 'Other' : '')}
               onValueChange={(val) => updateVisualIdentity({ skin_tone: val === 'Other' ? '' : val })}
             >
               <SelectTrigger className="bg-primary/5 border-primary/20">

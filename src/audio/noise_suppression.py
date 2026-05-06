@@ -5,7 +5,7 @@ This module provides functionality for suppressing noise in audio signals.
 """
 
 import numpy as np
-from scipy import signal
+
 
 class NoiseSuppression:
     """Noise suppression processor for audio signals."""

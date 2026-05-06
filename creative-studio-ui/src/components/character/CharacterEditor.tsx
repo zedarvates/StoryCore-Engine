@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, Save, Trash2, AlertTriangle } from 'lucide-react';
 import type { Character, ReferenceImageData, SheetImageData } from '@/types/character';
@@ -77,7 +78,7 @@ export function CharacterEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
-  const [dependencies, setDependencies] = useState<any>(null);
+  const [dependencies, setDependencies] = useState<LegacyAny>(null);
 
   // Initialize form data when character loads
   useEffect(() => {
@@ -122,7 +123,7 @@ export function CharacterEditor({
     setFormData(prev => ({
       ...prev,
       [section]: {
-        ...(prev[section as keyof Character] as any),
+        ...(prev[section as keyof Character] as LegacyAny),
         [field]: value,
       },
     }));
@@ -520,7 +521,7 @@ export function CharacterEditor({
               <div className="character-editor-dialog__dependencies">
                 <h4>Stories ({dependencies.stories.length}):</h4>
                 <ul>
-                  {dependencies.stories.map((story: any) => (
+                  {dependencies.stories.map((story: LegacyAny) => (
                     <li key={story.id}>{story.title || 'Untitled Story'}</li>
                   ))}
                 </ul>
@@ -531,7 +532,7 @@ export function CharacterEditor({
               <div className="character-editor-dialog__dependencies">
                 <h4>Relationships ({dependencies.relationships.length}):</h4>
                 <ul>
-                  {dependencies.relationships.map((char: any) => (
+                  {dependencies.relationships.map((char: LegacyAny) => (
                     <li key={char.character_id}>{char.name}</li>
                   ))}
                 </ul>

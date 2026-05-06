@@ -5,36 +5,40 @@ This module creates coherence anchors for visual consistency.
 """
 
 import random
-from .models import VisualIdentity, CoherenceAnchors, ColorPalette
+from .models import VisualIdentity, CoherenceAnchors
 
 
 class CoherenceAnchorsGenerator:
     """Handles coherence anchors generation for visual consistency"""
 
-    def generate_coherence_anchors(self, visual_identity: VisualIdentity) -> CoherenceAnchors:
+    def generate_coherence_anchors(
+        self, visual_identity: VisualIdentity
+    ) -> CoherenceAnchors:
         """Create coherence anchors for visual consistency"""
         anchors = CoherenceAnchors()
 
         # Generate character descriptor
-        anchors.character_descriptor = self._create_character_descriptor(visual_identity)
+        anchors.character_descriptor = self._create_character_descriptor(
+            visual_identity
+        )
 
         # Generate specific anchors
         anchors.facial_anchors = [
             f"{visual_identity.hair_color} {visual_identity.hair_style} hair",
             f"{visual_identity.eye_color} eyes",
             f"{visual_identity.skin_tone} skin",
-            f"{visual_identity.facial_structure} face"
+            f"{visual_identity.facial_structure} face",
         ]
 
         anchors.clothing_anchors = [
             f"{visual_identity.clothing_style} clothing",
-            f"{visual_identity.aesthetic} aesthetic"
+            f"{visual_identity.aesthetic} aesthetic",
         ]
 
         anchors.style_anchors = [
             f"{visual_identity.art_style} art style",
             f"{visual_identity.quality_level} quality",
-            f"{visual_identity.rendering_style} rendering"
+            f"{visual_identity.rendering_style} rendering",
         ]
 
         # Set color specifications
@@ -65,7 +69,7 @@ class CoherenceAnchorsGenerator:
             f"{visual_identity.quality_level} quality",
             "detailed character design",
             "consistent appearance",
-            f"{visual_identity.aesthetic} aesthetic"
+            f"{visual_identity.aesthetic} aesthetic",
         ]
 
     def _generate_negative_prompts(self, visual_identity: VisualIdentity) -> list[str]:
@@ -75,5 +79,5 @@ class CoherenceAnchorsGenerator:
             "low quality",
             "blurry",
             "distorted features",
-            "multiple characters"
+            "multiple characters",
         ]

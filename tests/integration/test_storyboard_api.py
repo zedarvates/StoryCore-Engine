@@ -15,7 +15,6 @@ Tests all 8 storyboard endpoints:
 import pytest
 import json
 from pathlib import Path
-from datetime import datetime
 
 from src.api.categories.storyboard import StoryboardCategoryHandler
 from src.api.models import RequestContext, ErrorCodes
@@ -60,7 +59,7 @@ def temp_project(tmp_path):
     project_name = "test-storyboard-project"
     project_path = tmp_path / project_name
     project_path.mkdir()
-    
+
     # Create project.json
     project_data = {
         "schema_version": "1.0",
@@ -69,7 +68,7 @@ def temp_project(tmp_path):
     }
     with open(project_path / "project.json", "w") as f:
         json.dump(project_data, f, indent=2)
-    
+
     return {
         "name": project_name,
         "path": project_path,
@@ -79,8 +78,10 @@ def temp_project(tmp_path):
 
 class TestStoryboardLifecycle:
     """Test storyboard lifecycle endpoints."""
-    
-    def test_create_storyboard_basic(self, storyboard_handler, request_context, temp_project):
+
+    def test_create_storyboard_basic(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test basic storyboard creation."""
         params = {
             "project_name": temp_project["name"],
@@ -88,16 +89,18 @@ class TestStoryboardLifecycle:
             "description": "A test storyboard",
             "base_path": temp_project["base_path"],
         }
-        
+
         response = storyboard_handler.create(params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["project_name"] == temp_project["name"]
         assert response.data["title"] == "Test Storyboard"
         assert response.data["total_shots"] == 0
         assert "storyboard_id" in response.data
-    
-    def test_create_storyboard_with_auto_generation(self, storyboard_handler, request_context, temp_project):
+
+    def test_create_storyboard_with_auto_generation(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test storyboard creation with auto-generated shots."""
         params = {
             "project_name": temp_project["name"],
@@ -107,31 +110,35 @@ class TestStoryboardLifecycle:
             "scene_data": {"description": "Action scene"},
             "base_path": temp_project["base_path"],
         }
-        
+
         response = storyboard_handler.create(params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["total_shots"] == 3
         assert response.data["total_duration_seconds"] > 0
-    
-    def test_create_storyboard_duplicate(self, storyboard_handler, request_context, temp_project):
+
+    def test_create_storyboard_duplicate(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test that creating duplicate storyboard fails."""
         params = {
             "project_name": temp_project["name"],
             "title": "Test Storyboard",
             "base_path": temp_project["base_path"],
         }
-        
+
         # Create first storyboard
         response1 = storyboard_handler.create(params, request_context)
         assert response1.status == "success"
-        
+
         # Try to create second storyboard for same project
         response2 = storyboard_handler.create(params, request_context)
         assert response2.status == "error"
         assert response2.error.code == ErrorCodes.CONFLICT
-    
-    def test_validate_storyboard_empty(self, storyboard_handler, request_context, temp_project):
+
+    def test_validate_storyboard_empty(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test validation of empty storyboard."""
         # Create storyboard
         create_params = {
@@ -141,19 +148,23 @@ class TestStoryboardLifecycle:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Validate
         validate_params = {
             "storyboard_id": storyboard_id,
         }
         response = storyboard_handler.validate(validate_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["valid"] is False
         assert response.data["errors"] > 0
-        assert any("no shots" in issue["message"].lower() for issue in response.data["issues"])
-    
-    def test_validate_storyboard_with_shots(self, storyboard_handler, request_context, temp_project):
+        assert any(
+            "no shots" in issue["message"].lower() for issue in response.data["issues"]
+        )
+
+    def test_validate_storyboard_with_shots(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test validation of storyboard with valid shots."""
         # Create storyboard with shots
         create_params = {
@@ -166,18 +177,20 @@ class TestStoryboardLifecycle:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Validate
         validate_params = {
             "storyboard_id": storyboard_id,
         }
         response = storyboard_handler.validate(validate_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["valid"] is True
         assert response.data["errors"] == 0
-    
-    def test_export_storyboard_json(self, storyboard_handler, request_context, temp_project):
+
+    def test_export_storyboard_json(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test exporting storyboard as JSON."""
         # Create storyboard with shots
         create_params = {
@@ -190,7 +203,7 @@ class TestStoryboardLifecycle:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Export
         export_params = {
             "storyboard_id": storyboard_id,
@@ -199,13 +212,15 @@ class TestStoryboardLifecycle:
             "project_name": temp_project["name"],
         }
         response = storyboard_handler.export(export_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["format"] == "json"
         assert response.data["file_size_bytes"] > 0
         assert Path(response.data["output_path"]).exists()
-    
-    def test_export_storyboard_html(self, storyboard_handler, request_context, temp_project):
+
+    def test_export_storyboard_html(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test exporting storyboard as HTML."""
         # Create storyboard
         create_params = {
@@ -218,7 +233,7 @@ class TestStoryboardLifecycle:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Export
         export_params = {
             "storyboard_id": storyboard_id,
@@ -227,12 +242,14 @@ class TestStoryboardLifecycle:
             "project_name": temp_project["name"],
         }
         response = storyboard_handler.export(export_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["format"] == "html"
         assert Path(response.data["output_path"]).exists()
-    
-    def test_export_storyboard_invalid_format(self, storyboard_handler, request_context, temp_project):
+
+    def test_export_storyboard_invalid_format(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test exporting with invalid format."""
         # Create storyboard
         create_params = {
@@ -242,21 +259,21 @@ class TestStoryboardLifecycle:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Try invalid format
         export_params = {
             "storyboard_id": storyboard_id,
             "format": "invalid_format",
         }
         response = storyboard_handler.export(export_params, request_context)
-        
+
         assert response.status == "error"
         assert response.error.code == ErrorCodes.VALIDATION_ERROR
 
 
 class TestShotManagement:
     """Test shot management endpoints."""
-    
+
     def test_add_shot(self, storyboard_handler, request_context, temp_project):
         """Test adding a shot to storyboard."""
         # Create storyboard
@@ -267,7 +284,7 @@ class TestShotManagement:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Add shot
         add_params = {
             "storyboard_id": storyboard_id,
@@ -278,13 +295,15 @@ class TestShotManagement:
             "base_path": temp_project["base_path"],
         }
         response = storyboard_handler.shot_add(add_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["storyboard_id"] == storyboard_id
         assert response.data["sequence_number"] == 0
         assert response.data["total_shots"] == 1
-    
-    def test_add_shot_invalid_duration(self, storyboard_handler, request_context, temp_project):
+
+    def test_add_shot_invalid_duration(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test adding shot with invalid duration."""
         # Create storyboard
         create_params = {
@@ -294,7 +313,7 @@ class TestShotManagement:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Try to add shot with negative duration
         add_params = {
             "storyboard_id": storyboard_id,
@@ -302,10 +321,10 @@ class TestShotManagement:
             "duration_seconds": -1.0,
         }
         response = storyboard_handler.shot_add(add_params, request_context)
-        
+
         assert response.status == "error"
         assert response.error.code == ErrorCodes.VALIDATION_ERROR
-    
+
     def test_update_shot(self, storyboard_handler, request_context, temp_project):
         """Test updating an existing shot."""
         # Create storyboard with shot
@@ -319,11 +338,11 @@ class TestShotManagement:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Get shot ID
         storyboard = storyboard_handler._get_storyboard(storyboard_id)
         shot_id = storyboard.shots[0].shot_id
-        
+
         # Update shot
         update_params = {
             "storyboard_id": storyboard_id,
@@ -334,12 +353,12 @@ class TestShotManagement:
             "base_path": temp_project["base_path"],
         }
         response = storyboard_handler.shot_update(update_params, request_context)
-        
+
         assert response.status == "success"
         assert "description" in response.data["updated_fields"]
         assert "duration_seconds" in response.data["updated_fields"]
         assert "camera_angle" in response.data["updated_fields"]
-    
+
     def test_delete_shot(self, storyboard_handler, request_context, temp_project):
         """Test deleting a shot."""
         # Create storyboard with shots
@@ -353,11 +372,11 @@ class TestShotManagement:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Get shot ID
         storyboard = storyboard_handler._get_storyboard(storyboard_id)
         shot_id = storyboard.shots[1].shot_id  # Delete middle shot
-        
+
         # Delete shot
         delete_params = {
             "storyboard_id": storyboard_id,
@@ -365,11 +384,11 @@ class TestShotManagement:
             "base_path": temp_project["base_path"],
         }
         response = storyboard_handler.shot_delete(delete_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["deleted"] is True
         assert response.data["remaining_shots"] == 2
-    
+
     def test_reorder_shots(self, storyboard_handler, request_context, temp_project):
         """Test reordering shots."""
         # Create storyboard with shots
@@ -383,14 +402,14 @@ class TestShotManagement:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Get shot IDs
         storyboard = storyboard_handler._get_storyboard(storyboard_id)
         shot_ids = [shot.shot_id for shot in storyboard.shots]
-        
+
         # Reverse order
         new_order = list(reversed(shot_ids))
-        
+
         # Reorder
         reorder_params = {
             "storyboard_id": storyboard_id,
@@ -398,12 +417,14 @@ class TestShotManagement:
             "base_path": temp_project["base_path"],
         }
         response = storyboard_handler.shot_reorder(reorder_params, request_context)
-        
+
         assert response.status == "success"
         assert response.data["reordered_count"] == 3
         assert [s["shot_id"] for s in response.data["new_sequence"]] == new_order
-    
-    def test_reorder_shots_invalid(self, storyboard_handler, request_context, temp_project):
+
+    def test_reorder_shots_invalid(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test reordering with invalid shot list."""
         # Create storyboard
         create_params = {
@@ -416,22 +437,24 @@ class TestShotManagement:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Try to reorder with missing shot
         reorder_params = {
             "storyboard_id": storyboard_id,
             "shot_order": ["shot_001"],  # Missing shot_002
         }
         response = storyboard_handler.shot_reorder(reorder_params, request_context)
-        
+
         assert response.status == "error"
         assert response.error.code == ErrorCodes.VALIDATION_ERROR
 
 
 class TestTimeline:
     """Test timeline generation endpoint."""
-    
-    def test_generate_timeline_basic(self, storyboard_handler, request_context, temp_project):
+
+    def test_generate_timeline_basic(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test basic timeline generation."""
         # Create storyboard with shots
         create_params = {
@@ -444,20 +467,24 @@ class TestTimeline:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Generate timeline
         timeline_params = {
             "storyboard_id": storyboard_id,
         }
-        response = storyboard_handler.timeline_generate(timeline_params, request_context)
-        
+        response = storyboard_handler.timeline_generate(
+            timeline_params, request_context
+        )
+
         assert response.status == "success"
         assert response.data["storyboard_id"] == storyboard_id
         assert len(response.data["timeline"]["entries"]) == 3
         assert response.data["timeline"]["total_shots"] == 3
         assert response.data["timeline"]["total_duration_seconds"] > 0
-    
-    def test_generate_timeline_with_transitions(self, storyboard_handler, request_context, temp_project):
+
+    def test_generate_timeline_with_transitions(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test timeline generation with transitions."""
         # Create storyboard
         create_params = {
@@ -470,25 +497,29 @@ class TestTimeline:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Generate timeline with transitions
         timeline_params = {
             "storyboard_id": storyboard_id,
             "include_transitions": True,
             "transition_duration_seconds": 0.5,
         }
-        response = storyboard_handler.timeline_generate(timeline_params, request_context)
-        
+        response = storyboard_handler.timeline_generate(
+            timeline_params, request_context
+        )
+
         assert response.status == "success"
         # Should have 2 shots + 1 transition (between shots)
         assert len(response.data["timeline"]["entries"]) == 3
-        
+
         # Check that transition entry exists
         entries = response.data["timeline"]["entries"]
         transition_entries = [e for e in entries if "transition" in e["shot_id"]]
         assert len(transition_entries) == 1
-    
-    def test_generate_timeline_timing(self, storyboard_handler, request_context, temp_project):
+
+    def test_generate_timeline_timing(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test that timeline timing is correct."""
         # Create storyboard
         create_params = {
@@ -501,31 +532,40 @@ class TestTimeline:
         }
         create_response = storyboard_handler.create(create_params, request_context)
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # Generate timeline
         timeline_params = {
             "storyboard_id": storyboard_id,
         }
-        response = storyboard_handler.timeline_generate(timeline_params, request_context)
-        
+        response = storyboard_handler.timeline_generate(
+            timeline_params, request_context
+        )
+
         # Verify timing
         entries = response.data["timeline"]["entries"]
-        
+
         # First entry should start at 0
         assert entries[0]["start_time_seconds"] == 0.0
-        
+
         # Each entry's end time should equal next entry's start time
         for i in range(len(entries) - 1):
-            assert entries[i]["end_time_seconds"] == entries[i+1]["start_time_seconds"]
-        
+            assert (
+                entries[i]["end_time_seconds"] == entries[i + 1]["start_time_seconds"]
+            )
+
         # Last entry's end time should equal total duration
-        assert entries[-1]["end_time_seconds"] == response.data["timeline"]["total_duration_seconds"]
+        assert (
+            entries[-1]["end_time_seconds"]
+            == response.data["timeline"]["total_duration_seconds"]
+        )
 
 
 class TestEndToEndWorkflow:
     """Test complete end-to-end storyboard workflow."""
-    
-    def test_complete_storyboard_workflow(self, storyboard_handler, request_context, temp_project):
+
+    def test_complete_storyboard_workflow(
+        self, storyboard_handler, request_context, temp_project
+    ):
         """Test complete workflow: create, add shots, update, validate, export, timeline."""
         # 1. Create storyboard
         create_params = {
@@ -537,19 +577,19 @@ class TestEndToEndWorkflow:
         create_response = storyboard_handler.create(create_params, request_context)
         assert create_response.status == "success"
         storyboard_id = create_response.data["storyboard_id"]
-        
+
         # 2. Add shots
         for i in range(3):
             add_params = {
                 "storyboard_id": storyboard_id,
-                "description": f"Shot {i+1} description",
+                "description": f"Shot {i + 1} description",
                 "duration_seconds": 3.0 + i,
                 "camera_angle": "medium",
                 "base_path": temp_project["base_path"],
             }
             add_response = storyboard_handler.shot_add(add_params, request_context)
             assert add_response.status == "success"
-        
+
         # 3. Update a shot
         storyboard = storyboard_handler._get_storyboard(storyboard_id)
         shot_id = storyboard.shots[1].shot_id
@@ -562,24 +602,30 @@ class TestEndToEndWorkflow:
         }
         update_response = storyboard_handler.shot_update(update_params, request_context)
         assert update_response.status == "success"
-        
+
         # 4. Validate storyboard
         validate_params = {
             "storyboard_id": storyboard_id,
         }
-        validate_response = storyboard_handler.validate(validate_params, request_context)
+        validate_response = storyboard_handler.validate(
+            validate_params, request_context
+        )
         assert validate_response.status == "success"
         assert validate_response.data["valid"] is True
-        
+
         # 5. Generate timeline
         timeline_params = {
             "storyboard_id": storyboard_id,
             "include_transitions": True,
         }
-        timeline_response = storyboard_handler.timeline_generate(timeline_params, request_context)
+        timeline_response = storyboard_handler.timeline_generate(
+            timeline_params, request_context
+        )
         assert timeline_response.status == "success"
-        assert len(timeline_response.data["timeline"]["entries"]) > 3  # Shots + transitions
-        
+        assert (
+            len(timeline_response.data["timeline"]["entries"]) > 3
+        )  # Shots + transitions
+
         # 6. Export storyboard
         export_params = {
             "storyboard_id": storyboard_id,

@@ -15,20 +15,20 @@ def main():
     print("GitHub Template Generator Demo")
     print("=" * 80)
     print()
-    
+
     # Create instances
     collector = DiagnosticCollector()
     generator = GitHubTemplateGenerator()
-    
+
     # Create a sample report payload
     payload = collector.create_report_payload(
         report_type="bug",
         description="The grid generator crashes when processing large images",
         reproduction_steps="1. Open StoryCore\n2. Load a 4K image\n3. Click 'Generate Grid'\n4. Application crashes",
         include_logs=False,
-        module_name="grid-generator"
+        module_name="grid-generator",
     )
-    
+
     # Add some sample diagnostics for demonstration
     payload["diagnostics"]["stacktrace"] = """Traceback (most recent call last):
   File "src/grid_generator.py", line 145, in generate_grid
@@ -36,21 +36,21 @@ def main():
   File "PIL/Image.py", line 1234, in crop
     raise ValueError("Invalid crop box")
 ValueError: Invalid crop box"""
-    
+
     # Generate the formatted issue body
     print("1. Formatted Issue Body:")
     print("-" * 80)
     issue_body = generator.format_issue_body(payload)
     print(issue_body)
     print()
-    
+
     # Generate the GitHub URL
     print("\n2. Pre-filled GitHub URL:")
     print("-" * 80)
     github_url = generator.generate_github_url(payload)
     print(github_url)
     print()
-    
+
     # Show the labels that would be applied
     print("\n3. Automatic Labels:")
     print("-" * 80)
@@ -58,7 +58,7 @@ ValueError: Invalid crop box"""
     for label in labels:
         print(f"  - {label}")
     print()
-    
+
     print("\n" + "=" * 80)
     print("Demo Complete!")
     print("=" * 80)

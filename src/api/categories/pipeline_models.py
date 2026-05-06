@@ -12,6 +12,7 @@ from enum import Enum
 
 class PipelineStageStatus(str, Enum):
     """Status of a pipeline stage."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -21,6 +22,7 @@ class PipelineStageStatus(str, Enum):
 
 class PipelinePhase(str, Enum):
     """Current phase of the pipeline."""
+
     INITIALIZATION = "initialization"
     GRID_GENERATION = "grid_generation"
     PROMOTION = "promotion"
@@ -35,6 +37,7 @@ class PipelinePhase(str, Enum):
 @dataclass
 class PipelineStage:
     """Definition of a pipeline stage."""
+
     name: str
     description: str
     dependencies: List[str] = field(default_factory=list)
@@ -47,6 +50,7 @@ class PipelineStage:
 @dataclass
 class PipelineStatus:
     """Current status of the pipeline."""
+
     project_name: str
     current_stage: str
     current_phase: str
@@ -63,6 +67,7 @@ class PipelineStatus:
 @dataclass
 class ProjectInitRequest:
     """Request to initialize a new project."""
+
     project_name: str
     base_path: str = "."
     config: Optional[Dict[str, Any]] = None
@@ -72,6 +77,7 @@ class ProjectInitRequest:
 @dataclass
 class ProjectInitResponse:
     """Response from project initialization."""
+
     project_name: str
     project_path: str
     project_id: str
@@ -84,6 +90,7 @@ class ProjectInitResponse:
 @dataclass
 class ProjectValidationResult:
     """Result of project validation."""
+
     valid: bool
     project_name: str
     schema_version: str
@@ -97,6 +104,7 @@ class ProjectValidationResult:
 @dataclass
 class PipelineExecutionRequest:
     """Request to execute pipeline stages."""
+
     project_name: str
     stages: List[str]
     async_mode: bool = True
@@ -107,6 +115,7 @@ class PipelineExecutionRequest:
 @dataclass
 class PipelineExecutionResponse:
     """Response from pipeline execution."""
+
     project_name: str
     stages: List[str]
     execution_mode: str  # "sync" or "async"
@@ -117,6 +126,7 @@ class PipelineExecutionResponse:
 @dataclass
 class PipelineStageConfig:
     """Configuration for a pipeline stage."""
+
     stage_name: str
     enabled: bool = True
     parameters: Dict[str, Any] = field(default_factory=dict)
@@ -128,6 +138,7 @@ class PipelineStageConfig:
 @dataclass
 class PipelineCheckpoint:
     """A saved pipeline checkpoint."""
+
     checkpoint_id: str
     project_name: str
     created_at: datetime
@@ -141,6 +152,7 @@ class PipelineCheckpoint:
 @dataclass
 class DependencyCheckResult:
     """Result of dependency check."""
+
     all_available: bool
     missing_dependencies: List[str] = field(default_factory=list)
     available_dependencies: List[str] = field(default_factory=list)
@@ -151,9 +163,12 @@ class DependencyCheckResult:
 @dataclass
 class StageListResponse:
     """Response listing available pipeline stages."""
+
     stages: List[PipelineStage]
     total_count: int
-    categories: Dict[str, List[str]] = field(default_factory=dict)  # category -> stage names
+    categories: Dict[str, List[str]] = field(
+        default_factory=dict
+    )  # category -> stage names
 
 
 # Pipeline stage definitions

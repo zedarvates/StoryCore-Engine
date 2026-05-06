@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useAppStore } from '@/stores/useAppStore';
 // No alert-dialog, using Dialog instead
 import { ChevronDown, ChevronRight, ChevronUp, Plus, FileText, Copy, Trash2, Download, Star, Expand, Edit } from 'lucide-react';
-import { SequencePlan, Act, Scene } from '@/types/sequencePlan';
+import { SequencePlan, _Act, _Scene } from '@/types/sequencePlan';
 import { cn } from '@/lib/utils';
 
 interface SequencePlanManagerProps {

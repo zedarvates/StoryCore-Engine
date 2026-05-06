@@ -8,7 +8,7 @@ import {
   TransitionState,
   TransitionMetrics,
   ShaderProgram,
-  ShaderUniforms,
+  _ShaderUniforms,
   TransitionFrameData,
   TransitionCanvasOptions,
   GPUMode,
@@ -368,7 +368,7 @@ export class WebGLRenderer {
     // Real GPU memory tracking requires browser-specific APIs
     let totalMemory = 0;
 
-    this.textures.forEach((texture) => {
+    this.textures.forEach((_texture) => {
       // Rough estimation: 4 bytes per pixel * texture size
       // This is an approximation
       totalMemory += 4 * 1024 * 1024; // Assume 1MB per texture
@@ -997,7 +997,7 @@ export class TransitionEngine {
     if (!ctx) return;
 
     const progress = frameData.progress;
-    const config = frameData.config as FadeTransitionConfig;
+    const _config = frameData.config as FadeTransitionConfig;
 
     // Render with opacity blending
     ctx.globalAlpha = progress;
@@ -1011,7 +1011,7 @@ export class TransitionEngine {
     if (!ctx) return;
 
     const progress = frameData.progress;
-    const config = frameData.config as SlideTransitionConfig;
+    const _config = frameData.config as SlideTransitionConfig;
 
     // Render with position offset
     const offsetX = progress * canvas.width;
@@ -1050,8 +1050,8 @@ export class TransitionEngine {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const progress = frameData.progress;
-    const config = frameData.config as WipeTransitionConfig;
+    const _progress = frameData.progress;
+    const _config = frameData.config as WipeTransitionConfig;
 
     // Create wipe mask
     ctx.save();
@@ -1067,7 +1067,7 @@ export class TransitionEngine {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const progress = frameData.progress;
+    const _progress = frameData.progress;
     const config = frameData.config as GlitchTransitionConfig;
 
     // Apply glitch effect

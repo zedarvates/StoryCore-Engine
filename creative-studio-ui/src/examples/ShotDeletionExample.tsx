@@ -49,7 +49,7 @@ const ShotListWithDeletion: React.FC = () => {
     if (!shotToDelete) return;
 
     // Get summary for logging
-    const summary = getShotDeletionSummary(shotToDelete.id, project, {
+    const _summary = getShotDeletionSummary(shotToDelete.id, project, {
       deletePhrases,
     });
 

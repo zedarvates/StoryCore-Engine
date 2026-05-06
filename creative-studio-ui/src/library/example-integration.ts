@@ -171,7 +171,7 @@ export class PromptDiscovery {
     // Get one prompt from each category
     const recommendations: PromptTemplate[] = [];
     
-    for (const [categoryId, category] of Object.entries(categories)) {
+    for (const [_categoryId, category] of Object.entries(categories)) {
       if (category.prompts.length > 0) {
         const prompt = await promptLibrary.loadPrompt(category.prompts[0]);
         recommendations.push(prompt);
@@ -251,16 +251,16 @@ async function main() {
 
   // Example 1: Complete scene generation
   const generator = new SceneGenerator();
-  const scene = await generator.generateCompleteScene();
+  const _scene = await generator.generateCompleteScene();
 
   // Example 2: Discover prompts
   const discovery = new PromptDiscovery();
-  const scifiPrompts = await discovery.findGenrePrompts('sci-fi');
+  const _scifiPrompts = await discovery.findGenrePrompts('sci-fi');
 
   // Example 3: Batch generation
   const batch = new BatchGenerator();
   const template = await promptLibrary.loadPrompt('02-genres/scifi.json');
-  const variations = await batch.generateVariations(template, [
+  const _variations = await batch.generateVariations(template, [
     { SPECIFIC_ELEMENT: 'hovering vehicle', AESTHETIC: 'cyberpunk' },
     { SPECIFIC_ELEMENT: 'space station', AESTHETIC: 'clean minimalist future' },
     { SPECIFIC_ELEMENT: 'robot factory', AESTHETIC: 'dystopian industrial' }

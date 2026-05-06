@@ -220,15 +220,15 @@ export const useTemplateMarketplaceStore = create<TemplateMarketplaceStore>()(
     },
     
     // Reviews
-    loadReviews: (templateId) => {
+    loadReviews: (_templateId) => {
       // Would fetch from API
     },
     
-    addReview: (review) => {
+    addReview: (_review) => {
       // Would add to API
     },
     
-    helpfulReview: (reviewId) => {
+    helpfulReview: (_reviewId) => {
       // Would update API
     },
     
@@ -277,7 +277,7 @@ export const useTemplateMarketplaceStore = create<TemplateMarketplaceStore>()(
     
     closeUploadModal: () => set({ isUploadModalOpen: false }),
     
-    uploadTemplate: async (data) => {
+    uploadTemplate: async (_data) => {
       // Would upload to API
       set({ isUploadModalOpen: false });
     },

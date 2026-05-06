@@ -3,7 +3,7 @@
  * Requirements: 9.4, 9.5, 9.6
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, _vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';

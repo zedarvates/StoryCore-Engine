@@ -29,7 +29,7 @@ import type {
   LLMConfig,
   LLMProvider,
 } from '@/services/llmService';
-import { getAvailableProviders, getDefaultSystemPrompts } from '@/services/llmService';
+import { getAvailableProviders, getDefaultSystemPrompts, type LLMModelInfo } from '@/services/llmService';
 import {
   saveLLMSettings,
   loadLLMSettings,
@@ -40,6 +40,7 @@ import {
   getLastValidationTime,
 } from '@/utils/secureStorage';
 import { LocalModelSelector } from './LocalModelSelector';
+import { getLocalModelService } from '@/services/localModelService';
 
 // ============================================================================
 // Types
@@ -175,6 +176,8 @@ export function LLMSettingsPanel({
   const [requestTimeout, setRequestTimeout] = useState(currentConfig?.timeout ?? 30000);
   const [retryAttempts, setRetryAttempts] = useState(currentConfig?.retryAttempts ?? 3);
   const [streamingEnabled, setStreamingEnabled] = useState(currentConfig?.streamingEnabled ?? true);
+  const [ollamaEndpoint, setOllamaEndpoint] = useState(currentConfig?.ollamaEndpoint || 'http://localhost:11434');
+  const [lmStudioEndpoint, setLmStudioEndpoint] = useState(currentConfig?.lmStudioEndpoint || 'http://localhost:1234');
 
   // New creativity and vectorial enhancement parameters
   const [creativityMode, setCreativityMode] = useState(currentConfig?.parameters?.creativityMode || 'balanced');
@@ -206,7 +209,40 @@ export function LLMSettingsPanel({
 
   const providers = getAvailableProviders();
   const currentProviderInfo = providers.find(p => p.id === provider);
-  const currentModelInfo = currentProviderInfo?.models.find(m => m.id === model);
+  const [currentModelInfo, setCurrentModelInfo] = useState<LLMModelInfo | undefined>(undefined);
+
+  // Update current model info when model or provider changes
+  useEffect(() => {
+    if (!model) {
+      setCurrentModelInfo(undefined);
+      return;
+    }
+
+    // 1. Try static providers list
+    const staticInfo = currentProviderInfo?.models.find(m => m.id === model);
+    if (staticInfo) {
+      setCurrentModelInfo(staticInfo);
+      return;
+    }
+
+    // 2. Try dynamic local models if provider is local or lmstudio
+    if (provider === 'local' || provider === 'lmstudio') {
+      const fetchDynamicInfo = async () => {
+        const service = getLocalModelService();
+        const installed = await service.getInstalledModels();
+        const dynamicModel = installed.find(m => m.id === model);
+        if (dynamicModel) {
+          setCurrentModelInfo({
+            id: dynamicModel.id,
+            name: dynamicModel.displayName,
+            contextWindow: dynamicModel.contextWindow,
+            capabilities: dynamicModel.capabilities,
+          });
+        }
+      };
+      fetchDynamicInfo();
+    }
+  }, [model, provider, currentProviderInfo]);
 
   // ============================================================================
   // Effects
@@ -952,7 +988,7 @@ export function LLMSettingsPanel({
               id="maxTokens"
               type="number"
               min={100}
-              max={currentModelInfo?.contextWindow || 4096}
+              max={currentModelInfo?.contextWindow || 262144}
               value={maxTokens}
               onChange={(e) => setMaxTokens(parseInt(e.target.value) || 2000)}
             />

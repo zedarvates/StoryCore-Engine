@@ -193,7 +193,7 @@ async function simulateGenerationStep(
   const steps = 10;
   const stepDuration = 100; // ms per step
   const progressRange = endProgress - startProgress;
-  const progressPerStep = progressRange / steps;
+  const _progressPerStep = progressRange / steps;
 
   for (let i = 0; i < steps; i++) {
     // Check for cancellation

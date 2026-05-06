@@ -1,12 +1,13 @@
-from typing import Dict, Optional, List
+from typing import Dict
 from backend.ai_audio_service import AudioEnvironment
+
 
 class AudioNarrativeMapper:
     """
     Maps narrative keywords to AI Audio Worldization environments.
     Standardizes how the story's location and mood affect the soundscape.
     """
-    
+
     KEYWORD_MAPPING = {
         # Core Locations
         "grotte": AudioEnvironment.CAVE,
@@ -26,7 +27,7 @@ class AudioNarrativeMapper:
         "opera": AudioEnvironment.CONCERT_HALL,
         "voiture": AudioEnvironment.CAR,
         "vehicule": AudioEnvironment.CAR,
-        "vaisseau": AudioEnvironment.CAR, # Close acoustic for small cockpits
+        "vaisseau": AudioEnvironment.CAR,  # Close acoustic for small cockpits
         "foret": AudioEnvironment.FOREST,
         "bois": AudioEnvironment.FOREST,
         "jungle": AudioEnvironment.FOREST,
@@ -44,11 +45,11 @@ class AudioNarrativeMapper:
         Analyzes narrative text to suggest the best audio worldization preset.
         """
         text_low = narrative_text.lower()
-        
+
         for keyword, environment in cls.KEYWORD_MAPPING.items():
             if keyword in text_low:
                 return environment
-                
+
         # Fallback to small room (neutral/indoor)
         return AudioEnvironment.SMALL_ROOM
 

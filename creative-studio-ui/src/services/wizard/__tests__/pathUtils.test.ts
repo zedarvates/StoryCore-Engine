@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   joinPath,
   normalizePath,
-  toPlatformPath,
+  _toPlatformPath,
   getDirName,
   getBaseName,
   getExtension,

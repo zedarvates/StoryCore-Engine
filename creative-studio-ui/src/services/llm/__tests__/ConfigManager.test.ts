@@ -7,6 +7,8 @@
  * - Validation
  * - Export/import
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConfigManager, DEFAULT_CONFIG, type LLMConfig } from '../ConfigManager';
@@ -133,7 +135,7 @@ describe('ConfigManager', () => {
     it('should throw error for invalid config', () => {
       expect(() => {
         ConfigManager.saveLLMConfig({
-          provider: 'invalid' as any,
+          provider: 'invalid' as LegacyAny,
         });
       }).toThrow();
     });
@@ -427,7 +429,7 @@ describe('ConfigManager', () => {
     it('should reject config without required fields', () => {
       expect(() => {
         ConfigManager.saveLLMConfig({
-          provider: undefined as any,
+          provider: undefined as LegacyAny,
         });
       }).toThrow();
     });
@@ -435,7 +437,7 @@ describe('ConfigManager', () => {
     it('should reject invalid provider', () => {
       expect(() => {
         ConfigManager.saveLLMConfig({
-          provider: 'invalid' as any,
+          provider: 'invalid' as LegacyAny,
         });
       }).toThrow();
     });
@@ -523,7 +525,7 @@ describe('ConfigManager', () => {
         ConfigManager.saveLLMConfig({
           reasoningMode: {
             enabled: true,
-            format: 'invalid' as any,
+            format: 'invalid' as LegacyAny,
             showThinking: false,
             confucianPrinciples: ['ren'],
           },

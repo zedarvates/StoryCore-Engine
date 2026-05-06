@@ -4,7 +4,7 @@
 
 import { VideoThumbnailCache, ThumbnailEntry } from '../VideoThumbnailCache';
 
-const createMockVideoElement = () => {
+const _createMockVideoElement = () => {
   return {
     currentTime: 0,
     videoWidth: 1920,

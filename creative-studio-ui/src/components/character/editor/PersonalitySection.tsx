@@ -12,7 +12,7 @@ interface PersonalitySectionProps {
 
 export function PersonalitySection({
   data,
-  errors,
+  _errors,
   onChange,
 }: PersonalitySectionProps) {
   const [newValues, setNewValues] = useState<Record<string, string>>({

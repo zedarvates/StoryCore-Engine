@@ -10,7 +10,7 @@ import {
   MontageStyle,
   MontageRequest,
   MontageResult,
-  SegmentType
+  _SegmentType
 } from '../../services/transcriptionService';
 import styles from './TranscriptionPanel.module.css';
 
@@ -23,7 +23,7 @@ export const TranscriptionPanel: React.FC<TranscriptionPanelProps> = ({
   audioUrl,
   onMontageComplete
 }) => {
-  const [audioId, setAudioId] = useState('');
+  const [_audioId, setAudioId] = useState('');
   const [transcript, setTranscript] = useState<Transcript | null>(null);
   const [montageResult, setMontageResult] = useState<MontageResult | null>(null);
   const [montageStyle, setMontageStyle] = useState<MontageStyle>('chronological');
@@ -110,7 +110,7 @@ export const TranscriptionPanel: React.FC<TranscriptionPanelProps> = ({
       a.download = `${transcript.transcriptId}.srt`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (_err) {
       setError('Echec de l\'export SRT');
     }
   }, [transcript]);
@@ -127,7 +127,7 @@ export const TranscriptionPanel: React.FC<TranscriptionPanelProps> = ({
       a.download = `${transcript.transcriptId}.vtt`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch (_err) {
       setError('Echec de l\'export VTT');
     }
   }, [transcript]);

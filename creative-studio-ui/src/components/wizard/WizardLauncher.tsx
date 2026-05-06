@@ -8,6 +8,8 @@
  * 
  * Requirements: 1.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useMemo } from 'react';
 import type { WizardLauncherProps, WizardDefinition } from '@/types/configuration';
@@ -51,7 +53,7 @@ export function WizardLauncher({
     
     // Use the enhanced checkWizardRequirements function with safety check for project
     // Casting to any to avoid deep type mismatch between Project and ProjectData
-    return checkWizardRequirements(wizard, availableConfig, project as any);
+    return checkWizardRequirements(wizard, availableConfig, project as LegacyAny);
   };
 
   // Get tooltip message for wizard (Requirement 9.2)
@@ -88,13 +90,13 @@ export function WizardLauncher({
     // Check data requirements (Requirement 8.4, 9.2)
     const dataIssues: string[] = [];
     if (dependencies.characters) {
-      const hasCharacters = (project as any)?.characters && (project as any).characters.length > 0;
+      const hasCharacters = (project as LegacyAny)?.characters && (project as LegacyAny).characters.length > 0;
       if (!hasCharacters) {
         dataIssues.push('No characters available. Create characters first using the Character Wizard.');
       }
     }
     if (dependencies.shots) {
-      const hasShots = (project as any)?.shots && (project as any).shots.length > 0;
+      const hasShots = (project as LegacyAny)?.shots && (project as LegacyAny).shots.length > 0;
       if (!hasShots) {
         dataIssues.push('No shots available. Create shots first.');
       }

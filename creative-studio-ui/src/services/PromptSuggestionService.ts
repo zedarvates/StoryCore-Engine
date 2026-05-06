@@ -712,7 +712,7 @@ export class PromptSuggestionService {
   /**
    * Filtre les templates pertinents selon le contexte
    */
-  private filterRelevantTemplates(templates: string[], context: ConversationContext): string[] {
+  private filterRelevantTemplates(templates: string[], _context: ConversationContext): string[] {
     // Pour l'instant, retourne tous les templates (peut être amélioré avec ML)
     return templates;
   }
@@ -736,7 +736,7 @@ export class PromptSuggestionService {
    * Obtient les suggestions statiques par défaut (pour compatibilité)
    */
   getDefaultSuggestions(language: LanguageCode = 'en'): PromptSuggestion[] {
-    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.en;
+    const _templates = this.suggestionTemplates[language] || this.suggestionTemplates.en;
 
     return [
       // Top Ghost Tracker recommendations
@@ -792,7 +792,7 @@ export class PromptSuggestionService {
    * Génère des suggestions rafraîchies avec de nouvelles idées (pour le bouton "improve")
    */
   getRefreshedSuggestions(language: LanguageCode = 'en'): PromptSuggestion[] {
-    const templates = this.suggestionTemplates[language] || this.suggestionTemplates.en;
+    const _templates = this.suggestionTemplates[language] || this.suggestionTemplates.en;
     const timestamp = Date.now();
 
     return [

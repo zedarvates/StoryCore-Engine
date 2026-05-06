@@ -31,10 +31,19 @@ from blender_bridge.camera_system import CinematicCameraSystem
 from blender_bridge.rig_generator import RigGenerator
 from blender_bridge.location_manager import LocationManager
 from blender_bridge.scene_types import (
-    SceneType, ShotType, AtmosphereType, RigType,
-    CameraConfig, CharacterRig, AtmosphereConfig,
-    LightingConfig, LightConfig, LightType, PropObject,
-    LocationPreset, RenderSettings,
+    SceneType,
+    ShotType,
+    AtmosphereType,
+    RigType,
+    CameraConfig,
+    CharacterRig,
+    AtmosphereConfig,
+    LightingConfig,
+    LightConfig,
+    LightType,
+    PropObject,
+    LocationPreset,
+    RenderSettings,
 )
 
 logger = logging.getLogger(__name__)
@@ -228,7 +237,9 @@ class BlenderBridge:
         blender_ok = self.runner.is_blender_available()
         return {
             "blender_available": blender_ok,
-            "blender_version": self.runner.get_blender_version() if blender_ok else None,
+            "blender_version": self.runner.get_blender_version()
+            if blender_ok
+            else None,
             "location_presets": len(self.location_mgr.list_all()),
             "camera_shot_types": len(self.camera_sys.list_shot_types()),
             "scripts_dir": str(self.script_gen.scripts_dir),

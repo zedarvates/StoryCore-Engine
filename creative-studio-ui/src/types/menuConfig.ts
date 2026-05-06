@@ -44,6 +44,8 @@ export interface ActionContext {
   };
   /** Callback to update view state */
   onViewStateChange?: (viewState: Partial<import('./menuBarState').ViewState>) => void;
+  /** Callback to update project state */
+  onProjectChange?: (project: import('./index').Project | null) => void;
 }
 
 /**

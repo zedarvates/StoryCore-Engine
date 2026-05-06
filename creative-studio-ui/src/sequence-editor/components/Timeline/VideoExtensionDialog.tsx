@@ -70,7 +70,7 @@ const TRANSITION_TYPES = [
 
 export const VideoExtensionDialog: React.FC<VideoExtensionDialogProps> = ({
   isOpen,
-  shotId,
+  _shotId,
   shot,
   currentDuration,
   fps = 24,

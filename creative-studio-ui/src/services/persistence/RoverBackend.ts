@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import type { StorageBackend } from './projectPersistence';
 import type { Project } from '../../types';
 
@@ -15,10 +16,10 @@ export class RoverBackend implements StorageBackend {
     /**
      * Save project data and create a Rover checkpoint
      */
-    async save(key: string, data: string): Promise<void> {
+    async save(_key: string, data: string): Promise<void> {
         try {
             const parsedData = JSON.parse(data) as Project;
-            const projectId = parsedData.id || (parsedData as any).project_id;
+            const projectId = parsedData.id || (parsedData as LegacyAny).project_id;
 
             // Use Rover API if available
             if (window.electronAPI?.rover?.sync) {
@@ -56,7 +57,7 @@ export class RoverBackend implements StorageBackend {
     /**
      * Load project data
      */
-    async load(key: string): Promise<string | null> {
+    async load(_key: string): Promise<string | null> {
         if (!window.electronAPI?.fs?.readFile) {
             console.error('[RoverBackend] FS API not available for load');
             return null;
@@ -79,11 +80,11 @@ export class RoverBackend implements StorageBackend {
     /**
      * Check if project exists
      */
-    async exists(key: string): Promise<boolean> {
+    async exists(_key: string): Promise<boolean> {
         if (!window.electronAPI?.fs?.exists) return false;
         try {
             return await window.electronAPI.fs.exists(pathJoin(this.projectPath, 'project.json'));
-        } catch (error) {
+        } catch (_error) {
             return false;
         }
     }
@@ -91,7 +92,7 @@ export class RoverBackend implements StorageBackend {
     /**
      * Delete project file
      */
-    async delete(key: string): Promise<void> {
+    async delete(_key: string): Promise<void> {
         if (!window.electronAPI?.fs?.unlink) {
             throw new Error('FS API not available for delete operation');
         }

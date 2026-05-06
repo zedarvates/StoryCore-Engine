@@ -11,7 +11,6 @@ Requirements: Q1 2026 - Camera Angle Editor Feature
 import asyncio
 import base64
 import logging
-import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Callable
@@ -33,12 +32,11 @@ from backend.camera_angle_types import (
     LENS_TYPE_METADATA,
 )
 from backend.storage import JSONFileStorage
-from backend.config import settings, get_comfyui_url
+from backend.config import settings
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -66,21 +64,50 @@ CAMERA_ANGLE_PROMPTS = {
 # ============================================================================
 
 PRESET_TO_GRANULAR = {
-    CameraAnglePreset.FRONT: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
-    CameraAnglePreset.LEFT: GranularAngle(azimuth=Azimuth.LEFT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
-    CameraAnglePreset.RIGHT: GranularAngle(azimuth=Azimuth.RIGHT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
-    CameraAnglePreset.BACK: GranularAngle(azimuth=Azimuth.BACK, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM),
-    CameraAnglePreset.TOP: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.HIGH_ANGLE, distance=Distance.MEDIUM),
-    CameraAnglePreset.BOTTOM: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.LOW_ANGLE, distance=Distance.MEDIUM),
-    CameraAnglePreset.ISOMETRIC: GranularAngle(azimuth=Azimuth.FRONT_LEFT, elevation=Elevation.HIGH_ANGLE, distance=Distance.MEDIUM),
-    CameraAnglePreset.CLOSE_UP: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.CLOSEUP),
-    CameraAnglePreset.WIDE_SHOT: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.WIDE),
-    CameraAnglePreset.BIRD_EYE: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.HIGH_ANGLE, distance=Distance.WIDE),
-    CameraAnglePreset.WORM_EYE: GranularAngle(azimuth=Azimuth.FRONT, elevation=Elevation.LOW_ANGLE, distance=Distance.MEDIUM),
+    CameraAnglePreset.FRONT: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM
+    ),
+    CameraAnglePreset.LEFT: GranularAngle(
+        azimuth=Azimuth.LEFT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM
+    ),
+    CameraAnglePreset.RIGHT: GranularAngle(
+        azimuth=Azimuth.RIGHT, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM
+    ),
+    CameraAnglePreset.BACK: GranularAngle(
+        azimuth=Azimuth.BACK, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM
+    ),
+    CameraAnglePreset.TOP: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.HIGH_ANGLE, distance=Distance.MEDIUM
+    ),
+    CameraAnglePreset.BOTTOM: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.LOW_ANGLE, distance=Distance.MEDIUM
+    ),
+    CameraAnglePreset.ISOMETRIC: GranularAngle(
+        azimuth=Azimuth.FRONT_LEFT,
+        elevation=Elevation.HIGH_ANGLE,
+        distance=Distance.MEDIUM,
+    ),
+    CameraAnglePreset.CLOSE_UP: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.CLOSEUP
+    ),
+    CameraAnglePreset.WIDE_SHOT: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.EYE_LEVEL, distance=Distance.WIDE
+    ),
+    CameraAnglePreset.BIRD_EYE: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.HIGH_ANGLE, distance=Distance.WIDE
+    ),
+    CameraAnglePreset.WORM_EYE: GranularAngle(
+        azimuth=Azimuth.FRONT, elevation=Elevation.LOW_ANGLE, distance=Distance.MEDIUM
+    ),
 }
 
 QUALITY_SETTINGS = {
-    "draft": {"steps": 10, "cfg_scale": 7.0, "width": 512, "height": 512}, # Lower steps for Flux Klein efficiency
+    "draft": {
+        "steps": 10,
+        "cfg_scale": 7.0,
+        "width": 512,
+        "height": 512,
+    },  # Lower steps for Flux Klein efficiency
     "standard": {"steps": 20, "cfg_scale": 7.5, "width": 768, "height": 768},
     "high": {"steps": 35, "cfg_scale": 8.0, "width": 1024, "height": 1024},
 }
@@ -90,26 +117,27 @@ QUALITY_SETTINGS = {
 # Camera Angle Service
 # ============================================================================
 
+
 class CameraAngleService:
     """
     Service for camera angle transformation operations.
-    
+
     Provides methods to:
     - Generate camera angle variations from source images
     - Track job status and progress
     - Retrieve generation results
     - Cancel running jobs
     """
-    
+
     def __init__(
         self,
         comfyui_url: Optional[str] = None,
         storage_path: str = "./data/camera_angle_jobs",
-        max_cache_size: int = 200
+        max_cache_size: int = 200,
     ):
         """
         Initialize the camera angle service.
-        
+
         Args:
             comfyui_url: URL of the ComfyUI server (defaults to config value)
             storage_path: Path for job storage
@@ -117,24 +145,26 @@ class CameraAngleService:
         """
         self.comfyui_url = comfyui_url or settings.COMFYUI_BASE_URL
         self.storage = JSONFileStorage(storage_path, max_cache_size=max_cache_size)
-        
+
         # In-memory job tracking
         self._jobs: Dict[str, CameraAngleJob] = {}
         self._results: Dict[str, List[CameraAngleResult]] = {}
         self._active_tasks: Dict[str, asyncio.Task] = {}
-        
+
         # Callbacks for progress updates
         self._progress_callbacks: Dict[str, List[Callable]] = {}
-        
-        logger.info(f"CameraAngleService initialized with ComfyUI at {self.comfyui_url}")
-    
+
+        logger.info(
+            f"CameraAngleService initialized with ComfyUI at {self.comfyui_url}"
+        )
+
     async def check_comfyui_connection(self, comfyui_url: Optional[str] = None) -> bool:
         """
         Check if ComfyUI server is accessible.
-        
+
         Args:
             comfyui_url: URL to check (defaults to self.comfyui_url)
-            
+
         Returns:
             True if connection successful, False otherwise
         """
@@ -142,31 +172,27 @@ class CameraAngleService:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    f"{target_url}/system_stats",
-                    timeout=aiohttp.ClientTimeout(total=5)
+                    f"{target_url}/system_stats", timeout=aiohttp.ClientTimeout(total=5)
                 ) as response:
                     return response.status == 200
         except Exception as e:
             logger.warning(f"ComfyUI connection check failed at {target_url}: {e}")
             return False
-    
+
     def generate_angle_variation(
-        self,
-        image_path: str,
-        preset: CameraAnglePreset,
-        prompt: Optional[str] = None
+        self, image_path: str, preset: CameraAnglePreset, prompt: Optional[str] = None
     ) -> str:
         """
         Generate a camera angle variation for an image.
-        
+
         This is a synchronous wrapper that creates a job and returns the job ID.
         Use the async version for proper async handling.
-        
+
         Args:
             image_path: Path to the source image
             preset: Camera angle preset to apply
             prompt: Optional custom prompt to append
-            
+
         Returns:
             Job ID for tracking the generation
         """
@@ -174,19 +200,17 @@ class CameraAngleService:
         with open(image_path, "rb") as f:
             image_data = f.read()
         image_base64 = base64.b64encode(image_data).decode("utf-8")
-        
+
         # Create request
         request = CameraAngleRequest(
-            image_base64=image_base64,
-            angle_ids=[preset],
-            custom_prompt=prompt
+            image_base64=image_base64, angle_ids=[preset], custom_prompt=prompt
         )
-        
+
         # Create job (simplified - user_id would come from auth in real use)
         job_id = self._create_job(request, user_id="system")
-        
+
         return job_id
-    
+
     async def generate_angle_variation_async(
         self,
         image_base64: str,
@@ -196,11 +220,11 @@ class CameraAngleService:
         lens_type: LensType = LensType.STANDARD,
         quality: str = "standard",
         preserve_style: bool = True,
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
     ) -> str:
         """
         Async method to generate a camera angle variation.
-        
+
         Args:
             image_base64: Base64 encoded source image
             preset: Camera angle preset to apply
@@ -209,7 +233,7 @@ class CameraAngleService:
             quality: Generation quality (draft, standard, high)
             preserve_style: Whether to preserve original style
             seed: Random seed for reproducibility
-            
+
         Returns:
             Job ID for tracking the generation
         """
@@ -220,38 +244,36 @@ class CameraAngleService:
             quality=quality,
             seed=seed,
             custom_prompt=custom_prompt,
-            lens_type=lens_type
+            lens_type=lens_type,
         )
-        
+
         job_id = self._create_job(request, user_id)
-        
+
         # Start background processing
         task = asyncio.create_task(self._process_job(job_id))
         self._active_tasks[job_id] = task
-        
+
         return job_id
-    
+
     async def generate_multiple_angles(
-        self,
-        request: CameraAngleRequest,
-        user_id: str
+        self, request: CameraAngleRequest, user_id: str
     ) -> str:
         """
         Generate multiple camera angle variations.
-        
+
         Args:
             request: Camera angle generation request
             user_id: User ID for job ownership
-            
+
         Returns:
             Job ID for tracking the generation
         """
         job_id = self._create_job(request, user_id)
-        
+
         # Start background processing
         task = asyncio.create_task(self._process_job(job_id))
         self._active_tasks[job_id] = task
-        
+
         return job_id
 
     async def generate_character_turnaround_async(
@@ -259,49 +281,51 @@ class CameraAngleService:
         image_base64: str,
         user_id: str,
         quality: str = "standard",
-        seed: Optional[int] = None
+        seed: Optional[int] = None,
     ) -> str:
         """
         Generate a full 360-degree character turnaround (8 angles).
-        
+
         Args:
             image_base64: Base64 encoded source image
             user_id: User ID
             quality: Generation quality
             seed: Random seed
-            
+
         Returns:
             Job ID
         """
         # Define the 8 standard azimuth angles for a turnaround
         turnaround_angles = [
-            GranularAngle(azimuth=az, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM)
+            GranularAngle(
+                azimuth=az, elevation=Elevation.EYE_LEVEL, distance=Distance.MEDIUM
+            )
             for az in list(Azimuth)
         ]
-        
+
         request = CameraAngleRequest(
             image_base64=image_base64,
             granular_angles=turnaround_angles,
             preserve_style=True,
             quality=quality,
-            seed=seed
+            seed=seed,
         )
-        
+
         return await self.generate_multiple_angles(request, user_id)
-    
+
     def _create_job(self, request: CameraAngleRequest, user_id: str) -> str:
         """
         Create a new camera angle generation job.
-        
+
         Args:
             request: Generation request
             user_id: User ID
-            
+
         Returns:
             Job ID
         """
         job_id = str(uuid.uuid4())
-        
+
         job = CameraAngleJob(
             id=job_id,
             user_id=user_id,
@@ -315,76 +339,79 @@ class CameraAngleService:
             lens_type=request.lens_type,
             comfyui_url=request.comfyui_url or self.comfyui_url,
             status=CameraAngleJobStatus.PENDING,
-            remaining_angles=[a.value for a in (request.angle_ids or [])] + 
-                             [f"granular_{i}" for i in range(len(request.granular_angles or []))],
-            created_at=datetime.utcnow()
+            remaining_angles=[a.value for a in (request.angle_ids or [])]
+            + [f"granular_{i}" for i in range(len(request.granular_angles or []))],
+            created_at=datetime.utcnow(),
         )
-        
+
         # Store job
         self._jobs[job_id] = job
         self._save_job(job)
-        
+
         logger.info(f"Created camera angle job {job_id} for user {user_id}")
-        
+
         return job_id
-    
+
     def get_job_status(self, job_id: str) -> Optional[CameraAngleJob]:
         """
         Get the status of a generation job.
-        
+
         Args:
             job_id: Job identifier
-            
+
         Returns:
             CameraAngleJob if found, None otherwise
         """
         # Check in-memory first
         if job_id in self._jobs:
             return self._jobs[job_id]
-        
+
         # Try loading from storage
         job_data = self.storage.load(job_id)
         if job_data:
             job = CameraAngleJob(**job_data)
             self._jobs[job_id] = job
             return job
-        
+
         return None
-    
+
     def get_result(self, job_id: str) -> Optional[List[CameraAngleResult]]:
         """
         Get the results of a completed generation job.
-        
+
         Args:
             job_id: Job identifier
-            
+
         Returns:
             List of CameraAngleResult if job completed, None otherwise
         """
         job = self.get_job_status(job_id)
         if not job or job.status != CameraAngleJobStatus.COMPLETED:
             return None
-        
+
         return self._results.get(job_id, [])
-    
+
     async def cancel_job(self, job_id: str) -> bool:
         """
         Cancel a running generation job.
-        
+
         Args:
             job_id: Job identifier
-            
+
         Returns:
             True if cancelled successfully, False otherwise
         """
         job = self.get_job_status(job_id)
         if not job:
             return False
-        
+
         # Check if job can be cancelled
-        if job.status not in [CameraAngleJobStatus.PENDING, CameraAngleJobStatus.PROCESSING]:
+        if job.status not in [
+            CameraAngleJobStatus.PENDING,
+            CameraAngleJobStatus.PROCESSING,
+        ]:
             return False
-        
+
         # Cancel active task if exists
         if job_id in self._active_tasks:
             task = self._active_tasks[job_id]
@@ -394,24 +421,22 @@ class CameraAngleService:
             except asyncio.CancelledError:
                 pass
             del self._active_tasks[job_id]
-        
+
         # Update job status
         job.status = CameraAngleJobStatus.CANCELLED
         job.completed_at = datetime.utcnow()
         self._save_job(job)
-        
+
         logger.info(f"Cancelled camera angle job {job_id}")
-        
+
         return True
-    
+
     def register_progress_callback(
-        self,
-        job_id: str,
-        callback: Callable[[str, float, str], None]
+        self, job_id: str, callback: Callable[[str, float, str], None]
     ) -> None:
         """
         Register a callback for job progress updates.
-        
+
         Args:
             job_id: Job identifier
             callback: Callback function (job_id, progress, step)
@@ -419,30 +444,30 @@ class CameraAngleService:
         if job_id not in self._progress_callbacks:
             self._progress_callbacks[job_id] = []
         self._progress_callbacks[job_id].append(callback)
-    
+
     def _save_job(self, job: CameraAngleJob) -> None:
         """Save job to persistent storage."""
         job_data = job.model_dump()
         # Convert datetime fields to ISO strings
-        job_data['created_at'] = job.created_at.isoformat()
+        job_data["created_at"] = job.created_at.isoformat()
         if job.started_at:
-            job_data['started_at'] = job.started_at.isoformat()
+            job_data["started_at"] = job.started_at.isoformat()
         if job.completed_at:
-            job_data['completed_at'] = job.completed_at.isoformat()
+            job_data["completed_at"] = job.completed_at.isoformat()
         # Convert enums to values
-        job_data['status'] = job.status.value
-        job_data['angle_ids'] = [a.value for a in job.angle_ids]
-        job_data['lens_type'] = job.lens_type.value
-        job_data['granular_angles'] = [a.model_dump() for a in job.granular_angles]
-        job_data['completed_angles'] = job.completed_angles
-        job_data['remaining_angles'] = job.remaining_angles
-        
+        job_data["status"] = job.status.value
+        job_data["angle_ids"] = [a.value for a in job.angle_ids]
+        job_data["lens_type"] = job.lens_type.value
+        job_data["granular_angles"] = [a.model_dump() for a in job.granular_angles]
+        job_data["completed_angles"] = job.completed_angles
+        job_data["remaining_angles"] = job.remaining_angles
+
         self.storage.save(job.id, job_data)
-    
+
     async def _process_job(self, job_id: str) -> None:
         """
         Process a camera angle generation job.
-        
+
         Args:
             job_id: Job identifier
         """
@@ -450,7 +475,7 @@ class CameraAngleService:
         if not job:
             logger.error(f"Job {job_id} not found")
             return
-        
+
         try:
             # Update status to processing
             job.status = CameraAngleJobStatus.PROCESSING
@@ -458,16 +483,18 @@ class CameraAngleService:
             job.current_step = "Initializing generation"
             self._save_job(job)
             self._notify_progress(job_id, 0, "Initializing generation")
-            
+
             # Check ComfyUI connection
             if not await self.check_comfyui_connection(job.comfyui_url):
                 logger.error(f"ComfyUI not available for job {job_id}")
-                raise Exception("ComfyUI server is offline. Real media transformation requires a connection to ComfyUI.")
-            
+                raise Exception(
+                    "ComfyUI server is offline. Real media transformation requires a connection to ComfyUI."
+                )
+
             # Process each angle
             results: List[CameraAngleResult] = []
-            total_angles = len(job.angle_ids)
-            
+            len(job.angle_ids)
+
             # Prepare all work items
             work_items = []
             for angle_id in job.angle_ids:
@@ -477,15 +504,17 @@ class CameraAngleService:
 
             total_items = len(work_items)
             results: List[CameraAngleResult] = []
-            
+
             for i, item in enumerate(work_items):
                 # Check for cancellation
                 if job.status == CameraAngleJobStatus.CANCELLED:
                     return
-                
+
                 if item[0] == "preset":
                     angle_id = item[1]
-                    display_name = CAMERA_ANGLE_PRESET_METADATA[angle_id.value]['display_name']
+                    display_name = CAMERA_ANGLE_PRESET_METADATA[angle_id.value][
+                        "display_name"
+                    ]
                     angle_param = PRESET_TO_GRANULAR.get(angle_id, GranularAngle())
                     angle_label = angle_id.value
                 else:
@@ -495,39 +524,35 @@ class CameraAngleService:
 
                 job.current_step = f"Generating {display_name}"
                 self._save_job(job)
-                self._notify_progress(
-                    job_id,
-                    (i / total_items) * 100,
-                    job.current_step
-                )
-                
+                self._notify_progress(job_id, (i / total_items) * 100, job.current_step)
+
                 # Build prompt using SKS trigger word
                 prompt = self._build_prompt(job, angle_param)
-                
+
                 # Generate image via ComfyUI
                 result = await self._generate_single_angle(
                     job_id=job_id,
                     image_base64=job.image_base64,
-                    angle_id=angle_label, # Pass the label for tracking
+                    angle_id=angle_label,  # Pass the label for tracking
                     prompt=prompt,
                     quality=job.quality,
                     seed=job.seed,
-                    comfyui_url=job.comfyui_url
+                    comfyui_url=job.comfyui_url,
                 )
-                
+
                 if result:
                     results.append(result)
                     job.completed_angles.append(angle_label)
                     if angle_label in job.remaining_angles:
                         job.remaining_angles.remove(angle_label)
-                
+
                 # Update progress
                 job.progress = ((i + 1) / total_items) * 100
                 self._save_job(job)
-            
+
             # Store results
             self._results[job_id] = results
-            
+
             # Mark job as completed
             job.status = CameraAngleJobStatus.COMPLETED
             job.completed_at = datetime.utcnow()
@@ -535,9 +560,9 @@ class CameraAngleService:
             job.current_step = "Completed"
             self._save_job(job)
             self._notify_progress(job_id, 100, "Completed")
-            
+
             logger.info(f"Job {job_id} completed with {len(results)} results")
-            
+
         except asyncio.CancelledError:
             logger.info(f"Job {job_id} was cancelled")
             raise
@@ -548,43 +573,41 @@ class CameraAngleService:
             job.completed_at = datetime.utcnow()
             self._save_job(job)
             self._notify_progress(job_id, 0, f"Failed: {str(e)}")
-    
-    def _build_prompt(
-        self,
-        job: CameraAngleJob,
-        angle: GranularAngle
-    ) -> str:
+
+    def _build_prompt(self, job: CameraAngleJob, angle: GranularAngle) -> str:
         """
         Build the generation prompt for a camera angle using SKS formula.
-        
+
         Args:
             job: Generation job
             angle: Granular angle settings
-            
+
         Returns:
             Complete prompt string
         """
-        parts = ["SKS"] # Trigger word for Multi-angle LoRA
-        
+        parts = ["SKS"]  # Trigger word for Multi-angle LoRA
+
         # SKS + azimuth + elevation + distance
         parts.append(angle.azimuth.value)
         parts.append(angle.elevation.value)
         parts.append(angle.distance.value)
-        
+
         # Add style preservation
         if job.preserve_style:
             parts.append("maintaining original style and character consistency")
-        
+
         # Add custom prompt if provided
         if job.custom_prompt:
             parts.append(job.custom_prompt)
-        
+
         # Add lens characteristics (Delrama simulation)
-        lens_meta = LENS_TYPE_METADATA.get(job.lens_type.value, LENS_TYPE_METADATA[LensType.STANDARD.value])
+        lens_meta = LENS_TYPE_METADATA.get(
+            job.lens_type.value, LENS_TYPE_METADATA[LensType.STANDARD.value]
+        )
         parts.append(lens_meta["prompt_suffix"])
-        
+
         return ", ".join(parts)
-    
+
     async def _generate_single_angle(
         self,
         job_id: str,
@@ -593,19 +616,22 @@ class CameraAngleService:
         prompt: str,
         quality: str,
         seed: Optional[int],
-        comfyui_url: Optional[str] = None
+        comfyui_url: Optional[str] = None,
     ) -> Optional[CameraAngleResult]:
         """
         Generate a single camera angle variation via ComfyUI.
         """
         from src.comfyui_executor import comfyui_executor
+
         start_time = datetime.utcnow()
         active_url = comfyui_url or self.comfyui_url
-        
+
         try:
             # Get quality settings
-            quality_settings = QUALITY_SETTINGS.get(quality, QUALITY_SETTINGS["standard"])
-            
+            quality_settings = QUALITY_SETTINGS.get(
+                quality, QUALITY_SETTINGS["standard"]
+            )
+
             # Build ComfyUI workflow
             workflow = self._build_comfyui_workflow(
                 image_base64=image_base64,
@@ -614,31 +640,32 @@ class CameraAngleService:
                 cfg_scale=quality_settings["cfg_scale"],
                 width=quality_settings["width"],
                 height=quality_settings["height"],
-                seed=seed or -1
+                seed=seed or -1,
             )
-            
+
             # Execute via shared executor
             result = await comfyui_executor.execute_workflow(
-                workflow=workflow,
-                comfyui_url=active_url
+                workflow=workflow, comfyui_url=active_url
             )
-            
+
             if not result["success"]:
                 raise Exception(f"ComfyUI Execution Failed: {result.get('error')}")
-            
+
             # Extract generated image (expect base64 or URL)
             generated_image = None
             if result.get("outputs"):
-                # Use the first output's viewing URL as the "image" if it's external, 
+                # Use the first output's viewing URL as the "image" if it's external,
                 # or download it if needed. For simplicity here, we assume the UI will handle the URL.
                 generated_image = result["outputs"][0].get("url")
-            
+
             end_time = datetime.utcnow()
             generation_time = (end_time - start_time).total_seconds()
-            
+
             return CameraAngleResult(
                 id=str(uuid.uuid4()),
-                angle_id=angle_id if isinstance(angle_id, CameraAnglePreset) else CameraAnglePreset.FRONT,
+                angle_id=angle_id
+                if isinstance(angle_id, CameraAnglePreset)
+                else CameraAnglePreset.FRONT,
                 original_image_base64=image_base64[:100] + "...",
                 generated_image_base64=generated_image or "error_no_output",
                 prompt_used=prompt,
@@ -650,14 +677,14 @@ class CameraAngleService:
                     "width": quality_settings["width"],
                     "height": quality_settings["height"],
                     "seed": seed,
-                    "server_used": active_url
-                }
+                    "server_used": active_url,
+                },
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to generate angle {angle_id} for job {job_id}: {e}")
             return None
-    
+
     def _build_comfyui_workflow(
         self,
         image_base64: str,
@@ -666,11 +693,11 @@ class CameraAngleService:
         cfg_scale: float,
         width: int,
         height: int,
-        seed: int
+        seed: int,
     ) -> Dict[str, Any]:
         """
         Build a ComfyUI workflow for camera angle transformation.
-        
+
         Args:
             image_base64: Source image
             prompt: Generation prompt
@@ -679,38 +706,28 @@ class CameraAngleService:
             width: Output width
             height: Output height
             seed: Random seed
-            
+
         Returns:
             ComfyUI workflow dictionary
         """
         # This is a simplified workflow - in production, this would include
         # ControlNet, IP-Adapter, etc. for better angle transformations
         workflow = {
-            "1": {
-                "class_type": "LoadImage",
-                "inputs": {
-                    "image": image_base64
-                }
-            },
+            "1": {"class_type": "LoadImage", "inputs": {"image": image_base64}},
             "2": {
                 "class_type": "CLIPTextEncode",
-                "inputs": {
-                    "text": prompt,
-                    "clip": ["4", 1]
-                }
+                "inputs": {"text": prompt, "clip": ["4", 1]},
             },
             "3": {
                 "class_type": "CLIPTextEncode",
                 "inputs": {
                     "text": "blurry, low quality, distorted, deformed",
-                    "clip": ["4", 1]
-                }
+                    "clip": ["4", 1],
+                },
             },
             "4": {
                 "class_type": "CheckpointLoaderSimple",
-                "inputs": {
-                    "ckpt_name": "v1-5-pruned-emaonly.safetensors"
-                }
+                "inputs": {"ckpt_name": "v1-5-pruned-emaonly.safetensors"},
             },
             "5": {
                 "class_type": "KSampler",
@@ -724,67 +741,55 @@ class CameraAngleService:
                     "model": ["4", 0],
                     "positive": ["2", 0],
                     "negative": ["3", 0],
-                    "latent_image": ["6", 0]
-                }
+                    "latent_image": ["6", 0],
+                },
             },
             "6": {
                 "class_type": "VAEEncode",
-                "inputs": {
-                    "pixels": ["1", 0],
-                    "vae": ["4", 2]
-                }
+                "inputs": {"pixels": ["1", 0], "vae": ["4", 2]},
             },
             "7": {
                 "class_type": "VAEDecode",
-                "inputs": {
-                    "samples": ["5", 0],
-                    "vae": ["4", 2]
-                }
+                "inputs": {"samples": ["5", 0], "vae": ["4", 2]},
             },
             "8": {
                 "class_type": "SaveImage",
-                "inputs": {
-                    "filename_prefix": "camera_angle",
-                    "images": ["7", 0]
-                }
-            }
+                "inputs": {"filename_prefix": "camera_angle", "images": ["7", 0]},
+            },
         }
-        
+
         return workflow
-    
+
     async def _wait_for_comfyui_completion(
-        self,
-        prompt_id: str,
-        timeout: int = 300,
-        comfyui_url: Optional[str] = None
+        self, prompt_id: str, timeout: int = 300, comfyui_url: Optional[str] = None
     ) -> str:
         """
         Wait for ComfyUI workflow completion and return the generated image.
-        
+
         Args:
             prompt_id: ComfyUI prompt ID
             timeout: Timeout in seconds
             comfyui_url: ComfyUI server URL
-            
+
         Returns:
             Base64 encoded generated image
         """
         active_url = comfyui_url or self.comfyui_url
         start_time = datetime.utcnow()
-        
+
         while (datetime.utcnow() - start_time).total_seconds() < timeout:
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.get(
                         f"{active_url}/history/{prompt_id}",
-                        timeout=aiohttp.ClientTimeout(total=10)
+                        timeout=aiohttp.ClientTimeout(total=10),
                     ) as response:
                         if response.status == 200:
                             history = await response.json()
-                            
+
                             if prompt_id in history:
                                 outputs = history[prompt_id].get("outputs", {})
-                                
+
                                 for node_id, node_output in outputs.items():
                                     if "images" in node_output:
                                         image = node_output["images"][0]
@@ -794,13 +799,17 @@ class CameraAngleService:
                                             f"subfolder={image.get('subfolder', '')}&"
                                             f"type={image.get('type', 'output')}"
                                         )
-                                        
+
                                         # Fetch the image
-                                        async with session.get(image_url) as img_response:
+                                        async with session.get(
+                                            image_url
+                                        ) as img_response:
                                             if img_response.status == 200:
                                                 img_data = await img_response.read()
-                                                return base64.b64encode(img_data).decode("utf-8")
-                                    
+                                                return base64.b64encode(
+                                                    img_data
+                                                ).decode("utf-8")
+
                                     elif "video" in node_output:
                                         video = node_output["video"]
                                         video_url = (
@@ -809,25 +818,26 @@ class CameraAngleService:
                                             f"subfolder={video.get('subfolder', '')}&"
                                             f"type={video.get('type', 'output')}"
                                         )
-                                        
-                                        async with session.get(video_url) as vid_response:
+
+                                        async with session.get(
+                                            video_url
+                                        ) as vid_response:
                                             if vid_response.status == 200:
                                                 vid_data = await vid_response.read()
-                                                return base64.b64encode(vid_data).decode("utf-8")
-                
+                                                return base64.b64encode(
+                                                    vid_data
+                                                ).decode("utf-8")
+
             except Exception as e:
                 logger.warning(f"Error checking ComfyUI status: {e}")
-            
+
             await asyncio.sleep(1.0)
-        
-        raise TimeoutError(f"ComfyUI workflow {prompt_id} did not complete within {timeout} seconds")
-    
-    def _notify_progress(
-        self,
-        job_id: str,
-        progress: float,
-        step: str
-    ) -> None:
+
+        raise TimeoutError(
+            f"ComfyUI workflow {prompt_id} did not complete within {timeout} seconds"
+        )
+
+    def _notify_progress(self, job_id: str, progress: float, step: str) -> None:
         """Notify registered callbacks of progress updates."""
         callbacks = self._progress_callbacks.get(job_id, [])
         for callback in callbacks:
@@ -848,7 +858,7 @@ _camera_angle_service: Optional[CameraAngleService] = None
 def get_camera_angle_service() -> CameraAngleService:
     """
     Get the global camera angle service instance.
-    
+
     Returns:
         CameraAngleService instance
     """
@@ -859,20 +869,16 @@ def get_camera_angle_service() -> CameraAngleService:
 
 
 def create_camera_angle_service(
-    comfyui_url: Optional[str] = None,
-    storage_path: str = "./data/camera_angle_jobs"
+    comfyui_url: Optional[str] = None, storage_path: str = "./data/camera_angle_jobs"
 ) -> CameraAngleService:
     """
     Create a new camera angle service instance.
-    
+
     Args:
         comfyui_url: ComfyUI server URL
         storage_path: Path for job storage
-        
+
     Returns:
         New CameraAngleService instance
     """
-    return CameraAngleService(
-        comfyui_url=comfyui_url,
-        storage_path=storage_path
-    )
+    return CameraAngleService(comfyui_url=comfyui_url, storage_path=storage_path)

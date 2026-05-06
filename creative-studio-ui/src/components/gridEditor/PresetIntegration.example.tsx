@@ -108,7 +108,7 @@ export const CustomPresetCreationExample: React.FC = () => {
       panels.map(p => ({ transform: p.transform, crop: p.crop }))
     );
 
-    const presetId = addCustomPreset(presetData);
+    const _presetId = addCustomPreset(presetData);
     ;
     setPresetName('');
   };
@@ -269,7 +269,7 @@ export const PresetBackendIntegrationExample: React.FC = () => {
         }),
       });
 
-      const result = await response.json();
+      const _result = await response.json();
       ;
     } catch (error) {
       console.error('Generation failed:', error);
@@ -300,7 +300,7 @@ export const PresetBackendIntegrationExample: React.FC = () => {
 };
 
 // Example CSS for integration
-const exampleStyles = `
+const _exampleStyles = `
 .grid-editor-container {
   display: flex;
   flex-direction: column;

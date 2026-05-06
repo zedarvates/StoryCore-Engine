@@ -27,12 +27,11 @@ Usage :
 
 from __future__ import annotations
 import re
-import hashlib
 import logging
 from pathlib import Path
 from typing import Optional, List, Dict, Tuple
 
-from story_assets.story_object import StoryObject, MATERIAL_PRESETS
+from story_assets.story_object import StoryObject
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +83,9 @@ class StoryAssetBuilder:
 
         if preview_output is None:
             preview_output = str(
-                self.output_dir.parent / "previews" / f"{self._safe_name(obj.blender_object_name)}_preview"
+                self.output_dir.parent
+                / "previews"
+                / f"{self._safe_name(obj.blender_object_name)}_preview"
             )
 
         script_content = self._generate_script(obj, preview_output, render_preview)
@@ -142,11 +143,11 @@ class StoryAssetBuilder:
         lines = [
             f"# ── Objet d'histoire : {obj.name} [{obj.object_type}] ──",
             f"# Description : {obj.description[:80] if obj.description else 'N/A'}",
-            f"",
+            "",
             f"def create_story_object_{obj_name}(scene):",
             f'    """Crée {obj.name} ({obj.object_type}) dans la scène Blender."""',
-            f"    import bpy, math",
-            f"",
+            "    import bpy, math",
+            "",
         ]
 
         # Géométrie
@@ -159,8 +160,8 @@ class StoryAssetBuilder:
             f"        math.radians({rotation[0]}),",
             f"        math.radians({rotation[1]}),",
             f"        math.radians({rotation[2]}),",
-            f"    )",
-            f"",
+            "    )",
+            "",
         ]
 
         # Matériau
@@ -169,16 +170,16 @@ class StoryAssetBuilder:
         # Parent rig
         if parent_rig_name:
             lines += [
-                f"    # Attacher au rig",
+                "    # Attacher au rig",
                 f"    if '{parent_rig_name}' in bpy.data.objects:",
                 f"        obj_{obj_name}.parent = bpy.data.objects['{parent_rig_name}']",
-                f"",
+                "",
             ]
 
         lines += [
             f"    return obj_{obj_name}",
-            f"",
-            f"# Appel",
+            "",
+            "# Appel",
             f"story_obj_{obj_name} = create_story_object_{obj_name}(bpy.context.scene)",
         ]
 
@@ -199,27 +200,27 @@ class StoryAssetBuilder:
         preview_path = preview_output.replace("\\", "/")
 
         lines = [
-            f'"""',
-            f'Script Blender — Objet d\'histoire : {obj.name}',
-            f'=================================================================',
-            f'ID         : {obj.id}',
-            f'Type       : {obj.object_type}',
-            f'Proprietaire: {obj.owner or "aucun"}',
-            f'Materiau   : {obj.material}',
-            f'Description: {obj.description[:100] if obj.description else "N/A"}',
-            f'Execution  : blender -b -P {obj_name}.py',
-            f'"""',
-            f'',
-            f'import bpy',
-            f'import sys',
-            f'import math',
-            f'from pathlib import Path',
-            f'',
-            f'# ── Nettoyage scene ──────────────────────────────────────────────────',
-            f'bpy.ops.object.select_all(action="SELECT")',
-            f'bpy.ops.object.delete()',
-            f'',
-            f'# ── Geometrie : {geom} ───────────────────────────────────────────────',
+            '"""',
+            f"Script Blender — Objet d'histoire : {obj.name}",
+            "=================================================================",
+            f"ID         : {obj.id}",
+            f"Type       : {obj.object_type}",
+            f"Proprietaire: {obj.owner or 'aucun'}",
+            f"Materiau   : {obj.material}",
+            f"Description: {obj.description[:100] if obj.description else 'N/A'}",
+            f"Execution  : blender -b -P {obj_name}.py",
+            '"""',
+            "",
+            "import bpy",
+            "import sys",
+            "import math",
+            "from pathlib import Path",
+            "",
+            "# ── Nettoyage scene ──────────────────────────────────────────────────",
+            'bpy.ops.object.select_all(action="SELECT")',
+            "bpy.ops.object.delete()",
+            "",
+            f"# ── Geometrie : {geom} ───────────────────────────────────────────────",
         ]
 
         # Code géométrie
@@ -234,7 +235,7 @@ class StoryAssetBuilder:
             lines.extend(self._preview_render_code(obj_name, preview_path, obj.name))
 
         lines += [
-            f'',
+            "",
             f'print(f"STORYCORE_ASSET_COMPLETE:{preview_path}.png")',
         ]
 
@@ -280,7 +281,7 @@ class StoryAssetBuilder:
             f"{i}bpy.ops.mesh.select_all(action='SELECT')",
             f"{i}# Etirer en longueur (lame)",
             f"{i}bpy.ops.transform.resize(value=(0.08 * {sx}, 1.0 * {sy}, 1.0 * {sz}))",
-            f"{i}bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={{\"value\": (0, 0, 0.02 * {sz})}})",
+            f'{i}bpy.ops.mesh.extrude_region_move(TRANSFORM_OT_translate={{"value": (0, 0, 0.02 * {sz})}})',
             f"{i}bpy.ops.object.mode_set(mode='OBJECT')",
             f"{i}obj_{n} = bpy.context.active_object",
             f"{i}obj_{n}.name = '{n}'",
@@ -477,7 +478,9 @@ class StoryAssetBuilder:
         ]
 
         if transmission > 0:
-            lines.append(f"{i}    bsdf_{obj_name}.inputs['Transmission Weight'].default_value = {transmission}")
+            lines.append(
+                f"{i}    bsdf_{obj_name}.inputs['Transmission Weight'].default_value = {transmission}"
+            )
 
         if emission and emission_strength > 0:
             em = emission if len(emission) == 4 else (*emission, 1.0)
@@ -505,38 +508,38 @@ class StoryAssetBuilder:
     ) -> List[str]:
         """Génère le code de configuration caméra + rendu preview."""
         return [
-            f"# ── Caméra preview ────────────────────────────────────────────────────",
-            f"bpy.ops.object.camera_add(location=(0.8, -1.5, 0.8))",
-            f"cam_obj = bpy.context.active_object",
-            f"cam_obj.name = 'Preview_Camera'",
-            f"# Pointer vers l'objet",
-            f"bpy.ops.object.empty_add(location=(0, 0, 0))",
-            f"empty = bpy.context.active_object",
-            f"empty.name = 'Camera_Target'",
-            f"track = cam_obj.constraints.new(type='TRACK_TO')",
-            f"track.target = empty",
-            f"track.track_axis = 'TRACK_NEGATIVE_Z'",
-            f"track.up_axis = 'UP_Y'",
-            f"bpy.context.scene.camera = cam_obj",
-            f"",
-            f"# ── Eclairage ─────────────────────────────────────────────────────────",
-            f"bpy.ops.object.light_add(type='AREA', location=(1.5, -1.0, 2.0))",
-            f"key_light = bpy.context.active_object",
-            f"key_light.data.energy = 50",
-            f"key_light.data.color = (1.0, 0.95, 0.9)",
-            f"bpy.ops.object.light_add(type='AREA', location=(-2.0, 1.0, 1.5))",
-            f"fill_light = bpy.context.active_object",
-            f"fill_light.data.energy = 20",
-            f"fill_light.data.color = (0.6, 0.7, 1.0)",
-            f"",
-            f"# ── Rendu ─────────────────────────────────────────────────────────────",
-            f"scene = bpy.context.scene",
-            f"scene.render.engine = 'BLENDER_EEVEE'",
-            f"scene.render.resolution_x = 512",
-            f"scene.render.resolution_y = 512",
+            "# ── Caméra preview ────────────────────────────────────────────────────",
+            "bpy.ops.object.camera_add(location=(0.8, -1.5, 0.8))",
+            "cam_obj = bpy.context.active_object",
+            "cam_obj.name = 'Preview_Camera'",
+            "# Pointer vers l'objet",
+            "bpy.ops.object.empty_add(location=(0, 0, 0))",
+            "empty = bpy.context.active_object",
+            "empty.name = 'Camera_Target'",
+            "track = cam_obj.constraints.new(type='TRACK_TO')",
+            "track.target = empty",
+            "track.track_axis = 'TRACK_NEGATIVE_Z'",
+            "track.up_axis = 'UP_Y'",
+            "bpy.context.scene.camera = cam_obj",
+            "",
+            "# ── Eclairage ─────────────────────────────────────────────────────────",
+            "bpy.ops.object.light_add(type='AREA', location=(1.5, -1.0, 2.0))",
+            "key_light = bpy.context.active_object",
+            "key_light.data.energy = 50",
+            "key_light.data.color = (1.0, 0.95, 0.9)",
+            "bpy.ops.object.light_add(type='AREA', location=(-2.0, 1.0, 1.5))",
+            "fill_light = bpy.context.active_object",
+            "fill_light.data.energy = 20",
+            "fill_light.data.color = (0.6, 0.7, 1.0)",
+            "",
+            "# ── Rendu ─────────────────────────────────────────────────────────────",
+            "scene = bpy.context.scene",
+            "scene.render.engine = 'BLENDER_EEVEE'",
+            "scene.render.resolution_x = 512",
+            "scene.render.resolution_y = 512",
             f"scene.render.filepath = r'{preview_path}'",
-            f"scene.render.image_settings.file_format = 'PNG'",
-            f"bpy.ops.render.render(write_still=True)",
+            "scene.render.image_settings.file_format = 'PNG'",
+            "bpy.ops.render.render(write_still=True)",
             f"print(f'Preview rendu : {preview_path}.png')",
         ]
 

@@ -8,6 +8,8 @@
  * 
  * Exigence: 8.3 - Édition groupée de métadonnées
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -100,9 +102,9 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
       const fieldValues = selectedShots.map(shot => {
         if (field.key.includes('.')) {
           const [parent, child] = field.key.split('.');
-          return (shot as any)[parent]?.[child];
+          return (shot as LegacyAny)[parent]?.[child];
         }
-        return (shot as any)[field.key];
+        return (shot as LegacyAny)[field.key];
       });
 
       // Vérifier si toutes les valeurs sont identiques
@@ -141,11 +143,11 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
       if (key.includes('.')) {
         const [parent, child] = key.split('.');
         if (!updates[parent as keyof Shot]) {
-          (updates as any)[parent] = {};
+          (updates as LegacyAny)[parent] = {};
         }
-        (updates as any)[parent][child] = value;
+        (updates as LegacyAny)[parent][child] = value;
       } else {
-        (updates as any)[key] = value;
+        (updates as LegacyAny)[key] = value;
       }
     }
 
@@ -167,11 +169,11 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
       if (key.includes('.')) {
         const [parent, child] = key.split('.');
         if (!preview[parent as keyof Shot]) {
-          (preview as any)[parent] = {};
+          (preview as LegacyAny)[parent] = {};
         }
-        (preview as any)[parent][child] = value;
+        (preview as LegacyAny)[parent][child] = value;
       } else {
-        (preview as any)[key] = value;
+        (preview as LegacyAny)[key] = value;
       }
     }
 
@@ -202,7 +204,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
           <input
             type="text"
             className="field-input"
-            value={(currentValue as any) || ''}
+            value={(currentValue as LegacyAny) || ''}
             onChange={(e) => handleFieldChange(field.key, e.target.value)}
             placeholder={field.placeholder}
           />
@@ -212,7 +214,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
           <input
             type="number"
             className="field-input"
-            value={(currentValue as any) || ''}
+            value={(currentValue as LegacyAny) || ''}
             onChange={(e) => handleFieldChange(field.key, parseFloat(e.target.value))}
             placeholder={field.placeholder}
           />
@@ -221,7 +223,7 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
         {field.type === 'select' && (
           <select
             className="field-select"
-            value={(currentValue as any) || ''}
+            value={(currentValue as LegacyAny) || ''}
             onChange={(e) => handleFieldChange(field.key, e.target.value)}
           >
             <option value="">-- Sélectionner --</option>
@@ -347,13 +349,13 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
                 {previewShot.metadata?.category && (
                   <div className="preview-item">
                     <strong>Catégorie:</strong>
-                    <span>{(previewShot.metadata as any).category}</span>
+                    <span>{(previewShot.metadata as LegacyAny).category}</span>
                   </div>
                 )}
                 {previewShot.metadata?.tags && (
                   <div className="preview-item">
                     <strong>Tags:</strong>
-                    <span>{(previewShot.metadata as any).tags.join(', ')}</span>
+                    <span>{(previewShot.metadata as LegacyAny).tags.join(', ')}</span>
                   </div>
                 )}
               </div>

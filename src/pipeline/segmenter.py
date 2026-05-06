@@ -1,7 +1,6 @@
 import hashlib
 import json
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -13,6 +12,7 @@ except ImportError:
 # Try to import MediaPipe or OpenPose (placeholder import)
 try:
     import mediapipe as mp
+
     POSE_MODEL = mp.solutions.pose.Pose()
     MODEL_NAME = "MediaPipe"
 except Exception:
@@ -20,6 +20,7 @@ except Exception:
     try:
         # Placeholder for OpenPose import
         import openpose
+
         POSE_MODEL = openpose.PoseEstimator()
         MODEL_NAME = "OpenPose"
     except Exception:
@@ -29,18 +30,22 @@ except Exception:
 # Configure structured logger
 logger = logging.getLogger("segmenter")
 handler = logging.StreamHandler()
-formatter = logging.Formatter('{"time":"%(asctime)s","level":"%(levelname)s","msg":"%(message)s"}')
+formatter = logging.Formatter(
+    '{"time":"%(asctime)s","level":"%(levelname)s","msg":"%(message)s"}'
+)
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
 
+
 def _hash_file(file_path: Path) -> str:
     """Compute SHA256 hash of a file and return hex digest."""
     h = hashlib.sha256()
-    with file_path.open('rb') as f:
-        for chunk in iter(lambda: f.read(8192), b''):
+    with file_path.open("rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
             h.update(chunk)
     return h.hexdigest()
+
 
 def _detect_keypoints(image_path: Path) -> dict:
     """Detect body keypoints using the available model.
@@ -59,12 +64,15 @@ def _detect_keypoints(image_path: Path) -> dict:
     results = POSE_MODEL.process(rgb)
     # Extract keypoints (placeholder implementation)
     keypoints = []
-    if hasattr(results, 'pose_landmarks') and results.pose_landmarks:
+    if hasattr(results, "pose_landmarks") and results.pose_landmarks:
         for lm in results.pose_landmarks.landmark:
-            keypoints.append({"x": lm.x, "y": lm.y, "z": lm.z, "visibility": lm.visibility})
+            keypoints.append(
+                {"x": lm.x, "y": lm.y, "z": lm.z, "visibility": lm.visibility}
+            )
     # Segments placeholder (could be contours)
     segments = []
     return {"keypoints": keypoints, "segments": segments}
+
 
 def segment_character(image_path: str) -> dict:
     """Public API to segment a character image.
@@ -77,11 +85,11 @@ def segment_character(image_path: str) -> dict:
         logger.error(f"File not found: {path}")
         raise FileNotFoundError(f"File not found: {path}")
     # Determine if JSON sheet
-    if path.suffix.lower() == '.json':
+    if path.suffix.lower() == ".json":
         # Load JSON and extract image reference (simplified)
-        with path.open('r', encoding='utf-8') as f:
+        with path.open("r", encoding="utf-8") as f:
             sheet = json.load(f)
-        img_ref = sheet.get('image_path')
+        img_ref = sheet.get("image_path")
         if not img_ref:
             logger.error("JSON sheet missing 'image_path' field.")
             raise ValueError("JSON sheet missing 'image_path' field.")
@@ -95,10 +103,11 @@ def segment_character(image_path: str) -> dict:
     output_dir = Path(__file__).parent / "segmentations"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_file = output_dir / f"{img_hash}.json"
-    with output_file.open('w', encoding='utf-8') as f:
+    with output_file.open("w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     logger.info(f"Segmentation result saved to {output_file}")
     return result
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

@@ -9,6 +9,8 @@
  * 
  * Requirements: 2.5, 2.6, 2.7, 11.1, 11.2, 11.4, 11.5, 11.7
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
@@ -104,7 +106,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       expect(updatedPanel!.layers.length).toBeGreaterThan(0);
       expect(updatedPanel!.layers[0].type).toBe('image');
       expect(updatedPanel!.layers[0].content.type).toBe('image');
-      expect((updatedPanel!.layers[0].content as any).url).toBeDefined();
+      expect((updatedPanel!.layers[0].content as LegacyAny).url).toBeDefined();
       expect(updatedPanel!.metadata.seed).toBe(12345);
       expect(updatedPanel!.metadata.modified).toBe(false);
     });
@@ -286,7 +288,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       expect(config.mipmap.quality).toBeLessThanOrEqual(1);
     });
 
-    it('should support cache management operations', () => {
+    it('shou_ld support cache management operations', () => {
       // Arrange
       const initialStats = imageLoader.getCacheStats();
 
@@ -453,7 +455,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
         gridStore.current.selectPanel(panel.id, false);
       });
 
-      const initialSelection = [...gridStore.current.selectedPanelIds];
+      const _initialSelection = [...gridStore.current.selectedPanelIds];
       const initialZoom = viewportStore.current.zoom;
       const initialPan = { ...viewportStore.current.pan };
 

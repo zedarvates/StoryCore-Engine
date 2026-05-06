@@ -4,6 +4,8 @@
  * 
  * Requirements: 3.1-3.7, 4.1-4.7, 5.1-5.7, 6.1-6.7, 7.1-7.6, 8.1-8.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { WizardService } from '@/services/wizard/WizardService';
@@ -47,7 +49,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock Ollama response
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
           json: () =>
@@ -64,7 +66,7 @@ describe('Wizard Workflows Integration', () => {
       );
 
       // Mock ComfyUI queue prompt response
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
           json: () =>
@@ -75,7 +77,7 @@ describe('Wizard Workflows Integration', () => {
       );
 
       // Mock ComfyUI history polling (completion check)
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/history/')) {
           return Promise.resolve({
             ok: true,
@@ -127,7 +129,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock successful API responses
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/api/generate')) {
           return Promise.resolve({
             ok: true,
@@ -187,7 +189,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock API responses
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/api/generate')) {
           return Promise.resolve({
             ok: true,
@@ -245,7 +247,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock Ollama response with shot breakdown
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
           json: () =>
@@ -301,7 +303,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock response with multiple shots
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
           json: () =>
@@ -320,7 +322,7 @@ describe('Wizard Workflows Integration', () => {
 
       // Verify shots have proper structure
       expect(result.data.shots).toHaveLength(2);
-      result.data.shots.forEach((shot: any) => {
+      result.data.shots.forEach((shot: LegacyAny) => {
         expect(shot).toHaveProperty('shotNumber');
       });
     });
@@ -335,7 +337,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock response
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
           json: () =>
@@ -371,7 +373,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock Ollama response for shot planning
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.resolve({
           ok: true,
           json: () =>
@@ -395,7 +397,7 @@ describe('Wizard Workflows Integration', () => {
       );
 
       // Mock ComfyUI responses for each shot
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/prompt')) {
           return Promise.resolve({
             ok: true,
@@ -446,7 +448,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock responses
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/api/generate')) {
           return Promise.resolve({
             ok: true,
@@ -496,7 +498,7 @@ describe('Wizard Workflows Integration', () => {
       const result = await wizardService.executeStoryboardCreator(input);
 
       // Verify each shot has an image reference
-      result.data.shots.forEach((shot: any) => {
+      result.data.shots.forEach((shot: LegacyAny) => {
         expect(shot).toHaveProperty('frame_path');
         expect(shot.frame_path).toMatch(/shots\/shot_\d+_\d+_frame\.png$/);
       });
@@ -518,7 +520,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock responses
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/api/generate')) {
           return Promise.resolve({
             ok: true,
@@ -610,7 +612,7 @@ describe('Wizard Workflows Integration', () => {
   describe('14.5 Shot Creation Workflow', () => {
     beforeEach(() => {
       // Mock fetch for ProjectService file operations
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         // Mock project.json loading
         if (url.includes('project.json')) {
           return Promise.resolve({
@@ -709,7 +711,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock fetch to return current project state
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('project.json')) {
           return Promise.resolve({
             ok: true,
@@ -771,7 +773,7 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // Mock failed API call
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.reject(new Error('Network error'))
       );
 
@@ -793,14 +795,14 @@ describe('Wizard Workflows Integration', () => {
       };
 
       // First call fails
-      (global.fetch as any).mockImplementationOnce(() =>
+      (global.fetch as LegacyAny).mockImplementationOnce(() =>
         Promise.reject(new Error('Network error'))
       );
 
       await expect(wizardService.executeCharacterWizard(input)).rejects.toThrow();
 
       // Second call succeeds - mock all required endpoints
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         if (url.includes('/api/generate')) {
           return Promise.resolve({
             ok: true,

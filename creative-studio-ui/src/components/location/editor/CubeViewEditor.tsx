@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { RefreshCw, Eye, EyeOff, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Grid } from 'lucide-react';
+import { RefreshCw, Eye, _EyeOff, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Grid } from 'lucide-react';
 import type { Location, CubeFace, CubeFaceTexture } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
 import { CubeFaceGenerator } from './CubeFaceGenerator';
@@ -42,7 +42,7 @@ export function CubeViewEditor({
   textureDirection,
   onTextureDirectionChange,
 }: CubeViewEditorProps) {
-  const { updateCubeTexture, updateLocation, selectCubeFace, selectedCubeFace } = useLocationStore();
+  const { updateCubeTexture, _updateLocation, selectCubeFace, _selectedCubeFace } = useLocationStore();
   
   const [editingFace, setEditingFace] = useState<CubeFace | null>(null);
   
@@ -79,7 +79,7 @@ export function CubeViewEditor({
     selectCubeFace(null);
   }, [selectCubeFace]);
   
-  const getFaceProgress = (face: CubeFace): number => {
+  const getFaceProgress = (_face: CubeFace): number => {
     const totalFaces = CUBE_FACES.length;
     const generatedFaces = CUBE_FACES.filter((f) => location.cube_textures[f]?.image_path).length;
     return (generatedFaces / totalFaces) * 100;

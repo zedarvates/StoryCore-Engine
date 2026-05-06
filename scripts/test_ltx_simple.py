@@ -9,7 +9,8 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Force mock mode BEFORE any other imports to ensure settings picks it up
 os.environ["USE_MOCK_COMFYUI"] = "true"
 
-from backend.ltx_service import LTXVideoService, LTXGenerationConfig, LTXAspectRatio
+from backend.ltx_service import LTXVideoService, LTXGenerationConfig
+
 
 async def test_simple():
     print("Testing LTX Service (Mock Mode)...")
@@ -17,10 +18,11 @@ async def test_simple():
     config = LTXGenerationConfig(prompt="A simple test")
     result = await service.generate_video(config)
     print(f"Result: {result['status']}")
-    if result['status'] == 'completed':
+    if result["status"] == "completed":
         print(f"Path: {result['output_path']}")
     else:
         print(f"Error: {result.get('error')}")
+
 
 if __name__ == "__main__":
     asyncio.run(test_simple())

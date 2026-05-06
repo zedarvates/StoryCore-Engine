@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 class ShotType(Enum):
     """Types of shots for storyboard panels."""
+
     EXTREME_WIDE = "extreme_wide"
     WIDE = "wide"
     FULL = "full"
@@ -29,6 +30,7 @@ class ShotType(Enum):
 
 class CameraMovement(Enum):
     """Camera movements for storyboard panels."""
+
     STATIC = "static"
     PAN_LEFT = "pan_left"
     PAN_RIGHT = "pan_right"
@@ -45,6 +47,7 @@ class CameraMovement(Enum):
 
 class ScreenPosition(Enum):
     """Screen positions for character placement."""
+
     LEFT = "left"
     CENTER_LEFT = "center_left"
     CENTER = "center"
@@ -56,6 +59,7 @@ class ScreenPosition(Enum):
 
 class AspectRatio(Enum):
     """Aspect ratios for storyboard panels."""
+
     WIDESCREEN = "16:9"
     CINEMASCOPE = "2.39:1"
     STANDARD = "4:3"
@@ -66,42 +70,45 @@ class AspectRatio(Enum):
 @dataclass
 class CharacterPosition:
     """Character position in a storyboard panel."""
+
     name: str
     position: ScreenPosition
     depth: int = 0
     size: str = "medium"
     facing: str = "front"
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
             "position": self.position.value,
             "depth": self.depth,
             "size": self.size,
-            "facing": self.facing
+            "facing": self.facing,
         }
 
 
 @dataclass
 class VisualElement:
     """Visual element in a storyboard panel."""
+
     type: str
     description: str
     position: Optional[str] = None
     importance: str = "background"
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "type": self.type,
             "description": self.description,
             "position": self.position,
-            "importance": self.importance
+            "importance": self.importance,
         }
 
 
 @dataclass
 class StoryboardPanel:
     """A single storyboard panel."""
+
     panel_number: int
     scene_number: int
     shot_type: ShotType
@@ -115,7 +122,7 @@ class StoryboardPanel:
     focal_length: int = 50
     aperture: str = "f/4"
     image_prompt: str = ""
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "panel_number": self.panel_number,
@@ -130,32 +137,34 @@ class StoryboardPanel:
             "estimated_duration_seconds": self.estimated_duration_seconds,
             "focal_length": self.focal_length,
             "aperture": self.aperture,
-            "image_prompt": self.image_prompt
+            "image_prompt": self.image_prompt,
         }
 
 
 @dataclass
 class SceneStoryboard:
     """Storyboard for a complete scene."""
+
     scene_number: int
     scene_heading: str
     panels: List[StoryboardPanel] = field(default_factory=list)
     total_panels: int = 0
     total_duration_seconds: float = 0.0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "scene_number": self.scene_number,
             "scene_heading": self.scene_heading,
             "total_panels": self.total_panels,
             "total_duration_seconds": round(self.total_duration_seconds, 1),
-            "panels": [p.to_dict() for p in self.panels]
+            "panels": [p.to_dict() for p in self.panels],
         }
 
 
 @dataclass
 class StoryboardReport:
     """Complete storyboard report for a script."""
+
     script_title: str = ""
     created_at: datetime = field(default_factory=datetime.now)
     scene_storyboards: List[SceneStoryboard] = field(default_factory=list)
@@ -166,7 +175,7 @@ class StoryboardReport:
     panel_style: str = "cinematic"
     shot_type_distribution: Dict[str, int] = field(default_factory=dict)
     character_coverage: Dict[str, int] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "title": self.script_title,
@@ -177,21 +186,21 @@ class StoryboardReport:
             "panel_style": self.panel_style,
             "shot_distribution": self.shot_type_distribution,
             "character_coverage": self.character_coverage,
-            "scenes": [s.to_dict() for s in self.scene_storyboards]
+            "scenes": [s.to_dict() for s in self.scene_storyboards],
         }
 
 
 @dataclass
 class StoryboardVisualization:
     """Visualization data for storyboard display."""
+
     panels_data: Dict[str, Any] = field(default_factory=dict)
     timeline_data: Dict[str, Any] = field(default_factory=dict)
     statistics_data: Dict[str, Any] = field(default_factory=dict)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "panels": self.panels_data,
             "timeline": self.timeline_data,
-            "statistics": self.statistics_data
+            "statistics": self.statistics_data,
         }
-

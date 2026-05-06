@@ -10,6 +10,7 @@ SOLUTION multi-etapes:
   Etape 3 - Foliage: feuillage procédural Blender ajoute sur le tronc
   Etape 4 - Export : arbre final disponible pour placement dans scene
 """
+
 from __future__ import annotations
 
 import time
@@ -21,12 +22,42 @@ from .comfyui_client import ComfyUIClient
 
 # Styles de feuillage disponibles
 FOLIAGE_STYLES = {
-    "conifer":   {"color": (0.08, 0.35, 0.08, 1.0), "shape": "cone",   "density": 0.8, "scale": (0.6, 0.6, 1.2)},
-    "deciduous": {"color": (0.15, 0.45, 0.10, 1.0), "shape": "sphere", "density": 1.0, "scale": (1.0, 1.0, 0.8)},
-    "palm":      {"color": (0.20, 0.50, 0.05, 1.0), "shape": "fan",    "density": 0.4, "scale": (1.5, 1.5, 0.3)},
-    "dead":      {"color": (0.25, 0.18, 0.08, 1.0), "shape": "sparse", "density": 0.2, "scale": (1.0, 1.0, 1.0)},
-    "bush":      {"color": (0.12, 0.40, 0.08, 1.0), "shape": "sphere", "density": 1.2, "scale": (1.2, 1.2, 0.7)},
-    "tropical":  {"color": (0.10, 0.55, 0.05, 1.0), "shape": "spread", "density": 0.9, "scale": (1.3, 1.3, 0.6)},
+    "conifer": {
+        "color": (0.08, 0.35, 0.08, 1.0),
+        "shape": "cone",
+        "density": 0.8,
+        "scale": (0.6, 0.6, 1.2),
+    },
+    "deciduous": {
+        "color": (0.15, 0.45, 0.10, 1.0),
+        "shape": "sphere",
+        "density": 1.0,
+        "scale": (1.0, 1.0, 0.8),
+    },
+    "palm": {
+        "color": (0.20, 0.50, 0.05, 1.0),
+        "shape": "fan",
+        "density": 0.4,
+        "scale": (1.5, 1.5, 0.3),
+    },
+    "dead": {
+        "color": (0.25, 0.18, 0.08, 1.0),
+        "shape": "sparse",
+        "density": 0.2,
+        "scale": (1.0, 1.0, 1.0),
+    },
+    "bush": {
+        "color": (0.12, 0.40, 0.08, 1.0),
+        "shape": "sphere",
+        "density": 1.2,
+        "scale": (1.2, 1.2, 0.7),
+    },
+    "tropical": {
+        "color": (0.10, 0.55, 0.05, 1.0),
+        "shape": "spread",
+        "density": 0.9,
+        "scale": (1.3, 1.3, 0.6),
+    },
 }
 
 
@@ -85,7 +116,9 @@ class OrganicAssetPipeline:
         out_dir.mkdir(parents=True, exist_ok=True)
 
         # ETAPE 1: Tronc -> GLB via Trellis2
-        self._log(f"Etape 1/3: Generation tronc 3D pour {asset_name}...", progress_callback)
+        self._log(
+            f"Etape 1/3: Generation tronc 3D pour {asset_name}...", progress_callback
+        )
         from .pipeline_image_to_3d import ImageTo3DPipeline
 
         host = self.client.base_url.replace("http://", "").split(":")[0]
@@ -114,7 +147,10 @@ class OrganicAssetPipeline:
         )
 
         duration = time.time() - start
-        self._log(f"Asset organique termine: {asset_name} en {duration:.1f}s", progress_callback)
+        self._log(
+            f"Asset organique termine: {asset_name} en {duration:.1f}s",
+            progress_callback,
+        )
 
         return {
             "trunk_glb": trunk_glb,
@@ -162,7 +198,9 @@ class OrganicAssetPipeline:
 
             # Creation du feuillage
             self._log(f"Feuillage procédural ({foliage_style})...", progress_callback)
-            foliage_obj = self._create_foliage(asset_name, style, trunk_height, foliage_density)
+            foliage_obj = self._create_foliage(
+                asset_name, style, trunk_height, foliage_density
+            )
 
             return {
                 "trunk": trunk_root.name if trunk_root else "",
@@ -189,15 +227,25 @@ class OrganicAssetPipeline:
         foliage_z = trunk_height * 0.75
 
         if shape in ("sphere", "bush", "tropical", "spread"):
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1.0, location=(0, 0, foliage_z))
+            bpy.ops.mesh.primitive_ico_sphere_add(
+                subdivisions=3, radius=1.0, location=(0, 0, foliage_z)
+            )
         elif shape == "cone":
-            bpy.ops.mesh.primitive_cone_add(vertices=16, radius1=0.9, depth=2.2, location=(0, 0, foliage_z))
+            bpy.ops.mesh.primitive_cone_add(
+                vertices=16, radius1=0.9, depth=2.2, location=(0, 0, foliage_z)
+            )
         elif shape == "fan":
-            bpy.ops.mesh.primitive_circle_add(vertices=12, radius=1.3, location=(0, 0, foliage_z))
+            bpy.ops.mesh.primitive_circle_add(
+                vertices=12, radius=1.3, location=(0, 0, foliage_z)
+            )
         elif shape == "sparse":
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=0.6, location=(0, 0, foliage_z))
+            bpy.ops.mesh.primitive_ico_sphere_add(
+                subdivisions=1, radius=0.6, location=(0, 0, foliage_z)
+            )
         else:
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1.0, location=(0, 0, foliage_z))
+            bpy.ops.mesh.primitive_ico_sphere_add(
+                subdivisions=3, radius=1.0, location=(0, 0, foliage_z)
+            )
 
         foliage = bpy.context.active_object
         foliage.name = f"{asset_name}_Foliage"

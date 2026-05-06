@@ -4,6 +4,8 @@
  * WebGL-based 3D scene viewport for multi-puppet manipulation and orchestration.
  * Fully synchronized with Redux Timeline Ledger and Cinematic Composition metadata.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAppDispatch, useAppSelector, useSelectedShot } from '../../store';
@@ -262,7 +264,7 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     setExportProgress(0);
     
     const blob = await exportSceneToVideo(
-      puppets as any[],
+      puppets as LegacyAny[],
       environment,
       keyframes,
       {

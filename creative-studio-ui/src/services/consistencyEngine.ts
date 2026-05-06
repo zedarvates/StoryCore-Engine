@@ -200,7 +200,7 @@ class ConsistencyEngine {
     }
 
     // Get character reference for comparison
-    const characterRef = this.referenceSheetService?.getCharacterReference(characterId);
+    const _characterRef = this.referenceSheetService?.getCharacterReference(characterId);
     
     // Simulate image comparison (in real implementation, this would use image analysis)
     const characterMatches = this.analyzeImageConsistency(imageUrls, 'character');
@@ -289,7 +289,7 @@ class ConsistencyEngine {
       return this.createEmptyScore();
     }
 
-    const locationRef = this.referenceSheetService?.getLocationReference(locationId);
+    const _locationRef = this.referenceSheetService?.getLocationReference(locationId);
     
     const characterMatches = this.analyzeImageConsistency(imageUrls, 'location');
     const styleMatches = this.analyzeStyleConsistency(imageUrls);
@@ -369,7 +369,7 @@ class ConsistencyEngine {
   /**
    * Compare shot style to target style
    */
-  compareStyleFeatures(shotId: string, targetStyle: string): ConsistencyScore {
+  compareStyleFeatures(shotId: string, _targetStyle: string): ConsistencyScore {
     const shot = this.projectStore?.getShot(shotId);
     if (!shot) {
       return this.createEmptyScore();
@@ -412,7 +412,7 @@ class ConsistencyEngine {
     
     if (score.styleScore < 70 || score.colorScore < 70 || score.compositionScore < 70) {
       const lowestScore = Math.min(score.styleScore, score.colorScore, score.compositionScore);
-      const issueType = score.styleScore === lowestScore ? 'style' : 
+      const _issueType = score.styleScore === lowestScore ? 'style' : 
                         score.colorScore === lowestScore ? 'style' : 'style';
 
       return {
@@ -743,7 +743,7 @@ class ConsistencyEngine {
   /**
    * Analyze image consistency (simulated)
    */
-  private analyzeImageConsistency(imageUrls: string[], type: 'character' | 'location'): number {
+  private analyzeImageConsistency(_imageUrls: string[], _type: 'character' | 'location'): number {
     // In real implementation, this would use image analysis
     // For now, return a random score between 0.6 and 1.0
     return 0.6 + Math.random() * 0.4;
@@ -752,21 +752,21 @@ class ConsistencyEngine {
   /**
    * Analyze style consistency (simulated)
    */
-  private analyzeStyleConsistency(imageUrls: string[]): number {
+  private analyzeStyleConsistency(_imageUrls: string[]): number {
     return 0.7 + Math.random() * 0.3;
   }
 
   /**
    * Analyze color consistency (simulated)
    */
-  private analyzeColorConsistency(imageUrls: string[]): number {
+  private analyzeColorConsistency(_imageUrls: string[]): number {
     return 0.65 + Math.random() * 0.35;
   }
 
   /**
    * Analyze composition consistency (simulated)
    */
-  private analyzeCompositionConsistency(imageUrls: string[]): number {
+  private analyzeCompositionConsistency(_imageUrls: string[]): number {
     return 0.7 + Math.random() * 0.3;
   }
 
@@ -799,7 +799,7 @@ class ConsistencyEngine {
   /**
    * Check temporal continuity between two shots
    */
-  private checkTemporalContinuity(prevShot: ShotConfig, currShot: ShotConfig): number {
+  private checkTemporalContinuity(_prevShot: ShotConfig, _currShot: ShotConfig): number {
     // In real implementation, check time-of-day, day/night progression, etc.
     return 0.8;
   }
@@ -807,7 +807,7 @@ class ConsistencyEngine {
   /**
    * Check spatial continuity between two shots
    */
-  private checkSpatialContinuity(prevShot: ShotConfig, currShot: ShotConfig): number {
+  private checkSpatialContinuity(_prevShot: ShotConfig, _currShot: ShotConfig): number {
     // In real implementation, check camera position, movement, etc.
     return 0.75;
   }

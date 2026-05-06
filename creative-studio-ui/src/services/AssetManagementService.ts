@@ -8,6 +8,8 @@
  * 
  * Requirements: 9.1, 9.2, 9.5
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { GeneratedAsset, AssetMetadata } from '../types/generation';
 
@@ -150,7 +152,7 @@ export class AssetManagementService {
       const buffer = await this.assetUrlToBuffer(asset.url, asset.type);
       
       // Write file
-      await window.electronAPI!.fs!.writeFile(path, buffer as any);
+      await window.electronAPI!.fs!.writeFile(path, buffer as LegacyAny);
     } catch (error) {
       throw new Error(`Failed to save asset file with Electron: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -224,7 +226,7 @@ export class AssetManagementService {
         // Write metadata file
         const encoder = new TextEncoder();
         const uint8Array = encoder.encode(metadataJson);
-        await window.electronAPI.fs.writeFile(metadataPath, uint8Array as any);
+        await window.electronAPI.fs.writeFile(metadataPath, uint8Array as LegacyAny);
       } else {
         // Development/fallback mode
         console.log('[AssetManagementService] Metadata that would be saved:', metadata);

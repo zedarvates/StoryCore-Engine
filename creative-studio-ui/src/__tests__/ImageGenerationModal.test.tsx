@@ -28,6 +28,8 @@
  * - imageGenerationService.ts - Service layer for API calls
  * - comfyuiService.ts - Backend communication
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -74,22 +76,22 @@ vi.mock('@/services/imageGenerationService', () => ({
 
 // Mock UI components
 vi.mock('@/components/ui/dialog', () => ({
-  Dialog: ({ children, open }: any) => open ? <div data-testid="dialog">{children}</div> : null,
-  DialogContent: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
-  DialogHeader: ({ children }: any) => <div data-testid="dialog-header">{children}</div>,
-  DialogTitle: ({ children }: any) => <div data-testid="dialog-title">{children}</div>,
-  DialogDescription: ({ children }: any) => <div data-testid="dialog-description">{children}</div>,
+  Dialog: ({ children, open }: LegacyAny) => open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }: LegacyAny) => <div data-testid="dialog-content">{children}</div>,
+  DialogHeader: ({ children }: LegacyAny) => <div data-testid="dialog-header">{children}</div>,
+  DialogTitle: ({ children }: LegacyAny) => <div data-testid="dialog-title">{children}</div>,
+  DialogDescription: ({ children }: LegacyAny) => <div data-testid="dialog-description">{children}</div>,
 }));
 
 vi.mock('@/components/ui/tabs', () => ({
-  Tabs: ({ children }: any) => <div data-testid="tabs">{children}</div>,
-  TabsList: ({ children }: any) => <div data-testid="tabs-list">{children}</div>,
-  TabsTrigger: ({ children, value }: any) => <button data-testid={`tab-${value}`}>{children}</button>,
-  TabsContent: ({ children, value }: any) => <div data-testid={`tab-content-${value}`}>{children}</div>,
+  Tabs: ({ children }: LegacyAny) => <div data-testid="tabs">{children}</div>,
+  TabsList: ({ children }: LegacyAny) => <div data-testid="tabs-list">{children}</div>,
+  TabsTrigger: ({ children, value }: LegacyAny) => <button data-testid={`tab-${value}`}>{children}</button>,
+  TabsContent: ({ children, value }: LegacyAny) => <div data-testid={`tab-content-${value}`}>{children}</div>,
 }));
 
 vi.mock('@/components/ui/button', () => ({
-  Button: ({ children, onClick, disabled, ...props }: any) => (
+  Button: ({ children, onClick, disabled, ...props }: LegacyAny) => (
     <button 
       data-testid={props['data-testid']} 
       onClick={onClick} 
@@ -101,14 +103,14 @@ vi.mock('@/components/ui/button', () => ({
 }));
 
 vi.mock('@/components/ui/input', () => ({
-  Input: (props: any) => <input data-testid={props['data-testid']} {...props} />,
+  Input: (props: LegacyAny) => <input data-testid={props['data-testid']} {...props} />,
 }));
 
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ children }: any) => <div data-testid="select">{children}</div>,
-  SelectTrigger: ({ children }: any) => <div>{children}</div>,
-  SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children }: any) => <div>{children}</div>,
+  Select: ({ children }: LegacyAny) => <div data-testid="select">{children}</div>,
+  SelectTrigger: ({ children }: LegacyAny) => <div>{children}</div>,
+  SelectContent: ({ children }: LegacyAny) => <div>{children}</div>,
+  SelectItem: ({ children }: LegacyAny) => <div>{children}</div>,
 }));
 
 describe('ImageGenerationModal', () => {

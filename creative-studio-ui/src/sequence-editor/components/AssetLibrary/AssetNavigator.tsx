@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { 
   Plus, ChevronDown 
@@ -19,7 +20,7 @@ export const AssetNavigator: React.FC<AssetNavigatorProps> = ({ onGenerateAsset 
       <div className="sidebar-scroll-area">
         <div className="toolbox-accordion">
           {categoryConfigs.map((cat) => {
-            const Icon = cat.icon as any;
+            const Icon = cat.icon as LegacyAny;
             const isActive = activeCategory === cat.id;
 
             return (

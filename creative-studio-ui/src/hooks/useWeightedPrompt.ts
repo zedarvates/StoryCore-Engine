@@ -5,6 +5,8 @@
  * Supporte maintenant les Conflits, Templates et Tonalité Globale (Sprint 3).
  * Supporte également l'analyse de conformité post-réponse (Sprint 4).
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useCallback, useRef } from 'react';
 import { conversationWeightService } from '@/services/conversation/ConversationWeightService';
@@ -128,7 +130,7 @@ export function useWeightedPrompt(): UseWeightedPromptReturn {
         word: t.word,
         targetWeight: t.weight,
         actualImpact: found ? 85 : 10,
-        status: found ? 'respected' : 'ignored' as any,
+        status: found ? 'respected' : 'ignored' as LegacyAny,
       };
     });
 

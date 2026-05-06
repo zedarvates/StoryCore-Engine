@@ -29,7 +29,6 @@ Usage :
 
 from __future__ import annotations
 import logging
-import re
 from pathlib import Path
 from typing import List, Optional, Tuple, Dict
 
@@ -260,6 +259,7 @@ class SceneObjectInjector:
         if character_name:
             # Disposition en arc devant le rig (radius 0.5m)
             import math
+
             angle = (index / max(total, 1)) * math.pi - math.pi / 2
             radius = 0.5
             x = radius * math.cos(angle)

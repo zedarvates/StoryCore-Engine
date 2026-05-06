@@ -2,14 +2,16 @@
  * WorkflowStyleTransfer
  * Component for configuring workflow-based style transfer
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useCallback, useState } from 'react';
-import { WorkflowStyleTransferProps } from '../../types/styleTransfer';
+import { _WorkflowStyleTransferProps } from '../../types/styleTransfer';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Slider } from '../../components/ui/slider';
+import { _Slider } from '../../components/ui/slider';
 import { Upload, Image as ImageIcon, Palette, Settings2, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -49,12 +51,12 @@ export const WorkflowStyleTransfer: React.FC<WorkflowStyleTransferProps> = ({
   }, [onStyleFileChange]);
 
   const clearSourceFile = useCallback(() => {
-    onSourceFileChange(undefined as any);
+    onSourceFileChange(undefined as LegacyAny);
     setSourcePreview(null);
   }, [onSourceFileChange]);
 
   const clearStyleFile = useCallback(() => {
-    onStyleFileChange(undefined as any);
+    onStyleFileChange(undefined as LegacyAny);
     setStylePreview(null);
   }, [onStyleFileChange]);
 

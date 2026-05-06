@@ -11,6 +11,8 @@
  * 
  * Requirements: 3.1-3.9
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { viewActions } from '../menuActions';
@@ -69,13 +71,13 @@ describe('View Actions', () => {
         isProcessing: false,
       },
       services: {
-        persistence: {} as any,
+        persistence: {} as LegacyAny,
         export: {
           exportJSON: vi.fn(),
           exportPDF: vi.fn(),
           exportVideo: vi.fn(),
         },
-        recentProjects: {} as any,
+        recentProjects: {} as LegacyAny,
         modal: {
           openModal: vi.fn(),
           closeModal: vi.fn(),

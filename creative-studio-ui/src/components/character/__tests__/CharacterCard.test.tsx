@@ -1,5 +1,6 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent _} from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CharacterCard } from '../CharacterCard';
 import type { Character } from '@/types/character';
@@ -103,7 +104,7 @@ describe('CharacterCard', () => {
       const character = {
         ...createMockCharacter(),
         thumbnail_url: 'https://example.com/thumbnail.jpg',
-      } as any;
+      } as LegacyAny;
       render(<CharacterCard character={character} />);
       
       const img = screen.getByAltText('John Doe thumbnail');
@@ -124,7 +125,7 @@ describe('CharacterCard', () => {
       const character = {
         ...createMockCharacter(),
         thumbnail_url: 'https://example.com/broken.jpg',
-      } as any;
+      } as LegacyAny;
       render(<CharacterCard character={character} />);
       
       const img = screen.getByAltText('John Doe thumbnail');
@@ -563,7 +564,7 @@ describe('CharacterCard', () => {
       const character = {
         ...createMockCharacter(),
         thumbnail_url: 'https://example.com/thumbnail.jpg',
-      } as any;
+      } as LegacyAny;
       const handleClick = vi.fn();
       const handleSelect = vi.fn();
       const handleEdit = vi.fn();

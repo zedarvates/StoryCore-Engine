@@ -9,7 +9,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import List
 import logging
 
 # Ajouter le répertoire src au path
@@ -32,7 +32,7 @@ class AddonCLI:
         # Configurer le logging
         logging.basicConfig(
             level=logging.INFO,
-            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
 
     async def initialize(self):
@@ -64,63 +64,97 @@ Exemples d'utilisation:
 
   # Créer un template d'add-on
   python addon_cli.py template workflow my_template
-            """
+            """,
         )
 
-        subparsers = parser.add_subparsers(dest='command', help='Commandes disponibles')
+        subparsers = parser.add_subparsers(dest="command", help="Commandes disponibles")
 
         # Commande list
-        list_parser = subparsers.add_parser('list', help='Lister les add-ons')
-        list_parser.add_argument('--type', choices=['workflow', 'ui', 'processing', 'model', 'export'],
-                               help='Filtrer par type d\'add-on')
-        list_parser.add_argument('--status', choices=['enabled', 'disabled', 'error'],
-                               help='Filtrer par statut')
+        list_parser = subparsers.add_parser("list", help="Lister les add-ons")
+        list_parser.add_argument(
+            "--type",
+            choices=["workflow", "ui", "processing", "model", "export"],
+            help="Filtrer par type d'add-on",
+        )
+        list_parser.add_argument(
+            "--status",
+            choices=["enabled", "disabled", "error"],
+            help="Filtrer par statut",
+        )
 
         # Commande info
-        info_parser = subparsers.add_parser('info', help='Informations sur un add-on')
-        info_parser.add_argument('addon_name', help='Nom de l\'add-on')
+        info_parser = subparsers.add_parser("info", help="Informations sur un add-on")
+        info_parser.add_argument("addon_name", help="Nom de l'add-on")
 
         # Commande create
-        create_parser = subparsers.add_parser('create', help='Créer un nouveau add-on')
-        create_parser.add_argument('type', choices=['workflow_addon', 'ui_addon', 'processing_addon', 'model_addon', 'export_addon'],
-                                 help='Type d\'add-on')
-        create_parser.add_argument('name', help='Nom de l\'add-on')
-        create_parser.add_argument('description', help='Description de l\'add-on')
-        create_parser.add_argument('--author', default='Unknown', help='Auteur')
-        create_parser.add_argument('--category', choices=['official', 'community'],
-                                 default='community', help='Catégorie')
+        create_parser = subparsers.add_parser("create", help="Créer un nouveau add-on")
+        create_parser.add_argument(
+            "type",
+            choices=[
+                "workflow_addon",
+                "ui_addon",
+                "processing_addon",
+                "model_addon",
+                "export_addon",
+            ],
+            help="Type d'add-on",
+        )
+        create_parser.add_argument("name", help="Nom de l'add-on")
+        create_parser.add_argument("description", help="Description de l'add-on")
+        create_parser.add_argument("--author", default="Unknown", help="Auteur")
+        create_parser.add_argument(
+            "--category",
+            choices=["official", "community"],
+            default="community",
+            help="Catégorie",
+        )
 
         # Commande validate
-        validate_parser = subparsers.add_parser('validate', help='Valider un add-on')
-        validate_parser.add_argument('path', help='Chemin vers l\'add-on')
-        validate_parser.add_argument('--detailed', action='store_true',
-                                   help='Afficher les détails de validation')
+        validate_parser = subparsers.add_parser("validate", help="Valider un add-on")
+        validate_parser.add_argument("path", help="Chemin vers l'add-on")
+        validate_parser.add_argument(
+            "--detailed", action="store_true", help="Afficher les détails de validation"
+        )
 
         # Commande enable/disable
-        enable_parser = subparsers.add_parser('enable', help='Activer un add-on')
-        enable_parser.add_argument('addon_name', help='Nom de l\'add-on')
+        enable_parser = subparsers.add_parser("enable", help="Activer un add-on")
+        enable_parser.add_argument("addon_name", help="Nom de l'add-on")
 
-        disable_parser = subparsers.add_parser('disable', help='Désactiver un add-on')
-        disable_parser.add_argument('addon_name', help='Nom de l\'add-on')
+        disable_parser = subparsers.add_parser("disable", help="Désactiver un add-on")
+        disable_parser.add_argument("addon_name", help="Nom de l'add-on")
 
         # Commande template
-        template_parser = subparsers.add_parser('template', help='Créer un template d\'add-on')
-        template_parser.add_argument('type', choices=['workflow', 'ui', 'processing', 'model', 'export'],
-                                   help='Type d\'add-on')
-        template_parser.add_argument('name', help='Nom du template')
-        template_parser.add_argument('--output', '-o', help='Répertoire de sortie')
+        template_parser = subparsers.add_parser(
+            "template", help="Créer un template d'add-on"
+        )
+        template_parser.add_argument(
+            "type",
+            choices=["workflow", "ui", "processing", "model", "export"],
+            help="Type d'add-on",
+        )
+        template_parser.add_argument("name", help="Nom du template")
+        template_parser.add_argument("--output", "-o", help="Répertoire de sortie")
 
         # Commande permissions
-        perms_parser = subparsers.add_parser('permissions', help='Gérer les permissions')
-        perms_parser.add_argument('addon_name', help='Nom de l\'add-on')
-        perms_parser.add_argument('--list', action='store_true', help='Lister les permissions')
-        perms_parser.add_argument('--grant', nargs=2, metavar=('PERMISSION', 'LEVEL'),
-                                help='Accorder une permission (permission level)')
-        perms_parser.add_argument('--revoke', metavar='PERMISSION',
-                                help='Révoquer une permission')
+        perms_parser = subparsers.add_parser(
+            "permissions", help="Gérer les permissions"
+        )
+        perms_parser.add_argument("addon_name", help="Nom de l'add-on")
+        perms_parser.add_argument(
+            "--list", action="store_true", help="Lister les permissions"
+        )
+        perms_parser.add_argument(
+            "--grant",
+            nargs=2,
+            metavar=("PERMISSION", "LEVEL"),
+            help="Accorder une permission (permission level)",
+        )
+        perms_parser.add_argument(
+            "--revoke", metavar="PERMISSION", help="Révoquer une permission"
+        )
 
         # Commande stats
-        stats_parser = subparsers.add_parser('stats', help='Statistiques du système')
+        subparsers.add_parser("stats", help="Statistiques du système")
 
         return parser
 
@@ -128,23 +162,23 @@ Exemples d'utilisation:
         """Exécute la commande demandée"""
         command = args.command
 
-        if command == 'list':
+        if command == "list":
             await self.cmd_list(args)
-        elif command == 'info':
+        elif command == "info":
             await self.cmd_info(args)
-        elif command == 'create':
+        elif command == "create":
             await self.cmd_create(args)
-        elif command == 'validate':
+        elif command == "validate":
             await self.cmd_validate(args)
-        elif command == 'enable':
+        elif command == "enable":
             await self.cmd_enable(args)
-        elif command == 'disable':
+        elif command == "disable":
             await self.cmd_disable(args)
-        elif command == 'template':
+        elif command == "template":
             await self.cmd_template(args)
-        elif command == 'permissions':
+        elif command == "permissions":
             await self.cmd_permissions(args)
-        elif command == 'stats':
+        elif command == "stats":
             await self.cmd_stats(args)
         else:
             self.logger.error(f"Commande inconnue: {command}")
@@ -161,17 +195,25 @@ Exemples d'utilisation:
             return
 
         for name, info in addons.items():
-            status_icon = "✅" if name in enabled else "❌" if info.state.value == 'error' else "⏸️"
+            status_icon = (
+                "✅"
+                if name in enabled
+                else "❌"
+                if info.state.value == "error"
+                else "⏸️"
+            )
             type_icon = self._get_type_icon(info.manifest.type)
 
             if args.type and info.manifest.type.value != args.type:
                 continue
             if args.status:
-                if args.status == 'enabled' and name not in enabled:
+                if args.status == "enabled" and name not in enabled:
                     continue
-                if args.status == 'disabled' and (name in enabled or info.state.value == 'error'):
+                if args.status == "disabled" and (
+                    name in enabled or info.state.value == "error"
+                ):
                     continue
-                if args.status == 'error' and info.state.value != 'error':
+                if args.status == "error" and info.state.value != "error":
                     continue
 
             print(f"{status_icon} {type_icon} {name}")
@@ -206,23 +248,23 @@ Exemples d'utilisation:
         if info.error_message:
             print(f"⚠️  Erreur: {info.error_message}")
 
-        print(f"\n🔧 Permissions requises:")
+        print("\n🔧 Permissions requises:")
         for perm in manifest.permissions:
             print(f"   • {perm}")
 
-        print(f"\n📂 Points d'entrée:")
+        print("\n📂 Points d'entrée:")
         for entry_name, entry_path in manifest.entry_points.items():
             exists = (info.path / entry_path).exists()
             status = "✅" if exists else "❌"
             print(f"   • {entry_name}: {entry_path} {status}")
 
         if manifest.dependencies:
-            print(f"\n📦 Dépendances:")
+            print("\n📦 Dépendances:")
             for dep, version in manifest.dependencies.items():
                 print(f"   • {dep}{version}")
 
         if manifest.metadata:
-            print(f"\n🏷️  Métadonnées:")
+            print("\n🏷️  Métadonnées:")
             for key, value in manifest.metadata.items():
                 print(f"   • {key}: {value}")
 
@@ -257,28 +299,20 @@ Exemples d'utilisation:
             "type": addon_type.value,
             "author": author,
             "description": description,
-            "compatibility": {
-                "engine_version": ">=2.0.0",
-                "python_version": ">=3.9"
-            },
+            "compatibility": {"engine_version": ">=2.0.0", "python_version": ">=3.9"},
             "permissions": self._get_default_permissions(addon_type),
-            "entry_points": {
-                "main": "src/main.py"
-            },
+            "entry_points": {"main": "src/main.py"},
             "dependencies": {},
-            "metadata": {
-                "created_with": "addon_cli",
-                "category": category
-            }
+            "metadata": {"created_with": "addon_cli", "category": category},
         }
 
         # Écrire le manifest
-        with open(addon_path / "addon.json", 'w', encoding='utf-8') as f:
+        with open(addon_path / "addon.json", "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
 
         # Créer le fichier main.py de base
         main_content = self._get_template_main(addon_type, name)
-        with open(addon_path / "src" / "main.py", 'w', encoding='utf-8') as f:
+        with open(addon_path / "src" / "main.py", "w", encoding="utf-8") as f:
             f.write(main_content)
 
         # Créer un README
@@ -298,7 +332,7 @@ TODO: Décrire l'utilisation de l'add-on
 
 TODO: Instructions pour les développeurs
 """
-        with open(addon_path / "README.md", 'w', encoding='utf-8') as f:
+        with open(addon_path / "README.md", "w", encoding="utf-8") as f:
             f.write(readme_content)
 
         print(f"✅ Add-on '{name}' créé avec succès dans {addon_path}")
@@ -338,7 +372,12 @@ TODO: Instructions pour les développeurs
         if result.issues:
             print(f"\n⚠️  Issues trouvées: {len(result.issues)}")
             for issue in result.issues[:10]:  # Limiter à 10 issues
-                severity_icon = {"info": "ℹ️", "warning": "⚠️", "error": "❌", "critical": "🚨"}[issue.severity]
+                severity_icon = {
+                    "info": "ℹ️",
+                    "warning": "⚠️",
+                    "error": "❌",
+                    "critical": "🚨",
+                }[issue.severity]
                 print(f"   {severity_icon} [{issue.category}] {issue.message}")
                 if issue.file_path:
                     print(f"      📁 {issue.file_path}")
@@ -350,7 +389,7 @@ TODO: Instructions pour les développeurs
             print("\n✅ Aucune issue trouvée!")
 
         if args.detailed and result.issues:
-            print(f"\n📋 Rapport détaillé:")
+            print("\n📋 Rapport détaillé:")
             print(self.validator.get_validation_report(result))
 
     async def cmd_enable(self, args):
@@ -379,12 +418,18 @@ TODO: Instructions pour les développeurs
         """Crée un template d'add-on"""
         addon_type = args.type
         template_name = args.name
-        output_dir = Path(args.output) if args.output else self.addon_manager.addons_path / "templates"
+        output_dir = (
+            Path(args.output)
+            if args.output
+            else self.addon_manager.addons_path / "templates"
+        )
 
         template_path = output_dir / template_name
         template_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"🏗️  Création du template '{template_name}' pour le type '{addon_type}'...")
+        print(
+            f"🏗️  Création du template '{template_name}' pour le type '{addon_type}'..."
+        )
 
         # Copier la structure depuis un add-on existant ou créer de base
         # TODO: Implémenter la logique de template
@@ -401,7 +446,9 @@ TODO: Instructions pour les développeurs
                 print(f"🔒 Permissions accordées à '{addon_name}':")
                 for grant in grants:
                     status = "✅" if grant.granted else "❌"
-                    print(f"   {status} {grant.request.permission} ({grant.request.level.value})")
+                    print(
+                        f"   {status} {grant.request.permission} ({grant.request.level.value})"
+                    )
                     print(f"      Accordé par: {grant.granted_by}")
                     print(f"      Date: {grant.timestamp}")
             else:
@@ -410,11 +457,13 @@ TODO: Instructions pour les développeurs
         elif args.grant:
             permission, level_str = args.grant
             # TODO: Implémenter l'octroi de permissions via CLI
-            print(f"⚠️  Fonctionnalité d'octroi de permissions non implémentée")
+            print("⚠️  Fonctionnalité d'octroi de permissions non implémentée")
 
         elif args.revoke:
             permission = args.revoke
-            success = await self.permission_manager.revoke_permission(addon_name, permission)
+            success = await self.permission_manager.revoke_permission(
+                addon_name, permission
+            )
             if success:
                 print(f"✅ Permission '{permission}' révoquée pour '{addon_name}'")
             else:
@@ -425,7 +474,6 @@ TODO: Instructions pour les développeurs
         print("📊 Statistiques du système d'add-ons:\n")
 
         manager_stats = self.addon_manager.stats
-        validator_stats = {}  # TODO: Intégrer les stats du validator
         perm_stats = self.permission_manager.get_permission_stats()
 
         print("🔍 Découverte et chargement:")
@@ -447,7 +495,7 @@ TODO: Instructions pour les développeurs
             AddonType.UI: "🖥️",
             AddonType.PROCESSING: "🔧",
             AddonType.MODEL: "🤖",
-            AddonType.EXPORT: "📤"
+            AddonType.EXPORT: "📤",
         }
         return icons.get(addon_type, "📦")
 
@@ -458,7 +506,7 @@ TODO: Instructions pour les développeurs
             AddonType.UI: ["ui_access"],
             AddonType.PROCESSING: ["file_system_read"],
             AddonType.MODEL: ["model_access", "file_system_write"],
-            AddonType.EXPORT: ["file_system_write", "config_access"]
+            AddonType.EXPORT: ["file_system_write", "config_access"],
         }
         return defaults.get(addon_type, [])
 
@@ -640,7 +688,7 @@ class {name}ExportAddon:
 
 # Instance globale
 addon = {name}ExportAddon()
-'''
+''',
         }
 
         template = templates.get(addon_type, "# TODO: Implémenter l'add-on")

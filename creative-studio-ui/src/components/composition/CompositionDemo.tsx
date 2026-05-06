@@ -10,15 +10,15 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as _uuidv4 } from 'uuid';
 import {
   Composition,
   Track,
   Clip,
-  CompositionId,
+  _CompositionId,
   ClipId,
   ClipboardState,
-  SelectionState,
+  _SelectionState,
 } from '../../services/animation/CompositionTypes';
 import compositionStore from '../../stores/compositionStore';
 
@@ -127,7 +127,7 @@ export const CompositionDemo: React.FC = () => {
     compositionStore.deleteClip(clipId as ClipId);
   }, []);
 
-  const handleSetPlayhead = useCallback((time: number) => {
+  const _handleSetPlayhead = useCallback((time: number) => {
     compositionStore.setPlayhead(time);
     setPlayhead(time);
   }, []);

@@ -6,6 +6,8 @@
  * 
  * Requirements: 13.2, 13.4
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { WizardError } from './types';
 import { getLogger } from './logger';
@@ -286,7 +288,7 @@ export class RetryManager {
    */
   updateConfig(config: Partial<RetryConfig>): void {
     this.config = { ...this.config, ...config };
-    this.logger.info('retry', 'Retry configuration updated', this.config as any);
+    this.logger.info('retry', 'Retry configuration updated', this.config as LegacyAny);
   }
 
   /**

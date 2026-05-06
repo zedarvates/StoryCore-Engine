@@ -1,0 +1,84 @@
+/* Motion VFX Studio - Premium Styles */
+
+.motion-vfx-studio {
+  animation: vfx-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at 70% 20%, #1e1b4b, #020617);
+}
+
+@keyframes vfx-slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Slider Consistency */
+.custom-slider-vfx {
+  transition: all 0.3s ease;
+}
+
+.custom-slider-vfx::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid #8b5cf6;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-slider-vfx::-webkit-slider-thumb:hover {
+  transform: scale(1.2) rotate(45deg);
+}
+
+/* Particle Selection Cards */
+.vfx-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.vfx-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(45deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.vfx-card:hover::before {
+  transform: translateX(100%);
+}
+
+.vfx-card.active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3), inset 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+/* Rendering State Glimmer */
+.glimmer-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: glimmer 2s infinite;
+  pointer-events: none;
+}
+
+@keyframes glimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Badge Styles */
+.vfx-badge {
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}

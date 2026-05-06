@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Step2CharacterSelection Integration Tests
 // ============================================================================
@@ -135,8 +136,8 @@ describe('Step2CharacterSelection Integration', () => {
       // - StorytellerWizard.handleSubmit uses charactersUsed
       
       // Implementation verified in StorytellerWizard.tsx:
-      // const handleSubmit = useCallback(async (data: any) => {
-      //   const characterIds = (data.selectedCharacters || []).map((c: any) => c.id);
+      // const handleSubmit = useCallback(async (data: LegacyAny) => {
+      //   const characterIds = (data.selectedCharacters || []).map((c: LegacyAny) => c.id);
       //   const story: Story = {
       //     ...
       //     charactersUsed: characterIds,

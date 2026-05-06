@@ -3,6 +3,8 @@
  * 
  * Main panel for managing multiple ComfyUI servers
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useState, useEffect } from 'react';
 import { Plus, RefreshCw, Download, Upload, AlertCircle, Search } from 'lucide-react';
@@ -54,7 +56,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       loadServers();
       toast({
         title: 'Server Added',
-        description: `${input.name} has been added successfully.`,
+        descr_iption: `${input.name} has been added successfully.`,
       });
     } catch (error) {
       toast({
@@ -73,7 +75,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       loadServers();
       toast({
         title: 'Server Updated',
-        description: `${input.name} has been updated successfully.`,
+        descr_iption: `${input.name} has been updated successfully.`,
       });
     } catch (error) {
       toast({
@@ -90,7 +92,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
     setDiscoveredServers([]);
     
     try {
-      const electronAPI = (window as any).electronAPI;
+      const electronAPI = (window as LegacyAny).electronAPI;
       if (electronAPI?.comfyui?.discoverNetwork) {
         const results = await electronAPI.comfyui.discoverNetwork();
         setDiscoveredServers(results || []);
@@ -142,7 +144,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
         loadServers();
         toast({
           title: 'Server Deleted',
-          description: `${server.name} has been deleted.`,
+          descr_iption: `${server.name} has been deleted.`,
         });
       } catch (error) {
         toast({
@@ -161,7 +163,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       const server = service.getServer(id);
       toast({
         title: 'Active Server Changed',
-        description: `${server?.name} is now the active server.`,
+        descr_iption: `${server?.name} is now the active server.`,
       });
     } catch (error) {
       toast({
@@ -208,7 +210,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       const successCount = Array.from(results.values()).filter(Boolean).length;
       toast({
         title: 'Connection Tests Complete',
-        description: `${successCount} of ${results.size} servers connected successfully.`,
+        descr_iption: `${successCount} of ${results.size} servers connected successfully.`,
       });
     } catch (error) {
       toast({
@@ -243,7 +245,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       
       toast({
         title: 'Configuration Exported',
-        description: 'Server configuration has been exported successfully.',
+        descr_iption: 'Server configuration has been exported successfully.',
       });
     } catch (error) {
       toast({

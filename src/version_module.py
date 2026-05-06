@@ -1,5 +1,6 @@
 from version_manager import VersionManager
 
+
 class VersionModule:
     def __init__(self):
         self.vm = VersionManager()
@@ -8,9 +9,9 @@ class VersionModule:
         return {
             "version": self.vm.get_current_version(),
             "build": self.vm.get_build_number(),
-            "is_latest": self.vm.data['is_latest'],
-            "last_updated": self.vm.data['last_updated'],
-            "check_for_updates": self.vm.data['check_for_updates']
+            "is_latest": self.vm.data["is_latest"],
+            "last_updated": self.vm.data["last_updated"],
+            "check_for_updates": self.vm.data["check_for_updates"],
         }
 
     def display_version(self):
@@ -26,6 +27,7 @@ class VersionModule:
             print(f"Votre version actuelle: {self.vm.get_current_version()}")
             return True
         return False
+
 
 if __name__ == "__main__":
     vm = VersionModule()

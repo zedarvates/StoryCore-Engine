@@ -270,7 +270,7 @@ export const useTranscriptionStore = create<TranscriptionState>((set, get) => ({
   },
 
   undo: () => {
-    const { editHistory, historyIndex, transcript } = get();
+    const { _editHistory, historyIndex, transcript } = get();
     if (historyIndex < 0 || !transcript) return;
 
     // Implementation would restore the previous state

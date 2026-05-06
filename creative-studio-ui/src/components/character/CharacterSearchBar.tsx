@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, _useCallback } from 'react';
 import { Search, X, Filter } from 'lucide-react';
 import type { CharacterFilters } from '@/stores/useAppStore';
 import './CharacterSearchBar.css';

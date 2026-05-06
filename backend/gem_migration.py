@@ -157,6 +157,7 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_period ON gem_leaderboard_cache(perio
 # Migration via SQLAlchemy (méthode principale)
 # ─────────────────────────────────────────────
 
+
 async def run_gem_migration_sqlalchemy():
     """
     Crée les tables GemReward via create_all() SQLAlchemy.
@@ -165,14 +166,18 @@ async def run_gem_migration_sqlalchemy():
     database_url = os.getenv("DATABASE_URL", "")
 
     if not database_url:
-        logger.info("DATABASE_URL not set — GemReward in mock mode (no DB tables created)")
+        logger.info(
+            "DATABASE_URL not set — GemReward in mock mode (no DB tables created)"
+        )
         return False
 
     try:
         from sqlalchemy.ext.asyncio import create_async_engine
-        from backend.database_models import Base as MainBase
         from backend.gem_models import (
-            AgentApiKey, GemTransaction, ContributionReport, GemLeaderboardCache
+            AgentApiKey,
+            GemTransaction,
+            ContributionReport,
+            GemLeaderboardCache,
         )
 
         # Convertir DATABASE_URL en async si nécessaire
@@ -182,16 +187,18 @@ async def run_gem_migration_sqlalchemy():
 
         async with engine.begin() as conn:
             # Créer les tables GemReward depuis les modèles
-            await conn.run_sync(lambda sync_conn: (
-                AgentApiKey.__table__.create(sync_conn, checkfirst=True),
-                GemTransaction.__table__.create(sync_conn, checkfirst=True),
-                ContributionReport.__table__.create(sync_conn, checkfirst=True),
-                GemLeaderboardCache.__table__.create(sync_conn, checkfirst=True),
-            ))
+            await conn.run_sync(
+                lambda sync_conn: (
+                    AgentApiKey.__table__.create(sync_conn, checkfirst=True),
+                    GemTransaction.__table__.create(sync_conn, checkfirst=True),
+                    ContributionReport.__table__.create(sync_conn, checkfirst=True),
+                    GemLeaderboardCache.__table__.create(sync_conn, checkfirst=True),
+                )
+            )
 
             # Ajouter les colonnes gem_ à la table users existante
             await conn.execute(
-                __import__('sqlalchemy').text(
+                __import__("sqlalchemy").text(
                     "ALTER TABLE video_editor_users "
                     "ADD COLUMN IF NOT EXISTS gem_balance INTEGER NOT NULL DEFAULT 0, "
                     "ADD COLUMN IF NOT EXISTS gem_total_earned INTEGER NOT NULL DEFAULT 0, "
@@ -212,6 +219,7 @@ async def run_gem_migration_sqlalchemy():
 # Migration via SQL brut (fallback)
 # ─────────────────────────────────────────────
 
+
 async def run_gem_migration_raw_sql():
     """
     Exécute le DDL SQL directement via asyncpg.
@@ -223,6 +231,7 @@ async def run_gem_migration_raw_sql():
 
     try:
         import asyncpg
+
         conn = await asyncpg.connect(database_url)
         await conn.execute(GEM_MIGRATION_SQL)
         await conn.close()
@@ -239,6 +248,7 @@ async def run_gem_migration_raw_sql():
 # ─────────────────────────────────────────────
 # Point d'entrée principal
 # ─────────────────────────────────────────────
+
 
 async def run_gem_migration():
     """
@@ -270,8 +280,9 @@ async def run_gem_migration():
 # ─────────────────────────────────────────────
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO,
-                        format="%(asctime)s [%(levelname)s] %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    )
 
     print("\n💎 GemReward Database Migration")
     print("=" * 50)

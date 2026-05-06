@@ -31,19 +31,19 @@ logger = logging.getLogger(__name__)
 GEM_RULES: Dict[str, int] = {
     # Sévérité bugs
     "severity:critical": 3,
-    "severity:major":    2,
-    "severity:minor":    1,
+    "severity:major": 2,
+    "severity:minor": 1,
     # Impact features
-    "roadmap":           3,
-    "accepted":          2,
+    "roadmap": 3,
+    "accepted": 2,
     # Par défaut
-    "__default__":       1,
+    "__default__": 1,
 }
 
 TIER_THRESHOLDS: Dict[int, str] = {
-    0:   "contributor",
-    10:  "silver",
-    30:  "gold",
+    0: "contributor",
+    10: "silver",
+    30: "gold",
     100: "legend",
 }
 
@@ -52,6 +52,7 @@ TIER_THRESHOLDS: Dict[int, str] = {
 # Calcul des gemmes
 # ─────────────────────────────────────────────
 
+
 def calculate_gems_from_labels(labels: list) -> int:
     """
     Calcule le nombre de gemmes à attribuer selon les labels GitHub.
@@ -59,7 +60,10 @@ def calculate_gems_from_labels(labels: list) -> int:
     Prend le label le plus "valeur" (max).
     Les labels sont évalués dans l'ordre du barème GEM_RULES.
     """
-    label_names = {l.get("name", "") if isinstance(l, dict) else str(l) for l in labels}
+    label_names = {
+        label.get("name", "") if isinstance(label, dict) else str(label)
+        for label in labels
+    }
     max_gems = GEM_RULES["__default__"]
 
     for label_key, gems in GEM_RULES.items():
@@ -84,6 +88,7 @@ def calculate_tier(total_gems: int) -> str:
 # GemEngine
 # ─────────────────────────────────────────────
 
+
 class GemEngine:
     """
     Moteur de gestion des gemmes.
@@ -100,9 +105,7 @@ class GemEngine:
     # ─── Traitement d'une récompense ───
 
     async def process_gem_award(
-        self,
-        issue_number: int,
-        issue_data: Dict[str, Any]
+        self, issue_number: int, issue_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
         Crédite les gemmes au reporter d'une issue validée (label "gem-awarded").
@@ -124,13 +127,17 @@ class GemEngine:
 
         try:
             from backend.gem_models import ContributionReport, GemTransaction
-            from sqlalchemy import select, update
+            from sqlalchemy import select
 
             # 1. Trouver le report
-            stmt = select(ContributionReport).where(
-                ContributionReport.github_issue_number == issue_number,
-                ContributionReport.reward_status == "pending",
-            ).with_for_update()  # SELECT FOR UPDATE → évite race conditions
+            stmt = (
+                select(ContributionReport)
+                .where(
+                    ContributionReport.github_issue_number == issue_number,
+                    ContributionReport.reward_status == "pending",
+                )
+                .with_for_update()
+            )  # SELECT FOR UPDATE → évite race conditions
 
             result = await self.db.execute(stmt)
             report = result.scalar_one_or_none()
@@ -164,8 +171,7 @@ class GemEngine:
                 github_issue_url=issue_data.get("html_url"),
                 github_issue_title=issue_data.get("title", "")[:255],
                 description=(
-                    f"Récompense #{issue_number}: "
-                    f"{issue_data.get('title', '')[:80]}..."
+                    f"Récompense #{issue_number}: {issue_data.get('title', '')[:80]}..."
                 ),
                 status="confirmed",
                 balance_before=user_balance,
@@ -189,8 +195,8 @@ class GemEngine:
             report.gem_transaction_id = transaction.id
             report.rewarded_at = datetime.utcnow()
             report.github_labels_snapshot = [
-                l.get("name") if isinstance(l, dict) else str(l)
-                for l in labels
+                label.get("name") if isinstance(label, dict) else str(label)
+                for label in labels
             ]
 
             await self.db.commit()
@@ -275,14 +281,17 @@ class GemEngine:
             logger.info(f"GemEngine: Issue #{issue_number} marked as duplicate")
 
             # Notifier l'utilisateur
-            await self._notify_user(report.user_id, {
-                "type": "report_duplicate",
-                "issue_number": issue_number,
-                "message": (
-                    f"ℹ️ Votre report #{issue_number} a été marqué comme doublon. "
-                    f"Merci d'avoir contribué !"
-                ),
-            })
+            await self._notify_user(
+                report.user_id,
+                {
+                    "type": "report_duplicate",
+                    "issue_number": issue_number,
+                    "message": (
+                        f"ℹ️ Votre report #{issue_number} a été marqué comme doublon. "
+                        f"Merci d'avoir contribué !"
+                    ),
+                },
+            )
             return True
 
         except Exception as e:
@@ -311,15 +320,20 @@ class GemEngine:
 
             report.reward_status = "rejected"
             report.rejected_at = datetime.utcnow()
-            report.rejection_reason = reason[:255] if reason else "Rejected by maintainer"
+            report.rejection_reason = (
+                reason[:255] if reason else "Rejected by maintainer"
+            )
             await self.db.commit()
 
-            await self._notify_user(report.user_id, {
-                "type": "report_rejected",
-                "issue_number": issue_number,
-                "reason": reason,
-                "message": f"❌ Report #{issue_number} rejeté. Raison: {reason}",
-            })
+            await self._notify_user(
+                report.user_id,
+                {
+                    "type": "report_rejected",
+                    "issue_number": issue_number,
+                    "reason": reason,
+                    "message": f"❌ Report #{issue_number} rejeté. Raison: {reason}",
+                },
+            )
             return True
 
         except Exception as e:
@@ -332,9 +346,12 @@ class GemEngine:
         """Retourne (gem_balance, gem_total_earned) depuis la DB utilisateur."""
         try:
             from sqlalchemy import text
+
             result = await self.db.execute(
-                text("SELECT gem_balance, gem_total_earned FROM video_editor_users WHERE id = :uid"),
-                {"uid": user_id}
+                text(
+                    "SELECT gem_balance, gem_total_earned FROM video_editor_users WHERE id = :uid"
+                ),
+                {"uid": user_id},
             )
             row = result.fetchone()
             if row:
@@ -353,6 +370,7 @@ class GemEngine:
         """Met à jour le solde de gemmes de l'utilisateur."""
         try:
             from sqlalchemy import text
+
             await self.db.execute(
                 text(
                     "UPDATE video_editor_users "
@@ -366,7 +384,7 @@ class GemEngine:
                     "tier": new_tier,
                     "now": datetime.utcnow(),
                     "uid": user_id,
-                }
+                },
             )
         except Exception as e:
             logger.error(f"Failed to update user gem balance: {e}")
@@ -381,6 +399,7 @@ class GemEngine:
         """Met à jour les statistiques d'une clé agent."""
         try:
             from sqlalchemy import text
+
             await self.db.execute(
                 text(
                     "UPDATE gem_agent_api_keys "
@@ -393,7 +412,7 @@ class GemEngine:
                     "dup": 1 if was_duplicate else 0,
                     "gems": gems_earned,
                     "kid": agent_key_id,
-                }
+                },
             )
             await self.db.commit()
         except Exception as e:
@@ -422,21 +441,23 @@ class GemEngine:
                 await self.db.commit()
 
                 logger.warning(
-                    f"Agent auto-flagged: '{agent.agent_name}' "
-                    f"({agent.flag_reason})"
+                    f"Agent auto-flagged: '{agent.agent_name}' ({agent.flag_reason})"
                 )
 
                 # Notifier le propriétaire
-                await self._notify_user(agent.owner_user_id, {
-                    "type": "agent_flagged",
-                    "agent_name": agent.agent_name,
-                    "duplicate_ratio": agent.duplicate_ratio,
-                    "message": (
-                        f"⚠️ Votre agent '{agent.agent_name}' a été suspendu "
-                        f"({agent.duplicate_ratio:.0%} de doublons). "
-                        f"Contactez le support pour déblocage."
-                    ),
-                })
+                await self._notify_user(
+                    agent.owner_user_id,
+                    {
+                        "type": "agent_flagged",
+                        "agent_name": agent.agent_name,
+                        "duplicate_ratio": agent.duplicate_ratio,
+                        "message": (
+                            f"⚠️ Votre agent '{agent.agent_name}' a été suspendu "
+                            f"({agent.duplicate_ratio:.0%} de doublons). "
+                            f"Contactez le support pour déblocage."
+                        ),
+                    },
+                )
 
         except Exception as e:
             logger.error(f"Agent abuse check error: {e}")
@@ -444,7 +465,9 @@ class GemEngine:
     async def _notify_user(self, user_id: str, payload: Dict[str, Any]):
         """Envoie une notification WebSocket à l'utilisateur (si disponible)."""
         if self.ws is None:
-            logger.debug(f"WebSocket not available, skipping notification for {user_id}")
+            logger.debug(
+                f"WebSocket not available, skipping notification for {user_id}"
+            )
             return
         try:
             # Match RealtimeConnectionManager.send_personal_message(message, user_id)

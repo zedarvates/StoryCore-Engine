@@ -13,7 +13,7 @@ Usage:
         VisionObjectAnalyzer,
         get_image_to_object_service
     )
-    
+
     # Create object from image
     service = get_image_to_object_service()
     result = await service.create_object_from_image("path/to/image.jpg")
@@ -26,7 +26,7 @@ from .vision_object_analyzer import (
     ObjectAttributes,
     ObjectCategory,
     MaterialType,
-    get_object_analyzer
+    get_object_analyzer,
 )
 
 from .image_to_object_service import (
@@ -34,7 +34,7 @@ from .image_to_object_service import (
     ObjectCreationConfig,
     ObjectCreationMode,
     ImageObjectResult,
-    get_image_to_object_service
+    get_image_to_object_service,
 )
 
 from .object_variation_generator import (
@@ -45,7 +45,7 @@ from .object_variation_generator import (
     ConditionVariation,
     GeneratedObjectVariation,
     ObjectVariationResult,
-    get_object_variation_generator
+    get_object_variation_generator,
 )
 
 
@@ -58,14 +58,12 @@ __all__ = [
     "ObjectCategory",
     "MaterialType",
     "get_object_analyzer",
-    
     # Image to Object
     "ImageToObjectService",
     "ObjectCreationConfig",
     "ObjectCreationMode",
     "ImageObjectResult",
     "get_image_to_object_service",
-    
     # Object Variations
     "ObjectVariationGenerator",
     "ObjectVariationConfig",
@@ -74,5 +72,5 @@ __all__ = [
     "ConditionVariation",
     "GeneratedObjectVariation",
     "ObjectVariationResult",
-    "get_object_variation_generator"
+    "get_object_variation_generator",
 ]

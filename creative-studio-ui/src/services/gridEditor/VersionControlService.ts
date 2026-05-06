@@ -469,7 +469,7 @@ export class VersionControlService {
   /**
    * Generate auto-description based on configuration changes
    */
-  private generateAutoDescription(config: GridConfiguration): string {
+  private generateAutoDescription(_config: GridConfiguration): string {
     const timestamp = new Date().toLocaleString();
     return `Auto-saved at ${timestamp}`;
   }

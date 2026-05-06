@@ -148,7 +148,7 @@ export function useProductionWizardAutoSave<T extends ProductionWizardData>(
   /**
    * Trigger auto-save with debouncing
    */
-  const triggerAutoSave = useCallback(() => {
+  const _triggerAutoSave = useCallback(() => {
     if (!isEnabled) return;
 
     // Clear existing timeout

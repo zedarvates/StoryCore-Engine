@@ -13,7 +13,7 @@ import { Progress } from './ui/progress';
 import { highImpactApi, HighImpactResult } from '@/services/highImpactApiService';
 import type { ApiResponse } from '@/services/backendApiService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Sparkles, Wand2, Music, Shirt, Palette, Camera, UserCheck, ArrowLeft, X } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Music, Shirt, Palette, Camera, UserCheck, _ArrowLeft, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { I18nContext } from '@/utils/i18nContext';
 import { useContext } from 'react';

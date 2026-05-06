@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { Asset } from '@/types';
 import {
   ImageIcon,
@@ -91,7 +92,7 @@ export function AssetCard({ asset, onSelect }: AssetCardProps) {
   };
 
   return (
-    <div ref={preview as any} style={{ opacity: isDragging ? 0.5 : 1 }}>
+    <div ref={preview as LegacyAny} style={{ opacity: isDragging ? 0.5 : 1 }}>
       <Card
         className="group cursor-pointer transition-all hover:shadow-lg hover:scale-105 hover:border-primary"
         onClick={() => onSelect?.(asset)}
@@ -99,7 +100,7 @@ export function AssetCard({ asset, onSelect }: AssetCardProps) {
         <CardContent className="p-3">
           {/* Drag Handle */}
           <div
-            ref={drag as any}
+            ref={drag as LegacyAny}
             className="absolute top-2 right-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10"
             title="Drag to use"
           >

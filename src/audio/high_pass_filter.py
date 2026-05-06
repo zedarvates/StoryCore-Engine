@@ -4,8 +4,8 @@ High-Pass Filter Module
 This module provides high-pass filtering functionality for audio processing.
 """
 
-import numpy as np
 from scipy import signal
+
 
 class HighPassFilter:
     """High-pass filter processor for audio signals."""
@@ -34,9 +34,9 @@ class HighPassFilter:
         # Design high-pass filter
         nyquist = 0.5 * self.sample_rate
         cutoff = self.cutoff_freq / nyquist
-        
+
         # Create butterworth filter
-        b, a = signal.butter(4, cutoff, btype='high', analog=False)
-        
+        b, a = signal.butter(4, cutoff, btype="high", analog=False)
+
         # Apply filter
         return signal.filtfilt(b, a, audio_data)

@@ -3,6 +3,8 @@
  * 
  * Tests for ImageGenerationDialog component functionality.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -48,7 +50,7 @@ describe('ImageGenerationDialog', () => {
       completeStage: mockCompleteStage,
       failStage: mockFailStage,
       updateStageProgress: mockUpdateStageProgress,
-    } as any);
+    } as LegacyAny);
   });
   
   it('should render dialog when open', () => {

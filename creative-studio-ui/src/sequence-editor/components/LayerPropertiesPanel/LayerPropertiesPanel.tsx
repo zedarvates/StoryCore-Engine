@@ -8,6 +8,8 @@
  * - Opacity and blend mode controls
  * - Layer reordering within tracks
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useState } from 'react';
 import {
@@ -202,7 +204,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newTransform = { ...currentTransform } as any;
+    const newTransform = { ...currentTransform } as LegacyAny;
     if (typeof value === 'object') {
       newTransform[property] = { ...newTransform[property], ...value };
     } else {

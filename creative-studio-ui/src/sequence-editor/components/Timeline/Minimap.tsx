@@ -47,8 +47,8 @@ export const Minimap: React.FC<MinimapProps> = ({
     : 1;
   
   // Calculate visible region on minimap
-  const viewportWidth = Math.max(20, containerWidth / zoomLevel * (timelineWidth / containerWidth));
-  const viewportX = scrollLeft / zoomLevel * (MINIMAP_WIDTH / timelineWidth) * containerWidth;
+  const _viewportWidth = Math.max(20, containerWidth / zoomLevel * (timelineWidth / containerWidth));
+  const _viewportX = scrollLeft / zoomLevel * (MINIMAP_WIDTH / timelineWidth) * containerWidth;
 
   // Handle click on minimap to jump to position
   const handleMinimapClick = useCallback((e: React.MouseEvent) => {
@@ -135,7 +135,7 @@ export const Minimap: React.FC<MinimapProps> = ({
   const visibleTracks = tracks.filter(t => !t.hidden);
   
   // Calculate track heights for minimap
-  const trackHeightPercentage = visibleTracks.length > 0
+  const _trackHeightPercentage = visibleTracks.length > 0
     ? (1 / visibleTracks.length) * 100
     : 10;
 

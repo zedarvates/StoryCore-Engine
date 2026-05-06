@@ -6,6 +6,8 @@
  * 
  * Task: 21.3 - Phase 3: Multi-Track Export
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { bulkProductionService } from './BulkProductionService';
 import type { Project, Shot, Character } from '@/types';
@@ -106,7 +108,7 @@ export class MultiTrackExportService {
     const sourceTracks = shot.audioTracks || [];
     
     sourceTracks.forEach((track) => {
-      const t = track as any;
+      const t = track as LegacyAny;
       tracks.push({
         id: t.id,
         name: t.name || 'Audio Track',
@@ -125,7 +127,7 @@ export class MultiTrackExportService {
   /**
    * Maps internal track types to professional categories
    */
-  private mapTrackCategory(track: any): 'music' | 'sfx' | 'voice' | 'ambient' {
+  private mapTrackCategory(track: LegacyAny): 'music' | 'sfx' | 'voice' | 'ambient' {
     const type = (track.trackType || track.type || '').toLowerCase();
     if (type.includes('music')) return 'music';
     if (type.includes('voice') || type.includes('dialogue')) return 'voice';
@@ -144,7 +146,7 @@ export class MultiTrackExportService {
         mixNodes.push({
           id: track.id,
           name: `${shot.name}_${track.name}`,
-          category: track.category as any,
+          category: track.category as LegacyAny,
           priority: 3,
           volume: track.params.volume,
           pan: track.params.pan,

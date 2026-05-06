@@ -15,7 +15,7 @@ import {
     DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Box, Typography, Card, CardContent, Grid, Radio, RadioGroup, FormControlLabel } from '@mui/material';
+import { _Box, Typography, Card, CardContent, _Grid, _Radio, _RadioGroup, _FormControlLabel } from '@mui/material';
 import { Workflow, CheckCircle, Zap, Shield, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

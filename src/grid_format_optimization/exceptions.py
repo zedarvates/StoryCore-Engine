@@ -5,12 +5,13 @@ Exceptions spécialisées pour l'optimisation des formats de grille.
 
 class GridFormatError(Exception):
     """Erreur de base pour l'optimisation des formats de grille."""
+
     pass
 
 
 class UnsupportedFormatError(GridFormatError):
     """Format de grille non supporté."""
-    
+
     def __init__(self, format_spec: str):
         self.format_spec = format_spec
         super().__init__(f"Format de grille non supporté: {format_spec}")
@@ -18,7 +19,7 @@ class UnsupportedFormatError(GridFormatError):
 
 class QualityPredictionError(GridFormatError):
     """Erreur dans la prédiction de qualité."""
-    
+
     def __init__(self, message: str, format_type: str = None):
         self.format_type = format_type
         super().__init__(f"Erreur de prédiction de qualité: {message}")
@@ -26,7 +27,7 @@ class QualityPredictionError(GridFormatError):
 
 class TemporalCoherenceError(GridFormatError):
     """Problème de cohérence temporelle."""
-    
+
     def __init__(self, coherence_score: float, threshold: float):
         self.coherence_score = coherence_score
         self.threshold = threshold
@@ -37,7 +38,7 @@ class TemporalCoherenceError(GridFormatError):
 
 class ConfigurationError(GridFormatError):
     """Erreur de configuration utilisateur."""
-    
+
     def __init__(self, parameter: str, value: str, expected: str):
         self.parameter = parameter
         self.value = value
@@ -49,7 +50,7 @@ class ConfigurationError(GridFormatError):
 
 class FormatCompatibilityError(GridFormatError):
     """Erreur de compatibilité de format avec le pipeline."""
-    
+
     def __init__(self, format_type: str, pipeline_module: str):
         self.format_type = format_type
         self.pipeline_module = pipeline_module
@@ -76,7 +77,9 @@ class QualityAnalysisError(GridFormatError):
         self.metric_type = metric_type
         self.panel_index = panel_index
         if panel_index is not None:
-            message = f"Erreur d'analyse pour {metric_type} (panel {panel_index}): {message}"
+            message = (
+                f"Erreur d'analyse pour {metric_type} (panel {panel_index}): {message}"
+            )
         else:
             message = f"Erreur d'analyse de qualité: {message}"
         super().__init__(message)

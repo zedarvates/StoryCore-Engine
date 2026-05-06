@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import _React, { useEffect, useCallback } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useToast } from '@/hooks/use-toast';
 import { voiceTextService } from '@/services/VoiceTextService';
@@ -174,6 +174,13 @@ export function useGlobalKeyboardShortcuts() {
           description: 'Navigating to project dashboard...',
           duration: 2000,
         });
+        return;
+      }
+
+      // Ctrl + W: Exit Project
+      if (isModifierPressed && event.key.toLowerCase() === 'w') {
+        event.preventDefault();
+        window.dispatchEvent(new CustomEvent('storycore:exit-project'));
         return;
       }
     };

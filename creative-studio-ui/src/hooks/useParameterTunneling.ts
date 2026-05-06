@@ -102,7 +102,7 @@ export function useParameterTunnel(
   isActive: boolean;
 } {
   const tunnelId = useRef<string>('');
-  const { createTunnel, deleteTunnel, activateTunnel, deactivateTunnel, tunnels } =
+  const { createTunnel, deleteTunnel, activateTunnel, deactivateTunnel, _tunnels } =
     useParameterTunnelingStore();
 
   const createTunnelFn = useCallback(() => {
@@ -175,14 +175,14 @@ export function useParameterTunnel(
  */
 export function useKeyframes<T>(
   parameterId: string,
-  keyframes: ParameterKeyframe<T>[]
+  _keyframes: ParameterKeyframe<T>[]
 ): {
   addKeyframe: (time: number, value: T, easing?: ParameterKeyframe<T>['easing']) => void;
   removeKeyframe: (keyframeId: string) => void;
   updateKeyframe: (keyframeId: string, updates: Partial<ParameterKeyframe<T>>) => void;
   getValueAtTime: (time: number) => T | null;
 } {
-  const { parameters, updateParameter } = useParameterTunnelingStore();
+  const { parameters, _updateParameter } = useParameterTunnelingStore();
 
   const addKeyframe = useCallback(
     (time: number, value: T, easing?: ParameterKeyframe<T>['easing']) => {

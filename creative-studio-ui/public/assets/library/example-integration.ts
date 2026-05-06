@@ -181,7 +181,7 @@ export class PromptDiscovery {
     // Get one prompt from each category
     const recommendations: PromptTemplate[] = [];
     
-    for (const [categoryId, category] of Object.entries(categories)) {
+    for (const [_categoryId, category] of Object.entries(categories)) {
       if (category.prompts.length > 0) {
         const prompt = await promptLibrary.loadPrompt(category.prompts[0]);
         recommendations.push(prompt);

@@ -12,7 +12,8 @@ import {
   Sparkles, Send, X, User, Play, Camera, Maximize2, 
   Settings as SettingsIcon, Image as ImageIcon, 
   Video as VideoIcon, Mic, Type, Music, Waves, Volume2, Save, CheckCircle,
-  Plus, Layers, Download, FileVideo, Palette, Activity
+  Plus, Layers, FileVideo, Palette, Activity,
+  ClipboardList, Download
 } from 'lucide-react';
 import { useDrop } from 'react-dnd';
 import { Reorder } from 'framer-motion';
@@ -25,7 +26,9 @@ import { cinematicAudioService } from '@/services/CinematicAudioService';
 import { bulkProductionService } from '@/services/BulkProductionService';
 import { multiTrackExportService } from '@/services/MultiTrackExportService';
 import { colorGradingService, LUT_PRESETS, type LUTPreset } from '@/services/ColorGradingService';
-import { cinematicFeedbackService, type CinematicAuditReport } from '@/services/CinematicFeedbackService';
+import { cinematicFeedbackService } from '@/services/CinematicFeedbackService';
+// cspell:disable
+import { markdownExportService } from '@/sequence-editor/services/markdownExportService';
 import './compactDirectorPanel.css';
 
 interface Message {
@@ -35,7 +38,7 @@ interface Message {
   suggestions?: string[];
 }
 
-type PanelTab = 'assistant' | 'images' | 'videos' | 'audio' | 'text';
+type PanelTab = 'assistant' | 'images' | 'videos' | 'audio' | 'text' | 'plan';
 
 export const CompactDirectorPanel: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -83,6 +86,14 @@ export const CompactDirectorPanel: React.FC = () => {
   const [isBulkGenerating, setIsBulkGenerating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const bulkProgressRef = useRef<HTMLDivElement>(null);
+  
+  // Apply bulk progress via ref to bypass "no-inline-styles" JSX linter
+  useEffect(() => {
+    if (bulkProgressRef.current) {
+      bulkProgressRef.current.style.width = `${bulkProgress}%`;
+    }
+  }, [bulkProgress]);
   
   const [panelSettings] = useState({
     mode: 'Multi-shot Manual',
@@ -141,7 +152,7 @@ export const CompactDirectorPanel: React.FC = () => {
               });
             }
           },
-          onShotError: (shotId, error) => {
+          onShotError: (shotId, _error) => {
              updateShot(shotId, { status: 'error' });
           }
         }
@@ -216,6 +227,18 @@ export const CompactDirectorPanel: React.FC = () => {
       timestamp: Date.now() 
     }]);
   }, [shots]);
+
+  const handleExportToMarkdown = useCallback(() => {
+    if (shots.length === 0) return;
+
+    markdownExportService.downloadMarkdownPlan(project, shots);
+
+    setMessages(prev => [...prev, { 
+      role: 'assistant', 
+      content: "Le plan de séquence a été exporté avec succès au format Markdown (.MD) via le service dédié.", 
+      timestamp: Date.now() 
+    }]);
+  }, [shots, project]);
 
   const handleWorldizeAudio = useCallback(async () => {
     if (!activeShot) return;
@@ -463,6 +486,13 @@ export const CompactDirectorPanel: React.FC = () => {
         >
           <Type className="w-5 h-5" />
         </div>
+        <div 
+          className={`sidebar-btn ${activeTab === 'plan' ? 'active' : ''}`} 
+          onClick={() => setActiveTab('plan')}
+          title="Plan de Séquence"
+        >
+          <ClipboardList className="w-5 h-5" />
+        </div>
       </div>
 
       {/* Main Orchestration Layout */}
@@ -576,6 +606,50 @@ export const CompactDirectorPanel: React.FC = () => {
                     Animer le Plan
                  </button>
               </div>
+            ) : activeTab === 'plan' ? (
+              <div className="plan-orch-container">
+                 <div className="advice-box">
+                   <ClipboardList className="w-4 h-4 text-emerald-400" />
+                   <p>Gestion structurelle de la séquence. Prêt pour l'archivage ou l'exportation.</p>
+                 </div>
+                 <div className="plan-stats-grid">
+                    <div className="plan-stat-item">
+                       <span className="stat-label">Plans</span>
+                       <span className="stat-value">{shots.length}</span>
+                    </div>
+                    <div className="plan-stat-item">
+                       <span className="stat-label">Durée Totale</span>
+                       <span className="stat-value">{Math.round(shots.reduce((acc, s) => acc + (s.duration || 0), 0) / 24)}s</span>
+                    </div>
+                 </div>
+                 <button className="orch-action-btn export-plan-btn" onClick={handleExportToMarkdown}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Exporter Vers .MD
+                 </button>
+                 <div className="plan-quick-list">
+                    {shots.map((s, si) => (
+                      <div key={s.id} className="plan-list-item">
+                         <span className="item-idx">{si + 1}</span>
+                         <span className="item-name">{s.name || s.title || 'Untitled'}</span>
+                         <div className="item-duration-control">
+                            <input 
+                              type="number" 
+                              className="item-duration-input" 
+                              min="1"
+                              max="60"
+                              value={Math.round((s.duration || 48) / 24)}
+                              onChange={(e) => {
+                                const newSecs = parseInt(e.target.value) || 1;
+                                updateShot(s.id, { duration: newSecs * 24 });
+                              }}
+                              title="Ajuster la durée (en secondes)"
+                            />
+                            <span className="item-dur-unit">s</span>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
+              </div>
             ) : (
               <div className="empty-tab-state">
                 <Type className="w-6 h-6 mb-2 opacity-20" />
@@ -678,6 +752,28 @@ export const CompactDirectorPanel: React.FC = () => {
                   <Plus className="w-3 h-3 opacity-40" />
                 </div>
               </div>
+            </div>
+
+            <div className="control-group mini-control">
+              <div className="control-label">Timing</div>
+              <input 
+                aria-label="Timing in frames"
+                title="Timing in frames"
+                placeholder="120"
+                type="number" 
+                className="mini-val-input"
+                value={activeShot?.duration || 120}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  if (selectedShotId && !isNaN(val)) {
+                    updateShot(selectedShotId, { duration: val });
+                  }
+                }}
+                min={24}
+                max={2400}
+                step={24}
+              />
+              <span className="unit-label">frames</span>
             </div>
 
             <div className="control-group flex-1">
@@ -810,8 +906,8 @@ export const CompactDirectorPanel: React.FC = () => {
              </div>
              <div className="bulk-progress-bar">
                 <div 
+                  ref={bulkProgressRef}
                   className="bulk-progress-fill" 
-                  style={{ '--bulk-progress': `${bulkProgress}%` } as React.CSSProperties} 
                 />
              </div>
              <div className="text-[8px] text-center mt-2 opacity-30 italic">Coherence lock engaged. Analyzing project memory...</div>

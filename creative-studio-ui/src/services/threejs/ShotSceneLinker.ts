@@ -41,7 +41,7 @@ export class ShotSceneLinker {
     static captureToShot(
         cameraPosition: [number, number, number],
         cameraTarget: [number, number, number],
-        fov: number
+        _fov: number
     ): Partial<ProductionShot['camera']> {
         return {
             framing: this.inferFraming(cameraPosition, cameraTarget),

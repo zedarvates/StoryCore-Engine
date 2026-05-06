@@ -32,7 +32,7 @@ class VideoInpaintingProcessor:
         video_frames: List[Image.Image],
         mask: InpaintingMask,
         prompt: str,
-        stage: InpaintingStage = InpaintingStage.HIGH_NOISE
+        stage: InpaintingStage = InpaintingStage.HIGH_NOISE,
     ) -> List[Image.Image]:
         """
         Process video inpainting with specified stage
@@ -73,10 +73,7 @@ class VideoInpaintingProcessor:
         return inpainted_frames
 
     def multi_stage_inpainting(
-        self,
-        video_frames: List[Image.Image],
-        mask: InpaintingMask,
-        prompt: str
+        self, video_frames: List[Image.Image], mask: InpaintingMask, prompt: str
     ) -> List[Image.Image]:
         """
         Perform multi-stage inpainting (high noise → low noise)

@@ -10,24 +10,24 @@ import { WizardError } from '../types';
 import {
   generateErrorMessage,
   formatErrorMessage,
-  createUserFriendlyError,
+  _createUserFriendlyError,
   getRecoveryActions,
   isErrorActionable,
 } from '../errorHandling';
 import {
   RetryManager,
-  executeWithRetry,
-  getPreservedParameters,
+  _executeWithRetry,
+  _getPreservedParameters,
 } from '../retryLogic';
 import {
   SessionPreservationManager,
-  saveWizardSession,
-  loadWizardSession,
-  deleteWizardSession,
+  _saveWizardSession,
+  _loadWizardSession,
+  _deleteWizardSession,
 } from '../sessionPreservation';
 import {
   ErrorLogger,
-  logWizardError,
+  _logWizardError,
 } from '../errorLogger';
 
 describe('Error Message Generation', () => {

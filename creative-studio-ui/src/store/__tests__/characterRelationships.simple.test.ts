@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useStore } from '../index';
 import type { Character } from '@/types/character';
@@ -79,9 +80,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [],
         role: {
           archetype: 'Protagonist',
@@ -109,9 +110,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [],
         role: {
           archetype: 'Protagonist',
@@ -126,9 +127,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [],
         role: {
           archetype: 'Mentor',
@@ -154,9 +155,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [],
         role: {
           archetype: 'Protagonist',
@@ -171,9 +172,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [
           {
             character_id: 'char-1', // References Alice
@@ -214,9 +215,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [
           {
             character_id: 'char-999', // Doesn't exist yet
@@ -250,9 +251,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [
           {
             character_id: 'char-2',
@@ -275,9 +276,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [
           {
             character_id: 'char-1',
@@ -328,9 +329,9 @@ describe('Character Relationship Validation', () => {
           creation_method: 'wizard',
           creation_timestamp: new Date().toISOString(),
           version: '1.0',
-          visual_identity: {} as any,
-          personality: {} as any,
-          background: {} as any,
+          visual_identity: {} as LegacyAny,
+          personality: {} as LegacyAny,
+          background: {} as LegacyAny,
           relationships: [
             {
               character_id: 'other-char',
@@ -370,9 +371,9 @@ describe('Character Relationship Validation', () => {
           creation_method: 'wizard',
           creation_timestamp: new Date().toISOString(),
           version: '1.0',
-          visual_identity: {} as any,
-          personality: {} as any,
-          background: {} as any,
+          visual_identity: {} as LegacyAny,
+          personality: {} as LegacyAny,
+          background: {} as LegacyAny,
           relationships: [
             {
               character_id: 'other-char',
@@ -402,9 +403,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [],
         role: {
           archetype: 'Protagonist',
@@ -440,9 +441,9 @@ describe('Character Relationship Validation', () => {
         creation_method: 'wizard',
         creation_timestamp: new Date().toISOString(),
         version: '1.0',
-        visual_identity: {} as any,
-        personality: {} as any,
-        background: {} as any,
+        visual_identity: {} as LegacyAny,
+        personality: {} as LegacyAny,
+        background: {} as LegacyAny,
         relationships: [],
         role: {
           archetype: 'Protagonist',

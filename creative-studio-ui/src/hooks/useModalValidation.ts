@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from 'react';
-import type { ModalSchema, ValidationRule, ValidationResult, ValidationContext } from '@/types/modal';
+import type { ModalSchema, _ValidationRule, ValidationResult, ValidationContext } from '@/types/modal';
 
 /**
  * Built-in validation functions
@@ -64,7 +64,7 @@ const validationRules = {
 function validateField(
   field: ModalSchema['fields'][0],
   value: unknown,
-  context: ValidationContext
+  _context: ValidationContext
 ): string | null {
   // Check required validation first
   if (field.required && !validationRules.required(value)) {

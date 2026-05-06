@@ -12,6 +12,7 @@ from datetime import datetime
 @dataclass
 class CoherenceAnalysis:
     """Narrative coherence analysis results."""
+
     overall_score: float  # 0.0 to 1.0
     logical_consistency: float
     plot_coherence: float
@@ -24,6 +25,7 @@ class CoherenceAnalysis:
 @dataclass
 class PacingAnalysis:
     """Story pacing analysis results."""
+
     overall_pace: str  # "slow", "moderate", "fast", "varied"
     pace_score: float  # 0.0 to 1.0
     act_pacing: List[Dict[str, Any]] = field(default_factory=list)
@@ -35,6 +37,7 @@ class PacingAnalysis:
 @dataclass
 class CharacterQAAnalysis:
     """Character consistency and development analysis."""
+
     overall_score: float  # 0.0 to 1.0
     consistency_score: float
     development_score: float
@@ -46,6 +49,7 @@ class CharacterQAAnalysis:
 @dataclass
 class DialogueQAAnalysis:
     """Dialogue quality analysis."""
+
     overall_score: float  # 0.0 to 1.0
     naturalness_score: float
     character_voice_score: float
@@ -58,6 +62,7 @@ class DialogueQAAnalysis:
 @dataclass
 class GrammarAnalysis:
     """Grammar, spelling, and syntax analysis."""
+
     overall_score: float  # 0.0 to 1.0
     grammar_errors: List[Dict[str, Any]] = field(default_factory=list)
     spelling_errors: List[Dict[str, Any]] = field(default_factory=list)
@@ -69,6 +74,7 @@ class GrammarAnalysis:
 @dataclass
 class ReadabilityAnalysis:
     """Readability metrics and scores."""
+
     flesch_reading_ease: Optional[float] = None
     flesch_kincaid_grade: Optional[float] = None
     gunning_fog_index: Optional[float] = None
@@ -82,6 +88,7 @@ class ReadabilityAnalysis:
 @dataclass
 class TropeAnalysis:
     """Narrative tropes and clichés analysis."""
+
     tropes_found: List[Dict[str, Any]] = field(default_factory=list)
     cliches: List[Dict[str, Any]] = field(default_factory=list)
     originality_score: float = 0.0  # 0.0 to 1.0
@@ -92,6 +99,7 @@ class TropeAnalysis:
 @dataclass
 class ThemeAnalysis:
     """Thematic elements analysis."""
+
     primary_themes: List[str] = field(default_factory=list)
     secondary_themes: List[str] = field(default_factory=list)
     theme_development: Dict[str, Any] = field(default_factory=dict)
@@ -103,6 +111,7 @@ class ThemeAnalysis:
 @dataclass
 class QANarrativeReport:
     """Comprehensive QA narrative report."""
+
     overall_score: float  # 0.0 to 1.0
     coherence: Optional[CoherenceAnalysis] = None
     pacing: Optional[PacingAnalysis] = None

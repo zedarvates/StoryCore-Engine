@@ -20,7 +20,7 @@ import urllib.parse
 import urllib.request
 import urllib.error
 import json
-from typing import Optional, Tuple
+from typing import Tuple
 
 
 # Configuration des services de raccourcissement
@@ -28,13 +28,13 @@ SERVICES = {
     "isgd": {
         "name": "is.gd",
         "api_url": "https://is.gd/create.php",
-        "description": "Service gratuit et fiable (recommandé)"
+        "description": "Service gratuit et fiable (recommandé)",
     },
     "vgd": {
         "name": "v.gd",
         "api_url": "https://v.gd/create.php",
-        "description": "Alternative avec domaine différent"
-    }
+        "description": "Alternative avec domaine différent",
+    },
 }
 
 # Service par défaut
@@ -44,78 +44,82 @@ DEFAULT_SERVICE = "isgd"
 def encode_url(url: str) -> str:
     """
     Encode une URL pour l'envoi via requête HTTP.
-    
+
     Args:
         url: L'URL à encoder
-        
+
     Returns:
         L'URL encodée
     """
-    return urllib.parse.quote(url, safe='')
+    return urllib.parse.quote(url, safe="")
 
 
-def shorten_url(url: str, service: str = DEFAULT_SERVICE, verbose: bool = False) -> Tuple[bool, str]:
+def shorten_url(
+    url: str, service: str = DEFAULT_SERVICE, verbose: bool = False
+) -> Tuple[bool, str]:
     """
     Raccourcit une URL via le service spécifié.
-    
+
     Args:
         url: L'URL à raccourcir
         service: Le service à utiliser ("isgd" ou "vgd")
         verbose: Afficher des informations détaillées
-        
+
     Returns:
         Tuple (succès, url_raccourcie ou message_erreur)
     """
     # Vérifier que le service existe
     if service not in SERVICES:
-        return False, f"Service inconnu: {service}. Services disponibles: {', '.join(SERVICES.keys())}"
-    
+        return (
+            False,
+            f"Service inconnu: {service}. Services disponibles: {', '.join(SERVICES.keys())}",
+        )
+
     service_config = SERVICES[service]
-    
+
     if verbose:
         print(f"[INFO] Service: {service_config['name']}")
         print(f"[INFO] URL originale: {url}")
-    
+
     # Encoder l'URL
     encoded_url = encode_url(url)
-    
+
     # Construire l'URL de l'API
     api_url = f"{service_config['api_url']}?format=simple&url={encoded_url}"
-    
+
     if verbose:
-        print(f"[INFO] Appel de l'API...")
-    
+        print("[INFO] Appel de l'API...")
+
     try:
         # Effectuer la requête
         request = urllib.request.Request(
-            api_url,
-            headers={'User-Agent': 'OpenClaw-URLShortener/1.0'}
+            api_url, headers={"User-Agent": "OpenClaw-URLShortener/1.0"}
         )
-        
+
         with urllib.request.urlopen(request, timeout=10) as response:
-            short_url = response.read().decode('utf-8').strip()
-            
+            short_url = response.read().decode("utf-8").strip()
+
             # Vérifier si la réponse est une erreur
-            if short_url.startswith('Error:'):
+            if short_url.startswith("Error:"):
                 return False, f"Erreur du service: {short_url}"
-            
+
             if verbose:
                 print(f"[INFO] URL raccourcie: {short_url}")
-            
+
             return True, short_url
-            
+
     except urllib.error.HTTPError as e:
         error_msg = f"Erreur HTTP {e.code}: {e.reason}"
         if verbose:
             print(f"[ERREUR] {error_msg}")
         return False, error_msg
-        
+
     except urllib.error.URLError as e:
         error_msg = f"Erreur de connexion: {e.reason}"
         if verbose:
             print(f"[ERREUR] {error_msg}")
         return False, error_msg
-        
+
     except Exception as e:
         error_msg = f"Erreur inattendue: {str(e)}"
         if verbose:
@@ -126,38 +130,38 @@ def shorten_url(url: str, service: str = DEFAULT_SERVICE, verbose: bool = False)
 def shorten_with_fallback(url: str, verbose: bool = False) -> Tuple[bool, str]:
     """
     Raccourcit une URL avec fallback entre les services.
-    
+
     Essaie d'abord is.gd, puis v.gd en cas d'échec.
-    
+
     Args:
         url: L'URL à raccourcir
         verbose: Afficher des informations détaillées
-        
+
     Returns:
         Tuple (succès, url_raccourcie ou message_erreur)
     """
     # Essayer is.gd en premier
     success, result = shorten_url(url, "isgd", verbose)
-    
+
     if success:
         return True, result
-    
+
     if verbose:
-        print(f"[INFO] Échec avec is.gd, tentative avec v.gd...")
-    
+        print("[INFO] Échec avec is.gd, tentative avec v.gd...")
+
     # Fallback vers v.gd
     success, result = shorten_url(url, "vgd", verbose)
-    
+
     return success, result
 
 
 def validate_url(url: str) -> bool:
     """
     Valide le format d'une URL.
-    
+
     Args:
         url: L'URL à valider
-        
+
     Returns:
         True si l'URL semble valide, False sinon
     """
@@ -175,65 +179,70 @@ Exemples:
   %(prog)s "https://example.com/very/long/url"
   %(prog)s --service vgd "https://example.com"
   %(prog)s --verbose "https://example.com"
-        """
+        """,
     )
-    
+
+    parser.add_argument("url", help="L'URL à raccourcir")
+
     parser.add_argument(
-        "url",
-        help="L'URL à raccourcir"
-    )
-    
-    parser.add_argument(
-        "-s", "--service",
+        "-s",
+        "--service",
         choices=["isgd", "vgd"],
         default=DEFAULT_SERVICE,
-        help=f"Service de raccourcissement (défaut: {DEFAULT_SERVICE})"
+        help=f"Service de raccourcissement (défaut: {DEFAULT_SERVICE})",
     )
-    
+
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
-        help="Afficher des informations détaillées"
+        help="Afficher des informations détaillées",
     )
-    
+
     parser.add_argument(
-        "-f", "--fallback",
+        "-f",
+        "--fallback",
         action="store_true",
-        help="Utiliser le fallback automatique entre services"
+        help="Utiliser le fallback automatique entre services",
     )
-    
+
     parser.add_argument(
-        "-j", "--json",
-        action="store_true",
-        help="Sortie au format JSON"
+        "-j", "--json", action="store_true", help="Sortie au format JSON"
     )
-    
+
     args = parser.parse_args()
-    
+
     # Valider l'URL
     if not validate_url(args.url):
         if args.json:
-            print(json.dumps({
-                "success": False,
-                "error": "URL invalide. L'URL doit commencer par http:// ou https://",
-                "original_url": args.url
-            }))
+            print(
+                json.dumps(
+                    {
+                        "success": False,
+                        "error": "URL invalide. L'URL doit commencer par http:// ou https://",
+                        "original_url": args.url,
+                    }
+                )
+            )
         else:
-            print("Erreur: URL invalide. L'URL doit commencer par http:// ou https://", file=sys.stderr)
+            print(
+                "Erreur: URL invalide. L'URL doit commencer par http:// ou https://",
+                file=sys.stderr,
+            )
         sys.exit(1)
-    
+
     # Raccourcir l'URL
     if args.fallback:
         success, result = shorten_with_fallback(args.url, args.verbose)
     else:
         success, result = shorten_url(args.url, args.service, args.verbose)
-    
+
     # Afficher le résultat
     if args.json:
         output = {
             "success": success,
             "original_url": args.url,
-            "service": args.service if not args.fallback else "fallback"
+            "service": args.service if not args.fallback else "fallback",
         }
         if success:
             output["short_url"] = result
@@ -245,7 +254,7 @@ Exemples:
             print(result)
         else:
             print(f"Erreur: {result}", file=sys.stderr)
-    
+
     sys.exit(0 if success else 1)
 
 

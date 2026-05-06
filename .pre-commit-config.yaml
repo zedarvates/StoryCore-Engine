@@ -1,0 +1,189 @@
+/**
+ * Pre-commit hooks configuration
+ * 
+ * Requirements: 137
+ * Level: 🟡 HAUTE
+ */
+
+// .husky/pre-commit
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run linting and tests before commit
+echo "🔍 Running pre-commit checks..."
+
+# Frontend checks
+cd creative-studio-ui
+
+# TypeScript check
+echo "📄 Type checking..."
+npm run typecheck
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript check failed"
+  exit 1
+fi
+
+# ESLint check
+echo "🔎 Linting..."
+npm run lint
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint check failed"
+  exit 1
+fi
+
+# Run tests (only affected files)
+echo "🧪 Running tests..."
+npm test -- --changed --watchAll=false
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed"
+  exit 1
+fi
+
+cd ..
+
+# Backend checks
+echo "🐍 Python linting..."
+ruff check . --exit-zero
+black --check .
+if [ $? -ne 0 ]; then
+  echo "❌ Python formatting check failed"
+  exit 1
+fi
+
+# Run Python tests
+echo "🧪 Python tests..."
+pytest tests/ -xvs -k "not slow"
+if [ $? -ne 0 ]; then
+  echo "❌ Python tests failed"
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"
+
+// package.json scripts
+{
+  "scripts": {
+    "prepare": "husky install",
+    "pre-commit": "lint-staged",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/**/*.{ts,tsx} --max-warnings 0",
+    "lint:fix": "eslint src/**/*.{ts,tsx} --fix",
+    "format": "prettier --write src/**/*.{ts,tsx,css,md}",
+    "format:check": "prettier --check src/**/*.{ts,tsx,css,md}"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,md}": "prettier --write",
+    "*.py": [
+      "black",
+      "ruff check --fix"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.0",
+    "prettier": "^3.0.0"
+  }
+}
+
+// .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: debug-statements
+      - id: mixed-line-ending
+
+  - repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: isort (python)
+
+  - repo: local
+    hooks:
+      - id: type-check
+        name: TypeScript type check
+        entry: npx tsc --noEmit
+        language: node
+        files: \.(ts|tsx)$
+        pass_filenames: false
+        always_run: true
+
+      - id: eslint
+        name: ESLint
+        entry: npx eslint
+        language: node
+        files: \.(ts|tsx)$
+
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --check
+        language: node
+        files: \.(ts|tsx|css|md|json)$
+
+      - id: python-tests
+        name: Python tests
+        entry: pytest tests/ -x
+        language: system
+        files: \.py$
+        pass_filenames: false
+        always_run: true
+
+// .github/workflows/pre-commit.yml
+name: Pre-commit Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install pre-commit
+        run: |
+          pip install pre-commit
+          npm install -g prettier eslint typescript
+      
+      - name: Run pre-commit
+        run: pre-commit run --all-files

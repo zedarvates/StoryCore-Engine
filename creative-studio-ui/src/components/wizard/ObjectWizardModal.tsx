@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { ObjectWizard } from './object/ObjectWizard';
 import { LLMStatusBanner } from './LLMStatusBanner';
-import { useAppStore } from '@/stores/useAppStore';
+import { _useAppStore } from '@/stores/useAppStore';
 import type { StoryObject } from '@/types/object';
 import './WizardModal.css';
 

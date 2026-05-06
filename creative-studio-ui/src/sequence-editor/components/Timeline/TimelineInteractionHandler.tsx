@@ -6,6 +6,8 @@
  * 
  * Requirements: 2.4, 10.1-10.10
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useCallback, useState, useRef, useEffect } from 'react';
 import { useProjectStore } from '@/stores/useProjectStore';
@@ -114,9 +116,9 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
   ) => {
     if (isDrag && deltaFrames !== 0) {
       // Drag to move
-      const result = handleShotMove(shotId, deltaFrames, shots as any);
+      const result = handleShotMove(shotId, deltaFrames, shots as LegacyAny);
       if (result) {
-        updateShot(result.shotId, { startTime: result.newStartTime } as any, true);
+        updateShot(result.shotId, { startTime: result.newStartTime } as LegacyAny, true);
       }
     } else {
       // Click to select
@@ -134,9 +136,9 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     edge: 'start' | 'end',
     deltaFrames: number
   ) => {
-    const result = handleShotTrim(shotId, edge, deltaFrames, shots as any);
+    const result = handleShotTrim(shotId, edge, deltaFrames, shots as LegacyAny);
     if (result) {
-      const updates: any = { duration: result.newDuration };
+      const updates: LegacyAny = { duration: result.newDuration };
       if (result.newStartTime !== undefined) {
         updates.startTime = result.newStartTime;
       }
@@ -155,14 +157,14 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     shotId: string,
     splitFrame: number
   ) => {
-    const result = handleShotSplit(shotId, splitFrame, shots as any);
+    const result = handleShotSplit(shotId, splitFrame, shots as LegacyAny);
     if (result) {
       // Delete original shot
       deleteShot(result.originalShotId);
       
       // Add two new shots
-      addShot(result.newShots[0] as any);
-      addShot(result.newShots[1] as any);
+      addShot(result.newShots[0] as LegacyAny);
+      addShot(result.newShots[1] as LegacyAny);
       
       // Select the right shot
       setSelectedElements([result.newShots[1].id]);
@@ -177,14 +179,14 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     edge: 'start' | 'end',
     deltaFrames: number
   ) => {
-    const result = handleRippleEdit(shotId, edge, deltaFrames, shots as any);
+    const result = handleRippleEdit(shotId, edge, deltaFrames, shots as LegacyAny);
     if (result) {
       // Update the trimmed shot
-      updateShot(result.shotId, { duration: result.newDuration } as any, true);
+      updateShot(result.shotId, { duration: result.newDuration } as LegacyAny, true);
       
       // Update affected shots
       result.affectedShots.forEach((affected: { shotId: string; newStartTime: number }) => {
-        updateShot(affected.shotId, { startTime: affected.newStartTime } as any, true);
+        updateShot(affected.shotId, { startTime: affected.newStartTime } as LegacyAny, true);
       });
       
       setTooltipText(`Ripple: ${result.affectedShots.length} shots affected`);
@@ -200,16 +202,16 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     rightShotId: string,
     deltaFrames: number
   ) => {
-    const result = handleRollEdit(leftShotId, rightShotId, deltaFrames, shots as any);
+    const result = handleRollEdit(leftShotId, rightShotId, deltaFrames, shots as LegacyAny);
     if (result) {
       // Update left shot
-      updateShot(result.leftShotId, { duration: result.leftNewDuration } as any, true);
+      updateShot(result.leftShotId, { duration: result.leftNewDuration } as LegacyAny, true);
       
       // Update right shot
       updateShot(result.rightShotId, {
         startTime: result.rightNewStartTime,
         duration: result.rightNewDuration,
-      } as any, true);
+      } as LegacyAny, true);
       
       setTooltipText(`Roll: Junction adjusted`);
       setShowDurationTooltip(true);
@@ -223,11 +225,11 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     shotId: string,
     deltaFrames: number
   ) => {
-    const result = handleSlipEdit(shotId, deltaFrames, shots as any);
+    const result = handleSlipEdit(shotId, deltaFrames, shots as LegacyAny);
     if (result) {
-      const shot = (shots as any[]).find((s: Shot) => s.id === shotId);
+      const shot = (shots as LegacyAny[]).find((s: Shot) => s.id === shotId);
       if (shot) {
-        const updatedLayers = shot.layers.map((layer: any) => {
+        const updatedLayers = shot.layers.map((layer: LegacyAny) => {
           if (layer.type === 'media') {
             return {
               ...layer,
@@ -243,7 +245,7 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
           return layer;
         });
         
-        updateShot(shotId, { layers: updatedLayers } as any, true);
+        updateShot(shotId, { layers: updatedLayers } as LegacyAny, true);
         
         setTooltipText(`Slip: Content adjusted`);
         setShowDurationTooltip(true);
@@ -258,14 +260,14 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     shotId: string,
     deltaFrames: number
   ) => {
-    const result = handleSlideEdit(shotId, deltaFrames, shots as any);
+    const result = handleSlideEdit(shotId, deltaFrames, shots as LegacyAny);
     if (result) {
       // Update the slid shot
-      updateShot(result.shotId, { startTime: result.newStartTime } as any, true);
+      updateShot(result.shotId, { startTime: result.newStartTime } as LegacyAny, true);
       
       // Update affected shots
       result.affectedShots.forEach((affected: { shotId: string; newStartTime: number }) => {
-        updateShot(affected.shotId, { startTime: affected.newStartTime } as any, true);
+        updateShot(affected.shotId, { startTime: affected.newStartTime } as LegacyAny, true);
       });
       
       setTooltipText(`Slide: ${result.affectedShots.length} shots adjusted`);
@@ -279,31 +281,31 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
   const handleTransitionToolInteraction = useCallback((
     shotId: string
   ) => {
-    const shot = (shots as any[]).find((s) => s.id === shotId);
+    const shot = (shots as LegacyAny[]).find((s) => s.id === shotId);
     if (!shot) return;
     
-    const { left, right } = findAdjacentShots(shotId, shots as any);
+    const { left, right } = findAdjacentShots(shotId, shots as LegacyAny);
     
     if (left && shot) {
       // Add transition between left and current shot
-      const result = handleAddTransition(left.id, shotId, 'fade', 30, shots as any);
+      const result = handleAddTransition(left.id, shotId, 'fade', 30, shots as LegacyAny);
       if (result) {
-        const updatedShot = (shots as any[]).find((s) => s.id === result.shotId);
+        const updatedShot = (shots as LegacyAny[]).find((s) => s.id === result.shotId);
         if (updatedShot) {
           updateShot(result.shotId, {
             layers: [...updatedShot.layers, result.layer],
-          } as any);
+          } as LegacyAny);
         }
       }
     } else if (right) {
       // Add transition between current and right shot
-      const result = handleAddTransition(shotId, right.id, 'fade', 30, shots as any);
+      const result = handleAddTransition(shotId, right.id, 'fade', 30, shots as LegacyAny);
       if (result) {
-        const updatedShot = (shots as any[]).find((s) => s.id === result.shotId);
+        const updatedShot = (shots as LegacyAny[]).find((s) => s.id === result.shotId);
         if (updatedShot) {
           updateShot(result.shotId, {
             layers: [...updatedShot.layers, result.layer],
-          } as any);
+          } as LegacyAny);
         }
       }
     }
@@ -315,21 +317,21 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
   const handleTextToolInteraction = useCallback((
     clickFrame: number
   ) => {
-    const shot = findShotAtFrame(clickFrame, shots as any);
+    const shot = findShotAtFrame(clickFrame, shots as LegacyAny);
     if (!shot) return;
     
-    const result = handleAddText(shot.id, clickFrame, shots as any);
+    const result = handleAddText(shot.id, clickFrame, shots as LegacyAny);
     if (result) {
       // Add the new text layer to the shot
       updateShot(result.shotId, {
         layers: [...shot.layers, result.layer],
-      } as any);
+      } as LegacyAny);
       
       // Log for debugging
       console.log('Text layer added:', {
         layerId: result.layer.id,
         shotId: result.shotId,
-        content: (result.layer.data as any).content
+        content: (result.layer.data as LegacyAny).content
       });
     }
   }, [shots, updateShot]);
@@ -340,25 +342,25 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
   const handleKeyframeToolInteraction = useCallback((
     clickFrame: number
   ) => {
-    const shot = findShotAtFrame(clickFrame, shots as any);
+    const shot = findShotAtFrame(clickFrame, shots as LegacyAny);
     if (!shot) return;
     
     // Default to opacity property
-    const result = handleAddKeyframe(shot.id, clickFrame, 'opacity', 1.0, shots as any);
+    const result = handleAddKeyframe(shot.id, clickFrame, 'opacity', 1.0, shots as LegacyAny);
     if (result) {
-      const existingLayerIndex = shot.layers.findIndex((l: any) => l.id === result.layer.id);
+      const existingLayerIndex = shot.layers.findIndex((l: LegacyAny) => l.id === result.layer.id);
       
       if (existingLayerIndex !== -1) {
         // Update existing layer
         const updatedLayers = [...shot.layers];
         updatedLayers[existingLayerIndex] = result.layer;
         
-        updateShot(result.shotId, { layers: updatedLayers } as any);
+        updateShot(result.shotId, { layers: updatedLayers } as LegacyAny);
       } else {
         // Add new layer
         updateShot(result.shotId, {
           layers: [...shot.layers, result.layer],
-        } as any);
+        } as LegacyAny);
       }
       
       console.log('Keyframe added at frame', clickFrame);
@@ -372,7 +374,7 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
   const handleMouseDown = useCallback((e: React.MouseEvent, shotId: string, shotLeft: number, shotWidth: number) => {
     e.stopPropagation();
     
-    const shot = (shots as any[]).find((s) => s.id === shotId);
+    const shot = (shots as LegacyAny[]).find((s) => s.id === shotId);
     if (!shot) return;
     
     const multiSelect = e.ctrlKey || e.metaKey;
@@ -438,7 +440,7 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
       
       case 'roll':
         if (edge === 'end') {
-          const { right } = findAdjacentShots(shotId, shots as any);
+          const { right } = findAdjacentShots(shotId, shots as LegacyAny);
           if (right) {
             setDragState({
               isDragging: true,
@@ -637,7 +639,7 @@ export const TimelineInteractionHandler: React.FC<TimelineInteractionHandlerProp
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child as any, { onMouseDown: handleMouseDown });
+          return React.cloneElement(child as LegacyAny, { onMouseDown: handleMouseDown });
         }
         return child;
       })}

@@ -4,7 +4,6 @@ Shot Reference Wizard command handler - Generate reference images for shots.
 
 import argparse
 from pathlib import Path
-from typing import List
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
@@ -21,39 +20,45 @@ class ShotReferenceWizardHandler(BaseHandler):
         parser.add_argument(
             "--project",
             default=".",
-            help="Project directory (default: current directory)"
+            help="Project directory (default: current directory)",
         )
 
         parser.add_argument(
             "--shots",
             nargs="+",
-            help="Specific shot IDs to generate references for (default: all shots)"
+            help="Specific shot IDs to generate references for (default: all shots)",
         )
 
         parser.add_argument(
             "--style",
-            choices=["cinematic", "storyboard", "realistic", "concept_art", "technical"],
+            choices=[
+                "cinematic",
+                "storyboard",
+                "realistic",
+                "concept_art",
+                "technical",
+            ],
             default="cinematic",
-            help="Style for generated reference images (default: cinematic)"
+            help="Style for generated reference images (default: cinematic)",
         )
 
         parser.add_argument(
             "--quality",
             choices=["draft", "standard", "high", "maximum"],
             default="standard",
-            help="Quality level for image generation (default: standard)"
+            help="Quality level for image generation (default: standard)",
         )
 
         parser.add_argument(
             "--preview",
             action="store_true",
-            help="Preview prompts without generating images"
+            help="Preview prompts without generating images",
         )
 
         parser.add_argument(
             "--batch",
             action="store_true",
-            help="Enable batch processing for faster generation"
+            help="Enable batch processing for faster generation",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -64,12 +69,12 @@ class ShotReferenceWizardHandler(BaseHandler):
                 from wizard.shot_reference_wizard import (
                     create_shot_reference_wizard,
                     ReferenceImageStyle,
-                    ImageQuality
+                    ImageQuality,
                 )
             except ImportError as e:
                 raise SystemError(
                     f"Shot reference wizard modules not available: {e}",
-                    "Ensure wizard package is installed"
+                    "Ensure wizard package is installed",
                 )
 
             # Validate project path
@@ -77,7 +82,7 @@ class ShotReferenceWizardHandler(BaseHandler):
             if not project_path.exists():
                 raise UserError(
                     f"Project directory not found: {project_path}",
-                    "Check the project path or create a new project with 'storycore init'"
+                    "Check the project path or create a new project with 'storycore init'",
                 )
 
             print(f"🎬 Shot Reference Wizard for project: {project_path.absolute()}")
@@ -88,7 +93,7 @@ class ShotReferenceWizardHandler(BaseHandler):
             if not shot_planning_file.exists():
                 raise UserError(
                     "Shot planning data not found",
-                    "Run 'storycore shot-planning' first to create shot specifications"
+                    "Run 'storycore shot-planning' first to create shot specifications",
                 )
 
             # Initialize wizard
@@ -102,7 +107,7 @@ class ShotReferenceWizardHandler(BaseHandler):
             if not shot_specs:
                 raise UserError(
                     "No shots found in project",
-                    "Ensure shot planning was completed successfully"
+                    "Ensure shot planning was completed successfully",
                 )
 
             # Handle preview mode
@@ -117,13 +122,13 @@ class ShotReferenceWizardHandler(BaseHandler):
                     available_ids = [s.shot_id for s in shot_specs]
                     raise UserError(
                         f"None of the specified shots found: {args.shots}",
-                        f"Available shots: {available_ids}"
+                        f"Available shots: {available_ids}",
                     )
 
             # Execute generation
             import asyncio
 
-            print(f"\n🎨 Configuration:")
+            print("\n🎨 Configuration:")
             print(f"   Style: {args.style}")
             print(f"   Quality: {args.quality}")
             print(f"   Shots to process: {len(shots_to_process)}")
@@ -135,11 +140,13 @@ class ShotReferenceWizardHandler(BaseHandler):
             quality_enum = ImageQuality(args.quality.upper())
 
             # Generate reference images
-            print(f"\n🚀 Starting image generation...")
+            print("\n🚀 Starting image generation...")
             results = asyncio.run(
                 wizard.generate_reference_images(
-                    project_path, style_enum, quality_enum,
-                    [s.shot_id for s in shots_to_process] if args.shots else None
+                    project_path,
+                    style_enum,
+                    quality_enum,
+                    [s.shot_id for s in shots_to_process] if args.shots else None,
                 )
             )
 
@@ -176,7 +183,7 @@ class ShotReferenceWizardHandler(BaseHandler):
 
     def _display_generation_results(self, results, project_path: Path) -> int:
         """Display generation results and return exit code."""
-        print(f"\n📊 Generation Results")
+        print("\n📊 Generation Results")
         print("=" * 50)
 
         successful = len([r for r in results if r.success])
@@ -211,10 +218,10 @@ class ShotReferenceWizardHandler(BaseHandler):
 
         # Show next steps
         if successful > 0:
-            print(f"\n🚀 Next steps:")
-            print(f"   • View reference images in your sequence editor")
-            print(f"   • Use images for shot visualization and planning")
-            print(f"   • Re-run with different styles for variations")
-            print(f"   • Integrate with video editing software")
+            print("\n🚀 Next steps:")
+            print("   • View reference images in your sequence editor")
+            print("   • Use images for shot visualization and planning")
+            print("   • Re-run with different styles for variations")
+            print("   • Integrate with video editing software")
 
         return 0 if successful > 0 else 1

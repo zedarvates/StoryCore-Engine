@@ -7,22 +7,25 @@ Génération simplifiée d'exemples de prompts LLM
 import json
 from datetime import datetime
 
+
 def generate_simple_prompts():
     """Générer des exemples de prompts LLM simples"""
-    
+
     prompts = []
-    
+
     # Charger les fichiers JSON
     try:
         with open("data/llm_configs/global_settings.json", "r", encoding="utf-8") as f:
             global_settings = json.load(f)
-        
-        with open("data/project_sequences/narrative_sequences.json", "r", encoding="utf-8") as f:
+
+        with open(
+            "data/project_sequences/narrative_sequences.json", "r", encoding="utf-8"
+        ) as f:
             narrative_sequences = json.load(f)
     except Exception as e:
         print(f"Erreur de chargement des fichiers: {e}")
         return []
-    
+
     # Prompt 1: Génération de séquence narrative
     prompt_1 = {
         "title": "Generation de sequence narrative",
@@ -31,19 +34,19 @@ def generate_simple_prompts():
 Vous êtes un assistant de création de contenu narratif.
 
 Configuration LLM:
-- Modele: {global_settings['llm_parameters']['model_config']['default_model']}
-- Temperature: {global_settings['llm_parameters']['model_config']['temperature']}
-- Max tokens: {global_settings['llm_parameters']['model_config']['max_tokens']}
-- Style: {global_settings['llm_parameters']['narrative_generation']['title_generation']['style_options'][0]}
+- Modele: {global_settings["llm_parameters"]["model_config"]["default_model"]}
+- Temperature: {global_settings["llm_parameters"]["model_config"]["temperature"]}
+- Max tokens: {global_settings["llm_parameters"]["model_config"]["max_tokens"]}
+- Style: {global_settings["llm_parameters"]["narrative_generation"]["title_generation"]["style_options"][0]}
 
 Structure de sequence:
 - Type: opening
-- Duree: {global_settings['llm_parameters']['duration_planning']['short_format']['optimal_minutes']} minutes
+- Duree: {global_settings["llm_parameters"]["duration_planning"]["short_format"]["optimal_minutes"]} minutes
 - Contexte: contemporain, urban
 - Public cible: Adultes 18-45 ans
 
 Template de sequence:
-{json.dumps(narrative_sequences['sequence_templates']['template_basic_opening'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["sequence_templates"]["template_basic_opening"], indent=2, ensure_ascii=False)}
 
 Générez une séquence narrative complète incluant:
 1. Un titre accrocheur
@@ -53,9 +56,9 @@ Générez une séquence narrative complète incluant:
 5. Une cohérence avec le style demandé
 """,
         "expected_output": "Séquence narrative complète avec structure JSON valide",
-        "use_case": "Creation de contenu pour reseaux sociaux"
+        "use_case": "Creation de contenu pour reseaux sociaux",
     }
-    
+
     # Prompt 2: Optimisation de la qualité
     prompt_2 = {
         "title": "Optimisation de la qualité narrative",
@@ -64,13 +67,13 @@ Générez une séquence narrative complète incluant:
 Vous êtes un expert en optimisation de contenu narratif.
 
 Paramètres de qualité:
-- Score de coherence: {global_settings['llm_parameters']['quality_parameters']['content_quality']['coherence_score']}
-- Score d'engagement: {global_settings['llm_parameters']['quality_parameters']['content_quality']['engagement_score']}
-- Score d'originalité: {global_settings['llm_parameters']['quality_parameters']['content_quality']['originality_score']}
-- Score de structure: {global_settings['llm_parameters']['quality_parameters']['content_quality']['structure_score']}
+- Score de coherence: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["coherence_score"]}
+- Score d'engagement: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["engagement_score"]}
+- Score d'originalité: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["originality_score"]}
+- Score de structure: {global_settings["llm_parameters"]["quality_parameters"]["content_quality"]["structure_score"]}
 
 Contenu à optimiser:
-{json.dumps(narrative_sequences['project_sequences']['sequence_catalog']['opening_sequence'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["project_sequences"]["sequence_catalog"]["opening_sequence"], indent=2, ensure_ascii=False)}
 
 Tâches:
 1. Analyser le contenu existant selon les métriques de qualité
@@ -86,9 +89,9 @@ Contraintes:
 - Améliorer la qualité sans altérer le sens
 """,
         "expected_output": "Analyse qualitative et version optimisée du contenu",
-        "use_case": "Amélioration de contenu existant"
+        "use_case": "Amélioration de contenu existant",
     }
-    
+
     # Prompt 3: Validation de séquence
     prompt_3 = {
         "title": "Validation de sequence narrative",
@@ -97,10 +100,10 @@ Contraintes:
 Vous êtes un validateur de contenu narratif.
 
 Schémas de validation:
-{json.dumps(narrative_sequences['validation_schema'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["validation_schema"], indent=2, ensure_ascii=False)}
 
 Sequence à valider:
-{json.dumps(narrative_sequences['project_sequences']['sequence_catalog']['climax_sequence'], indent=2, ensure_ascii=False)}
+{json.dumps(narrative_sequences["project_sequences"]["sequence_catalog"]["climax_sequence"], indent=2, ensure_ascii=False)}
 
 Tâches de validation:
 1. Verifier tous les champs requis
@@ -118,17 +121,18 @@ Regles de validation:
 - La structure doit respecter le template
 """,
         "expected_output": "Rapport de validation complet avec scores et recommandations",
-        "use_case": "Controle qualité de contenu"
+        "use_case": "Controle qualité de contenu",
     }
-    
+
     prompts.extend([prompt_1, prompt_2, prompt_3])
     return prompts
 
+
 def main():
     """Generer le rapport complet avec exemples de prompts"""
-    
+
     prompts = generate_simple_prompts()
-    
+
     # Generer le rapport final
     report = f"""
 # RAPPORT COMPLET - COMPATIBILITE LLM
@@ -151,18 +155,18 @@ Fichiers analyses: global_settings.json, narrative_sequences.json
 ## EXEMPLES DE PROMPTS LLM CONCRETS
 
 """
-    
+
     for i, prompt in enumerate(prompts, 1):
         report += f"""
-### {i}. {prompt['title']}
+### {i}. {prompt["title"]}
 
-**Description:** {prompt['description']}
+**Description:** {prompt["description"]}
 
 **Prompt:**
 ```python
-# Exemple de prompt pour {prompt['title']}
+# Exemple de prompt pour {prompt["title"]}
 prompt = \"\"\"
-{prompt['prompt']}
+{prompt["prompt"]}
 \"\"\"
 
 # Configuration LLM
@@ -183,13 +187,13 @@ response = openai.chat.completions.create(
 )
 ```
 
-**Output attendu:** {prompt['expected_output']}
+**Output attendu:** {prompt["expected_output"]}
 
-**Cas d'usage:** {prompt['use_case']}
+**Cas d'usage:** {prompt["use_case"]}
 
 """
-    
-    report += f"""
+
+    report += """
 
 ## PREUVE DE CONCEPT AVEC EXEMPLES CONCRETS
 
@@ -217,10 +221,10 @@ Genere une sequence narrative en utilisant:
 
 # Generer la sequence
 response = openai.chat.completions.create(
-    model=config['llm_parameters']['model_config']['default_model'],
+    model={config['llm_parameters']['model_config']['default_model']},
     messages=[{"role": "user", "content": prompt_template}],
-    temperature=config['llm_parameters']['model_config']['temperature'],
-    max_tokens=config['llm_parameters']['model_config']['max_tokens']
+    temperature={config['llm_parameters']['model_config']['temperature']},
+    max_tokens={config['llm_parameters']['model_config']['max_tokens']}
 )
 
 sequence = response.choices[0].message.content
@@ -300,15 +304,16 @@ Les fichiers JSON analysés montrent une **compatibilite LLM excellente** (87/10
 
 Les fichiers sont prêts pour une utilisation en production avec les LLMs modernes.
 """
-    
+
     # Sauvegarder le rapport
     with open("llm_final_report.txt", "w", encoding="utf-8") as f:
         f.write(report)
-    
-    print(f"Rapport genere: llm_final_report.txt")
+
+    print("Rapport genere: llm_final_report.txt")
     print(f"Nombre de prompts LLM generes: {len(prompts)}")
-    
+
     return report
+
 
 if __name__ == "__main__":
     main()

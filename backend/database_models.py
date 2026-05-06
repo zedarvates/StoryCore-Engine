@@ -9,11 +9,18 @@ Version: 1.0.0
 """
 
 from datetime import datetime
-from typing import Optional
 import os
 from sqlalchemy import (
-    Column, String, DateTime, Float, Integer, Boolean, 
-    Text, JSON, ForeignKey, Index, UniqueConstraint
+    Column,
+    String,
+    DateTime,
+    Float,
+    Integer,
+    Boolean,
+    Text,
+    JSON,
+    ForeignKey,
+    Index,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -29,36 +36,37 @@ def generate_uuid() -> str:
 
 class TimestampMixin:
     """Mixin for adding created_at and updated_at timestamps."""
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class User(Base, TimestampMixin):
     """User model for authentication and subscription management."""
-    
+
     __tablename__ = "video_editor_users"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     name = Column(String(255), nullable=False)
     avatar_url = Column(String(500), nullable=True)
     plan = Column(String(50), default="free")  # free, pro, team
-    
+
     # Subscription fields
     stripe_customer_id = Column(String(255), nullable=True)
     subscription_status = Column(String(50), default="active")
     subscription_end_date = Column(DateTime, nullable=True)
-    
+
     # Usage limits
     monthly_transcription_minutes = Column(Integer, default=5)
     monthly_export_minutes = Column(Integer, default=30)
     storage_used_mb = Column(Integer, default=0)
     storage_limit_mb = Column(Integer, default=1000)
-    
+
     # Settings
     settings = Column(JSON, nullable=True)  # User preferences
-    
+
     # ─── 💎 GemReward System ────────────────────────────────────────────────
     # Solde actuel (peut diminuer si dépenses futures)
     gem_balance = Column(Integer, default=0, nullable=False, server_default="0")
@@ -71,23 +79,27 @@ class User(Base, TimestampMixin):
     # ────────────────────────────────────────────────────────────────────────
 
     # Relationships
-    projects = relationship("Project", back_populates="user", cascade="all, delete-orphan")
-    export_jobs = relationship("ExportJob", back_populates="user", cascade="all, delete-orphan")
+    projects = relationship(
+        "Project", back_populates="user", cascade="all, delete-orphan"
+    )
+    export_jobs = relationship(
+        "ExportJob", back_populates="user", cascade="all, delete-orphan"
+    )
     ai_jobs = relationship("AIJob", back_populates="user", cascade="all, delete-orphan")
-    
+
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, plan={self.plan})>"
-    
+
     @property
     def is_pro(self) -> bool:
         """Check if user has pro plan."""
         return self.plan in ["pro", "team"]
-    
+
     @property
     def can_transcribe(self) -> bool:
         """Check if user can transcribe more media."""
         return self.monthly_transcription_minutes > 0
-    
+
     @property
     def can_export(self) -> bool:
         """Check if user can export."""
@@ -96,114 +108,130 @@ class User(Base, TimestampMixin):
 
 class Project(Base, TimestampMixin):
     """Video editing project model."""
-    
+
     __tablename__ = "video_editor_projects"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True)
-    
+    user_id = Column(
+        String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True
+    )
+
     # Basic info
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    
+
     # Video settings
     aspect_ratio = Column(String(10), default="16:9")  # 16:9, 9:16, 1:1, 4:5, 4:3, 21:9
     resolution = Column(String(20), default="1920x1080")  # 1920x1080, 1080x1920, etc.
     frame_rate = Column(Float, default=30.0)
     duration = Column(Float, default=0.0)
-    
+
     # Paths
     thumbnail_path = Column(String(500), nullable=True)
     preview_path = Column(String(500), nullable=True)
-    
+
     # Project state
     is_public = Column(Boolean, default=False)
     is_archived = Column(Boolean, default=False)
-    
+
     # Project settings
     settings = Column(JSON, nullable=True)
     timeline_data = Column(JSON, nullable=True)  # Serialized timeline state
-    
+
     # Versioning
     version = Column(Integer, default=1)
-    
+
     # Relationships
     user = relationship("User", back_populates="projects")
-    media = relationship("Media", back_populates="project", cascade="all, delete-orphan")
-    episodes = relationship("Episode", back_populates="project", cascade="all, delete-orphan")
-    characters = relationship("Character", back_populates="project", cascade="all, delete-orphan")
-    moodboards = relationship("Moodboard", back_populates="project", cascade="all, delete-orphan")
-    export_jobs = relationship("ExportJob", back_populates="project", cascade="all, delete-orphan")
-    
+    media = relationship(
+        "Media", back_populates="project", cascade="all, delete-orphan"
+    )
+    episodes = relationship(
+        "Episode", back_populates="project", cascade="all, delete-orphan"
+    )
+    characters = relationship(
+        "Character", back_populates="project", cascade="all, delete-orphan"
+    )
+    moodboards = relationship(
+        "Moodboard", back_populates="project", cascade="all, delete-orphan"
+    )
+    export_jobs = relationship(
+        "ExportJob", back_populates="project", cascade="all, delete-orphan"
+    )
+
     # Indexes
     __table_args__ = (
         Index("idx_project_user_aspect", "user_id", "aspect_ratio"),
         Index("idx_project_updated", "updated_at"),
     )
-    
+
     def __repr__(self):
         return f"<Project(id={self.id}, name={self.name}, duration={self.duration})>"
 
 
 class Media(Base, TimestampMixin):
     """Media file model for videos, audio, and images."""
-    
+
     __tablename__ = "video_editor_media"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=True, index=True)
-    user_id = Column(String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True)
-    
+    project_id = Column(
+        String(36), ForeignKey("video_editor_projects.id"), nullable=True, index=True
+    )
+    user_id = Column(
+        String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True
+    )
+
     # Basic info
     name = Column(String(255), nullable=False)
     original_filename = Column(String(255), nullable=False)
     media_type = Column(String(50), nullable=False)  # video, audio, image
-    
+
     # File info
     path = Column(String(500), nullable=False)
     file_size = Column(Integer, default=0)  # in bytes
-    
+
     # Video-specific
     duration = Column(Float, nullable=True)
     resolution = Column(String(20), nullable=True)  # e.g., "1920x1080"
     frame_rate = Column(Float, nullable=True)
     codec = Column(String(100), nullable=True)
-    
+
     # Audio-specific
     sample_rate = Column(Integer, nullable=True)
     audio_channels = Column(Integer, nullable=True)
-    
+
     # Image-specific
     width = Column(Integer, nullable=True)
     height = Column(Integer, nullable=True)
-    
+
     # Generated assets
     thumbnail_path = Column(String(500), nullable=True)
     waveform_path = Column(String(500), nullable=True)  # For audio visualization
-    
+
     # Metadata
     # NOTE: Python attribute 'media_metadata' maps to existing DB column 'metadata'
     # This maintains backward compatibility with existing databases without requiring migration
     # The column was NOT renamed in the database - only the Python attribute was changed for clarity
     media_metadata = Column("metadata", JSON, nullable=True)
     ai_metadata = Column(JSON, nullable=True)  # Transcription, tags, etc.
-    
+
     # Relationships
     project = relationship("Project", back_populates="media")
-    
+
     # Indexes
     __table_args__ = (
         Index("idx_media_project_type", "project_id", "media_type"),
         Index("idx_media_user_type", "user_id", "media_type"),
     )
-    
+
     def __repr__(self):
         return f"<Media(id={self.id}, name={self.name}, type={self.media_type})>"
-    
+
     @property
     def formatted_size(self) -> str:
         """Format file size for display."""
-        for unit in ['B', 'KB', 'MB', 'GB']:
+        for unit in ["B", "KB", "MB", "GB"]:
             if self.file_size < 1024:
                 return f"{self.file_size:.1f} {unit}"
             self.file_size /= 1024
@@ -212,57 +240,63 @@ class Media(Base, TimestampMixin):
 
 class ExportJob(Base, TimestampMixin):
     """Export job model for tracking video exports."""
-    
+
     __tablename__ = "video_editor_export_jobs"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
-    user_id = Column(String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True)
-    
+    project_id = Column(
+        String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True
+    )
+    user_id = Column(
+        String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True
+    )
+
     # Status
-    status = Column(String(50), default="pending")  # pending, processing, completed, failed, cancelled
+    status = Column(
+        String(50), default="pending"
+    )  # pending, processing, completed, failed, cancelled
     progress = Column(Float, default=0.0)
     message = Column(String(500), nullable=True)
-    
+
     # Export settings
     format = Column(String(20), default="mp4")
     preset = Column(String(50), default="custom")
     resolution = Column(String(20), nullable=True)
     quality = Column(String(20), default="high")  # low, medium, high, ultra
     codec = Column(String(50), nullable=True)
-    
+
     # Output
     output_path = Column(String(500), nullable=True)
     file_size = Column(Integer, nullable=True)
     download_url = Column(String(500), nullable=True)
-    
+
     # Error info
     error = Column(Text, nullable=True)
     error_details = Column(JSON, nullable=True)
-    
+
     # Timing
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
     estimated_duration = Column(Float, nullable=True)
-    
+
     # Relationships
     project = relationship("Project", back_populates="export_jobs")
     user = relationship("User", back_populates="export_jobs")
-    
+
     # Indexes
     __table_args__ = (
         Index("idx_export_status", "status"),
         Index("idx_export_user_status", "user_id", "status"),
     )
-    
+
     def __repr__(self):
         return f"<ExportJob(id={self.id}, status={self.status}, progress={self.progress}%)>"
-    
+
     @property
     def is_pending(self) -> bool:
         """Check if job is still pending."""
         return self.status in ["pending", "processing"]
-    
+
     @property
     def is_complete(self) -> bool:
         """Check if job is completed."""
@@ -271,47 +305,51 @@ class ExportJob(Base, TimestampMixin):
 
 class AIJob(Base, TimestampMixin):
     """AI processing job model for tracking AI operations."""
-    
+
     __tablename__ = "video_editor_ai_jobs"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True)
-    
+    user_id = Column(
+        String(36), ForeignKey("video_editor_users.id"), nullable=False, index=True
+    )
+
     # Job type
-    job_type = Column(String(50), nullable=False)  # transcription, tts, translate, smart_crop, audio_clean
-    
+    job_type = Column(
+        String(50), nullable=False
+    )  # transcription, tts, translate, smart_crop, audio_clean
+
     # Status
     status = Column(String(50), default="pending")
     progress = Column(Float, default=0.0)
-    
+
     # Input
     input_data = Column(JSON, nullable=True)  # { media_id, parameters, ... }
     input_path = Column(String(500), nullable=True)
-    
+
     # Output
     output_data = Column(JSON, nullable=True)  # { result, ... }
     output_path = Column(String(500), nullable=True)
-    
+
     # Error
     error = Column(Text, nullable=True)
     error_details = Column(JSON, nullable=True)
-    
+
     # Timing
     started_at = Column(DateTime, nullable=True)
     completed_at = Column(DateTime, nullable=True)
-    
+
     # Relationships
     user = relationship("User", back_populates="ai_jobs")
-    
+
     # Indexes
     __table_args__ = (
         Index("idx_ai_job_type", "job_type"),
         Index("idx_ai_user_type_status", "user_id", "job_type", "status"),
     )
-    
+
     def __repr__(self):
         return f"<AIJob(id={self.id}, type={self.job_type}, status={self.status})>"
-    
+
     @property
     def is_complete(self) -> bool:
         """Check if job is completed."""
@@ -320,143 +358,155 @@ class AIJob(Base, TimestampMixin):
 
 class Subtitle(Base, TimestampMixin):
     """Subtitle/CC model for video subtitles."""
-    
+
     __tablename__ = "video_editor_subtitles"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
-    
+    project_id = Column(
+        String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True
+    )
+
     # Content
     language = Column(String(10), default="fr")  # ISO 639-1
     label = Column(String(100), nullable=True)  # Display name
-    
+
     # Subtitle format (SRT, VTT, etc.)
     format = Column(String(10), default="srt")
-    
+
     # Data
     entries = Column(JSON, nullable=False)  # [{ start, end, text }, ...]
-    
+
     # Translation
     is_translated = Column(Boolean, default=False)
     source_language = Column(String(10), nullable=True)
-    
+
     # Relationships
     project_id = Column(String(36), ForeignKey("video_editor_projects.id"))
-    
+
     def __repr__(self):
         return f"<Subtitle(id={self.id}, language={self.language}, entries={len(self.entries)})>"
 
 
 class Template(Base, TimestampMixin):
     """Project template model."""
-    
+
     __tablename__ = "video_editor_templates"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    user_id = Column(String(36), ForeignKey("video_editor_users.id"), nullable=True)  # NULL = system template
-    
+    user_id = Column(
+        String(36), ForeignKey("video_editor_users.id"), nullable=True
+    )  # NULL = system template
+
     # Info
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     category = Column(String(100), nullable=True)  # social, marketing, education, etc.
-    
+
     # Preview
     thumbnail_path = Column(String(500), nullable=True)
-    
+
     # Settings
     aspect_ratio = Column(String(10), nullable=False)
     resolution = Column(String(20), nullable=True)
     duration = Column(Float, nullable=True)
-    
+
     # Template data
     template_data = Column(JSON, nullable=False)  # Preset timeline/media configuration
-    
+
     # Usage
     is_premium = Column(Boolean, default=False)
     usage_count = Column(Integer, default=0)
-    
+
     # Visibility
     is_public = Column(Boolean, default=True)
-    
+
     def __repr__(self):
         return f"<Template(id={self.id}, name={self.name}, category={self.category})>"
 
 
 class Episode(Base, TimestampMixin):
     """Episode model for serial productions."""
-    
+
     __tablename__ = "video_editor_episodes"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
-    
+    project_id = Column(
+        String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True
+    )
+
     number = Column(Integer, default=1)
     title = Column(String(255), nullable=False)
     synopsis = Column(Text, nullable=True)
     status = Column(String(50), default="draft")  # draft, storyboard, production, final
-    
+
     storyboard_data = Column(JSON, nullable=True)
     settings = Column(JSON, nullable=True)
-    
+
     # Relationships
     project = relationship("Project", back_populates="episodes")
-    
+
     def __repr__(self):
         return f"<Episode(id={self.id}, number={self.number}, title={self.title})>"
 
 
 class Character(Base, TimestampMixin):
     """Character model for advanced profiling and consistency."""
-    
+
     __tablename__ = "video_editor_characters"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
-    
+    project_id = Column(
+        String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True
+    )
+
     name = Column(String(255), nullable=False)
-    role = Column(String(50), default="supporting")  # protagonist, antagonist, supporting, etc.
+    role = Column(
+        String(50), default="supporting"
+    )  # protagonist, antagonist, supporting, etc.
     archetype = Column(String(100), nullable=True)  # rival, mentor, etc.
-    
+
     # Narrative depth
     goal = Column(Text, nullable=True)
     flaw_sympathy = Column(Text, nullable=True)
     daily_details = Column(JSON, nullable=True)  # habits, diet, etc.
-    
+
     # Profile data
     personality = Column(JSON, nullable=True)
     appearance = Column(JSON, nullable=True)
     voice_profile = Column(JSON, nullable=True)
-    
+
     # AI/Consistency tracking
     ai_coherence_data = Column(JSON, nullable=True)
     reference_images = Column(JSON, nullable=True)  # List of image paths
-    
+
     # Relationships
     project = relationship("Project", back_populates="characters")
-    
+
     def __repr__(self):
         return f"<Character(id={self.id}, name={self.name}, role={self.role})>"
 
 
 class Moodboard(Base, TimestampMixin):
     """Moodboard model for visual consistency."""
-    
+
     __tablename__ = "video_editor_moodboards"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
-    project_id = Column(String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True)
-    
+    project_id = Column(
+        String(36), ForeignKey("video_editor_projects.id"), nullable=False, index=True
+    )
+
     name = Column(String(255), default="Vibe Board")
     vision_description = Column(Text, nullable=True)
     references = Column(JSON, nullable=True)  # List of references {url, type, note}
-    
+
     # Style metadata
     art_style = Column(String(255), nullable=True)
     color_palette = Column(JSON, nullable=True)
-    
+
     # Relationships
     project = relationship("Project", back_populates="moodboards")
-    
+
     def __repr__(self):
         return f"<Moodboard(id={self.id}, project_id={self.project_id})>"
 
@@ -465,8 +515,10 @@ class Moodboard(Base, TimestampMixin):
 # Story Models - For AI Story Generation
 # =============================================================================
 
+
 class StoryStatus:
     """Story generation status constants."""
+
     GENERATING = "generating"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -477,32 +529,32 @@ class StoryStatus:
 class Story(Base, TimestampMixin):
     """
     Story model for AI-generated stories.
-    
+
     This model stores stories generated by the AI story generation service.
     """
-    
+
     __tablename__ = "stories"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
     title = Column(String(255), nullable=False)
     synopsis = Column(Text, nullable=True)
-    
+
     # Genre and mode (stored as strings, not enums for flexibility)
     genre = Column(String(50), default="DRAMA")
     mode = Column(String(50), default="FICTION")
     length = Column(String(20), default="medium")  # short, medium, long
-    
+
     # Story data stored as JSON
     characters = Column(JSON, nullable=True)
     locations = Column(JSON, nullable=True)
     scenes = Column(JSON, nullable=True)
-    
+
     # Critique and status
     critique = Column(Text, nullable=True)
     alignment_report = Column(JSON, nullable=True)
     status = Column(String(20), default=StoryStatus.GENERATING)
     version = Column(Integer, default=1)
-    
+
     def __repr__(self):
         return f"<Story(id={self.id}, title={self.title}, status={self.status})>"
 
@@ -510,27 +562,29 @@ class Story(Base, TimestampMixin):
 class StoryFeedback(Base, TimestampMixin):
     """
     Story Feedback model for storing user feedback on generated stories.
-    
+
     This model stores structured feedback that users provide about AI-generated stories.
     """
-    
+
     __tablename__ = "story_feedback"
-    
+
     id = Column(String(36), primary_key=True, default=generate_uuid)
     story_id = Column(String(36), ForeignKey("stories.id"), nullable=False, index=True)
-    
+
     # Feedback data
-    feedback_type = Column(String(50), nullable=False)  # quality, structure, characters, plot, etc.
+    feedback_type = Column(
+        String(50), nullable=False
+    )  # quality, structure, characters, plot, etc.
     rating = Column(Integer, nullable=False)  # 1-5
     comment = Column(Text, nullable=False)
     suggestions = Column(JSON, nullable=True)  # List of suggestions
-    
+
     # User info (optional)
     user_id = Column(String(36), nullable=True, index=True)
-    
+
     # Relationships
     story = relationship("Story", backref="feedback_entries")
-    
+
     def __repr__(self):
         return f"<StoryFeedback(id={self.id}, story_id={self.story_id}, rating={self.rating})>"
 
@@ -538,6 +592,7 @@ class StoryFeedback(Base, TimestampMixin):
 # =============================================================================
 # Database Setup Functions
 # =============================================================================
+
 
 def create_tables(engine):
     """Create all tables in the database."""
@@ -567,23 +622,23 @@ async def drop_tables_async(engine):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    
+
     # PostgreSQL connection - Lecture depuis variable d'environnement
     # =============================================================================
     DATABASE_URL = os.getenv("DATABASE_URL")
-    
+
     if not DATABASE_URL:
         raise ValueError(
             "DATABASE_URL environment variable is not set. "
             "Please set DATABASE_URL to connect to PostgreSQL."
         )
-    
+
     engine = create_engine(DATABASE_URL)
-    
+
     # Create tables
     create_tables(engine)
     print("Database tables created successfully!")
-    
+
     # Print table info
     for table in Base.metadata.tables.values():
         print(f"\n{table.name}:")

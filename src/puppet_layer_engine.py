@@ -11,17 +11,13 @@ This module has been refactored into smaller components:
 - utils.py: Utility calculation methods
 """
 
-import json
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Any, Tuple
-import hashlib
-
 from .puppet.core import PuppetLayerEngineCore
 from .puppet.generators import PuppetLayerGenerators
 from .puppet.metadata import PuppetLayerMetadata
 from .puppet.utils import PuppetLayerUtils
 
 
-class PuppetLayerEngine(PuppetLayerEngineCore, PuppetLayerGenerators, PuppetLayerMetadata, PuppetLayerUtils):
+class PuppetLayerEngine(
+    PuppetLayerEngineCore, PuppetLayerGenerators, PuppetLayerMetadata, PuppetLayerUtils
+):
     """Handles puppet rig generation and layer system creation."""

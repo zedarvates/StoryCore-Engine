@@ -3,7 +3,7 @@
  * Video preview with playback controls
  */
 
-import React, { useRef, useEffect, useCallback, forwardRef } from 'react';
+import React, { useRef, useEffect, _useCallback, forwardRef } from 'react';
 import './PreviewPlayer.css';
 
 interface PreviewPlayerProps {
@@ -55,7 +55,7 @@ export const PreviewPlayer = forwardRef<HTMLVideoElement, PreviewPlayerProps>(
       }
     }, [currentTime, combinedRef]);
 
-    const formatTime = (seconds: number) => {
+    const _formatTime = (seconds: number) => {
       const mins = Math.floor(seconds / 60);
       const secs = Math.floor(seconds % 60);
       return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;

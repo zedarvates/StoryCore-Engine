@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Scissors, Zap, RotateCcw, ChevronRight } from 'lucide-react';
+import React, { useState, useRef, _useEffect } from 'react';
+import { Play, _Pause, _SkipBack, _SkipForward, _Scissors, _Zap, _RotateCcw, _ChevronRight } from 'lucide-react';
 import './TransitionLibrary.css';
 
 interface Transition {

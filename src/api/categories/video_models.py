@@ -6,12 +6,12 @@ This module defines data models for video processing endpoints.
 
 from dataclasses import dataclass, field
 from typing import Dict, Any, Optional, List
-from datetime import datetime
 
 
 @dataclass
 class VideoShot:
     """Represents a video shot for assembly."""
+
     shot_id: str
     video_path: str
     start_time_seconds: float = 0.0
@@ -23,6 +23,7 @@ class VideoShot:
 @dataclass
 class VideoAssembleRequest:
     """Request to assemble video from shots."""
+
     project_name: str
     shots: List[VideoShot]
     output_path: str
@@ -36,6 +37,7 @@ class VideoAssembleRequest:
 @dataclass
 class VideoAssembleResult:
     """Result of video assembly."""
+
     video_path: str
     project_name: str
     total_shots: int
@@ -51,6 +53,7 @@ class VideoAssembleResult:
 @dataclass
 class VideoTransition:
     """Represents a video transition."""
+
     transition_type: str  # "fade", "dissolve", "wipe", "cut"
     duration_seconds: float
     parameters: Dict[str, Any] = field(default_factory=dict)
@@ -59,6 +62,7 @@ class VideoTransition:
 @dataclass
 class TransitionAddRequest:
     """Request to add transition between shots."""
+
     video_path: str
     shot_index: int  # Index of shot after which to add transition
     transition: VideoTransition
@@ -69,6 +73,7 @@ class TransitionAddRequest:
 @dataclass
 class TransitionAddResult:
     """Result of adding transition."""
+
     video_path: str
     original_path: str
     shot_index: int
@@ -82,7 +87,10 @@ class TransitionAddResult:
 @dataclass
 class VideoEffect:
     """Represents a video effect."""
-    effect_type: str  # "color_grade", "blur", "sharpen", "stabilize", "speed", "reverse"
+
+    effect_type: (
+        str  # "color_grade", "blur", "sharpen", "stabilize", "speed", "reverse"
+    )
     parameters: Dict[str, Any] = field(default_factory=dict)
     start_time_seconds: Optional[float] = None
     end_time_seconds: Optional[float] = None
@@ -91,6 +99,7 @@ class VideoEffect:
 @dataclass
 class EffectsApplyRequest:
     """Request to apply video effects."""
+
     video_path: str
     effects: List[VideoEffect]
     output_path: Optional[str] = None
@@ -100,6 +109,7 @@ class EffectsApplyRequest:
 @dataclass
 class EffectsApplyResult:
     """Result of applying effects."""
+
     video_path: str
     original_path: str
     effects_applied: int
@@ -111,6 +121,7 @@ class EffectsApplyResult:
 @dataclass
 class VideoRenderRequest:
     """Request to render final video."""
+
     project_name: str
     video_path: str
     output_path: str
@@ -128,6 +139,7 @@ class VideoRenderRequest:
 @dataclass
 class VideoRenderResult:
     """Result of video rendering."""
+
     video_path: str
     project_name: str
     duration_seconds: float
@@ -145,6 +157,7 @@ class VideoRenderResult:
 @dataclass
 class VideoPreviewRequest:
     """Request to generate video preview."""
+
     video_path: str
     output_path: Optional[str] = None
     resolution: str = "640x360"
@@ -157,6 +170,7 @@ class VideoPreviewRequest:
 @dataclass
 class VideoPreviewResult:
     """Result of preview generation."""
+
     preview_path: str
     original_path: str
     duration_seconds: float

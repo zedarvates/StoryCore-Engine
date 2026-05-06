@@ -2,6 +2,8 @@
  * Test Suite: Draft Storage Service
  * Tests the DraftStorageService for production wizards
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { DraftStorageService, DraftMetadata } from '../draftStorage';
@@ -197,7 +199,7 @@ describe('DraftStorageService', () => {
     });
   });
 
-  describe('List Drafts', () => {
+  describe('_List Drafts', () => {
     it('should list drafts with metadata', async () => {
       const mockDrafts = [
         {
@@ -334,12 +336,12 @@ describe('DraftStorageService', () => {
   describe('Fallback to localStorage', () => {
     beforeEach(() => {
       // Remove electron mock to test fallback
-      delete (window as any).electron;
+      delete (window as LegacyAny).electron;
     });
 
     afterEach(() => {
       // Restore electron mock
-      (window as any).electron = electronMock;
+      (window as LegacyAny).electron = electronMock;
     });
 
     it('should use localStorage when Electron is not available', async () => {

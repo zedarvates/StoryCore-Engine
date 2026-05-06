@@ -127,7 +127,7 @@ export function useAnimatedSprite(
   const animationRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
   const frameTimeRef = useRef<number>(0);
-  const currentSpeedRef = useRef<number>(speed);
+  const _currentSpeedRef = useRef<number>(speed);
 
   // ==========================================================================
   // Sprite Management
@@ -199,7 +199,7 @@ export function useAnimatedSprite(
     setIsPlaying(true);
   }, []);
 
-  const setSpeed = useCallback((newSpeed: number) => {
+  const setSpeed = useCallback((_newSpeed: number) => {
     // Speed is applied in the animation loop
   }, []);
 

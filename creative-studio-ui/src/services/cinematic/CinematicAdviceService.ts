@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { Project, Character } from '@/types';
 
 export interface CinematicAdvice {
@@ -269,7 +270,7 @@ export class CinematicAdviceService {
      */
     public static getAudioVisualAdvice(
         segments: ShotSegment[],
-        tracks: any[] // Keeping any for now to avoid circular or missing imports from types, but properly handled
+        tracks: LegacyAny[] // Keeping any for now to avoid circular or missing imports from types, but properly handled
     ): CinematicAdvice[] {
         const advice: CinematicAdvice[] = [];
         

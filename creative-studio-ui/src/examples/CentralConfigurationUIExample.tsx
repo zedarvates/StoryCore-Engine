@@ -10,7 +10,7 @@ import { CentralConfigurationUI } from '../components';
 
 export function CentralConfigurationUIExample() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentProject, setCurrentProject] = useState({
+  const [currentProject, _setCurrentProject] = useState({
     id: 'demo-project-123',
     name: 'My Awesome Project',
   });

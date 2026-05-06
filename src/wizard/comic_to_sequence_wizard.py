@@ -7,17 +7,16 @@ storyboard generation for video production.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 from enum import Enum
 import json
-import re
 from pathlib import Path
 from datetime import datetime
-import asyncio
 
 
 class ComicStyle(Enum):
     """Comic art styles supported by the wizard"""
+
     AMERICAN_COMICS = "american_comics"
     MANGA = "manga"
     EUROPEAN_COMICS = "european_comics"
@@ -27,6 +26,7 @@ class ComicStyle(Enum):
 
 class PanelLayout(Enum):
     """Panel layout types"""
+
     SINGLE = "single"
     GRID_2X2 = "grid_2x2"
     GRID_3X3 = "grid_3x3"
@@ -38,6 +38,7 @@ class PanelLayout(Enum):
 
 class CameraAngle(Enum):
     """Camera angles detected in panels"""
+
     EXTREME_WIDE_SHOT = "extreme_wide_shot"
     WIDE_SHOT = "wide_shot"
     MEDIUM_SHOT = "medium_shot"
@@ -51,6 +52,7 @@ class CameraAngle(Enum):
 
 class MoodEmotion(Enum):
     """Mood and emotions detected in panels"""
+
     NEUTRAL = "neutral"
     HAPPY = "happy"
     SAD = "sad"
@@ -66,6 +68,7 @@ class MoodEmotion(Enum):
 @dataclass
 class ComicPanel:
     """A single comic panel"""
+
     panel_number: int
     content_description: str
     characters_present: List[str] = field(default_factory=list)
@@ -80,6 +83,7 @@ class ComicPanel:
 @dataclass
 class ComicSequence:
     """A complete comic sequence/page"""
+
     comic_title: str
     page_number: int
     comic_style: ComicStyle
@@ -94,6 +98,7 @@ class ComicSequence:
 @dataclass
 class CinematicShot:
     """A cinematic shot derived from a comic panel"""
+
     shot_id: str
     panel_source: int  # panel number
     shot_type: str  # WS, MS, CU, etc.
@@ -110,6 +115,7 @@ class CinematicShot:
 @dataclass
 class ComicTransformationResult:
     """Complete transformation result"""
+
     result_id: str
     comic_sequence: ComicSequence
     cinematic_shots: List[CinematicShot] = field(default_factory=list)
@@ -138,9 +144,13 @@ class ComicToSequenceWizard:
         self.vision_engine = vision_engine
         self.transformation_result: Optional[ComicTransformationResult] = None
 
-    async def transform_comic_to_sequence(self, image_path: Path, title: str = "",
-                                        page_number: int = 1,
-                                        comic_style: ComicStyle = ComicStyle.AMERICAN_COMICS) -> ComicTransformationResult:
+    async def transform_comic_to_sequence(
+        self,
+        image_path: Path,
+        title: str = "",
+        page_number: int = 1,
+        comic_style: ComicStyle = ComicStyle.AMERICAN_COMICS,
+    ) -> ComicTransformationResult:
         """
         Transform a comic panel image into a cinematic sequence
 
@@ -169,7 +179,9 @@ class ComicToSequenceWizard:
         print(f"📄 Page: {page_number}")
 
         # Analyze comic image
-        comic_sequence = await self._analyze_comic_image(image_path, title, page_number, comic_style)
+        comic_sequence = await self._analyze_comic_image(
+            image_path, title, page_number, comic_style
+        )
 
         # Generate cinematic shots
         cinematic_shots = await self._generate_cinematic_shots(comic_sequence)
@@ -186,11 +198,19 @@ class ComicToSequenceWizard:
             comic_sequence=comic_sequence,
             cinematic_shots=cinematic_shots,
             storyboard_panels=storyboard_panels,
-            character_count=len(set(char for panel in comic_sequence.panels for char in panel.characters_present)),
+            character_count=len(
+                set(
+                    char
+                    for panel in comic_sequence.panels
+                    for char in panel.characters_present
+                )
+            ),
             panel_count=len(comic_sequence.panels),
-            confidence_score=self._calculate_overall_confidence(comic_sequence, cinematic_shots),
+            confidence_score=self._calculate_overall_confidence(
+                comic_sequence, cinematic_shots
+            ),
             processing_time=processing_time,
-            creation_timestamp=datetime.utcnow().isoformat() + "Z"
+            creation_timestamp=datetime.utcnow().isoformat() + "Z",
         )
 
         self.transformation_result = result
@@ -205,14 +225,15 @@ class ComicToSequenceWizard:
 
         return result
 
-    async def _analyze_comic_image(self, image_path: Path, title: str, page_number: int,
-                                 comic_style: ComicStyle) -> ComicSequence:
+    async def _analyze_comic_image(
+        self, image_path: Path, title: str, page_number: int, comic_style: ComicStyle
+    ) -> ComicSequence:
         """Analyze the comic image and extract panel information"""
         sequence = ComicSequence(
             comic_title=title or "Untitled Comic",
             page_number=page_number,
             comic_style=comic_style,
-            layout_type=PanelLayout.SINGLE  # Default
+            layout_type=PanelLayout.SINGLE,  # Default
         )
 
         # Detect panels (simplified - in real implementation would use computer vision)
@@ -232,7 +253,9 @@ class ComicToSequenceWizard:
 
         return sequence
 
-    def _detect_panels_in_image(self, image_path: Path, comic_style: ComicStyle) -> List[Dict[str, Any]]:
+    def _detect_panels_in_image(
+        self, image_path: Path, comic_style: ComicStyle
+    ) -> List[Dict[str, Any]]:
         """Detect individual panels in the comic image"""
         # Simplified panel detection - in real implementation would use OpenCV/contour detection
         # For now, assume a standard 4-panel layout based on style
@@ -245,7 +268,7 @@ class ComicToSequenceWizard:
                 {"panel_number": 1, "x": 0, "y": 0, "width": 0.5, "height": 0.5},
                 {"panel_number": 2, "x": 0.5, "y": 0, "width": 0.5, "height": 0.5},
                 {"panel_number": 3, "x": 0, "y": 0.5, "width": 0.5, "height": 0.5},
-                {"panel_number": 4, "x": 0.5, "y": 0.5, "width": 0.5, "height": 0.5}
+                {"panel_number": 4, "x": 0.5, "y": 0.5, "width": 0.5, "height": 0.5},
             ]
         elif comic_style == ComicStyle.MANGA:
             # Typical manga layout (right-to-left, vertical)
@@ -253,7 +276,7 @@ class ComicToSequenceWizard:
                 {"panel_number": 1, "x": 0, "y": 0, "width": 1, "height": 0.3},
                 {"panel_number": 2, "x": 0, "y": 0.3, "width": 0.5, "height": 0.4},
                 {"panel_number": 3, "x": 0.5, "y": 0.3, "width": 0.5, "height": 0.4},
-                {"panel_number": 4, "x": 0, "y": 0.7, "width": 1, "height": 0.3}
+                {"panel_number": 4, "x": 0, "y": 0.7, "width": 1, "height": 0.3},
             ]
         else:
             # Default single panel
@@ -261,7 +284,9 @@ class ComicToSequenceWizard:
 
         return panels
 
-    async def _analyze_panel(self, panel_data: Dict[str, Any], comic_style: ComicStyle) -> ComicPanel:
+    async def _analyze_panel(
+        self, panel_data: Dict[str, Any], comic_style: ComicStyle
+    ) -> ComicPanel:
         """Analyze a single panel for content, characters, etc."""
         panel_number = panel_data["panel_number"]
 
@@ -272,11 +297,15 @@ class ComicToSequenceWizard:
 
         # Generate content description based on position and style
         if panel_number == 1:
-            panel.content_description = "Opening panel establishing the scene and main characters"
+            panel.content_description = (
+                "Opening panel establishing the scene and main characters"
+            )
             panel.camera_angle = CameraAngle.WIDE_SHOT
             panel.mood_emotion = MoodEmotion.NEUTRAL
         elif panel_number == 2:
-            panel.content_description = "Development of the scene with character interaction"
+            panel.content_description = (
+                "Development of the scene with character interaction"
+            )
             panel.camera_angle = CameraAngle.MEDIUM_SHOT
             panel.mood_emotion = MoodEmotion.DRAMATIC
         elif panel_number == 3:
@@ -348,7 +377,7 @@ class ComicToSequenceWizard:
             "mystery": ["mystery", "secret", "unknown", "investigation"],
             "romance": ["love", "romance", "heart", "relationship"],
             "drama": ["drama", "emotional", "conflict", "tension"],
-            "comedy": ["funny", "comedy", "laugh", "humor"]
+            "comedy": ["funny", "comedy", "laugh", "humor"],
         }
 
         for theme, keywords in theme_keywords.items():
@@ -370,7 +399,9 @@ class ComicToSequenceWizard:
         """Generate a summary of the entire page"""
         return f"A {sequence.comic_style.value.replace('_', ' ')} page with {len(sequence.panels)} panels showing {sequence.story_progression}."
 
-    async def _generate_cinematic_shots(self, comic_sequence: ComicSequence) -> List[CinematicShot]:
+    async def _generate_cinematic_shots(
+        self, comic_sequence: ComicSequence
+    ) -> List[CinematicShot]:
         """Generate cinematic shots from the analyzed comic panels"""
         shots = []
 
@@ -385,7 +416,7 @@ class ComicToSequenceWizard:
                 camera_angle=panel.camera_angle or CameraAngle.MEDIUM_SHOT,
                 dialogue=" ".join(panel.speech_bubbles),
                 sound_effects=panel.sound_effects,
-                visual_notes=f"Panel {panel.panel_number} adaptation"
+                visual_notes=f"Panel {panel.panel_number} adaptation",
             )
 
             # Add transition information
@@ -410,7 +441,7 @@ class ComicToSequenceWizard:
             CameraAngle.BIRD_EYE: "BS",
             CameraAngle.WORMS_EYE: "LS",
             CameraAngle.DUTCH_ANGLE: "DA",
-            CameraAngle.OVER_SHOULDER: "OS"
+            CameraAngle.OVER_SHOULDER: "OS",
         }
 
         return angle_mapping.get(camera_angle, "MS")
@@ -432,7 +463,9 @@ class ComicToSequenceWizard:
 
         return base_duration
 
-    def _create_storyboard_panels(self, cinematic_shots: List[CinematicShot]) -> List[Dict[str, Any]]:
+    def _create_storyboard_panels(
+        self, cinematic_shots: List[CinematicShot]
+    ) -> List[Dict[str, Any]]:
         """Create storyboard panels from cinematic shots"""
         storyboard = []
 
@@ -445,19 +478,23 @@ class ComicToSequenceWizard:
                 "duration": shot.duration_seconds,
                 "dialogue": shot.dialogue,
                 "sound_effects": shot.sound_effects,
-                "notes": shot.visual_notes
+                "notes": shot.visual_notes,
             }
             storyboard.append(panel_data)
 
         return storyboard
 
-    def _calculate_overall_confidence(self, sequence: ComicSequence, shots: List[CinematicShot]) -> float:
+    def _calculate_overall_confidence(
+        self, sequence: ComicSequence, shots: List[CinematicShot]
+    ) -> float:
         """Calculate overall confidence score for the transformation"""
         if not sequence.panels:
             return 0.0
 
         # Average panel confidence
-        panel_confidence = sum(panel.confidence_score for panel in sequence.panels) / len(sequence.panels)
+        panel_confidence = sum(
+            panel.confidence_score for panel in sequence.panels
+        ) / len(sequence.panels)
 
         # Shot generation confidence (placeholder)
         shot_confidence = 0.85
@@ -465,7 +502,9 @@ class ComicToSequenceWizard:
         # Overall confidence
         return (panel_confidence + shot_confidence) / 2 * 10  # Scale to 0-10
 
-    def _save_transformation_results(self, output_path: Path, result: ComicTransformationResult):
+    def _save_transformation_results(
+        self, output_path: Path, result: ComicTransformationResult
+    ):
         """Save transformation results to files"""
         # Save main result file
         result_data = {
@@ -486,14 +525,19 @@ class ComicToSequenceWizard:
                             "panel_number": panel.panel_number,
                             "content_description": panel.content_description,
                             "characters_present": panel.characters_present,
-                            "camera_angle": panel.camera_angle.value if panel.camera_angle else None,
-                            "mood_emotion": panel.mood_emotion.value if panel.mood_emotion else None,
+                            "camera_angle": panel.camera_angle.value
+                            if panel.camera_angle
+                            else None,
+                            "mood_emotion": panel.mood_emotion.value
+                            if panel.mood_emotion
+                            else None,
                             "speech_bubbles": panel.speech_bubbles,
                             "sound_effects": panel.sound_effects,
                             "panel_notes": panel.panel_notes,
-                            "confidence_score": panel.confidence_score
-                        } for panel in result.comic_sequence.panels
-                    ]
+                            "confidence_score": panel.confidence_score,
+                        }
+                        for panel in result.comic_sequence.panels
+                    ],
                 },
                 "cinematic_shots": [
                     {
@@ -507,25 +551,26 @@ class ComicToSequenceWizard:
                         "dialogue": shot.dialogue,
                         "sound_effects": shot.sound_effects,
                         "visual_notes": shot.visual_notes,
-                        "transition_from_previous": shot.transition_from_previous
-                    } for shot in result.cinematic_shots
+                        "transition_from_previous": shot.transition_from_previous,
+                    }
+                    for shot in result.cinematic_shots
                 ],
                 "storyboard_panels": result.storyboard_panels,
                 "character_count": result.character_count,
                 "panel_count": result.panel_count,
                 "confidence_score": result.confidence_score,
                 "processing_time": result.processing_time,
-                "generated_assets": result.generated_assets
+                "generated_assets": result.generated_assets,
             }
         }
 
         result_file = output_path / "comic_to_sequence_result.json"
-        with open(result_file, 'w') as f:
+        with open(result_file, "w") as f:
             json.dump(result_data, f, indent=2)
 
         # Save storyboard separately
         storyboard_file = output_path / "comic_derived_storyboard.json"
-        with open(storyboard_file, 'w') as f:
+        with open(storyboard_file, "w") as f:
             json.dump({"storyboard": result.storyboard_panels}, f, indent=2)
 
         # Save shot planning for video production
@@ -543,23 +588,24 @@ class ComicToSequenceWizard:
                         "timing": {"duration_seconds": shot.duration_seconds},
                         "camera": {
                             "angle": shot.camera_angle.value,
-                            "movement": {"type": shot.movement}
+                            "movement": {"type": shot.movement},
                         },
                         "purpose": "narrative",
-                        "derived_from_panel": shot.panel_source
-                    } for shot in result.cinematic_shots
-                ]
+                        "derived_from_panel": shot.panel_source,
+                    }
+                    for shot in result.cinematic_shots
+                ],
             }
         }
 
-        with open(shot_planning_file, 'w') as f:
+        with open(shot_planning_file, "w") as f:
             json.dump(shot_planning_data, f, indent=2)
 
         # Update result with generated assets
         result.generated_assets = [
             str(result_file.name),
             str(storyboard_file.name),
-            str(shot_planning_file.name)
+            str(shot_planning_file.name),
         ]
 
 
@@ -569,8 +615,12 @@ def create_comic_to_sequence_wizard(vision_engine=None) -> ComicToSequenceWizard
     return ComicToSequenceWizard(vision_engine)
 
 
-async def transform_comic_page(image_path: Path, title: str = "", page_number: int = 1,
-                             comic_style: str = "american_comics") -> ComicTransformationResult:
+async def transform_comic_page(
+    image_path: Path,
+    title: str = "",
+    page_number: int = 1,
+    comic_style: str = "american_comics",
+) -> ComicTransformationResult:
     """
     Convenience function to transform a comic page
 
@@ -584,16 +634,18 @@ async def transform_comic_page(image_path: Path, title: str = "", page_number: i
         Complete transformation result
     """
     style_map = {
-        'american_comics': ComicStyle.AMERICAN_COMICS,
-        'manga': ComicStyle.MANGA,
-        'european_comics': ComicStyle.EUROPEAN_COMICS,
-        'graphic_novel': ComicStyle.GRAPHIC_NOVEL,
-        'web_comics': ComicStyle.WEB_COMICS
+        "american_comics": ComicStyle.AMERICAN_COMICS,
+        "manga": ComicStyle.MANGA,
+        "european_comics": ComicStyle.EUROPEAN_COMICS,
+        "graphic_novel": ComicStyle.GRAPHIC_NOVEL,
+        "web_comics": ComicStyle.WEB_COMICS,
     }
 
     style = style_map.get(comic_style.lower(), ComicStyle.AMERICAN_COMICS)
     wizard = create_comic_to_sequence_wizard()
-    return await wizard.transform_comic_to_sequence(image_path, title, page_number, style)
+    return await wizard.transform_comic_to_sequence(
+        image_path, title, page_number, style
+    )
 
 
 def get_transformation_preview(image_path: Path) -> Dict[str, Any]:
@@ -620,5 +672,11 @@ def get_transformation_preview(image_path: Path) -> Dict[str, Any]:
         "file_size": file_size,
         "estimated_panels": estimated_panels,
         "estimated_processing_time": estimated_panels * 2,  # Rough estimate in seconds
-        "supported_styles": ["american_comics", "manga", "european_comics", "graphic_novel", "web_comics"]
+        "supported_styles": [
+            "american_comics",
+            "manga",
+            "european_comics",
+            "graphic_novel",
+            "web_comics",
+        ],
     }

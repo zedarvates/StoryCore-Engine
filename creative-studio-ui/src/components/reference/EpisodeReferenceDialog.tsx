@@ -36,15 +36,15 @@ import {
 import {
   History,
   Link,
-  LinkOff,
+  _LinkOff,
   Add,
   Delete,
   Search,
-  Visibility,
-  VisibilityOff,
+  _Visibility,
+  _VisibilityOff,
   Check,
   Close,
-  PlaylistAdd,
+  _PlaylistAdd,
 } from '@mui/icons-material';
 import type { PreviousEpisodeReference } from '../../types/reference';
 
@@ -86,14 +86,14 @@ interface ShotOption {
 export const EpisodeReferenceDialog: React.FC<EpisodeReferenceDialogProps> = ({
   open,
   onClose,
-  currentProjectId,
-  currentEpisodeId,
-  currentSequenceId,
+  _currentProjectId,
+  _currentEpisodeId,
+  _currentSequenceId,
   onReferenceAdded,
   onReferenceRemoved,
 }: EpisodeReferenceDialogProps) => {
   const [tabValue, setTabValue] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, _setSearchQuery] = useState('');
   const [selectedEpisode, setSelectedEpisode] = useState<EpisodeOption | null>(null);
   const [selectedShots, setSelectedShots] = useState<ShotOption[]>([]);
   const [continuityNotes, setContinuityNotes] = useState('');

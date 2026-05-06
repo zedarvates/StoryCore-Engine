@@ -8,21 +8,22 @@ import json
 from datetime import datetime
 import os
 
+
 def generate_final_report():
     # Chargement des données si disponibles
-    global_settings = {}
-    narrative_sequences = {}
     try:
         with open("data/llm_configs/global_settings.json", "r", encoding="utf-8") as f:
-            global_settings = json.load(f)
+            json.load(f)
     except Exception:
-        global_settings = {}
+        pass
 
     try:
-        with open("data/project_sequences/narrative_sequences.json", "r", encoding="utf-8") as f:
-            narrative_sequences = json.load(f)
+        with open(
+            "data/project_sequences/narrative_sequences.json", "r", encoding="utf-8"
+        ) as f:
+            json.load(f)
     except Exception:
-        narrative_sequences = {}
+        pass
 
     # Construction d'un rapport synthétique et robuste
     lines = [
@@ -59,7 +60,10 @@ def generate_final_report():
         f.write(report)
     with open("reports/mvp_final_report.md", "w", encoding="utf-8") as f_md:
         f_md.write(report)
-    print("Rapport final généré: final_llm_validation_report.txt et reports/mvp_final_report.md")
+    print(
+        "Rapport final généré: final_llm_validation_report.txt et reports/mvp_final_report.md"
+    )
+
 
 if __name__ == "__main__":
     generate_final_report()

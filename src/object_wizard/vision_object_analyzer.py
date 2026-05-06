@@ -18,13 +18,14 @@ import os
 from dataclasses import dataclass, field
 from enum import Enum
 from io import BytesIO
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional
 
 import numpy as np
 
 # Try to import requests for API calls
 try:
     import requests
+
     REQUESTS_AVAILABLE = True
 except ImportError:
     REQUESTS_AVAILABLE = False
@@ -35,6 +36,7 @@ logger = logging.getLogger(__name__)
 
 class VisionProvider(str, Enum):
     """Available vision model providers"""
+
     OLLAMA = "ollama"
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
@@ -42,6 +44,7 @@ class VisionProvider(str, Enum):
 
 class ObjectCategory(str, Enum):
     """Object categories"""
+
     FURNITURE = "furniture"
     WEAPON = "weapon"
     TOOL = "tool"
@@ -66,6 +69,7 @@ class ObjectCategory(str, Enum):
 
 class MaterialType(str, Enum):
     """Material types"""
+
     WOOD = "wood"
     METAL = "metal"
     STONE = "stone"
@@ -88,11 +92,12 @@ class MaterialType(str, Enum):
 @dataclass
 class ObjectAttributes:
     """Extracted object attributes"""
+
     # Basic identification
     object_type: Optional[str] = None
     category: Optional[str] = None
     sub_category: Optional[str] = None
-    
+
     # Physical properties
     primary_material: Optional[str] = None
     secondary_materials: List[str] = field(default_factory=list)
@@ -100,39 +105,39 @@ class ObjectAttributes:
     color_secondary: List[str] = field(default_factory=list)
     texture: Optional[str] = None
     finish: Optional[str] = None  # matte, glossy, rough, etc.
-    
+
     # Dimensions
     size_category: Optional[str] = None  # tiny, small, medium, large, huge
     shape: Optional[str] = None
     weight_estimate: Optional[str] = None
-    
+
     # Style and era
     style: Optional[str] = None
     era_period: Optional[str] = None
     cultural_origin: Optional[str] = None
     craftsmanship: Optional[str] = None
-    
+
     # Condition and age
     condition: Optional[str] = None
     age_appearance: Optional[str] = None  # new, worn, antique, ancient
     damage: List[str] = field(default_factory=list)
-    
+
     # Details
     decorative_elements: List[str] = field(default_factory=list)
     functional_parts: List[str] = field(default_factory=list)
     inscriptions: Optional[str] = None
     markings: List[str] = field(default_factory=list)
-    
+
     # Usage context
     primary_use: Optional[str] = None
     secondary_uses: List[str] = field(default_factory=list)
     setting_context: Optional[str] = None  # indoor, outdoor, both
-    
+
     # Special properties
     magical_properties: List[str] = field(default_factory=list)
     technological_features: List[str] = field(default_factory=list)
     unique_features: List[str] = field(default_factory=list)
-    
+
     # Narrative
     story_potential: List[str] = field(default_factory=list)
     emotional_resonance: Optional[str] = None
@@ -142,6 +147,7 @@ class ObjectAttributes:
 @dataclass
 class ObjectAnalyzerConfig:
     """Configuration for object analyzer"""
+
     provider: VisionProvider = VisionProvider.OLLAMA
     model: Optional[str] = None
     ollama_url: str = "http://localhost:11434"
@@ -150,7 +156,7 @@ class ObjectAnalyzerConfig:
     max_tokens: int = 2048
     temperature: float = 0.3
     timeout: int = 120
-    
+
     # Analysis options
     identify_materials: bool = True
     estimate_size: bool = True
@@ -160,6 +166,7 @@ class ObjectAnalyzerConfig:
 @dataclass
 class ObjectAnalysisResult:
     """Result of object analysis"""
+
     success: bool
     description: str = ""
     short_description: str = ""
@@ -177,43 +184,45 @@ class VisionObjectAnalyzer:
     """
     Analyzes images to extract object information using vision models.
     """
-    
+
     def __init__(self, config: Optional[ObjectAnalyzerConfig] = None):
         """Initialize object analyzer"""
         self.config = config or ObjectAnalyzerConfig()
-        
+
         # Set API keys from environment if not provided
         if self.config.openai_api_key is None:
             self.config.openai_api_key = os.environ.get("OPENAI_API_KEY")
         if self.config.anthropic_api_key is None:
             self.config.anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
-        
-        logger.info(f"Object analyzer initialized with provider: {self.config.provider.value}")
-    
+
+        logger.info(
+            f"Object analyzer initialized with provider: {self.config.provider.value}"
+        )
+
     async def analyze_image(
         self,
         image: np.ndarray,
         genre: Optional[str] = None,
         style: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
     ) -> ObjectAnalysisResult:
         """Analyze an image to extract object information"""
-        
+
         import time
+
         start_time = time.time()
-        
+
         try:
             # Convert image to base64
             image_base64 = self._array_to_base64(image)
             if not image_base64:
                 return ObjectAnalysisResult(
-                    success=False,
-                    error_message="Failed to encode image"
+                    success=False, error_message="Failed to encode image"
                 )
-            
+
             # Build prompt
             prompt = self._build_analysis_prompt(genre, style, additional_context)
-            
+
             # Call vision model
             if self.config.provider == VisionProvider.OLLAMA:
                 response = await self._call_ollama(image_base64, prompt)
@@ -224,38 +233,34 @@ class VisionObjectAnalyzer:
             else:
                 return ObjectAnalysisResult(
                     success=False,
-                    error_message=f"Unsupported provider: {self.config.provider}"
+                    error_message=f"Unsupported provider: {self.config.provider}",
                 )
-            
+
             if response is None:
                 return ObjectAnalysisResult(
-                    success=False,
-                    error_message="No response from vision model"
+                    success=False, error_message="No response from vision model"
                 )
-            
+
             # Parse response
             result = self._parse_response(response, genre)
-            
+
             result.processing_time_ms = int((time.time() - start_time) * 1000)
             result.success = True
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Object analysis failed: {e}")
-            return ObjectAnalysisResult(
-                success=False,
-                error_message=str(e)
-            )
-    
+            return ObjectAnalysisResult(success=False, error_message=str(e))
+
     def _build_analysis_prompt(
         self,
         genre: Optional[str] = None,
         style: Optional[str] = None,
-        additional_context: Optional[str] = None
+        additional_context: Optional[str] = None,
     ) -> str:
         """Build analysis prompt for vision model"""
-        
+
         prompt = """Analyze this object/prop image in detail. Provide your analysis in the following JSON format:
 
 {
@@ -294,25 +299,25 @@ Be specific about materials, textures, and functional details."""
 
         if genre:
             prompt += f"\n\nConsider how this object could be adapted for a {genre} genre story."
-        
+
         if style:
             prompt += f"\n\nConsider the visual style: {style}."
-        
+
         if additional_context:
             prompt += f"\n\nAdditional context: {additional_context}"
-        
+
         return prompt
-    
+
     async def _call_ollama(self, image_base64: str, prompt: str) -> Optional[str]:
         """Call Ollama API"""
         if not REQUESTS_AVAILABLE:
             return None
-        
+
         model = self.config.model or "llava:13b"
-        
+
         try:
             loop = asyncio.get_event_loop()
-            
+
             def make_request():
                 return requests.post(
                     f"{self.config.ollama_url}/api/generate",
@@ -323,102 +328,121 @@ Be specific about materials, textures, and functional details."""
                         "stream": False,
                         "options": {
                             "num_predict": self.config.max_tokens,
-                            "temperature": self.config.temperature
-                        }
+                            "temperature": self.config.temperature,
+                        },
                     },
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
-            
+
             response = await loop.run_in_executor(None, make_request)
-            
+
             if response.status_code == 200:
                 return response.json().get("response", "")
             return None
-                
+
         except Exception as e:
             logger.error(f"Ollama API call failed: {e}")
             return None
-    
+
     async def _call_openai(self, image_base64: str, prompt: str) -> Optional[str]:
         """Call OpenAI GPT-4 Vision API"""
         if not REQUESTS_AVAILABLE or not self.config.openai_api_key:
             return None
-        
+
         try:
             loop = asyncio.get_event_loop()
-            
+
             def make_request():
                 return requests.post(
                     "https://api.openai.com/v1/chat/completions",
                     headers={
                         "Authorization": f"Bearer {self.config.openai_api_key}",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     json={
                         "model": "gpt-4-vision-preview",
-                        "messages": [{
-                            "role": "user",
-                            "content": [
-                                {"type": "text", "text": prompt},
-                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}", "detail": "high"}}
-                            ]
-                        }],
-                        "max_tokens": self.config.max_tokens
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt},
+                                    {
+                                        "type": "image_url",
+                                        "image_url": {
+                                            "url": f"data:image/jpeg;base64,{image_base64}",
+                                            "detail": "high",
+                                        },
+                                    },
+                                ],
+                            }
+                        ],
+                        "max_tokens": self.config.max_tokens,
                     },
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
-            
+
             response = await loop.run_in_executor(None, make_request)
-            
+
             if response.status_code == 200:
                 return response.json()["choices"][0]["message"]["content"]
             return None
-                
+
         except Exception as e:
             logger.error(f"OpenAI API call failed: {e}")
             return None
-    
+
     async def _call_anthropic(self, image_base64: str, prompt: str) -> Optional[str]:
         """Call Anthropic Claude Vision API"""
         if not REQUESTS_AVAILABLE or not self.config.anthropic_api_key:
             return None
-        
+
         try:
             loop = asyncio.get_event_loop()
-            
+
             def make_request():
                 return requests.post(
                     "https://api.anthropic.com/v1/messages",
                     headers={
                         "x-api-key": self.config.anthropic_api_key,
                         "anthropic-version": "2023-06-01",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
                     },
                     json={
                         "model": "claude-3-opus-20240229",
                         "max_tokens": self.config.max_tokens,
-                        "messages": [{
-                            "role": "user",
-                            "content": [
-                                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": image_base64}},
-                                {"type": "text", "text": prompt}
-                            ]
-                        }]
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": [
+                                    {
+                                        "type": "image",
+                                        "source": {
+                                            "type": "base64",
+                                            "media_type": "image/jpeg",
+                                            "data": image_base64,
+                                        },
+                                    },
+                                    {"type": "text", "text": prompt},
+                                ],
+                            }
+                        ],
                     },
-                    timeout=self.config.timeout
+                    timeout=self.config.timeout,
                 )
-            
+
             response = await loop.run_in_executor(None, make_request)
-            
+
             if response.status_code == 200:
                 return response.json()["content"][0]["text"]
             return None
-                
+
         except Exception as e:
             logger.error(f"Anthropic API call failed: {e}")
             return None
-    
-    def _parse_response(self, response: str, genre: Optional[str] = None) -> ObjectAnalysisResult:
+
+    def _parse_response(
+        self, response: str, genre: Optional[str] = None
+    ) -> ObjectAnalysisResult:
         """Parse vision model response"""
         try:
             # Extract JSON from response
@@ -427,7 +451,7 @@ Be specific about materials, textures, and functional details."""
                 data = json.loads(json_match)
             else:
                 data = json.loads(response)
-            
+
             # Build attributes
             attributes = ObjectAttributes(
                 object_type=data.get("object_type"),
@@ -454,9 +478,9 @@ Be specific about materials, textures, and functional details."""
                 unique_features=data.get("unique_features", []),
                 story_potential=data.get("story_potential", []),
                 emotional_resonance=data.get("emotional_resonance"),
-                symbolic_meaning=data.get("symbolic_meaning")
+                symbolic_meaning=data.get("symbolic_meaning"),
             )
-            
+
             return ObjectAnalysisResult(
                 success=True,
                 description=data.get("description", ""),
@@ -464,63 +488,60 @@ Be specific about materials, textures, and functional details."""
                 attributes=attributes,
                 suggested_name=data.get("suggested_name"),
                 suggested_tags=data.get("suggested_tags", []),
-                confidence=0.85
+                confidence=0.85,
             )
-            
+
         except json.JSONDecodeError:
             return ObjectAnalysisResult(
                 success=True,
                 description=response,
                 short_description=response[:200] if len(response) > 200 else response,
-                confidence=0.5
+                confidence=0.5,
             )
         except Exception as e:
-            return ObjectAnalysisResult(
-                success=False,
-                error_message=str(e)
-            )
-    
+            return ObjectAnalysisResult(success=False, error_message=str(e))
+
     def _extract_json(self, text: str) -> Optional[str]:
         """Extract JSON from text"""
         import re
-        
+
         patterns = [
-            r'```json\s*([\s\S]*?)\s*```',
-            r'```\s*([\s\S]*?)\s*```',
-            r'\{[\s\S]*\}'
+            r"```json\s*([\s\S]*?)\s*```",
+            r"```\s*([\s\S]*?)\s*```",
+            r"\{[\s\S]*\}",
         ]
-        
+
         for pattern in patterns:
             match = re.search(pattern, text)
             if match:
                 try:
-                    json_str = match.group(1) if '```' in pattern else match.group(0)
+                    json_str = match.group(1) if "```" in pattern else match.group(0)
                     json.loads(json_str)
                     return json_str
                 except json.JSONDecodeError:
                     continue
-        
+
         return None
-    
+
     def _array_to_base64(self, array: np.ndarray) -> Optional[str]:
         """Convert numpy array to base64 string"""
         try:
             from PIL import Image
-            
+
             if array.dtype != np.uint8:
                 array = (array * 255).astype(np.uint8)
-            
+
             if len(array.shape) == 3 and array.shape[2] == 3:
                 image = Image.fromarray(array)
             elif len(array.shape) == 3 and array.shape[2] == 4:
-                image = Image.fromarray(array, mode='RGBA')
+                image = Image.fromarray(array, mode="RGBA")
             else:
-                image = Image.fromarray(array, mode='L')
-            
+                image = Image.fromarray(array, mode="L")
+
             buffer = BytesIO()
             image.save(buffer, format="JPEG", quality=90)
-            return base64.b64encode(buffer.getvalue()).decode('utf-8')
-            
+            return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
         except Exception as e:
             logger.error(f"Failed to convert array to base64: {e}")
             return None
@@ -530,7 +551,9 @@ Be specific about materials, textures, and functional details."""
 _object_analyzer: Optional[VisionObjectAnalyzer] = None
 
 
-def get_object_analyzer(config: Optional[ObjectAnalyzerConfig] = None) -> VisionObjectAnalyzer:
+def get_object_analyzer(
+    config: Optional[ObjectAnalyzerConfig] = None,
+) -> VisionObjectAnalyzer:
     """Get singleton instance of object analyzer"""
     global _object_analyzer
     if _object_analyzer is None:

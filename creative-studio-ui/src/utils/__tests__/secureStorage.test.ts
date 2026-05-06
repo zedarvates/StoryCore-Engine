@@ -4,6 +4,8 @@
  * Validates encryption, decryption, and secure storage of credentials
  * Tests Requirements: 3.7, 10.1, 10.2, 10.3, 10.4, 10.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
@@ -51,24 +53,24 @@ beforeEach(() => {
   sessionStorage.clear();
 
   // Mock crypto API
-  global.crypto = mockCrypto as any;
+  global.crypto = mockCrypto as LegacyAny;
 
   // Mock crypto.subtle methods
   mockCrypto.subtle.generateKey.mockResolvedValue({
     type: 'secret',
     algorithm: { name: 'AES-GCM', length: 256 },
-  } as any);
+  } as LegacyAny);
 
   mockCrypto.subtle.importKey.mockResolvedValue({
     type: 'secret',
     algorithm: { name: 'AES-GCM', length: 256 },
-  } as any);
+  } as LegacyAny);
 
   mockCrypto.subtle.exportKey.mockResolvedValue({
     kty: 'oct',
     k: 'test-key',
     alg: 'A256GCM',
-  } as any);
+  } as LegacyAny);
 
   mockCrypto.subtle.encrypt.mockImplementation(async (algorithm, key, data) => {
     // Simple mock encryption: just return the data

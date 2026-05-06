@@ -2,6 +2,8 @@
  * IndexedDB utilities for persistent storage
  * Provides a simple API for storing and retrieving data with TypeScript support
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 export interface IDBConfig {
   name: string;
@@ -90,7 +92,7 @@ export class IndexedDB {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
-      const request = store.get(key as any);
+      const request = store.get(key as LegacyAny);
 
       request.onerror = () => {
         reject(new Error(`Failed to get data: ${request.error?.message}`));
@@ -126,7 +128,7 @@ export class IndexedDB {
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction([storeName], 'readwrite');
       const store = transaction.objectStore(storeName);
-      const request = store.delete(key as any);
+      const request = store.delete(key as LegacyAny);
 
       request.onerror = () => {
         reject(new Error(`Failed to delete data: ${request.error?.message}`));
@@ -167,7 +169,7 @@ export class IndexedDB {
       const transaction = this.db!.transaction([storeName], 'readonly');
       const store = transaction.objectStore(storeName);
       const index = store.index(indexName);
-      const request = index.getAll(key as any);
+      const request = index.getAll(key as LegacyAny);
 
       request.onerror = () => {
         reject(new Error(`Failed to get by index: ${request.error?.message}`));

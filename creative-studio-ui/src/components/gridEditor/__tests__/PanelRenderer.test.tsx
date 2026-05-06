@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { PanelRenderer } from '../PanelRenderer';
@@ -36,7 +37,7 @@ describe('PanelRenderer', () => {
       set font(_value: string) {},
       set textAlign(_value: string) {},
       set textBaseline(_value: string) {},
-    })) as any;
+    })) as LegacyAny;
   });
 
   describe('Empty Panel State', () => {
@@ -76,7 +77,7 @@ describe('PanelRenderer', () => {
         set font(_value: string) {},
         set textAlign(_value: string) {},
         set textBaseline(_value: string) {},
-      })) as any;
+      })) as LegacyAny;
 
       render(
         <PanelRenderer
@@ -286,7 +287,7 @@ describe('PanelRenderer', () => {
         set globalCompositeOperation(_value: string) {},
       };
 
-      HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext) as any;
+      HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext) as LegacyAny;
 
       render(
         <PanelRenderer
@@ -327,7 +328,7 @@ describe('PanelRenderer', () => {
         set lineWidth(_value: number) {},
       };
 
-      HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext) as any;
+      HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext) as LegacyAny;
 
       render(
         <PanelRenderer
@@ -360,7 +361,7 @@ describe('PanelRenderer', () => {
         set font(_value: string) {},
         set textAlign(_value: string) {},
         set textBaseline(_value: string) {},
-      })) as any;
+      })) as LegacyAny;
 
       render(
         <PanelRenderer
@@ -394,7 +395,7 @@ describe('PanelRenderer', () => {
         set font(_value: string) {},
         set textAlign(_value: string) {},
         set textBaseline(_value: string) {},
-      })) as any;
+      })) as LegacyAny;
 
       render(
         <PanelRenderer
@@ -455,7 +456,7 @@ describe('PanelRenderer', () => {
         set font(_value: string) {},
         set textAlign(_value: string) {},
         set textBaseline(_value: string) {},
-      })) as any;
+      })) as LegacyAny;
 
       render(
         <PanelRenderer

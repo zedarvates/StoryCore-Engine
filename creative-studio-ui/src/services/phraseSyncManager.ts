@@ -258,7 +258,7 @@ export class MockPhraseSyncManager extends PhraseSyncManager {
 
   async syncPhraseWithRecording(
     phrase: PhraseData,
-    recording: VoiceRecording
+    _recording: VoiceRecording
   ): Promise<SyncResult> {
     await this.wait(this.mockDelayMs);
 
@@ -295,7 +295,7 @@ export class MockPhraseSyncManager extends PhraseSyncManager {
  */
 class MockVoiceHttpClient extends VoiceHttpClient {
   async uploadVoiceRecording(
-    recording: VoiceRecording
+    _recording: VoiceRecording
   ): Promise<VoiceApiResponse<{ recordingId: string }>> {
     await this.wait(100);
 

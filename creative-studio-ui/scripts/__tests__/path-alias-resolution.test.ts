@@ -39,7 +39,7 @@ function cleanupTestDir(): void {
 /**
  * Helper: Check if a file has TypeScript-specific syntax
  */
-function hasTypeScriptSyntax(filePath: string): boolean {
+function _hasTypeScriptSyntax(filePath: string): boolean {
   if (!fs.existsSync(filePath)) {
     return false;
   }

@@ -6,6 +6,7 @@ This module provides functionality for inverting audio channels.
 
 import numpy as np
 
+
 class ChannelInverter:
     """Audio channel inverter for stereo signals."""
 
@@ -31,10 +32,10 @@ class ChannelInverter:
         if len(audio_data.shape) == 1:
             # Mono audio - invert phase
             return -audio_data
-        
+
         # For stereo audio - invert both channels
         inverted_audio = np.zeros_like(audio_data)
         inverted_audio[0] = -audio_data[0]
         inverted_audio[1] = -audio_data[1]
-        
+
         return inverted_audio

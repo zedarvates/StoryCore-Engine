@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import {
-    User,
+    _User,
     Camera,
     Sparkles,
     Download,
     RefreshCw,
     LayoutGrid,
     Maximize2,
-    Trash2,
+    _Trash2,
     CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';

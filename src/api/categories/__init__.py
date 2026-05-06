@@ -13,11 +13,11 @@ from .image import ImageCategoryHandler
 from .export_integration import ExportIntegrationCategoryHandler
 
 __all__ = [
-    'NarrationCategoryHandler',
-    'PipelineCategoryHandler',
-    'MemoryCategoryHandler',
-    'QANarrativeCategoryHandler',
-    'PromptCategoryHandler',
-    'ImageCategoryHandler',
-    'ExportIntegrationCategoryHandler',
+    "NarrationCategoryHandler",
+    "PipelineCategoryHandler",
+    "MemoryCategoryHandler",
+    "QANarrativeCategoryHandler",
+    "PromptCategoryHandler",
+    "ImageCategoryHandler",
+    "ExportIntegrationCategoryHandler",
 ]

@@ -13,7 +13,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { SUPPORTED_LANGUAGES, LanguageConfig } from '../types/language';
-import { initializeLanguage, saveLanguagePreference } from '../utils/languageDetection';
+import { _initializeLanguage, saveLanguagePreference } from '../utils/languageDetection';
 
 // ============================================================================
 // Translation Dictionary (Fallback when i18n is not available)
@@ -233,7 +233,7 @@ export function LanguageProvider({ children }: LanguageProviderProps): React.Rea
   });
 
   // Track if we've initialized
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [_isInitialized, setIsInitialized] = useState(false);
 
   /**
    * Initialize language on component mount

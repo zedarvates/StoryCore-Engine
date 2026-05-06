@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { EffectsPanel } from '../EffectsPanel';
@@ -41,7 +42,7 @@ describe('EffectsPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    vi.mocked(useStore).mockImplementation((selector: any) => {
+    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
       const state = {
         addEffect: mockAddEffect,
         updateEffect: mockUpdateEffect,

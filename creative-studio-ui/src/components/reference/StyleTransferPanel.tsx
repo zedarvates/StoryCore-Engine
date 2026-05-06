@@ -22,7 +22,7 @@ import {
   Save,
   Trash2,
   Eye,
-  Sliders,
+  _Sliders,
   Image,
   Layers,
   Sparkles,
@@ -33,10 +33,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  _Dialog,
+  _DialogContent,
+  _DialogHeader,
+  _DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -180,7 +180,7 @@ export function StyleTransferPanel({
   onClose,
 }: StyleTransferPanelProps) {
   // Store state
-  const project = useAppStore((state) => state.project);
+  const _project = useAppStore((state) => state.project);
   const shots = useAppStore((state) => state.shots);
   
   // =========================================================================
@@ -1050,7 +1050,7 @@ export function StyleTransferPanel({
 // Icon Components
 // ============================================================================
 
-function TargetIcon({ className }: { className?: string }) {
+function _TargetIcon({ className }: { className?: string }) {
   return (
     <svg 
       className={className} 

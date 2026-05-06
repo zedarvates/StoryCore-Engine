@@ -4,6 +4,8 @@
  * Tests for lazy loading and caching functionality.
  * Requirements: 5.3
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -26,7 +28,7 @@ class MockIntersectionObserver {
     setTimeout(() => {
       this.callback(
         [{ isIntersecting: true, target } as IntersectionObserverEntry],
-        this as any
+        this as LegacyAny
       );
     }, 0);
   }
@@ -38,7 +40,7 @@ class MockIntersectionObserver {
 describe('LazyImage Component', () => {
   beforeEach(() => {
     // Setup IntersectionObserver mock
-    global.IntersectionObserver = MockIntersectionObserver as any;
+    global.IntersectionObserver = MockIntersectionObserver as LegacyAny;
     vi.clearAllMocks();
   });
 

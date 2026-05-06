@@ -8,6 +8,8 @@
  */
 
 import type { GenerationStatus } from '../types';
+import { bulkProductionService } from '../../services/BulkProductionService';
+import { useProjectStore } from '../../stores/useProjectStore';
 
 // ============================================================================
 // Types
@@ -56,14 +58,45 @@ export async function executeGenerationPipeline(
   onProgress: (progress: PipelineProgress) => void
 ): Promise<PipelineResult> {
   try {
-    // In a real implementation, this would:
-    // 1. Call the StoryCore-Engine CLI via Electron's child_process
-    // 2. Parse stdout/stderr for progress updates
-    // 3. Update progress via callback
-    // 4. Return final result
+    const store = useProjectStore.getState();
+    const { project, shots, characters } = store;
     
-    // For now, simulate the pipeline execution
-    return await simulatePipelineExecution(onProgress);
+    if (!project || shots.length === 0) {
+      return { success: false, error: 'Project data or shots missing in store' };
+    }
+
+    // Execute real bulk production
+    const result = await bulkProductionService.generateSequenceBulk(
+      project,
+      shots,
+      characters,
+      {
+        concurrency: 2,
+        coherenceLock: true,
+        onProgress: (p) => {
+          // Map bulk progress to pipeline stages
+          // For simplicity, we use the progress % to advance stages
+          let stage: GenerationStatus['stage'] = 'grid';
+          if (p > 25) stage = 'promotion';
+          if (p > 50) stage = 'qa';
+          if (p > 75) stage = 'export';
+          
+          onProgress({ stage, progress: p, message: `Bulk rendering: ${p}%` });
+        }
+      }
+    );
+
+    if (result.failed.length > 0) {
+      return {
+        success: result.successful.length > 0,
+        error: `${result.failed.length} shots failed to generate.`,
+      };
+    }
+
+    return {
+      success: true,
+      outputPath: 'Bulk generation complete', // Path can be retrieved from shots
+    };
   } catch (error) {
     return {
       success: false,
@@ -72,37 +105,6 @@ export async function executeGenerationPipeline(
   }
 }
 
-/**
- * Simulate pipeline execution for development/testing
- * This will be replaced with actual CLI integration
- */
-async function simulatePipelineExecution(
-  onProgress: (progress: PipelineProgress) => void
-): Promise<PipelineResult> {
-  const stages: Array<{ stage: GenerationStatus['stage']; duration: number }> = [
-    { stage: 'grid', duration: 1000 },
-    { stage: 'promotion', duration: 1500 },
-    { stage: 'qa', duration: 500 },
-    { stage: 'export', duration: 1000 },
-  ];
-
-  for (const { stage, duration } of stages) {
-    // Report stage start
-    onProgress({ stage, progress: 0 });
-
-    // Simulate progress within stage
-    const steps = 10;
-    for (let i = 1; i <= steps; i++) {
-      await new Promise(resolve => setTimeout(resolve, duration / steps));
-      onProgress({ stage, progress: (i / steps) * 100 });
-    }
-  }
-
-  return {
-    success: true,
-    outputPath: '/path/to/generated/sequence.mp4',
-  };
-}
 
 // ============================================================================
 // CLI Integration (for Electron environment)
@@ -120,7 +122,7 @@ async function simulatePipelineExecution(
 export async function executeStorycoreCLI(
   command: string,
   args: string[],
-  onOutput?: (output: string) => void
+  _onOutput?: (output: string) => void
 ): Promise<{ success: boolean; output: string; error?: string }> {
   // This would be implemented in Electron's main process using child_process
   // Example implementation:

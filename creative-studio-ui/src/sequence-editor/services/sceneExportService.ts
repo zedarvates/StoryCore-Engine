@@ -265,7 +265,7 @@ function applyKeyframeAnimation(
     
     if (nextKeyframe) {
       // Interpolate between keyframes
-      const t = (frame - prevKeyframe.frame) / (nextKeyframe.frame - prevKeyframe.frame);
+      const _t = (frame - prevKeyframe.frame) / (nextKeyframe.frame - prevKeyframe.frame);
       // For now, just use previous keyframe
       // TODO: Implement smooth interpolation
       return { ...puppet, pose: prevKeyframe.pose };

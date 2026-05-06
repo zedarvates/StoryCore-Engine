@@ -9,6 +9,7 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+
 class ReportGeneration:
     """Handles validation report generation"""
 
@@ -26,27 +27,30 @@ class ReportGeneration:
             report = {
                 "validation_summary": {
                     "start_time": result.start_time.isoformat(),
-                    "end_time": result.end_time.isoformat() if result.end_time else None,
+                    "end_time": result.end_time.isoformat()
+                    if result.end_time
+                    else None,
                     "duration_seconds": duration,
                     "total_tests": result.total_tests,
                     "passed_tests": result.passed_tests,
                     "failed_tests": result.failed_tests,
                     "success_rate": success_rate,
-                    "validation_passed": success_rate >= 95.0  # 95% threshold for overall validation
+                    "validation_passed": success_rate
+                    >= 95.0,  # 95% threshold for overall validation
                 },
                 "test_results": result.test_results,
                 "performance_metrics": result.performance_metrics,
                 "quality_metrics": result.quality_metrics,
                 "errors": result.error_log,
                 "warnings": result.warnings,
-                "system_info": ReportGeneration._get_system_info()
+                "system_info": ReportGeneration._get_system_info(),
             }
 
             # Save report
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             report_filename = f"video_engine_system_validation_report_{timestamp}.json"
 
-            with open(report_filename, 'w') as f:
+            with open(report_filename, "w") as f:
                 json.dump(report, f, indent=2)
 
             logger.info(f"📊 Validation report saved: {report_filename}")
@@ -77,16 +81,19 @@ class ReportGeneration:
                 "cpu_count": psutil.cpu_count(),
                 "memory_total_gb": memory.total / 1024**3,
                 "memory_available_gb": memory.available / 1024**3,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             # Try to get GPU info
             try:
                 import torch
+
                 if torch.cuda.is_available():
                     system_info["gpu_available"] = True
                     system_info["gpu_name"] = torch.cuda.get_device_name(0)
-                    system_info["gpu_memory_gb"] = torch.cuda.get_device_properties(0).total_memory / 1024**3
+                    system_info["gpu_memory_gb"] = (
+                        torch.cuda.get_device_properties(0).total_memory / 1024**3
+                    )
                 else:
                     system_info["gpu_available"] = False
             except ImportError:
@@ -109,8 +116,10 @@ class ReportGeneration:
         logger.info("=" * 60)
 
         # Overall results
-        logger.info(f"📊 Overall Results:")
-        logger.info(f"   Tests Passed: {summary['passed_tests']}/{summary['total_tests']}")
+        logger.info("📊 Overall Results:")
+        logger.info(
+            f"   Tests Passed: {summary['passed_tests']}/{summary['total_tests']}"
+        )
         logger.info(f"   Success Rate: {summary['success_rate']:.1f}%")
         logger.info(f"   Duration: {summary['duration_seconds']:.1f} seconds")
 
@@ -122,14 +131,16 @@ class ReportGeneration:
 
         # Performance highlights
         if report["performance_metrics"]:
-            logger.info(f"\n⚡ Performance Highlights:")
+            logger.info("\n⚡ Performance Highlights:")
             for metric_name, metric_data in report["performance_metrics"].items():
                 if "fps" in metric_name.lower():
-                    logger.info(f"   {metric_name}: {metric_data['value']:.3f} {metric_data['unit']}")
+                    logger.info(
+                        f"   {metric_name}: {metric_data['value']:.3f} {metric_data['unit']}"
+                    )
 
         # Quality highlights
         if report["quality_metrics"]:
-            logger.info(f"\n🎨 Quality Highlights:")
+            logger.info("\n🎨 Quality Highlights:")
             for metric_name, metric_data in report["quality_metrics"].items():
                 status = "✅" if metric_data["passed"] else "❌"
                 logger.info(f"   {status} {metric_name}: {metric_data['value']:.3f}")

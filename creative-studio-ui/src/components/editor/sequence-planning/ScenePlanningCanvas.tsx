@@ -81,7 +81,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
       id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     };
 
-    const updatedScene = {
+    const _updatedScene = {
       ...scene,
       elements: [...(scene.elements || []), newElement]
     };
@@ -94,7 +94,7 @@ export const ScenePlanningCanvas: React.FC<ScenePlanningCanvasProps> = ({
 
   const deleteElement = useCallback((elementId: string) => {
     const elements = scene.elements || [];
-    const updatedElements = elements.filter((el: CanvasElement) => el.id !== elementId);
+    const _updatedElements = elements.filter((el: CanvasElement) => el.id !== elementId);
     // TODO: Update scene through props
     if (selectedElement?.id === elementId) {
       onElementSelect(null);

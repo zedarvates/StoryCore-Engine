@@ -1,6 +1,8 @@
 /**
  * Tests for Pipeline Completion View Component
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
@@ -81,7 +83,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Rendering', () => {
     it('should render completion view with all assets', () => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -104,7 +106,7 @@ describe('PipelineCompletionView', () => {
     });
 
     it('should show error when pipeline not found', () => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: null,
           getRelatedAssets: () => [],
@@ -124,7 +126,7 @@ describe('PipelineCompletionView', () => {
         currentStage: 'image' as const,
       };
 
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: incompletePipeline,
           getRelatedAssets: () => [],
@@ -141,7 +143,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Pipeline Summary', () => {
     beforeEach(() => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -184,7 +186,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Asset Selection', () => {
     beforeEach(() => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -251,7 +253,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Asset Display', () => {
     beforeEach(() => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: (id: string) => {
@@ -296,7 +298,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Export Options', () => {
     beforeEach(() => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -347,7 +349,7 @@ describe('PipelineCompletionView', () => {
     it('should call onExport with selected assets', () => {
       const onExport = vi.fn();
 
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -376,7 +378,7 @@ describe('PipelineCompletionView', () => {
     });
 
     it('should disable export button when no assets selected', () => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -399,7 +401,7 @@ describe('PipelineCompletionView', () => {
     it('should show alert when trying to export without selection', () => {
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -433,7 +435,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Additional Actions', () => {
     beforeEach(() => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -479,7 +481,7 @@ describe('PipelineCompletionView', () => {
 
   describe('Relationship Visualization', () => {
     it('should render relationship diagram when multiple assets exist', () => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],
@@ -503,7 +505,7 @@ describe('PipelineCompletionView', () => {
     });
 
     it('should not render relationship diagram with single asset', () => {
-      vi.mocked(useGenerationStore).mockImplementation((selector: any) => {
+      vi.mocked(useGenerationStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           currentPipeline: mockCompletePipeline,
           getRelatedAssets: () => [],

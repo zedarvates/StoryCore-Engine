@@ -13,6 +13,7 @@ from enum import Enum
 
 class TokenType(str, Enum):
     """Authentication token types."""
+
     BEARER = "bearer"
     API_KEY = "api_key"
     SESSION = "session"
@@ -21,6 +22,7 @@ class TokenType(str, Enum):
 
 class PermissionType(str, Enum):
     """Permission types for operations."""
+
     READ = "read"
     WRITE = "write"
     EXECUTE = "execute"
@@ -30,6 +32,7 @@ class PermissionType(str, Enum):
 
 class AuditEventType(str, Enum):
     """Types of security audit events."""
+
     AUTH_SUCCESS = "auth_success"
     AUTH_FAILURE = "auth_failure"
     PERMISSION_GRANTED = "permission_granted"
@@ -43,6 +46,7 @@ class AuditEventType(str, Enum):
 
 class RateLimitStatus(str, Enum):
     """Rate limit status."""
+
     OK = "ok"
     WARNING = "warning"
     EXCEEDED = "exceeded"
@@ -51,6 +55,7 @@ class RateLimitStatus(str, Enum):
 @dataclass
 class AuthValidateRequest:
     """Request for authentication token validation."""
+
     token: str
     token_type: str = "bearer"
     validate_expiry: bool = True
@@ -62,6 +67,7 @@ class AuthValidateRequest:
 @dataclass
 class AuthValidateResult:
     """Result of authentication validation."""
+
     valid: bool
     user_id: Optional[str] = None
     username: Optional[str] = None
@@ -76,6 +82,7 @@ class AuthValidateResult:
 @dataclass
 class PermissionsCheckRequest:
     """Request for permission checking."""
+
     user_id: str
     resource: str
     action: str
@@ -86,6 +93,7 @@ class PermissionsCheckRequest:
 @dataclass
 class PermissionsCheckResult:
     """Result of permission check."""
+
     allowed: bool
     user_id: str
     resource: str
@@ -99,6 +107,7 @@ class PermissionsCheckResult:
 @dataclass
 class RateLimitRequest:
     """Request for rate limit status."""
+
     user_id: Optional[str] = None
     endpoint: Optional[str] = None
     include_history: bool = False
@@ -109,13 +118,14 @@ class RateLimitRequest:
 @dataclass
 class RateLimitInfo:
     """Rate limit information for a specific endpoint."""
+
     endpoint: str
     limit: int
     remaining: int
     reset_at: datetime
     status: str  # "ok", "warning", "exceeded"
     window_seconds: int
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -131,6 +141,7 @@ class RateLimitInfo:
 @dataclass
 class RateLimitResult:
     """Result of rate limit status check."""
+
     user_id: Optional[str] = None
     overall_status: str = "ok"  # "ok", "warning", "exceeded"
     limits: List[RateLimitInfo] = field(default_factory=list)
@@ -142,6 +153,7 @@ class RateLimitResult:
 @dataclass
 class AuditLogRequest:
     """Request to log security audit event."""
+
     event_type: str
     user_id: Optional[str] = None
     resource: Optional[str] = None
@@ -155,6 +167,7 @@ class AuditLogRequest:
 @dataclass
 class AuditLogResult:
     """Result of audit log operation."""
+
     logged: bool
     event_id: str
     event_type: str

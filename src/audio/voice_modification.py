@@ -7,6 +7,7 @@ This module provides functionality for modifying voice characteristics in audio 
 import numpy as np
 import librosa
 
+
 class VoiceModification:
     """Voice modification processor for audio signals."""
 
@@ -33,25 +34,23 @@ class VoiceModification:
         """
         # Apply pitch shifting
         pitch_shifted = librosa.effects.pitch_shift(
-            audio_data, 
-            sr=self.sample_rate, 
-            n_steps=np.log2(pitch_factor)
+            audio_data, sr=self.sample_rate, n_steps=np.log2(pitch_factor)
         )
-        
+
         # Apply formant shifting (simplified)
         if formant_factor != 1.0:
             # Resample to modify formants
             resampled = librosa.resample(
-                pitch_shifted, 
-                orig_sr=self.sample_rate, 
-                target_sr=int(self.sample_rate * formant_factor)
+                pitch_shifted,
+                orig_sr=self.sample_rate,
+                target_sr=int(self.sample_rate * formant_factor),
             )
-            
+
             # Resample back to original rate
             return librosa.resample(
-                resampled, 
-                orig_sr=int(self.sample_rate * formant_factor), 
-                target_sr=self.sample_rate
+                resampled,
+                orig_sr=int(self.sample_rate * formant_factor),
+                target_sr=self.sample_rate,
             )
-        
+
         return pitch_shifted

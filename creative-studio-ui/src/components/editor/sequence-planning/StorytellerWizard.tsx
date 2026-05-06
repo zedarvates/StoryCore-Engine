@@ -25,7 +25,7 @@ export const StorytellerWizard: React.FC<StorytellerWizardProps> = ({
   projectContext
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [_isGenerating, setIsGenerating] = useState(false);
 
   // Get data from store
   const characters = useStore((state) => state.characters);
@@ -176,7 +176,7 @@ export const StorytellerWizard: React.FC<StorytellerWizardProps> = ({
     }
   }, [storyData.genre]);
 
-  const generateStorySummary = async () => {
+  const _generateStorySummary = async () => {
     if (!projectContext) return;
 
     setIsGenerating(true);

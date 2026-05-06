@@ -10,19 +10,20 @@ Pre-configured atmospheric settings for different worlds:
 - Fantasy worlds
 """
 
-from typing import Dict, List, Optional, Callable
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from .atmosphere_core import (
-    AtmosphereModel, 
-    AtmosphericConditions, 
-    GasComposition, 
-    WorldType
+    AtmosphereModel,
+    AtmosphericConditions,
+    GasComposition,
+    WorldType,
 )
 
 
 @dataclass
 class WorldPreset:
     """Complete world preset configuration."""
+
     name: str
     description: str
     world_type: WorldType
@@ -30,11 +31,11 @@ class WorldPreset:
     time_of_day: float = 12.0
     latitude: float = 45.0
     tags: List[str] = None
-    
+
     def __post_init__(self):
         if self.tags is None:
             self.tags = []
-    
+
     def create_atmosphere(self) -> AtmosphereModel:
         """Create atmosphere model from preset."""
         model = AtmosphereModel(self.world_type, self.conditions)
@@ -53,10 +54,10 @@ EARTH_CLEAR_DAY = WorldPreset(
         composition=GasComposition(N2=0.78, O2=0.21, Ar=0.01),
         humidity=0.4,
         haze_density=0.1,
-        sky_tint=(1.0, 1.0, 1.0)
+        sky_tint=(1.0, 1.0, 1.0),
     ),
     time_of_day=12.0,
-    tags=["earth", "day", "clear", "blue_sky"]
+    tags=["earth", "day", "clear", "blue_sky"],
 )
 
 EARTH_SUNSET = WorldPreset(
@@ -69,10 +70,10 @@ EARTH_SUNSET = WorldPreset(
         composition=GasComposition(N2=0.78, O2=0.21, Ar=0.01),
         humidity=0.5,
         haze_density=0.3,
-        sky_tint=(1.0, 0.9, 0.8)  # Warmer tint
+        sky_tint=(1.0, 0.9, 0.8),  # Warmer tint
     ),
     time_of_day=18.5,
-    tags=["earth", "sunset", "golden_hour", "orange"]
+    tags=["earth", "sunset", "golden_hour", "orange"],
 )
 
 EARTH_STORM = WorldPreset(
@@ -86,10 +87,10 @@ EARTH_STORM = WorldPreset(
         humidity=0.9,
         haze_density=0.6,
         fog_density=0.3,
-        sky_tint=(0.7, 0.7, 0.75)  # Grayish
+        sky_tint=(0.7, 0.7, 0.75),  # Grayish
     ),
     time_of_day=14.0,
-    tags=["earth", "storm", "overcast", "gray"]
+    tags=["earth", "storm", "overcast", "gray"],
 )
 
 EARTH_DESERT = WorldPreset(
@@ -103,11 +104,11 @@ EARTH_DESERT = WorldPreset(
         humidity=0.1,
         haze_density=0.4,
         aerosol_density=0.3,
-        sky_tint=(0.95, 0.9, 0.8)  # Slightly yellow
+        sky_tint=(0.95, 0.9, 0.8),  # Slightly yellow
     ),
     time_of_day=13.0,
     latitude=25.0,
-    tags=["earth", "desert", "hot", "dust"]
+    tags=["earth", "desert", "hot", "dust"],
 )
 
 EARTH_POLAR = WorldPreset(
@@ -120,11 +121,11 @@ EARTH_POLAR = WorldPreset(
         composition=GasComposition(N2=0.78, O2=0.21, Ar=0.01),
         humidity=0.2,
         haze_density=0.1,
-        sky_tint=(0.95, 0.95, 1.0)  # Slightly blue-white
+        sky_tint=(0.95, 0.95, 1.0),  # Slightly blue-white
     ),
     time_of_day=12.0,
     latitude=75.0,
-    tags=["earth", "polar", "cold", "ice"]
+    tags=["earth", "polar", "cold", "ice"],
 )
 
 # Mars Presets
@@ -137,10 +138,10 @@ MARS_CLEAR = WorldPreset(
         temperature_k=210.0,
         composition=GasComposition(CO2=0.95, N2=0.03, Ar=0.02),
         sky_tint=(0.95, 0.75, 0.55),  # Ochre/pink
-        aerosol_density=0.2
+        aerosol_density=0.2,
     ),
     time_of_day=12.0,
-    tags=["mars", "day", "clear", "ochre"]
+    tags=["mars", "day", "clear", "ochre"],
 )
 
 MARS_DUST_STORM = WorldPreset(
@@ -155,10 +156,10 @@ MARS_DUST_STORM = WorldPreset(
         dust_storm_intensity=0.9,
         aerosol_density=0.9,
         haze_density=0.8,
-        fog_density=0.5
+        fog_density=0.5,
     ),
     time_of_day=14.0,
-    tags=["mars", "dust_storm", "red", "low_visibility"]
+    tags=["mars", "dust_storm", "red", "low_visibility"],
 )
 
 MARS_SUNSET = WorldPreset(
@@ -170,10 +171,10 @@ MARS_SUNSET = WorldPreset(
         temperature_k=210.0,
         composition=GasComposition(CO2=0.95, N2=0.03, Ar=0.02),
         sky_tint=(0.7, 0.7, 0.85),  # Blue-ish due to scattering
-        aerosol_density=0.3
+        aerosol_density=0.3,
     ),
     time_of_day=18.5,
-    tags=["mars", "sunset", "blue", "dust"]
+    tags=["mars", "sunset", "blue", "dust"],
 )
 
 # Titan Presets
@@ -188,10 +189,10 @@ TITAN_ORANGE_HAZE = WorldPreset(
         sky_tint=(1.0, 0.65, 0.2),  # Deep orange
         aerosol_density=0.9,
         haze_density=0.95,
-        fog_density=0.3
+        fog_density=0.3,
     ),
     time_of_day=12.0,
-    tags=["titan", "haze", "orange", "thick"]
+    tags=["titan", "haze", "orange", "thick"],
 )
 
 TITAN_METHANE_RAIN = WorldPreset(
@@ -205,10 +206,10 @@ TITAN_METHANE_RAIN = WorldPreset(
         sky_tint=(0.9, 0.6, 0.2),  # Darker orange
         aerosol_density=0.8,
         haze_density=0.9,
-        fog_density=0.7
+        fog_density=0.7,
     ),
     time_of_day=10.0,
-    tags=["titan", "rain", "methane", "dark"]
+    tags=["titan", "rain", "methane", "dark"],
 )
 
 # Venus Presets
@@ -222,10 +223,10 @@ VENUS_SURFACE = WorldPreset(
         composition=GasComposition(CO2=0.965, N2=0.035, SO2=0.001),
         sky_tint=(0.8, 0.7, 0.5),  # Yellowish
         aerosol_density=0.95,
-        haze_density=0.9
+        haze_density=0.9,
     ),
     time_of_day=12.0,
-    tags=["venus", "hot", "thick", "yellow"]
+    tags=["venus", "hot", "thick", "yellow"],
 )
 
 # Exoplanet Presets
@@ -238,10 +239,10 @@ EXO_EARTH_LIKE = WorldPreset(
         temperature_k=295.0,
         composition=GasComposition(N2=0.75, O2=0.23, CO2=0.02),
         sky_tint=(0.85, 0.9, 1.0),  # Slightly more blue
-        rayleigh_scale_height=8000.0
+        rayleigh_scale_height=8000.0,
     ),
     time_of_day=12.0,
-    tags=["exoplanet", "earth_like", "blue", "alien"]
+    tags=["exoplanet", "earth_like", "blue", "alien"],
 )
 
 EXO_HOT_JUPITER = WorldPreset(
@@ -254,10 +255,10 @@ EXO_HOT_JUPITER = WorldPreset(
         composition=GasComposition(H2=0.9, He=0.1),
         sky_tint=(0.8, 0.5, 0.3),  # Reddish
         rayleigh_scale_height=50000.0,
-        aerosol_density=0.5
+        aerosol_density=0.5,
     ),
     time_of_day=12.0,
-    tags=["exoplanet", "hot_jupiter", "red", "gas_giant"]
+    tags=["exoplanet", "hot_jupiter", "red", "gas_giant"],
 )
 
 # Fantasy/Sci-Fi Presets
@@ -272,10 +273,10 @@ FANTASY_VOLCANIC = WorldPreset(
         sky_tint=(0.9, 0.4, 0.3),  # Red-orange
         aerosol_density=0.8,
         haze_density=0.6,
-        fog_density=0.4
+        fog_density=0.4,
     ),
     time_of_day=14.0,
-    tags=["fantasy", "volcanic", "ash", "red", "dangerous"]
+    tags=["fantasy", "volcanic", "ash", "red", "dangerous"],
 )
 
 FANTASY_FROZEN = WorldPreset(
@@ -288,11 +289,11 @@ FANTASY_FROZEN = WorldPreset(
         composition=GasComposition(N2=0.8, O2=0.15, Ar=0.05),
         sky_tint=(0.9, 0.95, 1.0),  # Blue-white
         haze_density=0.2,
-        fog_density=0.1
+        fog_density=0.1,
     ),
     time_of_day=12.0,
     latitude=60.0,
-    tags=["fantasy", "frozen", "ice", "cold", "halos"]
+    tags=["fantasy", "frozen", "ice", "cold", "halos"],
 )
 
 FANTASY_BINARY_STAR = WorldPreset(
@@ -304,10 +305,10 @@ FANTASY_BINARY_STAR = WorldPreset(
         temperature_k=300.0,
         composition=GasComposition(N2=0.75, O2=0.20, Ar=0.05),
         sky_tint=(1.0, 0.95, 0.9),  # Slightly warmer
-        haze_density=0.15
+        haze_density=0.15,
     ),
     time_of_day=12.0,
-    tags=["fantasy", "binary_star", "two_suns", "sci-fi"]
+    tags=["fantasy", "binary_star", "two_suns", "sci-fi"],
 )
 
 # Preset registry
@@ -318,23 +319,18 @@ ALL_PRESETS: Dict[str, WorldPreset] = {
     "earth_storm": EARTH_STORM,
     "earth_desert": EARTH_DESERT,
     "earth_polar": EARTH_POLAR,
-    
     # Mars
     "mars_clear": MARS_CLEAR,
     "mars_dust_storm": MARS_DUST_STORM,
     "mars_sunset": MARS_SUNSET,
-    
     # Titan
     "titan_orange_haze": TITAN_ORANGE_HAZE,
     "titan_methane_rain": TITAN_METHANE_RAIN,
-    
     # Venus
     "venus_surface": VENUS_SURFACE,
-    
     # Exoplanets
     "exo_earth_like": EXO_EARTH_LIKE,
     "exo_hot_jupiter": EXO_HOT_JUPITER,
-    
     # Fantasy
     "fantasy_volcanic": FANTASY_VOLCANIC,
     "fantasy_frozen": FANTASY_FROZEN,
@@ -345,56 +341,58 @@ ALL_PRESETS: Dict[str, WorldPreset] = {
 def get_preset(name: str) -> Optional[WorldPreset]:
     """
     Get preset by name.
-    
+
     Args:
         name: Preset name
-        
+
     Returns:
         WorldPreset or None if not found
     """
     return ALL_PRESETS.get(name)
 
 
-def list_presets(tag: Optional[str] = None, world_type: Optional[WorldType] = None) -> List[str]:
+def list_presets(
+    tag: Optional[str] = None, world_type: Optional[WorldType] = None
+) -> List[str]:
     """
     List available presets, optionally filtered.
-    
+
     Args:
         tag: Filter by tag
         world_type: Filter by world type
-        
+
     Returns:
         List of preset names
     """
     results = []
-    
+
     for name, preset in ALL_PRESETS.items():
         # Filter by tag
         if tag and tag not in preset.tags:
             continue
-        
+
         # Filter by world type
         if world_type and preset.world_type != world_type:
             continue
-        
+
         results.append(name)
-    
+
     return results
 
 
 def get_presets_by_world_type(world_type: WorldType) -> Dict[str, WorldPreset]:
     """
     Get all presets for a specific world type.
-    
+
     Args:
         world_type: World type to filter by
-        
+
     Returns:
         Dictionary of preset name -> preset
     """
     return {
-        name: preset 
-        for name, preset in ALL_PRESETS.items() 
+        name: preset
+        for name, preset in ALL_PRESETS.items()
         if preset.world_type == world_type
     }
 
@@ -402,17 +400,17 @@ def get_presets_by_world_type(world_type: WorldType) -> Dict[str, WorldPreset]:
 def get_preset_info(name: str) -> Optional[Dict]:
     """
     Get detailed information about a preset.
-    
+
     Args:
         name: Preset name
-        
+
     Returns:
         Dictionary with preset information
     """
     preset = get_preset(name)
     if not preset:
         return None
-    
+
     return {
         "name": preset.name,
         "description": preset.description,
@@ -426,8 +424,8 @@ def get_preset_info(name: str) -> Optional[Dict]:
             "humidity": preset.conditions.humidity,
             "haze_density": preset.conditions.haze_density,
             "fog_density": preset.conditions.fog_density,
-            "dust_storm_intensity": preset.conditions.dust_storm_intensity
-        }
+            "dust_storm_intensity": preset.conditions.dust_storm_intensity,
+        },
     }
 
 
@@ -437,15 +435,15 @@ if __name__ == "__main__":
     for name in list_presets():
         preset = get_preset(name)
         print(f"  - {name}: {preset.description}")
-    
+
     print("\nEarth presets:")
     for name in list_presets(world_type=WorldType.EARTH):
         print(f"  - {name}")
-    
+
     print("\nMars presets:")
     for name in list_presets(world_type=WorldType.MARS):
         print(f"  - {name}")
-    
+
     # Test preset
     preset = get_preset("mars_dust_storm")
     if preset:

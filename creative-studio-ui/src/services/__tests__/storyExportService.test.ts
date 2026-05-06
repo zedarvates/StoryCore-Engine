@@ -3,6 +3,8 @@
  * 
  * Tests for the story export service functions
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
@@ -160,12 +162,12 @@ describe('Story Export Service', () => {
   });
 
   describe('exportStory', () => {
-    let createElementSpy: any;
-    let appendChildSpy: any;
-    let removeChildSpy: any;
-    let clickSpy: any;
-    let createObjectURLSpy: any;
-    let revokeObjectURLSpy: any;
+    let createElementSpy: LegacyAny;
+    let appendChildSpy: LegacyAny;
+    let removeChildSpy: LegacyAny;
+    let clickSpy: LegacyAny;
+    let createObjectURLSpy: LegacyAny;
+    let revokeObjectURLSpy: LegacyAny;
 
     beforeEach(() => {
       // Mock URL methods if they don't exist
@@ -191,9 +193,9 @@ describe('Story Export Service', () => {
         style: { display: '' },
         click: clickSpy,
       };
-      createElementSpy.mockReturnValue(mockLink as any);
-      appendChildSpy.mockImplementation(() => mockLink as any);
-      removeChildSpy.mockImplementation(() => mockLink as any);
+      createElementSpy.mockReturnValue(mockLink as LegacyAny);
+      appendChildSpy.mockImplementation(() => mockLink as LegacyAny);
+      removeChildSpy.mockImplementation(() => mockLink as LegacyAny);
     });
 
     afterEach(() => {
@@ -291,14 +293,14 @@ describe('Story Export Service', () => {
 
     it('should construct path for Electron environment', () => {
       // Mock Electron environment
-      (global as any).window = { electron: {} };
+      (global as LegacyAny).window = { electron: {} };
 
       const result = getExportPath('my-project', 'my-story.md');
 
       expect(result).toContain('projects/my-project/stories/my-story.md');
 
       // Clean up
-      delete (global as any).window;
+      delete (global as LegacyAny).window;
     });
   });
 

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // cspell:words lieux
 import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
@@ -255,7 +256,7 @@ export function Step3LocationSelection(): React.ReactElement {
           createdLocation.id,
           {
             name: createdLocation.name,
-            type: (createdLocation as any).type || newLocation.type || 'generic',
+            type: (createdLocation as LegacyAny).type || newLocation.type || 'generic',
             description: createdLocation.description || newLocation.description || '',
           },
           { projectId, worldId: currentWorld?.id }
@@ -290,7 +291,7 @@ export function Step3LocationSelection(): React.ReactElement {
           {
             id: createdLocation.id,
             name: createdLocation.name,
-            significance: (createdLocation as any).significance || newLocation.type,
+            significance: (createdLocation as LegacyAny).significance || newLocation.type,
           },
         ],
       });

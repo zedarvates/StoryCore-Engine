@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TransitionPanel } from '../TransitionPanel';
@@ -40,7 +41,7 @@ describe('TransitionPanel', () => {
 
   describe('No Shot Selected', () => {
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [],
           setTransition: mockSetTransition,
@@ -63,7 +64,7 @@ describe('TransitionPanel', () => {
     beforeEach(() => {
       const shot1 = createMockShot('shot-1', 'Shot 1', 0);
       
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1],
           setTransition: mockSetTransition,
@@ -87,7 +88,7 @@ describe('TransitionPanel', () => {
     const shot2 = createMockShot('shot-2', 'Main Action', 1);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -133,7 +134,7 @@ describe('TransitionPanel', () => {
     const shot2 = createMockShot('shot-2', 'Shot 2', 1);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -179,7 +180,7 @@ describe('TransitionPanel', () => {
       const shot1 = createMockShot('shot-1', 'Shot 1', 0, createMockTransition({ type: 'wipe', direction: 'right' }));
       const shot2 = createMockShot('shot-2', 'Shot 2', 1);
       
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -202,7 +203,7 @@ describe('TransitionPanel', () => {
       const shot1 = createMockShot('shot-1', 'Shot 1', 0, createMockTransition({ type: 'slide', direction: 'left' }));
       const shot2 = createMockShot('shot-2', 'Shot 2', 1);
       
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -221,7 +222,7 @@ describe('TransitionPanel', () => {
       const shot1 = createMockShot('shot-1', 'Shot 1', 0, createMockTransition({ type: 'fade' }));
       const shot2 = createMockShot('shot-2', 'Shot 2', 1);
       
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -240,7 +241,7 @@ describe('TransitionPanel', () => {
       const shot1 = createMockShot('shot-1', 'Shot 1', 0, createMockTransition({ type: 'dissolve' }));
       const shot2 = createMockShot('shot-2', 'Shot 2', 1);
       
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -259,7 +260,7 @@ describe('TransitionPanel', () => {
       const shot1 = createMockShot('shot-1', 'Shot 1', 0, createMockTransition({ type: 'wipe', direction: 'right' }));
       const shot2 = createMockShot('shot-2', 'Shot 2', 1);
       
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,
@@ -299,7 +300,7 @@ describe('TransitionPanel', () => {
         const shot1 = createMockShot('shot-1', 'Shot 1', 0, createMockTransition({ type }));
         const shot2 = createMockShot('shot-2', 'Shot 2', 1);
         
-        vi.mocked(useStore).mockImplementation((selector: any) => {
+        vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
           const state = {
             shots: [shot1, shot2],
             setTransition: mockSetTransition,
@@ -321,7 +322,7 @@ describe('TransitionPanel', () => {
     const shot2 = createMockShot('shot-2', 'Shot 2', 1);
 
     beforeEach(() => {
-      vi.mocked(useStore).mockImplementation((selector: any) => {
+      vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [shot1, shot2],
           setTransition: mockSetTransition,

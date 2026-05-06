@@ -26,7 +26,7 @@ export const GridLayoutContainer: React.FC<GridLayoutContainerProps> = ({
   const [config, setConfig] = useState<GridLayoutConfig>(initialConfig);
   const [items, setItems] = useState<GridPanel[]>(initialItems);
   const [selectedPanelIds, setSelectedPanelIds] = useState<string[]>([]);
-  const gridLayoutRef = React.useRef<{ distributeEvenly: (ids: string[], direction: 'horizontal' | 'vertical') => void }>(null);
+  const _gridLayoutRef = React.useRef<{ distributeEvenly: (ids: string[], direction: 'horizontal' | 'vertical') => void }>(null);
 
   const handleLayoutChange = useCallback((newItems: GridPanel[]) => {
     setItems(newItems);
@@ -102,7 +102,7 @@ export const GridLayoutContainer: React.FC<GridLayoutContainerProps> = ({
   }, [config, onConfigChange]);
 
   // Handle panel selection (for future implementation)
-  const handlePanelClick = useCallback((panelId: string, multiSelect: boolean) => {
+  const _handlePanelClick = useCallback((panelId: string, multiSelect: boolean) => {
     if (multiSelect) {
       setSelectedPanelIds(prev => 
         prev.includes(panelId) 

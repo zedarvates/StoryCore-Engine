@@ -11,9 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, AlertCircle, CheckCircle2, Share2, Users, Link2, GitCommit, Shield, Heart, Zap, ZapOff, Terminal, Activity } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { _Card, _CardContent, _CardHeader, _CardTitle } from '@/components/ui/card';
+import { Plus, Trash2, AlertCircle, CheckCircle2, Share2, _Users, _Link2, _GitCommit, _Shield, _Heart, _Zap, _ZapOff, Terminal, Activity } from 'lucide-react';
+import { _Alert, _AlertDescription } from '@/components/ui/alert';
 import { useCharacters } from '@/store';
 import { cn } from '@/lib/utils';
 import type { Character, CharacterRelationship } from '@/types/character';
@@ -54,8 +54,8 @@ const RELATIONSHIP_DYNAMICS = [
   'Autonomous',
 ];
 
-export function Step5Relationships({ storyContext }: Step5RelationshipsProps = {}) {
-  const { formData, updateFormData, validationErrors } = useWizard<Character>();
+export function Step5Relationships({ _storyContext }: Step5RelationshipsProps = {}) {
+  const { formData, updateFormData, _validationErrors } = useWizard<Character>();
   const existingCharacters = useCharacters();
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);

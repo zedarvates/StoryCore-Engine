@@ -1,4 +1,5 @@
 """Generateur de blender_projection/asset_placer.py"""
+
 from pathlib import Path
 
 Path("blender_projection").mkdir(exist_ok=True)

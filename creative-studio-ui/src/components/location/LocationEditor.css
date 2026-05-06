@@ -10,9 +10,11 @@
 .location-editor {
   display: flex;
   flex-direction: column;
-  flex: 1; /* Take full height of parent */
-  overflow: hidden; /* Important for inner scroll */
-  min-height: 0; /* Override default to allow shrinking */
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .location-editor--full {
@@ -48,15 +50,18 @@
 }
 
 .location-editor__tab--active {
-  background: var(--primary-color, #6366f1);
-  color: white;
+  background: var(--primary-color, #facc15);
+  color: #000;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(250, 204, 21, 0.3);
 }
 
 /* Content */
 .location-editor__content {
   flex: 1;
-  padding: 24px;
+  padding: 24px 24px 80px 24px; /* Added extra bottom padding */
   overflow-y: auto;
+  min-height: 0;
 }
 
 /* Panel */
@@ -149,9 +154,9 @@
 }
 
 .location-editor__type-btn--active {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: var(--primary-color, #6366f1);
-  color: var(--primary-color, #6366f1);
+  background: rgba(250, 204, 21, 0.1);
+  border-color: var(--primary-color, #facc15);
+  color: var(--primary-color, #facc15);
 }
 
 /* Cube Panel */
@@ -188,7 +193,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding: 16px 24px;
+  padding: 12px 24px; /* Reduced padding */
   border-top: 1px solid var(--border-color, #333);
   background: var(--bg-secondary, #2a2a2a);
 }
@@ -217,12 +222,13 @@
 }
 
 .location-editor__btn--save {
-  background: var(--primary-color, #6366f1);
-  color: white;
+  background: var(--primary-color, #facc15);
+  color: #000;
+  font-weight: 600;
 }
 
 .location-editor__btn--save:hover {
-  background: var(--primary-hover, #4f46e5);
+  background: var(--primary-hover, #eab308);
 }
 
 .location-editor__btn:disabled {

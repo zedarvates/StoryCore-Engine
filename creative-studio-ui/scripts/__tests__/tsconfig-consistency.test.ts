@@ -320,7 +320,7 @@ describe('Feature: typescript-build-configuration', () => {
               .filter(c => fs.existsSync(c.path));
             
             // All configs should have safe settings
-            for (const { file, config } of configs) {
+            for (const { _file, config } of configs) {
               const safe = hasSafeOutputSettings(config);
               expect(safe).toBe(true);
             }

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // Character Manager Hook Tests
 // ============================================================================
@@ -42,6 +43,7 @@ function createTestCharacter(overrides: Partial<Character> = {}): Character {
       facial_structure: 'oval',
       distinctive_features: [],
       age_range: '25-35',
+      gender: 'male',
       height: '5\'10"',
       build: 'athletic',
       posture: 'upright',
@@ -108,6 +110,7 @@ describe('validateCharacter', () => {
         visual_identity: {
           ...createTestCharacter().visual_identity,
           age_range: '25-35',
+          gender: 'male',
         },
       };
       const result = validateCharacter(character);
@@ -123,6 +126,7 @@ describe('validateCharacter', () => {
         visual_identity: {
           ...createTestCharacter().visual_identity,
           age_range: '25-35',
+          gender: 'male',
         },
       };
       const result = validateCharacter(character);
@@ -138,6 +142,7 @@ describe('validateCharacter', () => {
         visual_identity: {
           ...createTestCharacter().visual_identity,
           age_range: '25-35',
+          gender: 'male',
         },
       };
       const result = validateCharacter(character);
@@ -274,7 +279,7 @@ describe('validateCharacter', () => {
 });
 
 describe('useCharacterManager', () => {
-  let mockStore: any;
+  let mockStore: LegacyAny;
 
   beforeEach(() => {
     // Reset mock store before each test
@@ -300,7 +305,7 @@ describe('useCharacterManager', () => {
       getAllStories: vi.fn(() => mockStore.stories),
     };
 
-    (useStore as unknown as any).mockImplementation((selector: any) => {
+    (useStore as unknown as LegacyAny).mockImplementation((selector: LegacyAny) => {
       return selector(mockStore);
     });
   });
@@ -317,7 +322,7 @@ describe('useCharacterManager', () => {
         const invalidCharacter = {
           name: '', // Invalid: empty name
           role: { archetype: 'Hero', narrative_function: '', character_arc: '' },
-          visual_identity: { age_range: '25-35' } as any,
+          visual_identity: { age_range: '25-35' } as LegacyAny,
         };
 
         await expect(
@@ -366,7 +371,7 @@ describe('useCharacterManager', () => {
         const { result } = renderHook(() => useCharacterManager());
 
         const characterWithoutId = createTestCharacter();
-        delete (characterWithoutId as any).character_id;
+        delete (characterWithoutId as LegacyAny).character_id;
 
         await act(async () => {
           await result.current.createCharacter(characterWithoutId);

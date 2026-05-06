@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -94,7 +95,7 @@ const SEQUENCE_PLAN_STEPS: WizardStep[] = [
   },
   {
     number: 5,
-    title: 'Timeline & Multishot',
+    title: 'Timeline & Multi-shot',
     description: 'Preview and fine-tune your sequence shots',
     icon: Monitor,
   },
@@ -146,12 +147,10 @@ export function SequencePlanWizard({
 
   // Recovery hook
   const {
-    isCorrupted,
     validationResult,
     loadResult,
     resetState,
     showRecoveryDialog,
-    setShowRecoveryDialog,
     dismissWarning,
     attemptRecovery
   } = useStateRecovery({
@@ -537,7 +536,7 @@ export function SequencePlanWizard({
             if (success && loadResult?.state?.formData) {
               setWizardState(prev => ({
                 ...prev,
-                formData: loadResult.state!.formData as any,
+                formData: loadResult.state!.formData as LegacyAny,
                 isDirty: true
               }));
             }
@@ -565,8 +564,8 @@ export function SequencePlanWizard({
                 {recoveryDraft?.formData && (
                   <div className="bg-black/40 p-4 rounded-xl border border-white/5 shadow-inner">
                     <p className="text-[10px] uppercase tracking-[0.2em] font-black text-primary/70 mb-2">Draft Metadata:</p>
-                    <p className="text-sm font-bold text-white uppercase">{(recoveryDraft.formData as any).name || "Unnamed Sequence"}</p>
-                    <p className="text-[10px] text-slate-500 mt-1 uppercase">Lost on: {new Date((recoveryDraft.formData as any).modifiedAt || Date.now()).toLocaleString()}</p>
+                    <p className="text-sm font-bold text-white uppercase">{(recoveryDraft.formData as LegacyAny).name || "Unnamed Sequence"}</p>
+                    <p className="text-[10px] text-slate-500 mt-1 uppercase">Lost on: {new Date((recoveryDraft.formData as LegacyAny).modifiedAt || Date.now()).toLocaleString()}</p>
                   </div>
                 )}
               </div>

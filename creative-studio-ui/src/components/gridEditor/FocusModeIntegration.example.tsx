@@ -15,7 +15,7 @@
 import React, { useCallback } from 'react';
 import { Viewport } from './Viewport';
 import { GridRenderer } from './GridRenderer';
-import { useGridStore } from '../../stores/gridEditorStore';
+import { _useGridStore } from '../../stores/gridEditorStore';
 import { useViewportStore } from '../../stores/viewportStore';
 
 /**
@@ -33,11 +33,11 @@ export const GridEditorWithFocusMode: React.FC = () => {
   } = useGridEditorStore();
 
   const {
-    zoom,
-    pan,
+    _zoom,
+    _pan,
     focusedPanelId,
     focusPanel,
-    exitFocusMode,
+    _exitFocusMode,
     getViewportState,
   } = useViewportStore();
 

@@ -23,6 +23,8 @@ export interface LocalModel {
   requiresGPU: boolean;
   contextWindow: number;
   family: 'gemma' | 'llama' | 'mistral' | 'phi' | 'qwen' | 'other';
+  provider?: 'ollama' | 'lmstudio';
+  isDynamic?: boolean;
 }
 
 export interface ModelDownloadProgress {
@@ -45,7 +47,50 @@ export interface SystemCapabilities {
  * Available local models catalog
  */
 export const LOCAL_MODELS: LocalModel[] = [
-  // Gemma 3 Family (latest)
+  // Gemma 4 Family (cutting edge)
+  {
+    id: 'gemma-4-e2b',
+    name: 'gemma-4-e2b',
+    displayName: 'Gemma 4 Early Access',
+    size: '1.6GB',
+    sizeBytes: 1.6 * 1024 * 1024 * 1024,
+    description: 'Next-generation Gemma 4 (experimental), incredible reasoning for its size',
+    capabilities: ['text-generation', 'chat', 'advanced-reasoning', 'creative-writing'],
+    minRAM: 4,
+    recommendedRAM: 8,
+    requiresGPU: false,
+    contextWindow: 128000,
+    family: 'gemma',
+  },
+  // Qwen 2.5 Family (latest stable)
+  {
+    id: 'qwen2.5:7b',
+    name: 'qwen2.5:7b',
+    displayName: 'Qwen 2.5 7B',
+    size: '4.7GB',
+    sizeBytes: 4.7 * 1024 * 1024 * 1024,
+    description: 'Alibaba\'s latest Qwen 2.5, significantly improved reasoning and coding',
+    capabilities: ['text-generation', 'chat', 'reasoning', 'code-generation', 'multilingual'],
+    minRAM: 8,
+    recommendedRAM: 16,
+    requiresGPU: false,
+    contextWindow: 128000,
+    family: 'qwen',
+  },
+  {
+    id: 'qwen2.5:14b',
+    name: 'qwen2.5:14b',
+    displayName: 'Qwen 2.5 14B',
+    size: '9GB',
+    sizeBytes: 9 * 1024 * 1024 * 1024,
+    description: 'Powerful Qwen 2.5 14B, excellent for complex reasoning tasks',
+    capabilities: ['text-generation', 'chat', 'advanced-reasoning', 'code-generation', 'multilingual'],
+    minRAM: 16,
+    recommendedRAM: 32,
+    requiresGPU: false,
+    contextWindow: 128000,
+    family: 'qwen',
+  },
   {
     id: 'gemma3:1b',
     name: 'gemma3:1b',
@@ -313,10 +358,12 @@ export const LOCAL_MODELS: LocalModel[] = [
  * Local Model Service Class
  */
 export class LocalModelService {
-  private readonly endpoint: string;
+  private readonly ollamaEndpoint: string;
+  private readonly lmStudioEndpoint: string;
 
-  constructor(endpoint: string = 'http://localhost:11434') {
-    this.endpoint = endpoint;
+  constructor(ollamaEndpoint: string = 'http://localhost:11434', lmStudioEndpoint: string = 'http://localhost:1234') {
+    this.ollamaEndpoint = ollamaEndpoint;
+    this.lmStudioEndpoint = lmStudioEndpoint;
   }
 
   /**
@@ -324,13 +371,29 @@ export class LocalModelService {
    */
   async isOllamaRunning(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.endpoint}/api/tags`, {
+      const response = await fetch(`${this.ollamaEndpoint}/api/tags`, {
         method: 'GET',
         mode: 'cors',
+        signal: AbortSignal.timeout(2000)
       });
       return response.ok;
-    } catch (error) {
-      logger.warn('[LocalModelService] Ollama connection check failed:', error);
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  /**
+   * Check if LM Studio is running
+   */
+  async isLMStudioRunning(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.lmStudioEndpoint}/v1/models`, {
+        method: 'GET',
+        mode: 'cors',
+        signal: AbortSignal.timeout(2000)
+      });
+      return response.ok;
+    } catch (_error) {
       return false;
     }
   }
@@ -338,30 +401,96 @@ export class LocalModelService {
   /**
    * Get list of installed models
    */
-  async getInstalledModels(): Promise<string[]> {
+  async getInstalledModels(): Promise<LocalModel[]> {
+    const installedModels: LocalModel[] = [];
+
+    // 1. Fetch from Ollama
     try {
-      const response = await fetch(`${this.endpoint}/api/tags`, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch installed models');
+      const response = await fetch(`${this.ollamaEndpoint}/api/tags`);
+      if (response.ok) {
+        const data = await response.json();
+        const ollamaModels = data.models || [];
+        
+        for (const m of ollamaModels) {
+          const knownModel = LOCAL_MODELS.find(km => km.id === m.name || km.id === m.model);
+          if (knownModel) {
+            installedModels.push({ ...knownModel, provider: 'ollama' });
+          } else {
+            // Create dynamic model entry
+            installedModels.push(this.createDynamicModel(m.name, 'ollama', m.size));
+          }
+        }
       }
-
-      const data = await response.json();
-      return data.models?.map((m: { name: string }) => m.name) || [];
-    } catch (error) {
-      logger.error('[LocalModelService] Failed to get installed models:', error);
-      return [];
+    } catch (_e) {
+      // Ignore if not running
     }
+
+    // 2. Fetch from LM Studio
+    try {
+      const response = await fetch(`${this.lmStudioEndpoint}/v1/models`);
+      if (response.ok) {
+        const data = await response.json();
+        const lmModels = data.data || [];
+        
+        for (const m of lmModels) {
+          const knownModel = LOCAL_MODELS.find(km => km.id === m.id);
+          if (knownModel) {
+            installedModels.push({ ...knownModel, provider: 'lmstudio' });
+          } else {
+            // Create dynamic model entry
+            installedModels.push(this.createDynamicModel(m.id, 'lmstudio'));
+          }
+        }
+      }
+    } catch (_e) {
+      // Ignore if not running
+    }
+
+    return installedModels;
+  }
+
+  /**
+   * Create a dynamic model entry for discovered models
+   */
+  private createDynamicModel(name: string, provider: 'ollama' | 'lmstudio', size?: number): LocalModel {
+    const family = this.detectFamily(name);
+    return {
+      id: name,
+      name: name,
+      displayName: name,
+      size: size ? this.formatBytes(size) : 'Unknown',
+      sizeBytes: size || 0,
+      description: `Discovered model from ${provider}`,
+      capabilities: ['text-generation', 'chat'],
+      minRAM: 8,
+      recommendedRAM: 16,
+      requiresGPU: false,
+      contextWindow: 8192, // Default fallback
+      family,
+      provider,
+      isDynamic: true
+    };
+  }
+
+  /**
+   * Detect model family from name
+   */
+  private detectFamily(name: string): LocalModel['family'] {
+    const n = name.toLowerCase();
+    if (n.includes('gemma')) return 'gemma';
+    if (n.includes('llama')) return 'llama';
+    if (n.includes('mistral')) return 'mistral';
+    if (n.includes('phi')) return 'phi';
+    if (n.includes('qwen')) return 'qwen';
+    return 'other';
   }
 
   /**
    * Check if a specific model is installed
    */
-  async isModelInstalled(modelId: string): Promise<boolean> {
+  async isModelInstalled(model: LocalModel): Promise<boolean> {
     const installed = await this.getInstalledModels();
-    return installed.includes(modelId);
+    return installed.some(m => m.id === model.id);
   }
 
   /**
@@ -383,7 +512,7 @@ export class LocalModelService {
         });
       }
 
-      const response = await fetch(`${this.endpoint}/api/pull`, {
+      const response = await fetch(`${this.ollamaEndpoint}/api/pull`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -523,7 +652,7 @@ export class LocalModelService {
    */
   async deleteModel(modelId: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.endpoint}/api/delete`, {
+      const response = await fetch(`${this.ollamaEndpoint}/api/delete`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -729,9 +858,9 @@ export class LocalModelService {
  */
 let localModelServiceInstance: LocalModelService | null = null;
 
-export function getLocalModelService(endpoint?: string): LocalModelService {
-  if (!localModelServiceInstance || endpoint) {
-    localModelServiceInstance = new LocalModelService(endpoint);
+export function getLocalModelService(ollamaEndpoint?: string, lmStudioEndpoint?: string): LocalModelService {
+  if (!localModelServiceInstance || ollamaEndpoint || lmStudioEndpoint) {
+    localModelServiceInstance = new LocalModelService(ollamaEndpoint, lmStudioEndpoint);
   }
   return localModelServiceInstance;
 }

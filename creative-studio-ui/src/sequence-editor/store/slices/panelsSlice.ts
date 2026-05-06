@@ -29,6 +29,7 @@ const initialState: PanelsState = {
   markersVisible: true,
   promptsVisible: true,
   showAlignmentDashboard: false,
+  productionStudioMode: false,
 };
 
 const panelsSlice = createSlice({
@@ -95,6 +96,17 @@ const panelsSlice = createSlice({
     toggleAlignmentDashboard: (state) => {
       state.showAlignmentDashboard = !state.showAlignmentDashboard;
     },
+    toggleProductionStudioMode: (state) => {
+      state.productionStudioMode = !state.productionStudioMode;
+      // When entering studio mode, collapse standard panels for focus
+      if (state.productionStudioMode) {
+        state.libraryVisible = false;
+        state.inspectorVisible = false;
+      } else {
+        state.libraryVisible = true;
+        state.inspectorVisible = true;
+      }
+    },
   },
 });
 
@@ -118,6 +130,7 @@ export const {
   toggleMarkers,
   togglePrompts,
   toggleAlignmentDashboard,
+  toggleProductionStudioMode,
 } = panelsSlice.actions;
 
 export default panelsSlice.reducer;

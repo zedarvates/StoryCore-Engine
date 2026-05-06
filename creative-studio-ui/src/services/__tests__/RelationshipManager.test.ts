@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // RelationshipManager Tests
 // ============================================================================
@@ -15,7 +16,7 @@ import {
   canAddRelationshipWithoutCycle,
   addRelationship,
   updateRelationship,
-  removeRelationship,
+  _removeRelationship,
   CycleDetectionResult,
 } from '../RelationshipManager';
 
@@ -696,13 +697,13 @@ describe('RelationshipManager', () => {
       return {
         characters,
         getCharacter: (id: string) => characters.get(id),
-        updateCharacter: (id: string, updates: any) => {
+        updateCharacter: (id: string, updates: LegacyAny) => {
           const char = characters.get(id);
           if (char) {
             characters.set(id, { ...char, ...updates });
           }
         },
-        addCharacter: (char: any) => {
+        addCharacter: (char: LegacyAny) => {
           characters.set(char.character_id, char);
         },
         getAllCharacters: () => Array.from(characters.values()),
@@ -711,11 +712,11 @@ describe('RelationshipManager', () => {
 
     // Mock event emitter
     function createMockEventEmitter() {
-      const events: Array<{ type: string; payload: any }> = [];
+      const events: Array<{ type: string; payload: LegacyAny }> = [];
 
       return {
         events,
-        emit: (type: string, payload: any) => {
+        emit: (type: string, payload: LegacyAny) => {
           events.push({ type, payload });
         },
         getEvents: (type?: string) => {
@@ -728,7 +729,7 @@ describe('RelationshipManager', () => {
     }
 
     // Helper to create a test character
-    function createTestCharacter(id: string, name: string, relationships: any[] = []) {
+    function createTestCharacter(id: string, name: string, relationships: LegacyAny[] = []) {
       return {
         character_id: id,
         name,
@@ -1080,7 +1081,7 @@ describe('RelationshipManager', () => {
 
         const char1 = store.getCharacter('char-1');
         const hasRelationship = char1.relationships.some(
-          (r: any) => r.character_id === 'char-2' && r.relationship_type === 'friend'
+          (r: LegacyAny) => r.character_id === 'char-2' && r.relationship_type === 'friend'
         );
 
         expect(hasRelationship).toBe(true);
@@ -1107,7 +1108,7 @@ describe('RelationshipManager', () => {
 
         const char2 = store.getCharacter('char-2');
         const hasInverseRelationship = char2.relationships.some(
-          (r: any) => r.character_id === 'char-1' && r.relationship_type === 'student'
+          (r: LegacyAny) => r.character_id === 'char-1' && r.relationship_type === 'student'
         );
 
         expect(hasInverseRelationship).toBe(true);
@@ -1196,8 +1197,8 @@ describe('RelationshipManager', () => {
         expect(char1.relationships).toHaveLength(2);
         
         // Should have both the existing and new relationship
-        const hasExisting = char1.relationships.some((r: any) => r.character_id === 'char-3');
-        const hasNew = char1.relationships.some((r: any) => r.character_id === 'char-2');
+        const hasExisting = char1.relationships.some((r: LegacyAny) => r.character_id === 'char-3');
+        const hasNew = char1.relationships.some((r: LegacyAny) => r.character_id === 'char-2');
 
         expect(hasExisting).toBe(true);
         expect(hasNew).toBe(true);
@@ -1237,13 +1238,13 @@ describe('RelationshipManager', () => {
       return {
         characters,
         getCharacter: (id: string) => characters.get(id),
-        updateCharacter: (id: string, updates: any) => {
+        updateCharacter: (id: string, updates: LegacyAny) => {
           const char = characters.get(id);
           if (char) {
             characters.set(id, { ...char, ...updates });
           }
         },
-        addCharacter: (char: any) => {
+        addCharacter: (char: LegacyAny) => {
           characters.set(char.character_id, char);
         },
         getAllCharacters: () => Array.from(characters.values()),
@@ -1252,11 +1253,11 @@ describe('RelationshipManager', () => {
 
     // Mock event emitter
     function createMockEventEmitter() {
-      const events: Array<{ type: string; payload: any }> = [];
+      const events: Array<{ type: string; payload: LegacyAny }> = [];
 
       return {
         events,
-        emit: (type: string, payload: any) => {
+        emit: (type: string, payload: LegacyAny) => {
           events.push({ type, payload });
         },
         getEvents: (type?: string) => {
@@ -1269,7 +1270,7 @@ describe('RelationshipManager', () => {
     }
 
     // Helper to create a test character
-    function createTestCharacter(id: string, name: string, relationships: any[] = []) {
+    function createTestCharacter(id: string, name: string, relationships: LegacyAny[] = []) {
       return {
         character_id: id,
         name,
@@ -1736,7 +1737,7 @@ describe('RelationshipManager', () => {
         );
 
         const char1 = store.getCharacter('char-1');
-        const relationship = char1.relationships.find((r: any) => r.character_id === 'char-2');
+        const relationship = char1.relationships.find((r: LegacyAny) => r.character_id === 'char-2');
 
         expect(relationship.description).toBe('Best friends');
         expect(relationship.dynamic).toBe('Very supportive');
@@ -1765,7 +1766,7 @@ describe('RelationshipManager', () => {
         );
 
         const char2 = store.getCharacter('char-2');
-        const inverseRelationship = char2.relationships.find((r: any) => r.character_id === 'char-1');
+        const inverseRelationship = char2.relationships.find((r: LegacyAny) => r.character_id === 'char-1');
 
         expect(inverseRelationship.description).toBe('Teaches dark arts');
         expect(inverseRelationship.dynamic).toBe('Secretive');
@@ -1834,11 +1835,11 @@ describe('RelationshipManager', () => {
         expect(char1.relationships).toHaveLength(2);
 
         // Updated relationship
-        const updatedRel = char1.relationships.find((r: any) => r.character_id === 'char-2');
+        const updatedRel = char1.relationships.find((r: LegacyAny) => r.character_id === 'char-2');
         expect(updatedRel.description).toBe('Best friends');
 
         // Unchanged relationship
-        const unchangedRel = char1.relationships.find((r: any) => r.character_id === 'char-3');
+        const unchangedRel = char1.relationships.find((r: LegacyAny) => r.character_id === 'char-3');
         expect(unchangedRel.description).toBe('Teaches');
       });
 
@@ -1965,13 +1966,13 @@ describe('RelationshipManager', () => {
       return {
         characters,
         getCharacter: (id: string) => characters.get(id),
-        updateCharacter: (id: string, updates: any) => {
+        updateCharacter: (id: string, updates: LegacyAny) => {
           const char = characters.get(id);
           if (char) {
             characters.set(id, { ...char, ...updates });
           }
         },
-        addCharacter: (char: any) => {
+        addCharacter: (char: LegacyAny) => {
           characters.set(char.character_id, char);
         },
         getAllCharacters: () => Array.from(characters.values()),
@@ -1980,11 +1981,11 @@ describe('RelationshipManager', () => {
 
     // Mock event emitter
     function createMockEventEmitter() {
-      const events: Array<{ type: string; payload: any }> = [];
+      const events: Array<{ type: string; payload: LegacyAny }> = [];
 
       return {
         events,
-        emit: (type: string, payload: any) => {
+        emit: (type: string, payload: LegacyAny) => {
           events.push({ type, payload });
         },
         getEvents: (type?: string) => {
@@ -1997,7 +1998,7 @@ describe('RelationshipManager', () => {
     }
 
     // Helper to create a test character
-    function createTestCharacter(id: string, name: string, relationships: any[] = []) {
+    function createTestCharacter(id: string, name: string, relationships: LegacyAny[] = []) {
       return {
         character_id: id,
         name,
@@ -2329,7 +2330,7 @@ describe('RelationshipManager', () => {
 
         const char1 = store.getCharacter('char-1');
         const hasRelationship = char1.relationships.some(
-          (r: any) => r.character_id === 'char-2'
+          (r: LegacyAny) => r.character_id === 'char-2'
         );
 
         expect(hasRelationship).toBe(false);
@@ -2355,7 +2356,7 @@ describe('RelationshipManager', () => {
 
         const char2 = store.getCharacter('char-2');
         const hasInverseRelationship = char2.relationships.some(
-          (r: any) => r.character_id === 'char-1'
+          (r: LegacyAny) => r.character_id === 'char-1'
         );
 
         expect(hasInverseRelationship).toBe(false);
@@ -2419,11 +2420,11 @@ describe('RelationshipManager', () => {
         expect(char1.relationships).toHaveLength(1);
 
         // Removed relationship should be gone
-        const removedRel = char1.relationships.find((r: any) => r.character_id === 'char-2');
+        const removedRel = char1.relationships.find((r: LegacyAny) => r.character_id === 'char-2');
         expect(removedRel).toBeUndefined();
 
         // Other relationship should remain
-        const remainingRel = char1.relationships.find((r: any) => r.character_id === 'char-3');
+        const remainingRel = char1.relationships.find((r: LegacyAny) => r.character_id === 'char-3');
         expect(remainingRel).toBeDefined();
         expect(remainingRel.description).toBe('Teaches');
       });

@@ -12,7 +12,7 @@ import type { WizardStep } from '../WizardStepIndicator';
 import type { StoryObject } from '@/types/object';
 import { createEmptyObject } from '@/types/object';
 import { useServiceStatus } from '@/hooks/useServiceStatus';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, _AlertCircle } from 'lucide-react';
 import { Step1BasicInfo } from './Step1BasicInfo';
 import { Step2Properties } from './Step2Properties';
 import { Step3Abilities } from './Step3Abilities';
@@ -234,7 +234,7 @@ export function ObjectWizard({
   }
 
   // Show info if LLM not configured (info only, don't block)
-  const showLLMWarning = !llmChecking && !llmConfigured;
+  const _showLLMWarning = !llmChecking && !llmConfigured;
 
   return (
     <WizardProvider<StoryObject>

@@ -14,7 +14,7 @@ import type { World } from '@/types/world';
 import type { 
   MasterReferenceSheet, 
   SequenceReferenceSheet,
-  ShotReference 
+  _ShotReference 
 } from '@/types/reference';
 
 // ============================================================================
@@ -403,7 +403,7 @@ class ProjectBranchingService {
     const appStore = useAppStore.getState();
     
     // Create checkpoint before pruning
-    const checkpointId = this.createCheckpointBeforePrune(projectId, nodeId);
+    const _checkpointId = this.createCheckpointBeforePrune(projectId, nodeId);
     
     // Get all shots
     const allShots = appStore.shots;
@@ -494,7 +494,7 @@ class ProjectBranchingService {
       throw new Error(`Node not found: ${nodeId}`);
     }
     
-    const validShotIds = new Set(allShots.slice(0, nodeIndex + 1).map(s => s.id));
+    const _validShotIds = new Set(allShots.slice(0, nodeIndex + 1).map(s => s.id));
     
     // Clean up unused characters
     const characters = appStore.characters;
@@ -614,7 +614,7 @@ class ProjectBranchingService {
       throw new Error('Cannot switch to an archived branch');
     }
     
-    const appStore = useAppStore.getState();
+    const _appStore = useAppStore.getState();
     
     // Deactivate all other branches for this project
     const projectBranches = this.getBranches(branch.projectId);
@@ -645,7 +645,7 @@ class ProjectBranchingService {
     const sourceProjectId = branch.projectId;
     
     // Export context from branch point
-    const contextExport = await this.exportContextToNewProject(sourceProjectId, branch.branchPointId);
+    const _contextExport = await this.exportContextToNewProject(sourceProjectId, branch.branchPointId);
     
     // Copy characters
     this.copyCharactersToNewProject(sourceProjectId, targetProjectId, branch.branchPointId);
@@ -813,8 +813,8 @@ class ProjectBranchingService {
    */
   validateContextIntegrity(context: ProjectContext): boolean {
     // Check that all referenced entities exist
-    const characterIds = new Set(context.entities.characters.map(c => c.id));
-    const worldIds = new Set(context.entities.worlds.map(w => w.id));
+    const _characterIds = new Set(context.entities.characters.map(c => c.id));
+    const _worldIds = new Set(context.entities.worlds.map(w => w.id));
     const sequenceIds = new Set(context.entities.sequences.map(s => s.id));
     
     // Validate shot references

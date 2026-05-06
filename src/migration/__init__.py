@@ -14,20 +14,20 @@ from .file_analyzer import (
     ProjectStructure,
     DependencyGraph,
     FileMovement,
-    MovementPlan
+    MovementPlan,
 )
 
 __all__ = [
-    'BackupManager',
-    'BackupInfo',
-    'BuildScriptUpdater',
-    'ScriptUpdate',
-    'UpdateResult',
-    'FileAnalyzer',
-    'FileCategory',
-    'FileInfo',
-    'ProjectStructure',
-    'DependencyGraph',
-    'FileMovement',
-    'MovementPlan'
+    "BackupManager",
+    "BackupInfo",
+    "BuildScriptUpdater",
+    "ScriptUpdate",
+    "UpdateResult",
+    "FileAnalyzer",
+    "FileCategory",
+    "FileInfo",
+    "ProjectStructure",
+    "DependencyGraph",
+    "FileMovement",
+    "MovementPlan",
 ]

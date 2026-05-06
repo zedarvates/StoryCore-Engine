@@ -14,6 +14,7 @@ from pathlib import Path
 # Enums
 class WorkflowStep(Enum):
     """Workflow execution steps"""
+
     PARSING = "parsing"
     NAME_GENERATION = "name_generation"
     COMPONENT_GENERATION = "component_generation"
@@ -26,6 +27,7 @@ class WorkflowStep(Enum):
 
 class RecoveryStrategy(Enum):
     """Error recovery strategies"""
+
     RETRY = "retry"
     RETRY_ADJUSTED = "retry_adjusted"
     SKIP = "skip"
@@ -36,6 +38,7 @@ class RecoveryStrategy(Enum):
 
 class PipelineStep(Enum):
     """StoryCore pipeline steps"""
+
     GRID = "grid"
     PROMOTE = "promote"
     REFINE = "refine"
@@ -49,6 +52,7 @@ class PipelineStep(Enum):
 @dataclass
 class CharacterInfo:
     """Basic character information from prompt"""
+
     name: str
     role: str
     description: str
@@ -57,6 +61,7 @@ class CharacterInfo:
 @dataclass
 class ParsedPrompt:
     """Parsed user prompt with extracted information"""
+
     project_title: str
     genre: str
     video_type: str
@@ -75,6 +80,7 @@ class ParsedPrompt:
 @dataclass
 class ColorPalette:
     """Color palette definition"""
+
     primary: str
     secondary: str
     accent: str
@@ -85,6 +91,7 @@ class ColorPalette:
 @dataclass
 class Location:
     """Location/setting definition"""
+
     location_id: str
     name: str
     description: str
@@ -97,6 +104,7 @@ class Location:
 @dataclass
 class WorldConfig:
     """World/universe configuration"""
+
     world_id: str
     name: str
     genre: str
@@ -112,6 +120,7 @@ class WorldConfig:
 @dataclass
 class Character:
     """Complete character sheet"""
+
     character_id: str
     name: str
     role: str
@@ -126,10 +135,10 @@ class Character:
     prompts: List[str] = field(default_factory=list)
 
 
-
 @dataclass
 class EmotionalBeat:
     """Emotional beat in story"""
+
     beat_id: str
     emotion: str
     intensity: float
@@ -139,6 +148,7 @@ class EmotionalBeat:
 @dataclass
 class Act:
     """Story act"""
+
     act_number: int
     name: str
     description: str
@@ -149,6 +159,7 @@ class Act:
 @dataclass
 class StoryStructure:
     """Complete story structure"""
+
     story_id: str
     title: str
     logline: str
@@ -160,6 +171,7 @@ class StoryStructure:
 @dataclass
 class DialogueLine:
     """Single line of dialogue"""
+
     line_id: str
     character_id: str
     character_name: str
@@ -172,6 +184,7 @@ class DialogueLine:
 @dataclass
 class DialogueScene:
     """Dialogue for a single scene"""
+
     scene_id: str
     scene_name: str
     location: str
@@ -184,6 +197,7 @@ class DialogueScene:
 @dataclass
 class DialogueScript:
     """Complete dialogue script"""
+
     script_id: str
     scenes: List[DialogueScene]
     total_lines: int
@@ -193,6 +207,7 @@ class DialogueScript:
 @dataclass
 class PromptModules:
     """Prompt modules for shot generation"""
+
     base: str
     style: str
     lighting: str
@@ -203,6 +218,7 @@ class PromptModules:
 @dataclass
 class Shot:
     """Single shot definition"""
+
     shot_id: str
     shot_number: int
     duration: int
@@ -217,6 +233,7 @@ class Shot:
 @dataclass
 class Sequence:
     """Single sequence"""
+
     sequence_id: str
     name: str
     duration: int
@@ -228,6 +245,7 @@ class Sequence:
 @dataclass
 class SequencePlan:
     """Complete sequence and shot plan"""
+
     sequence_id: str
     total_duration: int
     sequences: List[Sequence]
@@ -237,6 +255,7 @@ class SequencePlan:
 @dataclass
 class SoundEffect:
     """Sound effect definition"""
+
     effect_id: str
     name: str
     description: str
@@ -246,6 +265,7 @@ class SoundEffect:
 @dataclass
 class MusicCue:
     """Music cue in timeline"""
+
     cue_id: str
     timestamp: float
     description: str
@@ -255,6 +275,7 @@ class MusicCue:
 @dataclass
 class MusicDescription:
     """Music and sound description"""
+
     music_id: str
     genre: str
     mood: List[str]
@@ -267,6 +288,7 @@ class MusicDescription:
 @dataclass
 class ProjectMetadata:
     """Project metadata"""
+
     project_id: str
     project_name: str
     created_at: datetime
@@ -282,6 +304,7 @@ class ProjectMetadata:
 @dataclass
 class ProjectComponents:
     """All generated project components"""
+
     world_config: WorldConfig
     characters: List[Character]
     story_structure: StoryStructure
@@ -295,6 +318,7 @@ class ProjectComponents:
 @dataclass
 class WorkflowState:
     """Current workflow state"""
+
     current_step: WorkflowStep
     completed_steps: List[WorkflowStep]
     failed_steps: List[tuple]  # (WorkflowStep, error_message)
@@ -307,6 +331,7 @@ class WorkflowState:
 @dataclass
 class Issue:
     """Quality issue"""
+
     issue_id: str
     severity: str
     category: str
@@ -317,6 +342,7 @@ class Issue:
 @dataclass
 class QualityReport:
     """Quality validation report"""
+
     overall_score: float
     visual_coherence_score: float
     audio_quality_score: float
@@ -329,6 +355,7 @@ class QualityReport:
 @dataclass
 class ProjectCreationResult:
     """Result of project creation"""
+
     success: bool
     project_path: Path
     video_path: Optional[Path]
@@ -342,6 +369,7 @@ class ProjectCreationResult:
 @dataclass
 class OrchestratorConfig:
     """Orchestrator configuration"""
+
     projects_directory: str
     comfyui_backend_url: str
     storycore_cli_path: str
@@ -357,6 +385,7 @@ class OrchestratorConfig:
 @dataclass
 class SystemCapabilities:
     """System capabilities detection"""
+
     cpu_cores: int
     ram_gb: float
     gpu_available: bool
@@ -366,6 +395,7 @@ class SystemCapabilities:
 @dataclass
 class OptimalConfig:
     """Optimal configuration for project"""
+
     aspect_ratio: str
     resolution: tuple
     quality_tier: str
@@ -379,6 +409,7 @@ class OptimalConfig:
 @dataclass
 class ErrorContext:
     """Error context for recovery"""
+
     error_type: str
     error_message: str
     stack_trace: str
@@ -392,6 +423,7 @@ class ErrorContext:
 @dataclass
 class RecoveryAction:
     """Recovery action to take"""
+
     strategy: RecoveryStrategy
     parameters: Dict[str, Any]
     max_attempts: int = 3
@@ -401,6 +433,7 @@ class RecoveryAction:
 @dataclass
 class ProgressReport:
     """Progress report"""
+
     current_step: str
     progress_percent: float
     elapsed_time: timedelta
@@ -413,6 +446,7 @@ class ProgressReport:
 @dataclass
 class StyleConfig:
     """Style configuration for image generation"""
+
     style_type: str
     style_strength: float
     color_palette: ColorPalette
@@ -423,6 +457,7 @@ class StyleConfig:
 @dataclass
 class ShotConfig:
     """Configuration for shot generation"""
+
     shot_id: str
     prompt: str
     negative_prompt: str
@@ -437,6 +472,7 @@ class ShotConfig:
 @dataclass
 class GeneratedImage:
     """Generated image result"""
+
     image_id: str
     shot_id: str
     file_path: Path
@@ -451,9 +487,10 @@ class GeneratedImage:
 class GeneratedVideo:
     """
     Generated video result from LTX-2 image-to-video workflow.
-    
+
     Validates: Requirements 14.7, 14.15
     """
+
     path: Path
     duration_seconds: float
     frame_count: int
@@ -467,6 +504,7 @@ class GeneratedVideo:
 @dataclass
 class MasterCoherenceSheet:
     """Master coherence sheet (3x3 grid)"""
+
     sheet_id: str
     grid_images: List[GeneratedImage]  # 9 images
     style_config: StyleConfig
@@ -476,6 +514,7 @@ class MasterCoherenceSheet:
 
 class FallbackMode(Enum):
     """Fallback mode when ComfyUI unavailable"""
+
     PLACEHOLDER = "placeholder"
     SKIP = "skip"
     ABORT = "abort"
@@ -484,6 +523,7 @@ class FallbackMode(Enum):
 @dataclass
 class ComfyUIStatus:
     """ComfyUI backend status"""
+
     available: bool
     url: str
     version: Optional[str] = None
@@ -493,8 +533,13 @@ class ComfyUIStatus:
     cors_enabled: bool = False
     models_ready: bool = False
     workflows_ready: bool = False
-    
+
     @property
     def fully_ready(self) -> bool:
         """Check if backend is fully ready for generation"""
-        return self.available and self.cors_enabled and self.models_ready and self.workflows_ready
+        return (
+            self.available
+            and self.cors_enabled
+            and self.models_ready
+            and self.workflows_ready
+        )

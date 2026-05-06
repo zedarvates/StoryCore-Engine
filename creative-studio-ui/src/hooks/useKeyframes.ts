@@ -20,6 +20,8 @@
  * });
  * ```
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { 
   useCallback, 
@@ -28,7 +30,7 @@ import {
   useState 
 } from 'react';
 import { 
-  Keyframe, 
+  _Keyframe, 
   KeyframeAnimationConfig, 
   AnimationInstance,
   EasingFunction,
@@ -66,10 +68,10 @@ function interpolateValue(
  * Parse keyframe time values (handle both 0-1 percentages and absolute times)
  */
 function parseKeyframes<T>(
-  keyframes: Array<Keyframe<T>>,
-  duration: number,
+  _keyframes: Array<Keyframe<T>>,
+  _duration: number,
   fromValue: T extends number ? number : never,
-  toValue: T extends number ? number : never
+  toValue: T extends number _? number : never
 ): Array<{ time: number; value: number; easing?: EasingFunction }> {
   return keyframes.map((kf, index) => {
     let time: number;
@@ -163,7 +165,7 @@ export function useKeyframes(
 
   // Animation loop
   const animate = useCallback(() => {
-    if (!animationRef.current) return;
+    if (!animationRef.current) re_turn;
 
     const { startTime, isPaused, loopCount, direction } = animationRef.current;
 
@@ -543,15 +545,15 @@ export function useKeyframesStagger<T>(
   stop: () => void;
 } {
   const [values, setValues] = useState<Array<T extends object ? { [K in keyof T]: number } : number>>(
-    items.map(() => config.from as any)
+    items.map(() => config.from as LegacyAny)
   );
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
   // Calculate value for item at index
   const calculateValue = useCallback((index: number, progress: number): unknown => {
-    const fromVal = config.from as any;
-    const toVal = config.to as any;
+    const fromVal = config.from as LegacyAny;
+    const toVal = config.to as LegacyAny;
 
     // Apply stagger delay
     const staggerDelay = index * config.stagger;
@@ -569,7 +571,7 @@ export function useKeyframesStagger<T>(
       return interpolateValue(fromVal, toVal, itemProgress, config.easing);
     }
 
-    const result = {} as any;
+    const result = {} as LegacyAny;
     Object.keys(fromVal).forEach(key => {
       result[key] = interpolateValue(
         fromVal[key] as number,
@@ -594,7 +596,7 @@ export function useKeyframesStagger<T>(
 
     if (progress <= 1) {
       const newValues = items.map((_, index) => calculateValue(index, progress * config.duration));
-      setValues(newValues as any);
+      setValues(newValues as LegacyAny);
       rafRef.current = requestAnimationFrame(animate);
     } else if (config.loop) {
       startTimeRef.current = null;
@@ -618,7 +620,7 @@ export function useKeyframesStagger<T>(
       rafRef.current = null;
     }
     startTimeRef.current = null;
-    setValues(items.map(() => config.from as any));
+    setValues(items.map(() => config.from as LegacyAny));
   }, [items.length, config.from]);
 
   return {

@@ -243,7 +243,7 @@ describe('useAppStore - Character Integration System UI State', () => {
       const {
         setSelectedCharacterIds,
         setShowChat,
-        showChat,
+        _showChat,
       } = useAppStore.getState();
 
       // Set non-character state

@@ -13,7 +13,6 @@ Le script généré est autonome : il peut être relu, modifié, versionné.
 """
 
 from __future__ import annotations
-import os
 import uuid
 import textwrap
 from pathlib import Path
@@ -21,8 +20,10 @@ from typing import Optional
 from datetime import datetime
 
 from blender_bridge.scene_types import (
-    SceneJSON, SceneType, ShotType, AtmosphereType,
-    LightType, RigType,
+    SceneJSON,
+    SceneType,
+    AtmosphereType,
+    LightType,
 )
 
 
@@ -84,7 +85,7 @@ def assign_material(obj, mat):
 clear_scene()
 '''
 
-_WORLD_TEMPLATE = '''\
+_WORLD_TEMPLATE = """\
 
 # ═══════════════════════════════════════════════════════════════
 #  MONDE (sky / ambiance globale)
@@ -95,9 +96,9 @@ bg_node = world.node_tree.nodes.get("Background")
 if bg_node:
     bg_node.inputs["Color"].default_value = {world_color}
     bg_node.inputs["Strength"].default_value = {world_strength}
-'''
+"""
 
-_LIGHT_TEMPLATE = '''\
+_LIGHT_TEMPLATE = """\
 # Lumière : {name}
 bpy.ops.object.light_add(type='{light_type}', location={position})
 light_obj = bpy.context.active_object
@@ -106,9 +107,9 @@ light_obj.rotation_euler = Euler([deg2rad(r) for r in {rotation}], 'XYZ')
 light_obj.data.energy = {energy}
 light_obj.data.color = {color}
 light_obj.data.use_shadow = {cast_shadow}
-'''
+"""
 
-_CAMERA_TEMPLATE = '''\
+_CAMERA_TEMPLATE = """\
 
 # ═══════════════════════════════════════════════════════════════
 #  CAMÉRA CINÉMATOGRAPHIQUE
@@ -135,9 +136,9 @@ bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 0))
 cam_target = bpy.context.active_object
 cam_target.name = "Camera_Target"
 bpy.context.scene.camera = cam_obj
-'''
+"""
 
-_RENDER_TEMPLATE = '''\
+_RENDER_TEMPLATE = """\
 
 # ═══════════════════════════════════════════════════════════════
 #  PARAMÈTRES DE RENDU
@@ -164,16 +165,16 @@ elif '{engine}' == 'BLENDER_EEVEE':
 # Lancer le rendu
 bpy.ops.render.render(write_still=True)
 print("STORYCORE_RENDER_COMPLETE:" + scene.render.filepath)
-'''
+"""
 
-_RENDER_CONTROLNET_TEMPLATE = '''\
+_RENDER_CONTROLNET_TEMPLATE = """\
 # Lancer le rendu (incluant les passes ControlNet via Compositor)
 bpy.ops.render.render(write_still=True)
 print("STORYCORE_RENDER_COMPLETE:" + scene.render.filepath)
 print("STORYCORE_CONTROLNET_EXPORT_COMPLETE")
-'''
+"""
 
-_CONTROLNET_COMPOSITOR_TEMPLATE = '''\
+_CONTROLNET_COMPOSITOR_TEMPLATE = """\
 
 # ═══════════════════════════════════════════════════════════════
 #  COMPOSITION CONTROLNET (Depth & Canny)
@@ -237,12 +238,13 @@ links.new(invert_depth.outputs[0], output_node.inputs["depth"])
 links.new(filter_canny.outputs[0], output_node.inputs["canny"])
 
 print("STORYCORE_CONTROLNET_NODES_CONFIGURED")
-'''
+"""
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  GÉNÉRATEUR PRINCIPAL
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class BlenderScriptGenerator:
     """
@@ -273,11 +275,13 @@ class BlenderScriptGenerator:
         blocks = []
 
         # En-tête
-        blocks.append(_HEADER.format(
-            scene_id=scene.scene_id,
-            date=datetime.now().isoformat(timespec="seconds"),
-            description=scene.description,
-        ))
+        blocks.append(
+            _HEADER.format(
+                scene_id=scene.scene_id,
+                date=datetime.now().isoformat(timespec="seconds"),
+                description=scene.description,
+            )
+        )
 
         # Sol de base
         blocks.append(self._generate_ground(scene))
@@ -393,13 +397,16 @@ class BlenderScriptGenerator:
 
     def _generate_lighting(self, scene: SceneJSON) -> str:
         L = scene.lighting
-        blocks = ["\n# ═══════════════════════════════════════════════════════════════",
-                  "#  ÉCLAIRAGE",
-                  "# ═══════════════════════════════════════════════════════════════"]
+        blocks = [
+            "\n# ═══════════════════════════════════════════════════════════════",
+            "#  ÉCLAIRAGE",
+            "# ═══════════════════════════════════════════════════════════════",
+        ]
 
         if not L.lights:
             # Éclairage par défaut si aucun défini
-            blocks.append(textwrap.dedent("""\
+            blocks.append(
+                textwrap.dedent("""\
                 # Lumière principale par défaut
                 bpy.ops.object.light_add(type='SUN', location=(4, -4, 6))
                 key_light = bpy.context.active_object
@@ -415,7 +422,8 @@ class BlenderScriptGenerator:
                 fill_light.data.energy = 1.5
                 fill_light.data.size = 4.0
                 fill_light.data.color = (0.7, 0.8, 1.0)
-            """))
+            """)
+            )
         else:
             for light in L.lights:
                 lt_map = {
@@ -427,15 +435,17 @@ class BlenderScriptGenerator:
                 }
                 lt_str = lt_map.get(light.light_type, "SUN")
                 color_str = f"({light.color[0]:.3f}, {light.color[1]:.3f}, {light.color[2]:.3f})"
-                blocks.append(_LIGHT_TEMPLATE.format(
-                    name=light.name,
-                    light_type=lt_str,
-                    position=list(light.position),
-                    rotation=list(light.rotation),
-                    energy=light.energy,
-                    color=color_str,
-                    cast_shadow=str(light.cast_shadow),
-                ))
+                blocks.append(
+                    _LIGHT_TEMPLATE.format(
+                        name=light.name,
+                        light_type=lt_str,
+                        position=list(light.position),
+                        rotation=list(light.rotation),
+                        energy=light.energy,
+                        color=color_str,
+                        cast_shadow=str(light.cast_shadow),
+                    )
+                )
 
         return "\n".join(blocks)
 
@@ -660,10 +670,10 @@ class BlenderScriptGenerator:
                 # voir blender_projection/plant_assets.py pour le placement d'assets librairie
                 # Fallback : cube placeholder
                 bpy.ops.mesh.primitive_cube_add(size=1, location={pos})
-                prop_{prop.name.replace(' ', '_')} = bpy.context.active_object
-                prop_{prop.name.replace(' ', '_')}.name = "{prop.name}"
-                prop_{prop.name.replace(' ', '_')}.rotation_euler = Euler([deg2rad(r) for r in {rot}], 'XYZ')
-                prop_{prop.name.replace(' ', '_')}.scale = {sc}
+                prop_{prop.name.replace(" ", "_")} = bpy.context.active_object
+                prop_{prop.name.replace(" ", "_")}.name = "{prop.name}"
+                prop_{prop.name.replace(" ", "_")}.rotation_euler = Euler([deg2rad(r) for r in {rot}], 'XYZ')
+                prop_{prop.name.replace(" ", "_")}.scale = {sc}
                 bpy.ops.object.transform_apply(scale=True)
             """)
         else:
@@ -671,10 +681,10 @@ class BlenderScriptGenerator:
 
                 # PROP (primitif) : {prop.name}
                 bpy.ops.mesh.primitive_cube_add(size=1, location={pos})
-                prop_{prop.name.replace(' ', '_')} = bpy.context.active_object
-                prop_{prop.name.replace(' ', '_')}.name = "{prop.name}"
-                prop_{prop.name.replace(' ', '_')}.rotation_euler = Euler([deg2rad(r) for r in {rot}], 'XYZ')
-                prop_{prop.name.replace(' ', '_')}.scale = {sc}
+                prop_{prop.name.replace(" ", "_")} = bpy.context.active_object
+                prop_{prop.name.replace(" ", "_")}.name = "{prop.name}"
+                prop_{prop.name.replace(" ", "_")}.rotation_euler = Euler([deg2rad(r) for r in {rot}], 'XYZ')
+                prop_{prop.name.replace(" ", "_")}.scale = {sc}
                 bpy.ops.object.transform_apply(scale=True)
             """)
 
@@ -683,29 +693,31 @@ class BlenderScriptGenerator:
         blocks = []
 
         # Bloc de configuration de base
-        blocks.append(_RENDER_TEMPLATE.split("# Lancer le rendu")[0].format(
-            engine=r.engine,
-            resolution_x=r.resolution_x,
-            resolution_y=r.resolution_y,
-            samples=r.samples,
-            use_denoiser=str(r.use_denoiser),
-            output_format=r.output_format,
-            output_path=r.output_path.replace("\\", "/"),
-            frame_start=r.frame_start,
-            frame_end=r.frame_end,
-            fps=r.fps,
-        ))
+        blocks.append(
+            _RENDER_TEMPLATE.split("# Lancer le rendu")[0].format(
+                engine=r.engine,
+                resolution_x=r.resolution_x,
+                resolution_y=r.resolution_y,
+                samples=r.samples,
+                use_denoiser=str(r.use_denoiser),
+                output_format=r.output_format,
+                output_path=r.output_path.replace("\\", "/"),
+                frame_start=r.frame_start,
+                frame_end=r.frame_end,
+                fps=r.fps,
+            )
+        )
 
         # Bloc ControlNet si activé
         if r.export_controlnet:
             # On utilise le dossier parent du rendu pour les passes ControlNet
             base_path = str(Path(r.output_path).parent).replace("\\", "/")
-            blocks.append(_CONTROLNET_COMPOSITOR_TEMPLATE.format(
-                base_path=base_path
-            ))
+            blocks.append(_CONTROLNET_COMPOSITOR_TEMPLATE.format(base_path=base_path))
             blocks.append(_RENDER_CONTROLNET_TEMPLATE)
         else:
             # Rendu standard
-            blocks.append("# Lancer le rendu\nbpy.ops.render.render(write_still=True)\nprint('STORYCORE_RENDER_COMPLETE:' + scene.render.filepath)")
+            blocks.append(
+                "# Lancer le rendu\nbpy.ops.render.render(write_still=True)\nprint('STORYCORE_RENDER_COMPLETE:' + scene.render.filepath)"
+            )
 
         return "\n".join(blocks)

@@ -14,7 +14,7 @@
  * - linkPhraseToShot(phraseId, shotId): Link phrase to a shot via shotId
  */
 
-import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, _useState } from 'react';
 import type { DialoguePhrase } from '../types';
 
 // Generate unique ID for phrases
@@ -46,7 +46,7 @@ export const DialogueProvider: React.FC<{
   const [internalPhrases, setInternalPhrases] = React.useState<DialoguePhrase[]>([]);
   
   // Use external phrases or internal state
-  const phrases = externalPhrases !== undefined ? externalPhrases : internalPhrases;
+  const _phrases = externalPhrases !== undefined ? externalPhrases : internalPhrases;
 
   const addDialoguePhrase = useCallback((phrase: DialoguePhrase) => {
     const phraseId = phrase.id || generatePhraseId();

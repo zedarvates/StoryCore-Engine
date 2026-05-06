@@ -2,7 +2,6 @@
 Unit tests for Enhanced Validation System.
 """
 
-import pytest
 from .enhanced_validation import (
     ValidationError,
     ValidationResult,
@@ -14,7 +13,7 @@ from .enhanced_validation import (
     create_wizard_validator,
     validate_wizard_form,
     get_field_requirements,
-    get_user_friendly_message
+    get_user_friendly_message,
 )
 
 
@@ -29,7 +28,7 @@ class TestValidationError:
             severity=ValidationSeverity.ERROR,
             validation_type=ValidationType.REQUIRED,
             suggested_fix="Try this fix",
-            related_fields=["field1", "field2"]
+            related_fields=["field1", "field2"],
         )
 
         assert error.field == "test_field"
@@ -45,7 +44,7 @@ class TestValidationError:
             field="name",
             message="Name is required",
             severity=ValidationSeverity.ERROR,
-            validation_type=ValidationType.REQUIRED
+            validation_type=ValidationType.REQUIRED,
         )
 
         result = error.to_dict()
@@ -56,7 +55,7 @@ class TestValidationError:
             "severity": "error",
             "type": "required",
             "suggested_fix": None,
-            "related_fields": []
+            "related_fields": [],
         }
 
         assert result == expected
@@ -91,7 +90,7 @@ class TestValidationResult:
         warning = ValidationError(
             field="tone",
             message="Consider different tone",
-            severity=ValidationSeverity.WARNING
+            severity=ValidationSeverity.WARNING,
         )
 
         result.add_warning(warning)
@@ -104,8 +103,12 @@ class TestValidationResult:
         """Test filtering errors by severity."""
         result = ValidationResult(is_valid=False)
 
-        error = ValidationError(field="name", message="Required", severity=ValidationSeverity.ERROR)
-        warning = ValidationError(field="tone", message="Suggestion", severity=ValidationSeverity.WARNING)
+        error = ValidationError(
+            field="name", message="Required", severity=ValidationSeverity.ERROR
+        )
+        warning = ValidationError(
+            field="tone", message="Suggestion", severity=ValidationSeverity.WARNING
+        )
 
         result.add_error(error)
         result.add_warning(warning)
@@ -122,12 +125,16 @@ class TestValidationResult:
         result = ValidationResult(is_valid=True)
 
         # Add warning - should not block
-        warning = ValidationError(field="tone", message="Suggestion", severity=ValidationSeverity.WARNING)
+        warning = ValidationError(
+            field="tone", message="Suggestion", severity=ValidationSeverity.WARNING
+        )
         result.add_warning(warning)
         assert not result.has_blocking_errors()
 
         # Add error - should block
-        error = ValidationError(field="name", message="Required", severity=ValidationSeverity.ERROR)
+        error = ValidationError(
+            field="name", message="Required", severity=ValidationSeverity.ERROR
+        )
         result.add_error(error)
         assert result.has_blocking_errors()
 
@@ -143,7 +150,7 @@ class TestValidationRule:
             error_message="Field is required",
             severity=ValidationSeverity.ERROR,
             suggested_fix="Fill in the field",
-            related_fields=["other_field"]
+            related_fields=["other_field"],
         )
 
         assert rule.validation_type == ValidationType.REQUIRED
@@ -157,7 +164,7 @@ class TestValidationRule:
         rule = ValidationRule(
             validation_type=ValidationType.REQUIRED,
             condition=lambda x: x is not None and len(str(x)) > 0,
-            error_message="Field is required"
+            error_message="Field is required",
         )
 
         result = rule.validate("test value", "test_field")
@@ -169,7 +176,7 @@ class TestValidationRule:
             validation_type=ValidationType.REQUIRED,
             condition=lambda x: x is not None and len(str(x)) > 0,
             error_message="Field is required",
-            suggested_fix="Enter a value"
+            suggested_fix="Enter a value",
         )
 
         result = rule.validate("", "test_field")
@@ -197,7 +204,7 @@ class TestWizardValidator:
         rule = ValidationRule(
             validation_type=ValidationType.REQUIRED,
             condition=lambda x: x is not None,
-            error_message="Required"
+            error_message="Required",
         )
 
         validator.add_rule("name", rule)
@@ -221,7 +228,7 @@ class TestWizardValidator:
         rule = ValidationRule(
             validation_type=ValidationType.REQUIRED,
             condition=lambda x: x is not None and len(str(x)) > 0,
-            error_message="Required"
+            error_message="Required",
         )
         validator.add_rule("name", rule)
 
@@ -236,7 +243,7 @@ class TestWizardValidator:
         rule = ValidationRule(
             validation_type=ValidationType.REQUIRED,
             condition=lambda x: x is not None and len(str(x)) > 0,
-            error_message="Name is required"
+            error_message="Name is required",
         )
         validator.add_rule("name", rule)
 
@@ -265,21 +272,24 @@ class TestWizardValidator:
         validator = WizardValidator()
 
         # Add rules
-        validator.add_rule("name", ValidationRule(
-            validation_type=ValidationType.REQUIRED,
-            condition=lambda x: x and len(str(x)) > 0,
-            error_message="Name is required"
-        ))
-        validator.add_rule("email", ValidationRule(
-            validation_type=ValidationType.FORMAT,
-            condition=lambda x: "@" in str(x) if x else True,
-            error_message="Invalid email format"
-        ))
+        validator.add_rule(
+            "name",
+            ValidationRule(
+                validation_type=ValidationType.REQUIRED,
+                condition=lambda x: x and len(str(x)) > 0,
+                error_message="Name is required",
+            ),
+        )
+        validator.add_rule(
+            "email",
+            ValidationRule(
+                validation_type=ValidationType.FORMAT,
+                condition=lambda x: "@" in str(x) if x else True,
+                error_message="Invalid email format",
+            ),
+        )
 
-        form_data = {
-            "name": "John",
-            "email": "john@example.com"
-        }
+        form_data = {"name": "John", "email": "john@example.com"}
 
         result = validator.validate_form(form_data)
 
@@ -291,11 +301,14 @@ class TestWizardValidator:
         validator = WizardValidator()
 
         # Add required rule
-        validator.add_rule("name", ValidationRule(
-            validation_type=ValidationType.REQUIRED,
-            condition=lambda x: x is not None,
-            error_message="Name is required"
-        ))
+        validator.add_rule(
+            "name",
+            ValidationRule(
+                validation_type=ValidationType.REQUIRED,
+                condition=lambda x: x is not None,
+                error_message="Name is required",
+            ),
+        )
 
         # Add dependency
         validator.add_dependency("name", "project")
@@ -370,7 +383,7 @@ class TestConvenienceFunctions:
             "project_name": "Test Project",
             "format": "court_metrage",
             "duration": 15,
-            "story": "A test story with enough content to pass validation."
+            "story": "A test story with enough content to pass validation.",
         }
 
         result = validate_wizard_form("project_init", form_data)
@@ -382,7 +395,7 @@ class TestConvenienceFunctions:
         form_data = {
             "project_name": "",  # Empty name should fail
             "duration": 15,
-            "story": "Short"
+            "story": "Short",
         }
 
         result = validate_wizard_form("project_init", form_data)
@@ -405,7 +418,7 @@ class TestUserFriendlyMessages:
         error = ValidationError(
             field="name",
             message="Name is required",
-            suggested_fix="Enter a name for your character"
+            suggested_fix="Enter a name for your character",
         )
 
         message = get_user_friendly_message(error)
@@ -416,10 +429,7 @@ class TestUserFriendlyMessages:
 
     def test_get_user_friendly_message_without_fix(self):
         """Test user-friendly message without suggested fix."""
-        error = ValidationError(
-            field="name",
-            message="Name is required"
-        )
+        error = ValidationError(field="name", message="Name is required")
 
         message = get_user_friendly_message(error)
 
@@ -436,7 +446,7 @@ class TestIntegrationScenarios:
             "format": "court_metrage",
             "duration": 12,
             "genre": "action",
-            "story": "This is a complete story description that should pass all validation rules and contain enough content to be considered valid for the project initialization wizard."
+            "story": "This is a complete story description that should pass all validation rules and contain enough content to be considered valid for the project initialization wizard.",
         }
 
         result = validate_wizard_form("project_init", form_data)
@@ -449,7 +459,7 @@ class TestIntegrationScenarios:
         form_data = {
             "name": "Alice Johnson",
             "age": 28,
-            "personality_traits": ["confident", "intelligent", "compassionate"]
+            "personality_traits": ["confident", "intelligent", "compassionate"],
         }
 
         result = validate_wizard_form("character_wizard", form_data)
@@ -462,7 +472,7 @@ class TestIntegrationScenarios:
             "name": "Eldoria",
             "timePeriod": "Medieval Fantasy",
             "genre": ["fantasy", "adventure"],
-            "tone": ["epic", "mysterious"]
+            "tone": ["epic", "mysterious"],
         }
 
         result = validate_wizard_form("world_wizard", form_data)
@@ -473,7 +483,7 @@ class TestIntegrationScenarios:
         """Test dialogue wizard validation."""
         form_data = {
             "characters": ["Alice", "Bob", "Charlie"],
-            "topic": "Planning the heist"
+            "topic": "Planning the heist",
         }
 
         result = validate_wizard_form("dialogue_wizard", form_data)

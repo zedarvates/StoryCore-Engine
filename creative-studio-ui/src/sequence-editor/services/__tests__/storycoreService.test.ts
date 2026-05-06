@@ -2,6 +2,8 @@
  * StoryCore Service Tests
  * Requirements: 7.2
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi } from 'vitest';
 import {
@@ -33,7 +35,7 @@ describe('StoryCore Service', () => {
 
   describe('executeGenerationPipeline', () => {
     it('should execute pipeline and report progress', async () => {
-      const progressUpdates: any[] = [];
+      const progressUpdates: LegacyAny[] = [];
       
       const result = await executeGenerationPipeline(mockProjectData, (progress) => {
         progressUpdates.push(progress);

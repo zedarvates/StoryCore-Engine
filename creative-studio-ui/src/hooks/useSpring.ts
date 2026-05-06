@@ -17,6 +17,8 @@
  * return <div style={{ opacity: value.opacity, transform: `scale(${value.transform.scale})` }} />;
  * ```
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { 
   useCallback, 
@@ -27,7 +29,7 @@ import {
 } from 'react';
 import { 
   SpringConfig, 
-  SpringAnimationConfig, 
+  _SpringAnimationConfig, 
   AnimationInstance,
   EasingFunction,
   Spring 
@@ -309,7 +311,7 @@ export function useSpringTrail<T>(
   stops: (() => void)[];
 } {
   const [values, setValues] = useState<Array<T extends object ? { [K in keyof T]: number } : number>>(
-    items.map(() => config.from as any)
+    items.map(() => config.from as LegacyAny)
   );
   
   const animationRefs = useRef<Map<number, AnimationInstance<number>>>(new Map());
@@ -322,8 +324,8 @@ export function useSpringTrail<T>(
     stopsRef.current = [];
 
     items.forEach((_, index) => {
-      const from = config.from as any;
-      const to = config.to as any;
+      const from = config.from as LegacyAny;
+      const to = config.to as LegacyAny;
       const delay = (config.delay || 0) + (config.stagger || 0) * index;
 
       const animation = createSpringAnimation({
@@ -342,9 +344,9 @@ export function useSpringTrail<T>(
             const newValues = [...prev];
             if (typeof config.from === 'object' && config.from !== null) {
               const keys = Object.keys(config.from) as (keyof typeof config.from)[];
-              newValues[index] = { ...newValues[index], [keys[0]]: newValue } as any;
+              newValues[index] = { ...newValues[index], [keys[0]]: newValue } as LegacyAny;
             } else {
-              newValues[index] = newValue as any;
+              newValues[index] = newValue as LegacyAny;
             }
             return newValues;
           });

@@ -7,15 +7,15 @@
 
 import { WizardError } from '../types';
 import { 
-  joinPath, 
-  normalizePath, 
-  getDirName, 
-  getBaseName,
-  getExtension,
-  sanitizeFilename,
-  generateUniqueId,
-  buildProjectFilePath,
-  buildAssetFilePath
+  _joinPath, 
+  _normalizePath, 
+  _getDirName, 
+  _getBaseName,
+  _getExtension,
+  _sanitizeFilename,
+  _generateUniqueId,
+  _buildProjectFilePath,
+  _buildAssetFilePath
 } from '../pathUtils';
 import { createLogger } from '../logger';
 
@@ -38,11 +38,11 @@ logger.warn('test', 'Test warning');
 logger.error('test', 'Test error', new Error('Test'));
 logger.logWizardError(error);
 
-const logs = logger.getLogs();
+const _logs = logger.getLogs();
 
-const stats = logger.getStatistics();
+const _stats = logger.getStatistics();
 
 // Test 4: Cross-platform compatibility
-const windowsPath = 'C:\\Users\\test\\project\\file.txt';
-const unixPath = '/home/user/project/file.txt';
+const _windowsPath = 'C:\\Users\\test\\project\\file.txt';
+const _unixPath = '/home/user/project/file.txt';
 

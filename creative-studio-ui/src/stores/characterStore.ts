@@ -22,7 +22,7 @@ interface CharacterState {
 
 export const useCharacterStore = create<CharacterState>()(
   devtools(
-    (set, get) => ({
+    (set, _get) => ({
       characters: [],
       isLoading: false,
       error: null,

@@ -18,17 +18,18 @@ import logging
 import uuid
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-ADDON_ID   = "casting_studio"
+ADDON_ID = "casting_studio"
 ADDON_NAME = "Casting Studio"
-VERSION    = "0.8.0"
+VERSION = "0.8.0"
 
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class CharacterEmbedding:
@@ -37,8 +38,10 @@ class CharacterEmbedding:
     description: str
     reference_sheet_path: Optional[str] = None
     face_embedding: Optional[List[float]] = None
-    performance_variants: List[str] = field(default_factory=list)   # paths to variant images
-    consistency_score: float = 1.0   # last measured score
+    performance_variants: List[str] = field(
+        default_factory=list
+    )  # paths to variant images
+    consistency_score: float = 1.0  # last measured score
 
 
 @dataclass
@@ -61,7 +64,7 @@ class CastingRegistry:
             characters={
                 k: CharacterEmbedding(**v)
                 for k, v in data.get("characters", {}).items()
-            }
+            },
         )
 
 
@@ -92,6 +95,7 @@ def initialize(config: Dict[str, Any]) -> None:
 # Hook handlers
 # ---------------------------------------------------------------------------
 
+
 def on_project_load(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Build character registry from existing project assets.
@@ -103,7 +107,7 @@ def on_project_load(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str
     global _registry, _registry_path
 
     project_path = Path(payload.get("project_path", "."))
-    project_id   = payload.get("project_id", "unknown")
+    project_id = payload.get("project_id", "unknown")
 
     _registry_path = project_path / "casting_registry.json"
     _registry = CastingRegistry.load(_registry_path)
@@ -125,7 +129,9 @@ def on_project_load(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str
     return payload
 
 
-def on_before_generate(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+def on_before_generate(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Inject character description and reference into generation prompt.
     Payload keys:
@@ -137,7 +143,7 @@ def on_before_generate(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[
         return payload
 
     character_id = payload.get("character_id")
-    prompt       = payload.get("prompt", "")
+    prompt = payload.get("prompt", "")
 
     if not character_id or character_id not in _registry.characters:
         return payload
@@ -151,7 +157,9 @@ def on_before_generate(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[
     if char.reference_sheet_path:
         injection_parts.append(f"Reference: {char.reference_sheet_path}")
     if _config.get("auto_inject_reference", True):
-        injection_parts.append(f"IMPORTANT: This character MUST look identical to all previous shots.")
+        injection_parts.append(
+            "IMPORTANT: This character MUST look identical to all previous shots."
+        )
 
     injection = " | ".join(injection_parts)
     payload["prompt"] = f"{injection}\n{prompt}"
@@ -174,8 +182,8 @@ def on_image_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str,
         return payload
 
     character_id = payload.get("character_id")
-    image_path   = Path(payload.get("image_path", ""))
-    threshold    = config.get("consistency_threshold", 0.90)
+    image_path = Path(payload.get("image_path", ""))
+    threshold = config.get("consistency_threshold", 0.90)
 
     if not character_id or character_id not in _registry.characters:
         payload["consistency_score"] = 1.0
@@ -208,7 +216,9 @@ def on_image_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str,
     return payload
 
 
-def on_character_create(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+def on_character_create(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Auto-generate reference sheets when a character is first added.
     Payload keys:
@@ -221,11 +231,11 @@ def on_character_create(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict
         return payload
 
     character_id = payload.get("character_id")
-    name         = payload.get("name", character_id)
-    description  = payload.get("description", "")
+    name = payload.get("name", character_id)
+    description = payload.get("description", "")
     project_path = Path(payload.get("project_path", "."))
 
-    sheets_dir   = project_path / "character_sheets"
+    sheets_dir = project_path / "character_sheets"
     sheets_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info(
@@ -252,6 +262,7 @@ def on_character_create(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict
 # Face similarity (graceful fallback)
 # ---------------------------------------------------------------------------
 
+
 def _compute_face_similarity(image_path: Path, char: CharacterEmbedding) -> float:
     """
     Compute face embedding similarity between image and character reference.
@@ -263,22 +274,25 @@ def _compute_face_similarity(image_path: Path, char: CharacterEmbedding) -> floa
     if char.face_embedding is None:
         # No reference embedding yet — first appearance, accept and store
         _try_extract_embedding(image_path, char)
-        return 1.0   # First appearance always accepted
+        return 1.0  # First appearance always accepted
 
     # Try insightface
     try:
         import insightface
         import numpy as np
-        app = insightface.app.FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+
+        app = insightface.app.FaceAnalysis(
+            name="buffalo_l", providers=["CPUExecutionProvider"]
+        )
         app.prepare(ctx_id=0, det_size=(640, 640))
         from PIL import Image as PILImage
+
         img = PILImage.open(image_path).convert("RGB")
-        import numpy as np
         img_array = np.array(img)
         faces = app.get(img_array)
         if not faces:
             logger.debug(f"[{ADDON_NAME}] No face detected in {image_path.name}")
-            return 0.80   # No face found → warning score, not critical
+            return 0.80  # No face found → warning score, not critical
 
         embedding = faces[0].normed_embedding.tolist()
         ref = np.array(char.face_embedding)
@@ -302,7 +316,9 @@ def _try_extract_embedding(image_path: Path, char: CharacterEmbedding) -> None:
         import numpy as np
         from PIL import Image as PILImage
 
-        app = insightface.app.FaceAnalysis(name="buffalo_l", providers=["CPUExecutionProvider"])
+        app = insightface.app.FaceAnalysis(
+            name="buffalo_l", providers=["CPUExecutionProvider"]
+        )
         app.prepare(ctx_id=0, det_size=(640, 640))
         img = PILImage.open(image_path).convert("RGB")
         faces = app.get(np.array(img))

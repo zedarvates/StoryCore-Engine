@@ -19,20 +19,19 @@ from .schemas import (
     SCIENTIFIC_AUDIT_INPUT_SCHEMA,
     ANTIFAKE_VIDEO_INPUT_SCHEMA,
     FACT_CHECKER_RESPONSE_SCHEMA,
-    COMPLETE_SCHEMA
 )
 
 
 class ValidationResult:
     """Result of a validation operation."""
-    
+
     def __init__(self, is_valid: bool, errors: List[str] = None):
         self.is_valid = is_valid
         self.errors = errors or []
-    
+
     def __bool__(self):
         return self.is_valid
-    
+
     def __repr__(self):
         if self.is_valid:
             return "ValidationResult(valid=True)"
@@ -42,10 +41,10 @@ class ValidationResult:
 def validate_claim(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate claim data against the claim schema.
-    
+
     Args:
         data: Dictionary containing claim data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -61,10 +60,10 @@ def validate_claim(data: Dict[str, Any]) -> ValidationResult:
 def validate_evidence(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate evidence data against the evidence schema.
-    
+
     Args:
         data: Dictionary containing evidence data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -80,10 +79,10 @@ def validate_evidence(data: Dict[str, Any]) -> ValidationResult:
 def validate_verification_result(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate verification result data against the schema.
-    
+
     Args:
         data: Dictionary containing verification result data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -101,10 +100,10 @@ def validate_verification_result(data: Dict[str, Any]) -> ValidationResult:
 def validate_manipulation_signal(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate manipulation signal data against the schema.
-    
+
     Args:
         data: Dictionary containing manipulation signal data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -120,10 +119,10 @@ def validate_manipulation_signal(data: Dict[str, Any]) -> ValidationResult:
 def validate_report(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate report data against the report schema.
-    
+
     Args:
         data: Dictionary containing report data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -141,10 +140,10 @@ def validate_report(data: Dict[str, Any]) -> ValidationResult:
 def validate_configuration(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate configuration data against the configuration schema.
-    
+
     Args:
         data: Dictionary containing configuration data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -160,10 +159,10 @@ def validate_configuration(data: Dict[str, Any]) -> ValidationResult:
 def validate_scientific_audit_input(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate Scientific Audit Agent input data.
-    
+
     Args:
         data: Dictionary containing input data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -179,10 +178,10 @@ def validate_scientific_audit_input(data: Dict[str, Any]) -> ValidationResult:
 def validate_antifake_video_input(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate Anti-Fake Video Agent input data.
-    
+
     Args:
         data: Dictionary containing input data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -198,10 +197,10 @@ def validate_antifake_video_input(data: Dict[str, Any]) -> ValidationResult:
 def validate_fact_checker_response(data: Dict[str, Any]) -> ValidationResult:
     """
     Validate Fact Checker Command response data.
-    
+
     Args:
         data: Dictionary containing response data
-        
+
     Returns:
         ValidationResult indicating success or failure with error details
     """
@@ -214,22 +213,24 @@ def validate_fact_checker_response(data: Dict[str, Any]) -> ValidationResult:
         return ValidationResult(is_valid=False, errors=[f"Schema error: {str(e)}"])
 
 
-def get_validation_errors(data: Dict[str, Any], schema: Dict[str, Any]) -> List[Tuple[str, str]]:
+def get_validation_errors(
+    data: Dict[str, Any], schema: Dict[str, Any]
+) -> List[Tuple[str, str]]:
     """
     Get detailed validation errors with field paths.
-    
+
     Args:
         data: Data to validate
         schema: JSON Schema to validate against
-        
+
     Returns:
         List of tuples containing (field_path, error_message)
     """
     validator = Draft7Validator(schema)
     errors = []
-    
+
     for error in validator.iter_errors(data):
         field_path = ".".join(str(p) for p in error.path) if error.path else "root"
         errors.append((field_path, error.message))
-    
+
     return errors

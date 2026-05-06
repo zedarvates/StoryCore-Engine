@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Panel, ViewportState } from '../../types/gridEditor';
 
@@ -403,7 +404,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     const imageUrls = panels.flatMap(panel =>
       panel.layers
         .filter(layer => layer.type === 'image' && layer.content.type === 'image')
-        .map(layer => (layer.content as any).url)
+        .map(layer => (layer.content as LegacyAny).url)
     );
 
     Promise.all(imageUrls.map(url => loadImage(url).catch(() => null)))

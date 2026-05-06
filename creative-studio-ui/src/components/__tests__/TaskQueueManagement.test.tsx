@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TaskQueueModal } from '../TaskQueueModal';
@@ -16,7 +17,7 @@ describe('TaskQueueModal - Task Management', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       taskQueue: [
         {
           id: 'task-1',
@@ -73,7 +74,7 @@ describe('TaskQueueModal - Task Management', () => {
     });
 
     it('does not display remove button for processing tasks', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         taskQueue: [
           {
             id: 'task-1',
@@ -94,7 +95,7 @@ describe('TaskQueueModal - Task Management', () => {
     });
 
     it('does not display remove button for completed tasks', () => {
-      (useAppStore as any).mockReturnValue({
+      (useAppStore as LegacyAny).mockReturnValue({
         taskQueue: [
           {
             id: 'task-1',
@@ -126,7 +127,7 @@ describe('TaskQueueModal - Task Management', () => {
     });
 
     it('removes task when confirmed', () => {
-      (global.confirm as any).mockReturnValue(true);
+      (global.confirm as LegacyAny).mockReturnValue(true);
 
       render(<TaskQueueModal isOpen={true} onClose={mockOnClose} />);
 
@@ -137,7 +138,7 @@ describe('TaskQueueModal - Task Management', () => {
     });
 
     it('does not remove task when cancelled', () => {
-      (global.confirm as any).mockReturnValue(false);
+      (global.confirm as LegacyAny).mockReturnValue(false);
 
       render(<TaskQueueModal isOpen={true} onClose={mockOnClose} />);
 
@@ -147,7 +148,7 @@ describe('TaskQueueModal - Task Management', () => {
       expect(mockRemoveTask).not.toHaveBeenCalled();
     });
 
-    it('has red styling for remove button', () => {
+    it('has re_d styling for remove button', () => {
       const { container } = render(<TaskQueueModal isOpen={true} onClose={mockOnClose} />);
 
       const removeButton = screen.getAllByRole('button', { name: 'Remove task' })[0];

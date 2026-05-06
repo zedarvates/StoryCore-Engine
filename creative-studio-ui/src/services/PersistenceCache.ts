@@ -4,6 +4,8 @@
  * Cache avec TTL et stratégie d'éviction LRU pour améliorer les performances
  * des opérations de persistance fréquentes
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 export interface CacheEntry<T = any> {
   data: T;
@@ -213,7 +215,7 @@ export class PersistenceCache {
   /**
    * Précharge des données fréquemment utilisées
    */
-  async preload(keys: string[], loader: (key: string) => Promise<any>): Promise<void> {
+  async preload(keys: string[], loader: (key: string) => Promise<LegacyAny>): Promise<void> {
     const preloadPromises = keys.map(async (key) => {
       if (!this.has(key)) {
         try {

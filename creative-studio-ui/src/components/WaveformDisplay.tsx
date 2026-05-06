@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useEffect, useRef, useState } from 'react';
 import type { AudioTrack } from '../types';
 
@@ -40,7 +41,7 @@ export const WaveformDisplay: React.FC<WaveformDisplayProps> = ({
 
     try {
       // Create audio context
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext || (window as LegacyAny).webkitAudioContext)();
       
       // Fetch audio file
       const response = await fetch(track.url);
@@ -247,7 +248,7 @@ export async function generateWaveformData(
   audioUrl: string,
   samples: number = 1000
 ): Promise<number[]> {
-  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const audioContext = new (window.AudioContext || (window as LegacyAny).webkitAudioContext)();
 
   try {
     const response = await fetch(audioUrl);

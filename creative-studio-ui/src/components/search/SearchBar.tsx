@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Search, X, Filter, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Shot } from '../../types';
-import type { SearchCriteria, SearchOperator } from '../../types/gridEditorAdvanced';
+import type { _SearchCriteria, _SearchOperator } from '../../types/gridEditorAdvanced';
 
 export interface SearchBarProps {
   shots: Shot[];

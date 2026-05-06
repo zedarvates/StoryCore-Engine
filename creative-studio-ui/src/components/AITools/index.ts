@@ -19,6 +19,12 @@ export { MotionVFXPresets } from './MotionVFXPresets';
 // Subtitle Editor - AI-powered subtitle generation
 export { SubtitleEditor } from './SubtitleEditor';
 
+// AI Foley Studio - Automated soundscapes & worldization
+export { AIFoleyStudio } from './AIFoleyStudio';
+
+// Dialogue Master Studio - Voice cloning & lip-sync
+export { DialogueMasterStudio } from './DialogueMasterStudio';
+
 /**
  * Usage Examples:
  * 

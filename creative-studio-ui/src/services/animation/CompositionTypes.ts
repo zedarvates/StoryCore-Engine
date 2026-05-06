@@ -5,7 +5,7 @@
  * nested compositions, tracks, clips, and parent-child relationships.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as _uuidv4 } from 'uuid';
 
 /** Type alias for UUID strings */
 export type UUID = string;

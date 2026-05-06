@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MenuItem } from '../MenuItem';
-import { Check, ChevronRight } from 'lucide-react';
+import { _Check, _ChevronRight } from 'lucide-react';
 
 describe('MenuItem', () => {
   describe('Basic Rendering', () => {
@@ -145,7 +145,7 @@ describe('MenuItem', () => {
     });
 
     it('should apply focused styles when focused prop is true', () => {
-      const { container } = render(
+      const { _container } = render(
         <MenuItem id="test" label="Test Item" focused={true} />
       );
       

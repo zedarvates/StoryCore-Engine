@@ -78,7 +78,7 @@ export class MigrationService {
       let totalMigrated = 0;
       let totalSkipped = 0;
       const allErrors: MigrationError[] = [];
-      const rollbacks: string[] = [];
+      const _rollbacks: string[] = [];
 
       for (const result of results) {
         if (result.status === 'fulfilled') {

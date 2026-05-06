@@ -13,6 +13,8 @@
  * - Configuration export/import
  * - Performance with 30-50 shots
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi } from 'vitest';
 
@@ -49,7 +51,7 @@ const createMockShots = (count: number): Shot[] => {
 };
 
 describe('Grid Editor Integration Tests', () => {
-  describe('Complete Workflow: Load → Edit → Save → Undo → Redo', () => {
+  describe('_Complete Workflow: Load → Edit → Save → Undo → Redo', () => {
     it('should complete full editing workflow successfully', async () => {
       const user = userEvent.setup();
       const shots = createMockShots(10);
@@ -130,7 +132,7 @@ describe('Grid Editor Integration Tests', () => {
       const mockEvent = new MouseEvent('mousedown', {
         clientX: 100,
         clientY: 100
-      }) as any;
+      }) as LegacyAny;
       
       manager.startDrag([shot], mockEvent);
       expect(manager.isDragging()).toBe(true);
@@ -258,7 +260,7 @@ describe('Grid Editor Integration Tests', () => {
     });
   });
 
-  describe('Context Menu Operations', () => {
+  describe('_Context Menu Operations', () => {
     it('should handle context menu actions', () => {
       const shot = createMockShot('test-1');
       const items = [

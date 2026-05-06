@@ -18,7 +18,7 @@ import {
   createDefaultStyleParameters,
   mergeStyleParameters,
 } from '../visualStyleService';
-import type { Asset, Shot, StyleMetadata } from '../../types';
+import type { Asset, Shot, _StyleMetadata } from '../../types';
 
 // ============================================================================
 // Test Data

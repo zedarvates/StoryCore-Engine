@@ -9,6 +9,8 @@
  * 
  * Task 7.7: Sequence Plan Services
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { SequencePlan } from '@/types/sequencePlan';
 import type { Shot } from '@/types';
@@ -555,7 +557,7 @@ export class SequencePlanService {
         acts: [],
         scenes: [],
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        shots: (plan.shots as any[]) || [], 
+        shots: (plan.shots as LegacyAny[]) || [], 
         createdAt: plan.createdAt,
         modifiedAt: plan.modifiedAt,
         status: 'draft',

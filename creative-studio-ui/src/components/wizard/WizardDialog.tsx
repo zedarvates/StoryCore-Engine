@@ -59,7 +59,7 @@ export function WizardDialog({
     success: false,
   });
 
-  const isLastStep = currentStep === steps.length - 1;
+  const _isLastStep = currentStep === steps.length - 1;
 
   const handleGenerate = useCallback(async () => {
     setGenerationState({

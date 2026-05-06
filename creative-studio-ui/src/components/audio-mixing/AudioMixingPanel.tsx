@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { useAudioMixing, useAudioTrack } from '../../hooks/useAudioMixing';
-import { AudioTrack, AudioEffect } from '../../services/audio-mixing/AudioMixingTypes';
+import { useAudioMixing, _useAudioTrack } from '../../hooks/useAudioMixing';
+import { AudioTrack, _AudioEffect } from '../../services/audio-mixing/AudioMixingTypes';
 
 // ============================================================================
 // Styles
@@ -264,14 +264,14 @@ export const AudioMixingPanel: React.FC = () => {
     state,
     initialize,
     play,
-    pause,
+    _pause,
     stop,
-    seek,
+    _seek,
     setMasterVolume,
-    setMasterMuted,
+    _setMasterMuted,
     addTrack,
     removeTrack,
-    updateTrack,
+    _updateTrack,
     setTrackVolume,
     setTrackPan,
     setTrackMuted,
@@ -281,7 +281,7 @@ export const AudioMixingPanel: React.FC = () => {
     updateEffect
   } = useAudioMixing();
 
-  const [selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
+  const [_selectedTrackId, setSelectedTrackId] = useState<string | null>(null);
 
   // Initialize audio context on first interaction
   const handlePlay = useCallback(async () => {

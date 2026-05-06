@@ -12,7 +12,7 @@ import { LLMSettingsPanel } from '../LLMSettingsPanel';
 
 describe('LLMSettingsPanel - Validation and Connection Testing', () => {
   const mockOnSave = vi.fn();
-  const mockOnCancel = vi.fn();
+  const _mockOnCancel = vi.fn();
   const mockOnTestConnection = vi.fn();
 
   beforeEach(() => {

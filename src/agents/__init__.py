@@ -12,15 +12,22 @@ Usage:
     from src.agents.image_generator import AgentImageGenerator
 """
 
-from .card_generator import AgentCardGenerator, create_scientific_audit_card, create_antifake_card
-from .image_generator import AgentImageGenerator, generate_agent_image, get_prompt_for_manual
+from .card_generator import (
+    AgentCardGenerator,
+    create_scientific_audit_card,
+    create_antifake_card,
+)
+from .image_generator import (
+    AgentImageGenerator,
+    generate_agent_image,
+    get_prompt_for_manual,
+)
 
 __all__ = [
-    'AgentCardGenerator',
-    'AgentImageGenerator', 
-    'create_scientific_audit_card',
-    'create_antifake_card',
-    'generate_agent_image',
-    'get_prompt_for_manual'
+    "AgentCardGenerator",
+    "AgentImageGenerator",
+    "create_scientific_audit_card",
+    "create_antifake_card",
+    "generate_agent_image",
+    "get_prompt_for_manual",
 ]
-

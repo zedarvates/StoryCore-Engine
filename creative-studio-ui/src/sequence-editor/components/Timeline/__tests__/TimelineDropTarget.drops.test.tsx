@@ -4,6 +4,8 @@
  * Tests for enhanced drop handlers with multi-select support, validation, and undo/redo.
  * Requirements: 15.4, 15.7 - Asset drops and multi-select operations
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -55,7 +57,7 @@ function createTestStore() {
   });
 }
 
-// Mock draggable component for testing
+// Mock dra_ggable component for testing
 function DraggableTestAsset({ asset }: { asset: Asset }) {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: DND_ITEM_TYPES.ASSET,
@@ -66,7 +68,7 @@ function DraggableTestAsset({ asset }: { asset: Asset }) {
   }));
 
   return (
-    <div ref={drag as any} data-testid="draggable-asset">
+    <div ref={drag as LegacyAny} data-testid="draggable-asset">
       {asset.name}
     </div>
   );
@@ -94,7 +96,7 @@ function renderWithProviders(
 
 describe('TimelineDropTarget - Drop Functionality', () => {
   describe('Asset Compatibility Validation', () => {
-    it('should accept character assets on media track', () => {
+    it('should_ accept character assets on media track', () => {
       const characterAsset: Asset = { ...mockAsset, type: 'character' };
       const { store } = renderWithProviders(
         <>
@@ -108,7 +110,7 @@ describe('TimelineDropTarget - Drop Functionality', () => {
       expect(screen.getByText('Drop Zone')).toBeInTheDocument();
     });
 
-    it('should accept environment assets on media track', () => {
+    it('should_ accept environment assets on media track', () => {
       const environmentAsset: Asset = { ...mockAsset, type: 'environment' };
       const { store } = renderWithProviders(
         <>
@@ -122,7 +124,7 @@ describe('TimelineDropTarget - Drop Functionality', () => {
       expect(screen.getByText('Drop Zone')).toBeInTheDocument();
     });
 
-    it('should accept prop assets on media track', () => {
+    it('should_ accept prop assets on media track', () => {
       const propAsset: Asset = { ...mockAsset, type: 'prop' };
       const { store } = renderWithProviders(
         <>
@@ -136,7 +138,7 @@ describe('TimelineDropTarget - Drop Functionality', () => {
       expect(screen.getByText('Drop Zone')).toBeInTheDocument();
     });
 
-    it('should accept camera presets on media track', () => {
+    it('should_ accept camera presets on media track', () => {
       const cameraAsset: Asset = { ...mockAsset, type: 'camera-preset' };
       const { store } = renderWithProviders(
         <>
@@ -152,7 +154,7 @@ describe('TimelineDropTarget - Drop Functionality', () => {
 
     it('should accept visual styles on effects track', () => {
       const effectsTrack: Track = { ...mockTrack, type: 'effects' };
-      const styleAsset: Asset = { ...mockAsset, type: 'visual-style' };
+      const st_yleAsset: Asset = { ...mockAsset, type: 'visual-style' };
       
       const { store } = renderWithProviders(
         <>
@@ -166,7 +168,7 @@ describe('TimelineDropTarget - Drop Functionality', () => {
       expect(screen.getByText('Drop Zone')).toBeInTheDocument();
     });
 
-    it('should accept templates on media track', () => {
+    it('should_ accept templates on media track', () => {
       const templateAsset: Asset = { ...mockAsset, type: 'template' };
       const { store } = renderWithProviders(
         <>

@@ -33,22 +33,48 @@ export function LiveRegion({
 }: LiveRegionProps) {
   const [currentMessage, setCurrentMessage] = useState(message);
 
-  useEffect(() => {
+  // Sync state if message prop changes
+  const [prevMessage, setPrevMessage] = useState(message);
+  if (prevMessage !== message) {
+    setPrevMessage(message);
     setCurrentMessage(message);
+  }
 
-    if (clearAfter && message) {
+  useEffect(() => {
+    if (clearAfter && currentMessage) {
       const timer = setTimeout(() => {
         setCurrentMessage('');
       }, clearAfter);
 
       return () => clearTimeout(timer);
     }
-  }, [message, clearAfter]);
+  }, [clearAfter, currentMessage]);
+
+  if (politeness === 'off') {
+    return (
+      <div className={cn('sr-only', className)} aria-live="off">
+        {currentMessage}
+      </div>
+    );
+  }
+
+  if (politeness === 'assertive') {
+    return (
+      <div
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        className={cn('sr-only', className)}
+      >
+        {currentMessage}
+      </div>
+    );
+  }
 
   return (
     <div
       role="status"
-      aria-live={politeness}
+      aria-live="polite"
       aria-atomic="true"
       className={cn('sr-only', className)}
     >
@@ -85,28 +111,39 @@ export function AlertLiveRegion({
 }: AlertLiveRegionProps) {
   const [currentMessage, setCurrentMessage] = useState(message);
 
-  useEffect(() => {
+  // Sync state if message prop changes
+  const [prevMessage, setPrevMessage] = useState(message);
+  if (prevMessage !== message) {
+    setPrevMessage(message);
     setCurrentMessage(message);
+  }
 
-    if (clearAfter && message) {
+  useEffect(() => {
+    if (clearAfter && currentMessage) {
       const timer = setTimeout(() => {
         setCurrentMessage('');
       }, clearAfter);
 
       return () => clearTimeout(timer);
     }
-  }, [message, clearAfter]);
+  }, [clearAfter, currentMessage]);
 
-  const roleMap = {
-    info: 'status',
-    success: 'status',
-    warning: 'alert',
-    error: 'alert',
-  };
+  if (type === 'warning' || type === 'error') {
+    return (
+      <div
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        className={cn('sr-only', className)}
+      >
+        {currentMessage}
+      </div>
+    );
+  }
 
   return (
     <div
-      role={roleMap[type]}
+      role="status"
       aria-live="assertive"
       aria-atomic="true"
       className={cn('sr-only', className)}
@@ -144,13 +181,14 @@ export function LoadingAnnouncement({
 }: LoadingAnnouncementProps) {
   const [message, setMessage] = useState('');
 
+  const [prevIsLoading, setPrevIsLoading] = useState(isLoading);
+  if (prevIsLoading !== isLoading) {
+    setPrevIsLoading(isLoading);
+    setMessage(isLoading ? loadingMessage : completeMessage);
+  }
+
   useEffect(() => {
-    if (isLoading) {
-      setMessage(loadingMessage);
-    } else if (message === loadingMessage) {
-      // Only announce completion if we were previously loading
-      setMessage(completeMessage);
-      
+    if (!isLoading && message === completeMessage) {
       // Clear the completion message after a delay
       const timer = setTimeout(() => {
         setMessage('');
@@ -158,7 +196,7 @@ export function LoadingAnnouncement({
 
       return () => clearTimeout(timer);
     }
-  }, [isLoading, loadingMessage, completeMessage, message]);
+  }, [isLoading, completeMessage, message]);
 
   return (
     <div
@@ -200,9 +238,14 @@ export function StepChangeAnnouncement({
 }: StepChangeAnnouncementProps) {
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    const announcement = `Step ${currentStep} of ${totalSteps}: ${stepTitle}`;
+  const announcement = `Step ${currentStep} of ${totalSteps}: ${stepTitle}`;
+  const [prevAnnouncement, setPrevAnnouncement] = useState('');
+  if (prevAnnouncement !== announcement) {
+    setPrevAnnouncement(announcement);
     setMessage(announcement);
+  }
+
+  useEffect(() => {
 
     // Clear after announcement
     const timer = setTimeout(() => {

@@ -45,7 +45,7 @@ export function usePanelSizesWithDebounce(wait: number = 100) {
   return {
     // Immediate update for UI feedback
     setImmediate: useCallback(
-      (sizes: PanelSizes) => {
+      (_sizes: PanelSizes) => {
         // Update UI immediately (if you have local state)
         // This is handled by the component's local state
       },

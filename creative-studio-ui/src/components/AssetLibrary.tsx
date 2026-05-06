@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { useState, useMemo, useRef, useCallback } from 'react';
 import { Asset } from '@/types';
 import { AssetCard } from './AssetCard';
@@ -42,7 +43,7 @@ const CATEGORIES = [
 
 export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [_activeCategory, setActiveCategory] = useState('all');
   const [scrollTop, setScrollTop] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -94,7 +95,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             size: file.size,
             lastModified: file.lastModified,
             mimeType: file.type,
-          } as any,
+          } as LegacyAny,
         };
 
         // Add to store
@@ -308,7 +309,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
               ) : useVirtualization ? (
                 // Virtual scrolling for large lists
                 <div style={{ height: totalHeight, position: 'relative' }}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid gr_id-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {virtualItems.map(({ index, item, offsetTop }) => (
                       <div
                         key={item.id}

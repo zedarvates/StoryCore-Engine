@@ -8,6 +8,8 @@
  * 
  * Uses file-based storage with Electron API for persistence.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type {
   MasterReferenceSheet,
@@ -20,7 +22,7 @@ import type {
   SequenceStyle,
   PreviousEpisodeReference,
   ShotReference,
-  ConsistencyOverride,
+  _ConsistencyOverride,
   AppearanceImage,
   TransitionType,
 } from '../types/reference';
@@ -149,7 +151,7 @@ export class ReferenceSheetService {
         const json = JSON.stringify(data, null, 2);
         const encoder = new TextEncoder();
         const uint8Array = encoder.encode(json);
-        await window.electronAPI.fs.writeFile(filePath, uint8Array as any);
+        await window.electronAPI.fs.writeFile(filePath, uint8Array as LegacyAny);
       } else {
         console.warn('[ReferenceSheetService] File system not available, data not persisted');
       }

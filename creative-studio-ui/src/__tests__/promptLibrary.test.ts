@@ -2,6 +2,8 @@
  * Test Suite: Verify All 93 Prompts Are Accessible
  * This test ensures the prompt library is fully functional and all prompts can be loaded
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { promptLibrary } from '../library/PromptLibraryService';
@@ -22,7 +24,7 @@ global.fetch = vi.fn(async (url: string) => {
   } catch (error) {
     throw new Error(`Failed to load ${filePath}: ${error}`);
   }
-}) as any;
+}) as LegacyAny;
 
 describe('Prompt Library Accessibility', () => {
   beforeAll(async () => {
@@ -383,7 +385,7 @@ describe('Prompt Library Accessibility', () => {
 
   describe('Prompt Structure Validation', () => {
     it('should have valid structure for all prompts', async () => {
-      const allPrompts = await promptLibrary.getAllPromptsByCategory();
+      const allPro_mpts = await promptLibrary.getAllPromptsByCategory();
       
       for (const [categoryId, prompts] of Object.entries(allPrompts)) {
         for (const prompt of prompts) {

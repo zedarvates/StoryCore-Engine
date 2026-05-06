@@ -4,20 +4,13 @@ Unit tests for data models.
 Tests the basic functionality of all data model classes.
 """
 
-import pytest
 from datetime import datetime
 
 from src.memory_system.data_models import (
     ProjectConfig,
-    MemorySystemConfig,
     ProjectMemory,
     Objective,
     Entity,
-    Decision,
-    Constraint,
-    StyleRule,
-    Task,
-    CurrentState,
     Message,
     Conversation,
     AssetInfo,
@@ -39,9 +32,9 @@ def test_project_config_to_dict():
         creation_timestamp="2025-01-24T10:00:00Z",
         objectives=["Objective 1", "Objective 2"],
     )
-    
+
     result = config.to_dict()
-    
+
     assert result["schema_version"] == "1.0"
     assert result["project_name"] == "test_project"
     assert result["project_type"] == "video"
@@ -62,11 +55,11 @@ def test_project_config_from_dict():
         "memory_system_config": {
             "auto_summarize": False,
             "summarization_threshold_kb": 100,
-        }
+        },
     }
-    
+
     config = ProjectConfig.from_dict(data)
-    
+
     assert config.project_name == "test_project"
     assert config.project_type == "creative"
     assert config.memory_system_config.auto_summarize is False
@@ -83,7 +76,7 @@ def test_project_memory_to_dict():
                 id="obj_1",
                 description="Test objective",
                 status="active",
-                added="2025-01-24T10:00:00Z"
+                added="2025-01-24T10:00:00Z",
             )
         ],
         entities=[
@@ -92,13 +85,13 @@ def test_project_memory_to_dict():
                 name="Test Entity",
                 type="module",
                 description="A test entity",
-                added="2025-01-24T10:00:00Z"
+                added="2025-01-24T10:00:00Z",
             )
         ],
     )
-    
+
     result = memory.to_dict()
-    
+
     assert result["schema_version"] == "1.0"
     assert len(result["objectives"]) == 1
     assert result["objectives"][0]["id"] == "obj_1"
@@ -113,13 +106,11 @@ def test_conversation_creation():
         Message(role="user", content="Hello", timestamp=now),
         Message(role="assistant", content="Hi there", timestamp=now),
     ]
-    
+
     conversation = Conversation(
-        messages=messages,
-        session_id="session_123",
-        start_time=now
+        messages=messages, session_id="session_123", start_time=now
     )
-    
+
     assert len(conversation.messages) == 2
     assert conversation.session_id == "session_123"
     assert conversation.messages[0].role == "user"
@@ -129,16 +120,16 @@ def test_conversation_creation():
 def test_asset_info_creation():
     """Test AssetInfo object creation."""
     from pathlib import Path
-    
+
     asset = AssetInfo(
         filename="test.png",
         path=Path("assets/images/test.png"),
         type=AssetType.IMAGE,
         size_bytes=1024,
         timestamp="2025-01-24T10:00:00Z",
-        description="Test image"
+        description="Test image",
     )
-    
+
     assert asset.filename == "test.png"
     assert asset.type == AssetType.IMAGE
     assert asset.size_bytes == 1024
@@ -154,11 +145,11 @@ def test_error_to_dict():
         description="File not found",
         affected_components=["memory.json"],
         status="detected",
-        recovery_attempts=0
+        recovery_attempts=0,
     )
-    
+
     result = error.to_dict()
-    
+
     assert result["id"] == "err_1"
     assert result["type"] == "missing_file"
     assert result["severity"] == "high"
@@ -176,13 +167,13 @@ def test_variables_to_dict():
                 value="test_value",
                 type="string",
                 description="A test variable",
-                last_modified="2025-01-24T10:00:00Z"
+                last_modified="2025-01-24T10:00:00Z",
             )
-        }
+        },
     )
-    
+
     result = variables.to_dict()
-    
+
     assert result["schema_version"] == "1.0"
     assert "test_var" in result["variables"]
     assert result["variables"]["test_var"]["value"] == "test_value"

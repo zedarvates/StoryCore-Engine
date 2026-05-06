@@ -5,7 +5,7 @@ This module contains the simplified definitions for the 5 core genres
 and 3 basic formats used in the MVP version of the wizard.
 """
 
-from typing import Dict, Any
+from typing import Dict
 from .models import GenreDefinition, FormatDefinition
 
 
@@ -26,10 +26,9 @@ GENRE_DEFINITIONS: Dict[str, GenreDefinition] = {
             "shot_duration_avg": 3.5,
             "mood": "energetic_intense",
             "contrast": "high",
-            "saturation": "high"
-        }
+            "saturation": "high",
+        },
     ),
-    
     "drame": GenreDefinition(
         key="drame",
         name="Drame",
@@ -42,10 +41,9 @@ GENRE_DEFINITIONS: Dict[str, GenreDefinition] = {
             "shot_duration_avg": 5.5,
             "mood": "contemplative_emotional",
             "contrast": "medium",
-            "saturation": "medium"
-        }
+            "saturation": "medium",
+        },
     ),
-    
     "science_fiction": GenreDefinition(
         key="science_fiction",
         name="Science-Fiction",
@@ -58,10 +56,9 @@ GENRE_DEFINITIONS: Dict[str, GenreDefinition] = {
             "shot_duration_avg": 4.5,
             "mood": "futuristic_mysterious",
             "contrast": "high",
-            "saturation": "medium_to_high"
-        }
+            "saturation": "medium_to_high",
+        },
     ),
-    
     "horreur": GenreDefinition(
         key="horreur",
         name="Horreur",
@@ -74,10 +71,9 @@ GENRE_DEFINITIONS: Dict[str, GenreDefinition] = {
             "shot_duration_avg": 6.0,
             "mood": "tense_frightening",
             "contrast": "very_high",
-            "saturation": "low"
-        }
+            "saturation": "low",
+        },
     ),
-    
     "comedie": GenreDefinition(
         key="comedie",
         name="Comédie",
@@ -90,9 +86,9 @@ GENRE_DEFINITIONS: Dict[str, GenreDefinition] = {
             "shot_duration_avg": 4.0,
             "mood": "lighthearted_fun",
             "contrast": "low_to_medium",
-            "saturation": "medium_to_high"
-        }
-    )
+            "saturation": "medium_to_high",
+        },
+    ),
 }
 
 
@@ -107,26 +103,24 @@ FORMAT_DEFINITIONS: Dict[str, FormatDefinition] = {
         duration_range=(1, 15),
         shot_duration_avg=4.0,
         resolution="4K",
-        frame_rate=24
+        frame_rate=24,
     ),
-    
     "moyen_metrage": FormatDefinition(
         key="moyen_metrage",
         name="Moyen-métrage",
         duration_range=(20, 45),
         shot_duration_avg=5.0,
         resolution="4K",
-        frame_rate=24
+        frame_rate=24,
     ),
-    
     "long_metrage": FormatDefinition(
         key="long_metrage",
         name="Long-métrage",
         duration_range=(75, 100),
         shot_duration_avg=5.5,
         resolution="4K",
-        frame_rate=24
-    )
+        frame_rate=24,
+    ),
 }
 
 
@@ -134,39 +128,44 @@ FORMAT_DEFINITIONS: Dict[str, FormatDefinition] = {
 # HELPER FUNCTIONS
 # ============================================================================
 
+
 def get_genre_definition(genre_key: str) -> GenreDefinition:
     """
     Get genre definition by key
-    
+
     Args:
         genre_key: The genre key (e.g., "action", "drame")
-        
+
     Returns:
         GenreDefinition object
-        
+
     Raises:
         KeyError: If genre_key is not found
     """
     if genre_key not in GENRE_DEFINITIONS:
-        raise KeyError(f"Genre '{genre_key}' not found. Available genres: {list(GENRE_DEFINITIONS.keys())}")
+        raise KeyError(
+            f"Genre '{genre_key}' not found. Available genres: {list(GENRE_DEFINITIONS.keys())}"
+        )
     return GENRE_DEFINITIONS[genre_key]
 
 
 def get_format_definition(format_key: str) -> FormatDefinition:
     """
     Get format definition by key
-    
+
     Args:
         format_key: The format key (e.g., "court_metrage", "long_metrage")
-        
+
     Returns:
         FormatDefinition object
-        
+
     Raises:
         KeyError: If format_key is not found
     """
     if format_key not in FORMAT_DEFINITIONS:
-        raise KeyError(f"Format '{format_key}' not found. Available formats: {list(FORMAT_DEFINITIONS.keys())}")
+        raise KeyError(
+            f"Format '{format_key}' not found. Available formats: {list(FORMAT_DEFINITIONS.keys())}"
+        )
     return FORMAT_DEFINITIONS[format_key]
 
 

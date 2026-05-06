@@ -2,6 +2,8 @@
  * Basic verification tests for the Zustand store
  * These tests verify that the store is properly configured and all actions work
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useStore } from '../index';
 import type { Shot, Asset, GenerationTask } from '../../types';
@@ -56,7 +58,7 @@ describe('Zustand Store', () => {
         },
       };
 
-      useStore.getState().setProject(project as any);
+      useStore.getState().setProject(project as LegacyAny);
       expect(useStore.getState().project).toEqual(project);
     });
 
@@ -78,7 +80,7 @@ describe('Zustand Store', () => {
         },
       };
 
-      useStore.getState().setProject(project as any);
+      useStore.getState().setProject(project as LegacyAny);
       useStore.getState().updateProject({ project_name: 'Updated Project' });
 
       expect(useStore.getState().project?.project_name).toBe('Updated Project');

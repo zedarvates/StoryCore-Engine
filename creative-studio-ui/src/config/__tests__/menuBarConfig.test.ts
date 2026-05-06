@@ -3,6 +3,8 @@
  * 
  * Tests for menu bar configuration validation and structure.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect } from 'vitest';
 import { menuBarConfig, getMenuById, getMenuItemById } from '../menuBarConfig';
@@ -109,7 +111,7 @@ describe('Menu Bar Configuration', () => {
 
   describe('Keyboard Shortcuts', () => {
     it('should have valid keyboard shortcuts', () => {
-      const itemsWithShortcuts: any[] = [];
+      const itemsWithShortcuts: LegacyAny[] = [];
       
       for (const menu of menuBarConfig) {
         for (const item of menu.items) {
@@ -200,7 +202,7 @@ describe('Menu Bar Configuration', () => {
       expect(result?.item.type).toBe('submenu');
       expect(result?.item.submenu).toBeDefined();
       
-      const submenuIds = result?.item.submenu?.map((item: any) => item.id);
+      const submenuIds = result?.item.submenu?.map((item: LegacyAny) => item.id);
       expect(submenuIds).toContain('export-json');
       expect(submenuIds).toContain('export-pdf');
       expect(submenuIds).toContain('export-video');
@@ -243,7 +245,7 @@ describe('Menu Bar Configuration', () => {
       expect(result?.item.type).toBe('submenu');
       expect(result?.item.submenu).toBeDefined();
       
-      const submenuIds = result?.item.submenu?.map((item: any) => item.id);
+      const submenuIds = result?.item.submenu?.map((item: LegacyAny) => item.id);
       expect(submenuIds).toContain('panel-properties');
       expect(submenuIds).toContain('panel-assets');
       expect(submenuIds).toContain('panel-preview');

@@ -6,8 +6,9 @@ This module provides comprehensive health checking capabilities for production e
 
 import asyncio
 import logging
+import os
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict
 import psutil
 import torch
 import urllib.request
@@ -38,7 +39,7 @@ class HealthChecker:
             "storage_space": self._check_storage_space,
             "network_connectivity": self._check_network_connectivity,
             "memory_usage": self._check_memory_usage,
-            "performance_metrics": self._check_performance_metrics
+            "performance_metrics": self._check_performance_metrics,
         }
 
         logger.info("Health checker initialized")
@@ -54,10 +55,9 @@ class HealthChecker:
                     health_results = await self.run_comprehensive_health_check()
 
                     # Store health history
-                    self.health_history.append({
-                        'timestamp': datetime.now(),
-                        'results': health_results
-                    })
+                    self.health_history.append(
+                        {"timestamp": datetime.now(), "results": health_results}
+                    )
 
                     # Keep only recent history
                     if len(self.health_history) > 1000:
@@ -88,12 +88,14 @@ class HealthChecker:
                 result = await check_func()
                 results.append(result)
             except Exception as e:
-                results.append(HealthCheckResult(
-                    component=check_name,
-                    status="critical",
-                    message=f"Health check failed: {e}",
-                    timestamp=datetime.now()
-                ))
+                results.append(
+                    HealthCheckResult(
+                        component=check_name,
+                        status="critical",
+                        message=f"Health check failed: {e}",
+                        timestamp=datetime.now(),
+                    )
+                )
 
         return results
 
@@ -102,9 +104,7 @@ class HealthChecker:
         try:
             # CPU usage - run in executor to avoid blocking
             loop = asyncio.get_event_loop()
-            cpu_percent = await loop.run_in_executor(
-                None, psutil.cpu_percent, 1
-            )
+            cpu_percent = await loop.run_in_executor(None, psutil.cpu_percent, 1)
 
             # Memory usage
             memory = psutil.virtual_memory()
@@ -113,7 +113,9 @@ class HealthChecker:
             # Determine status
             if cpu_percent > 90 or memory_percent > 90:
                 status = "critical"
-                message = f"High resource usage: CPU={cpu_percent}%, Memory={memory_percent}%"
+                message = (
+                    f"High resource usage: CPU={cpu_percent}%, Memory={memory_percent}%"
+                )
             elif cpu_percent > 70 or memory_percent > 70:
                 status = "warning"
                 message = f"Moderate resource usage: CPU={cpu_percent}%, Memory={memory_percent}%"
@@ -129,8 +131,8 @@ class HealthChecker:
                 metrics={
                     "cpu_percent": cpu_percent,
                     "memory_percent": memory_percent,
-                    "memory_available_gb": memory.available / (1024**3)
-                }
+                    "memory_available_gb": memory.available / (1024**3),
+                },
             )
 
         except Exception as e:
@@ -138,7 +140,7 @@ class HealthChecker:
                 component="system_resources",
                 status="critical",
                 message=f"System resource check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_gpu_status(self) -> HealthCheckResult:
@@ -149,13 +151,15 @@ class HealthChecker:
                     component="gpu_status",
                     status="critical",
                     message="CUDA not available",
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(),
                 )
 
             # GPU memory usage
             gpu_memory_allocated = torch.cuda.memory_allocated() / (1024**3)
             gpu_memory_reserved = torch.cuda.memory_reserved() / (1024**3)
-            gpu_memory_total = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+            gpu_memory_total = torch.cuda.get_device_properties(0).total_memory / (
+                1024**3
+            )
 
             usage_percent = (gpu_memory_reserved / gpu_memory_total) * 100
 
@@ -179,8 +183,8 @@ class HealthChecker:
                     "gpu_memory_allocated_gb": gpu_memory_allocated,
                     "gpu_memory_reserved_gb": gpu_memory_reserved,
                     "gpu_memory_total_gb": gpu_memory_total,
-                    "gpu_usage_percent": usage_percent
-                }
+                    "gpu_usage_percent": usage_percent,
+                },
             )
 
         except Exception as e:
@@ -188,7 +192,7 @@ class HealthChecker:
                 component="gpu_status",
                 status="critical",
                 message=f"GPU status check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_model_availability(self) -> HealthCheckResult:
@@ -196,17 +200,15 @@ class HealthChecker:
         try:
             critical_models = [
                 "models/hunyuan/hunyuanvideo1.5_720p_t2v_fp16.safetensors",
-                "models/newbie/NewBie-Image-Exp0.1-bf16.safetensors"
+                "models/newbie/NewBie-Image-Exp0.1-bf16.safetensors",
             ]
 
             missing_models = []
             loop = asyncio.get_event_loop()
-            
+
             # Run file existence checks in executor
             for model_path in critical_models:
-                exists = await loop.run_in_executor(
-                    None, os.path.exists, model_path
-                )
+                exists = await loop.run_in_executor(None, os.path.exists, model_path)
                 if not exists:
                     missing_models.append(model_path)
 
@@ -216,7 +218,7 @@ class HealthChecker:
                     status="critical",
                     message=f"Missing critical models: {missing_models}",
                     timestamp=datetime.now(),
-                    metrics={"missing_models": len(missing_models)}
+                    metrics={"missing_models": len(missing_models)},
                 )
             else:
                 return HealthCheckResult(
@@ -224,7 +226,7 @@ class HealthChecker:
                     status="healthy",
                     message="All critical models available",
                     timestamp=datetime.now(),
-                    metrics={"missing_models": 0}
+                    metrics={"missing_models": 0},
                 )
 
         except Exception as e:
@@ -232,7 +234,7 @@ class HealthChecker:
                 component="model_availability",
                 status="critical",
                 message=f"Model availability check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_workflow_engines(self) -> HealthCheckResult:
@@ -244,10 +246,12 @@ class HealthChecker:
             engines_status = {
                 "video_engine": "healthy",
                 "image_engine": "healthy",
-                "performance_optimizer": "healthy"
+                "performance_optimizer": "healthy",
             }
 
-            failed_engines = [name for name, status in engines_status.items() if status != "healthy"]
+            failed_engines = [
+                name for name, status in engines_status.items() if status != "healthy"
+            ]
 
             if failed_engines:
                 return HealthCheckResult(
@@ -255,7 +259,7 @@ class HealthChecker:
                     status="critical",
                     message=f"Failed engines: {failed_engines}",
                     timestamp=datetime.now(),
-                    metrics={"failed_engines": len(failed_engines)}
+                    metrics={"failed_engines": len(failed_engines)},
                 )
             else:
                 return HealthCheckResult(
@@ -263,7 +267,7 @@ class HealthChecker:
                     status="healthy",
                     message="All workflow engines operational",
                     timestamp=datetime.now(),
-                    metrics={"failed_engines": 0}
+                    metrics={"failed_engines": 0},
                 )
 
         except Exception as e:
@@ -271,13 +275,13 @@ class HealthChecker:
                 component="workflow_engines",
                 status="critical",
                 message=f"Workflow engine check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_storage_space(self) -> HealthCheckResult:
         """Check available storage space"""
         try:
-            disk_usage = psutil.disk_usage('.')
+            disk_usage = psutil.disk_usage(".")
             available_gb = disk_usage.free / (1024**3)
             total_gb = disk_usage.total / (1024**3)
             used_percent = ((total_gb - available_gb) / total_gb) * 100
@@ -300,8 +304,8 @@ class HealthChecker:
                 metrics={
                     "available_gb": available_gb,
                     "total_gb": total_gb,
-                    "used_percent": used_percent
-                }
+                    "used_percent": used_percent,
+                },
             )
 
         except Exception as e:
@@ -309,7 +313,7 @@ class HealthChecker:
                 component="storage_space",
                 status="critical",
                 message=f"Storage space check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_network_connectivity(self) -> HealthCheckResult:
@@ -324,10 +328,9 @@ class HealthChecker:
                 try:
                     # Run blocking urlopen in executor
                     await loop.run_in_executor(
-                        None, 
-                        lambda u=url: urllib.request.urlopen(u, timeout=5)
+                        None, lambda u=url: urllib.request.urlopen(u, timeout=5)
                     )
-                except:
+                except Exception:
                     failed_connections += 1
 
             if failed_connections == len(test_urls):
@@ -335,7 +338,9 @@ class HealthChecker:
                 message = "No network connectivity"
             elif failed_connections > 0:
                 status = "warning"
-                message = f"Limited network connectivity ({failed_connections} failures)"
+                message = (
+                    f"Limited network connectivity ({failed_connections} failures)"
+                )
             else:
                 status = "healthy"
                 message = "Network connectivity normal"
@@ -345,7 +350,7 @@ class HealthChecker:
                 status=status,
                 message=message,
                 timestamp=datetime.now(),
-                metrics={"failed_connections": failed_connections}
+                metrics={"failed_connections": failed_connections},
             )
 
         except Exception as e:
@@ -353,7 +358,7 @@ class HealthChecker:
                 component="network_connectivity",
                 status="critical",
                 message=f"Network connectivity check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_memory_usage(self) -> HealthCheckResult:
@@ -368,7 +373,9 @@ class HealthChecker:
 
             if torch.cuda.is_available():
                 gpu_memory_used = torch.cuda.memory_allocated() / (1024**3)
-                gpu_memory_total = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+                gpu_memory_total = torch.cuda.get_device_properties(0).total_memory / (
+                    1024**3
+                )
 
             # Check for memory leaks (simplified)
             memory_usage_trend = "stable"  # This would analyze historical data
@@ -376,7 +383,9 @@ class HealthChecker:
             status = "healthy"
             message = f"Memory usage stable: RAM={memory.percent:.1f}%, GPU={gpu_memory_used:.1f}GB"
 
-            if memory.percent > 90 or (gpu_memory_total > 0 and gpu_memory_used / gpu_memory_total > 0.95):
+            if memory.percent > 90 or (
+                gpu_memory_total > 0 and gpu_memory_used / gpu_memory_total > 0.95
+            ):
                 status = "critical"
                 message = f"Memory usage critical: RAM={memory.percent:.1f}%, GPU={gpu_memory_used:.1f}GB"
             elif memory_usage_trend == "increasing":
@@ -392,8 +401,8 @@ class HealthChecker:
                     "ram_percent": memory.percent,
                     "gpu_memory_used_gb": gpu_memory_used,
                     "gpu_memory_total_gb": gpu_memory_total,
-                    "memory_trend": memory_usage_trend
-                }
+                    "memory_trend": memory_usage_trend,
+                },
             )
 
         except Exception as e:
@@ -401,7 +410,7 @@ class HealthChecker:
                 component="memory_usage",
                 status="critical",
                 message=f"Memory usage check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _check_performance_metrics(self) -> HealthCheckResult:
@@ -414,7 +423,7 @@ class HealthChecker:
                 "avg_generation_time": 45.0,  # seconds
                 "requests_per_hour": 80,
                 "error_rate": 2.0,  # percentage
-                "quality_score": 0.87
+                "quality_score": 0.87,
             }
 
             # Determine status based on metrics
@@ -433,7 +442,7 @@ class HealthChecker:
                 status=status,
                 message=message,
                 timestamp=datetime.now(),
-                metrics=metrics
+                metrics=metrics,
             )
 
         except Exception as e:
@@ -441,7 +450,7 @@ class HealthChecker:
                 component="performance_metrics",
                 status="critical",
                 message=f"Performance metrics check failed: {e}",
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
     async def _handle_health_issues(self, health_results: List[HealthCheckResult]):
@@ -450,12 +459,16 @@ class HealthChecker:
         warning_issues = [r for r in health_results if r.status == "warning"]
 
         if critical_issues:
-            logger.error(f"Critical health issues detected: {[r.component for r in critical_issues]}")
+            logger.error(
+                f"Critical health issues detected: {[r.component for r in critical_issues]}"
+            )
             # Trigger critical alerts
             await self._trigger_alerts("critical", critical_issues)
 
         if warning_issues:
-            logger.warning(f"Warning health issues detected: {[r.component for r in warning_issues]}")
+            logger.warning(
+                f"Warning health issues detected: {[r.component for r in warning_issues]}"
+            )
             # Trigger warning alerts
             await self._trigger_alerts("warning", warning_issues)
 

@@ -4,6 +4,8 @@
  * Tests the integration of LLM generation capabilities in world wizard steps.
  * Validates Requirements 1.2, 1.7, 1.8 from the UI Configuration Wizards spec.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
@@ -64,7 +66,7 @@ vi.mock('@/services/llmConfigService', () => ({
 // Mock useLLMGeneration hook with proper async behavior
 vi.mock('@/hooks/useLLMGeneration', () => ({
   useLLMGeneration: vi.fn(() => {
-    const generate = async (request: any, options?: { onSuccess?: (result: any) => void }) => {
+    const generate = async (request: LegacyAny, options?: { onSuccess?: (result: LegacyAny) => void }) => {
       // Call the mock LLM service and get its resolved value
       const mockResult = await mockGenerateCompletion(request);
       

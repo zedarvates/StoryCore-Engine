@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useWorldBuilderStore } from '../worldBuilderStore';
 import { act } from '@testing-library/react';
@@ -176,7 +177,7 @@ describe('worldBuilderStore Integration', () => {
       const initialStep = useWorldBuilderStore.getState().currentStep;
 
       act(() => {
-        navigateToStep('invalid_step' as any);
+        navigateToStep('invalid_step' as LegacyAny);
       });
 
       expect(useWorldBuilderStore.getState().currentStep).toBe(initialStep);
@@ -301,7 +302,7 @@ describe('worldBuilderStore Integration', () => {
     it('should return false for invalid step validation', () => {
       const { validateStep } = useWorldBuilderStore.getState();
 
-      expect(validateStep('invalid_step' as any)).toBe(false);
+      expect(validateStep('invalid_step' as LegacyAny)).toBe(false);
     });
   });
 
@@ -309,7 +310,7 @@ describe('worldBuilderStore Integration', () => {
     it('should handle save operation with loading states', async () => {
       const { saveWorld } = useWorldBuilderStore.getState();
 
-      // Mock successful save
+      // Moc_k successful save
       const savePromise = act(async () => {
         await saveWorld();
       });
@@ -498,7 +499,7 @@ describe('worldBuilderStore Integration', () => {
       const { updateStep } = useWorldBuilderStore.getState();
 
       act(() => {
-        updateStep('invalid_step' as any, { data: 'test' });
+        updateStep('invalid_step' as LegacyAny, { data: 'test' });
       });
 
       // Should not crash, just ignore

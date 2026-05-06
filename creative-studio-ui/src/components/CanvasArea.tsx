@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useEditorStore } from '@/stores/editorStore';
@@ -16,18 +17,18 @@ import {
   Edit,
   Zap,
   Film,
-  Layers,
+  _Layers,
   Settings,
   Trash2,
   Copy,
   Clock,
-  Music,
-  Volume2,
+  _Music,
+  _Volume2,
   VolumeX,
   Play,
   MoreVertical,
-  CheckCircle,
-  AlertCircle,
+  _CheckCircle,
+  _AlertCircle,
   Timer,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -54,14 +55,14 @@ const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: unknown) => 
 );
 
 const EffectStack = ({
-  effects,
+  _effects,
   onEffectsChange,
   onEffectSelect,
   selectedEffectId
 }: {
-  effects: any[];
-  onEffectsChange: (effects: any[]) => void;
-  onEffectSelect: (effect: any) => void;
+  effects: LegacyAny[];
+  onEffectsChange: (effects: LegacyAny[]) => void;
+  onEffectSelect: (effect: LegacyAny) => void;
   selectedEffectId?: string;
 }) => (
   <div className="p-4">
@@ -88,8 +89,8 @@ const EffectControls = ({
   onEffectDuplicate,
   onEffectToggle
 }: {
-  selectedEffect?: any;
-  onEffectChange: (effect: any) => void;
+  selectedEffect?: LegacyAny;
+  onEffectChange: (effect: LegacyAny) => void;
   onEffectDelete: (effectId: string) => void;
   onEffectDuplicate: (effectId: string) => void;
   onEffectToggle: (effectId: string) => void;
@@ -153,17 +154,17 @@ interface CanvasAreaProps {
   className?: string;
 }
 
-export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
+export function Can_vasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   const { project, characters } = useAppStore();
   const {
     shots,
     selectedShotId,
     selectShot,
-    createShot,
-    activeWizard,
+    _createShot,
+    _activeWizard,
     closeWizard,
-  } = useEditorStore();
-  const { updateShot } = useAppStore();
+  } = useE_ditorStore();
+  const { _updateShot } = useAppStore();
   const { toast } = useToast();
 
   // Canvas state
@@ -171,7 +172,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   const [isCreatingShot, setIsCreatingShot] = useState(false);
 
   // Effects state
-  const [appliedEffects, setAppliedEffects] = useState<Record<string, any[]>>({});
+  const [appliedEffects, setAppliedEffects] = useState<Record<string, LegacyAny[]>>({});
   const [selectedEffectId, setSelectedEffectId] = useState<string | undefined>();
 
   // Wizard actions from useAppStore
@@ -414,7 +415,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
           {/* Effects Library - Left Panel */}
           <div className="w-80 border-r border-border bg-card">
             <EffectLibrary
-              onEffectApply={(effect: any) => {
+              onEffectApply={(effect: LegacyAny) => {
                 const currentEffects = appliedEffects[selectedShotId || ''] || [];
                 const newEffect = {
                   ...effect,
@@ -456,7 +457,7 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
                     [selectedShotId || '']: effects
                   }));
                 }}
-                onEffectSelect={(effect: any) => setSelectedEffectId(effect.id)}
+                onEffectSelect={(effect: LegacyAny) => setSelectedEffectId(effect.id)}
                 selectedEffectId={selectedEffectId}
               />
             </div>

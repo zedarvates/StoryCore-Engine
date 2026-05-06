@@ -7,15 +7,15 @@
  * between source files and compiled artifacts.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, _beforeEach, _afterEach } from 'vitest';
 import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
 
 const SRC_DIR = path.join(process.cwd(), 'src');
-const DIST_DIR = path.join(process.cwd(), 'dist');
-const TEST_TEMP_DIR = path.join(process.cwd(), '.test-temp');
+const _DIST_DIR = path.join(process.cwd(), 'dist');
+const _TEST_TEMP_DIR = path.join(process.cwd(), '.test-temp');
 
 /**
  * Helper: Find all .js files in a directory recursively
@@ -61,7 +61,7 @@ function findJsFiles(dir: string): string[] {
 /**
  * Helper: Create a test .ts file
  */
-function createTestTsFile(relativePath: string, content: string = 'export const test = "test";'): string {
+function _createTestTsFile(relativePath: string, content: string = 'export const test = "test";'): string {
   const fullPath = path.join(SRC_DIR, relativePath);
   const dir = path.dirname(fullPath);
   
@@ -82,7 +82,7 @@ function cleanupTestFiles(files: string[]) {
       if (fs.existsSync(file)) {
         fs.unlinkSync(file);
       }
-    } catch (error) {
+    } catch (_error) {
       // Ignore cleanup errors
     }
   }
@@ -109,7 +109,7 @@ describe('Feature: typescript-build-configuration', () => {
                 stdio: 'pipe',
                 timeout: 10000 
               });
-            } catch (error) {
+            } catch (_error) {
               // Cleanup might fail if nothing to clean
             }
 
@@ -120,7 +120,7 @@ describe('Feature: typescript-build-configuration', () => {
                 stdio: 'pipe',
                 timeout: 60000 
               });
-            } catch (error) {
+            } catch (_error) {
               // Build might fail for other reasons, but we still check for .js files
             }
 

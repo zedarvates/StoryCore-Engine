@@ -1,11 +1,12 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import styles from './MotionPanel.module.css';
 
 interface MotionPageProps {}
 
 export const MotionPage: React.FC<MotionPageProps> = () => {
-  const [activeTab, setActiveTab] = useState<'templates' | 'keyframing' | 'animation' | 'export'>('templates');
-  const [templates, setTemplates] = useState<any[]>([
+  const [activeTab, _setActiveTab] = useState<'templates' | 'keyframing' | 'animation' | 'export'>('templates');
+  const [templates, setTemplates] = useState<LegacyAny[]>([
     {
       id: 'template_1',
       name: 'Lower Third',
@@ -31,7 +32,7 @@ export const MotionPage: React.FC<MotionPageProps> = () => {
       resolution: '1920x1080'
     }
   ]);
-  const [keyframes, setKeyframes] = useState<any[]>([
+  const [keyframes, setKeyframes] = useState<LegacyAny[]>([
     {
       id: 'keyframe_1',
       name: 'Position',
@@ -152,7 +153,7 @@ export const MotionPage: React.FC<MotionPageProps> = () => {
                     </select>
                   </div>
                   <div className={styles.keyframeValues}>
-                    {keyframe.values.map((value: any, index: number) => (
+                    {keyframe.values.map((value: LegacyAny, index: number) => (
                       <div key={index} className={styles.keyframeValue}>
                         <label>Time: {value.time}%</label>
                         <input

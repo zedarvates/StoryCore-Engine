@@ -19,7 +19,7 @@ from .world_presets import WorldPreset, get_preset, list_presets
 __version__ = "1.0.0"
 __all__ = [
     "KeyframeGenerator",
-    "KeyframeResult", 
+    "KeyframeResult",
     "AtmosphereModel",
     "AtmosphericConditions",
     "WorldPreset",

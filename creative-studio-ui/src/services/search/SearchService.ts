@@ -1,5 +1,5 @@
 import type { Shot } from '../../types';
-import type { SearchCriteria, SearchOperator, SearchFilter } from '../../types/gridEditorAdvanced';
+import type { SearchCriteria, _SearchOperator, SearchFilter } from '../../types/gridEditorAdvanced';
 
 /**
  * SearchService - Advanced search and filtering for shots

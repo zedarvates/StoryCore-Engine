@@ -78,7 +78,7 @@ export const AudioTimeline: React.FC<AudioTimelineProps> = ({
   // ============================================================================
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM); // seconds visible
-  const [scrollOffset, setScrollOffset] = useState(0);
+  const [scrollOffset, _setScrollOffset] = useState(0);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [hoveredPhrase, setHoveredPhrase] = useState<string | null>(null);
 

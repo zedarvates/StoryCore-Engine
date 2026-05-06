@@ -4,6 +4,8 @@
  * Unit tests for the PromptGenerationButton component.
  * Tests button states, tooltips, keyboard shortcuts, and user interactions.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -22,7 +24,7 @@ describe('PromptGenerationButton', () => {
     vi.clearAllMocks();
     
     // Default mock implementation
-    (useGenerationStore as any).mockReturnValue({
+    (useGenerationStore as LegacyAny).mockReturnValue({
       currentPipeline: null,
     });
   });
@@ -68,7 +70,7 @@ describe('PromptGenerationButton', () => {
     });
     
     it('should show "Regenerate Prompt" when prompt is completed', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed' },
@@ -82,7 +84,7 @@ describe('PromptGenerationButton', () => {
     });
     
     it('should use destructive variant when prompt failed', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'failed' },
@@ -219,7 +221,7 @@ describe('PromptGenerationButton', () => {
     });
     
     it('should have tooltip wrapper when completed', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'completed' },
@@ -234,7 +236,7 @@ describe('PromptGenerationButton', () => {
     });
     
     it('should have tooltip wrapper when failed', () => {
-      (useGenerationStore as any).mockReturnValue({
+      (useGenerationStore as LegacyAny).mockReturnValue({
         currentPipeline: {
           stages: {
             prompt: { status: 'failed' },

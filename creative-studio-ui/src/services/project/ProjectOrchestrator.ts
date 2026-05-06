@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { useAppStore } from '@/stores/useAppStore';
 import { useCharacterStore } from '@/stores/characterStore';
 import { useWorkflowStore } from '@/stores/workflowStore';
@@ -119,7 +120,7 @@ export class ProjectOrchestrator {
       return AudioMood.RELAXED;
     }
 
-    const metadata = project.metadata as any;
+    const metadata = project.metadata as LegacyAny;
     const genre = metadata?.genre?.toLowerCase() || 'neutral';
     let suggestedMood = AudioMood.RELAXED;
 

@@ -73,7 +73,7 @@ const INITIAL_STAGES: Record<WorkflowStage, StageProgress> = {
     },
 };
 
-export const useWorkflowStore = create<WorkflowState>((set, get) => ({
+export const useWorkflowStore = create<WorkflowState>((set, _get) => ({
     currentStage: 'preparation',
     stageProgress: INITIAL_STAGES,
     lastCheckpoint: Date.now(),

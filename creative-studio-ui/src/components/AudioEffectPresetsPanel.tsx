@@ -33,7 +33,7 @@ interface AudioEffectPresetsPanelProps {
  * - Dynamics: Bass Heavy, Bright Clear, Warm Smooth
  */
 export const AudioEffectPresetsPanel: React.FC<AudioEffectPresetsPanelProps> = ({
-  track,
+  _track,
   sceneDescription,
   onApplyPreset,
 }) => {

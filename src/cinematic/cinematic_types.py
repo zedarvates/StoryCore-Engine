@@ -15,20 +15,22 @@ from typing_extensions import TypedDict
 
 class ShotClass(Enum):
     """Shot classification by framing size."""
+
     EXTREME_WIDE = "extreme_wide"  # EWS
-    WIDE = "wide"                   # WS
-    FULL = "full"                   # FS
-    MEDIUM_FULL = "medium_full"     # MFS
-    MEDIUM = "medium"               # MS
-    MEDIUM_CLOSE = "medium_close"   # MCS
-    CLOSE_UP = "close_up"           # CU
-    EXTREME_CLOSE_UP = "extreme_cu" # ECU
-    INSERT = "insert"               # Insert shot
-    CUTAWAY = "cutaway"             # Cutaway
+    WIDE = "wide"  # WS
+    FULL = "full"  # FS
+    MEDIUM_FULL = "medium_full"  # MFS
+    MEDIUM = "medium"  # MS
+    MEDIUM_CLOSE = "medium_close"  # MCS
+    CLOSE_UP = "close_up"  # CU
+    EXTREME_CLOSE_UP = "extreme_cu"  # ECU
+    INSERT = "insert"  # Insert shot
+    CUTAWAY = "cutaway"  # Cutaway
 
 
 class CameraMovement(Enum):
     """Camera movement types."""
+
     STATIC = "static"
     PAN_LEFT = "pan_left"
     PAN_RIGHT = "pan_right"
@@ -56,6 +58,7 @@ class CameraMovement(Enum):
 
 class TransitionType(Enum):
     """Scene transition types."""
+
     CUT = "cut"
     DISSOLVE = "dissolve"
     WIPE = "wipe"
@@ -72,6 +75,7 @@ class TransitionType(Enum):
 
 class PacingType(Enum):
     """Pacing classifications for emotional rhythm."""
+
     SLOW = "slow"
     MEDIUM_SLOW = "medium_slow"
     MEDIUM = "medium"
@@ -82,6 +86,7 @@ class PacingType(Enum):
 
 class RhythmPattern(Enum):
     """Scene rhythm patterns."""
+
     BUILDING = "building"
     CRESCENDO = "crescendo"
     STACCATO = "staccato"
@@ -93,6 +98,7 @@ class RhythmPattern(Enum):
 
 class SceneContext(Enum):
     """Scene context classifications."""
+
     ESTABLISHING = "establishing"
     ACTION = "action"
     DIALOGUE = "dialogue"
@@ -107,6 +113,7 @@ class SceneContext(Enum):
 @dataclass
 class ShotRecommendation:
     """Recommended shot with justification."""
+
     shot_class: ShotClass
     confidence: float
     reason: str
@@ -117,6 +124,7 @@ class ShotRecommendation:
 @dataclass
 class CameraMoveTemplate:
     """Camera movement template with parameters."""
+
     movement: CameraMovement
     duration_seconds: float
     start_position: Tuple[float, float, float]
@@ -130,6 +138,7 @@ class CameraMoveTemplate:
 @dataclass
 class TransitionRecommendation:
     """Recommended transition with justification."""
+
     transition_type: TransitionType
     duration_seconds: float
     reason: str
@@ -139,6 +148,7 @@ class TransitionRecommendation:
 @dataclass
 class PacingRecommendation:
     """Pacing and rhythm recommendations."""
+
     pacing: PacingType
     rhythm: RhythmPattern
     shot_duration_range: Tuple[float, float]
@@ -149,16 +159,17 @@ class PacingRecommendation:
 @dataclass
 class CinematicPlan:
     """Complete cinematic plan for a scene."""
+
     scene_context: SceneContext
     shot_sequence: List[ShotRecommendation]
     transitions: List[TransitionRecommendation]
     pacing: PacingRecommendation
     camera_movements: List[CameraMoveTemplate] = field(default_factory=list)
-    
+
     # Emotional arc
     emotional_arc: List[str] = field(default_factory=list)
     tension_level: float = 0.5  # 0-1
-    
+
     # Technical notes
     technical_notes: List[str] = field(default_factory=list)
     suggestions: List[str] = field(default_factory=list)
@@ -167,6 +178,7 @@ class CinematicPlan:
 @dataclass
 class EmotionalBeat:
     """An emotional beat within a scene."""
+
     beat_number: int
     description: str
     emotion: str
@@ -179,17 +191,18 @@ class EmotionalBeat:
 @dataclass
 class SceneRhythmAnalysis:
     """Analysis of scene rhythm and pacing."""
+
     total_duration_seconds: float
     pacing_type: PacingType
     rhythm_pattern: RhythmPattern
     beat_count: int
     intensity_peaks: List[int]  # Beat numbers
     intensity_valleys: List[int]  # Beat numbers
-    
+
     # Shot distribution
     shot_distribution: Dict[ShotClass, int] = field(default_factory=dict)
     avg_shot_duration: float
-    
+
     # Recommendations
     pacing_suggestions: List[str] = field(default_factory=list)
     shot_selection_notes: List[str] = field(default_factory=list)
@@ -197,6 +210,7 @@ class SceneRhythmAnalysis:
 
 class CinematicRequest(TypedDict):
     """Request structure for cinematic analysis."""
+
     scene_content: str
     scene_heading: str
     num_characters: int
@@ -207,6 +221,7 @@ class CinematicRequest(TypedDict):
 
 class CinematicResponse(TypedDict):
     """Response structure for cinematic analysis."""
+
     scene_context: str
     cinematic_plan: Dict
     shot_recommendations: List[Dict]
@@ -217,25 +232,64 @@ class CinematicResponse(TypedDict):
 
 # Mood to visual technique mappings
 MOOD_VISUAL_MAP = {
-    "tense": {"shot_class": ShotClass.CLOSE_UP, "pacing": PacingType.FAST, "camera_movement": CameraMovement.HANDHELD},
-    "romantic": {"shot_class": ShotClass.MEDIUM_CLOSE, "pacing": PacingType.SLOW, "camera_movement": CameraMovement.DOLLY_IN},
-    "action": {"shot_class": ShotClass.WIDE, "pacing": PacingType.FRANTIC, "camera_movement": CameraMovement.STEADICAM},
-    "mysterious": {"shot_class": ShotClass.EXTREME_CLOSE_UP, "pacing": PacingType.MEDIUM_SLOW, "camera_movement": CameraMovement.STATIC},
-    "happy": {"shot_class": ShotClass.FULL, "pacing": PacingType.MEDIUM_FAST, "camera_movement": CameraMovement.DOLLY_OUT},
-    "sad": {"shot_class": ShotClass.CLOSE_UP, "pacing": PacingType.SLOW, "camera_movement": CameraMovement.TILT_DOWN},
-    "neutral": {"shot_class": ShotClass.MEDIUM, "pacing": PacingType.MEDIUM, "camera_movement": CameraMovement.STATIC},
+    "tense": {
+        "shot_class": ShotClass.CLOSE_UP,
+        "pacing": PacingType.FAST,
+        "camera_movement": CameraMovement.HANDHELD,
+    },
+    "romantic": {
+        "shot_class": ShotClass.MEDIUM_CLOSE,
+        "pacing": PacingType.SLOW,
+        "camera_movement": CameraMovement.DOLLY_IN,
+    },
+    "action": {
+        "shot_class": ShotClass.WIDE,
+        "pacing": PacingType.FRANTIC,
+        "camera_movement": CameraMovement.STEADICAM,
+    },
+    "mysterious": {
+        "shot_class": ShotClass.EXTREME_CLOSE_UP,
+        "pacing": PacingType.MEDIUM_SLOW,
+        "camera_movement": CameraMovement.STATIC,
+    },
+    "happy": {
+        "shot_class": ShotClass.FULL,
+        "pacing": PacingType.MEDIUM_FAST,
+        "camera_movement": CameraMovement.DOLLY_OUT,
+    },
+    "sad": {
+        "shot_class": ShotClass.CLOSE_UP,
+        "pacing": PacingType.SLOW,
+        "camera_movement": CameraMovement.TILT_DOWN,
+    },
+    "neutral": {
+        "shot_class": ShotClass.MEDIUM,
+        "pacing": PacingType.MEDIUM,
+        "camera_movement": CameraMovement.STATIC,
+    },
 }
 
 
 # Scene context keywords
 CONTEXT_KEYWORDS = {
-    SceneContext.ESTABLISHING: ["establishing", "wide shot", "landscape", "city", "outside"],
+    SceneContext.ESTABLISHING: [
+        "establishing",
+        "wide shot",
+        "landscape",
+        "city",
+        "outside",
+    ],
     SceneContext.ACTION: ["fight", "chase", "run", "battle", "action"],
     SceneContext.DIALOGUE: ["says", "speaks", "talks", "conversation", "dialogue"],
     SceneContext.REFLECTION: ["thinks", "remembers", "reflects", "alone", "quiet"],
     SceneContext.TRANSITION: ["cut to", "later", "meanwhile", "time passes"],
     SceneContext.MONTAGE: ["montage", "series", "quick cuts", "over days"],
     SceneContext.CLIMAX: ["finally", "confrontation", "peak", "climax", "final battle"],
-    SceneContext.RESOLUTION: ["finally", "ending", "conclusion", "lives happily", "aftermath"],
+    SceneContext.RESOLUTION: [
+        "finally",
+        "ending",
+        "conclusion",
+        "lives happily",
+        "aftermath",
+    ],
 }
-

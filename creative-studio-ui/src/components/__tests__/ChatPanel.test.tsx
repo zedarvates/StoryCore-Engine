@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChatPanel } from '../ChatPanel';
@@ -35,7 +36,7 @@ const mockShowChatTrue = {
 describe('ChatPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useAppStore as any).mockReturnValue(mockShowChatFalse);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatFalse);
   });
 
   it('is hidden when chat is closed', () => {
@@ -47,7 +48,7 @@ describe('ChatPanel', () => {
   });
 
   it('renders when chat is open', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 
@@ -55,7 +56,7 @@ describe('ChatPanel', () => {
   });
 
   it('renders LandingChatBox component', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 
@@ -63,7 +64,7 @@ describe('ChatPanel', () => {
   });
 
   it('has fixed positioning', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     const { container } = render(<ChatPanel />);
     const panel = container.querySelector('.fixed');
@@ -72,7 +73,7 @@ describe('ChatPanel', () => {
   });
 
   it('has shadow styles', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     const { container } = render(<ChatPanel />);
     const panel = container.querySelector('.shadow-2xl');
@@ -81,7 +82,7 @@ describe('ChatPanel', () => {
   });
 
   it('renders overlay for mobile', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     const { container } = render(<ChatPanel />);
     const overlay = container.querySelector('.fixed.inset-0.bg-black\\/50');
@@ -90,7 +91,7 @@ describe('ChatPanel', () => {
   });
 
   it('has close button', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 
@@ -99,7 +100,7 @@ describe('ChatPanel', () => {
   });
 
   it('close button is clickable', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 
@@ -110,7 +111,7 @@ describe('ChatPanel', () => {
   });
 
   it('has responsive container', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     const { container } = render(<ChatPanel />);
     const panel = container.querySelector('.fixed');
@@ -119,7 +120,7 @@ describe('ChatPanel', () => {
   });
 
   it('applies custom className', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     const { container } = render(<ChatPanel className="custom-class" />);
     const panel = container.querySelector('.custom-class');
@@ -128,7 +129,7 @@ describe('ChatPanel', () => {
   });
 
   it('passes className prop to LandingChatBox', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 
@@ -137,7 +138,7 @@ describe('ChatPanel', () => {
   });
 
   it('has minimize button', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 
@@ -146,7 +147,7 @@ describe('ChatPanel', () => {
   });
 
   it('has maximize button', () => {
-    (useAppStore as any).mockReturnValue(mockShowChatTrue);
+    (useAppStore as LegacyAny).mockReturnValue(mockShowChatTrue);
 
     render(<ChatPanel />);
 

@@ -100,7 +100,7 @@ export const VideoCanvas: React.FC<VideoCanvasProps> = (props) => {
     maintainAspectRatio,
     objectFit,
     backgroundColor,
-    enableHardwareAcceleration,
+    _enableHardwareAcceleration,
     style,
     showLoadingIndicator,
     showPlayButton,
@@ -119,7 +119,7 @@ export const VideoCanvas: React.FC<VideoCanvasProps> = (props) => {
   const animationFrameRef = useRef<number | null>(null);
   
   // State
-  const [isReady, setIsReady] = useState(false);
+  const [_isReady, setIsReady] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   
@@ -131,9 +131,9 @@ export const VideoCanvas: React.FC<VideoCanvasProps> = (props) => {
     currentFrame,
     duration,
     totalFrames,
-    isLoaded,
-    play,
-    pause,
+    _isLoaded,
+    _play,
+    _pause,
     togglePlay,
     service,
   } = useVideoPlayer(videoElement, autoInitialize);

@@ -39,9 +39,9 @@ class LoRAAdapter:
 
         # Mock implementation
         self.loaded_loras[lora_path] = {
-            'path': lora_path,
-            'strength': self.config.lora_strength,
-            'loaded': True
+            "path": lora_path,
+            "strength": self.config.lora_strength,
+            "loaded": True,
         }
 
         logger.info("LoRA loaded successfully")

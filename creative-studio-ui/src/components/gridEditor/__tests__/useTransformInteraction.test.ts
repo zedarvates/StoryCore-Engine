@@ -7,6 +7,8 @@
  * - Rotation drag with angle calculation and snapping (Req 3.5, 3.6)
  * - Transform commit on mouse release (Req 3.8)
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
@@ -31,11 +33,11 @@ describe('useTransformInteraction', () => {
     mockScreenToCanvas = vi.fn((point) => point); // Identity transform for simplicity
 
     // Setup store mocks
-    vi.mocked(useGridStore).mockImplementation((selector: any) =>
+    vi.mocked(useGridStore).mockImplementation((selector: LegacyAny) =>
       selector({ updatePanelTransform: mockUpdatePanelTransform })
     );
 
-    vi.mocked(useViewportStore).mockImplementation((selector: any) =>
+    vi.mocked(useViewportStore).mockImplementation((selector: LegacyAny) =>
       selector({ screenToCanvas: mockScreenToCanvas })
     );
 

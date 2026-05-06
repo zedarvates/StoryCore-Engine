@@ -12,36 +12,36 @@ import os
 @dataclass
 class APIConfig:
     """Configuration for the StoryCore API system."""
-    
+
     # API Version
     version: str = "v1"
-    
+
     # Server Configuration
     host: str = "localhost"
     port: int = 8000
-    
+
     # Security Configuration
     enable_auth: bool = False
     enable_rate_limiting: bool = True
     rate_limit_requests_per_minute: int = 60
-    
+
     # Performance Configuration
     cache_ttl_seconds: int = 300
     async_task_timeout_seconds: int = 3600
     max_concurrent_tasks: int = 10
-    
+
     # Logging Configuration
     log_level: str = "INFO"
     log_api_calls: bool = True
     log_sanitize_params: bool = True
-    
+
     # CORS Configuration
     cors_origins: List[str] = field(default_factory=lambda: ["*"])
-    
+
     # Backend Service Configuration
     comfyui_url: Optional[str] = None
     llm_service_url: Optional[str] = None
-    
+
     @classmethod
     def from_env(cls) -> "APIConfig":
         """Create configuration from environment variables."""
@@ -50,7 +50,8 @@ class APIConfig:
             host=os.getenv("API_HOST", "localhost"),
             port=int(os.getenv("API_PORT", "8000")),
             enable_auth=os.getenv("API_ENABLE_AUTH", "false").lower() == "true",
-            enable_rate_limiting=os.getenv("API_ENABLE_RATE_LIMITING", "true").lower() == "true",
+            enable_rate_limiting=os.getenv("API_ENABLE_RATE_LIMITING", "true").lower()
+            == "true",
             rate_limit_requests_per_minute=int(os.getenv("API_RATE_LIMIT_RPM", "60")),
             cache_ttl_seconds=int(os.getenv("API_CACHE_TTL", "300")),
             async_task_timeout_seconds=int(os.getenv("API_TASK_TIMEOUT", "3600")),
@@ -62,7 +63,7 @@ class APIConfig:
             comfyui_url=os.getenv("COMFYUI_URL"),
             llm_service_url=os.getenv("LLM_SERVICE_URL"),
         )
-    
+
     def to_dict(self) -> dict:
         """Convert configuration to dictionary."""
         return {

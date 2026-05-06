@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import type { SequencePlan } from '../types';
 import { logger } from './logger';
 
@@ -83,7 +84,7 @@ export async function listSequencesInProject(projectPath: string): Promise<Seque
       })
     );
 
-    return (sequences.filter(s => s !== null) as SequencePlan[]).sort((a, b) => ((a as any).order || 0) - ((b as any).order || 0));
+    return (sequences.filter(s => s !== null) as SequencePlan[]).sort((a, b) => ((a as LegacyAny).order || 0) - ((b as LegacyAny).order || 0));
   } catch (error) {
     logger.error('[sequenceStorage] Failed to list sequences:', error);
     return [];

@@ -46,7 +46,7 @@ export function LocationTransformControl({
   transform,
   onChange,
   instanceId,
-  locationName,
+  _locationName,
   onDelete,
   onDuplicate,
 }: LocationTransformControlProps) {

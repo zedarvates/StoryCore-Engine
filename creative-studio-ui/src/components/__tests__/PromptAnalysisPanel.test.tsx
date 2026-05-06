@@ -7,7 +7,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PromptAnalysisPanel } from '../PromptAnalysisPanel';
 import { ProjectContext, type ProjectContextValue } from '../../contexts/ProjectContext';
-import type { Project, Shot } from '../../types/projectDashboard';
+import type { Project, _Shot } from '../../types/projectDashboard';
 
 // ============================================================================
 // Test Helpers

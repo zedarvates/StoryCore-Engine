@@ -16,7 +16,7 @@ export const RegenerateVideoDialog: React.FC<RegenerateVideoDialogProps> = ({
 }) => {
   const [methodology, setMethodology] = useState('ai-enhanced');
   const [workflow, setWorkflow] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, _setIsLoading] = useState(false);
 
   const methodologies = [
     { 

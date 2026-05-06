@@ -27,15 +27,14 @@ import asyncio
 import json
 import logging
 import shutil
-import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
-ADDON_ID   = "transitions_fx"
+ADDON_ID = "transitions_fx"
 ADDON_NAME = "Transitions & FX Pack"
-VERSION    = "0.7.0"
+VERSION = "0.7.0"
 
 
 # ---------------------------------------------------------------------------
@@ -46,28 +45,29 @@ VERSION    = "0.7.0"
 # Negative = decreasing tension (relief), Positive = escalating tension
 MOOD_TRANSITION_MAP = [
     # (min_delta, max_delta, transition_type)
-    (-1.00, -0.30, "cinematic_fade"),    # Strong relief → slow fade
-    (-0.30, -0.10, "crossfade"),         # Mild relief → soft blend
-    (-0.10,  0.10, "cut"),               # Neutral → clean cut
-    ( 0.10,  0.25, "vertical_wipe"),     # Mild escalation
-    ( 0.25,  0.45, "neon_wipe"),         # Noticeable escalation
-    ( 0.45,  0.65, "glitch_cut"),        # High escalation → glitch
-    ( 0.65,  1.00, "black_flash"),       # Max escalation → shock cut
+    (-1.00, -0.30, "cinematic_fade"),  # Strong relief → slow fade
+    (-0.30, -0.10, "crossfade"),  # Mild relief → soft blend
+    (-0.10, 0.10, "cut"),  # Neutral → clean cut
+    (0.10, 0.25, "vertical_wipe"),  # Mild escalation
+    (0.25, 0.45, "neon_wipe"),  # Noticeable escalation
+    (0.45, 0.65, "glitch_cut"),  # High escalation → glitch
+    (0.65, 1.00, "black_flash"),  # Max escalation → shock cut
 ]
 
 COLOR_GRADE_FILTERS = {
-    "none":            "",
-    "cyberpunk_noir":  "curves=vintage,colorbalance=rs=-0.1:gs=-0.05:bs=0.15:rm=0:gm=0:bm=0:rh=0.1:gh=0:bh=-0.1,eq=contrast=1.15:brightness=-0.05:saturation=1.3",
-    "warm_vintage":    "curves=vintage,colorbalance=rs=0.2:gs=0.05:bs=-0.15,vignette=PI/5",
-    "cold_horror":     "colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3,curves=none",
-    "euphoric":        "hue=s=1.5,eq=contrast=1.1:brightness=0.05:saturation=1.8",
-    "desaturated":     "hue=s=0.2,curves=lighter",
+    "none": "",
+    "cyberpunk_noir": "curves=vintage,colorbalance=rs=-0.1:gs=-0.05:bs=0.15:rm=0:gm=0:bm=0:rh=0.1:gh=0:bh=-0.1,eq=contrast=1.15:brightness=-0.05:saturation=1.3",
+    "warm_vintage": "curves=vintage,colorbalance=rs=0.2:gs=0.05:bs=-0.15,vignette=PI/5",
+    "cold_horror": "colorchannelmixer=.3:.4:.3:0:.3:.4:.3:0:.3:.4:.3,curves=none",
+    "euphoric": "hue=s=1.5,eq=contrast=1.1:brightness=0.05:saturation=1.8",
+    "desaturated": "hue=s=0.2,curves=lighter",
 }
 
 
 # ---------------------------------------------------------------------------
 # Addon API
 # ---------------------------------------------------------------------------
+
 
 def get_manifest() -> Dict[str, Any]:
     manifest_path = Path(__file__).parent / "manifest.json"
@@ -86,7 +86,10 @@ def initialize(config: Dict[str, Any]) -> None:
 # Hook handlers
 # ---------------------------------------------------------------------------
 
-def on_before_assemble(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+
+def on_before_assemble(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Assign transition types to each clip pair based on scene tension arc.
     Payload keys:
@@ -100,8 +103,8 @@ def on_before_assemble(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[
         return payload
 
     auto_mood = config.get("auto_mood_transitions", True)
-    default   = config.get("default_transition", "crossfade")
-    duration  = config.get("transition_duration_ms", 600)
+    default = config.get("default_transition", "crossfade")
+    duration = config.get("transition_duration_ms", 600)
     transitions = []
 
     for i in range(len(clips) - 1):
@@ -116,15 +119,17 @@ def on_before_assemble(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[
         else:
             transition_type = default
 
-        transitions.append({
-            "from_id":        clip_a.get("scene_id"),
-            "to_id":          clip_b.get("scene_id"),
-            "from_path":      clip_a.get("video_path"),
-            "to_path":        clip_b.get("video_path"),
-            "transition_type": transition_type,
-            "duration_ms":    duration,
-            "tension_delta":  round(tension_b - tension_a, 3),
-        })
+        transitions.append(
+            {
+                "from_id": clip_a.get("scene_id"),
+                "to_id": clip_b.get("scene_id"),
+                "from_path": clip_a.get("video_path"),
+                "to_path": clip_b.get("video_path"),
+                "transition_type": transition_type,
+                "duration_ms": duration,
+                "tension_delta": round(tension_b - tension_a, 3),
+            }
+        )
         logger.debug(
             f"[{ADDON_NAME}] {clip_a.get('scene_id')} → {clip_b.get('scene_id')}: "
             f"{transition_type} (Δtension={tension_b - tension_a:+.2f})"
@@ -134,7 +139,9 @@ def on_before_assemble(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[
     return payload
 
 
-async def on_clip_pair_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+async def on_clip_pair_ready(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Apply transition between two clips.
     Payload keys:
@@ -146,11 +153,13 @@ async def on_clip_pair_ready(payload: Dict[str, Any], config: Dict[str, Any]) ->
     Returns:
         Updated payload with merged_path
     """
-    from_path   = Path(payload.get("from_path", ""))
-    to_path     = Path(payload.get("to_path", ""))
-    trans_type  = payload.get("transition_type", "crossfade")
+    from_path = Path(payload.get("from_path", ""))
+    to_path = Path(payload.get("to_path", ""))
+    trans_type = payload.get("transition_type", "crossfade")
     duration_ms = payload.get("duration_ms", 600)
-    output_path = Path(payload.get("output_path", from_path.parent / f"merged_{from_path.stem}.mp4"))
+    output_path = Path(
+        payload.get("output_path", from_path.parent / f"merged_{from_path.stem}.mp4")
+    )
 
     if not from_path.exists():
         logger.error(f"[{ADDON_NAME}] Source clip not found: {from_path}")
@@ -160,19 +169,27 @@ async def on_clip_pair_ready(payload: Dict[str, Any], config: Dict[str, Any]) ->
         return payload
 
     try:
-        success = await _apply_transition(from_path, to_path, output_path, trans_type, duration_ms)
+        success = await _apply_transition(
+            from_path, to_path, output_path, trans_type, duration_ms
+        )
         if success:
             payload["merged_path"] = str(output_path)
-            logger.info(f"[{ADDON_NAME}] Transition '{trans_type}' applied → {output_path.name}")
+            logger.info(
+                f"[{ADDON_NAME}] Transition '{trans_type}' applied → {output_path.name}"
+            )
         else:
-            logger.warning(f"[{ADDON_NAME}] Transition failed — returning unmodified clips")
+            logger.warning(
+                f"[{ADDON_NAME}] Transition failed — returning unmodified clips"
+            )
     except Exception as e:
         logger.error(f"[{ADDON_NAME}] Transition error: {e}")
 
     return payload
 
 
-async def on_export_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
+async def on_export_ready(
+    payload: Dict[str, Any], config: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Apply global VFX to the final assembled video.
     Payload keys:
@@ -181,13 +198,18 @@ async def on_export_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Di
     Returns:
         Updated payload with vfx_video_path
     """
-    video_path  = Path(payload.get("video_path", ""))
-    vfx_config  = config.get("global_vfx", {})
+    video_path = Path(payload.get("video_path", ""))
+    vfx_config = config.get("global_vfx", {})
 
     if not video_path.exists():
         return payload
 
-    output_path = Path(payload.get("output_path", video_path.parent / f"{video_path.stem}_vfx{video_path.suffix}"))
+    output_path = Path(
+        payload.get(
+            "output_path",
+            video_path.parent / f"{video_path.stem}_vfx{video_path.suffix}",
+        )
+    )
 
     try:
         vfx_applied = await _apply_global_vfx(video_path, output_path, vfx_config)
@@ -207,6 +229,7 @@ async def on_export_ready(payload: Dict[str, Any], config: Dict[str, Any]) -> Di
 # Transition implementations
 # ---------------------------------------------------------------------------
 
+
 def _select_transition_from_delta(delta: float, default: str) -> str:
     for min_d, max_d, trans in MOOD_TRANSITION_MAP:
         if min_d <= delta < max_d:
@@ -223,7 +246,7 @@ async def _apply_transition(
 ) -> bool:
     """Build FFmpeg filter for the requested transition and apply it."""
     ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
-    dur    = duration_ms / 1000.0
+    dur = duration_ms / 1000.0
 
     # Transition filter graphs
     filters = {
@@ -239,9 +262,9 @@ async def _apply_transition(
             f"[va][vb]concat=n=2:v=1:a=0[v]"
         ),
         "glitch_cut": (
-            f"[0:v]rgbashift=rh=8:rv=-8:gh=-4:bh=4,noise=alls=25:allf=t[va];"
-            f"[1:v]noise=alls=10:allf=t[vb];"
-            f"[va][vb]concat=n=2:v=1:a=0[v]"
+            "[0:v]rgbashift=rh=8:rv=-8:gh=-4:bh=4,noise=alls=25:allf=t[va];"
+            "[1:v]noise=alls=10:allf=t[vb];"
+            "[va][vb]concat=n=2:v=1:a=0[v]"
         ),
         "neon_wipe": (
             f"[0:v][1:v]xfade=transition=wipeleft:duration={dur}:offset={{dur_a_offset:.3f}}[v]"
@@ -254,14 +277,14 @@ async def _apply_transition(
             f"[tmpv]fade=t=in:st=0:d={dur}:color=black[v]"
         ),
         "dramatic_zoom": (
-            f"[0:v]zoompan=z='zoom+0.02':d={int(dur*25)}:s=1280x720[va];"
-            f"[1:v]zoompan=z='2-zoom':d={int(dur*25)}:s=1280x720[vb];"
+            f"[0:v]zoompan=z='zoom+0.02':d={int(dur * 25)}:s=1280x720[va];"
+            f"[1:v]zoompan=z='2-zoom':d={int(dur * 25)}:s=1280x720[vb];"
             f"[va][vb]concat=n=2:v=1:a=0[v]"
         ),
         "whip_pan": (
-            f"[0:v]minterpolate=fps=60,boxblur=luma_radius=20:luma_power=2[va];"
-            f"[1:v]minterpolate=fps=60,boxblur=luma_radius=3:luma_power=1[vb];"
-            f"[va][vb]concat=n=2:v=1:a=0[v]"
+            "[0:v]minterpolate=fps=60,boxblur=luma_radius=20:luma_power=2[va];"
+            "[1:v]minterpolate=fps=60,boxblur=luma_radius=3:luma_power=1[vb];"
+            "[va][vb]concat=n=2:v=1:a=0[v]"
         ),
         "pixel_blur": (
             f"[0:v][1:v]xfade=transition=dissolve:duration={dur}:offset={{dur_a_offset:.3f}}[v]"
@@ -275,31 +298,48 @@ async def _apply_transition(
         tmp_list = output_path.parent / "_concat_list.txt"
         tmp_list.write_text(
             f"file '{from_path.resolve()}'\nfile '{to_path.resolve()}'\n",
-            encoding="utf-8"
+            encoding="utf-8",
         )
         cmd = [
-            ffmpeg, "-y",
-            "-f", "concat", "-safe", "0",
-            "-i", str(tmp_list),
-            "-c", "copy",
+            ffmpeg,
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(tmp_list),
+            "-c",
+            "copy",
             str(output_path),
         ]
     else:
         # Get clip A duration for offset calculation
-        dur_a      = await _get_video_duration(from_path)
-        dur_a_off  = max(0.0, dur_a - dur)
+        dur_a = await _get_video_duration(from_path)
+        dur_a_off = max(0.0, dur_a - dur)
         filter_graph = filter_graph.replace("{dur_a:.3f}", f"{dur_a:.3f}")
         filter_graph = filter_graph.replace("{dur_a_offset:.3f}", f"{dur_a_off:.3f}")
 
         # Use xfade if available (FFmpeg 4.3+), otherwise fallback to concat
         cmd = [
-            ffmpeg, "-y",
-            "-i", str(from_path),
-            "-i", str(to_path),
-            "-filter_complex", filter_graph,
-            "-map", "[v]",
-            "-c:v", "libx264", "-crf", "22", "-preset", "fast",
-            "-pix_fmt", "yuv420p",
+            ffmpeg,
+            "-y",
+            "-i",
+            str(from_path),
+            "-i",
+            str(to_path),
+            "-filter_complex",
+            filter_graph,
+            "-map",
+            "[v]",
+            "-c:v",
+            "libx264",
+            "-crf",
+            "22",
+            "-preset",
+            "fast",
+            "-pix_fmt",
+            "yuv420p",
             str(output_path),
         ]
 
@@ -316,7 +356,9 @@ async def _apply_transition(
                 f"[{ADDON_NAME}] Transition '{trans_type}' failed "
                 f"(FFmpeg exit {proc.returncode}) — falling back to cut"
             )
-            return await _apply_transition(from_path, to_path, output_path, "cut", duration_ms)
+            return await _apply_transition(
+                from_path, to_path, output_path, "cut", duration_ms
+            )
         return output_path.exists()
     except asyncio.TimeoutError:
         logger.error(f"[{ADDON_NAME}] FFmpeg timed out for transition '{trans_type}'")
@@ -329,8 +371,8 @@ async def _apply_global_vfx(
     vfx_config: Dict[str, Any],
 ) -> bool:
     """Apply film grain, vignette, and color grade to the final video."""
-    ffmpeg   = shutil.which("ffmpeg") or "ffmpeg"
-    filters  = []
+    ffmpeg = shutil.which("ffmpeg") or "ffmpeg"
+    filters = []
 
     color_grade = vfx_config.get("color_grade", "cyberpunk_noir")
     if color_grade and color_grade != "none":
@@ -352,11 +394,20 @@ async def _apply_global_vfx(
 
     vf = ",".join(filters)
     cmd = [
-        ffmpeg, "-y",
-        "-i", str(video_path),
-        "-vf", vf,
-        "-c:v", "libx264", "-crf", "20", "-preset", "fast",
-        "-c:a", "copy",
+        ffmpeg,
+        "-y",
+        "-i",
+        str(video_path),
+        "-vf",
+        vf,
+        "-c:v",
+        "libx264",
+        "-crf",
+        "20",
+        "-preset",
+        "fast",
+        "-c:a",
+        "copy",
         str(output_path),
     ]
 
@@ -377,9 +428,13 @@ async def _get_video_duration(video_path: Path) -> float:
     """Get video duration in seconds using ffprobe."""
     ffprobe = shutil.which("ffprobe") or "ffprobe"
     cmd = [
-        ffprobe, "-v", "quiet",
-        "-show_entries", "format=duration",
-        "-of", "csv=p=0",
+        ffprobe,
+        "-v",
+        "quiet",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "csv=p=0",
         str(video_path),
     ]
     try:

@@ -17,11 +17,13 @@ import aiohttp
 # Add src to path to import our modules
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from network_utils import NetworkUtils
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class StoryCoreLauncher:
     """
@@ -45,9 +47,13 @@ class StoryCoreLauncher:
             if (path / "main.py").exists():
                 return path
 
-        raise FileNotFoundError("ComfyUI installation not found. Please run the installer first.")
+        raise FileNotFoundError(
+            "ComfyUI installation not found. Please run the installer first."
+        )
 
-    async def check_comfyui_ready(self, url: str = "http://127.0.0.1:8188", timeout: int = 60) -> bool:
+    async def check_comfyui_ready(
+        self, url: str = "http://127.0.0.1:8188", timeout: int = 60
+    ) -> bool:
         """Wait for ComfyUI to be ready"""
         logger.info("Waiting for ComfyUI to start...")
 
@@ -67,7 +73,9 @@ class StoryCoreLauncher:
         logger.error("❌ ComfyUI failed to start within timeout")
         return False
 
-    async def check_api_ready(self, url: str = "http://localhost:8000/health", timeout: int = 30) -> bool:
+    async def check_api_ready(
+        self, url: str = "http://localhost:8000/health", timeout: int = 30
+    ) -> bool:
         """Wait for API server to be ready"""
         logger.info("Waiting for StoryCore API server to start...")
 
@@ -98,16 +106,20 @@ class StoryCoreLauncher:
         os.chdir(comfyui_path)
 
         # Configure host based on environment or default
-        comfyui_host = os.environ.get('COMFYUI_HOST', '0.0.0.0')
+        comfyui_host = os.environ.get("COMFYUI_HOST", "0.0.0.0")
         logger.info(f"🌐 Using ComfyUI host: {comfyui_host}")
 
         # Start ComfyUI with proper arguments
         cmd = [
-            sys.executable, "main.py",
-            "--listen", comfyui_host,
-            "--port", "8188",
-            "--enable-cors-header", "http://localhost:3000",
-            "--cpu"  # Use CPU mode for compatibility
+            sys.executable,
+            "main.py",
+            "--listen",
+            comfyui_host,
+            "--port",
+            "8188",
+            "--enable-cors-header",
+            "http://localhost:3000",
+            "--cpu",  # Use CPU mode for compatibility
         ]
 
         logger.info(f"Running command: {' '.join(cmd)}")
@@ -118,7 +130,7 @@ class StoryCoreLauncher:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         return process
@@ -132,18 +144,22 @@ class StoryCoreLauncher:
         os.chdir(self.project_root)
 
         # Configure API server host based on environment or default
-        api_host = os.environ.get('STORYCORE_API_HOST', 'localhost')
+        api_host = os.environ.get("STORYCORE_API_HOST", "localhost")
         logger.info(f"🌐 Using API server host: {api_host}")
 
         # Configure ComfyUI URL based on environment or default
-        comfyui_url = os.environ.get('COMFYUI_URL', 'http://127.0.0.1:8188')
+        comfyui_url = os.environ.get("COMFYUI_URL", "http://127.0.0.1:8188")
         logger.info(f"🔗 Using ComfyUI URL: {comfyui_url}")
 
         cmd = [
-            sys.executable, str(api_script),
-            "--host", api_host,
-            "--port", "8000",
-            "--comfyui-url", comfyui_url
+            sys.executable,
+            str(api_script),
+            "--host",
+            api_host,
+            "--port",
+            "8000",
+            "--comfyui-url",
+            comfyui_url,
         ]
 
         logger.info(f"Running command: {' '.join(cmd)}")
@@ -154,13 +170,14 @@ class StoryCoreLauncher:
             stderr=subprocess.PIPE,
             text=True,
             bufsize=1,
-            universal_newlines=True
+            universal_newlines=True,
         )
 
         return process
 
     def monitor_process(self, process: subprocess.Popen, name: str):
         """Monitor a process and log its output"""
+
         def monitor_output():
             while True:
                 output = process.stdout.readline()
@@ -177,6 +194,7 @@ class StoryCoreLauncher:
                     break
 
         import threading
+
         thread = threading.Thread(target=monitor_output, daemon=True)
         thread.start()
 
@@ -279,6 +297,7 @@ class StoryCoreLauncher:
 
             logger.info("✅ All services stopped")
 
+
 def main():
     """Main entry point"""
     launcher = StoryCoreLauncher()
@@ -291,6 +310,7 @@ def main():
     except Exception as e:
         logger.error(f"Failed to start: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

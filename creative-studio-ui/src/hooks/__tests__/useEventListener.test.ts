@@ -1,14 +1,16 @@
 /**
  * useEventListener Hook Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useEventListener, useResizeListener, useKeyboardListener } from '../useEventListener';
 
 describe('useEventListener', () => {
-  let addEventListenerSpy: any;
-  let removeEventListenerSpy: any;
+  let addEventListenerSpy: LegacyAny;
+  let removeEventListenerSpy: LegacyAny;
 
   beforeEach(() => {
     addEventListenerSpy = vi.spyOn(window, 'addEventListener');

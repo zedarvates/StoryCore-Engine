@@ -27,7 +27,9 @@ def print_info(message: str) -> None:
     print(f"[INFO] {message}")
 
 
-def print_progress(message: str, current: Optional[int] = None, total: Optional[int] = None) -> None:
+def print_progress(
+    message: str, current: Optional[int] = None, total: Optional[int] = None
+) -> None:
     """Print progress message with optional progress indicator."""
     if current is not None and total is not None:
         percentage = (current / total) * 100
@@ -39,7 +41,7 @@ def print_progress(message: str, current: Optional[int] = None, total: Optional[
 def format_duration(seconds: float) -> str:
     """Format duration in seconds to human-readable string."""
     if seconds < 1:
-        return f"{seconds*1000:.0f}ms"
+        return f"{seconds * 1000:.0f}ms"
     elif seconds < 60:
         return f"{seconds:.1f}s"
     elif seconds < 3600:
@@ -54,7 +56,7 @@ def format_duration(seconds: float) -> str:
 
 def format_file_size(bytes_size: int) -> str:
     """Format file size in bytes to human-readable string."""
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
         if bytes_size < 1024.0:
             return f"{bytes_size:.1f} {unit}"
         bytes_size /= 1024.0
@@ -65,36 +67,42 @@ def format_table(headers: list, rows: list, max_width: int = 80) -> str:
     """Format data as a simple table."""
     if not rows:
         return "No data to display"
-    
+
     # Calculate column widths
     col_widths = [len(str(header)) for header in headers]
-    
+
     for row in rows:
         for i, cell in enumerate(row):
             if i < len(col_widths):
                 col_widths[i] = max(col_widths[i], len(str(cell)))
-    
+
     # Adjust for max width
     total_width = sum(col_widths) + len(headers) * 3 - 1
     if total_width > max_width:
         # Reduce column widths proportionally
         reduction = (total_width - max_width) / len(col_widths)
         col_widths = [max(10, int(width - reduction)) for width in col_widths]
-    
+
     # Format table
     lines = []
-    
+
     # Header
-    header_line = " | ".join(str(headers[i]).ljust(col_widths[i]) for i in range(len(headers)))
+    header_line = " | ".join(
+        str(headers[i]).ljust(col_widths[i]) for i in range(len(headers))
+    )
     lines.append(header_line)
     lines.append("-" * len(header_line))
-    
+
     # Rows
     for row in rows:
-        row_line = " | ".join(str(row[i]).ljust(col_widths[i]) if i < len(row) else "".ljust(col_widths[i]) 
-                             for i in range(len(headers)))
+        row_line = " | ".join(
+            str(row[i]).ljust(col_widths[i])
+            if i < len(row)
+            else "".ljust(col_widths[i])
+            for i in range(len(headers))
+        )
         lines.append(row_line)
-    
+
     return "\n".join(lines)
 
 
@@ -107,5 +115,5 @@ def truncate_text(text: str, max_length: int, suffix: str = "...") -> str:
     """Truncate text to maximum length with suffix."""
     if len(text) <= max_length:
         return text
-    
-    return text[:max_length - len(suffix)] + suffix
+
+    return text[: max_length - len(suffix)] + suffix

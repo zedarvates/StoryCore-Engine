@@ -260,7 +260,7 @@ export function applyStabilization(
  * Analyze shot for stabilization (returns recommended settings)
  */
 export function analyzeStabilization(
-  shot: Shot
+  _shot: Shot
 ): StabilizationData {
   // In a real implementation, this would analyze the video
   // For now, return default recommended settings
@@ -479,7 +479,7 @@ export function applyResolutionSettings(
 export function getSafeAreaGuides(
   width: number,
   height: number,
-  safeAreas: ResolutionData['safeAreas']
+  _safeAreas: ResolutionData['safeAreas']
 ): { action: { x: number; y: number; width: number; height: number }; title: { x: number; y: number; width: number; height: number } } {
   const actionSafe = 0.9; // 90%
   const titleSafe = 0.8; // 80%

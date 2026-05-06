@@ -1,6 +1,8 @@
 /**
  * Tests for ProgressPanel Component
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -48,13 +50,13 @@ describe('ProgressPanel', () => {
 
   beforeEach(() => {
     // Mock store
-    (useAppStore as any).mockImplementation((selector: any) => {
+    (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
       const state = { taskQueue: mockTasks };
       return selector ? selector(state) : state;
     });
 
     // Mock hook
-    (useProgressTracking as any).mockReturnValue({
+    (useProgressTracking as LegacyAny).mockReturnValue({
       progressUpdates: new Map(),
       getProgress: vi.fn(),
       startTrackingAll: vi.fn(),
@@ -79,7 +81,7 @@ describe('ProgressPanel', () => {
     });
 
     it('should render empty state when no tasks', () => {
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = { taskQueue: [] };
         return selector ? selector(state) : state;
       });
@@ -164,7 +166,7 @@ describe('ProgressPanel', () => {
         },
       ];
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = { taskQueue: tasksWithSameStatus };
         return selector ? selector(state) : state;
       });
@@ -224,7 +226,7 @@ describe('ProgressPanel', () => {
         { ...mockTasks[2], status: 'completed' },
       ];
 
-      (useAppStore as any).mockImplementation((selector: any) => {
+      (useAppStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = { taskQueue: allCompleted };
         return selector ? selector(state) : state;
       });
@@ -306,7 +308,7 @@ describe('ProgressPanel', () => {
     it('should stop tracking on unmount', () => {
       const stopTrackingAll = vi.fn();
       
-      (useProgressTracking as any).mockReturnValue({
+      (useProgressTracking as LegacyAny).mockReturnValue({
         progressUpdates: new Map(),
         getProgress: vi.fn(),
         startTrackingAll: vi.fn(),

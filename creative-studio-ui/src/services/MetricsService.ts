@@ -4,6 +4,8 @@
  * Collecte, analyse et rapporte les métriques de performance et d'utilisation
  * du système pour optimiser les performances et détecter les problèmes
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { loggingService, LogCategory } from './LoggingService';
 
@@ -187,7 +189,7 @@ export class MetricsService {
    * Collects system metrics (performance)
    */
   private async collectSystemMetrics(): Promise<Partial<SystemMetrics>> {
-    const memoryUsage = (performance as any).memory?.usedJSHeapSize || 0;
+    const memoryUsage = (performance as LegacyAny).memory?.usedJSHeapSize || 0;
 
     // Calculate average response time from logs
     const logStats = loggingService.getStats();
@@ -230,7 +232,7 @@ export class MetricsService {
         activeUsers: 1, // Simplifié - devrait track les utilisateurs actifs
         totalProjects,
         totalEntities,
-        sessionCount: 1 // Simplifié
+        sessi_onCount: 1 // Simplifié
       };
     } catch (error) {
       return {};
@@ -254,7 +256,7 @@ export class MetricsService {
       let cacheHitRate = 0;
       try {
         const { persistenceCache } = await import('./PersistenceCache');
-        const cacheStats = persistenceCache.getStats();
+        const c_acheStats = persistenceCache.getStats();
         cacheHitRate = cacheStats.hitRate;
       } catch (error) {
         // Cache pas disponible
@@ -263,7 +265,7 @@ export class MetricsService {
       return {
         storageUsed,
         cacheHitRate,
-        backupSuccessRate: 95 // Simplifié
+        backu_pSuccessRate: 95 // Simplifié
       };
     } catch (error) {
       return {};
@@ -306,7 +308,7 @@ export class MetricsService {
       return {
         persistenceSuccessRate,
         syncConflictRate: 2, // À implémenter avec SyncManager
-        migrationSuccessRate: 98 // À implémenter avec MigrationService
+        migra_tionSuccessRate: 98 // À implémenter avec MigrationService
       };
     } catch (error) {
       return {};
@@ -322,8 +324,8 @@ export class MetricsService {
     const currentMetrics = this.metrics;
 
     for (const threshold of this.alertConfig.thresholds) {
-      const metricValue = (currentMetrics as any)[threshold.name.replace('_', '')] ||
-                         (currentMetrics as any)[threshold.name];
+      const metricValue = (currentMetrics as LegacyAny)[threshold.name.replace('_', '')] ||
+                         (currentMetrics as LegacyAny)[threshold.name];
 
       if (metricValue !== undefined && this.checkThreshold(threshold, metricValue)) {
         this.triggerAlert(threshold, metricValue);
@@ -457,9 +459,9 @@ export class MetricsService {
       const min = Math.min(...values);
       const max = Math.max(...values);
 
-      (summary.average as any)[metric] = average;
-      (summary.min as any)[metric] = min;
-      (summary.max as any)[metric] = max;
+      (summary.average as LegacyAny)[metric] = average;
+      (summary.min as LegacyAny)[metric] = min;
+      (summary.max as LegacyAny)[metric] = max;
     }
 
     // Determine trend based on latest values

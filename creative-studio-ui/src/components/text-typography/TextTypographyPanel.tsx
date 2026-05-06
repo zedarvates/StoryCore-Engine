@@ -4,8 +4,10 @@
  * A React component for displaying and controlling text typography
  * animations in StoryCore with a professional interface.
  */
+import { LegacyAny } from '@/types/legacy';
 
-import React, { useState, useCallback } from 'react';
+
+import React, { useState, us_eCallback } from 'react';
 import { useTextTypography, useAnimatedText } from '../../hooks/useTextTypography';
 import { TextAnimationType, TextPreset } from '../../services/text-typography/TextTypographyTypes';
 
@@ -266,7 +268,7 @@ export const TextTypographyPanel: React.FC = () => {
     playAnimation(text, {
       type: selectedAnimation,
       duration,
-      easing: easing as any
+      easing: easing as LegacyAny
     });
   }, [text, selectedAnimation, duration, easing, playAnimation, stopAnimation]);
 

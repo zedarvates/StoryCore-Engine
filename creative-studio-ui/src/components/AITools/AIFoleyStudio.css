@@ -1,0 +1,61 @@
+/* AI Foley Studio - Phase 9 Premium Styles */
+
+.ai-foley-studio {
+  animation: foley-fade-in 1s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at 100% 0%, #064e3b, #020617);
+}
+
+@keyframes foley-fade-in {
+  from { opacity: 0; filter: blur(10px); transform: scale(0.98); }
+  to { opacity: 1; filter: blur(0); transform: scale(1); }
+}
+
+/* Suggested Card Highlight */
+.foley-card-suggested {
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.1);
+}
+
+/* Active Audio Wave Animation */
+.preview-wave-anim {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 10px;
+}
+
+.preview-wave-anim .bar {
+  width: 2px;
+  height: 100%;
+  background: #10b981;
+  animation: foley-wave 1s infinite ease-in-out;
+}
+
+@keyframes foley-wave {
+  0%, 100% { height: 30%; }
+  50% { height: 100%; }
+}
+
+.preview-wave-anim .bar:nth-child(2) { animation-delay: 0.2s; }
+.preview-wave-anim .bar:nth-child(3) { animation-delay: 0.4s; }
+.preview-wave-anim .bar:nth-child(4) { animation-delay: 0.6s; }
+
+/* Custom Progress bar coloration */
+.ai-foley-studio [role="progressbar"] {
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.ai-foley-studio [role="progressbar"] > div {
+  background: #10b981 !important;
+  box-shadow: 0 0 10px #10b981;
+}
+
+/* Glow effects for Emerald accents */
+.ai-foley-studio .text-emerald-400 {
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.ai-foley-studio .bg-emerald-500\/10 {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}

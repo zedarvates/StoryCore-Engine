@@ -1,0 +1,81 @@
+/* Sonic Master Studio - Phase 9 Premium Audio Styles */
+
+.sonic-master-studio {
+  animation: sonic-slide-in 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  background: radial-gradient(circle at 50% -20%, #2e1065, #020617);
+}
+
+@keyframes sonic-slide-in {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar for Tracks */
+.sonic-master-studio .custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sonic-master-studio .custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sonic-master-studio .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.2);
+  border-radius: 999px;
+}
+
+.sonic-master-studio .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.4);
+}
+
+/* Sonic Sliders */
+.sonic-master-studio .sonic-slider .relative {
+  background-color: rgba(31, 41, 55, 0.5) !important;
+}
+
+.sonic-master-studio .sonic-slider .h-full {
+  background: linear-gradient(to right, #6366f1, #a855f7) !important;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
+.sonic-master-studio .sonic-slider span[role="slider"] {
+  width: 14px;
+  height: 14px;
+  background-color: white;
+  border: 2px solid #6366f1;
+  box-shadow: 0 0 10px rgba(255,255,255,0.4);
+}
+
+/* Timeline Animations */
+.sonic-master-studio .bar-anim {
+  animation: bar-pulse 2s infinite ease-in-out;
+}
+
+@keyframes bar-pulse {
+  0%, 100% { opacity: 0.2; transform: scaleY(0.4); }
+  50% { opacity: 0.6; transform: scaleY(1); }
+}
+
+/* Spatial Radar Glow */
+.sonic-master-studio .shadow-radar {
+  box-shadow: inset 0 0 40px rgba(139, 92, 246, 0.1);
+}
+
+.sonic-master-studio .radar-point {
+   transform: translate(20px, -10px);
+}
+
+/* Glassmorphism overlays */
+.sonic-master-studio .bg-slate-950\/80 {
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.sonic-master-studio .audio-clip-card {
+   transition: all 0.3s ease;
+}
+
+.sonic-master-studio .audio-clip-card:hover {
+   filter: brightness(1.2);
+   z-index: 5;
+}

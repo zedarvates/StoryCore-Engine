@@ -410,7 +410,7 @@ function Step4Generate({ data, onUpdate, projectData }: Step4GenerateProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
-  const handleComplete = () => {
+  const _handleComplete = () => {
     const platform = PLATFORMS.find(p => p.value === data.platform);
     onUpdate({
       sequences,

@@ -33,7 +33,7 @@ const SERVICE_NAMES: Record<string, string> = {
 };
 
 // Map service names to setup instructions
-const SERVICE_SETUP_INSTRUCTIONS: Record<string, string> = {
+const _SERVICE_SETUP_INSTRUCTIONS: Record<string, string> = {
   ollama: 'Download Ollama from ollama.com and run: ollama serve',
   comfyui: 'Ensure ComfyUI is running and the server URL is configured in settings.',
 };
@@ -87,7 +87,7 @@ function ServiceBadge({
   showDetails,
 }: ServiceBadgeProps) {
   const { icon, color, text } = getStatusConfig(status);
-  const isAvailable = status === 'connected';
+  const _isAvailable = status === 'connected';
   const showWarning = status === 'disconnected' && required;
 
   return (

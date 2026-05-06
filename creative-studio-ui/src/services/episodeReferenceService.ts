@@ -13,11 +13,11 @@ import type {
   MasterReferenceSheet,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
-  GlobalStyleSheet,
-  SequenceReferenceSheet,
+  _GlobalStyleSheet,
+  _SequenceReferenceSheet,
   PreviousEpisodeReference,
 } from '../types/reference';
-import { referenceSheetService, ReferenceSheetService } from './referenceSheetService';
+import { _referenceSheetService, ReferenceSheetService } from './referenceSheetService';
 import { consistencyEngine } from './consistencyEngine';
 import type { ContinuityIssue } from './consistencyEngine';
 
@@ -220,7 +220,7 @@ export class EpisodeReferenceService {
   /**
    * Get all linked episodes in project
    */
-  getAllLinkedEpisodes(projectId: string): LinkedEpisode[] {
+  getAllLinkedEpisodes(_projectId: string): LinkedEpisode[] {
     return Array.from(this.linkedEpisodes.values());
   }
 
@@ -770,32 +770,32 @@ export class EpisodeReferenceService {
   }
 
   private async findLastCharacterAppearance(
-    characterId: string,
-    episodeId: string
+    _characterId: string,
+    _episodeId: string
   ): Promise<{ episodeId: string; sequenceId: string; shotId: string; appearanceImageUrl: string } | null> {
     // Placeholder - would look up actual last appearance in episode data
     return null;
   }
 
   private async findLastLocationAppearance(
-    locationId: string,
-    episodeId: string
+    _locationId: string,
+    _episodeId: string
   ): Promise<{ episodeId: string; sequenceId: string; shotId: string; referenceImageUrl: string } | null> {
     // Placeholder - would look up actual last appearance in episode data
     return null;
   }
 
   private async calculateCharacterConsistency(
-    charSheet: CharacterAppearanceSheet,
-    lastAppearance: { appearanceImageUrl: string }
+    _charSheet: CharacterAppearanceSheet,
+    _lastAppearance: { appearanceImageUrl: string }
   ): Promise<number> {
     // Placeholder - would calculate actual consistency score
     return 85;
   }
 
   private async calculateLocationConsistency(
-    locSheet: LocationAppearanceSheet,
-    lastAppearance: { referenceImageUrl: string }
+    _locSheet: LocationAppearanceSheet,
+    _lastAppearance: { referenceImageUrl: string }
   ): Promise<number> {
     // Placeholder - would calculate actual consistency score
     return 85;
@@ -804,7 +804,7 @@ export class EpisodeReferenceService {
   private generateContinuitySuggestions(
     characterIssues: ContinuityIssue[],
     locationIssues: ContinuityIssue[],
-    sequenceId: string
+    _sequenceId: string
   ): ContinuityFix[] {
     const suggestions: ContinuityFix[] = [];
 

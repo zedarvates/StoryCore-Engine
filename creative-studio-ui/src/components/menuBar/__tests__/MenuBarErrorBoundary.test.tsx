@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, _fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MenuBarErrorBoundary } from '../MenuBarErrorBoundary';
 import { notificationService } from '../../../services/menuBar/NotificationService';

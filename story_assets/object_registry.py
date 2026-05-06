@@ -142,14 +142,18 @@ class StoryObjectRegistry:
 
         def _norm(s: str) -> str:
             """Supprime les accents et met en minuscules."""
-            return unicodedata.normalize("NFD", s.lower()).encode("ascii", "ignore").decode("ascii")
+            return (
+                unicodedata.normalize("NFD", s.lower())
+                .encode("ascii", "ignore")
+                .decode("ascii")
+            )
 
         q = _norm(query)
         results = []
         for obj in self._objects.values():
             score = 0
             if q in _norm(obj.id):
-                score += 4      # ID exact → priorité max
+                score += 4  # ID exact → priorité max
             if q in _norm(obj.name):
                 score += 3
             if q in _norm(obj.description):
@@ -207,7 +211,8 @@ class StoryObjectRegistry:
 
         scene_set = set(scene_tags)
         return [
-            obj for obj in self._objects.values()
+            obj
+            for obj in self._objects.values()
             if scene_set.intersection(set(obj.tags))
         ]
 

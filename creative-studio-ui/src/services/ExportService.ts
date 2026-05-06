@@ -12,6 +12,8 @@
  * 
  * Requirements: 13.1-13.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { Project, Shot, Asset } from '@/types';
 import { projectExportService, ExportResult } from './projectExportService';
@@ -158,7 +160,7 @@ export class ExportService {
    * Uses Electron API to save file if available.
    * 
    * @param options - Optional export options
-   * @returns Promise<ExportResult> - Export result
+   * @returns Promi_se<ExportResult> - Export result
    */
   async exportJSON(options?: ExportOptions): Promise<ExportResult> {
     const context = 'exportJSON';
@@ -214,7 +216,7 @@ export class ExportService {
    * - Statut des capacités et de la génération
    * 
    * @param options - Options d'export optionnelles (quality, includeMetadata)
-   * @returns Promise<ExportResult> - Résultat de l'export
+   * @returns Prom_ise<ExportResult> - Résultat de l'export
    */
   async exportPDF(options?: ExportOptions): Promise<ExportResult> {
     const context = 'exportPDF';
@@ -270,7 +272,7 @@ export class ExportService {
    * Currently returns a placeholder with integration instructions.
    * 
    * @param options - Optional export options (quality)
-   * @returns Promise<ExportResult> - Export result
+   * @returns Promis_e<ExportResult> - Export result
    */
   async exportVideo(options?: ExportOptions): Promise<ExportResult> {
     const context = 'exportVideo';
@@ -291,7 +293,7 @@ export class ExportService {
       }
 
       // Check for shots with promoted panels
-      const shotsWithPanels = project.shots.filter(shot => (shot as any).promoted_panel_path);
+      const shotsWithPanels = project.shots.filter(shot => (shot as LegacyAny).promoted_panel_path);
       
       if (shotsWithPanels.length === 0) {
         throw new Error('No promoted shots found. Please promote shots before exporting to video.');

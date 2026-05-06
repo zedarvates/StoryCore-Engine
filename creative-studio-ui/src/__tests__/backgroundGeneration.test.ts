@@ -10,10 +10,10 @@
  * Requirements: 10.5
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, _vi } from 'vitest';
 import {
   GenerationStatePersistenceService,
-  generationStatePersistence,
+  _generationStatePersistence,
   saveGenerationState,
   loadGenerationState,
   isGenerationActive,

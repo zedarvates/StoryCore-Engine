@@ -21,11 +21,11 @@ from cli.errors import CLIError
 def main():
     """
     Main CLI entry point using modular architecture.
-    
+
     This function serves as the single entry point for the StoryCore-Engine CLI.
     It delegates all command handling to the modular CLI system while maintaining
     backward compatibility with existing command-line interfaces.
-    
+
     Returns:
         int: Exit code (0 for success, non-zero for errors)
     """
@@ -33,17 +33,17 @@ def main():
         # Initialize and run the modular CLI system
         cli = CLICore()
         return cli.run()
-        
+
     except CLIError as e:
         # CLI errors are already formatted and logged
         print(f"[ERROR] {e}", file=sys.stderr)
         return 1
-        
+
     except KeyboardInterrupt:
         # Handle user interruption gracefully
         print("\n[ERROR] Operation cancelled by user", file=sys.stderr)
         return 130  # Standard exit code for SIGINT
-        
+
     except Exception as e:
         # Handle unexpected errors
         print(f"[ERROR] Unexpected error: {e}", file=sys.stderr)

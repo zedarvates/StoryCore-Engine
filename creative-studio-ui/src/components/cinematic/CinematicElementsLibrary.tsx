@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import {
@@ -82,7 +83,7 @@ export function CinematicElementsLibrary({
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="library-tabs">
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as LegacyAny)} className="library-tabs">
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="characters">
                         <Users className="w-4 h-4 mr-2" />

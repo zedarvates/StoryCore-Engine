@@ -12,18 +12,18 @@ Le moteur utilise UNIQUEMENT ffmpeg (pas de dépendances Python lourdes).
 """
 
 import asyncio
-import json
 import logging
-import os
-import subprocess
-import tempfile
 from datetime import timedelta
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple
 
 from .types import (
-    RecapScene, RecapTimeline, RecapRenderResult, RecapExportResult,
-    CameraMove, TransitionType, RecapStyle,
+    RecapScene,
+    RecapTimeline,
+    RecapRenderResult,
+    RecapExportResult,
+    CameraMove,
+    TransitionType,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # ffmpeg Camera Move Filters
 # ============================================================================
 
+
 def _get_camera_filter(
     camera_move: CameraMove,
     intensity: float,
@@ -41,10 +42,10 @@ def _get_camera_filter(
 ) -> str:
     """
     Génère le filtre ffmpeg pour l'animation de caméra.
-    
+
     Technique : zoompan filtre de ffmpeg — image fixe légèrement animée.
     C'est exactement ce que font les recaps YouTube !
-    
+
     Intensité recommandée : 0.05–0.15 pour effet subtil.
     """
     w, h = resolution
@@ -55,8 +56,8 @@ def _get_camera_filter(
     if camera_move == CameraMove.ZOOM_IN:
         # Zoom lent vers le centre : classique manga recap
         return (
-            f"scale={w*2}:{h*2},"
-            f"zoompan=z='min(zoom+{intensity/frames:.6f},{z_factor})'"
+            f"scale={w * 2}:{h * 2},"
+            f"zoompan=z='min(zoom+{intensity / frames:.6f},{z_factor})'"
             f":x='iw/2-(iw/zoom/2)'"
             f":y='ih/2-(ih/zoom/2)'"
             f":d={frames}:s={w}x{h}:fps={fps}"
@@ -66,8 +67,8 @@ def _get_camera_filter(
         # Dézoom doux
         start_z = z_factor
         return (
-            f"scale={w*2}:{h*2},"
-            f"zoompan=z='if(eq(on\\,1)\\,{start_z}\\,max(zoom-{intensity/frames:.6f}\\,1.0))'"
+            f"scale={w * 2}:{h * 2},"
+            f"zoompan=z='if(eq(on\\,1)\\,{start_z}\\,max(zoom-{intensity / frames:.6f}\\,1.0))'"
             f":x='iw/2-(iw/zoom/2)'"
             f":y='ih/2-(ih/zoom/2)'"
             f":d={frames}:s={w}x{h}:fps={fps}"
@@ -77,7 +78,7 @@ def _get_camera_filter(
         # Panoramique horizontal gauche vers droite
         max_pan = int(w * intensity * 2)
         return (
-            f"scale={w+max_pan*2}:{h},"
+            f"scale={w + max_pan * 2}:{h},"
             f"zoompan=z=1.0"
             f":x='on/{frames}*{max_pan}'"
             f":y='0'"
@@ -88,7 +89,7 @@ def _get_camera_filter(
         # Panoramique droite vers gauche
         max_pan = int(w * intensity * 2)
         return (
-            f"scale={w+max_pan*2}:{h},"
+            f"scale={w + max_pan * 2}:{h},"
             f"zoompan=z=1.0"
             f":x='{max_pan}-on/{frames}*{max_pan}'"
             f":y='0'"
@@ -98,8 +99,8 @@ def _get_camera_filter(
     elif camera_move == CameraMove.SLOW_PUSH:
         # Légère avancée douce : combo zoom + micro drift
         return (
-            f"scale={w*2}:{h*2},"
-            f"zoompan=z='min(zoom+{intensity*0.5/frames:.6f},{1.0+intensity*0.5})'"
+            f"scale={w * 2}:{h * 2},"
+            f"zoompan=z='min(zoom+{intensity * 0.5 / frames:.6f},{1.0 + intensity * 0.5})'"
             f":x='iw/2-(iw/zoom/2)+sin(on/10)*3'"
             f":y='ih/2-(ih/zoom/2)'"
             f":d={frames}:s={w}x{h}:fps={fps}"
@@ -109,10 +110,10 @@ def _get_camera_filter(
         # Tremblement (combat/choc) — effet vibration subtle
         shake_px = max(2, int(w * intensity * 0.5))
         return (
-            f"scale={w+shake_px*4}:{h+shake_px*4},"
+            f"scale={w + shake_px * 4}:{h + shake_px * 4},"
             f"zoompan=z=1.0"
             f":x='(iw-{w})/2+sin(on*1.5)*{shake_px}'"
-            f":y='(ih-{h})/2+cos(on*1.5)*{shake_px//2}'"
+            f":y='(ih-{h})/2+cos(on*1.5)*{shake_px // 2}'"
             f":d={frames}:s={w}x{h}:fps={fps}"
         )
 
@@ -122,7 +123,7 @@ def _get_camera_filter(
 
 def _get_transition_filter(transition: TransitionType, duration: float) -> str:
     """Génère le filtre de transition ffmpeg pour une scène."""
-    frames = int(duration * 30)
+    int(duration * 30)
     if transition == TransitionType.FADE_BLACK:
         return f"fade=t=in:st=0:d={duration}:color=black"
     elif transition == TransitionType.FADE_WHITE:
@@ -139,10 +140,11 @@ def _get_transition_filter(transition: TransitionType, duration: float) -> str:
 # Video Renderer
 # ============================================================================
 
+
 class VideoRenderer:
     """
     Moteur de rendu vidéo du Recap Engine.
-    
+
     Architecture :
     1. Render chaque scène individuellement (image animée + audio)
     2. Créer la liste de clips
@@ -175,7 +177,7 @@ class VideoRenderer:
     ) -> Optional[str]:
         """
         Rend un clip MP4 pour une scène individuelle.
-        
+
         Composition :
         - Video : image animée (zoompan) + effet de transition
         - Audio : fichier TTS mp3 aligné sur la durée
@@ -217,9 +219,12 @@ class VideoRenderer:
 
         # Input : image fixe en boucle
         cmd += [
-            "-loop", "1",
-            "-framerate", str(fps),
-            "-i", str(image_path),
+            "-loop",
+            "1",
+            "-framerate",
+            str(fps),
+            "-i",
+            str(image_path),
         ]
 
         # Input audio (TTS ou silence)
@@ -229,8 +234,10 @@ class VideoRenderer:
         else:
             # Silence synthétique
             cmd += [
-                "-f", "lavfi",
-                "-i", f"anullsrc=r=44100:cl=stereo",
+                "-f",
+                "lavfi",
+                "-i",
+                "anullsrc=r=44100:cl=stereo",
             ]
 
         # Durée
@@ -241,12 +248,18 @@ class VideoRenderer:
 
         # Codecs et qualité
         cmd += [
-            "-c:v", "libx264",
-            "-preset", "fast",
-            "-crf", "23",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "128k",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-crf",
+            "23",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "128k",
             "-shortest",
             str(output_path),
         ]
@@ -290,6 +303,7 @@ class VideoRenderer:
         4. Export final MP4
         """
         import time
+
         start_time = time.time()
 
         resolution_str = timeline.resolution or "1920x1080"
@@ -300,7 +314,9 @@ class VideoRenderer:
         total = len(timeline.scenes)
         for i, scene in enumerate(timeline.scenes):
             scene.render_status = "rendering"
-            clip_path = await self.render_scene(scene, timeline.timeline_id, (w, h), fps)
+            clip_path = await self.render_scene(
+                scene, timeline.timeline_id, (w, h), fps
+            )
             if clip_path:
                 timeline.render_progress = (i + 1) / total
                 if on_progress:
@@ -311,8 +327,11 @@ class VideoRenderer:
         clips = [s.rendered_clip_path for s in timeline.scenes if s.rendered_clip_path]
         if not clips:
             return RecapRenderResult(
-                success=False, video_path=None, duration=0.0,
-                file_size_mb=0.0, render_time=0.0,
+                success=False,
+                video_path=None,
+                duration=0.0,
+                file_size_mb=0.0,
+                render_time=0.0,
                 error="Aucun clip rendu avec succès",
             )
 
@@ -325,37 +344,55 @@ class VideoRenderer:
 
         # Étape 4 : Concat + musique + export final
         output_path = (
-            self._output_dir / timeline.timeline_id
+            self._output_dir
+            / timeline.timeline_id
             / f"recap_{timeline.timeline_id[:8]}.mp4"
         )
 
         concat_cmd = [
-            self._ffmpeg, "-y",
-            "-f", "concat",
-            "-safe", "0",
-            "-i", str(concat_file),
+            self._ffmpeg,
+            "-y",
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(concat_file),
         ]
 
         # Ajout musique de fond si disponible
-        if timeline.background_music_path and Path(timeline.background_music_path).exists():
+        if (
+            timeline.background_music_path
+            and Path(timeline.background_music_path).exists()
+        ):
             concat_cmd += [
-                "-i", str(timeline.background_music_path),
+                "-i",
+                str(timeline.background_music_path),
                 "-filter_complex",
                 "[0:a][1:a]amix=inputs=2:duration=first:weights=1 0.15[aout]",
-                "-map", "0:v",
-                "-map", "[aout]",
+                "-map",
+                "0:v",
+                "-map",
+                "[aout]",
             ]
         else:
             concat_cmd += ["-map", "0:v", "-map", "0:a?"]
 
         concat_cmd += [
-            "-c:v", "libx264",
-            "-preset", "medium",
-            "-crf", "20",
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac",
-            "-b:a", "192k",
-            "-movflags", "+faststart",
+            "-c:v",
+            "libx264",
+            "-preset",
+            "medium",
+            "-crf",
+            "20",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-movflags",
+            "+faststart",
             str(output_path),
         ]
 
@@ -371,13 +408,20 @@ class VideoRenderer:
                 err = stderr.decode("utf-8", errors="replace")[-500:]
                 logger.error(f"[Renderer] Erreur concat : {err}")
                 return RecapRenderResult(
-                    success=False, video_path=None, duration=0.0,
-                    file_size_mb=0.0, render_time=time.time() - start_time,
+                    success=False,
+                    video_path=None,
+                    duration=0.0,
+                    file_size_mb=0.0,
+                    render_time=time.time() - start_time,
                     error=f"ffmpeg concat error: {err[-200:]}",
                 )
 
             render_time = time.time() - start_time
-            file_size = output_path.stat().st_size / (1024 * 1024) if output_path.exists() else 0
+            file_size = (
+                output_path.stat().st_size / (1024 * 1024)
+                if output_path.exists()
+                else 0
+            )
 
             timeline.final_video_path = str(output_path)
             timeline.render_progress = 1.0
@@ -397,8 +441,11 @@ class VideoRenderer:
 
         except FileNotFoundError:
             return RecapRenderResult(
-                success=False, video_path=None, duration=0.0,
-                file_size_mb=0.0, render_time=0.0,
+                success=False,
+                video_path=None,
+                duration=0.0,
+                file_size_mb=0.0,
+                render_time=0.0,
                 error="ffmpeg introuvable. Installez ffmpeg et ajoutez-le au PATH.",
             )
 
@@ -406,7 +453,9 @@ class VideoRenderer:
     # Subtitle Generation
     # ------------------------------------------------------------------
 
-    def generate_srt(self, timeline: RecapTimeline, output_path: Optional[str] = None) -> str:
+    def generate_srt(
+        self, timeline: RecapTimeline, output_path: Optional[str] = None
+    ) -> str:
         """
         Génère un fichier de sous-titres .srt pour la vidéo.
         """
@@ -425,7 +474,7 @@ class VideoRenderer:
             text = scene.subtitle_text or scene.narration_text
             wrapped = self._wrap_subtitle(text, 60)
 
-            srt_lines.append(f"{i+1}")
+            srt_lines.append(f"{i + 1}")
             srt_lines.append(f"{start_str} --> {end_str}")
             srt_lines.append(wrapped)
             srt_lines.append("")
@@ -434,7 +483,8 @@ class VideoRenderer:
 
         if output_path is None:
             output_path = str(
-                self._output_dir / timeline.timeline_id
+                self._output_dir
+                / timeline.timeline_id
                 / f"recap_{timeline.timeline_id[:8]}.srt"
             )
 
@@ -482,7 +532,10 @@ class VideoRenderer:
         """
         if not timeline.final_video_path:
             return RecapExportResult(
-                success=False, video_path=None, subtitle_path=None, duration=0.0,
+                success=False,
+                video_path=None,
+                subtitle_path=None,
+                duration=0.0,
                 error="Vidéo non rendue. Lancez d'abord render_timeline().",
             )
 
@@ -491,18 +544,27 @@ class VideoRenderer:
 
         # Export par défaut = vidéo + SRT séparé (pour flexibilité)
         final_path = output_path or str(
-            self._output_dir / timeline.timeline_id
+            self._output_dir
+            / timeline.timeline_id
             / f"EXPORT_recap_{timeline.timeline_id[:8]}.mp4"
         )
 
         # Option avancée : burn-in des sous-titres dans la vidéo
         cmd = [
-            self._ffmpeg, "-y",
-            "-i", str(timeline.final_video_path),
-            "-vf", f"subtitles={srt_path}",
-            "-c:v", "libx264", "-crf", "20",
-            "-c:a", "copy",
-            "-movflags", "+faststart",
+            self._ffmpeg,
+            "-y",
+            "-i",
+            str(timeline.final_video_path),
+            "-vf",
+            f"subtitles={srt_path}",
+            "-c:v",
+            "libx264",
+            "-crf",
+            "20",
+            "-c:a",
+            "copy",
+            "-movflags",
+            "+faststart",
             final_path,
         ]
 
@@ -524,6 +586,7 @@ class VideoRenderer:
             else:
                 # Fallback : copier la vidéo sans sous-titres brûlés
                 import shutil
+
                 shutil.copy2(timeline.final_video_path, final_path)
                 return RecapExportResult(
                     success=True,
@@ -534,8 +597,11 @@ class VideoRenderer:
 
         except Exception as e:
             return RecapExportResult(
-                success=False, video_path=None, subtitle_path=None,
-                duration=0.0, error=str(e),
+                success=False,
+                video_path=None,
+                subtitle_path=None,
+                duration=0.0,
+                error=str(e),
             )
 
     # ------------------------------------------------------------------
@@ -554,6 +620,7 @@ class VideoRenderer:
 
         try:
             from PIL import Image, ImageDraw, ImageFont
+
             img = Image.new("RGB", (w, h), color=(20, 20, 30))
             draw = ImageDraw.Draw(img)
 
@@ -565,10 +632,14 @@ class VideoRenderer:
         except ImportError:
             # Sans PIL : créer via ffmpeg
             cmd = [
-                self._ffmpeg, "-y",
-                "-f", "lavfi",
-                "-i", f"color=c=141418:size={w}x{h}:rate=1",
-                "-frames:v", "1",
+                self._ffmpeg,
+                "-y",
+                "-f",
+                "lavfi",
+                "-i",
+                f"color=c=141418:size={w}x{h}:rate=1",
+                "-frames:v",
+                "1",
                 str(placeholder_path),
             ]
             process = await asyncio.create_subprocess_exec(
@@ -584,7 +655,8 @@ class VideoRenderer:
         """Vérifie que ffmpeg est disponible."""
         try:
             process = await asyncio.create_subprocess_exec(
-                self._ffmpeg, "-version",
+                self._ffmpeg,
+                "-version",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )

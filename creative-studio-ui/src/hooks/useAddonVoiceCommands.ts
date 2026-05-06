@@ -16,6 +16,8 @@
  *   // Appel manuel depuis un textarea ou bouton micro :
  *   route('générer un chevalier samurai avec grok');
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useEffect, useCallback, useRef, useState } from 'react';
 import {
@@ -224,11 +226,11 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<LegacyAny>(null);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as LegacyAny).SpeechRecognition || (window as LegacyAny).webkitSpeechRecognition;
     
     // Defer state update to avoid cascading renders
     const timer = setTimeout(() => setIsSupported(!!SpeechRecognition), 0);
@@ -243,7 +245,7 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
     recognition.onstart = () => setIsListening(true);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: LegacyAny) => {
       const latest = event.results[event.results.length - 1];
       const text = latest[0].transcript;
       const conf = latest[0].confidence;

@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { create } from 'zustand';
 import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage, Sequence, SequencePlan } from '@/types';
 import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizard';
@@ -73,6 +74,7 @@ interface AppState {
 
   // Service Status
   ollamaStatus: 'connected' | 'error' | 'disconnected' | 'connecting';
+  lmStudioStatus: 'connected' | 'error' | 'disconnected' | 'connecting';
   comfyuiStatus: 'connected' | 'error' | 'disconnected' | 'connecting';
 
   // Playback state
@@ -267,6 +269,7 @@ interface AppState {
   openCharacterEditor: (characterId: string) => void;
   closeCharacterEditor: () => void;
   setOllamaStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
+  setLmStudioStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
   setComfyUIStatus: (status: 'connected' | 'error' | 'disconnected' | 'connecting') => void;
 
   // Reference sheet actions
@@ -310,6 +313,7 @@ const initialState = {
   chatPanelMinimized: false,
   taskQueue: [],
   ollamaStatus: 'disconnected' as const,
+  lmStudioStatus: 'disconnected' as const,
   comfyuiStatus: 'disconnected' as const,
   worlds: [],
   characters: [],
@@ -422,7 +426,7 @@ export const useAppStore = create<AppState>()(
             // Add other state variables as needed
           };
           
-          const result = await storage.save(state.project as any, projectState);
+          const result = await storage.save(state.project as LegacyAny, projectState);
           return result;
         } catch (error) {
           console.error('[Store] Failed to save project to disk:', error);
@@ -554,6 +558,7 @@ export const useAppStore = create<AppState>()(
       openCharacterEditor: (id) => set({ isCharacterEditorOpen: true, editingCharacterId: id }),
       closeCharacterEditor: () => set({ isCharacterEditorOpen: false, editingCharacterId: null }),
       setOllamaStatus: (status) => set({ ollamaStatus: status }),
+      setLmStudioStatus: (status) => set({ lmStudioStatus: status }),
       setComfyUIStatus: (status) => set({ comfyuiStatus: status }),
       setMasterReferenceSheet: (sheet) => set({ masterReferenceSheet: sheet }),
       addSequenceReferenceSheet: (sheet) => set((state) => ({ sequenceReferenceSheets: [...state.sequenceReferenceSheets, sheet] })),

@@ -43,7 +43,7 @@ export const createProjectSlice: StateCreator<
   // Tasks
   taskQueue: [],
   generationStatus: {
-    isGenerating: false,
+    state: 'idle',
     progress: 0,
   },
 
@@ -200,6 +200,9 @@ export const createProjectSlice: StateCreator<
   })),
   removeTask: (taskId) => set((state) => ({
     taskQueue: state.taskQueue.filter(t => t.id !== taskId)
+  })),
+  setGenerationStatus: (status) => set((state) => ({
+    generationStatus: { ...state.generationStatus, ...status }
   })),
 
   /**

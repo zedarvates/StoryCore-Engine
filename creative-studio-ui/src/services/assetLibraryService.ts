@@ -6,6 +6,8 @@
  * - StoryCore base library (from assets/ folder)
  * - Templates (predefined asset templates)
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import type { Asset } from '@/types';
 
@@ -90,7 +92,7 @@ export const ASSET_CATEGORIES: AssetCategory[] = [
  * Check if we're running in browser context (no Electron)
  */
 const isBrowserContext = (): boolean => {
-  return !(window as any).electronAPI;
+  return !(window as LegacyAny).electronAPI;
 };
 
 /**
@@ -621,7 +623,7 @@ export class AssetLibraryService {
    * Load assets from a specific folder
    */
   private async loadAssetsFromFolder(
-    folderPath: string,
+    _folderPath: string,
     sourceName: string,
     description: string
   ): Promise<Asset[]> {

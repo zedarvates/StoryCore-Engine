@@ -418,7 +418,7 @@ export class EnhancedProjectStorage {
       let config: EnhancedProjectConfig | undefined;
       try {
         config = await this.loadConfig();
-      } catch (error) {
+      } catch (_error) {
         warnings.push('Failed to load project config');
         return {
           success: false,
@@ -431,7 +431,7 @@ export class EnhancedProjectStorage {
       let state: ProjectState | undefined;
       try {
         state = await this.loadState();
-      } catch (error) {
+      } catch (_error) {
         warnings.push('Failed to load state variables - will use defaults');
       }
 
@@ -620,14 +620,14 @@ export class EnhancedProjectStorage {
 
     // Check state
     try {
-      const state = await this.loadState();
+      const _state = await this.loadState();
       checks.push({
         name: 'State Variables',
         status: 'passed',
         details: 'State variables loaded',
         timestamp: new Date().toISOString()
       });
-    } catch (error) {
+    } catch (_error) {
       issues.push({
         id: 'STATE-001',
         severity: 'warning',
@@ -713,7 +713,7 @@ export class EnhancedProjectStorage {
           canAutoFix: true
         });
       }
-    } catch (error) {
+    } catch (_error) {
       issues.push({
         type: 'invalid_data',
         severity: 'critical',
@@ -725,7 +725,7 @@ export class EnhancedProjectStorage {
     // Check state
     try {
       await this.loadState();
-    } catch (error) {
+    } catch (_error) {
       issues.push({
         type: 'missing_file',
         severity: 'warning',
@@ -803,7 +803,7 @@ export class EnhancedProjectStorage {
     try {
       const state = await this.loadState();
       return (state[key] as T) ?? defaultValue;
-    } catch (error) {
+    } catch (_error) {
       return defaultValue;
     }
   }

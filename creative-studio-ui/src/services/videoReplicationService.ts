@@ -4,7 +4,7 @@
  */
 
 import { getPerformanceMonitoringService } from './performanceMonitoringService';
-import { videoFrameCache, estimateSize } from '../utils/memoryMonitor';
+import { _videoFrameCache, _estimateSize } from '../utils/memoryMonitor';
 import { logger } from '../utils/logger';
 
 // ============================================================================
@@ -647,7 +647,7 @@ export class VideoReplicationService {
   /**
    * Apply digital human features to a shot
    */
-  async applyDigitalHuman(shotId: string, humanFeatures: HumanFeatures): Promise<boolean> {
+  async applyDigitalHuman(shotId: string, _humanFeatures: HumanFeatures): Promise<boolean> {
     logger.debug('[VideoReplicationService] Applying digital human to shot:', shotId);
 
     // Simulated digital human application

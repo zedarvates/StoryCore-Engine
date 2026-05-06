@@ -3,12 +3,12 @@
  */
 
 import type {
-  MusicProfile,
-  SFXProfile,
-  VoiceProfile,
-  MixConfiguration
+  _MusicProfile,
+  _SFXProfile,
+  _VoiceProfile,
+  _MixConfiguration
 } from '../types/audioMultitrack';
-import { audioMultitrackService } from './audioMultitrack';
+import { _audioMultitrackService } from './audioMultitrack';
 
 export type IntegrationAudioType = 'music' | 'sfx' | 'voice' | 'all';
 export type IntegrationStatus = 'pending' | 'processing' | 'completed' | 'failed';
@@ -264,7 +264,7 @@ export class AudioSequenceIntegrationService {
     let currentTime = 0;
     for (const shot of shots) {
       const shotDuration = shot.duration_seconds || 5.0;
-      const shotId = shot.id || '';
+      const _shotId = shot.id || '';
       const audioTracks = shot.audio_tracks || [];
 
       for (const audioTrack of audioTracks) {

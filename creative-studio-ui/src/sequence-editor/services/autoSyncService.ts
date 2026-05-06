@@ -29,7 +29,7 @@ class AutoSyncService {
   async syncAudioToAnimation(
     audioUrl: string,
     animationDuration: number,
-    sensitivity: number = 0.7
+    _sensitivity: number = 0.7
   ): Promise<AudioSyncResult> {
     await this.simulateProcessing(500);
 

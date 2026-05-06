@@ -39,32 +39,33 @@ import sys
 import ast
 import time
 import queue
-import shutil
 import signal
 import logging
 import threading
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 logger = logging.getLogger(__name__)
 
 # ─── CONSTANTES ───────────────────────────────────────────────────────────────
-MAX_RETRIES      = 3          # Nombre maximum de tentatives
-RETRY_BACKOFF    = 2.0        # Facteur de backoff entre les tentatives (secondes)
-MAX_OUTPUT_LINES = 2000       # Nombre max de lignes de log conservées (anti-mémoire)
-DRAIN_TIMEOUT    = 5.0        # Timeout final de lecture des pipes après la fin du process
-SCRIPT_MAX_SIZE  = 512_000    # Taille max d'un script Blender (512 Ko)
+MAX_RETRIES = 3  # Nombre maximum de tentatives
+RETRY_BACKOFF = 2.0  # Facteur de backoff entre les tentatives (secondes)
+MAX_OUTPUT_LINES = 2000  # Nombre max de lignes de log conservées (anti-mémoire)
+DRAIN_TIMEOUT = 5.0  # Timeout final de lecture des pipes après la fin du process
+SCRIPT_MAX_SIZE = 512_000  # Taille max d'un script Blender (512 Ko)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  RÉSULTAT DE L'EXÉCUTION
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class BlenderRunResult:
     """Résultat structuré d'une exécution Blender."""
+
     success: bool
     returncode: int
     stdout: str
@@ -73,7 +74,7 @@ class BlenderRunResult:
     script_path: str
     render_path: Optional[str] = None
     error: Optional[str] = None
-    attempt: int = 1            # Numéro de la tentative ayant réussi
+    attempt: int = 1  # Numéro de la tentative ayant réussi
 
     @property
     def log(self) -> str:
@@ -82,20 +83,21 @@ class BlenderRunResult:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "success":          self.success,
-            "returncode":       self.returncode,
+            "success": self.success,
+            "returncode": self.returncode,
             "duration_seconds": self.duration_seconds,
-            "script_path":      self.script_path,
-            "render_path":      self.render_path,
-            "error":            self.error,
-            "attempt":          self.attempt,
-            "log":              self.log[-3000:],   # Tronqué pour les logs
+            "script_path": self.script_path,
+            "render_path": self.render_path,
+            "error": self.error,
+            "attempt": self.attempt,
+            "log": self.log[-3000:],  # Tronqué pour les logs
         }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  VALIDATION DE SCRIPT
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class ScriptValidator:
     """
@@ -111,7 +113,7 @@ class ScriptValidator:
     DANGEROUS_PATTERNS = [
         # Boucle infinie sans break
         ("while True:", "while True sans break détecté"),
-        ("while 1:",    "while 1 sans break détecté"),
+        ("while 1:", "while 1 sans break détecté"),
     ]
 
     def validate(self, script_path: str) -> tuple[bool, str]:
@@ -131,7 +133,10 @@ class ScriptValidator:
         # 2. Taille raisonnable
         size = path.stat().st_size
         if size > SCRIPT_MAX_SIZE:
-            return False, f"Script trop volumineux : {size} octets (max {SCRIPT_MAX_SIZE})"
+            return (
+                False,
+                f"Script trop volumineux : {size} octets (max {SCRIPT_MAX_SIZE})",
+            )
 
         try:
             source = path.read_text(encoding="utf-8")
@@ -150,7 +155,9 @@ class ScriptValidator:
             if pattern.lower() in source_lower:
                 # Vérifier si un break est présent à proximité
                 if "break" not in source_lower and "timeout" not in source_lower:
-                    logger.warning(f"[SafeGuard] Pattern risqué détecté : {description}")
+                    logger.warning(
+                        f"[SafeGuard] Pattern risqué détecté : {description}"
+                    )
                     # Warning seulement, pas d'erreur bloquante
                     # (Blender lui-même peut avoir des while True légitimes)
 
@@ -158,13 +165,20 @@ class ScriptValidator:
         has_bpy = any(
             isinstance(node, (ast.Import, ast.ImportFrom))
             and any(
-                (alias.name == "bpy" if isinstance(node, ast.Import) else node.module == "bpy")
+                (
+                    alias.name == "bpy"
+                    if isinstance(node, ast.Import)
+                    else node.module == "bpy"
+                )
                 for alias in node.names
             )
             for node in ast.walk(tree)
         )
         if not has_bpy:
-            return False, "Script ne contient pas 'import bpy' — n'est pas un script Blender valide"
+            return (
+                False,
+                "Script ne contient pas 'import bpy' — n'est pas un script Blender valide",
+            )
 
         return True, ""
 
@@ -172,6 +186,7 @@ class ScriptValidator:
 # ─────────────────────────────────────────────────────────────────────────────
 #  RUNNER SÉCURISÉ PRINCIPAL
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class SafeBlenderRunner:
     """
@@ -240,12 +255,16 @@ class SafeBlenderRunner:
         # 2. Tentatives avec backoff
         last_result = None
         for attempt in range(1, self.max_retries + 1):
-            logger.info(f"[SafeGuard] Tentative {attempt}/{self.max_retries} : {Path(script_path).name}")
+            logger.info(
+                f"[SafeGuard] Tentative {attempt}/{self.max_retries} : {Path(script_path).name}"
+            )
 
             result = self._run_once(script_path, extra_args, attempt)
 
             if result.success:
-                logger.info(f"[SafeGuard] Succès (tentative {attempt}) en {result.duration_seconds:.1f}s")
+                logger.info(
+                    f"[SafeGuard] Succès (tentative {attempt}) en {result.duration_seconds:.1f}s"
+                )
                 return result
 
             last_result = result
@@ -261,7 +280,7 @@ class SafeBlenderRunner:
 
             # Backoff avant la prochaine tentative
             if attempt < self.max_retries:
-                wait = RETRY_BACKOFF * (2 ** (attempt - 1))   # 2s, 4s, 8s...
+                wait = RETRY_BACKOFF * (2 ** (attempt - 1))  # 2s, 4s, 8s...
                 logger.warning(
                     f"[SafeGuard] Tentative {attempt} échouée — retry dans {wait:.0f}s"
                 )
@@ -270,10 +289,14 @@ class SafeBlenderRunner:
         logger.error(f"[SafeGuard] Toutes les tentatives épuisées pour {script_path}")
         return last_result
 
-    def dry_run(self, script_path: str, extra_args: Optional[List[str]] = None) -> Dict[str, Any]:
+    def dry_run(
+        self, script_path: str, extra_args: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
         """Retourne la commande CLI qui serait exécutée, sans l'exécuter."""
         cmd = self._build_command(script_path, extra_args)
-        valid, reason = self.validator.validate(script_path) if self.validator else (True, "")
+        valid, reason = (
+            self.validator.validate(script_path) if self.validator else (True, "")
+        )
         return {
             "command": " ".join(cmd),
             "script_valid": valid,
@@ -309,7 +332,9 @@ class SafeBlenderRunner:
                 encoding="utf-8",
                 errors="replace",
                 # Créer un groupe de processus pour pouvoir kill tout l'arbre
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP
+                if sys.platform == "win32"
+                else 0,
             )
         except FileNotFoundError:
             duration = time.monotonic() - start
@@ -357,7 +382,7 @@ class SafeBlenderRunner:
 
         # Attendre la fin du processus
         returncode = proc.wait()
-        killed.set()   # Signaler au watchdog que le process est terminé
+        killed.set()  # Signaler au watchdog que le process est terminé
 
         # Attendre que les threads de lecture aient vidé les pipes
         t_stdout.join(timeout=DRAIN_TIMEOUT)
@@ -470,7 +495,8 @@ class SafeBlenderRunner:
         cmd = [
             self.blender_executable,
             "--background",
-            "--python", script_path,
+            "--python",
+            script_path,
             "--",
         ]
         if extra_args:
@@ -481,6 +507,7 @@ class SafeBlenderRunner:
     def _extract_render_path(log: str) -> Optional[str]:
         """Extrait le chemin du rendu depuis la sortie Blender."""
         import re
+
         for line in log.splitlines():
             if line.startswith("STORYCORE_RENDER_COMPLETE:"):
                 return line.split(":", 1)[1].strip()
@@ -495,8 +522,11 @@ class SafeBlenderRunner:
     def _extract_error(log: str) -> str:
         """Extrait le message d'erreur principal."""
         error_lines = [
-            line.strip() for line in log.splitlines()
-            if any(kw in line for kw in ["Error", "Traceback", "Exception", "EXCEPTION"])
+            line.strip()
+            for line in log.splitlines()
+            if any(
+                kw in line for kw in ["Error", "Traceback", "Exception", "EXCEPTION"]
+            )
         ]
         if error_lines:
             return " | ".join(error_lines[:5])
@@ -507,6 +537,7 @@ class SafeBlenderRunner:
 # ─────────────────────────────────────────────────────────────────────────────
 #  INTÉGRATION AVEC headless_runner.py
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def make_safe_runner(
     blender_executable: str = "blender",

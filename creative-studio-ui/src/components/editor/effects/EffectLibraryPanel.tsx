@@ -23,7 +23,7 @@ interface EffectLibraryPanelProps {
 export const EffectLibraryPanel: React.FC<EffectLibraryPanelProps> = ({
     onVideoFilterSelect,
     onAudioFilterSelect,
-    selectedVideoFilterId,
+    _selectedVideoFilterId,
     selectedAudioFilterId,
     onClose
 }) => {

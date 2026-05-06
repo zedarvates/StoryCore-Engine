@@ -9,6 +9,7 @@ from typing import Any, List, Optional
 @dataclass
 class InpaintingMask:
     """Represents an inpainting mask"""
+
     mask_image: Any  # PIL Image or numpy array
     blur_radius: int = 4
     feather_amount: int = 2
@@ -30,6 +31,7 @@ class InpaintingMask:
 @dataclass
 class DualImageGuidance:
     """Dual image guidance for video generation"""
+
     reference_image: Any  # PIL Image
     style_image: Optional[Any] = None  # Optional style reference
     reference_strength: float = 0.8
@@ -55,6 +57,7 @@ class DualImageGuidance:
 @dataclass
 class CompositeLayer:
     """Layer for video compositing"""
+
     video_frames: List[Any]  # List of PIL Images
     alpha_channel: Optional[List[Any]] = None  # Optional alpha masks
     blend_mode: str = "normal"

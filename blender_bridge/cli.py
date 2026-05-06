@@ -33,7 +33,6 @@ import json
 import argparse
 import logging
 from pathlib import Path
-from typing import Optional
 
 # Ajouter le répertoire racine au path si nécessaire
 _root = Path(__file__).parent.parent
@@ -47,32 +46,48 @@ logging.basicConfig(
 
 from blender_bridge import BlenderBridge
 from blender_bridge.camera_system import CinematicCameraSystem
-from blender_bridge.location_manager import LocationManager
 from blender_bridge.voice_bridge import VoiceToSceneBridge
-from blender_projection.scene_builder import build_projected_scene, ProjectionConfig
+from blender_projection.scene_builder import build_projected_scene
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  HELPERS D'AFFICHAGE
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _ok(msg: str): print(f"✅ {msg}")
-def _warn(msg: str): print(f"⚠️  {msg}")
-def _err(msg: str): print(f"❌ {msg}", file=sys.stderr)
-def _info(msg: str): print(f"   {msg}")
-def _sep(title: str = ""): print(f"\n{'─' * 60}\n{'  ' + title if title else ''}")
+
+def _ok(msg: str):
+    print(f"✅ {msg}")
+
+
+def _warn(msg: str):
+    print(f"⚠️  {msg}")
+
+
+def _err(msg: str):
+    print(f"❌ {msg}", file=sys.stderr)
+
+
+def _info(msg: str):
+    print(f"   {msg}")
+
+
+def _sep(title: str = ""):
+    print(f"\n{'─' * 60}\n{'  ' + title if title else ''}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  COMMANDES
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def cmd_status(args, bridge: BlenderBridge):
     """Affiche le statut du système BlenderBridge."""
     _sep("STATUT BLENDERBRIDGE")
     status = bridge.status()
 
-    print(f"\n  Blender disponible : {'✅ OUI' if status['blender_available'] else '❌ NON'}")
+    print(
+        f"\n  Blender disponible : {'✅ OUI' if status['blender_available'] else '❌ NON'}"
+    )
     if status.get("blender_version"):
         print(f"  Version Blender     : {status['blender_version']}")
     print(f"  Presets de lieux    : {status['location_presets']}")
@@ -83,7 +98,9 @@ def cmd_status(args, bridge: BlenderBridge):
         print("\n  Pour installer Blender :")
         print("    → https://www.blender.org/download/")
         print("    → Définissez BLENDER_EXECUTABLE dans votre .env")
-        print("      Ex: BLENDER_EXECUTABLE=C:\\Program Files\\Blender Foundation\\Blender 4.2\\blender.exe")
+        print(
+            "      Ex: BLENDER_EXECUTABLE=C:\\Program Files\\Blender Foundation\\Blender 4.2\\blender.exe"
+        )
 
 
 def cmd_presets(args, bridge: BlenderBridge):
@@ -101,7 +118,7 @@ def cmd_presets(args, bridge: BlenderBridge):
         print(f"\n  Recherche : '{query}' → {len(presets)} résultat(s)")
 
     print(f"\n  {'ID':25s} {'NOM':25s} {'TYPE':10s} {'TAGS'}")
-    print(f"  {'─'*25} {'─'*25} {'─'*10} {'─'*30}")
+    print(f"  {'─' * 25} {'─' * 25} {'─' * 10} {'─' * 30}")
     for p in presets:
         tags = ", ".join(p.tags[:4])
         print(f"  {p.id:25s} {p.name:25s} {p.scene_type.value:10s} {tags}")
@@ -111,11 +128,12 @@ def cmd_shots(args, bridge: BlenderBridge):
     """Liste les types de plans cinématographiques."""
     _sep("TYPES DE PLANS CINÉMATOGRAPHIQUES")
     from blender_bridge.scene_types import ShotType
+
     cam_sys = CinematicCameraSystem()
     shot_types = cam_sys.list_shot_types()
 
     print(f"\n  {'TYPE':22s} {'FOCALE':8s} {'F-STOP':8s} DESCRIPTION")
-    print(f"  {'─'*22} {'─'*8} {'─'*8} {'─'*35}")
+    print(f"  {'─' * 22} {'─' * 8} {'─' * 8} {'─' * 35}")
     for shot_name, desc in shot_types.items():
         cam = cam_sys.get_camera_for_shot(ShotType(shot_name))
         print(f"  {shot_name:22s} {cam.lens:5.0f}mm  f/{cam.f_stop:<5.1f} {desc[:38]}")
@@ -135,23 +153,29 @@ def cmd_scene(args, bridge: BlenderBridge):
         print(f"  Type        : {scene.scene_type.value}")
         print(f"  Preset lieu : {scene.location_preset_id or '(aucun)'}")
         print(f"  Tags        : {', '.join(scene.narrative_tags) or '(aucun)'}")
-        print(f"\n  📷 Caméra")
+        print("\n  📷 Caméra")
         print(f"    Shot type : {scene.camera.shot_type.value}")
         print(f"    Focale    : {scene.camera.lens}mm")
         print(f"    F-stop    : f/{scene.camera.f_stop}")
-        print(f"    DoF       : {'activé' if scene.camera.dof_enabled else 'désactivé'}")
+        print(
+            f"    DoF       : {'activé' if scene.camera.dof_enabled else 'désactivé'}"
+        )
         print(f"    Position  : {[round(v, 2) for v in scene.camera.position]}")
-        print(f"\n  🌫️  Atmosphère")
+        print("\n  🌫️  Atmosphère")
         print(f"    Type      : {scene.atmosphere.type.value}")
         print(f"    Densité   : {scene.atmosphere.density:.3f}")
         if scene.characters:
             print(f"\n  👤 Personnages ({len(scene.characters)})")
             for c in scene.characters:
-                print(f"    {c.name:15s} @ {[round(v, 2) for v in c.position]} h={c.height}m")
+                print(
+                    f"    {c.name:15s} @ {[round(v, 2) for v in c.position]} h={c.height}m"
+                )
         if scene.lighting.lights:
             print(f"\n  💡 Éclairage ({len(scene.lighting.lights)} lumières)")
             for light in scene.lighting.lights:
-                print(f"    {light.name:20s} {light.light_type.value:8s} {light.energy:.0f}W")
+                print(
+                    f"    {light.name:20s} {light.light_type.value:8s} {light.energy:.0f}W"
+                )
 
 
 def cmd_script(args, bridge: BlenderBridge):
@@ -166,7 +190,7 @@ def cmd_script(args, bridge: BlenderBridge):
     scene = bridge.parse_voice_command(command)
     runner = bridge.runner
     dry = runner.dry_run(script_path, scene)
-    print(f"\n  Commande CLI :")
+    print("\n  Commande CLI :")
     print(f"  {dry['command']}")
 
 
@@ -181,11 +205,11 @@ def cmd_dry_run(args, bridge: BlenderBridge):
     print(f"  Blender dispo   : {'✅' if result['blender_available'] else '❌'}")
     if result.get("blender_version"):
         print(f"  Version         : {result['blender_version']}")
-    print(f"\n  Commande CLI :")
+    print("\n  Commande CLI :")
     print(f"  {result['command']}")
 
     if getattr(args, "json", False):
-        print(f"\n  JSON de la scène :")
+        print("\n  JSON de la scène :")
         print(json.dumps(result["scene_json"], indent=2, ensure_ascii=False))
 
 
@@ -196,7 +220,7 @@ def cmd_render(args, bridge: BlenderBridge):
 
     _sep("RENDU BLENDER")
     print(f"\n  Commande : {command}")
-    print(f"  ...")
+    print("  ...")
 
     result = bridge.render_from_voice(command, output_path=output)
 
@@ -207,7 +231,7 @@ def cmd_render(args, bridge: BlenderBridge):
         _err(f"Rendu échoué : {result.get('error', 'Erreur inconnue')}")
         print(f"\n  Script généré : {result.get('script_path')}")
         print(f"  Commande CLI  : {result.get('command', 'N/A')}")
-        print(f"\n  Pour lancer manuellement (une fois Blender installé) :")
+        print("\n  Pour lancer manuellement (une fois Blender installé) :")
         print(f"  {result.get('command', '')}")
 
 
@@ -223,12 +247,16 @@ def cmd_project(args, bridge: BlenderBridge):
 
     scene = bridge_voice.parse(commands[0])
     print(f"\n  [1] {commands[0]}")
-    print(f"      → {scene.scene_id} | {scene.camera.shot_type.value} | {scene.atmosphere.type.value}")
+    print(
+        f"      → {scene.scene_id} | {scene.camera.shot_type.value} | {scene.atmosphere.type.value}"
+    )
 
     for i, cmd in enumerate(commands[1:], 2):
         scene = bridge_voice.apply_command(scene, cmd)
         print(f"  [{i}] {cmd}")
-        print(f"      → {scene.camera.shot_type.value} | {scene.atmosphere.type.value} | {[c.name for c in scene.characters]}")
+        print(
+            f"      → {scene.camera.shot_type.value} | {scene.atmosphere.type.value} | {[c.name for c in scene.characters]}"
+        )
 
     print()
 
@@ -242,11 +270,11 @@ def cmd_project(args, bridge: BlenderBridge):
     dry = runner.dry_run(script_path, scene)
 
     _ok(f"Script généré : {script_path}")
-    print(f"\n  Commande CLI :")
+    print("\n  Commande CLI :")
     print(f"  {dry['command']}")
 
     if getattr(args, "render", False) and bridge.is_ready():
-        print(f"\n  🔄 Lancement du rendu...")
+        print("\n  🔄 Lancement du rendu...")
         result = bridge.render(scene)
         if result["success"]:
             _ok(f"Rendu → {result['render_path']}")
@@ -286,11 +314,11 @@ def cmd_project2d(args, bridge: BlenderBridge):
 
     script_path = build_projected_scene(image_path, scene_type, config)
     _ok(f"Script généré : {script_path}")
-    print(f"\n  Commande CLI :")
+    print("\n  Commande CLI :")
     print(f"  blender -b -P {script_path} -- {image_path} {scene_type}")
 
     if getattr(args, "render", False) and bridge.is_ready():
-        print(f"\n  🔄 Lancement du rendu...")
+        print("\n  🔄 Lancement du rendu...")
         result = bridge.runner.execute_projection(script_path, image_path, scene_type)
         if result.get("success"):
             _ok(f"Rendu → {result['render_path']}")
@@ -301,7 +329,10 @@ def cmd_project2d(args, bridge: BlenderBridge):
 def cmd_storyboard(args, bridge: BlenderBridge):
     """Génère des scènes depuis un fichier de beats JSON."""
     beats_path = args.beats_file
-    output_dir = getattr(args, "output", "./exports/blender/storyboard") or "./exports/blender/storyboard"
+    output_dir = (
+        getattr(args, "output", "./exports/blender/storyboard")
+        or "./exports/blender/storyboard"
+    )
 
     try:
         with open(beats_path, "r", encoding="utf-8") as f:
@@ -321,6 +352,7 @@ def cmd_storyboard(args, bridge: BlenderBridge):
     _sep(f"STORYBOARD : {len(beats)} beats")
 
     from blender_bridge.backend_integration import NarrativePipelineBridge
+
     narrative = NarrativePipelineBridge(blender_bridge=bridge)
 
     if getattr(args, "render", False):
@@ -331,11 +363,11 @@ def cmd_storyboard(args, bridge: BlenderBridge):
     else:
         scenes = narrative.beats_to_scenes(beats)
         print(f"\n  {'#':4s} {'SCÈNE':25s} {'PLAN':18s} {'ATMO':15s} {'PERSONNAGES'}")
-        print(f"  {'─'*4} {'─'*25} {'─'*18} {'─'*15} {'─'*25}")
+        print(f"  {'─' * 4} {'─' * 25} {'─' * 18} {'─' * 15} {'─' * 25}")
         for i, scene in enumerate(scenes):
             chars = ", ".join(c.name for c in scene.characters) or "—"
             print(
-                f"  {i+1:4d} {scene.scene_id[:25]:25s} "
+                f"  {i + 1:4d} {scene.scene_id[:25]:25s} "
                 f"{scene.camera.shot_type.value[:18]:18s} "
                 f"{scene.atmosphere.type.value[:15]:15s} "
                 f"{chars[:25]}"
@@ -349,6 +381,7 @@ def cmd_storyboard(args, bridge: BlenderBridge):
 # ─────────────────────────────────────────────────────────────────────────────
 #  POINT D'ENTRÉE PRINCIPAL
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -371,7 +404,9 @@ Exemples :
         """,
     )
 
-    parser.add_argument("--blender", metavar="PATH", help="Chemin vers l'exécutable Blender")
+    parser.add_argument(
+        "--blender", metavar="PATH", help="Chemin vers l'exécutable Blender"
+    )
     parser.add_argument("--verbose", "-v", action="store_true", help="Mode verbeux")
 
     subs = parser.add_subparsers(dest="command", metavar="COMMANDE")
@@ -408,15 +443,23 @@ Exemples :
 
     # project (construction incrémentale)
     p_project = subs.add_parser("project", help="Construction incrémentale de scène")
-    p_project.add_argument("voice_cmds", nargs="+", help="Séquence de commandes vocales")
+    p_project.add_argument(
+        "voice_cmds", nargs="+", help="Séquence de commandes vocales"
+    )
     p_project.add_argument("--json", action="store_true", help="Sortie JSON")
     p_project.add_argument("--render", action="store_true", help="Lancer le rendu")
 
     # project2d (projection d'image)
     p_2d = subs.add_parser("project2d", help="Scène 2.5D par projection d'image")
     p_2d.add_argument("image", help="Chemin vers l'image source")
-    p_2d.add_argument("type", nargs="?", default="exterior", choices=["exterior", "interior"])
-    p_2d.add_argument("--camera", default="wide", choices=["wide", "close", "over_shoulder", "low_angle", "high_angle"])
+    p_2d.add_argument(
+        "type", nargs="?", default="exterior", choices=["exterior", "interior"]
+    )
+    p_2d.add_argument(
+        "--camera",
+        default="wide",
+        choices=["wide", "close", "over_shoulder", "low_angle", "high_angle"],
+    )
     p_2d.add_argument("--trees", type=int, default=0, metavar="N")
     p_2d.add_argument("--depth", metavar="PATH", help="Chemin vers la depth map")
     p_2d.add_argument("--engine", default="EEVEE", choices=["EEVEE", "CYCLES"])
@@ -424,10 +467,14 @@ Exemples :
     p_2d.add_argument("--render", action="store_true", help="Lancer le rendu")
 
     # storyboard
-    p_sb = subs.add_parser("storyboard", help="Génère des scènes depuis un fichier beats JSON")
+    p_sb = subs.add_parser(
+        "storyboard", help="Génère des scènes depuis un fichier beats JSON"
+    )
     p_sb.add_argument("beats_file", help="Fichier JSON de beats narratifs")
     p_sb.add_argument("--output", metavar="DIR", default="./exports/blender/storyboard")
-    p_sb.add_argument("--render", action="store_true", help="Lancer le rendu de toutes les scènes")
+    p_sb.add_argument(
+        "--render", action="store_true", help="Lancer le rendu de toutes les scènes"
+    )
 
     args = parser.parse_args()
 
@@ -443,15 +490,15 @@ Exemples :
 
     # Dispatcher
     dispatch = {
-        "status":     cmd_status,
-        "presets":    cmd_presets,
-        "shots":      cmd_shots,
-        "scene":      cmd_scene,
-        "script":     cmd_script,
-        "dry-run":    cmd_dry_run,
-        "render":     cmd_render,
-        "project":    cmd_project,
-        "project2d":  cmd_project2d,
+        "status": cmd_status,
+        "presets": cmd_presets,
+        "shots": cmd_shots,
+        "scene": cmd_scene,
+        "script": cmd_script,
+        "dry-run": cmd_dry_run,
+        "render": cmd_render,
+        "project": cmd_project,
+        "project2d": cmd_project2d,
         "storyboard": cmd_storyboard,
     }
 

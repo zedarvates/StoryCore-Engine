@@ -34,51 +34,102 @@ from typing import Optional, List, Tuple, Dict, Any
 
 # Catégories narratives → géométrie Blender correspondante
 OBJECT_TYPES = {
-    "weapon":      "blade",           # épées, couteaux → plan extrudé
-    "gun":         "gun_body",        # armes à feu → boîte + cylindre
-    "shield":      "disc",            # boucliers → disc aplati
-    "armor":       "torso_shape",     # armures → plusieurs boîtes
-    "staff":       "cylinder",        # bâtons, lances → cylindre allongé
-    "potion":      "bottle",          # potions, flacons → sphère + cylindre
-    "book":        "book",            # livres, grimoires → boîte plate
-    "key":         "key_shape",       # clés → dent + anneau
-    "jewel":       "gem",             # bijoux, gemmes → ico-sphere facettée
-    "lantern":     "lantern",         # lanternes → cylindre + sphère
-    "bag":         "bag",             # sacs → sphère aplatie
-    "scroll":      "scroll",          # parchemins → cylindre plat
-    "device":      "box",             # gadgets, tech → boîte + détails
-    "vehicle":     "vehicle_body",    # véhicules → boîte complexe
-    "furniture":   "box",             # mobilier → boîte
-    "food":        "sphere",          # nourriture → sphère
-    "tool":        "cylinder",        # outils → cylindre
-    "container":   "box",             # caisses, coffres → boîte
-    "document":    "flat_plane",      # documents → plan
-    "misc":        "box",             # divers → boîte
+    "weapon": "blade",  # épées, couteaux → plan extrudé
+    "gun": "gun_body",  # armes à feu → boîte + cylindre
+    "shield": "disc",  # boucliers → disc aplati
+    "armor": "torso_shape",  # armures → plusieurs boîtes
+    "staff": "cylinder",  # bâtons, lances → cylindre allongé
+    "potion": "bottle",  # potions, flacons → sphère + cylindre
+    "book": "book",  # livres, grimoires → boîte plate
+    "key": "key_shape",  # clés → dent + anneau
+    "jewel": "gem",  # bijoux, gemmes → ico-sphere facettée
+    "lantern": "lantern",  # lanternes → cylindre + sphère
+    "bag": "bag",  # sacs → sphère aplatie
+    "scroll": "scroll",  # parchemins → cylindre plat
+    "device": "box",  # gadgets, tech → boîte + détails
+    "vehicle": "vehicle_body",  # véhicules → boîte complexe
+    "furniture": "box",  # mobilier → boîte
+    "food": "sphere",  # nourriture → sphère
+    "tool": "cylinder",  # outils → cylindre
+    "container": "box",  # caisses, coffres → boîte
+    "document": "flat_plane",  # documents → plan
+    "misc": "box",  # divers → boîte
 }
 
 # Presets de matériaux Blender (principled BSDF)
 MATERIAL_PRESETS = {
-    "metal_shiny":  {"base_color": (0.7, 0.7, 0.8, 1.0), "metallic": 1.0, "roughness": 0.1},
-    "metal_rusty":  {"base_color": (0.4, 0.25, 0.15, 1.0), "metallic": 0.8, "roughness": 0.85},
-    "metal_dark":   {"base_color": (0.15, 0.15, 0.2, 1.0), "metallic": 0.9, "roughness": 0.3},
-    "wood_light":   {"base_color": (0.6, 0.45, 0.3, 1.0), "metallic": 0.0, "roughness": 0.8},
-    "wood_dark":    {"base_color": (0.25, 0.15, 0.08, 1.0), "metallic": 0.0, "roughness": 0.9},
-    "leather":      {"base_color": (0.35, 0.2, 0.1, 1.0), "metallic": 0.0, "roughness": 0.75},
-    "cloth":        {"base_color": (0.5, 0.5, 0.6, 1.0), "metallic": 0.0, "roughness": 0.95},
-    "glass":        {"base_color": (0.8, 0.9, 1.0, 1.0), "metallic": 0.0, "roughness": 0.0, "transmission": 0.95},
-    "crystal":      {"base_color": (0.6, 0.8, 1.0, 1.0), "metallic": 0.1, "roughness": 0.05, "transmission": 0.7},
-    "stone":        {"base_color": (0.55, 0.55, 0.5, 1.0), "metallic": 0.0, "roughness": 0.9},
-    "plastic":      {"base_color": (0.2, 0.2, 0.25, 1.0), "metallic": 0.0, "roughness": 0.5},
-    "glowing_blue": {"base_color": (0.2, 0.5, 1.0, 1.0), "metallic": 0.2, "roughness": 0.2, "emission": (0.2, 0.5, 1.0), "emission_strength": 2.0},
-    "glowing_red":  {"base_color": (1.0, 0.2, 0.1, 1.0), "metallic": 0.1, "roughness": 0.2, "emission": (1.0, 0.2, 0.1), "emission_strength": 1.5},
-    "gold":         {"base_color": (1.0, 0.8, 0.2, 1.0), "metallic": 1.0, "roughness": 0.2},
-    "matte_black":  {"base_color": (0.05, 0.05, 0.05, 1.0), "metallic": 0.0, "roughness": 1.0},
+    "metal_shiny": {
+        "base_color": (0.7, 0.7, 0.8, 1.0),
+        "metallic": 1.0,
+        "roughness": 0.1,
+    },
+    "metal_rusty": {
+        "base_color": (0.4, 0.25, 0.15, 1.0),
+        "metallic": 0.8,
+        "roughness": 0.85,
+    },
+    "metal_dark": {
+        "base_color": (0.15, 0.15, 0.2, 1.0),
+        "metallic": 0.9,
+        "roughness": 0.3,
+    },
+    "wood_light": {
+        "base_color": (0.6, 0.45, 0.3, 1.0),
+        "metallic": 0.0,
+        "roughness": 0.8,
+    },
+    "wood_dark": {
+        "base_color": (0.25, 0.15, 0.08, 1.0),
+        "metallic": 0.0,
+        "roughness": 0.9,
+    },
+    "leather": {
+        "base_color": (0.35, 0.2, 0.1, 1.0),
+        "metallic": 0.0,
+        "roughness": 0.75,
+    },
+    "cloth": {"base_color": (0.5, 0.5, 0.6, 1.0), "metallic": 0.0, "roughness": 0.95},
+    "glass": {
+        "base_color": (0.8, 0.9, 1.0, 1.0),
+        "metallic": 0.0,
+        "roughness": 0.0,
+        "transmission": 0.95,
+    },
+    "crystal": {
+        "base_color": (0.6, 0.8, 1.0, 1.0),
+        "metallic": 0.1,
+        "roughness": 0.05,
+        "transmission": 0.7,
+    },
+    "stone": {"base_color": (0.55, 0.55, 0.5, 1.0), "metallic": 0.0, "roughness": 0.9},
+    "plastic": {"base_color": (0.2, 0.2, 0.25, 1.0), "metallic": 0.0, "roughness": 0.5},
+    "glowing_blue": {
+        "base_color": (0.2, 0.5, 1.0, 1.0),
+        "metallic": 0.2,
+        "roughness": 0.2,
+        "emission": (0.2, 0.5, 1.0),
+        "emission_strength": 2.0,
+    },
+    "glowing_red": {
+        "base_color": (1.0, 0.2, 0.1, 1.0),
+        "metallic": 0.1,
+        "roughness": 0.2,
+        "emission": (1.0, 0.2, 0.1),
+        "emission_strength": 1.5,
+    },
+    "gold": {"base_color": (1.0, 0.8, 0.2, 1.0), "metallic": 1.0, "roughness": 0.2},
+    "matte_black": {
+        "base_color": (0.05, 0.05, 0.05, 1.0),
+        "metallic": 0.0,
+        "roughness": 1.0,
+    },
 }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  MODÈLE DE DONNÉES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class StoryObject:
@@ -101,28 +152,30 @@ class StoryObject:
     # ── Identité ──────────────────────────────────────────────────────────────
     id: str = field(default_factory=lambda: f"obj_{uuid.uuid4().hex[:8]}")
     name: str = "Objet sans nom"
-    object_type: str = "misc"           # voir OBJECT_TYPES
+    object_type: str = "misc"  # voir OBJECT_TYPES
     description: str = ""
-    story_notes: str = ""               # Notes narratives libres
+    story_notes: str = ""  # Notes narratives libres
 
     # ── Appartenance ──────────────────────────────────────────────────────────
-    owner: Optional[str] = None         # Nom du personnage propriétaire
-    project_id: Optional[str] = None    # Projet StoryCore associé
+    owner: Optional[str] = None  # Nom du personnage propriétaire
+    project_id: Optional[str] = None  # Projet StoryCore associé
 
     # ── Propriétés visuelles ──────────────────────────────────────────────────
-    material: str = "metal_shiny"       # voir MATERIAL_PRESETS
-    color_override: Optional[Tuple[float, float, float]] = None  # surcharge couleur (R, G, B 0-1)
-    scale: Tuple[float, float, float] = (1.0, 1.0, 1.0)          # scale XYZ Blender
+    material: str = "metal_shiny"  # voir MATERIAL_PRESETS
+    color_override: Optional[Tuple[float, float, float]] = (
+        None  # surcharge couleur (R, G, B 0-1)
+    )
+    scale: Tuple[float, float, float] = (1.0, 1.0, 1.0)  # scale XYZ Blender
 
     # ── Métadonnées ────────────────────────────────────────────────────────────
     tags: List[str] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: date.today().isoformat())
-    narrative_context: str = ""         # Contexte d'apparition dans l'histoire
+    narrative_context: str = ""  # Contexte d'apparition dans l'histoire
 
     # ── État de génération 3D ─────────────────────────────────────────────────
-    blender_script_path: Optional[str] = None   # Script .py généré
-    preview_image_path: Optional[str] = None    # Rendu preview PNG
-    blend_file_path: Optional[str] = None       # Fichier .blend exporté
+    blender_script_path: Optional[str] = None  # Script .py généré
+    preview_image_path: Optional[str] = None  # Rendu preview PNG
+    blend_file_path: Optional[str] = None  # Fichier .blend exporté
 
     # ─── SÉRIALISATION ────────────────────────────────────────────────────────
 
@@ -136,7 +189,9 @@ class StoryObject:
             "owner": self.owner,
             "project_id": self.project_id,
             "material": self.material,
-            "color_override": list(self.color_override) if self.color_override else None,
+            "color_override": list(self.color_override)
+            if self.color_override
+            else None,
             "scale": list(self.scale),
             "tags": self.tags,
             "created_at": self.created_at,
@@ -199,7 +254,9 @@ class StoryObject:
     @property
     def material_preset(self) -> Dict[str, Any]:
         """Retourne les paramètres du matériau Blender."""
-        preset = MATERIAL_PRESETS.get(self.material, MATERIAL_PRESETS["metal_shiny"]).copy()
+        preset = MATERIAL_PRESETS.get(
+            self.material, MATERIAL_PRESETS["metal_shiny"]
+        ).copy()
         if self.color_override:
             preset["base_color"] = (*self.color_override, 1.0)
         return preset
@@ -208,6 +265,7 @@ class StoryObject:
     def blender_object_name(self) -> str:
         """Nom d'objet Blender (sans caractères spéciaux)."""
         import re
+
         name = f"{self.owner}_{self.name}" if self.owner else self.name
         return re.sub(r"[^a-zA-Z0-9_]", "_", name)[:63]
 

@@ -3,6 +3,8 @@
  * 
  * Validates preset management UI functionality.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -343,7 +345,7 @@ describe('PresetManager', () => {
       click: mockClick,
       href: '',
       download: '',
-    } as any);
+    } as LegacyAny);
     
     render(
       <PresetManager

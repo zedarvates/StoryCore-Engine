@@ -9,7 +9,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Camera, RotateCcw, Play, Pause, Eye, View, Box, Layers } from 'lucide-react';
-import type { Vector3 } from 'three';
+import type { _Vector3 } from 'three';
 import './CameraPresetControl.css';
 
 // ============================================================================
@@ -171,7 +171,7 @@ function lerpVector3(
 
 export function CameraPresetControl({
   currentPosition = [5, 5, 5],
-  currentTarget = [0, 0, 0],
+  _currentTarget = [0, 0, 0],
   onCameraChange,
   onAutoRotateChange,
   onReset,

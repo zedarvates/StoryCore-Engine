@@ -181,7 +181,7 @@ class MediaSearchServiceImpl implements MediaSearchService {
    */
   private async localSearchFallback(request: SearchRequest): Promise<SearchResult[]> {
     // Simple keyword search implementation
-    const queryWords = request.query.toLowerCase().split(' ');
+    const _queryWords = request.query.toLowerCase().split(' ');
     
     //TODO: Integrate with existing asset system
     logger.debug('[MediaSearch] Using local fallback search');

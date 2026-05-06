@@ -3,6 +3,8 @@
  * 
  * Safely attach and cleanup event listeners
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useEffect, useRef } from 'react';
 
@@ -25,7 +27,7 @@ export function useEventListener<K extends keyof WindowEventMap>(
     const isSupported = element && element.addEventListener;
     if (!isSupported) return;
 
-    const eventListener = (event: Event) => savedHandler.current(event as any);
+    const eventListener = (event: Event) => savedHandler.current(event as LegacyAny);
 
     element.addEventListener(eventName, eventListener, options);
 
@@ -50,7 +52,7 @@ export function useEventListeners(
     const cleanups: Array<() => void> = [];
 
     listeners.forEach(({ eventName, handler, element = window, options }) => {
-      const eventListener = (event: Event) => handler(event as any);
+      const eventListener = (event: Event) => handler(event as LegacyAny);
       element.addEventListener(eventName, eventListener, options);
       cleanups.push(() => {
         element.removeEventListener(eventName, eventListener, options);

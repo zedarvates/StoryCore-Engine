@@ -17,7 +17,7 @@ import type { Project, GenerationTask } from '@/types';
 import type { 
   SequenceGenerationRequest as SeqGenRequest,
   GenerationJobResponse,
-  GenerationStatus 
+  _GenerationStatus 
 } from './sequenceService';
 
 // ============================================================================

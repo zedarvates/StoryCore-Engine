@@ -2,6 +2,8 @@
  * AddonMarketplace Component
  * Page principale du marketplace d'add-ons
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useEffect, useState } from 'react';
 import { useAddonStore, selectFilteredAddons } from '../../stores/addonStore';
@@ -169,7 +171,7 @@ export const AddonMarketplace: React.FC = () => {
             {/* Sort */}
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as LegacyAny)}
               className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="name">Sort by Name</option>

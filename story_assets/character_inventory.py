@@ -36,15 +36,15 @@ logger = logging.getLogger(__name__)
 
 # Slots d'équipement narratifs (pour organisation, pas technique)
 INVENTORY_SLOTS = [
-    "main_hand",     # Arme principale
-    "off_hand",      # Arme secondaire / bouclier
-    "head",          # Tête
-    "chest",         # Torse
-    "legs",          # Jambes
-    "feet",          # Pieds
-    "accessory_1",   # Accessoire 1
-    "accessory_2",   # Accessoire 2
-    "bag",           # Sac / inventaire
+    "main_hand",  # Arme principale
+    "off_hand",  # Arme secondaire / bouclier
+    "head",  # Tête
+    "chest",  # Torse
+    "legs",  # Jambes
+    "feet",  # Pieds
+    "accessory_1",  # Accessoire 1
+    "accessory_2",  # Accessoire 2
+    "bag",  # Sac / inventaire
 ]
 
 
@@ -63,7 +63,7 @@ class CharacterInventory:
     character_name: str
     project_id: Optional[str] = None
     items: List[StoryObject] = field(default_factory=list)
-    equipped_slots: Dict[str, str] = field(default_factory=dict)   # slot → item.id
+    equipped_slots: Dict[str, str] = field(default_factory=dict)  # slot → item.id
     notes: str = ""
 
     # ─── GESTION DES OBJETS ──────────────────────────────────────────────────
@@ -89,7 +89,9 @@ class CharacterInventory:
         if slot and slot in INVENTORY_SLOTS:
             self.equipped_slots[slot] = obj.id
 
-        logger.info(f"[Inventory] {self.character_name} → +{obj.name} (slot: {slot or 'bag'})")
+        logger.info(
+            f"[Inventory] {self.character_name} → +{obj.name} (slot: {slot or 'bag'})"
+        )
 
     def remove(self, object_id: str) -> bool:
         """Retire un objet de l'inventaire. Retourne True si trouvé."""
@@ -97,8 +99,7 @@ class CharacterInventory:
         self.items = [i for i in self.items if i.id != object_id]
         # Désassigner le slot si c'était équipé
         self.equipped_slots = {
-            slot: oid for slot, oid in self.equipped_slots.items()
-            if oid != object_id
+            slot: oid for slot, oid in self.equipped_slots.items() if oid != object_id
         }
         removed = len(self.items) < before
         if removed:
@@ -162,7 +163,11 @@ class CharacterInventory:
 
     @property
     def weapons(self) -> List[StoryObject]:
-        return self.find_by_type("weapon") + self.find_by_type("gun") + self.find_by_type("staff")
+        return (
+            self.find_by_type("weapon")
+            + self.find_by_type("gun")
+            + self.find_by_type("staff")
+        )
 
     @property
     def item_count(self) -> int:
@@ -205,8 +210,20 @@ class CharacterInventory:
     def _get_path(self, projects_dir: str = "./projects") -> Path:
         """Retourne le chemin du fichier inventory.json."""
         if self.project_id:
-            return Path(projects_dir) / self.project_id / "characters" / self.character_name / "inventory.json"
-        return Path(projects_dir) / "global" / "characters" / self.character_name / "inventory.json"
+            return (
+                Path(projects_dir)
+                / self.project_id
+                / "characters"
+                / self.character_name
+                / "inventory.json"
+            )
+        return (
+            Path(projects_dir)
+            / "global"
+            / "characters"
+            / self.character_name
+            / "inventory.json"
+        )
 
     def save(self, projects_dir: str = "./projects") -> str:
         """Sauvegarde l'inventaire en JSON. Retourne le chemin."""

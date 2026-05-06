@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional
 
 class FormalityLevel(Enum):
     """Formality level of dialogue."""
+
     VERY_FORMAL = "very_formal"
     FORMAL = "formal"
     NEUTRAL = "neutral"
@@ -24,6 +25,7 @@ class FormalityLevel(Enum):
 
 class DialogueStyle(Enum):
     """Dialogue style characteristics."""
+
     DIRECT = "direct"
     INDIRECT = "indirect"
     QUESTIONING = "questioning"
@@ -37,6 +39,7 @@ class DialogueStyle(Enum):
 @dataclass
 class DialogueStats:
     """Statistics for a character's dialogue."""
+
     character_name: str
     total_lines: int = 0
     total_words: int = 0
@@ -46,7 +49,7 @@ class DialogueStats:
     scene_appearances: int = 0
     first_scene: int = 0
     last_scene: int = 0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "character_name": self.character_name,
@@ -61,6 +64,7 @@ class DialogueStats:
 @dataclass
 class VocabularyProfile:
     """Vocabulary profile for a character."""
+
     character_name: str
     total_unique_words: int = 0
     total_words: int = 0
@@ -68,7 +72,7 @@ class VocabularyProfile:
     unique_words: List[str] = field(default_factory=list)
     rare_words: List[str] = field(default_factory=list)
     specialized_terms: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "character_name": self.character_name,
@@ -82,6 +86,7 @@ class VocabularyProfile:
 @dataclass
 class StyleProfile:
     """Speaking style profile for a character."""
+
     character_name: str
     formality_score: float = 0.5
     formality_level: FormalityLevel = FormalityLevel.NEUTRAL
@@ -89,7 +94,7 @@ class StyleProfile:
     question_ratio: float = 0.0
     exclamation_ratio: float = 0.0
     dominant_styles: List[DialogueStyle] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "character_name": self.character_name,
@@ -97,18 +102,19 @@ class StyleProfile:
             "formality_level": self.formality_level.value,
             "avg_sentence_length": round(self.avg_sentence_length, 2),
             "question_ratio": round(self.question_ratio, 2),
-            "dominant_styles": [s.value for s in self.dominant_styles]
+            "dominant_styles": [s.value for s in self.dominant_styles],
         }
 
 
 @dataclass
 class Catchphrase:
     """A catchphrase or signature expression."""
+
     phrase: str
     count: int
     scene_first: int
     scene_last: int
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "phrase": self.phrase,
@@ -119,6 +125,7 @@ class Catchphrase:
 @dataclass
 class VoiceSignature:
     """Complete voice signature for a character."""
+
     character_name: str
     dialogue_stats: Optional[DialogueStats] = None
     vocabulary: Optional[VocabularyProfile] = None
@@ -127,11 +134,13 @@ class VoiceSignature:
     voice_description: str = ""
     signature_words: List[str] = field(default_factory=list)
     speech_patterns: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "character_name": self.character_name,
-            "dialogue_stats": self.dialogue_stats.to_dict() if self.dialogue_stats else None,
+            "dialogue_stats": self.dialogue_stats.to_dict()
+            if self.dialogue_stats
+            else None,
             "vocabulary": self.vocabulary.to_dict() if self.vocabulary else None,
             "style": self.style.to_dict() if self.style else None,
             "catchphrases": [c.to_dict() for c in self.catchphrases],
@@ -142,19 +151,19 @@ class VoiceSignature:
 @dataclass
 class DialogueAnalysisResult:
     """Complete dialogue analysis for all characters."""
+
     characters: Dict[str, VoiceSignature] = field(default_factory=dict)
     total_dialogue_lines: int = 0
     total_words: int = 0
     most_speaking_character: str = ""
     least_speaking_character: str = ""
     analyzed_at: datetime = field(default_factory=datetime.now)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "characters": {k: v.to_dict() for k, v in self.characters.items()},
             "total_dialogue_lines": self.total_dialogue_lines,
             "total_words": self.total_words,
             "most_speaking_character": self.most_speaking_character,
-            "analyzed_at": self.analyzed_at.isoformat()
+            "analyzed_at": self.analyzed_at.isoformat(),
         }
-

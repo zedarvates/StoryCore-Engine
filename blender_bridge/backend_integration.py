@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 
 from blender_bridge import BlenderBridge
-from blender_bridge.scene_types import SceneJSON, SceneType, CharacterRig
+from blender_bridge.scene_types import SceneJSON, CharacterRig
 from blender_bridge.rig_generator import RigGenerator
 from blender_bridge.location_manager import LocationManager
 from blender_bridge.voice_bridge import VoiceToSceneBridge
@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 #  PONT : SYSTÈME DE PERSONNAGES
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class CharacterSystemBridge:
     """
@@ -53,7 +54,9 @@ class CharacterSystemBridge:
         self.characters_dir = Path(characters_dir)
         self.rig_gen = RigGenerator()
 
-    def load_character(self, character_name: str, project_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    def load_character(
+        self, character_name: str, project_id: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Charge les données d'un personnage depuis le stockage StoryCore.
 
@@ -86,8 +89,13 @@ class CharacterSystemBridge:
                         data = json.load(f)
                     # Correspondance par nom (insensible à la casse)
                     stored_name = data.get("name", "").lower()
-                    if stored_name == name_lower or json_file.stem.lower() == name_lower:
-                        logger.info(f"[CharacterBridge] Personnage trouvé : {json_file}")
+                    if (
+                        stored_name == name_lower
+                        or json_file.stem.lower() == name_lower
+                    ):
+                        logger.info(
+                            f"[CharacterBridge] Personnage trouvé : {json_file}"
+                        )
                         return data
                 except Exception as e:
                     logger.debug(f"[CharacterBridge] Erreur lecture {json_file}: {e}")
@@ -146,7 +154,9 @@ class CharacterSystemBridge:
 
             if char_data:
                 rig = self.rig_gen.create_from_character_data(char_data, position=pos)
-                logger.info(f"[CharacterBridge] Rig créé depuis données StoryCore : {name}")
+                logger.info(
+                    f"[CharacterBridge] Rig créé depuis données StoryCore : {name}"
+                )
             else:
                 # Fallback : rig avec données par défaut
                 rig = self.rig_gen.create_rig(name=name, position=pos)
@@ -188,6 +198,7 @@ class CharacterSystemBridge:
 #  PONT : SYSTÈME DE LIEUX
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class LocationSystemBridge:
     """
     Pont entre le système de lieux StoryCore et les presets Blender.
@@ -225,7 +236,7 @@ class LocationSystemBridge:
             SceneJSON prêt pour le rendu Blender
         """
         # Importer le lieu comme preset
-        preset = self.location_mgr.import_from_location_api(location_data)
+        self.location_mgr.import_from_location_api(location_data)
 
         # Construire une commande narrative depuis les données
         name = location_data.get("name", "")
@@ -278,6 +289,7 @@ class LocationSystemBridge:
 # ─────────────────────────────────────────────────────────────────────────────
 #  PONT : PIPELINE NARRATIF
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class NarrativePipelineBridge:
     """
@@ -340,8 +352,12 @@ class NarrativePipelineBridge:
         if carry_over_location and self._scene_history and not scene.location_preset_id:
             last_scene = self._scene_history[-1]
             if last_scene.location_preset_id:
-                scene = self.bb.locations.apply_to_scene(scene, last_scene.location_preset_id)
-                logger.info(f"[NarrativeBridge] Lieu hérité : {last_scene.location_preset_id}")
+                scene = self.bb.locations.apply_to_scene(
+                    scene, last_scene.location_preset_id
+                )
+                logger.info(
+                    f"[NarrativeBridge] Lieu hérité : {last_scene.location_preset_id}"
+                )
 
         # Injecter les personnages du beat
         if beat.get("characters"):
@@ -368,7 +384,9 @@ class NarrativePipelineBridge:
         """
         scenes = []
         for i, beat in enumerate(beats):
-            logger.info(f"[NarrativeBridge] Beat {i+1}/{len(beats)} : {beat.get('beat', '')[:50]}")
+            logger.info(
+                f"[NarrativeBridge] Beat {i + 1}/{len(beats)} : {beat.get('beat', '')[:50]}"
+            )
             scene = self.beat_to_scene(beat, carry_over_location=carry_over_location)
             scenes.append(scene)
         return scenes
@@ -392,13 +410,13 @@ class NarrativePipelineBridge:
         results = []
 
         for i, scene in enumerate(scenes):
-            scene.render.output_path = f"{output_dir}/beat_{i+1:03d}_"
+            scene.render.output_path = f"{output_dir}/beat_{i + 1:03d}_"
             result = self.bb.render(scene)
             result["beat_index"] = i
             result["beat_description"] = beats[i].get("beat", "")
             results.append(result)
             logger.info(
-                f"[NarrativeBridge] Beat {i+1} rendu : "
+                f"[NarrativeBridge] Beat {i + 1} rendu : "
                 f"{'✓' if result['success'] else '✗'} {result.get('render_path', result.get('error'))}"
             )
 
@@ -428,7 +446,7 @@ class NarrativePipelineBridge:
                     "tags": s.narrative_tags,
                 }
                 for i, s in enumerate(self._scene_history)
-            ]
+            ],
         }
 
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -442,6 +460,7 @@ class NarrativePipelineBridge:
 # ─────────────────────────────────────────────────────────────────────────────
 #  PONT : GÉNÉRATION D'IMAGES IA → PROJECTION 2.5D
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class AIImageTo2DSceneBridge:
     """
@@ -462,13 +481,19 @@ class AIImageTo2DSceneBridge:
     """
 
     def __init__(self, blender_executable: Optional[str] = None):
-        from blender_projection.scene_builder import build_projected_scene, ProjectionConfig
+        from blender_projection.scene_builder import (
+            build_projected_scene,
+            ProjectionConfig,
+        )
         from blender_bridge.headless_runner import BlenderHeadlessRunner
+
         self._build_scene = build_projected_scene
         self._ProjectionConfig = ProjectionConfig
         self.runner = BlenderHeadlessRunner(blender_executable=blender_executable)
         self.voice_bridge = VoiceToSceneBridge()
-        self.camera_sys = __import__("blender_bridge.camera_system", fromlist=["CinematicCameraSystem"]).CinematicCameraSystem()
+        self.camera_sys = __import__(
+            "blender_bridge.camera_system", fromlist=["CinematicCameraSystem"]
+        ).CinematicCameraSystem()
 
     def process(
         self,
@@ -499,7 +524,10 @@ class AIImageTo2DSceneBridge:
             cmd_lower = voice_config.lower()
 
             # Type de scène
-            if any(k in cmd_lower for k in ["intérieur", "interieur", "bureau", "pièce", "salle"]):
+            if any(
+                k in cmd_lower
+                for k in ["intérieur", "interieur", "bureau", "pièce", "salle"]
+            ):
                 scene_type = "interior"
 
             # Mode caméra
@@ -520,7 +548,8 @@ class AIImageTo2DSceneBridge:
             "depth_map_path": depth_map_path,
             "depth_strength": 0.3,
             "engine": engine,
-            "output_path": output_path or f"./exports/blender/2_5d_{Path(ai_image_path).stem}_",
+            "output_path": output_path
+            or f"./exports/blender/2_5d_{Path(ai_image_path).stem}_",
         }
 
         # Générer le script de projection
@@ -567,7 +596,7 @@ class AIImageTo2DSceneBridge:
             if not image_path:
                 continue
 
-            output_path = f"{output_dir}/frame_{i+1:04d}_"
+            output_path = f"{output_dir}/frame_{i + 1:04d}_"
             result = self.process(
                 ai_image_path=image_path,
                 voice_config=img_config.get("voice_config", ""),
@@ -576,7 +605,7 @@ class AIImageTo2DSceneBridge:
             )
             results.append(result)
             logger.info(
-                f"[AIImageBridge] Frame {i+1}/{len(images)} : "
+                f"[AIImageBridge] Frame {i + 1}/{len(images)} : "
                 f"{'✓' if result['success'] else '✗'}"
             )
 

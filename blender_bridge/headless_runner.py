@@ -18,7 +18,6 @@ Séparation des couches :
 from __future__ import annotations
 import os
 import re
-import sys
 import shutil
 import subprocess
 import logging
@@ -27,7 +26,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 from blender_bridge.scene_types import SceneJSON
-from blender_bridge.safety_guard import SafeBlenderRunner, make_safe_runner
+from blender_bridge.safety_guard import SafeBlenderRunner
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +34,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────────────────────────────────────
 #  LECTEUR DE CONFIG PROJET
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _load_blender_project_config() -> dict:
     """
@@ -71,6 +71,7 @@ def _load_blender_project_config() -> dict:
         if candidate.exists():
             try:
                 import json
+
                 with open(candidate, encoding="utf-8") as f:
                     raw = json.load(f)
                 cfg = {k: v for k, v in raw.items() if not k.startswith("_")}
@@ -88,6 +89,7 @@ def _load_blender_project_config() -> dict:
     if cwd_cfg.exists():
         try:
             import json
+
             with open(cwd_cfg, encoding="utf-8") as f:
                 raw = json.load(f)
             cfg = {k: v for k, v in raw.items() if not k.startswith("_")}
@@ -101,6 +103,7 @@ def _load_blender_project_config() -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 #  RUNNER PRINCIPAL
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class BlenderHeadlessRunner:
     """
@@ -173,12 +176,14 @@ class BlenderHeadlessRunner:
 
         # Mise à jour du chemin de rendu dans le script si possible
         if scene is not None:
-            render_path = self._patch_render_path_in_script(script_path, scene, render_path)
+            render_path = self._patch_render_path_in_script(
+                script_path, scene, render_path
+            )
 
         # Construction de la commande CLI
         cmd = self._build_command(script_path, frame, extra_args)
 
-        logger.info(f"[BlenderBridge] Lancement Blender headless (SafeRunner)")
+        logger.info("[BlenderBridge] Lancement Blender headless (SafeRunner)")
         logger.info(f"  Script  : {script_path}")
         logger.info(f"  Commande: {' '.join(cmd)}")
 
@@ -186,7 +191,7 @@ class BlenderHeadlessRunner:
         safe_runner = SafeBlenderRunner(
             blender_executable=self._blender_path or self.blender_executable,
             timeout_seconds=self.timeout_seconds,
-            max_retries=1,          # Pas de retry ici (géré au niveau appelant)
+            max_retries=1,  # Pas de retry ici (géré au niveau appelant)
             validate_scripts=True,  # Valider la syntaxe avant de lancer Blender
         )
         safe_result = safe_runner.execute(script_path, extra_args=extra_args)
@@ -199,7 +204,9 @@ class BlenderHeadlessRunner:
             render_path = safe_result.render_path
 
         if safe_result.success:
-            logger.info(f"[BlenderBridge] Rendu terminé en {duration:.1f}s → {render_path}")
+            logger.info(
+                f"[BlenderBridge] Rendu terminé en {duration:.1f}s → {render_path}"
+            )
             return {
                 "success": True,
                 "render_path": render_path,
@@ -210,7 +217,9 @@ class BlenderHeadlessRunner:
                 "returncode": 0,
             }
         else:
-            logger.error(f"[BlenderBridge] Erreur (code {safe_result.returncode}): {safe_result.error}")
+            logger.error(
+                f"[BlenderBridge] Erreur (code {safe_result.returncode}): {safe_result.error}"
+            )
             return {
                 "success": False,
                 "render_path": None,
@@ -243,7 +252,9 @@ class BlenderHeadlessRunner:
             pass
         return None
 
-    def dry_run(self, script_path: str, scene: Optional[SceneJSON] = None) -> Dict[str, Any]:
+    def dry_run(
+        self, script_path: str, scene: Optional[SceneJSON] = None
+    ) -> Dict[str, Any]:
         """
         Simulation à sec : retourne la commande CLI sans l'exécuter.
         Utile pour debug et tests.
@@ -283,7 +294,9 @@ class BlenderHeadlessRunner:
         proj_cfg = _load_blender_project_config()
         cfg_exe = proj_cfg.get("executable", "").strip()
         if cfg_exe and Path(cfg_exe).exists():
-            logger.info(f"[BlenderBridge] Blender depuis config/blender_config.json: {cfg_exe}")
+            logger.info(
+                f"[BlenderBridge] Blender depuis config/blender_config.json: {cfg_exe}"
+            )
             return cfg_exe
         elif cfg_exe:
             logger.warning(
@@ -292,7 +305,10 @@ class BlenderHeadlessRunner:
             )
 
         # 3. Chemin fourni directement au constructeur
-        if self.blender_executable != "blender" and Path(self.blender_executable).exists():
+        if (
+            self.blender_executable != "blender"
+            and Path(self.blender_executable).exists()
+        ):
             return self.blender_executable
 
         # 4. Recherche dans le PATH système
@@ -329,7 +345,7 @@ class BlenderHeadlessRunner:
         logger.warning(
             "[BlenderBridge] Blender non trouve.\n"
             "  Solutions :\n"
-            "    1. Editer config/blender_config.json -> \"executable\": \"C:/..../blender.exe\"\n"
+            '    1. Editer config/blender_config.json -> "executable": "C:/..../blender.exe"\n'
             "    2. Variable d'env : BLENDER_EXECUTABLE=C:/..../blender.exe\n"
             "    3. Installer Blender et l'ajouter au PATH systeme\n"
             "    4. https://www.blender.org/download/"
@@ -350,10 +366,12 @@ class BlenderHeadlessRunner:
         exe = self._blender_path or self.blender_executable
         cmd = [
             exe,
-            "--background",         # headless (équivalent -b)
-            "--python", script_path,
-            "--",                   # séparateur : arguments passés au script Python
-            "--frame", str(frame),
+            "--background",  # headless (équivalent -b)
+            "--python",
+            script_path,
+            "--",  # séparateur : arguments passés au script Python
+            "--frame",
+            str(frame),
         ]
         if extra_args:
             cmd.extend(extra_args)
@@ -410,7 +428,9 @@ class BlenderHeadlessRunner:
                 f.write(content)
 
         except Exception as e:
-            logger.warning(f"[BlenderBridge] Impossible de patcher le chemin de rendu : {e}")
+            logger.warning(
+                f"[BlenderBridge] Impossible de patcher le chemin de rendu : {e}"
+            )
 
         return render_path
 
@@ -437,14 +457,15 @@ class BlenderHeadlessRunner:
         """Extrait le message d'erreur principal depuis la sortie Blender."""
         error_lines = []
         for line in log.splitlines():
-            if any(kw in line for kw in ["Error", "Traceback", "Exception", "EXCEPTION"]):
+            if any(
+                kw in line for kw in ["Error", "Traceback", "Exception", "EXCEPTION"]
+            ):
                 error_lines.append(line.strip())
         if error_lines:
             return " | ".join(error_lines[:5])
         # Retourner les dernières lignes du log si pas d'erreur identifiée
         lines = [l for l in log.splitlines() if l.strip()]
         return " | ".join(lines[-5:]) if lines else "Erreur inconnue"
-
 
     def execute_projection(
         self,
@@ -477,13 +498,14 @@ class BlenderHeadlessRunner:
         cmd = [
             exe,
             "--background",
-            "--python", script_path,
+            "--python",
+            script_path,
             "--",
             image_path,
             scene_type,
         ]
 
-        logger.info(f"[BlenderBridge] Projection 2.5D headless")
+        logger.info("[BlenderBridge] Projection 2.5D headless")
         logger.info(f"  Script    : {script_path}")
         logger.info(f"  Image     : {image_path}")
         logger.info(f"  Type scène: {scene_type}")
@@ -516,7 +538,9 @@ class BlenderHeadlessRunner:
 
         if safe_result.success:
             render_path = safe_result.render_path
-            logger.info(f"[BlenderBridge] Projection rendue en {duration:.1f}s → {render_path}")
+            logger.info(
+                f"[BlenderBridge] Projection rendue en {duration:.1f}s → {render_path}"
+            )
             return {
                 "success": True,
                 "render_path": render_path,
@@ -541,13 +565,10 @@ class BlenderHeadlessRunner:
 #  UTILITAIRE : commande CLI d'exemple
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def build_cli_example(
     script_path: str = "exports/blender/scripts/scene_ruelle_cyberpunk.py",
     blender_path: str = "blender",
 ) -> str:
     """Retourne un exemple de commande CLI Blender headless."""
-    return (
-        f"{blender_path} --background "
-        f"--python {script_path} "
-        f"-- --frame 1"
-    )
+    return f"{blender_path} --background --python {script_path} -- --frame 1"

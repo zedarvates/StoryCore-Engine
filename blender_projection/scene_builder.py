@@ -16,18 +16,18 @@ Philosophie :
 """
 
 from __future__ import annotations
-import os
 import uuid
 import json
 import textwrap
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Optional, Dict, Any, List
+from dataclasses import dataclass, asdict
+from typing import Optional, Dict, Any
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  CONFIGURATION
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ProjectionConfig:
@@ -36,33 +36,34 @@ class ProjectionConfig:
 
     Tous les paramètres sont optionnels avec des valeurs par défaut sensées.
     """
+
     # Scène
-    scene_type:         str     = "exterior"    # "exterior" | "interior"
-    global_scale:       float   = 10.0          # échelle globale de la skybox/pièce
+    scene_type: str = "exterior"  # "exterior" | "interior"
+    global_scale: float = 10.0  # échelle globale de la skybox/pièce
 
     # Profondeur
-    use_depth_map:      bool    = False          # utiliser une depth map externe
-    depth_map_path:     Optional[str] = None     # chemin vers la depth map
-    depth_strength:     float   = 0.3           # intensité du displacement
-    depth_subdivisions: int     = 8             # subdivisions pour le displacement
+    use_depth_map: bool = False  # utiliser une depth map externe
+    depth_map_path: Optional[str] = None  # chemin vers la depth map
+    depth_strength: float = 0.3  # intensité du displacement
+    depth_subdivisions: int = 8  # subdivisions pour le displacement
 
     # Caméra
-    camera_mode:        str     = "wide"        # wide | close | over_shoulder | low_angle | high_angle
-    dof_enabled:        bool    = True
-    f_stop:             float   = 2.8
+    camera_mode: str = "wide"  # wide | close | over_shoulder | low_angle | high_angle
+    dof_enabled: bool = True
+    f_stop: float = 2.8
 
     # Assets
-    plant_trees:        bool    = False          # planter des arbres (exterior)
-    tree_count:         int     = 5
-    tree_asset_path:    Optional[str] = None
+    plant_trees: bool = False  # planter des arbres (exterior)
+    tree_count: int = 5
+    tree_asset_path: Optional[str] = None
 
     # Rendu
-    engine:             str     = "EEVEE"        # EEVEE ou CYCLES (EEVEE = plus rapide pour 2.5D)
-    resolution_x:       int     = 1920
-    resolution_y:       int     = 1080
-    samples:            int     = 32
-    output_path:        str     = "./exports/blender/projection_render"
-    output_format:      str     = "PNG"
+    engine: str = "EEVEE"  # EEVEE ou CYCLES (EEVEE = plus rapide pour 2.5D)
+    resolution_x: int = 1920
+    resolution_y: int = 1080
+    samples: int = 32
+    output_path: str = "./exports/blender/projection_render"
+    output_format: str = "PNG"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -81,6 +82,7 @@ class ProjectionConfig:
 # ─────────────────────────────────────────────────────────────────────────────
 #  BUILDER PRINCIPAL
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class ProjectionSceneBuilder:
     """
@@ -152,7 +154,9 @@ class ProjectionSceneBuilder:
         # Chemin de sortie
         if output_script_path is None:
             uid = uuid.uuid4().hex[:8]
-            output_script_path = str(self.scripts_dir / f"projection_{config.scene_type}_{uid}.py")
+            output_script_path = str(
+                self.scripts_dir / f"projection_{config.scene_type}_{uid}.py"
+            )
 
         Path(output_script_path).parent.mkdir(parents=True, exist_ok=True)
         with open(output_script_path, "w", encoding="utf-8") as f:
@@ -254,7 +258,7 @@ class ProjectionSceneBuilder:
         """)
 
     def _build_exterior(self, image_path: str, config: ProjectionConfig) -> str:
-        return textwrap.dedent(f"""\
+        return textwrap.dedent("""\
 
             # ═══════════════════════════════════════════════════════════════
             #  EXTÉRIEUR : CUBE INVERSÉ / SKYBOX
@@ -308,7 +312,7 @@ class ProjectionSceneBuilder:
         """)
 
     def _build_interior(self, image_path: str, config: ProjectionConfig) -> str:
-        return textwrap.dedent(f"""\
+        return textwrap.dedent("""\
 
             # ═══════════════════════════════════════════════════════════════
             #  INTÉRIEUR : PIÈCE AVEC PROJECTION D'IMAGE
@@ -402,7 +406,7 @@ class ProjectionSceneBuilder:
                 apply_depth_from_map()
             """)
         else:
-            return textwrap.dedent(f"""\
+            return textwrap.dedent("""\
 
                 # ═══════════════════════════════════════════════════════════════
                 #  PROFONDEUR : Artificielle (sans depth map)
@@ -479,7 +483,7 @@ class ProjectionSceneBuilder:
 
             # ═══════════════════════════════════════════════════════════════
             #  CAMÉRA CINÉMATOGRAPHIQUE : {config.camera_mode}
-            #  {cam['desc']}
+            #  {cam["desc"]}
             # ═══════════════════════════════════════════════════════════════
             def setup_cinematic_camera():
                 bpy.ops.object.camera_add(location={list(pos)})
@@ -488,7 +492,7 @@ class ProjectionSceneBuilder:
                 cam_obj.rotation_euler = Euler([deg2rad(r) for r in {list(rot)}], 'XYZ')
 
                 cam_data = cam_obj.data
-                cam_data.lens = {cam['lens']}
+                cam_data.lens = {cam["lens"]}
                 cam_data.sensor_width = 36.0  # format 35mm
                 cam_data.clip_start = 0.1
                 cam_data.clip_end = 500.0
@@ -658,6 +662,7 @@ class ProjectionSceneBuilder:
 # ─────────────────────────────────────────────────────────────────────────────
 #  FONCTION PUBLIQUE PRINCIPALE
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def build_projected_scene(
     image_path: str,

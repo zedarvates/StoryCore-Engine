@@ -4,48 +4,45 @@ Roadmap command handler - Generate, update, and validate public roadmap.
 
 import argparse
 import json
-import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
+from src.roadmap.models import RoadmapConfig
 
 
 class RoadmapHandler(BaseHandler):
     """Handler for roadmap commands - generate, update, and validate public roadmap."""
 
     command_name = "roadmap"
-    description = "Generate, update, and validate the public roadmap from internal specs"
+    description = (
+        "Generate, update, and validate the public roadmap from internal specs"
+    )
 
     def setup_parser(self, parser: argparse.ArgumentParser) -> None:
         """Set up roadmap command arguments."""
         # Create subparsers for roadmap subcommands
         subparsers = parser.add_subparsers(
-            dest="roadmap_command",
-            help="Roadmap subcommands",
-            required=True
+            dest="roadmap_command", help="Roadmap subcommands", required=True
         )
 
         # Generate subcommand
         generate_parser = subparsers.add_parser(
-            "generate",
-            help="Generate the public roadmap from internal specs"
+            "generate", help="Generate the public roadmap from internal specs"
         )
         self._setup_generate_parser(generate_parser)
 
         # Update subcommand
         update_parser = subparsers.add_parser(
-            "update",
-            help="Update the roadmap to reflect spec changes"
+            "update", help="Update the roadmap to reflect spec changes"
         )
         self._setup_update_parser(update_parser)
 
         # Validate subcommand
         validate_parser = subparsers.add_parser(
-            "validate",
-            help="Validate roadmap consistency with specs"
+            "validate", help="Validate roadmap consistency with specs"
         )
         self._setup_validate_parser(validate_parser)
 
@@ -54,56 +51,54 @@ class RoadmapHandler(BaseHandler):
         parser.add_argument(
             "--config",
             type=Path,
-            help="Path to config file (default: .kiro/roadmap-config.yaml)"
+            help="Path to config file (default: .kiro/roadmap-config.yaml)",
         )
 
         parser.add_argument(
-            "--specs-dir",
-            type=Path,
-            help="Path to specs directory (overrides config)"
+            "--specs-dir", type=Path, help="Path to specs directory (overrides config)"
         )
 
         parser.add_argument(
             "--output",
             type=Path,
-            help="Output path for roadmap file (overrides config)"
+            help="Output path for roadmap file (overrides config)",
         )
 
         parser.add_argument(
             "--changelog",
             type=Path,
-            help="Output path for changelog file (overrides config)"
+            help="Output path for changelog file (overrides config)",
         )
 
         parser.add_argument(
             "--max-description-length",
             type=int,
-            help="Maximum length for feature descriptions (overrides config)"
+            help="Maximum length for feature descriptions (overrides config)",
         )
 
         parser.add_argument(
             "--no-future",
             action="store_true",
-            help="Exclude future considerations section"
+            help="Exclude future considerations section",
         )
 
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Preview changes without modifying files"
+            help="Preview changes without modifying files",
         )
 
         parser.add_argument(
             "--no-badges",
             action="store_true",
-            help="Skip injecting badges into spec files"
+            help="Skip injecting badges into spec files",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format for progress (default: human)"
+            help="Output format for progress (default: human)",
         )
 
     def _setup_update_parser(self, parser: argparse.ArgumentParser) -> None:
@@ -111,38 +106,34 @@ class RoadmapHandler(BaseHandler):
         parser.add_argument(
             "--config",
             type=Path,
-            help="Path to config file (default: .kiro/roadmap-config.yaml)"
+            help="Path to config file (default: .kiro/roadmap-config.yaml)",
         )
 
         parser.add_argument(
-            "--specs-dir",
-            type=Path,
-            help="Path to specs directory (overrides config)"
+            "--specs-dir", type=Path, help="Path to specs directory (overrides config)"
         )
 
         parser.add_argument(
-            "--output",
-            type=Path,
-            help="Path to roadmap file (overrides config)"
+            "--output", type=Path, help="Path to roadmap file (overrides config)"
         )
 
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Preview changes without modifying files"
+            help="Preview changes without modifying files",
         )
 
         parser.add_argument(
             "--force",
             action="store_true",
-            help="Force full regeneration instead of incremental update"
+            help="Force full regeneration instead of incremental update",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format for progress (default: human)"
+            help="Output format for progress (default: human)",
         )
 
     def _setup_validate_parser(self, parser: argparse.ArgumentParser) -> None:
@@ -150,46 +141,42 @@ class RoadmapHandler(BaseHandler):
         parser.add_argument(
             "--config",
             type=Path,
-            help="Path to config file (default: .kiro/roadmap-config.yaml)"
+            help="Path to config file (default: .kiro/roadmap-config.yaml)",
         )
 
         parser.add_argument(
-            "--specs-dir",
-            type=Path,
-            help="Path to specs directory (overrides config)"
+            "--specs-dir", type=Path, help="Path to specs directory (overrides config)"
         )
 
         parser.add_argument(
-            "--roadmap",
-            type=Path,
-            help="Path to roadmap file (overrides config)"
+            "--roadmap", type=Path, help="Path to roadmap file (overrides config)"
         )
 
         parser.add_argument(
             "--check-links",
             action="store_true",
             default=True,
-            help="Validate all links (default: enabled)"
+            help="Validate all links (default: enabled)",
         )
 
         parser.add_argument(
             "--check-badges",
             action="store_true",
             default=True,
-            help="Validate spec badges (default: enabled)"
+            help="Validate spec badges (default: enabled)",
         )
 
         parser.add_argument(
             "--format",
             choices=["human", "json"],
             default="human",
-            help="Output format (default: human)"
+            help="Output format (default: human)",
         )
 
         parser.add_argument(
             "--fix",
             action="store_true",
-            help="Attempt to fix validation issues automatically"
+            help="Attempt to fix validation issues automatically",
         )
 
     def execute(self, args: argparse.Namespace) -> int:
@@ -205,7 +192,7 @@ class RoadmapHandler(BaseHandler):
             else:
                 raise UserError(
                     f"Unknown roadmap subcommand: {args.roadmap_command}",
-                    "Use 'roadmap generate', 'roadmap update', or 'roadmap validate'"
+                    "Use 'roadmap generate', 'roadmap update', or 'roadmap validate'",
                 )
 
         except Exception as e:
@@ -233,15 +220,14 @@ class RoadmapHandler(BaseHandler):
 
             # Load configuration with CLI overrides
             config = ConfigLoader.load_config(
-                config_path=args.config,
-                cli_overrides=cli_overrides
+                config_path=args.config, cli_overrides=cli_overrides
             )
 
             # Validate specs directory exists
             if not config.specs_directory.exists():
                 raise UserError(
                     f"Specs directory not found: {config.specs_directory}",
-                    "Create specs directory or specify correct path with --specs-dir"
+                    "Create specs directory or specify correct path with --specs-dir",
                 )
 
             # Initialize progress tracking
@@ -252,7 +238,7 @@ class RoadmapHandler(BaseHandler):
                 "links_validated": 0,
                 "badges_injected": 0,
                 "warnings": [],
-                "errors": []
+                "errors": [],
             }
 
             # Print header
@@ -279,7 +265,7 @@ class RoadmapHandler(BaseHandler):
                 print()
 
             generator = RoadmapGenerator(config)
-            
+
             # Capture statistics during generation
             # Note: This is a simplified version - full implementation would
             # need hooks into the generator to capture detailed statistics
@@ -300,10 +286,10 @@ class RoadmapHandler(BaseHandler):
                 print(f"  ✓ {config.output_path}")
                 print(f"  ✓ {config.changelog_path}")
                 print()
-                
+
                 if not args.no_badges:
                     print("Badges injected into spec files")
-                
+
                 print()
                 print("Next steps:")
                 print("  1. Review the generated ROADMAP.md")
@@ -314,8 +300,11 @@ class RoadmapHandler(BaseHandler):
                 result = {
                     "success": True,
                     "duration_seconds": duration,
-                    "files_generated": [str(config.output_path), str(config.changelog_path)],
-                    "statistics": stats
+                    "files_generated": [
+                        str(config.output_path),
+                        str(config.changelog_path),
+                    ],
+                    "statistics": stats,
                 }
                 print(json.dumps(result, indent=2))
 
@@ -324,14 +313,14 @@ class RoadmapHandler(BaseHandler):
         except ImportError as e:
             raise SystemError(
                 f"Roadmap module not available: {e}",
-                "Ensure roadmap module is installed in src/roadmap/"
+                "Ensure roadmap module is installed in src/roadmap/",
             )
         except Exception as e:
             if args.format == "json":
                 error_result = {
                     "success": False,
                     "error": str(e),
-                    "error_type": type(e).__name__
+                    "error_type": type(e).__name__,
                 }
                 print(json.dumps(error_result, indent=2))
             raise
@@ -352,22 +341,21 @@ class RoadmapHandler(BaseHandler):
 
             # Load configuration with CLI overrides
             config = ConfigLoader.load_config(
-                config_path=args.config,
-                cli_overrides=cli_overrides
+                config_path=args.config, cli_overrides=cli_overrides
             )
 
             # Validate specs directory exists
             if not config.specs_directory.exists():
                 raise UserError(
                     f"Specs directory not found: {config.specs_directory}",
-                    "Create specs directory or specify correct path with --specs-dir"
+                    "Create specs directory or specify correct path with --specs-dir",
                 )
 
             # Validate roadmap exists (unless force regeneration)
             if not args.force and not config.output_path.exists():
                 raise UserError(
                     f"Roadmap file not found: {config.output_path}",
-                    "Run 'roadmap generate' first or use --force for full regeneration"
+                    "Run 'roadmap generate' first or use --force for full regeneration",
                 )
 
             # Initialize progress tracking
@@ -394,12 +382,12 @@ class RoadmapHandler(BaseHandler):
             # Detect changes
             if args.format == "human":
                 print("Detecting changes...")
-            
+
             changes = sync_engine.detect_changes()
-            
-            created_count = len(changes.get('created', []))
-            modified_count = len(changes.get('modified', []))
-            deleted_count = len(changes.get('deleted', []))
+
+            created_count = len(changes.get("created", []))
+            modified_count = len(changes.get("modified", []))
+            deleted_count = len(changes.get("deleted", []))
             total_changes = created_count + modified_count + deleted_count
 
             # Print change summary
@@ -417,11 +405,11 @@ class RoadmapHandler(BaseHandler):
             if args.dry_run:
                 if args.format == "human":
                     print("Changes that would be applied:")
-                    for spec in changes.get('created', []):
+                    for spec in changes.get("created", []):
                         print(f"  + {spec.directory.name}")
-                    for spec in changes.get('modified', []):
+                    for spec in changes.get("modified", []):
                         print(f"  ~ {spec.directory.name}")
-                    for spec in changes.get('deleted', []):
+                    for spec in changes.get("deleted", []):
                         print(f"  - {spec.directory.name}")
                     print()
                     print("Run without --dry-run to apply changes")
@@ -429,10 +417,19 @@ class RoadmapHandler(BaseHandler):
                     result = {
                         "dry_run": True,
                         "changes": {
-                            "created": [str(s.directory.name) for s in changes.get('created', [])],
-                            "modified": [str(s.directory.name) for s in changes.get('modified', [])],
-                            "deleted": [str(s.directory.name) for s in changes.get('deleted', [])]
-                        }
+                            "created": [
+                                str(s.directory.name)
+                                for s in changes.get("created", [])
+                            ],
+                            "modified": [
+                                str(s.directory.name)
+                                for s in changes.get("modified", [])
+                            ],
+                            "deleted": [
+                                str(s.directory.name)
+                                for s in changes.get("deleted", [])
+                            ],
+                        },
                     }
                     print(json.dumps(result, indent=2))
                 return 0
@@ -440,7 +437,7 @@ class RoadmapHandler(BaseHandler):
             # Update roadmap
             if args.format == "human":
                 print("Updating roadmap...")
-            
+
             if args.force:
                 # Force full regeneration
                 sync_engine.update_roadmap(changes=None)
@@ -470,8 +467,8 @@ class RoadmapHandler(BaseHandler):
                     "changes": {
                         "created": created_count,
                         "modified": modified_count,
-                        "deleted": deleted_count
-                    }
+                        "deleted": deleted_count,
+                    },
                 }
                 print(json.dumps(result, indent=2))
 
@@ -480,14 +477,14 @@ class RoadmapHandler(BaseHandler):
         except ImportError as e:
             raise SystemError(
                 f"Roadmap module not available: {e}",
-                "Ensure roadmap module is installed in src/roadmap/"
+                "Ensure roadmap module is installed in src/roadmap/",
             )
         except Exception as e:
             if args.format == "json":
                 error_result = {
                     "success": False,
                     "error": str(e),
-                    "error_type": type(e).__name__
+                    "error_type": type(e).__name__,
                 }
                 print(json.dumps(error_result, indent=2))
             raise
@@ -509,22 +506,21 @@ class RoadmapHandler(BaseHandler):
 
             # Load configuration with CLI overrides
             config = ConfigLoader.load_config(
-                config_path=args.config,
-                cli_overrides=cli_overrides
+                config_path=args.config, cli_overrides=cli_overrides
             )
 
             # Validate roadmap exists
             if not config.output_path.exists():
                 raise UserError(
                     f"Roadmap file not found: {config.output_path}",
-                    "Run 'roadmap generate' first"
+                    "Run 'roadmap generate' first",
                 )
 
             # Validate specs directory exists
             if not config.specs_directory.exists():
                 raise UserError(
                     f"Specs directory not found: {config.specs_directory}",
-                    "Create specs directory or specify correct path with --specs-dir"
+                    "Create specs directory or specify correct path with --specs-dir",
                 )
 
             # Initialize validation results
@@ -535,7 +531,7 @@ class RoadmapHandler(BaseHandler):
                 "broken_links": [],
                 "missing_badges": [],
                 "warnings": [],
-                "passed": True
+                "passed": True,
             }
 
             # Print header
@@ -557,15 +553,15 @@ class RoadmapHandler(BaseHandler):
             if args.check_links:
                 if args.format == "human":
                     print("Validating links...")
-                
+
                 validation_results["checks_performed"].append("links")
-                
+
                 # Read roadmap content
-                roadmap_content = config.output_path.read_text(encoding='utf-8')
-                
+                roadmap_content = config.output_path.read_text(encoding="utf-8")
+
                 # Validate spec links
                 broken_links = validator.validate_spec_links(roadmap_content)
-                
+
                 if broken_links:
                     validation_results["passed"] = False
                     validation_results["broken_links"] = [
@@ -573,11 +569,11 @@ class RoadmapHandler(BaseHandler):
                             "line": link.line_number,
                             "text": link.link_text,
                             "target": link.target_path,
-                            "reason": link.reason
+                            "reason": link.reason,
                         }
                         for link in broken_links
                     ]
-                    
+
                     if args.format == "human":
                         print(f"  ✗ Found {len(broken_links)} broken link(s)")
                         for link in broken_links:
@@ -591,28 +587,25 @@ class RoadmapHandler(BaseHandler):
             if args.check_badges:
                 if args.format == "human":
                     print("Validating badges...")
-                
+
                 validation_results["checks_performed"].append("badges")
-                
+
                 # Scan specs
                 spec_files_list = scanner.scan_specs_directory()
                 spec_dirs = [sf.directory for sf in spec_files_list]
-                
+
                 # Validate badges
                 missing_badges = validator.validate_roadmap_badges(spec_dirs)
-                
+
                 if missing_badges:
                     validation_results["warnings"].append(
                         f"{len(missing_badges)} spec(s) missing roadmap badges"
                     )
                     validation_results["missing_badges"] = [
-                        {
-                            "spec": str(badge.spec_dir.name),
-                            "reason": badge.reason
-                        }
+                        {"spec": str(badge.spec_dir.name), "reason": badge.reason}
                         for badge in missing_badges
                     ]
-                    
+
                     if args.format == "human":
                         print(f"  ⚠ Found {len(missing_badges)} spec(s) without badges")
                         for badge in missing_badges[:5]:  # Show first 5
@@ -628,7 +621,7 @@ class RoadmapHandler(BaseHandler):
                 if args.format == "human":
                     print()
                     print("Attempting to fix issues...")
-                
+
                 # Fix broken links (if we have suggestions)
                 # This is a placeholder - actual implementation would need
                 # more sophisticated link fixing logic
@@ -646,13 +639,13 @@ class RoadmapHandler(BaseHandler):
                 else:
                     print("✗ Validation Failed")
                 print("=" * 70)
-                
+
                 if validation_results["warnings"]:
                     print()
                     print("Warnings:")
                     for warning in validation_results["warnings"]:
                         print(f"  ⚠ {warning}")
-                
+
                 print()
             elif args.format == "json":
                 print(json.dumps(validation_results, indent=2))
@@ -662,53 +655,50 @@ class RoadmapHandler(BaseHandler):
         except ImportError as e:
             raise SystemError(
                 f"Roadmap module not available: {e}",
-                "Ensure roadmap module is installed in src/roadmap/"
+                "Ensure roadmap module is installed in src/roadmap/",
             )
         except Exception as e:
             if args.format == "json":
                 error_result = {
                     "success": False,
                     "error": str(e),
-                    "error_type": type(e).__name__
+                    "error_type": type(e).__name__,
                 }
                 print(json.dumps(error_result, indent=2))
             raise
 
     def _execute_dry_run(
-        self,
-        args: argparse.Namespace,
-        config: 'RoadmapConfig',
-        stats: Dict[str, Any]
+        self, args: argparse.Namespace, config: "RoadmapConfig", stats: Dict[str, Any]
     ) -> int:
         """Execute a dry run of roadmap generation."""
         from roadmap.spec_scanner import SpecScanner
-        
+
         # Scan specs
         scanner = SpecScanner(config.specs_directory)
         spec_files_list = scanner.scan_specs_directory()
-        
+
         stats["specs_scanned"] = len(spec_files_list)
-        
+
         if args.format == "human":
             print(f"Would scan {len(spec_files_list)} spec(s):")
             for spec in spec_files_list:
                 print(f"  • {spec.directory.name}")
                 if spec.requirements:
-                    print(f"    - requirements.md")
+                    print("    - requirements.md")
                 if spec.design:
-                    print(f"    - design.md")
+                    print("    - design.md")
                 if spec.tasks:
-                    print(f"    - tasks.md")
-            
+                    print("    - tasks.md")
+
             print()
             print("Would generate:")
             print(f"  • {config.output_path}")
             print(f"  • {config.changelog_path}")
-            
+
             if not args.no_badges:
                 print()
                 print(f"Would inject badges into {len(spec_files_list)} spec file(s)")
-            
+
             print()
             print("Run without --dry-run to generate files")
         elif args.format == "json":
@@ -716,9 +706,12 @@ class RoadmapHandler(BaseHandler):
                 "dry_run": True,
                 "specs_found": len(spec_files_list),
                 "spec_names": [s.directory.name for s in spec_files_list],
-                "files_to_generate": [str(config.output_path), str(config.changelog_path)],
-                "badges_to_inject": len(spec_files_list) if not args.no_badges else 0
+                "files_to_generate": [
+                    str(config.output_path),
+                    str(config.changelog_path),
+                ],
+                "badges_to_inject": len(spec_files_list) if not args.no_badges else 0,
             }
             print(json.dumps(result, indent=2))
-        
+
         return 0

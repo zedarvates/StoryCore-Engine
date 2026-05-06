@@ -4,10 +4,12 @@
  * Tests for multi-server management including CRUD operations,
  * active server management, and automatic failover.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import {
   ComfyUIServersService,
-  getComfyUIServersService,
+  getCo_mfyUIServersService,
   resetComfyUIServersService,
   type ComfyUIServer,
   type CreateComfyUIServerInput,
@@ -21,7 +23,7 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as LegacyAny;
 
 describe('ComfyUI Servers Service', () => {
   let service: ComfyUIServersService;
@@ -355,7 +357,7 @@ describe('ComfyUI Servers Service', () => {
               }),
             });
           }
-          throw new Error('Network error');
+          throw new Error('Ne_twork error');
         })
         .mockImplementation((url: string) => {
           throw new Error('Network error');
@@ -414,7 +416,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should return null when no servers available', async () => {
       // Mock all connections as failed
-      global.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
+      global_.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
 
       const server = service.addServer({
         name: 'Unavailable Server',

@@ -64,7 +64,7 @@ class BackupManager:
                 "configuration": await self._backup_configuration(),
                 "models": await self._backup_models(),
                 "logs": await self._backup_logs(),
-                "metrics": await self._backup_metrics()
+                "metrics": await self._backup_metrics(),
             }
 
             # Create backup manifest
@@ -72,23 +72,24 @@ class BackupManager:
                 "backup_id": backup_id,
                 "timestamp": datetime.now().isoformat(),
                 "items": backup_items,
-                "status": "completed"
+                "status": "completed",
             }
 
             # Save backup manifest
             backup_dir = Path("backups") / backup_id
             loop = asyncio.get_event_loop()
-            
+
             # Create directory in executor
             await loop.run_in_executor(
-                None,
-                lambda: backup_dir.mkdir(parents=True, exist_ok=True)
+                None, lambda: backup_dir.mkdir(parents=True, exist_ok=True)
             )
 
             # Write manifest in executor
             await loop.run_in_executor(
                 None,
-                lambda: self._write_json_file(backup_dir / "manifest.json", backup_manifest)
+                lambda: self._write_json_file(
+                    backup_dir / "manifest.json", backup_manifest
+                ),
             )
 
             # Update backup history
@@ -108,26 +109,26 @@ class BackupManager:
             config_files = [
                 "config/advanced_workflows.json",
                 "config/production.yaml",
-                ".env"
+                ".env",
             ]
 
             backed_up_files = []
             loop = asyncio.get_event_loop()
-            
+
             for config_file in config_files:
                 # Check file existence in executor
-                exists = await loop.run_in_executor(
-                    None, os.path.exists, config_file
-                )
-                
+                exists = await loop.run_in_executor(None, os.path.exists, config_file)
+
                 if exists:
                     # Copy to backup location in executor
                     backup_path = f"backups/config/{os.path.basename(config_file)}"
-                    
+
                     # Create directory in executor
                     await loop.run_in_executor(
                         None,
-                        lambda: os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+                        lambda: os.makedirs(
+                            os.path.dirname(backup_path), exist_ok=True
+                        ),
                     )
 
                     # Copy file in executor
@@ -139,7 +140,7 @@ class BackupManager:
             return {
                 "status": "completed",
                 "files_backed_up": len(backed_up_files),
-                "files": backed_up_files
+                "files": backed_up_files,
             }
 
         except Exception as e:
@@ -151,7 +152,7 @@ class BackupManager:
         try:
             # Only backup model metadata, not the actual large files
             loop = asyncio.get_event_loop()
-            
+
             # Get model info in executor
             model_info = {
                 "hunyuan_models": await loop.run_in_executor(
@@ -165,26 +166,24 @@ class BackupManager:
                 ),
                 "qwen_models": await loop.run_in_executor(
                     None, self._get_model_info, "models/qwen/"
-                )
+                ),
             }
 
             backup_path = "backups/models/model_inventory.json"
-            
+
             # Create directory and write file in executor
             await loop.run_in_executor(
-                None,
-                lambda: os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+                None, lambda: os.makedirs(os.path.dirname(backup_path), exist_ok=True)
             )
 
             await loop.run_in_executor(
-                None,
-                lambda: self._write_json_file(backup_path, model_info)
+                None, lambda: self._write_json_file(backup_path, model_info)
             )
 
             return {
                 "status": "completed",
                 "backup_type": "metadata_only",
-                "model_categories": len(model_info)
+                "model_categories": len(model_info),
             }
 
         except Exception as e:
@@ -198,20 +197,24 @@ class BackupManager:
 
         model_files = []
         for file in os.listdir(model_dir):
-            if file.endswith(('.safetensors', '.bin', '.pt')):
+            if file.endswith((".safetensors", ".bin", ".pt")):
                 file_path = os.path.join(model_dir, file)
                 file_stat = os.stat(file_path)
 
-                model_files.append({
-                    "filename": file,
-                    "size_bytes": file_stat.st_size,
-                    "modified_time": datetime.fromtimestamp(file_stat.st_mtime).isoformat()
-                })
+                model_files.append(
+                    {
+                        "filename": file,
+                        "size_bytes": file_stat.st_size,
+                        "modified_time": datetime.fromtimestamp(
+                            file_stat.st_mtime
+                        ).isoformat(),
+                    }
+                )
 
         return {
             "model_count": len(model_files),
             "total_size_gb": sum(f["size_bytes"] for f in model_files) / (1024**3),
-            "files": model_files
+            "files": model_files,
         }
 
     def _write_json_file(self, path: str, data: Dict) -> None:
@@ -228,42 +231,36 @@ class BackupManager:
 
             for log_dir in log_dirs:
                 # Check directory existence in executor
-                exists = await loop.run_in_executor(
-                    None, os.path.exists, log_dir
-                )
-                
+                exists = await loop.run_in_executor(None, os.path.exists, log_dir)
+
                 if exists:
                     # List directory in executor
-                    files = await loop.run_in_executor(
-                        None, os.listdir, log_dir
-                    )
-                    
+                    files = await loop.run_in_executor(None, os.listdir, log_dir)
+
                     for file in files:
-                        if file.endswith('.log'):
+                        if file.endswith(".log"):
                             log_files.append(os.path.join(log_dir, file))
 
             # Compress and backup recent logs
             backup_count = 0
             for log_file in log_files:
                 # Check file existence and stats in executor
-                exists = await loop.run_in_executor(
-                    None, os.path.exists, log_file
-                )
-                
+                exists = await loop.run_in_executor(None, os.path.exists, log_file)
+
                 if exists:
                     # Get file stats in executor
-                    file_stat = await loop.run_in_executor(
-                        None, os.stat, log_file
-                    )
-                    
+                    file_stat = await loop.run_in_executor(None, os.stat, log_file)
+
                     # Only backup if modified in last 7 days
-                    if datetime.fromtimestamp(file_stat.st_mtime) > datetime.now() - timedelta(days=7):
+                    if datetime.fromtimestamp(
+                        file_stat.st_mtime
+                    ) > datetime.now() - timedelta(days=7):
                         backup_count += 1
 
             return {
                 "status": "completed",
                 "files_backed_up": backup_count,
-                "total_log_files": len(log_files)
+                "total_log_files": len(log_files),
             }
 
         except Exception as e:
@@ -277,27 +274,25 @@ class BackupManager:
             metrics_backup = {
                 "backup_timestamp": datetime.now().isoformat(),
                 "metrics_available": True,
-                "data_points": 1000  # Simulated
+                "data_points": 1000,  # Simulated
             }
 
             backup_path = "backups/metrics/metrics_backup.json"
             loop = asyncio.get_event_loop()
-            
+
             # Create directory in executor
             await loop.run_in_executor(
-                None,
-                lambda: os.makedirs(os.path.dirname(backup_path), exist_ok=True)
+                None, lambda: os.makedirs(os.path.dirname(backup_path), exist_ok=True)
             )
 
             # Write file in executor
             await loop.run_in_executor(
-                None,
-                lambda: self._write_json_file(backup_path, metrics_backup)
+                None, lambda: self._write_json_file(backup_path, metrics_backup)
             )
 
             return {
                 "status": "completed",
-                "data_points_backed_up": metrics_backup["data_points"]
+                "data_points_backed_up": metrics_backup["data_points"],
             }
 
         except Exception as e:
@@ -309,12 +304,10 @@ class BackupManager:
         try:
             backup_dir = Path("backups")
             loop = asyncio.get_event_loop()
-            
+
             # Check if backup directory exists in executor
-            exists = await loop.run_in_executor(
-                None, backup_dir.exists
-            )
-            
+            exists = await loop.run_in_executor(None, backup_dir.exists)
+
             if not exists:
                 return
 
@@ -325,17 +318,21 @@ class BackupManager:
             backup_folders = await loop.run_in_executor(
                 None, lambda: list(backup_dir.iterdir())
             )
-            
+
             for backup_folder in backup_folders:
-                is_dir = await loop.run_in_executor(
-                    None, backup_folder.is_dir
-                )
-                
+                is_dir = await loop.run_in_executor(None, backup_folder.is_dir)
+
                 if is_dir:
                     # Check backup date from folder name
                     try:
-                        backup_date_str = backup_folder.name.split('_')[1] + '_' + backup_folder.name.split('_')[2]
-                        backup_date = datetime.strptime(backup_date_str, '%Y%m%d_%H%M%S')
+                        backup_date_str = (
+                            backup_folder.name.split("_")[1]
+                            + "_"
+                            + backup_folder.name.split("_")[2]
+                        )
+                        backup_date = datetime.strptime(
+                            backup_date_str, "%Y%m%d_%H%M%S"
+                        )
 
                         if backup_date < cutoff_date:
                             # Remove directory in executor
@@ -358,22 +355,18 @@ class BackupManager:
 
             backup_dir = Path("backups") / backup_id
             manifest_file = backup_dir / "manifest.json"
-            
+
             loop = asyncio.get_event_loop()
 
             # Check if manifest exists in executor
-            exists = await loop.run_in_executor(
-                None, manifest_file.exists
-            )
-            
+            exists = await loop.run_in_executor(None, manifest_file.exists)
+
             if not exists:
                 logger.error(f"Backup manifest not found: {manifest_file}")
                 return False
 
             # Load backup manifest in executor
-            manifest = await loop.run_in_executor(
-                None, self._read_json_file, manifest_file
-            )
+            await loop.run_in_executor(None, self._read_json_file, manifest_file)
 
             # Restore configuration
             await self._restore_configuration(backup_dir)
@@ -395,25 +388,21 @@ class BackupManager:
         """Restore configuration from backup"""
         config_backup_dir = backup_dir / "config"
         loop = asyncio.get_event_loop()
-        
+
         # Check if config backup directory exists in executor
-        exists = await loop.run_in_executor(
-            None, config_backup_dir.exists
-        )
-        
+        exists = await loop.run_in_executor(None, config_backup_dir.exists)
+
         if exists:
             # List files in executor
             config_files = await loop.run_in_executor(
                 None, lambda: list(config_backup_dir.iterdir())
             )
-            
+
             for config_file in config_files:
                 target_path = f"config/{config_file.name}"
-                
+
                 # Copy file in executor
-                await loop.run_in_executor(
-                    None, shutil.copy2, config_file, target_path
-                )
+                await loop.run_in_executor(None, shutil.copy2, config_file, target_path)
                 logger.info(f"Restored config file: {target_path}")
 
     def get_backup_history(self) -> List[Dict]:

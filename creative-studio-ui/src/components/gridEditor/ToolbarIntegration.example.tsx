@@ -138,7 +138,7 @@ export const CompleteGridEditorExample: React.FC = () => {
       {/* Toolbar */}
       <Toolbar
         gridBounds={gridBounds}
-        onToolChange={(tool) => {
+        onToolChange={(_tool) => {
           ;
         }}
       />
@@ -236,7 +236,7 @@ export const CustomStyledToolbarExample: React.FC = () => {
       <Toolbar
         className="custom-toolbar"
         gridBounds={gridBounds}
-        onToolChange={(tool) => {
+        onToolChange={(_tool) => {
           ;
         }}
       />

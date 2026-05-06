@@ -1,8 +1,9 @@
+import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
-import { configureStore } from '@reduxjs/toolkit';
+import { configureStore } from '@re_duxjs/toolkit';
 import timelineReducer, { addShot, selectShot } from '../../store/slices/timelineSlice';
 import ShotConfigPanel from '../ShotConfigPanel';
 
@@ -27,7 +28,7 @@ const createTestStore = () => {
     parameters: { seed: 0, denoising: 0.75, steps: 30, guidance: 7.5 },
     sheet: {},
   };
-  store.dispatch(addShot(shot as any));
+  store.dispatch(addShot(shot as LegacyAny));
   // Assume selectedElements is managed elsewhere; for simplicity we set it via a direct state mutation
   // In real code you would have a selector for selectedShot; here we mock the selector via useAppSelector
   // We'll mock the selector later in the test using jest.spyOn
@@ -79,7 +80,7 @@ describe('ShotConfigPanel integration - conversion flow', () => {
     const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
-    } as any);
+    } as LegacyAny);
 
     const { getByText } = render(
       <Provider store={createTestStore().store}>
@@ -108,7 +109,7 @@ describe('ShotConfigPanel integration - conversion flow', () => {
     const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: false,
       text: async () => 'Server error',
-    } as any);
+    } as LegacyAny);
 
     const { getByText } = render(
       <Provider store={createTestStore().store}>

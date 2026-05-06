@@ -4,14 +4,14 @@ Property-based tests for Visual Quality Validator.
 Tests universal properties that should hold for visual quality assessment.
 """
 
-import pytest
 import numpy as np
 from pathlib import Path
-from hypothesis import given, strategies as st, settings, assume
+from hypothesis import given, strategies as st, settings
 from hypothesis.strategies import composite
 
 # Import the modules to test
 import sys
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from quality_validator import QualityValidator
@@ -56,9 +56,9 @@ def valid_shot(draw):
     continuity_score = draw(st.floats(min_value=0.0, max_value=100.0))
 
     return {
-        'frames': frames,
-        'audio_score': audio_score,
-        'continuity_score': continuity_score
+        "frames": frames,
+        "audio_score": audio_score,
+        "continuity_score": continuity_score,
     }
 
 
@@ -100,22 +100,34 @@ class TestQualityValidatorVisualProperties:
         quality_score = validator.generate_quality_score(shot)
 
         # Verify overall score bounds
-        assert 0.0 <= quality_score.overall_score <= 100.0, f"Overall score out of bounds: {quality_score.overall_score}"
+        assert 0.0 <= quality_score.overall_score <= 100.0, (
+            f"Overall score out of bounds: {quality_score.overall_score}"
+        )
 
         # Verify individual score bounds
-        assert 0.0 <= quality_score.sharpness_score <= 100.0, f"Sharpness score out of bounds: {quality_score.sharpness_score}"
-        assert 0.0 <= quality_score.motion_score <= 100.0, f"Motion score out of bounds: {quality_score.motion_score}"
-        assert 0.0 <= quality_score.audio_score <= 100.0, f"Audio score out of bounds: {quality_score.audio_score}"
-        assert 0.0 <= quality_score.continuity_score <= 100.0, f"Continuity score out of bounds: {quality_score.continuity_score}"
+        assert 0.0 <= quality_score.sharpness_score <= 100.0, (
+            f"Sharpness score out of bounds: {quality_score.sharpness_score}"
+        )
+        assert 0.0 <= quality_score.motion_score <= 100.0, (
+            f"Motion score out of bounds: {quality_score.motion_score}"
+        )
+        assert 0.0 <= quality_score.audio_score <= 100.0, (
+            f"Audio score out of bounds: {quality_score.audio_score}"
+        )
+        assert 0.0 <= quality_score.continuity_score <= 100.0, (
+            f"Continuity score out of bounds: {quality_score.continuity_score}"
+        )
 
         # Verify weighted calculation (approximately)
         expected_overall = (
-            quality_score.sharpness_score * 0.3 +
-            quality_score.motion_score * 0.25 +
-            quality_score.audio_score * 0.25 +
-            quality_score.continuity_score * 0.2
+            quality_score.sharpness_score * 0.3
+            + quality_score.motion_score * 0.25
+            + quality_score.audio_score * 0.25
+            + quality_score.continuity_score * 0.2
         )
-        assert abs(quality_score.overall_score - expected_overall) < 0.01, "Overall score calculation incorrect"
+        assert abs(quality_score.overall_score - expected_overall) < 0.01, (
+            "Overall score calculation incorrect"
+        )
 
     @given(valid_frame_sequence())
     @settings(max_examples=10, deadline=3000)
@@ -133,22 +145,34 @@ class TestQualityValidatorVisualProperties:
 
         # Verify anomalies structure
         for anomaly in anomalies:
-            assert 'type' in anomaly, "Anomaly missing 'type'"
-            assert 'severity' in anomaly, "Anomaly missing 'severity'"
-            assert 'description' in anomaly, "Anomaly missing 'description'"
-            assert 'timestamp' in anomaly, "Anomaly missing 'timestamp'"
-            assert 'frame_number' in anomaly, "Anomaly missing 'frame_number'"
-            assert 'metric_value' in anomaly, "Anomaly missing 'metric_value'"
-            assert 'threshold_value' in anomaly, "Anomaly missing 'threshold_value'"
+            assert "type" in anomaly, "Anomaly missing 'type'"
+            assert "severity" in anomaly, "Anomaly missing 'severity'"
+            assert "description" in anomaly, "Anomaly missing 'description'"
+            assert "timestamp" in anomaly, "Anomaly missing 'timestamp'"
+            assert "frame_number" in anomaly, "Anomaly missing 'frame_number'"
+            assert "metric_value" in anomaly, "Anomaly missing 'metric_value'"
+            assert "threshold_value" in anomaly, "Anomaly missing 'threshold_value'"
 
             # Verify data types and ranges
-            assert isinstance(anomaly['type'], str), "Type should be string"
-            assert anomaly['severity'] in ['low', 'medium', 'high'], f"Invalid severity: {anomaly['severity']}"
-            assert isinstance(anomaly['description'], str), "Description should be string"
-            assert anomaly['timestamp'] >= 0.0, f"Invalid timestamp: {anomaly['timestamp']}"
-            assert isinstance(anomaly['frame_number'], int), "Frame number should be int"
-            assert anomaly['frame_number'] >= 0, f"Invalid frame number: {anomaly['frame_number']}"
-            assert anomaly['metric_value'] >= 0.0, f"Invalid metric value: {anomaly['metric_value']}"
+            assert isinstance(anomaly["type"], str), "Type should be string"
+            assert anomaly["severity"] in ["low", "medium", "high"], (
+                f"Invalid severity: {anomaly['severity']}"
+            )
+            assert isinstance(anomaly["description"], str), (
+                "Description should be string"
+            )
+            assert anomaly["timestamp"] >= 0.0, (
+                f"Invalid timestamp: {anomaly['timestamp']}"
+            )
+            assert isinstance(anomaly["frame_number"], int), (
+                "Frame number should be int"
+            )
+            assert anomaly["frame_number"] >= 0, (
+                f"Invalid frame number: {anomaly['frame_number']}"
+            )
+            assert anomaly["metric_value"] >= 0.0, (
+                f"Invalid metric value: {anomaly['metric_value']}"
+            )
 
     @given(valid_frame_sequence())
     @settings(max_examples=10, deadline=3000)
@@ -166,22 +190,34 @@ class TestQualityValidatorVisualProperties:
 
         # Verify anomalies structure
         for anomaly in anomalies:
-            assert 'type' in anomaly, "Anomaly missing 'type'"
-            assert 'severity' in anomaly, "Anomaly missing 'severity'"
-            assert 'description' in anomaly, "Anomaly missing 'description'"
-            assert 'timestamp' in anomaly, "Anomaly missing 'timestamp'"
-            assert 'frame_number' in anomaly, "Anomaly missing 'frame_number'"
-            assert 'metric_value' in anomaly, "Anomaly missing 'metric_value'"
-            assert 'threshold_value' in anomaly, "Anomaly missing 'threshold_value'"
+            assert "type" in anomaly, "Anomaly missing 'type'"
+            assert "severity" in anomaly, "Anomaly missing 'severity'"
+            assert "description" in anomaly, "Anomaly missing 'description'"
+            assert "timestamp" in anomaly, "Anomaly missing 'timestamp'"
+            assert "frame_number" in anomaly, "Anomaly missing 'frame_number'"
+            assert "metric_value" in anomaly, "Anomaly missing 'metric_value'"
+            assert "threshold_value" in anomaly, "Anomaly missing 'threshold_value'"
 
             # Verify data types and ranges
-            assert isinstance(anomaly['type'], str), "Type should be string"
-            assert anomaly['severity'] in ['low', 'medium', 'high'], f"Invalid severity: {anomaly['severity']}"
-            assert isinstance(anomaly['description'], str), "Description should be string"
-            assert anomaly['timestamp'] >= 0.0, f"Invalid timestamp: {anomaly['timestamp']}"
-            assert isinstance(anomaly['frame_number'], int), "Frame number should be int"
-            assert anomaly['frame_number'] >= 0, f"Invalid frame number: {anomaly['frame_number']}"
-            assert anomaly['metric_value'] >= 0.0, f"Invalid metric value: {anomaly['metric_value']}"
+            assert isinstance(anomaly["type"], str), "Type should be string"
+            assert anomaly["severity"] in ["low", "medium", "high"], (
+                f"Invalid severity: {anomaly['severity']}"
+            )
+            assert isinstance(anomaly["description"], str), (
+                "Description should be string"
+            )
+            assert anomaly["timestamp"] >= 0.0, (
+                f"Invalid timestamp: {anomaly['timestamp']}"
+            )
+            assert isinstance(anomaly["frame_number"], int), (
+                "Frame number should be int"
+            )
+            assert anomaly["frame_number"] >= 0, (
+                f"Invalid frame number: {anomaly['frame_number']}"
+            )
+            assert anomaly["metric_value"] >= 0.0, (
+                f"Invalid metric value: {anomaly['metric_value']}"
+            )
 
 
 def test_quality_validator_visual_basic_functionality():
@@ -207,11 +243,7 @@ def test_quality_validator_visual_basic_functionality():
     assert isinstance(anomalies, list)
 
     # Test quality score generation
-    shot = {
-        'frames': frames,
-        'audio_score': 75.0,
-        'continuity_score': 80.0
-    }
+    shot = {"frames": frames, "audio_score": 75.0, "continuity_score": 80.0}
     score = validator.generate_quality_score(shot)
     assert 0.0 <= score.overall_score <= 100.0
     assert 0.0 <= score.sharpness_score <= 100.0

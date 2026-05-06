@@ -3,6 +3,8 @@
  * 
  * Tests the mergeProjects function with specific examples and edge cases.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { mergeProjects, MergedProject, DiscoveredProject } from '../projectMerger';
 import { RecentProject } from '../../types/menuBarState';
@@ -333,7 +335,7 @@ describe('projectMerger', () => {
           id: 'project-a',
           name: 'Project A',
           path: '/path/to/project-a',
-          lastModified: 2000 as any, // Simulate timestamp as number
+          lastModified: 2000 as LegacyAny, // Simulate timestamp as number
         },
       ];
 

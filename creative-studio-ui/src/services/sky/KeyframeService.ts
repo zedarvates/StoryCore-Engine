@@ -12,17 +12,17 @@ import {
   KeyframeResult,
   KeyframeMetadata,
   ComfyUIPayload,
-  WorldPreset,
+  _WorldPreset,
   PresetInfo,
-  CameraConfig,
+  _CameraConfig,
   GenerateKeyframeRequest,
   GenerateKeyframeResponse,
   ListPresetsResponse,
   GetPresetResponse,
   SkyGeneratorEvent,
-  DEFAULT_KEYFRAME_CONFIG,
-  DEFAULT_CAMERA_CONFIG,
-  LightingConditions
+  _DEFAULT_KEYFRAME_CONFIG,
+  _DEFAULT_CAMERA_CONFIG,
+  _LightingConditions
 } from './SkyTypes';
 
 // ============================================================================

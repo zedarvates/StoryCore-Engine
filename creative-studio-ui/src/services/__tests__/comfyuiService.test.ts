@@ -4,6 +4,8 @@
  * Tests for ComfyUI service functionality including connection testing,
  * workflow management, model loading, and error handling.
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import {
   ComfyUIService,
@@ -25,7 +27,7 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+global.localStorage = localStorageMock as LegacyAny;
 
 describe('ComfyUI Service', () => {
   let service: ComfyUIService;

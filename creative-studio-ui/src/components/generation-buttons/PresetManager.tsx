@@ -6,7 +6,6 @@
  * 
  * Requirements: 10.5
  */
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -109,7 +108,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
         name: newPresetName.trim(),
         type,
         ...(type === 'prompt' ? { categories: currentParams } : { params: currentParams }),
-      } as any);
+      } as LegacyAny);
       
       loadPresets();
       setShowSaveDialog(false);
@@ -192,7 +191,7 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
         try {
           const text = await file.text();
           const result = PresetManagementService.importPresets(text);
-          alert(`Imported ${result.success} presets. ${result.failed} failed.`);
+          alert(`_Imported ${result.success} presets. ${result.failed} failed.`);
           loadPresets();
         } catch (error) {
           alert('Failed to import presets. Please check the file format.');

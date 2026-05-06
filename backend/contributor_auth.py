@@ -18,7 +18,6 @@ from datetime import datetime
 from typing import Optional, Tuple, Dict, Any
 
 from fastapi import HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ─────────────────────────────────────────────
 # Résultat de l'authentification
 # ─────────────────────────────────────────────
+
 
 class ContributorIdentity:
     """
@@ -60,13 +60,16 @@ class ContributorIdentity:
 
     def __repr__(self):
         if self.is_agent:
-            return f"<ContributorIdentity agent='{self.agent_name}' owner={self.user_id}>"
+            return (
+                f"<ContributorIdentity agent='{self.agent_name}' owner={self.user_id}>"
+            )
         return f"<ContributorIdentity human user={self.user_id}>"
 
 
 # ─────────────────────────────────────────────
 # Fonctions utilitaires API Key
 # ─────────────────────────────────────────────
+
 
 def generate_agent_api_key() -> Tuple[str, str, str]:
     """
@@ -99,13 +102,17 @@ def is_agent_key(token: str) -> bool:
 # Résolution de l'identité (sans DB — pour tests)
 # ─────────────────────────────────────────────
 
-async def resolve_contributor_identity_from_jwt(token: str) -> Optional[ContributorIdentity]:
+
+async def resolve_contributor_identity_from_jwt(
+    token: str,
+) -> Optional[ContributorIdentity]:
     """
     Résout l'identité d'un contributeur humain depuis un JWT.
     Retourne None si le token est invalide.
     """
     try:
         from backend.auth import decode_jwt_token
+
         payload = decode_jwt_token(token)
         user_id = payload.get("sub") or payload.get("user_id")
         if not user_id:
@@ -126,8 +133,7 @@ async def resolve_contributor_identity_from_jwt(token: str) -> Optional[Contribu
 
 
 async def resolve_contributor_identity_from_api_key(
-    api_key: str,
-    db_session=None
+    api_key: str, db_session=None
 ) -> Optional[ContributorIdentity]:
     """
     Résout l'identité d'un agent automatisé depuis une API Key.
@@ -139,7 +145,9 @@ async def resolve_contributor_identity_from_api_key(
 
     if db_session is None:
         # Mode sans DB (dev/test) — refuser prudemment
-        logger.warning("resolve_contributor_identity_from_api_key called without DB session")
+        logger.warning(
+            "resolve_contributor_identity_from_api_key called without DB session"
+        )
         return None
 
     try:
@@ -148,7 +156,7 @@ async def resolve_contributor_identity_from_api_key(
 
         stmt = select(AgentApiKey).where(
             AgentApiKey.key_hash == key_hash,
-            AgentApiKey.is_active == True,
+            AgentApiKey.is_active.is_(True),
         )
         result = await db_session.execute(stmt)
         agent_key = result.scalar_one_or_none()
@@ -183,6 +191,7 @@ async def resolve_contributor_identity_from_api_key(
 # FastAPI Dependency — resolve_contributor
 # ─────────────────────────────────────────────
 
+
 async def resolve_contributor(request: Request, db_session=None) -> ContributorIdentity:
     """
     FastAPI dependency : résout l'identité du contributeur depuis la requête.
@@ -214,7 +223,7 @@ async def resolve_contributor(request: Request, db_session=None) -> ContributorI
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = auth_header[len("Bearer "):]
+    token = auth_header[len("Bearer ") :]
 
     if not token:
         raise HTTPException(
@@ -235,7 +244,9 @@ async def resolve_contributor(request: Request, db_session=None) -> ContributorI
                 ),
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        logger.info(f"Agent authenticated: '{identity.agent_name}' → owner={identity.user_id}")
+        logger.info(
+            f"Agent authenticated: '{identity.agent_name}' → owner={identity.user_id}"
+        )
         return identity
 
     # --- Humain / LLM / Semi-auto ---
@@ -244,8 +255,7 @@ async def resolve_contributor(request: Request, db_session=None) -> ContributorI
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=(
-                "Invalid or expired JWT token. "
-                "Please log in to your StoryCore account."
+                "Invalid or expired JWT token. Please log in to your StoryCore account."
             ),
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -258,7 +268,10 @@ async def resolve_contributor(request: Request, db_session=None) -> ContributorI
 # Optionnel : identité sans bloquer (pour fallback)
 # ─────────────────────────────────────────────
 
-async def resolve_contributor_optional(request: Request, db_session=None) -> Optional[ContributorIdentity]:
+
+async def resolve_contributor_optional(
+    request: Request, db_session=None
+) -> Optional[ContributorIdentity]:
     """
     Comme resolve_contributor mais retourne None au lieu de lever une exception.
     Utile pour les endpoints qui acceptent les requêtes anonymes (read-only).

@@ -40,7 +40,7 @@ describe('Console.log Elimination Validation', () => {
       // Check for console.log (but allow console.error, console.warn for error handling)
       const consoleLogRegex = /console\.log\s*\(/g;
       return consoleLogRegex.test(content);
-    } catch (error) {
+    } catch (_error) {
       // If we can't read the file, assume it doesn't have console.log
       return false;
     }

@@ -8,6 +8,8 @@
  * 
  * Requirements: 1.3, 1.7, 12.1
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { fileActions } from '../menuActions';
@@ -33,7 +35,7 @@ describe('Menu Actions Integration', () => {
   let mockPersistenceService: ProjectPersistenceService;
   let mockRecentProjectsService: RecentProjectsService;
   let mockNotificationService: NotificationService;
-  let mockModalManager: any;
+  let mockModalManager: LegacyAny;
   let mockContext: ActionContext;
   let mockProject: Project;
 

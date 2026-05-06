@@ -7,10 +7,11 @@ This module provides Doppler effect functionality for audio processing.
 import numpy as np
 import librosa
 
+
 class DopplerEffect:
     """Doppler effect processor for audio signals."""
 
-    def __init__(self, sample_rate=44100, speed=10.0, direction='approaching'):
+    def __init__(self, sample_rate=44100, speed=10.0, direction="approaching"):
         """
         Initialize the Doppler effect.
 
@@ -35,14 +36,12 @@ class DopplerEffect:
             numpy.ndarray: Processed audio signal with Doppler effect
         """
         # Calculate Doppler shift factor
-        if self.direction == 'approaching':
+        if self.direction == "approaching":
             factor = self.speed_of_sound / (self.speed_of_sound - self.speed)
         else:  # receding
             factor = self.speed_of_sound / (self.speed_of_sound + self.speed)
 
         # Apply pitch shift based on Doppler effect
         return librosa.effects.pitch_shift(
-            audio_data, 
-            sr=self.sample_rate, 
-            n_steps=np.log2(factor)
+            audio_data, sr=self.sample_rate, n_steps=np.log2(factor)
         )

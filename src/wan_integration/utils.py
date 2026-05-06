@@ -5,7 +5,9 @@ Utility functions for Wan Video Integration
 from typing import Dict, Any
 
 
-def inject_workflow_inputs(workflow: Dict[str, Any], inputs: Dict[str, Any]) -> Dict[str, Any]:
+def inject_workflow_inputs(
+    workflow: Dict[str, Any], inputs: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Inject inputs into ComfyUI workflow nodes
 
@@ -30,15 +32,25 @@ def inject_workflow_inputs(workflow: Dict[str, Any], inputs: Dict[str, Any]) -> 
             widgets_values = node_data.get("widgets_values", [])
             if widgets_values and len(widgets_values) > 0:
                 # Map input keys to widget positions
-                if "start_image" in inputs and "start_image.png" in str(widgets_values[0]):
+                if "start_image" in inputs and "start_image.png" in str(
+                    widgets_values[0]
+                ):
                     widgets_values[0] = inputs["start_image"]
-                elif "end_image" in inputs and "end_image.png" in str(widgets_values[0]):
+                elif "end_image" in inputs and "end_image.png" in str(
+                    widgets_values[0]
+                ):
                     widgets_values[0] = inputs["end_image"]
-                elif "guidance_image_1" in inputs and "guidance_image_1.png" in str(widgets_values[0]):
+                elif "guidance_image_1" in inputs and "guidance_image_1.png" in str(
+                    widgets_values[0]
+                ):
                     widgets_values[0] = inputs["guidance_image_1"]
-                elif "guidance_image_2" in inputs and "guidance_image_2.png" in str(widgets_values[0]):
+                elif "guidance_image_2" in inputs and "guidance_image_2.png" in str(
+                    widgets_values[0]
+                ):
                     widgets_values[0] = inputs["guidance_image_2"]
-                elif "inpainting_mask" in inputs and "inpainting_mask.png" in str(widgets_values[0]):
+                elif "inpainting_mask" in inputs and "inpainting_mask.png" in str(
+                    widgets_values[0]
+                ):
                     widgets_values[0] = inputs["inpainting_mask"]
 
         # CLIPTextEncode nodes - inject prompts
@@ -47,10 +59,16 @@ def inject_workflow_inputs(workflow: Dict[str, Any], inputs: Dict[str, Any]) -> 
             if widgets_values and len(widgets_values) > 0:
                 if "prompt" in inputs:
                     # Update positive prompts
-                    if "positive" in str(widgets_values[0]).lower() or "prompt for" in str(widgets_values[0]).lower():
+                    if (
+                        "positive" in str(widgets_values[0]).lower()
+                        or "prompt for" in str(widgets_values[0]).lower()
+                    ):
                         widgets_values[0] = inputs["prompt"]
                     # Update negative prompts (usually empty or generic)
-                    elif len(widgets_values) > 1 and ("negative" in str(widgets_values[1]).lower() or widgets_values[1] == ""):
+                    elif len(widgets_values) > 1 and (
+                        "negative" in str(widgets_values[1]).lower()
+                        or widgets_values[1] == ""
+                    ):
                         pass  # Keep negative prompt as is
 
         # SaveVideo nodes - inject output paths

@@ -11,7 +11,7 @@
  * Requirements: 4.5, 5.6, 11.6, 12.2, 12.6
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, _useRef, _useEffect } from 'react';
 import { GripVertical, Clock } from 'lucide-react';
 import type { Shot } from '../../types';
 

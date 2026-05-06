@@ -5,6 +5,8 @@
  * 
  * Requirements: 2.1-2.4
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { editActions } from '../menuActions';
@@ -58,10 +60,10 @@ describe('Undo/Redo Store Integration', () => {
     mockContext = {
       state: mockState,
       services: {
-        persistence: {} as any,
-        export: {} as any,
-        recentProjects: {} as any,
-        modal: {} as any,
+        persistence: {} as LegacyAny,
+        export: {} as LegacyAny,
+        recentProjects: {} as LegacyAny,
+        modal: {} as LegacyAny,
         notification: {
           show: vi.fn(),
           dismiss: vi.fn(),

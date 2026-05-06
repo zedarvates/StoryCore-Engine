@@ -41,19 +41,19 @@ print("=" * 60)
 
 # Try to find JSON array or object
 trimmed = response.strip()
-jsonMatch = re.search(r'(\[[\s\S]*\]|\{[\s\S]*\})', trimmed)
+jsonMatch = re.search(r"(\[[\s\S]*\]|\{[\s\S]*\})", trimmed)
 
 if jsonMatch:
     print("✅ Found JSON match!")
     json_str = jsonMatch.group(0)
     print(f"JSON string length: {len(json_str)}")
-    
+
     try:
         parsed = json.loads(json_str)
-        print(f"✅ Successfully parsed JSON!")
+        print("✅ Successfully parsed JSON!")
         print(f"   - Type: {type(parsed)}")
         print(f"   - Length: {len(parsed) if isinstance(parsed, list) else 'N/A'}")
-        
+
         if isinstance(parsed, list):
             print(f"\n✅ Extracted {len(parsed)} constraints:")
             for i, item in enumerate(parsed, 1):

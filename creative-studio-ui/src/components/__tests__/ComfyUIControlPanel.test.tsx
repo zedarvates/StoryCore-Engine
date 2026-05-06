@@ -1,6 +1,8 @@
 /**
  * Unit tests for ComfyUIControlPanel component
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -41,7 +43,7 @@ describe('ComfyUIControlPanel', () => {
     vi.clearAllMocks();
 
     // Mock useAppStore
-    (useAppStore as any).mockReturnValue({
+    (useAppStore as LegacyAny).mockReturnValue({
       project: mockProject,
     });
 

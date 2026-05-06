@@ -15,8 +15,8 @@ import {
   Zap,
   Clock,
   Settings,
-  Volume2,
-  VolumeX
+  _Volume2,
+  _VolumeX
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { notificationService, type Notification, type NotificationType } from '@/services/NotificationService';

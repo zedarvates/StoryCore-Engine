@@ -5,6 +5,8 @@
  * 
  * Requirement 20.4: Animate ghost image and drop target highlights
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { useRef, useCallback, useEffect } from 'react';
 import { DragDropAnimationManager } from '../utils/dragDropAnimations';
@@ -162,14 +164,14 @@ export function useDraggable(
     const element = ref.current;
     if (!element) return;
     
-    element.addEventListener('mousedown', handleMouseDown as any);
-    document.addEventListener('mousemove', handleMouseMove as any);
-    document.addEventListener('mouseup', handleMouseUp as any);
+    element.addEventListener('mousedown', handleMouseDown as LegacyAny);
+    document.addEventListener('mousemove', handleMouseMove as LegacyAny);
+    document.addEventListener('mouseup', handleMouseUp as LegacyAny);
     
     return () => {
-      element.removeEventListener('mousedown', handleMouseDown as any);
-      document.removeEventListener('mousemove', handleMouseMove as any);
-      document.removeEventListener('mouseup', handleMouseUp as any);
+      element.removeEventListener('mousedown', handleMouseDown as LegacyAny);
+      document.removeEventListener('mousemove', handleMouseMove as LegacyAny);
+      document.removeEventListener('mouseup', handleMouseUp as LegacyAny);
     };
   }, [handleMouseDown, handleMouseMove, handleMouseUp]);
   
@@ -219,14 +221,14 @@ export function useDropTarget(
     const element = ref.current;
     if (!element) return;
     
-    element.addEventListener('dragenter', handleDragEnter as any);
-    element.addEventListener('dragleave', handleDragLeave as any);
-    element.addEventListener('drop', handleDrop as any);
+    element.addEventListener('dragenter', handleDragEnter as LegacyAny);
+    element.addEventListener('dragleave', handleDragLeave as LegacyAny);
+    element.addEventListener('drop', handleDrop as LegacyAny);
     
     return () => {
-      element.removeEventListener('dragenter', handleDragEnter as any);
-      element.removeEventListener('dragleave', handleDragLeave as any);
-      element.removeEventListener('drop', handleDrop as any);
+      element.removeEventListener('dragenter', handleDragEnter as LegacyAny);
+      element.removeEventListener('dragleave', handleDragLeave as LegacyAny);
+      element.removeEventListener('drop', handleDrop as LegacyAny);
     };
   }, [handleDragEnter, handleDragLeave, handleDrop]);
   

@@ -9,6 +9,8 @@
  *
  * Requirements: Phase 2 of R&D plan
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 export type BackgroundRemovalBackend = 'rembg' | 'comfyui-sam' | 'cloud';
 
@@ -103,8 +105,8 @@ export class BackgroundRemovalService {
         try {
             // In Electron, we would use child_process to run `rembg --version`
             // For now we check via an IPC call to the main process
-            if (typeof window !== 'undefined' && (window as any).electronAPI?.checkRembg) {
-                this.rembgAvailable = await (window as any).electronAPI.checkRembg();
+            if (typeof window !== 'undefined' && (window as LegacyAny).electronAPI?.checkRembg) {
+                this.rembgAvailable = await (window as LegacyAny).electronAPI.checkRembg();
             } else {
                 // In browser mode, assume not available
                 this.rembgAvailable = false;
@@ -134,7 +136,7 @@ export class BackgroundRemovalService {
 
         // Call rembg via Electron IPC
         try {
-            const result = await (window as any).electronAPI.runRembg({
+            const result = await (window as LegacyAny).electronAPI.runRembg({
                 inputPath: imageUrl,
                 alphaMatting: options.alphaMatting,
                 foregroundThreshold: options.alphaMattingForegroundThreshold,

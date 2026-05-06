@@ -40,19 +40,30 @@ Exemples :
     subparsers = parser.add_subparsers(dest="command")
 
     # --- generate ---
-    gen_parser = subparsers.add_parser("generate", help="Générer un recap depuis une BD")
+    gen_parser = subparsers.add_parser(
+        "generate", help="Générer un recap depuis une BD"
+    )
     gen_parser.add_argument("--project", required=True, help="ID du projet StoryCore")
     gen_parser.add_argument("--comic", required=True, help="Chemin du JSON BD exporté")
     gen_parser.add_argument("--context", required=True, help="Contexte narratif global")
-    gen_parser.add_argument("--style", default="manga_recap",
-                            choices=["manga_recap", "anime_epic", "comic_book", "cinematic"],
-                            help="Style visuel du recap")
-    gen_parser.add_argument("--tts", default="gtts",
-                            choices=["gtts", "edge_tts", "piper", "mock"],
-                            help="Provider TTS pour la voix off")
+    gen_parser.add_argument(
+        "--style",
+        default="manga_recap",
+        choices=["manga_recap", "anime_epic", "comic_book", "cinematic"],
+        help="Style visuel du recap",
+    )
+    gen_parser.add_argument(
+        "--tts",
+        default="gtts",
+        choices=["gtts", "edge_tts", "piper", "mock"],
+        help="Provider TTS pour la voix off",
+    )
     gen_parser.add_argument("--lang", default="fr", help="Langue TTS (fr/en)")
-    gen_parser.add_argument("--characters", default=None,
-                            help="Chemin vers un JSON de personnages (optionnel)")
+    gen_parser.add_argument(
+        "--characters",
+        default=None,
+        help="Chemin vers un JSON de personnages (optionnel)",
+    )
 
     # --- render ---
     render_parser = subparsers.add_parser("render", help="Rendre la vidéo MP4")
@@ -65,11 +76,14 @@ Exemples :
     export_parser.add_argument("--project", required=True)
     export_parser.add_argument("--timeline", required=True)
     export_parser.add_argument("--output", default=None, help="Chemin de sortie MP4")
-    export_parser.add_argument("--no-subs", action="store_true",
-                               help="Ne pas incruster les sous-titres")
+    export_parser.add_argument(
+        "--no-subs", action="store_true", help="Ne pas incruster les sous-titres"
+    )
 
     # --- status ---
-    status_parser = subparsers.add_parser("status", help="État des timelines d'un projet")
+    status_parser = subparsers.add_parser(
+        "status", help="État des timelines d'un projet"
+    )
     status_parser.add_argument("--project", required=True)
 
     args = parser.parse_args()
@@ -106,12 +120,14 @@ async def _dispatch(args):
         )
 
         if result.success:
-            print(f"✅ Timeline générée !")
+            print("✅ Timeline générée !")
             print(f"   ID        : {result.timeline.timeline_id}")
             print(f"   Scènes    : {result.scenes_count}")
-            print(f"   Durée     : ~{result.estimated_duration/60:.1f} min")
-            print(f"\n💡 Lancez le rendu avec :")
-            print(f"   --command render --project {args.project} --timeline {result.timeline.timeline_id}")
+            print(f"   Durée     : ~{result.estimated_duration / 60:.1f} min")
+            print("\n💡 Lancez le rendu avec :")
+            print(
+                f"   --command render --project {args.project} --timeline {result.timeline.timeline_id}"
+            )
         else:
             print(f"❌ Erreur : {result.error}")
             sys.exit(1)
@@ -124,7 +140,7 @@ async def _dispatch(args):
             print(f"\r  [{bar}] {current}/{total} scènes", end="", flush=True)
             return asyncio.coroutine(lambda: None)()
 
-        print(f"🎥 Rendu vidéo en cours…")
+        print("🎥 Rendu vidéo en cours…")
         result = await pipeline.render(
             project_id=args.project,
             timeline_id=args.timeline,
@@ -132,7 +148,7 @@ async def _dispatch(args):
         print()  # Nouvelle ligne après la barre de progression
 
         if result.success:
-            print(f"✅ Vidéo rendue !")
+            print("✅ Vidéo rendue !")
             print(f"   Chemin    : {result.video_path}")
             print(f"   Durée     : {result.duration:.1f}s")
             print(f"   Taille    : {result.file_size_mb:.1f} MB")
@@ -144,7 +160,7 @@ async def _dispatch(args):
     elif args.command == "export":
         pipeline = RecapPipeline()
 
-        print(f"📦 Export final…")
+        print("📦 Export final…")
         result = await pipeline.export(
             project_id=args.project,
             timeline_id=args.timeline,
@@ -153,7 +169,7 @@ async def _dispatch(args):
         )
 
         if result.success:
-            print(f"✅ Export réussi !")
+            print("✅ Export réussi !")
             print(f"   Vidéo     : {result.video_path}")
             print(f"   Sous-titres : {result.subtitle_path}")
         else:
@@ -170,12 +186,18 @@ async def _dispatch(args):
             print(f"📋 Timelines du projet '{args.project}' :")
             for t in timelines:
                 progress = t.get("render_progress", 0.0)
-                status = "✅ Rendue" if t.get("final_video_path") else (
-                    f"⏳ {int(progress*100)}%" if progress > 0 else "⏸️  En attente"
+                status = (
+                    "✅ Rendue"
+                    if t.get("final_video_path")
+                    else (
+                        f"⏳ {int(progress * 100)}%"
+                        if progress > 0
+                        else "⏸️  En attente"
+                    )
                 )
                 print(f"\n  [{t['timeline_id'][:8]}] {t['title']}")
                 print(f"    Scènes  : {t['scenes_count']}")
-                print(f"    Durée   : ~{t['estimated_duration']/60:.1f} min")
+                print(f"    Durée   : ~{t['estimated_duration'] / 60:.1f} min")
                 print(f"    Statut  : {status}")
                 if t.get("final_video_path"):
                     print(f"    Vidéo   : {t['final_video_path']}")

@@ -6,6 +6,8 @@
  * 
  * Requirements: 9.1, 9.2, 9.3, 9.4, 9.5, 9.8, 12.7, 12.8
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useWizardStore } from '../../stores/wizard/wizardStore';
@@ -33,7 +35,7 @@ import type { WizardContainerProps, ProjectExport } from '../../types/wizard';
 interface StepConfig {
   title: string;
   description: string;
-  component: React.ComponentType<any>;
+  component: React.ComponentType<LegacyAny>;
   isOptional: boolean;
 }
 

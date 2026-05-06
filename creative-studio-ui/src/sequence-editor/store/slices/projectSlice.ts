@@ -2,6 +2,8 @@
  * Project Slice - Redux state management for project metadata and settings
  * Requirements: 19.1, 19.6
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type {
@@ -34,7 +36,7 @@ const projectSlice = createSlice({
   name: 'project',
   initialState,
   reducers: {
-    setProject: (state, action: PayloadAction<any>) => {
+    setProject: (state, action: PayloadAction<LegacyAny>) => {
       if (!action.payload) {
         state.metadata = null;
         state.sequences = [];

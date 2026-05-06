@@ -257,7 +257,7 @@ export const SpritesPanel: React.FC<SpritesPanelProps> = ({ className }) => {
         {activeTab === 'effects' && selectedSprite && (
           <EffectsPanel
             effects={selectedSprite.effects}
-            onEffectsChange={(effects) => {
+            onEffectsChange={(_effects) => {
               // Update sprite effects
             }}
           />

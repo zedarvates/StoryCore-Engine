@@ -39,29 +39,31 @@ from typing import List, Optional, Dict, Tuple
 #  ENUMS
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class AssetType(Enum):
-    MESH_3D   = "mesh_3d"    # géométrie 3D complète, générée ou importée
+    MESH_3D = "mesh_3d"  # géométrie 3D complète, générée ou importée
     SPRITE_2D = "sprite_2d"  # plan billboard toujours face caméra
 
 
 class AssetCategory(Enum):
-    TREES   = "trees"
-    ROCKS   = "rocks"
-    PLANTS  = "plants"
+    TREES = "trees"
+    ROCKS = "rocks"
+    PLANTS = "plants"
     FOLIAGE = "foliage"
-    PROPS   = "props"
+    PROPS = "props"
     SPRITES = "sprites"
 
 
 class SceneContext(Enum):
     EXTERIOR = "exterior"
     INTERIOR = "interior"
-    BOTH     = "both"
+    BOTH = "both"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  STRUCTURE D'UN ASSET
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @dataclass
 class AssetDef:
@@ -84,19 +86,20 @@ class AssetDef:
         tags         : mots-clés narratifs pour le placement automatique
         description  : description courte
     """
-    id:             str
-    name:           str
-    category:       AssetCategory
-    asset_type:     AssetType
-    context:        SceneContext = SceneContext.EXTERIOR
-    source:         str = "procedural"
-    scale_range:    Tuple[float, float] = (0.85, 1.15)
-    rot_y_range:    Tuple[float, float] = (0.0, 360.0)
-    height_offset:  float = 0.0
-    cast_shadow:    bool = True
+
+    id: str
+    name: str
+    category: AssetCategory
+    asset_type: AssetType
+    context: SceneContext = SceneContext.EXTERIOR
+    source: str = "procedural"
+    scale_range: Tuple[float, float] = (0.85, 1.15)
+    rot_y_range: Tuple[float, float] = (0.0, 360.0)
+    height_offset: float = 0.0
+    cast_shadow: bool = True
     receive_shadow: bool = True
-    tags:           List[str] = field(default_factory=list)
-    description:    str = ""
+    tags: List[str] = field(default_factory=list)
+    description: str = ""
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -104,7 +107,6 @@ class AssetDef:
 # ─────────────────────────────────────────────────────────────────────────────
 
 _CATALOG: List[AssetDef] = [
-
     # ── ARBRES (3D) ──────────────────────────────────────────────────────────
     AssetDef(
         id="tree_conifer",
@@ -156,7 +158,6 @@ _CATALOG: List[AssetDef] = [
         tags=["saule", "pleureur", "eau", "melancolie", "brume"],
         description="Saule pleureur avec branches tombantes",
     ),
-
     # ── ARBRES SPRITES (2D billboard — fond lointain) ──────────────────────
     AssetDef(
         id="sprite_tree_forest",
@@ -164,11 +165,10 @@ _CATALOG: List[AssetDef] = [
         category=AssetCategory.SPRITES,
         asset_type=AssetType.SPRITE_2D,
         scale_range=(1.5, 3.0),
-        rot_y_range=(0.0, 0.0),          # sprite : pas de rotation Y
+        rot_y_range=(0.0, 0.0),  # sprite : pas de rotation Y
         tags=["foret", "fond", "lointain", "distance"],
         description="Sprite billboard forêt dense pour fond de scène",
     ),
-
     # ── ROCHERS (3D) ─────────────────────────────────────────────────────────
     AssetDef(
         id="rock_medium",
@@ -213,7 +213,6 @@ _CATALOG: List[AssetDef] = [
         tags=["falaise", "paroi", "montagne", "fond", "cliff"],
         description="Sprite billboard de paroi rocheuse pour fond",
     ),
-
     # ── PLANTES (3D) ─────────────────────────────────────────────────────────
     AssetDef(
         id="plant_bush",
@@ -267,7 +266,6 @@ _CATALOG: List[AssetDef] = [
         tags=["champignon", "foret", "humide", "fantastique"],
         description="Champignon procédural (peut être géant en scale)",
     ),
-
     # ── FEUILLAGES (sprites 2D) ──────────────────────────────────────────────
     AssetDef(
         id="sprite_grass_ground",
@@ -304,7 +302,6 @@ _CATALOG: List[AssetDef] = [
         tags=["nuage", "ciel", "atmosphere", "exterior"],
         description="Nuage billboard pour remplissage du ciel",
     ),
-
     # ── FOLIAGE INTÉRIEUR ────────────────────────────────────────────────────
     AssetDef(
         id="plant_pot",
@@ -340,7 +337,6 @@ _CATALOG: List[AssetDef] = [
         tags=["mousse", "pierre", "humide", "nature", "abandonne"],
         description="Mousse procédurale sur pierres ou sol",
     ),
-
     # ── PROPS / ACCESSOIRES (3D) ──────────────────────────────────────────────
     AssetDef(
         id="prop_streetlamp",
@@ -405,6 +401,7 @@ _CATALOG: List[AssetDef] = [
 #  GESTIONNAIRE DE BIBLIOTHÈQUE
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class AssetLibrary:
     """
     Catalogue d'assets disponibles pour la plantation procédurale.
@@ -456,7 +453,8 @@ class AssetLibrary:
             Liste d'AssetDef compatibles
         """
         result = [
-            a for a in self._catalog
+            a
+            for a in self._catalog
             if a.context == context or a.context == SceneContext.BOTH
         ]
         if category:
@@ -503,7 +501,8 @@ class AssetLibrary:
         candidates = self.get_by_tags(narrative_tags)
         # Filtrer par contexte
         candidates = [
-            a for a in candidates
+            a
+            for a in candidates
             if a.context == context or a.context == SceneContext.BOTH
         ]
 
@@ -523,7 +522,7 @@ class AssetLibrary:
     def list_summary(self) -> str:
         """Retourne un résumé formaté du catalogue."""
         lines = [f"  {'ID':30s} {'TYPE':10s} {'CATÉGORIE':12s} DESCRIPTION"]
-        lines.append(f"  {'─'*30} {'─'*10} {'─'*12} {'─'*35}")
+        lines.append(f"  {'─' * 30} {'─' * 10} {'─' * 12} {'─' * 35}")
         for a in sorted(self._catalog, key=lambda x: (x.category.value, x.id)):
             lines.append(
                 f"  {a.id:30s} {a.asset_type.value:10s} {a.category.value:12s} {a.description[:35]}"

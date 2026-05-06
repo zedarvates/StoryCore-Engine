@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // CharacterWizard Rendering Unit Tests
 // ============================================================================
@@ -416,7 +417,7 @@ describe('CharacterWizard Rendering', () => {
       const user = userEvent.setup();
       const onComplete = vi.fn();
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({
           character_id: 'test-uuid',
@@ -457,7 +458,7 @@ describe('CharacterWizard Rendering', () => {
   });
 
   describe('Step Indicator', () => {
-    it('highlights current step in indicator', async () => {
+    it('high_lights current step in indicator', async () => {
       const user = userEvent.setup();
 
       render(

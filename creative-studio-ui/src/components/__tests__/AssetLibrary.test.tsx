@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
@@ -23,21 +24,21 @@ const renderWithDnd = (ui: React.ReactElement) => {
 
 // Mock Radix UI components to avoid SSR issues in tests
 vi.mock('@radix-ui/react-scroll-area', () => ({
-  Root: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  Viewport: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  Root: ({ children, ...props }: LegacyAny) => <div {...props}>{children}</div>,
+  Viewport: ({ children, ...props }: LegacyAny) => <div {...props}>{children}</div>,
   Corner: () => null,
   ScrollAreaScrollbar: () => null,
 }));
 
-vi.mock('@radix-ui/react-tabs', () => ({
-  Root: ({ children, value, onValueChange, ...props }: any) => (
+vi.mock('@radix-ui/react-tab_s', () => ({
+  Root: ({ children, value, onValueChange, ...props }: LegacyAny) => (
     <div data-value={value} {...props}>{children}</div>
   ),
-  List: ({ children, ...props }: any) => <div role="tablist" {...props}>{children}</div>,
-  Trigger: ({ children, value, ...props }: any) => (
+  List: ({ children, ...props }: LegacyAny) => <div role="tablist" {...props}>{children}</div>,
+  Trigger: ({ children, value, ...props }: LegacyAny) => (
     <button role="tab" data-value={value} {...props}>{children}</button>
   ),
-  Content: ({ children, value, ...props }: any) => (
+  Content: ({ children, value, ...props }: LegacyAny) => (
     <div role="tabpanel" data-value={value} {...props}>{children}</div>
   ),
 }));

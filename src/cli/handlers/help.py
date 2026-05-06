@@ -3,7 +3,6 @@ Help command handler for displaying command documentation.
 """
 
 import argparse
-from typing import Optional
 
 from ..base import BaseHandler
 from ..help import create_command_help
@@ -11,81 +10,67 @@ from ..help import create_command_help
 
 class HelpHandler(BaseHandler):
     """Handler for the help command - display documentation."""
-    
+
     command_name = "help"
     description = "Display help and documentation for commands"
-    
+
     def get_help(self):
         """Get enhanced help for help command."""
-        return (create_command_help(self.command_name, self.description)
-                .add_example(
-                    "storycore help",
-                    "Show general help and list of commands"
-                )
-                .add_example(
-                    "storycore help init",
-                    "Show detailed help for the init command"
-                )
-                .add_example(
-                    "storycore help --quick",
-                    "Show quick reference card"
-                )
-                .add_note(
-                    "You can also use 'storycore <command> --help' to get help for a specific command"
-                )
-                .add_see_also("completion"))
-    
+        return (
+            create_command_help(self.command_name, self.description)
+            .add_example("storycore help", "Show general help and list of commands")
+            .add_example(
+                "storycore help init", "Show detailed help for the init command"
+            )
+            .add_example("storycore help --quick", "Show quick reference card")
+            .add_note(
+                "You can also use 'storycore <command> --help' to get help for a specific command"
+            )
+            .add_see_also("completion")
+        )
+
     def setup_parser(self, parser: argparse.ArgumentParser) -> None:
         """Set up help command arguments."""
         self.setup_help(parser)
-        
+
         parser.add_argument(
-            "command",
-            nargs="?",
-            help="Command to get help for (optional)"
+            "command", nargs="?", help="Command to get help for (optional)"
         )
-        
+
         parser.add_argument(
-            "--quick", "-q",
-            action="store_true",
-            help="Show quick reference card"
+            "--quick", "-q", action="store_true", help="Show quick reference card"
         )
-        
+
         parser.add_argument(
-            "--list", "-l",
-            action="store_true",
-            help="List all available commands"
+            "--list", "-l", action="store_true", help="List all available commands"
         )
-    
+
     def execute(self, args: argparse.Namespace) -> int:
         """Display help information."""
         try:
             # Import here to avoid circular dependency
-            from ..docs import DocumentationGenerator
-            from ..core import CLICore
-            
+
             # Quick reference
             if args.quick:
                 return self._show_quick_reference()
-            
+
             # List commands
             if args.list:
                 return self._list_commands()
-            
+
             # Specific command help
             if args.command:
                 return self._show_command_help(args.command)
-            
+
             # General help
             return self._show_general_help()
-            
+
         except Exception as e:
             return self.handle_error(e, "help display")
-    
+
     def _show_quick_reference(self) -> int:
         """Show quick reference card."""
-        from ..docs import DocumentationGenerator
-        
+
         # Create a minimal registry for documentation
         # In a real implementation, we'd get this from the CLI core
         print("StoryCore-Engine CLI Quick Reference")
@@ -108,14 +93,14 @@ class HelpHandler(BaseHandler):
         print("  --quiet, -q                  Suppress output")
         print("  --log-level LEVEL            Set log level")
         print("")
-        
+
         return 0
-    
+
     def _list_commands(self) -> int:
         """List all available commands."""
         print("Available Commands:")
         print("")
-        
+
         # List of known commands with descriptions
         commands = {
             "init": "Initialize a new project",
@@ -140,33 +125,33 @@ class HelpHandler(BaseHandler):
             "world-generate": "Generate world settings",
             "comfyui": "Manage ComfyUI integration",
             "completion": "Generate shell completions",
-            "help": "Display help information"
+            "help": "Display help information",
         }
-        
+
         max_len = max(len(cmd) for cmd in commands.keys())
-        
+
         for command, description in sorted(commands.items()):
             padding = " " * (max_len - len(command) + 2)
             print(f"  {command}{padding}{description}")
-        
+
         print("")
         print("For detailed help on a command, use:")
         print("  storycore help <command>")
         print("  storycore <command> --help")
         print("")
-        
+
         return 0
-    
+
     def _show_command_help(self, command: str) -> int:
         """Show help for a specific command."""
         print(f"Help for command: {command}")
         print("")
-        print(f"For detailed help, use:")
+        print("For detailed help, use:")
         print(f"  storycore {command} --help")
         print("")
-        
+
         return 0
-    
+
     def _show_general_help(self) -> int:
         """Show general help."""
         print("StoryCore-Engine CLI")
@@ -194,5 +179,5 @@ class HelpHandler(BaseHandler):
         print("For quick reference:")
         print("  storycore help --quick")
         print("")
-        
+
         return 0

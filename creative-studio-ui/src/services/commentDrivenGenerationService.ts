@@ -612,7 +612,7 @@ export class CommentDrivenGenerationService {
   /**
    * Apply style transfer modification
    */
-  private async applyStyleTransferModification(shotId: string, modification: VisualModification): Promise<GenerationResult> {
+  private async applyStyleTransferModification(shotId: string, _modification: VisualModification): Promise<GenerationResult> {
     const result = await this.generationService.applyStyleTransfer(shotId, shotId, 0.7);
     if (result.success && result.newShotId) {
       return {

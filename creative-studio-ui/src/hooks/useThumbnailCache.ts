@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   ThumbnailCache,
   type ThumbnailCacheConfig,
-  type CacheEntry,
+  type _CacheEntry,
   type CacheStats
 } from '@/services/ThumbnailCache';
 

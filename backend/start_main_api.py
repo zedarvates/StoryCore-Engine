@@ -15,48 +15,37 @@ import os
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(
         description="Start the StoryCore-Engine Main API Server"
     )
     parser.add_argument(
-        "--host",
-        default="0.0.0.0",
-        help="Host to bind to (default: 0.0.0.0)"
+        "--host", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)"
     )
     parser.add_argument(
-        "--port",
-        type=int,
-        default=8080,
-        help="Port to bind to (default: 8080)"
+        "--port", type=int, default=8080, help="Port to bind to (default: 8080)"
     )
     parser.add_argument(
         "--reload",
         action="store_true",
         default=True,
-        help="Enable auto-reload on code changes (default: True)"
+        help="Enable auto-reload on code changes (default: True)",
     )
+    parser.add_argument("--no-reload", action="store_true", help="Disable auto-reload")
     parser.add_argument(
-        "--no-reload",
-        action="store_true",
-        help="Disable auto-reload"
-    )
-    parser.add_argument(
-        "--workers",
-        type=int,
-        default=1,
-        help="Number of worker processes (default: 1)"
+        "--workers", type=int, default=1, help="Number of worker processes (default: 1)"
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    
+
     # Override reload setting
     reload = args.reload and not args.no_reload
-    
+
     print("=" * 80)
     print("StoryCore-Engine Main API Server")
     print("=" * 80)
@@ -78,7 +67,7 @@ if __name__ == "__main__":
     print("Press Ctrl+C to stop the server")
     print("=" * 80)
     print()
-    
+
     # Import uvicorn
     try:
         import uvicorn
@@ -86,7 +75,7 @@ if __name__ == "__main__":
         print("ERROR: uvicorn is not installed")
         print("Install it with: pip install uvicorn[standard]")
         sys.exit(1)
-    
+
     # Run the server
     uvicorn.run(
         "backend.main_api:app",
@@ -95,5 +84,5 @@ if __name__ == "__main__":
         reload=reload,
         reload_dirs=["backend", "src"],
         workers=args.workers,
-        log_level="info"
+        log_level="info",
     )

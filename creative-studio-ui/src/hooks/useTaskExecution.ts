@@ -7,7 +7,7 @@ import type { GenerationTask } from '@/types';
  * Processes pending tasks sequentially
  */
 export function useTaskExecution() {
-  const { taskQueue, updateTask } = useAppStore();
+  const { taskQueue, _updateTask } = useAppStore();
   const isProcessingRef = useRef(false);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function useTaskExecution() {
       await simulateTaskExecution(updatedTask);
 
       // Update task status to completed
-      const completedTask: GenerationTask = {
+      const _completedTask: GenerationTask = {
         ...updatedTask,
         status: 'completed',
         completedAt: new Date(),
@@ -51,7 +51,7 @@ export function useTaskExecution() {
       // updateTask(completedTask.id, completedTask);
     } catch (error) {
       // Update task status to failed
-      const failedTask: GenerationTask = {
+      const _failedTask: GenerationTask = {
         ...task,
         status: 'failed',
         error: error instanceof Error ? error.message : 'Unknown error',

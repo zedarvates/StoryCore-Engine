@@ -1,3 +1,4 @@
+import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AnimationPanel } from '../AnimationPanel';
@@ -28,7 +29,7 @@ describe('AnimationPanel', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useStore as any).mockImplementation((selector: any) => {
+    (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
       const state = {
         shots: [mockShot],
         addAnimation: mockAddAnimation,
@@ -57,7 +58,7 @@ describe('AnimationPanel', () => {
     });
 
     it('should show message when no shot is selected', () => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [],
           addAnimation: mockAddAnimation,
@@ -88,7 +89,7 @@ describe('AnimationPanel', () => {
         keyframes: [],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -148,7 +149,7 @@ describe('AnimationPanel', () => {
         keyframes: [],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -173,7 +174,7 @@ describe('AnimationPanel', () => {
         keyframes: [],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -198,7 +199,7 @@ describe('AnimationPanel', () => {
     };
 
     beforeEach(() => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -251,7 +252,7 @@ describe('AnimationPanel', () => {
         },
       ];
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [
             {
@@ -289,7 +290,7 @@ describe('AnimationPanel', () => {
     };
 
     beforeEach(() => {
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -384,7 +385,7 @@ describe('AnimationPanel', () => {
         ],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -417,7 +418,7 @@ describe('AnimationPanel', () => {
         ],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -449,7 +450,7 @@ describe('AnimationPanel', () => {
         ],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -489,7 +490,7 @@ describe('AnimationPanel', () => {
         ],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,
@@ -513,7 +514,7 @@ describe('AnimationPanel', () => {
         keyframes: [],
       };
 
-      (useStore as any).mockImplementation((selector: any) => {
+      (useStore as LegacyAny).mockImplementation((selector: LegacyAny) => {
         const state = {
           shots: [{ ...mockShot, animations: [mockAnimation] }],
           addAnimation: mockAddAnimation,

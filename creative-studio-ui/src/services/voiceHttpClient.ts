@@ -343,7 +343,7 @@ export class MockVoiceHttpClient extends VoiceHttpClient {
   private mockDelayMs: number = 500;
 
   async uploadVoiceRecording(
-    recording: VoiceRecording
+    _recording: VoiceRecording
   ): Promise<VoiceApiResponse<VoiceUploadResponse>> {
     await this.wait(this.mockDelayMs);
 
@@ -398,7 +398,7 @@ export class MockVoiceHttpClient extends VoiceHttpClient {
   }
 
   async getSessionRecordings(
-    sessionId: string
+    _sessionId: string
   ): Promise<VoiceApiResponse<VoiceRecording[]>> {
     await this.wait(this.mockDelayMs);
 
@@ -409,7 +409,7 @@ export class MockVoiceHttpClient extends VoiceHttpClient {
   }
 
   async deleteRecording(
-    recordingId: string
+    _recordingId: string
   ): Promise<VoiceApiResponse<void>> {
     await this.wait(this.mockDelayMs / 2);
 

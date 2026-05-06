@@ -1,6 +1,8 @@
 /**
  * Result Service Tests
  */
+import { LegacyAny } from '@/types/legacy';
+
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
@@ -30,7 +32,7 @@ describe('ResultService', () => {
         generatedAt: '2024-01-15T10:00:00Z',
       };
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResult,
       });
@@ -43,7 +45,7 @@ describe('ResultService', () => {
     });
 
     it('should include query parameters', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => ({ taskId: 'task-1', assets: [] }),
       });
@@ -54,14 +56,14 @@ describe('ResultService', () => {
         includeMetrics: true,
       });
 
-      const fetchCall = (global.fetch as any).mock.calls[0][0];
+      const fetchCall = (global.fetch as LegacyAny).mock.calls[0][0];
       expect(fetchCall).toContain('includeAssets=false');
       expect(fetchCall).toContain('includeThumbnails=false');
       expect(fetchCall).toContain('includeMetrics=true');
     });
 
     it('should throw error on failed fetch', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: false,
         statusText: 'Not Found',
       });
@@ -77,7 +79,7 @@ describe('ResultService', () => {
         { taskId: 'task-2', assets: [], generatedAt: '2024-01-15T11:00:00Z' },
       ];
 
-      (global.fetch as any).mockImplementation((url: string) => {
+      (global.fetch as LegacyAny).mockImplementation((url: string) => {
         const taskId = url.includes('task-1') ? 'task-1' : 'task-2';
         const result = mockResults.find((r) => r.taskId === taskId);
         return Promise.resolve({
@@ -103,7 +105,7 @@ describe('ResultService', () => {
         ],
       };
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         json: async () => mockResponse,
       });
@@ -127,15 +129,15 @@ describe('ResultService', () => {
 
       const mockBlob = new Blob(['test'], { type: 'image/png' });
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         blob: async () => mockBlob,
       });
 
       // Mock DOM methods
       const createElementSpy = vi.spyOn(document, 'createElement');
-      const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as any);
-      const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as any);
+      const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as LegacyAny);
+      const removeChildSpy = vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as LegacyAny);
 
       await service.downloadAsset(mockAsset);
 
@@ -154,14 +156,14 @@ describe('ResultService', () => {
 
       const mockBlob = new Blob(['test'], { type: 'image/png' });
 
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
         blob: async () => mockBlob,
       });
 
       const createElementSpy = vi.spyOn(document, 'createElement');
-      vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as any);
-      vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as any);
+      vi.spyOn(document.body, 'appendChild').mockImplementation(() => null as LegacyAny);
+      vi.spyOn(document.body, 'removeChild').mockImplementation(() => null as LegacyAny);
 
       await service.downloadAsset(mockAsset, 'custom-name.png');
 
@@ -211,7 +213,7 @@ describe('ResultService', () => {
 
   describe('deleteResult', () => {
     it('should delete a result', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: true,
       });
 
@@ -224,7 +226,7 @@ describe('ResultService', () => {
     });
 
     it('should throw error on failed delete', async () => {
-      (global.fetch as any).mockResolvedValueOnce({
+      (global.fetch as LegacyAny).mockResolvedValueOnce({
         ok: false,
         statusText: 'Not Found',
       });
