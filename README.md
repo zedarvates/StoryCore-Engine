@@ -480,6 +480,13 @@ Built-in marketplace powered by [nexrealm.store](https://nexrealm.store) for dis
 
 </details>
 
+<details>
+<summary><strong>🧠 Hermes Novelist</strong> — Autonomous story & dialogue assistant</summary>
+
+A powerful autonomous writing assistant that helps you brainstorm, draft, and refine your stories directly within the dashboard. Features "Bout en Bout" (End-to-End) methodology for structured storytelling, multimodal vision for character/world design, and deep integration with the visual production pipeline.
+
+</details>
+
 > [!TIP]
 > **Addon Marketplace**: We are currently developing a centralized marketplace at [nexrealm.store](https://nexrealm.store) for one-click installation and automatic updates of official and community addons.
 

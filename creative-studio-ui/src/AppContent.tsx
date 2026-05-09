@@ -37,6 +37,7 @@ import type { World } from '@/types/world';
 import { Character } from '@/types/character';
 import type { Location } from '@/types/location';
 import type { Project } from '@/types/project';
+import { HermesNovelistWizardModal } from './components/wizard/hermes-novelist/HermesNovelistWizardModal';
 import type { ElectronAPI } from '@/types/electron';
 import { useThemeStore } from '@/stores/themeStore';
 import { useLocationStore } from '@/stores/locationStore';
@@ -138,6 +139,7 @@ function AppContentInner() {
     showCrossShotReferencePicker: state.showCrossShotReferencePicker,
     showProjectBranchingDialog: state.showProjectBranchingDialog,
     showEpisodeReferenceDialog: state.showEpisodeReferenceDialog,
+    showHermesWizard: state.showHermesWizard,
     setChatMessages: state.setChatMessages,
     clearWizardHistory: state.clearWizardHistory,
     selectedShotId: state.selectedShotId,
@@ -508,6 +510,7 @@ function AppContentInner() {
         case 'image-gallery': store.setShowImageGalleryModal(true); break;
         case 'vault': store.setShowVaultModal(true); break;
         case 'feedback': store.setShowFeedbackPanel(true); break;
+        case 'hermes-novelist': store.setShowHermesWizard(true); break;
         default: console.warn(`[EventBridge] Unknown modalId: ${modalId}`);
       }
     };
@@ -803,36 +806,39 @@ function AppContentInner() {
   };
 
   const renderModals = () => (
-    <ModalManager
-      onCloseInstallationWizard={handleCloseInstallationWizard}
-      onInstallationComplete={handleInstallationComplete}
-      onWorldComplete={handleWorldComplete}
-      onCharacterComplete={handleCharacterComplete}
-      onScenarioComplete={handleScenarioComplete}
-      onDialogueBuilderComplete={handleDialogueBuilderComplete}
-      onObjectComplete={handleObjectComplete}
-      onStorytellerComplete={handleStorytellerComplete}
-      onSequencePlanComplete={handleSequencePlanComplete}
-      onShotComplete={handleShotComplete}
-      onWizardComplete={handleWizardComplete}
-      feedbackInitialContext={feedbackInitialContext}
-      settingsAddonName={settingsAddonName}
-      onCloseAddonSettings={closeAddonSettings}
-      onBorrowReferences={(_refs) => {
-        devLog('Borrowed references:', _refs);
-        setShowCrossShotReferencePicker(false);
-        toast({ title: 'References Borrowed', description: `Successfully borrowed ${_refs.length} references` });
-      }}
-      onBranchCreated={(_branch) => {
-        devLog('Branch created:', _branch);
-        toast({ title: 'Branch Created', description: `Started new branch: ${_branch.name}` });
-      }}
-      onReferenceAdded={(_ref) => {
-        devLog('Episode reference added:', _ref);
-        toast({ title: 'Reference Linked', description: `Linked to ${_ref.episodeName}` });
-      }}
-      toast={toast}
-    />
+    <>
+      <ModalManager
+        onCloseInstallationWizard={handleCloseInstallationWizard}
+        onInstallationComplete={handleInstallationComplete}
+        onWorldComplete={handleWorldComplete}
+        onCharacterComplete={handleCharacterComplete}
+        onScenarioComplete={handleScenarioComplete}
+        onDialogueBuilderComplete={handleDialogueBuilderComplete}
+        onObjectComplete={handleObjectComplete}
+        onStorytellerComplete={handleStorytellerComplete}
+        onSequencePlanComplete={handleSequencePlanComplete}
+        onShotComplete={handleShotComplete}
+        onWizardComplete={handleWizardComplete}
+        feedbackInitialContext={feedbackInitialContext}
+        settingsAddonName={settingsAddonName}
+        onCloseAddonSettings={closeAddonSettings}
+        onBorrowReferences={(_refs) => {
+          devLog('Borrowed references:', _refs);
+          setShowCrossShotReferencePicker(false);
+          toast({ title: 'References Borrowed', description: `Successfully borrowed ${_refs.length} references` });
+        }}
+        onBranchCreated={(_branch) => {
+          devLog('Branch created:', _branch);
+          toast({ title: 'Branch Created', description: `Started new branch: ${_branch.name}` });
+        }}
+        onReferenceAdded={(_ref) => {
+          devLog('Episode reference added:', _ref);
+          toast({ title: 'Reference Linked', description: `Linked to ${_ref.episodeName}` });
+        }}
+        toast={toast}
+      />
+      <HermesNovelistWizardModal />
+    </>
   );
 
   const isDetachedChat = typeof window !== 'undefined' && window.location.pathname === '/detached-chat';

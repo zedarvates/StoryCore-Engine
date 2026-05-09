@@ -666,6 +666,7 @@ All audit findings have been resolved. The codebase is now production-ready with
 **Key Achievements**:
 - **MCP Server Orchestration**: Full Model Context Protocol (MCP) implementation for dynamic ComfyUI tool discovery, smart tool-to-task mapping, and live tool execution directly from the server management interface.
 - **Cinematic Audio Worldization (AI Surround)**: Integrated an AI-powered Surround Assistant into the directorial inspector, offering narrative-driven audio analysis and automated surround sound preset recommendations (Stereo, 5.1, 7.1).
+- **Hermes Novelist Integration**: Restored the autonomous story assistant and integrated the `DashboardAddonsSection` into the main project dashboard. Hermes now features "Bout en Bout" methodology and is accessible via a one-click wizard launcher.
 - **Type-Safe Dynamic Inspector (v2)**: Refactored the Cinematic Shot Inspector with a robust type-safe architecture, multi-tab navigation, and automated layout recommendations based on story keywords.
 - **Style Refinement Pipeline**: Implementation of a specialized MCP-driven style refinement workflow, allowing AI to optimize visual parameters for ComfyUI generation.
 

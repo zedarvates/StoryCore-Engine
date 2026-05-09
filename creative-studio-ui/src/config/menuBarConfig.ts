@@ -564,6 +564,16 @@ const wizardsMenuConfig: MenuConfig = {
       description: 'Video Production Wizard - Generate and manage video',
       action: wizardsActions.videoProduction,
     },
+    {
+      id: 'hermes-novelist',
+      label: 'wizards.hermesNovelist',
+      type: 'action',
+      enabled: (state) => state.project !== null,
+      visible: true,
+      icon: 'book',
+      description: 'Hermes Novelist - Autonomous novel writing pipeline',
+      action: wizardsActions.hermesNovelist,
+    },
   ],
 };
 

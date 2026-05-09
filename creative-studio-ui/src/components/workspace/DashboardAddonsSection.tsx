@@ -1,3 +1,4 @@
+/* cspell:ignore hermes */
 /**
  * Dashboard Addons Section Component
  * 
@@ -53,6 +54,7 @@ const ADDON_WIZARD_MAP: Record<string, WizardType> = {
   'project-setup': 'project-setup',
   'credits-screen': 'credits-screen',
   'video-publisher': 'video-publisher',
+  'hermes-novelist': 'hermes-novelist',
 };
 
 /**

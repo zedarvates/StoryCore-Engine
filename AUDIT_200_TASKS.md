@@ -364,6 +364,7 @@
 | ESLint TypeScript | ~506 | **~486** | ✅ 96%↓ |
 | Build TypeScript | ❌ | **✅** | ✅ Fixé |
 | Tests frontend critiques | ❌ | **✅** | ✅ Fixé |
+| Hermes Novelist Restoration | ❌ | **✅** | ✅ Dashboard Intégré |
 
 **Restant :** 171 F401 (imports optionnels ML) — non critiques, pattern intentionnel.
 

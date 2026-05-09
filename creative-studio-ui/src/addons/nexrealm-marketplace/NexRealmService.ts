@@ -16,7 +16,7 @@ import type {
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-const NEXREALM_BASE_URL = 'https://nexrealm.shop/api/v1';
+const NEXREALM_BASE_URL = 'https://nexrealm.store/api/v1';
 const NEXREALM_MARKETPLACE_URL = `${NEXREALM_BASE_URL}/marketplace`;
 const REQUEST_TIMEOUT_MS = 15000;
 

@@ -23,5 +23,8 @@
     "no": "No",
     "apply": "Apply",
     "reset": "Reset"
+  },
+  "wizards": {
+    "hermesNovelist": "Hermes Novelist"
   }
 }

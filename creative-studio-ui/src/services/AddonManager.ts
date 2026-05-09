@@ -1,5 +1,6 @@
 /**
  * AddonManager - Extension (add-on) manager for StoryCore
+ * cspell:ignore nexrealm hermes seeddance webtoon highlighs Astérix Shonen Shojo PEGI
  *
  * Allows enabling/disabling add-ons and managing their lifecycle
  * Version 2.0 - Enhanced with pagination, sorting, and marketplace support
@@ -533,6 +534,12 @@ export class AddonManager {
           case 'casting':
             await import('@/addons/casting');
             break;
+          case 'video-publisher':
+            // video-publisher addon not yet implemented as a separate module
+            return Promise.resolve();
+          case 'hermes-novelist':
+            // Hermes is integrated via wizards, but we might have a dedicated addon module in the future
+            return Promise.resolve();
           case 'audio-production':
             await import('@/addons/audio-production');
             break;
@@ -863,6 +870,19 @@ export class AddonManager {
       builtin: true,
       icon: '📡',
       tags: ['export', 'video', 'publishing', 'social']
+    });
+
+    // Hermes Novelist Add-on
+    this.registerAddon({
+      id: 'hermes-novelist',
+      name: 'Hermes Novelist',
+      description: 'Autonomous AI novel writing agent and sequence generator.',
+      version: '1.0.0',
+      author: 'StoryCore AI',
+      category: 'story',
+      builtin: true,
+      icon: '📖',
+      tags: ['story', 'agent', 'hermes', 'novelist']
     });
   }
 

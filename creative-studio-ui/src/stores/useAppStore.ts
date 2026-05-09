@@ -128,6 +128,7 @@ interface AppState {
   showLocationWizard: boolean;
   showComputeDashboard: boolean;
   showAutomationPanel: boolean;
+  showHermesWizard: boolean;
   
   settingsAddonId: string | null;
   lipSyncContext: { audioFile?: File; characterId?: string } | null;
@@ -252,6 +253,7 @@ interface AppState {
   setShowLocationWizard: (show: boolean, context?: { sceneId?: string; imageFile?: File }) => void;
   setShowComputeDashboard: (show: boolean) => void;
   setShowAutomationPanel: (show: boolean) => void;
+  setShowHermesWizard: (show: boolean) => void;
   openWizard: (wizardType: WizardType) => void;
   closeActiveWizard: () => void;
   setShowSequenceEditor: (show: boolean, context?: { existingSequencePlan?: SequencePlan }) => void;
@@ -293,6 +295,11 @@ interface AppState {
   setCurrentView: (view: 'dashboard' | 'editor' | 'experimental-ai') => void;
   setSelectedSequenceId: (id: string | undefined) => void;
   setIsInitialLoading: (loading: boolean) => void;
+  
+  setCharacters: (characters: Character[]) => void;
+  addCharacter: (character: Character) => void;
+  setWorlds: (worlds: World[]) => void;
+  addWorld: (world: World) => void;
   
   openAddonSettings: (addonId: string) => void;
   closeAddonSettings: () => void;
@@ -373,6 +380,7 @@ const initialState = {
   showLocationWizard: false,
   showComputeDashboard: false,
   showAutomationPanel: false,
+  showHermesWizard: false,
   characterWizardContext: null,
   objectWizardContext: null,
   locationWizardContext: null,
@@ -538,6 +546,7 @@ export const useAppStore = create<AppState>()(
       setShowLocationWizard: (show, context) => set({ showLocationWizard: show, locationWizardContext: context || null }),
       setShowComputeDashboard: (show) => set({ showComputeDashboard: show }),
       setShowAutomationPanel: (show) => set({ showAutomationPanel: show }),
+      setShowHermesWizard: (show) => set({ showHermesWizard: show }),
       openWizard: (wizardType) => set({ activeWizardType: wizardType }),
       closeActiveWizard: () => set({ activeWizardType: null }),
       setShowSequenceEditor: (show, context) => set({ showSequenceEditor: show, sequenceEditorContext: context || null }),
@@ -587,6 +596,12 @@ export const useAppStore = create<AppState>()(
       setCurrentView: (view) => set({ currentView: view }),
       setSelectedSequenceId: (id) => set({ selectedSequenceId: id }),
       setIsInitialLoading: (loading) => set({ isInitialLoading: loading }),
+      
+      setCharacters: (characters) => set({ characters }),
+      addCharacter: (character) => set((state) => ({ characters: [...state.characters, character] })),
+      setWorlds: (worlds) => set({ worlds }),
+      addWorld: (world) => set((state) => ({ worlds: [...state.worlds, world] })),
+      
       openAddonSettings: (addonId) => set({ settingsAddonId: addonId }),
       closeAddonSettings: () => set({ settingsAddonId: null }),
       addMoodboardReference: (reference) => set((state) => {

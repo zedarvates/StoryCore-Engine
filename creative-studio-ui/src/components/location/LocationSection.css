@@ -55,8 +55,8 @@
   justify-content: center;
   z-index: 2147483647;
   padding: 40px;
-  backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
   align-items: flex-start; /* Move to top to avoid bottom bars */
   padding-top: 60px;
 }

@@ -1014,6 +1014,13 @@ export const wizardsActions = {
       });
     }
   },
+
+  hermesNovelist(ctx: ActionContext): void {
+    console.log('[MenuAction] Hermes Novelist Wizard');
+    const store = useAppStore.getState();
+    store.closeActiveWizard();
+    store.setShowHermesWizard(true);
+  },
 };
 
 /**

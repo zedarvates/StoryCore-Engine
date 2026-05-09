@@ -56,6 +56,7 @@ from backend.ai_creative_api import router as ai_creative_router
 from backend.ai_advanced_api import router as ai_advanced_router
 from backend.ai_performance_api import router as ai_performance_router
 from backend.cli_api import router as cli_router
+from backend.hermes_novelist_api import router as hermes_novelist_router
 
 # Configure logging
 logging.basicConfig(
@@ -320,6 +321,9 @@ app.include_router(ttt_lrm_router)
 
 # Include CLI API router
 app.include_router(cli_router, prefix="/api")
+
+# Include Hermes Novelist API router
+app.include_router(hermes_novelist_router, prefix="/api")
 
 # ─── 💎 GemReward System ─────────────────────────────────────────────────────
 # Router Gems API (balance, history, stats, leaderboard, tiers)

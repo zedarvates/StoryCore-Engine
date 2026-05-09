@@ -1,5 +1,5 @@
 import { LegacyAny } from '@/types/legacy';
-/* cspell:ignore ella spanish él nyquist */
+/* cspell:ignore ella spanish él nyquist Moodboard moodboard */
 /**
  * New Project Dashboard Component
  * 
@@ -71,6 +71,7 @@ import {
   Palette,
   Layout,
   Table,
+  Puzzle,
 } from 'lucide-react';
 import { SequenceEditModal } from './SequenceEditModal';
 import { CollapsibleSection } from '@/components/ui';
@@ -80,6 +81,7 @@ import { StoryboardSection } from './StoryboardSection';
 import { NeuralProductionAssistant } from './NeuralProductionAssistant';
 import { ProjectResourcesCard } from './ProjectResourcesCard';
 import { WizardLauncher } from '../wizard/WizardLauncher';
+import { DashboardAddonsSection } from './DashboardAddonsSection';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -998,13 +1000,26 @@ export function ProjectDashboardNew({
       const defaultShot: Shot & { sequence_id: string } = {
         id: shotId,
         title: 'Default Shot',
+        name: 'Default Shot',
         description: 'Default shot for new sequence',
+        prompt: '',
         duration: 0,
+        startTime: 0,
         position: 1,
         audioTracks: [],
         effects: [],
         textLayers: [],
         animations: [],
+        layers: [],
+        referenceImages: [],
+        parameters: {
+          seed: -1,
+          denoising: 0.7,
+          steps: 30,
+          guidance: 7.5,
+          sampler: 'Euler a',
+          scheduler: 'normal'
+        },
         sequence_id: sequenceId,
         metadata: {},
       };
@@ -1324,13 +1339,26 @@ export function ProjectDashboardNew({
           const newShot: Shot & { sequence_id: string } = {
             id: newShotId,
             title: `Shot 1`,
+            name: `Shot 1`,
             description: contentSegment || `Scene ${sequence.order} initial shot`,
+            prompt: imagePrompt || '',
             duration: 5,
+            startTime: 0,
             position: 1,
             audioTracks: [],
             effects: [],
             textLayers: [],
             animations: [],
+            layers: [],
+            referenceImages: [],
+            parameters: {
+              seed: -1,
+              denoising: 0.7,
+              steps: 30,
+              guidance: 7.5,
+              sampler: 'Euler a',
+              scheduler: 'normal'
+            },
             sequence_id: sequence.id,
             metadata: {
               imagePrompt,
@@ -1745,10 +1773,9 @@ export function ProjectDashboardNew({
         await saveSequenceToFile(seq, sequencesDir);
         
         // FIX: Also update the sequence plan in the store if it's a formal plan
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const seqService = (window as LegacyAny).sequencePlanService;
         if (seq.isFormal && seqService?.saveSequencePlan) {
-            await seqService.saveSequencePlan(seq, projectPath);
+          await seqService.saveSequencePlan(seq, projectPath);
         }
 
         // Update shots associations (important for the timeline/editor)
@@ -1944,9 +1971,18 @@ export function ProjectDashboardNew({
           <CollapsibleSection
             title="Saga Evolution (Serial Episodes)"
             icon={<Layers className="w-5 h-5 text-indigo-400" />}
-            defaultExpanded={true}
+            defaultExpanded={false}
           >
             <SeriesManagerSection hideHeader={true} />
+          </CollapsibleSection>
+          
+          {/* Add-ons Section */}
+          <CollapsibleSection
+            title="Add-ons & Extensions"
+            icon={<Puzzle className="w-5 h-5 text-orange-400" />}
+            defaultExpanded={true}
+          >
+            <DashboardAddonsSection onLaunchWizard={handleLaunchWizard} />
           </CollapsibleSection>
 
           {/* Stories Section */}
