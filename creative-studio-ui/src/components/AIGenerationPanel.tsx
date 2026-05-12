@@ -4,10 +4,11 @@ import { generationHistoryService } from '@/services/GenerationHistoryService';
 import { promptGenerationService, GrokPromptOptions } from '@/services/PromptGenerationService';
 import { generationQueueService, QueuedGenerationTask } from '@/services/GenerationQueueService';
 import { HistoryEntry, GeneratedAsset } from '@/types/generation';
-import { useEventListener, QueueUpdatedPayload } from '@/services/eventEmitter';
+import { useEventListener, QueueUpdatedPayload, HistoryUpdatedPayload, WizardEventType } from '@/services/eventEmitter';
 import { getComfyUIServersService } from '@/services/comfyuiServersService';
 import { ComfyUIServer } from '@/types/comfyuiServers';
 import { logger } from '@/utils/logger';
+import { notificationService } from '../services/NotificationService';
 import { Reorder, AnimatePresence, motion } from 'framer-motion';
 
 interface GenerationParams {
@@ -61,6 +62,14 @@ const AIGenerationPanel: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRestarting, setIsRestarting] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<string>('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [advancedParams, setAdvancedParams] = useState({
+    sampler: 'euler',
+    scheduler: 'normal',
+    vae: 'baked',
+    clip_skip: 1,
+    denoise: 1.0,
+  });
 
   // Check for configured ComfyUI server on mount
   useEffect(() => {
@@ -86,9 +95,16 @@ const AIGenerationPanel: React.FC = () => {
   }, []);
 
   // Listen to queue updates
-  useEventListener('queue:updated', (payload: QueueUpdatedPayload) => {
+  useEventListener(WizardEventType.QUEUE_UPDATED, (payload: QueueUpdatedPayload) => {
     if (payload && payload.queue) {
       setQueue(payload.queue as QueuedGenerationTask[]);
+    }
+  });
+
+  // Listen to history updates
+  useEventListener(WizardEventType.HISTORY_UPDATED, (payload: HistoryUpdatedPayload) => {
+    if (payload && payload.entries) {
+      setHistory(payload.entries.slice(0, 50)); // Show more in history view if updated
     }
   });
 
@@ -124,7 +140,12 @@ const AIGenerationPanel: React.FC = () => {
     duration: "6s",
     concatenation: false,
     outputCount: 1,
-    seed: -1
+    seed: -1,
+    // Advanced settings
+    negativePrompt: "blurry, low quality, artifacts, text, watermark",
+    creativityScale: 0.7,
+    resolution: "1080p",
+    fps: 30
   });
 
   const imageParamsRef = React.useRef(imageParams);
@@ -202,7 +223,7 @@ const AIGenerationPanel: React.FC = () => {
             }
           } else if (jobStatus.status === 'failed') {
             setIsGenerating(false);
-            alert(`Generation failed: ${jobStatus.error}`);
+            notificationService.error('Échec de la génération', jobStatus.error || 'Erreur inconnue');
           }
         } catch (error) {
           console.error('Error checking job status:', error);
@@ -216,18 +237,27 @@ const AIGenerationPanel: React.FC = () => {
   }, [currentJob, comfyUIUrl]);
 
   const addToQueue = (type: 'image' | 'video' | 'grok') => {
-    const params = type === 'image' ? imageParams : type === 'video' ? videoParams : grokParams;
+    let params: Record<string, unknown>;
+    
+    if (type === 'image') {
+      params = { ...imageParams, ...advancedParams };
+    } else if (type === 'video') {
+      params = { ...videoParams, ...advancedParams };
+    } else {
+      params = grokParams as unknown as Record<string, unknown>;
+    }
+    
     const priority = 1; // Default
     
     generationQueueService.addToQueue({
       type: type === 'grok' ? 'image' : type,
       pipelineId: type === 'grok' ? 'grok-pipeline' : 'comfyui-pipeline',
-      params: params as Record<string, unknown>,
+      params: params,
       priority: priority,
       serverId: type !== 'grok' ? selectedServerId : undefined
     });
     
-    alert('Ajouté à la file d\'attente !');
+    notificationService.success('File d\'attente', 'Ajouté à la file d\'attente !');
     setActiveTab('queue');
   };
 
@@ -240,17 +270,17 @@ const AIGenerationPanel: React.FC = () => {
 
   const copyPrompt = (prompt: string) => {
     navigator.clipboard.writeText(prompt);
-    alert('Prompt copié dans le presse-papier !');
+    notificationService.info('Presse-papier', 'Prompt copié !');
   };
 
   const generateImage = async () => {
     if (!comfyUIUrl) {
-      alert('ComfyUI is not configured. Please configure a ComfyUI server in Settings before generating images.');
+      notificationService.warning('Configuration requise', 'ComfyUI n\'est pas configuré. Veuillez configurer un serveur dans les réglages.');
       return;
     }
 
     if (!imageParams.prompt.trim()) {
-      alert('Please enter a prompt for image generation');
+      notificationService.warning('Prompt manquant', 'Veuillez saisir un prompt pour la génération d\'image.');
       return;
     }
 
@@ -267,7 +297,7 @@ const AIGenerationPanel: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(imageParams),
+        body: JSON.stringify({ ...imageParams, ...advancedParams }),
       });
 
       const result = await response.json();
@@ -281,24 +311,24 @@ const AIGenerationPanel: React.FC = () => {
           created_at: Date.now() / 1000
         });
       } else {
-        alert(`Error: ${result.error}`);
+        notificationService.error('Erreur API', result.error || 'Erreur lors du lancement de la génération');
         setIsGenerating(false);
       }
     } catch (error) {
       console.error('Error starting image generation:', error);
-      alert('Failed to start image generation. Make sure ComfyUI server is running.');
+      notificationService.error('Erreur Connexion', 'Impossible de contacter le serveur ComfyUI. Vérifiez qu\'il est bien lancé.');
       setIsGenerating(false);
     }
   };
 
   const generateVideo = async () => {
     if (!comfyUIUrl) {
-      alert('ComfyUI is not configured. Please configure a ComfyUI server in Settings before generating videos.');
+      notificationService.warning('Configuration requise', 'ComfyUI n\'est pas configuré. Veuillez configurer un serveur dans les réglages.');
       return;
     }
 
     if (!videoParams.prompt.trim()) {
-      alert('Please enter a prompt for video generation');
+      notificationService.warning('Prompt manquant', 'Veuillez saisir un prompt pour la génération vidéo.');
       return;
     }
 
@@ -315,7 +345,7 @@ const AIGenerationPanel: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(videoParams),
+        body: JSON.stringify({ ...videoParams, ...advancedParams }),
       });
 
       const result = await response.json();
@@ -329,12 +359,12 @@ const AIGenerationPanel: React.FC = () => {
           created_at: Date.now() / 1000
         });
       } else {
-        alert(`Error: ${result.error}`);
+        notificationService.error('Erreur API', result.error || 'Erreur lors du lancement de la génération vidéo');
         setIsGenerating(false);
       }
     } catch (error) {
       console.error('Error starting video generation:', error);
-      alert('Failed to start video generation. Make sure ComfyUI server is running.');
+      notificationService.error('Erreur Connexion', 'Impossible de contacter le serveur ComfyUI. Vérifiez qu\'il est bien lancé.');
       setIsGenerating(false);
     }
   };
@@ -362,45 +392,85 @@ const AIGenerationPanel: React.FC = () => {
             duration_seconds: grokParams.duration === '10s' ? 10 : 6,
             concatenation_enabled: grokParams.concatenation,
             output_count_per_prompt: grokParams.outputCount,
-            seed: grokParams.seed
+            seed: grokParams.seed,
+            negative_prompt: grokParams.negativePrompt,
+            creativity_scale: grokParams.creativityScale,
+            resolution: grokParams.resolution,
+            fps: grokParams.fps
           }
         }),
       });
 
-      const result = await response.json();
+      const startResult = await response.json();
 
-      if (result.status === 'success') {
-        setGrokStatus('completed');
-        const urls = [];
-        if (result.images) urls.push(...result.images);
-        if (result.video) urls.unshift(result.video);
+      if (startResult.job_id) {
+        const { job_id } = startResult;
         
-        setGeneratedContent(urls);
+        // Poll for status with safety timeout
+        let completed = false;
+        let pollCount = 0;
+        const maxPolls = 100; // ~5 minutes with 3s interval
 
-        // Log to history
-        urls.forEach(url => {
-          generationHistoryService.logGeneration(
-            'grok-pipeline',
-            url.endsWith('.mp4') ? 'video' : 'image',
-            grokParams as unknown as Record<string, unknown>,
-            {
-              id: crypto.randomUUID(),
-              type: url.endsWith('.mp4') ? 'video' : 'image',
-              url: url,
-              timestamp: Date.now(),
-              relatedAssets: [],
-              metadata: result.metadata
-            }
-          );
-        });
+        while (!completed && pollCount < maxPolls) {
+          pollCount++;
+          const statusResponse = await fetch(`/api/addons/grok-imagine/status/${job_id}`);
+          if (!statusResponse.ok) {
+            throw new Error(`Status check failed: ${statusResponse.status}`);
+          }
+          const statusData = await statusResponse.json();
+
+          if (statusData.status === 'completed') {
+            completed = true;
+            setGrokStatus('completed');
+            
+            const result = statusData.result;
+            const urls = [];
+            if (result.images) urls.push(...result.images);
+            if (result.video) urls.unshift(result.video);
+            
+            setGeneratedContent(urls);
+
+            // Log to history
+            urls.forEach(url => {
+              generationHistoryService.logGeneration(
+                'grok-pipeline',
+                url.endsWith('.mp4') ? 'video' : 'image',
+                grokParams as unknown as Record<string, unknown>,
+                {
+                  id: crypto.randomUUID(),
+                  type: url.endsWith('.mp4') ? 'video' : 'image',
+                  url: url,
+                  timestamp: Date.now(),
+                  relatedAssets: [],
+                  metadata: result.metadata || {
+                    format: url.endsWith('.mp4') ? 'mp4' : 'png',
+                    generationParams: grokParams
+                  }
+                }
+              );
+            });
+          } else if (statusData.status === 'failed') {
+            completed = true;
+            setGrokStatus('failed');
+            notificationService.error('Grok Generation Error', statusData.error || 'Unknown error');
+          } else {
+            // Wait before next poll
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+        }
+
+        if (pollCount >= maxPolls) {
+          setGrokStatus('failed');
+          notificationService.error('Grok Generation Timeout', 'La génération a pris trop de temps. Veuillez vérifier l\'historique plus tard.');
+        }
       } else {
         setGrokStatus('failed');
-        alert(`Grok Generation Error: ${result.error}`);
+        notificationService.error('Erreur Grok', startResult.error || 'Erreur inconnue');
       }
     } catch (error) {
       console.error('Error with Grok generation:', error);
       setGrokStatus('failed');
-      alert('Failed to connect to Grok Imagine addon.');
+      notificationService.error('Erreur Connexion', 'Impossible de contacter l\'addon Grok Imagine.');
     } finally {
       setIsGenerating(false);
     }
@@ -451,21 +521,25 @@ const AIGenerationPanel: React.FC = () => {
     setUpdateStatus('🔄 Starting ComfyUI update...');
 
     try {
-      // Call the update script via a simple approach
-      // Since we can't execute Python directly from browser,
-      // we'll show instructions to the user
-      setUpdateStatus('📋 Please run this command in your terminal:');
-      setUpdateStatus(prev => prev + '\n\npython tools/comfyui_installer/update_comfyui_simple.py');
+      if (window.electronAPI?.executeCommand) {
+        const result = await window.electronAPI.executeCommand({
+          command: 'python tools/comfyui_installer/update_comfyui_simple.py',
+          shell: true
+        });
 
-      // Simulate update process (in a real implementation, this would call an API)
-      setTimeout(() => {
-        setUpdateStatus('✅ Update command prepared!\n\nRun the command shown above in your terminal, then restart the services.');
-        setIsUpdating(false);
-      }, 2000);
-
+        if (result.success) {
+          setUpdateStatus('✅ ComfyUI updated successfully!');
+        } else {
+          setUpdateStatus(`❌ Update failed: ${result.error}`);
+        }
+      } else {
+        setUpdateStatus('📋 Please run this command in your terminal:');
+        setUpdateStatus(prev => prev + '\n\npython tools/comfyui_installer/update_comfyui_simple.py');
+      }
     } catch (error) {
-      console.error('Error preparing update:', error);
-      setUpdateStatus('❌ Error preparing update. Check console for details.');
+      console.error('Error executing update:', error);
+      setUpdateStatus('❌ Error executing update. Check console for details.');
+    } finally {
       setIsUpdating(false);
     }
   };
@@ -484,46 +558,57 @@ const AIGenerationPanel: React.FC = () => {
     setUpdateStatus('🔄 Restarting services...');
 
     try {
-      // In a real implementation, this would call an API endpoint
-      // For now, we'll show instructions
-      setUpdateStatus('📋 To restart services, run:');
-      setUpdateStatus(prev => prev + '\n\npython start_storycore_complete.py');
-
-      setTimeout(() => {
-        setUpdateStatus('✅ Restart command prepared!\n\nRun the command shown above in your terminal.');
-        setIsRestarting(false);
-      }, 2000);
-
+      if (window.electronAPI?.executeCommand) {
+        // Run restart script - this will likely disconnect the current session
+        await window.electronAPI.executeCommand({
+          command: 'python start_storycore_complete.py',
+          shell: true
+        });
+        setUpdateStatus('✅ Restart command sent. Services should restart shortly.');
+      } else {
+        setUpdateStatus('📋 To restart services, run:');
+        setUpdateStatus(prev => prev + '\n\npython start_storycore_complete.py');
+      }
     } catch (error) {
-      console.error('Error preparing restart:', error);
-      setUpdateStatus('❌ Error preparing restart. Check console for details.');
+      console.error('Error executing restart:', error);
+      setUpdateStatus('❌ Error executing restart. Check console for details.');
+    } finally {
       setIsRestarting(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'queued': return '#ff9800';
-      case 'running': return '#2196f3';
-      case 'completed': return '#4caf50';
-      case 'failed': return '#f44336';
-      default: return '#666';
+  const exportHistory = () => {
+    const fullHistory = generationHistoryService.getAllEntries();
+    if (fullHistory.length === 0) {
+      notificationService.info('Historique', 'Aucun historique à exporter.');
+      return;
+    }
+    const data = JSON.stringify(fullHistory, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `generation-history-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    logger.info('Exported full generation history');
+  };
+
+  const clearHistory = () => {
+    if (window.confirm('🗑️ Clear all generation history? This cannot be undone.')) {
+      generationHistoryService.clearHistory();
+      setHistory([]);
+      logger.info('Cleared generation history');
     }
   };
+
 
   return (
     <div className="ai-generation-panel">
       <div className="panel-header">
         <h2>🎨 AI Content Generation</h2>
         {!comfyUIUrl && (
-          <div style={{
-            padding: '8px 12px',
-            backgroundColor: '#ff9800',
-            color: 'white',
-            borderRadius: '4px',
-            fontSize: '14px',
-            marginTop: '8px'
-          }}>
+          <div className="config-warning">
             ⚠️ ComfyUI not configured. Please configure a ComfyUI server in Settings to use this feature.
           </div>
         )}
@@ -565,7 +650,11 @@ const AIGenerationPanel: React.FC = () => {
         <div className="history-overlay">
           <div className="history-header">
             <h3>Recent Generations</h3>
-            <button onClick={() => setShowHistory(false)}>✕</button>
+            <div className="history-actions">
+              <button onClick={exportHistory} title="Export history to JSON" className="history-action-btn">📥 Export Log</button>
+              <button onClick={clearHistory} title="Clear all history" className="history-action-btn delete">🗑️ Clear</button>
+              <button onClick={() => setShowHistory(false)} className="close-btn">✕</button>
+            </div>
           </div>
           <div className="history-list">
             {history.length === 0 ? (
@@ -621,7 +710,7 @@ const AIGenerationPanel: React.FC = () => {
                         <div className="queue-item-info" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
                           <div className="queue-item-header">
                             <span className="queue-type">{task.pipelineId === 'grok-pipeline' ? '🤖 GROK' : '🎨 COMFY'}</span>
-                            <span className="queue-status" style={{ color: getStatusColor(task.status) }}>{task.status.toUpperCase()}</span>
+                            <span className="queue-status" data-status={task.status}>{task.status.toUpperCase()}</span>
                             {task.retryCount && task.retryCount > 0 && (
                               <span className="retry-badge">Retry {task.retryCount}/{task.maxRetries}</span>
                             )}
@@ -630,7 +719,7 @@ const AIGenerationPanel: React.FC = () => {
                           
                           {task.status === 'running' && task.progress && (
                             <div className="queue-progress-container">
-                              <div className="queue-progress-bar" style={{ width: `${task.progress.overallProgress}%` }}></div>
+                              <div className="queue-progress-bar" style={{ '--progress-width': `${task.progress.overallProgress}%` } as React.CSSProperties}></div>
                               <span className="queue-progress-text">{Math.round(task.progress.overallProgress)}% - {task.progress.stage}</span>
                             </div>
                           )}
@@ -683,8 +772,9 @@ const AIGenerationPanel: React.FC = () => {
             </div>
           </div>
         ) : activeTab === 'image' ? (
-          <div className="parameter-section">
-            <h3>Image Generation Parameters</h3>
+          <>
+            <div className="parameter-section">
+              <h3>Image Generation Parameters</h3>
 
 <div className="param-group server-selection">
               <label htmlFor="image-server">ComfyUI Server:</label>
@@ -706,28 +796,32 @@ const AIGenerationPanel: React.FC = () => {
             </div>
 
             <div className="param-group">
-              <label>Prompt:</label>
+              <label htmlFor="image-prompt-textarea" id="image-prompt-label">Prompt:</label>
               <textarea
+                id="image-prompt-textarea"
                 value={imageParams.prompt}
                 onChange={(e) => setImageParams(prev => ({ ...prev, prompt: e.target.value }))}
                 placeholder="Describe the image you want to generate..."
                 rows={3}
+                aria-labelledby="image-prompt-label"
               />
             </div>
 
             <div className="param-group">
-              <label>Negative Prompt:</label>
+              <label htmlFor="image-negative-prompt-textarea" id="image-negative-prompt-label">Negative Prompt:</label>
               <textarea
+                id="image-negative-prompt-textarea"
                 value={imageParams.negative_prompt}
                 onChange={(e) => setImageParams(prev => ({ ...prev, negative_prompt: e.target.value }))}
                 placeholder="What to avoid in the image..."
                 rows={2}
+                aria-labelledby="image-negative-prompt-label"
               />
             </div>
 
             <div className="param-row">
               <div className="param-group">
-                <label htmlFor="image-width">Width:</label>
+                <label htmlFor="image-width" id="image-width-label">Width:</label>
                 <input
                   id="image-width"
                   type="number"
@@ -741,7 +835,7 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label htmlFor="image-height">Height:</label>
+                <label htmlFor="image-height" id="image-height-label">Height:</label>
                 <input
                   id="image-height"
                   type="number"
@@ -757,7 +851,7 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label htmlFor="image-steps">Steps:</label>
+                <label htmlFor="image-steps" id="image-steps-label">Steps:</label>
                 <input
                   id="image-steps"
                   type="number"
@@ -770,7 +864,7 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label htmlFor="image-cfg-scale">CFG Scale:</label>
+                <label htmlFor="image-cfg-scale" id="image-cfg-scale-label">CFG Scale:</label>
                 <input
                   id="image-cfg-scale"
                   type="number"
@@ -786,7 +880,7 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label htmlFor="image-seed">Seed:</label>
+                <label htmlFor="image-seed" id="image-seed-label">Seed:</label>
                 <input
                   id="image-seed"
                   type="number"
@@ -804,13 +898,18 @@ const AIGenerationPanel: React.FC = () => {
               </div>
             </div>
           </div>
+
+
+
+          </>
         ) : activeTab === 'video' ? (
           <div className="parameter-section">
             <h3>Video Generation Parameters</h3>
 
             <div className="param-group server-selection">
-              <label>ComfyUI Server:</label>
+              <label htmlFor="video-server-select">ComfyUI Server:</label>
               <select 
+                id="video-server-select"
                 value={selectedServerId} 
                 onChange={(e) => {
                   const id = e.target.value;
@@ -826,28 +925,32 @@ const AIGenerationPanel: React.FC = () => {
             </div>
 
             <div className="param-group">
-              <label>Prompt:</label>
+              <label htmlFor="video-prompt-textarea" id="video-prompt-label">Prompt:</label>
               <textarea
+                id="video-prompt-textarea"
                 value={videoParams.prompt}
                 onChange={(e) => setVideoParams(prev => ({ ...prev, prompt: e.target.value }))}
                 placeholder="Describe the video scene with movement and timing..."
                 rows={3}
+                aria-labelledby="video-prompt-label"
               />
             </div>
 
             <div className="param-group">
-              <label>Negative Prompt:</label>
+              <label htmlFor="video-negative-prompt-textarea" id="video-negative-prompt-label">Negative Prompt:</label>
               <textarea
+                id="video-negative-prompt-textarea"
                 value={videoParams.negative_prompt}
                 onChange={(e) => setVideoParams(prev => ({ ...prev, negative_prompt: e.target.value }))}
                 placeholder="What to avoid in the video..."
                 rows={2}
+                aria-labelledby="video-negative-prompt-label"
               />
             </div>
 
             <div className="param-row">
               <div className="param-group">
-                <label htmlFor="video-width">Width:</label>
+                <label htmlFor="video-width" id="video-width-label">Width:</label>
                 <input
                   id="video-width"
                   type="number"
@@ -861,7 +964,7 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label htmlFor="video-height">Height:</label>
+                <label htmlFor="video-height" id="video-height-label">Height:</label>
                 <input
                   id="video-height"
                   type="number"
@@ -875,7 +978,7 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label htmlFor="video-frames">Frames:</label>
+                <label htmlFor="video-frames" id="video-frames-label">Frames:</label>
                 <input
                   id="video-frames"
                   type="number"
@@ -890,7 +993,7 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label htmlFor="video-steps">Steps:</label>
+                <label htmlFor="video-steps" id="video-steps-label">Steps:</label>
                 <input
                   id="video-steps"
                   type="number"
@@ -903,7 +1006,7 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label htmlFor="video-cfg-scale">CFG Scale:</label>
+                <label htmlFor="video-cfg-scale" id="video-cfg-scale-label">CFG Scale:</label>
                 <input
                   id="video-cfg-scale"
                   type="number"
@@ -919,7 +1022,7 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label htmlFor="video-seed">Seed:</label>
+                <label htmlFor="video-seed" id="video-seed-label">Seed:</label>
                 <input
                   id="video-seed"
                   type="number"
@@ -963,8 +1066,9 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label>Model:</label>
+                <label htmlFor="grok-model-select">Model:</label>
                 <select 
+                  id="grok-model-select"
                   value={grokParams.model} 
                   onChange={(e) => setGrokParams(prev => ({ ...prev, model: e.target.value }))}
                 >
@@ -976,8 +1080,9 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label>Mode:</label>
+                <label htmlFor="grok-mode-select">Mode:</label>
                 <select 
+                  id="grok-mode-select"
                   value={grokParams.mode} 
                   onChange={(e) => setGrokParams(prev => ({ ...prev, mode: e.target.value }))}
                 >
@@ -991,8 +1096,9 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label>Aspect Ratio:</label>
+                <label htmlFor="grok-aspect-ratio-select">Aspect Ratio:</label>
                 <select 
+                  id="grok-aspect-ratio-select"
                   value={grokParams.aspectRatio} 
                   onChange={(e) => setGrokParams(prev => ({ ...prev, aspectRatio: e.target.value }))}
                 >
@@ -1006,8 +1112,9 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label>Quality:</label>
+                <label htmlFor="grok-quality-select">Quality:</label>
                 <select 
+                  id="grok-quality-select"
                   value={grokParams.quality} 
                   onChange={(e) => setGrokParams(prev => ({ ...prev, quality: e.target.value }))}
                 >
@@ -1057,8 +1164,9 @@ const AIGenerationPanel: React.FC = () => {
 
             <div className="param-row">
               <div className="param-group">
-                <label>Output Count:</label>
+                <label htmlFor="grok-output-count-input">Output Count:</label>
                 <input 
+                  id="grok-output-count-input"
                   type="number" 
                   min="1" 
                   max="50" 
@@ -1068,20 +1176,137 @@ const AIGenerationPanel: React.FC = () => {
               </div>
 
               <div className="param-group">
-                <label>Seed:</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <label htmlFor="grok-seed-input">Seed:</label>
+                <div className="seed-input-container">
                   <input 
+                    id="grok-seed-input"
                     type="number" 
                     value={grokParams.seed} 
                     onChange={(e) => setGrokParams(prev => ({ ...prev, seed: parseInt(e.target.value) }))}
-                    style={{ flex: 1 }}
                   />
-                  <button className="randomize-btn" onClick={randomizeSeed} style={{ width: 'auto' }}>
+                  <button className="randomize-btn" onClick={randomizeSeed}>
                     🎲
                   </button>
                 </div>
               </div>
             </div>
+
+            <div className="advanced-settings-wrapper">
+              <div className="advanced-settings-toggle">
+                <button onClick={() => setShowAdvanced(!showAdvanced)} className="toggle-advanced-btn">
+                  {showAdvanced ? '🔽 Hide Advanced Settings' : '▶️ Show Advanced Settings'}
+                </button>
+              </div>
+
+              <AnimatePresence>
+                {showAdvanced && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="advanced-params-pane"
+                  >
+                    <div className="param-group">
+                      <label htmlFor="grok-negative-prompt">Negative Prompt:</label>
+                      <textarea 
+                        id="grok-negative-prompt"
+                        value={grokParams.negativePrompt}
+                        onChange={(e) => setGrokParams(prev => ({ ...prev, negativePrompt: e.target.value }))}
+                        rows={2}
+                        className="advanced-textarea"
+                      />
+                    </div>
+                    
+                    <div className="param-row">
+                      <div className="param-group">
+                        <label htmlFor="grok-creativity-scale">Creativity Scale ({grokParams.creativityScale}):</label>
+                        <input 
+                          id="grok-creativity-scale"
+                          type="range" 
+                          min="0" 
+                          max="1" 
+                          step="0.05"
+                          value={grokParams.creativityScale} 
+                          onChange={(e) => setGrokParams(prev => ({ ...prev, creativityScale: parseFloat(e.target.value) }))}
+                        />
+                      </div>
+                      
+                      <div className="param-group">
+                        <label htmlFor="grok-resolution-select">Resolution:</label>
+                        <select 
+                          id="grok-resolution-select"
+                          value={grokParams.resolution} 
+                          onChange={(e) => setGrokParams(prev => ({ ...prev, resolution: e.target.value }))}
+                        >
+                          <option value="720p">720p</option>
+                          <option value="1080p">1080p</option>
+                          <option value="4k">4k (Ultra HD)</option>
+                        </select>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
+
+        {(activeTab === 'image' || activeTab === 'video') && (
+          <div className="advanced-settings-wrapper">
+            <div className="advanced-settings-toggle">
+              <button onClick={() => setShowAdvanced(!showAdvanced)} className="toggle-advanced-btn">
+                {showAdvanced ? '🔽 Hide Advanced Settings' : '▶️ Show Advanced Settings'}
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {showAdvanced && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="advanced-params-pane"
+                >
+                  <div className="param-row">
+                    <div className="param-group">
+                      <label htmlFor="sampler-select">Sampler:</label>
+                      <select id="sampler-select" value={advancedParams.sampler} onChange={(e) => setAdvancedParams(p => ({ ...p, sampler: e.target.value }))}>
+                        <option value="euler">Euler</option>
+                        <option value="euler_ancestral">Euler A</option>
+                        <option value="heun">Heun</option>
+                        <option value="dpmpp_2m">DPM++ 2M</option>
+                        <option value="dpmpp_sde">DPM++ SDE</option>
+                        <option value="uni_pc">UniPC</option>
+                      </select>
+                    </div>
+                    <div className="param-group">
+                      <label htmlFor="scheduler-select">Scheduler:</label>
+                      <select id="scheduler-select" value={advancedParams.scheduler} onChange={(e) => setAdvancedParams(p => ({ ...p, scheduler: e.target.value }))}>
+                        <option value="normal">Normal</option>
+                        <option value="karras">Karras</option>
+                        <option value="exponential">Exponential</option>
+                        <option value="simple">Simple</option>
+                        <option value="ddim_uniform">DDIM Uniform</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="param-row">
+                    <div className="param-group">
+                      <label htmlFor="vae-select">VAE Mode:</label>
+                      <select id="vae-select" value={advancedParams.vae} onChange={(e) => setAdvancedParams(p => ({ ...p, vae: e.target.value }))}>
+                        <option value="baked">Baked / Default</option>
+                        <option value="vae-ft-mse-840000-ema-pruned">FT-MSE (Recommended)</option>
+                        <option value="kl-f8-anime2">KL-F8 Anime</option>
+                      </select>
+                    </div>
+                    <div className="param-group">
+                      <label htmlFor="clip-skip-input">CLIP Skip:</label>
+                      <input id="clip-skip-input" type="number" min="1" max="4" value={advancedParams.clip_skip} onChange={(e) => setAdvancedParams(p => ({ ...p, clip_skip: parseInt(e.target.value) }))} />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
@@ -1135,7 +1360,7 @@ const AIGenerationPanel: React.FC = () => {
             <div className="status-info">
               <span
                 className="status-indicator"
-                style={{ backgroundColor: getStatusColor(currentJob?.status || (activeTab === 'grok' ? grokStatus : 'idle')) }}
+                data-status={currentJob?.status || (activeTab === 'grok' ? grokStatus : 'idle')}
               ></span>
               <span className="status-text">
                 {(activeTab === 'grok' ? grokStatus : currentJob?.status || '').toUpperCase()} - {(activeTab === 'grok' ? 'Grok Imagine' : currentJob?.type?.replace('_', ' ') || '').toUpperCase()}

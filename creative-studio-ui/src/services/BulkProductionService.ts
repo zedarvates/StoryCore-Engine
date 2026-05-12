@@ -15,6 +15,8 @@ import type { Project, Shot, Character } from '@/types';
 export interface BulkProductionOptions {
   concurrency?: number; // Max parallel jobs
   coherenceLock?: boolean; // If true, share seed and character reference across all shots
+  engine?: string; // Video engine (ltx2, wan21, etc)
+  quality?: string; // Quality mode
   onShotComplete?: (shotId: string, job: CineProductionJob) => void;
   onShotError?: (shotId: string, error: Error) => void;
   onProgress?: (progress: number) => void;
@@ -111,9 +113,11 @@ export class BulkProductionService {
       chainType: 'generate_scene',
       sceneDescription: shot.prompt || `Cinematic shot: ${shot.name || 'Untitled'}`,
       style: `${shot.visualStyle?.styleName || 'Photorealistic Cinematic'}. ${persistentStyling}`,
+      preferredEngine: _options.engine, // Ajout du moteur préféré
       overrides: {
         ...(shot.parameters || {}),
         seed: globalSeed !== -1 ? globalSeed : (shot.parameters?.seed || -1),
+        quality: _options.quality, // Ajout de la qualité
         // Coherence Locking
         coherenceLock: {
           characterId: mainCharacter?.character_id,

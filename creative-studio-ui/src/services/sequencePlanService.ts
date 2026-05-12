@@ -384,7 +384,7 @@ export class SequencePlanService {
     } = options;
 
     // Prepare export data
-    const exportData: Record<string, any> = {
+    const exportData: Record<string, unknown> = {
       ...plan,
     };
 
@@ -394,8 +394,8 @@ export class SequencePlanService {
     }
 
     // Remove thumbnails if not included
-    if (!includeThumbnails) {
-      exportData.shots = exportData.shots.map((shot: Shot) => {
+    if (!includeThumbnails && exportData.shots) {
+      exportData.shots = (exportData.shots as any[]).map((shot: any) => {
         const { image: _image, ...shotWithoutImage } = shot;
         return shotWithoutImage;
       });
@@ -556,7 +556,6 @@ export class SequencePlanService {
         resolution: plan.resolution,
         acts: [],
         scenes: [],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         shots: (plan.shots as LegacyAny[]) || [], 
         createdAt: plan.createdAt,
         modifiedAt: plan.modifiedAt,
@@ -611,10 +610,21 @@ export class SequencePlanService {
    */
   public async enhanceShotPrompt(description: string, visualStyle: string): Promise<string> {
     console.log(`[NeuralEnhance] Processing: "${description}" with style "${visualStyle}"`);
-    // Simulated AI enhancement logic
-    const enhanced = `High-end cinematic composition, ${visualStyle} style, 8k resolution, photorealistic, ${description}, masterful lighting, anamorphic lens flares, volumetric atmosphere.`;
     
-    return new Promise(resolve => setTimeout(() => resolve(enhanced), 800));
+    try {
+      // Integration with real prompt generation service
+      const { promptGenerationService } = await import('./PromptGenerationService');
+      const enhanced = await promptGenerationService.generateCinematicPrompt(description, {
+        style: visualStyle,
+        intensity: 'cinematic',
+        technicalDetails: true
+      });
+      return enhanced;
+    } catch (error) {
+      console.warn('[SequencePlanService] PromptGenerationService failed, using fallback enhancement', error);
+      // Enhanced fallback simulation
+      return `High-end cinematic composition, ${visualStyle} style, 8k resolution, photorealistic, ${description}, masterful lighting, anamorphic lens flares, volumetric atmosphere.`;
+    }
   }
 
   /**

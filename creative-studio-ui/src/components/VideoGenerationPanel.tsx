@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Reorder } from 'framer-motion';
 import { toast } from '@/utils/toast';
 import { Play, Square, Film, Cpu, Zap, Star, Crown, AlertCircle, ChevronLeft, ChevronRight, Plus, Trash2, Save, Sparkles, Wand } from 'lucide-react';
@@ -12,6 +12,7 @@ import { markdownExportService } from '@/sequence-editor/services/markdownExport
 import { storyInsightService } from '@/services/ai/StoryInsightService';
 import type { Character } from '@/types/character';
 import { Button, Input, Select, Space, Slider, Tooltip, Avatar, Switch } from 'antd';
+import { notificationService } from '@/services/NotificationService';
 import './VideoGenerationPanel.css';
 
 // ==============================================================================
@@ -99,7 +100,7 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [inputImage, setInputImage] = useState('');
   const [prompt, setPrompt] = useState('');
-  const [isBackendConnected] = useState(true);
+  const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [isDraftMode, setIsDraftMode] = useState(false);
   const [progress, setProgress] = useState<GenerationProgress | null>(null);
   const [generatedVideoPath, setGeneratedVideoPath] = useState<string | null>(null);
@@ -109,8 +110,52 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
 
   // Sequence editor state
   const [showSequenceEditor, setShowSequenceEditor] = useState(false);
-  const [editingSequence, _setEditingSequence] = useState<SequencePlan | null>(null);
+  const [editingSequence, setEditingSequence] = useState<SequencePlan | null>(null);
   const [currentShotIndex, setCurrentShotIndex] = useState(0);
+
+  // ==============================================================================
+  // EFFECTS
+  // ==============================================================================
+
+  useEffect(() => {
+    // Check backend connectivity
+    const checkConnection = async () => {
+      try {
+        const response = await fetch('/health');
+        setIsBackendConnected(response.ok);
+        if (!response.ok) {
+          notificationService.warning('Backend Déconnecté', 'Le serveur StoryCore semble hors-ligne.');
+        }
+      } catch (err) {
+        setIsBackendConnected(false);
+        console.warn('[VideoGenerationPanel] Backend connection failed:', err);
+      }
+    };
+
+    checkConnection();
+    
+    // Auto-initialize sequence plan from project if available
+    if (project && !editingSequence) {
+      // Find a plan in the project or create a default one for this session
+      const defaultPlan: SequencePlan = {
+        id: `gen-${Date.now()}`,
+        name: `Production Studio: ${project.name || 'Nouveau Projet'}`,
+        description: 'Auto-generated sequence for production studio',
+        worldId: project.id || '',
+        targetDuration: shots.reduce((acc, s) => acc + (s.duration || 3), 0),
+        frameRate: 24,
+        resolution: { width: 1280, height: 720 },
+        acts: [],
+        scenes: [],
+        shots: shots as unknown as SequencePlan['shots'],
+        createdAt: Date.now(),
+        modifiedAt: Date.now(),
+        status: 'draft',
+        tags: ['production-studio']
+      };
+      setEditingSequence(defaultPlan);
+    }
+  }, [project, shots, editingSequence]);
 
   // ==============================================================================
   // HANDLE GENERATION AND CANCELLATION
@@ -170,6 +215,8 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
         {
           concurrency: 1,
           coherenceLock: true,
+          engine: engine,
+          quality: quality,
           onProgress: (p) => {
             setProgress({ 
               stage: 'latent', 
@@ -204,7 +251,7 @@ export const VideoGenerationPanel: React.FC<VideoGenerationPanelProps> = ({
       setIsGenerating(false);
       toast.error('Échec de la Production', 'L\'orchestrateur a renvoyé une erreur contextuelle.');
     }
-  }, [inputImage, prompt, selectedShotId, currentShotIndex, updateShot, project, shots, characters]);
+  }, [inputImage, prompt, selectedShotId, currentShotIndex, updateShot, project, shots, characters, engine, quality]);
   
   const handleCancel = useCallback(async () => {
     if (pollingRef.current) clearInterval(pollingRef.current);

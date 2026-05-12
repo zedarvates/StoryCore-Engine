@@ -222,6 +222,24 @@ sensory information, and artistic style while maintaining the original intent.
     
     return parts.join(', ');
   }
+
+  /**
+   * Enhanced cinematic prompt generation for sequence plans
+   */
+  async generateCinematicPrompt(description: string, options: { style?: string; technicalDetails?: boolean; intensity?: string } = {}): Promise<string> {
+    const grokOptions: GrokPromptOptions = {
+      style: options.style as GrokPromptOptions['style'],
+      motion: true
+    };
+    
+    const base = await this.generateGrokPrompt(description, grokOptions);
+    
+    if (options.technicalDetails) {
+      return `${base}, masterful lighting, anamorphic lens flares, volumetric atmosphere, highly detailed textures, professional color grading.`;
+    }
+    
+    return base;
+  }
 }
 
 // Export singleton instance
