@@ -18,6 +18,7 @@ import {
   DEFAULT_COMFYUI_CONFIG,
   DEFAULT_GLOBAL_CONFIG,
 } from '../types/configuration';
+import { encryptValue, decryptValue, isEncrypted } from '../utils/secureStorage';
 
 // ============================================================================
 // Storage Keys
@@ -32,29 +33,20 @@ const PROJECT_CONFIG_PREFIX = 'storycore_project_';
 
 /**
  * Simple encryption for sensitive data (API keys, passwords)
- * NOTE: This is a basic implementation. Use proper encryption in production.
  */
-function encryptSensitiveData(data: string): string {
-  const key = 'storycore-secret-key'; // In production, use environment variable
-  let encrypted = '';
-  for (let i = 0; i < data.length; i++) {
-    encrypted += String.fromCharCode(data.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-  }
-  return btoa(encrypted);
+async function encryptSensitiveData(data: string): Promise<string> {
+  const { encrypted, iv } = await encryptValue(data);
+  return `${encrypted}:${iv}`;
 }
 
 /**
  * Decrypt sensitive data
  */
-function decryptSensitiveData(encrypted: string): string {
+async function decryptSensitiveData(encryptedWithIv: string): Promise<string> {
   try {
-    const key = 'storycore-secret-key';
-    const decoded = atob(encrypted);
-    let decrypted = '';
-    for (let i = 0; i < decoded.length; i++) {
-      decrypted += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-    }
-    return decrypted;
+    const [encrypted, iv] = encryptedWithIv.split(':');
+    if (!encrypted || !iv) return '';
+    return await decryptValue(encrypted, iv);
   } catch (error) {
     console.error('Failed to decrypt data:', error);
     return '';
@@ -75,7 +67,7 @@ export class ConfigurationStore {
   ): Promise<void> {
     try {
       // Encrypt sensitive fields
-      const configToSave = this.encryptSensitiveFields(config);
+      const configToSave = await this.encryptSensitiveFields(config);
 
       // Try to save via Electron API (High integrity persistence in project.json)
       if (window.electronAPI?.config?.saveProject) {
@@ -124,7 +116,7 @@ export class ConfigurationStore {
       }
 
       // Decrypt sensitive fields
-      const decryptedConfig = this.decryptSensitiveFields(config);
+      const decryptedConfig = await this.decryptSensitiveFields(config);
 
       // Migrate legacy configurations
       const migratedConfig = this.migrateConfiguration(decryptedConfig);
@@ -238,7 +230,7 @@ export class ConfigurationStore {
   /**
    * Encrypt sensitive fields in configuration
    */
-  private static encryptSensitiveFields(config: ProjectConfiguration): Record<string, unknown> {
+  private static async encryptSensitiveFields(config: ProjectConfiguration): Promise<Record<string, unknown>> {
     const encrypted = JSON.parse(JSON.stringify(config)) as Record<string, unknown>;
     const encryptedTyped = encrypted as {
       api?: { endpoints?: Record<string, { apiKey?: string }> };
@@ -250,7 +242,7 @@ export class ConfigurationStore {
     if (encryptedTyped.api?.endpoints) {
       Object.keys(encryptedTyped.api.endpoints).forEach(key => {
         if (encryptedTyped.api!.endpoints![key].apiKey) {
-          encryptedTyped.api!.endpoints![key].apiKey = encryptSensitiveData(
+          encryptedTyped.api!.endpoints![key].apiKey = await encryptSensitiveData(
             encryptedTyped.api!.endpoints![key].apiKey!
           );
         }
@@ -259,25 +251,25 @@ export class ConfigurationStore {
 
     // Encrypt LLM API keys
     if (encryptedTyped.llm?.openai?.apiKey) {
-      encryptedTyped.llm.openai.apiKey = encryptSensitiveData(encryptedTyped.llm.openai.apiKey);
+      encryptedTyped.llm.openai.apiKey = await encryptSensitiveData(encryptedTyped.llm.openai.apiKey);
     }
     if (encryptedTyped.llm?.anthropic?.apiKey) {
-      encryptedTyped.llm.anthropic.apiKey = encryptSensitiveData(encryptedTyped.llm.anthropic.apiKey);
+      encryptedTyped.llm.anthropic.apiKey = await encryptSensitiveData(encryptedTyped.llm.anthropic.apiKey);
     }
     if (encryptedTyped.llm?.custom?.apiKey) {
-      encryptedTyped.llm.custom.apiKey = encryptSensitiveData(encryptedTyped.llm.custom.apiKey);
+      encryptedTyped.llm.custom.apiKey = await encryptSensitiveData(encryptedTyped.llm.custom.apiKey);
     }
 
     // Encrypt ComfyUI API keys (legacy and multi-server)
     if (encryptedTyped.comfyui?.apiKey) {
-      encryptedTyped.comfyui.apiKey = encryptSensitiveData(encryptedTyped.comfyui.apiKey);
+      encryptedTyped.comfyui.apiKey = await encryptSensitiveData(encryptedTyped.comfyui.apiKey);
     }
     if (encryptedTyped.comfyui?.servers) {
-      encryptedTyped.comfyui.servers.forEach((server: { apiKey?: string }) => {
+      for (const server of encryptedTyped.comfyui.servers) {
         if (server.apiKey) {
-          server.apiKey = encryptSensitiveData(server.apiKey);
+          server.apiKey = await encryptSensitiveData(server.apiKey);
         }
-      });
+      }
     }
 
     return encrypted;
@@ -286,7 +278,7 @@ export class ConfigurationStore {
   /**
    * Decrypt sensitive fields in configuration
    */
-  private static decryptSensitiveFields(config: unknown): ProjectConfiguration {
+  private static async decryptSensitiveFields(config: unknown): Promise<ProjectConfiguration> {
     const decrypted = JSON.parse(JSON.stringify(config)) as {
       api?: { endpoints?: Record<string, { apiKey?: string }> };
       llm?: { openai?: { apiKey?: string }; anthropic?: { apiKey?: string }; custom?: { apiKey?: string } };
@@ -297,7 +289,7 @@ export class ConfigurationStore {
     if (decrypted.api?.endpoints) {
       Object.keys(decrypted.api.endpoints).forEach(key => {
         if (decrypted.api!.endpoints![key].apiKey) {
-          decrypted.api!.endpoints![key].apiKey = decryptSensitiveData(
+          decrypted.api!.endpoints![key].apiKey = await decryptSensitiveData(
             decrypted.api!.endpoints![key].apiKey!
           );
         }
@@ -306,25 +298,25 @@ export class ConfigurationStore {
 
     // Decrypt LLM API keys
     if (decrypted.llm?.openai?.apiKey) {
-      decrypted.llm.openai.apiKey = decryptSensitiveData(decrypted.llm.openai.apiKey);
+      decrypted.llm.openai.apiKey = await decryptSensitiveData(decrypted.llm.openai.apiKey);
     }
     if (decrypted.llm?.anthropic?.apiKey) {
-      decrypted.llm.anthropic.apiKey = decryptSensitiveData(decrypted.llm.anthropic.apiKey);
+      decrypted.llm.anthropic.apiKey = await decryptSensitiveData(decrypted.llm.anthropic.apiKey);
     }
     if (decrypted.llm?.custom?.apiKey) {
-      decrypted.llm.custom.apiKey = decryptSensitiveData(decrypted.llm.custom.apiKey);
+      decrypted.llm.custom.apiKey = await decryptSensitiveData(decrypted.llm.custom.apiKey);
     }
 
     // Decrypt ComfyUI API keys (legacy and multi-server)
     if (decrypted.comfyui?.apiKey) {
-      decrypted.comfyui.apiKey = decryptSensitiveData(decrypted.comfyui.apiKey);
+      decrypted.comfyui.apiKey = await decryptSensitiveData(decrypted.comfyui.apiKey);
     }
     if (decrypted.comfyui?.servers) {
-      decrypted.comfyui.servers.forEach((server: { apiKey?: string }) => {
+      for (const server of decrypted.comfyui.servers) {
         if (server.apiKey) {
-          server.apiKey = decryptSensitiveData(server.apiKey);
+          server.apiKey = await decryptSensitiveData(server.apiKey);
         }
-      });
+      }
     }
 
     return decrypted as unknown as ProjectConfiguration;

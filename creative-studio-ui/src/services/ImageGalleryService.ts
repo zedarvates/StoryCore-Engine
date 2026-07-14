@@ -100,7 +100,7 @@ export class ImageGalleryService {
         const parsed = JSON.parse(storedImages);
         this.images.clear();
 
-        parsed.forEach((imgData: unknown) => {
+        parsed.forEach((imgData: any) => {
           const image: ImageMetadata = {
             ...imgData,
             createdAt: new Date(imgData.createdAt),
@@ -115,7 +115,7 @@ export class ImageGalleryService {
         const parsed = JSON.parse(storedCollections);
         this.collections.clear();
 
-        parsed.forEach((collData: unknown) => {
+        parsed.forEach((collData: any) => {
           const collection: ImageCollection = {
             ...collData,
             createdAt: new Date(collData.createdAt),
@@ -162,8 +162,8 @@ export class ImageGalleryService {
       revisedPrompt: generatedImage.revisedPrompt,
       model: generatedImage.model,
       size: generatedImage.size,
-      quality: generatedImage.metadata?.quality || 'standard',
-      style: generatedImage.metadata?.style || 'vivid',
+      quality: (generatedImage.metadata as any)?.quality || 'standard',
+      style: (generatedImage.metadata as any)?.style || 'vivid',
       url: generatedImage.url,
       createdAt: generatedImage.createdAt,
       updatedAt: new Date(),
@@ -173,7 +173,7 @@ export class ImageGalleryService {
       contextId: context.id,
       contextName: context.name,
       projectId: this.currentProjectId,
-      tags: [...tags, context.type, context.name].filter(Boolean),
+      tags: [...tags, context.type, context.name].filter(Boolean) as string[],
 
       // Métadonnées techniques
       format: 'png', // DALL-E génère en PNG par défaut
@@ -473,7 +473,7 @@ export class ImageGalleryService {
 
     // Dans un environnement Electron, utiliser l'API de téléchargement
     if (window.electronAPI) {
-      window.electronAPI.downloadFile(image.url, `storycore_image_${image.id}.png`);
+      (window.electronAPI as any).downloadFile(image.url, `storycore_image_${image.id}.png`);
     } else {
       // Ouvrir dans un nouvel onglet pour téléchargement manuel
       window.open(image.url, '_blank');
@@ -505,9 +505,10 @@ export class ImageGalleryService {
 
       if (importData.images && Array.isArray(importData.images)) {
         importData.images.forEach((imgData: unknown) => {
+          const img = imgData as any;
           const image: ImageMetadata = {
-            ...imgData,
-            createdAt: new Date(imgData.createdAt),
+            ...img,
+            createdAt: new Date(img.createdAt),
             updatedAt: new Date(),
             projectId: this.currentProjectId, // Assigner au projet actuel
           };
@@ -517,9 +518,10 @@ export class ImageGalleryService {
 
       if (importData.collections && Array.isArray(importData.collections)) {
         importData.collections.forEach((collData: unknown) => {
+          const coll = collData as any;
           const collection: ImageCollection = {
-            ...collData,
-            createdAt: new Date(collData.createdAt),
+            ...coll,
+            createdAt: new Date(coll.createdAt),
             updatedAt: new Date(),
             projectId: this.currentProjectId, // Assigner au projet actuel
           };

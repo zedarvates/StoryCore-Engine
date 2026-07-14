@@ -37,9 +37,42 @@ Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'scrollInto
   value: vi.fn(),
 });
 
-// Mock ResizeObserver for canvas-based components
+// Mock ResizeObserver for virtualized and responsive components
 (globalThis as unknown).ResizeObserver = class ResizeObserver {
-  observe() { }
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback;
+  }
+  callback: ResizeObserverCallback;
+  observe(target: HTMLElement) {
+    // Provide non-zero dimensions for JSDOM
+    if (!target.offsetWidth) {
+      Object.defineProperty(target, 'offsetWidth', { value: 800, configurable: true });
+    }
+    if (!target.offsetHeight) {
+      Object.defineProperty(target, 'offsetHeight', { value: 600, configurable: true });
+    }
+
+    // Trigger callback with default dimensions for tests
+    setTimeout(() => {
+      this.callback([{
+        target,
+        contentRect: {
+          width: target.offsetWidth,
+          height: target.offsetHeight,
+          top: 0,
+          left: 0,
+          right: target.offsetWidth,
+          bottom: target.offsetHeight,
+          x: 0,
+          y: 0,
+          toJSON: () => ({})
+        },
+        borderBoxSize: [{ inlineSize: target.offsetWidth, blockSize: target.offsetHeight }],
+        contentBoxSize: [{ inlineSize: target.offsetWidth, blockSize: target.offsetHeight }],
+        devicePixelContentBoxSize: []
+      }], this);
+    }, 0);
+  }
   unobserve() { }
   disconnect() { }
 };

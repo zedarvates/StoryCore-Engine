@@ -15,7 +15,7 @@ from src.image_enhancement.relight_engine import AdvancedRelightEngine, LightSou
 from src.audio_processing.audio_inpaint import AudioInpaintEngine
 from src.image_enhancement.skin_enhancer import SkinEnhancerEngine
 from src.ai_stylist.stylist_engine import AIStylistEngine
-from src.audio_processing.sfx_generator import SFXGeneratorEngine
+from src.audio_processing.sfx_generator import SFXGenerator
 from src.publication.youtube_optimizer import (
     YouTubeOptimizerEngine,
     OptimizationRequest,
@@ -78,8 +78,8 @@ async def test_high_impact_features():
     res_k = await kitten.synthesize("Hello")
     print(f"Kitten TTS: success={res_k.success}")
 
-    sfx = SFXGeneratorEngine()
-    res_sfx = await sfx.generate("explosion")
+    sfx = SFXGenerator()
+    res_sfx = await sfx.generate_sfx("explosion")
     print(f"SFX Generator: path={res_sfx.audio_path}")
 
     music = MusicContinuationEngine()

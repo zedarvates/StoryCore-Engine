@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 import { ProjectConfig } from './ProjectValidator';
 
 export interface IntegrityCheckResult {
@@ -347,6 +348,37 @@ export class ProjectIntegrityChecker {
           }
         } catch (error) {
            console.error('[IntegrityChecker] Failed to restore LLM config:', error);
+        }
+      }
+
+      // Ensure project ID exists in metadata for Data Contract v1 stability
+      if (!(config.metadata as any)?.id && !config.id && !config.guid) {
+        issues.push({
+          type: 'missing_field',
+          severity: 'warning',
+          description: 'Missing project ID in metadata',
+          path: this.configPath,
+          canAutoFix: true
+        });
+
+        try {
+          const currentContent = fs.readFileSync(this.configPath, 'utf-8');
+          const currentConfig = JSON.parse(currentContent);
+          if (!currentConfig.metadata) currentConfig.metadata = {};
+          
+          const newId = uuidv4();
+          currentConfig.metadata.id = newId;
+          
+          fs.writeFileSync(this.configPath, JSON.stringify(currentConfig, null, 2), 'utf-8');
+          corrections.push({
+            type: 'add_field',
+            description: `Generated stable project ID: ${newId}`,
+            success: true,
+            path: this.configPath
+          });
+          console.log(`[IntegrityChecker] Generated and saved project ID: ${newId}`);
+        } catch (error) {
+          console.error('[IntegrityChecker] Failed to generate project ID:', error);
         }
       }
 

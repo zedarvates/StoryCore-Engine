@@ -67,8 +67,8 @@ export function mergeProjects(
 
   for (const recentProject of recent) {
     // Convert Date to timestamp if needed
-    const lastAccessed = recentProject.lastModified instanceof Date
-      ? recentProject.lastModified.getTime()
+    const lastAccessed = typeof recentProject.lastModified === 'number'
+      ? recentProject.lastModified
       : new Date(recentProject.lastModified).getTime();
 
     recentMap.set(recentProject.path, { lastAccessed });

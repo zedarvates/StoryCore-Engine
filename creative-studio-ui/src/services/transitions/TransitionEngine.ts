@@ -8,7 +8,6 @@ import {
   TransitionState,
   TransitionMetrics,
   ShaderProgram,
-  _ShaderUniforms,
   TransitionFrameData,
   TransitionCanvasOptions,
   GPUMode,

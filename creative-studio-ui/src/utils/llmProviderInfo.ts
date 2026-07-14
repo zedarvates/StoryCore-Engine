@@ -55,6 +55,30 @@ export const PROVIDER_BRANDING: Record<LLMProvider, ProviderBranding> = {
     website: '',
     documentationUrl: '',
   },
+  openrouter: {
+    name: 'openrouter',
+    displayName: 'OpenRouter',
+    description: 'Unified API for diverse LLM models',
+    color: '#0D9488',
+    website: 'https://openrouter.ai',
+    documentationUrl: 'https://openrouter.ai/docs',
+  },
+  lmstudio: {
+    name: 'lmstudio',
+    displayName: 'LM Studio',
+    description: 'Local LLM server running via LM Studio',
+    color: '#059669',
+    website: 'https://lmstudio.ai',
+    documentationUrl: 'https://lmstudio.ai/docs',
+  },
+  diffusion: {
+    name: 'diffusion',
+    displayName: 'Diffusion Engine',
+    description: 'Local video/image diffusion server (ComfyUI)',
+    color: '#DC2626',
+    website: '',
+    documentationUrl: '',
+  },
 };
 
 // ============================================================================
@@ -147,6 +171,58 @@ export const PROVIDER_HELP_TEXT: Record<LLMProvider, ProviderHelpText> = {
       'Authentication failed - Verify credentials',
     ],
   },
+  openrouter: {
+    apiKeyLabel: 'OpenRouter API Key',
+    apiKeyPlaceholder: 'sk-or-...',
+    apiKeyHelp: 'Your OpenRouter API key from openrouter.ai',
+    setupInstructions: [
+      'Go to openrouter.ai',
+      'Sign in or create an account',
+      'Navigate to Keys section',
+      'Create a new key',
+      'Copy and paste it here',
+    ],
+    commonIssues: [
+      'Insufficient balance - Add funds to your account',
+      'Invalid key - Verify spelling',
+    ],
+  },
+  lmstudio: {
+    apiKeyLabel: 'API Key (Optional)',
+    apiKeyPlaceholder: 'Leave empty if not required',
+    apiKeyHelp: 'LM Studio usually does not require an API key',
+    endpointLabel: 'LM Studio URL',
+    endpointPlaceholder: 'http://localhost:1234/v1',
+    endpointHelp: 'The local URL where LM Studio API is running',
+    setupInstructions: [
+      'Open LM Studio',
+      'Navigate to the Local Server tab (double-headed arrow icon)',
+      'Click "Start Server"',
+      'Copy the endpoint URL shown',
+      'Enter it here (usually http://localhost:1234/v1)',
+    ],
+    commonIssues: [
+      'Server not started - Click Start Server in LM Studio',
+      'Wrong endpoint - Make sure to include /v1 suffix',
+    ],
+  },
+  diffusion: {
+    apiKeyLabel: 'API Key (Optional)',
+    apiKeyPlaceholder: 'Leave empty if not required',
+    apiKeyHelp: 'ComfyUI / Stable Diffusion server API key if needed',
+    endpointLabel: 'Diffusion Server URL',
+    endpointPlaceholder: 'http://localhost:8188',
+    endpointHelp: 'The URL where ComfyUI or your diffusion server is running',
+    setupInstructions: [
+      'Ensure your local ComfyUI server is running',
+      'Find the port (usually 8188)',
+      'Enter the full URL here',
+    ],
+    commonIssues: [
+      'Server offline - Run your ComfyUI launcher',
+      'CORS issues - Start ComfyUI with --allow-all-origins',
+    ],
+  },
 };
 
 // ============================================================================
@@ -230,6 +306,44 @@ export const PROVIDER_VALIDATION_RULES: Record<
       },
     ],
   },
+  openrouter: {
+    apiKey: [
+      {
+        test: (value) => value.startsWith('sk-or-'),
+        message: 'OpenRouter API keys must start with "sk-or-"',
+      },
+    ],
+  },
+  lmstudio: {
+    endpoint: [
+      {
+        test: (value) => {
+          try {
+            const url = new URL(value);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+          } catch {
+            return false;
+          }
+        },
+        message: 'Must be a valid HTTP or HTTPS URL',
+      },
+    ],
+  },
+  diffusion: {
+    endpoint: [
+      {
+        test: (value) => {
+          try {
+            const url = new URL(value);
+            return url.protocol === 'http:' || url.protocol === 'https:';
+          } catch {
+            return false;
+          }
+        },
+        message: 'Must be a valid HTTP or HTTPS URL',
+      },
+    ],
+  },
 };
 
 // ============================================================================
@@ -277,6 +391,30 @@ export const PROVIDER_FEATURES: Record<LLMProvider, ProviderFeatures> = {
     supportsVision: false,
     maxContextWindow: 8192,
     recommendedTemperature: 0.7,
+  },
+  openrouter: {
+    supportsStreaming: true,
+    supportsSystemPrompts: true,
+    supportsFunctionCalling: false,
+    supportsVision: true,
+    maxContextWindow: 128000,
+    recommendedTemperature: 0.7,
+  },
+  lmstudio: {
+    supportsStreaming: true,
+    supportsSystemPrompts: true,
+    supportsFunctionCalling: false,
+    supportsVision: false,
+    maxContextWindow: 8192,
+    recommendedTemperature: 0.7,
+  },
+  diffusion: {
+    supportsStreaming: false,
+    supportsSystemPrompts: false,
+    supportsFunctionCalling: false,
+    supportsVision: false,
+    maxContextWindow: 2048,
+    recommendedTemperature: 0.0,
   },
 };
 
@@ -336,12 +474,12 @@ export function validateProviderField(
  * Check if a provider requires an API key
  */
 export function providerRequiresApiKey(provider: LLMProvider): boolean {
-  return provider === 'openai' || provider === 'anthropic' || provider === 'custom';
+  return provider === 'openai' || provider === 'anthropic' || provider === 'openrouter' || provider === 'custom';
 }
 
 /**
  * Check if a provider requires a custom endpoint
  */
 export function providerRequiresEndpoint(provider: LLMProvider): boolean {
-  return provider === 'local' || provider === 'custom';
+  return provider === 'local' || provider === 'lmstudio' || provider === 'custom' || provider === 'diffusion';
 }

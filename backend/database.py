@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Convert standard postgresql:// to asyncpg postgresql+asyncpg:// if needed
 database_url = settings.DATABASE_URL
+print(f"DEBUG: Initializing database with URL: {database_url}")
 if database_url.startswith("postgresql://"):
     database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 

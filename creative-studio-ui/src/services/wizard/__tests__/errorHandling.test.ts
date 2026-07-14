@@ -10,24 +10,17 @@ import { WizardError } from '../types';
 import {
   generateErrorMessage,
   formatErrorMessage,
-  _createUserFriendlyError,
   getRecoveryActions,
   isErrorActionable,
 } from '../errorHandling';
 import {
   RetryManager,
-  _executeWithRetry,
-  _getPreservedParameters,
 } from '../retryLogic';
 import {
   SessionPreservationManager,
-  _saveWizardSession,
-  _loadWizardSession,
-  _deleteWizardSession,
 } from '../sessionPreservation';
 import {
   ErrorLogger,
-  _logWizardError,
 } from '../errorLogger';
 
 describe('Error Message Generation', () => {
@@ -289,7 +282,7 @@ describe('Session Preservation', () => {
     });
   });
 
-  it('should cleanup expired sessions', () => {
+  it('should cleanup expired sessions', async () => {
     // Create a session with short expiration
     const shortExpirationManager = new SessionPreservationManager({
       expirationHours: 0, // Expires immediately
@@ -301,6 +294,8 @@ describe('Session Preservation', () => {
     });
 
     // Wait a bit to ensure expiration
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    
     const removed = shortExpirationManager.cleanupExpiredSessions();
 
     expect(removed).toBeGreaterThan(0);

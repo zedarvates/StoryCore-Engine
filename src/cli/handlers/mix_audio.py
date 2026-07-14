@@ -9,7 +9,7 @@ from typing import Dict, Any
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
-from src.audio_processing.music_remixer import AudioMixingEngine
+from src.audio_mixing_engine import AudioMixingEngine
 
 
 class MixAudioHandler(BaseHandler):

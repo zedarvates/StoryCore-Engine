@@ -284,12 +284,13 @@ export class WizardService {
    * Note: ComfyUI is an OPTIONAL service - connection failures are expected and should be silent
    */
   async checkComfyUIConnection(): Promise<ConnectionStatus> {
+    let availableServer = null;
     try {
       // Get the ComfyUI Servers Service
       const comfyuiServersService = getComfyUIServersService();
 
       // Try to get an available server
-      const availableServer = await comfyuiServersService.getAvailableServer();
+      availableServer = await comfyuiServersService.getAvailableServer();
 
       if (availableServer) {
         // Test the connection using the ComfyUI service
@@ -305,8 +306,8 @@ export class WizardService {
             service: 'comfyui',
             endpoint: availableServer.serverUrl
           };
-        } else {
-          // ComfyUI not running - this is expected for optional service
+        } else if (testResult.message?.includes('Authentication')) {
+          // If authentication failed on a configured server, don't fallback
           return {
             connected: false,
             service: 'comfyui',
@@ -314,24 +315,59 @@ export class WizardService {
             error: testResult.message
           };
         }
-      } else {
-        // No servers configured - return disconnected silently
-        return {
-          connected: false,
-          service: 'comfyui',
-          endpoint: '',
-          error: 'No ComfyUI server configured'
-        };
       }
     } catch (error) {
-      // ComfyUI connection failed - this is OK for optional service
-      return {
-        connected: false,
-        service: 'comfyui',
-        endpoint: COMFYUI_URL,
-        error: error instanceof Error ? error.message : 'Connection failed'
-      };
+      // Service error - we'll still try fallbacks
+      console.warn('ComfyUI Servers Service error:', error);
     }
+
+    let lastError = 'No ComfyUI server responding';
+
+    // Fallback 1: Try default ComfyUI port (8188)
+    try {
+      const defaultEndpoint = 'http://localhost:8188';
+      const response = await fetch(`${defaultEndpoint}/system_stats`, {
+        signal: AbortSignal.timeout(2000)
+      });
+      
+      if (response.ok) {
+        return {
+          connected: true,
+          service: 'comfyui',
+          endpoint: defaultEndpoint
+        };
+      } else {
+        lastError = `HTTP ${response.status}: ${response.statusText}`;
+      }
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+    }
+
+    // Fallback 2: Try ComfyUI Desktop port (8000)
+    try {
+      const desktopEndpoint = 'http://localhost:8000';
+      const response = await fetch(`${desktopEndpoint}/system_stats`, {
+        signal: AbortSignal.timeout(2000)
+      });
+      
+      if (response.ok) {
+        return {
+          connected: true,
+          service: 'comfyui',
+          endpoint: desktopEndpoint
+        };
+      }
+    } catch (e) {
+      // Keep the first fallback error if both fail
+    }
+
+    // No servers available or responding
+    return {
+      connected: false,
+      service: 'comfyui',
+      endpoint: availableServer?.serverUrl || 'http://localhost:8188',
+      error: lastError
+    };
   }
 
   /**

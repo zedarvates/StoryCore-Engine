@@ -10,7 +10,7 @@
 ## Résumé Exécutif
 
 | Métrique | État |
-|---|---|
+| :--- | :--- |
 | Build TypeScript (frontend) | ✅ Passe |
 | Build Electron | ✅ Passe |
 | Python syntaxe | ✅ Passe |
@@ -270,14 +270,14 @@
 
 ## PHASE 8 : MOYENNE — Électron Desktop (Tâches 151–162)
 
-- [x] **151** 🟡 Ajouter l'icône d'application dans `UpdateManager.ts`
-- [ ] **152** 🟡 Implémenter le scan récursif dans `ProjectDiscoveryService.ts`
-- [ ] **153** 🟡 Ajouter la vérification de version du backend Python au démarrage
-- [ ] **154** 🟡 Ajouter un écran de chargement avec barre de progression
+- [x] **151** 🟡 Ajouter l'icône d'application dans `UpdateManager.ts` (Centralisé dans `defaultPaths.ts`)
+- [x] **152** 🟡 Implémenter le scan récursif dans `ProjectDiscoveryService.ts`
+- [x] **153** 🟡 Ajouter la vérification de version du backend Python au démarrage
+- [x] **154** 🟡 Ajouter un écran de chargement avec barre de progression (`SplashWindow.ts`)
 - [ ] **155** 🔵 Ajouter le support de l'installation silencieuse (auto-update)
-- [ ] **156** 🔵 Ajouter le support des raccourcis clavier globaux
+- [x] **156** 🔵 Ajouter le support des raccourcis clavier globaux (Alt+Space, Alt+Shift+S)
 - [ ] **157** 🔵 Ajouter la gestion de plusieurs fenêtres
-- [ ] **158** 🔵 Ajouter le support du protocole `storycore://`
+- [x] **158** 🔵 Ajouter le support du protocole `storycore://` (Deep linking)
 - [ ] **159** 🔵 Ajouter le diagnostic de connexion réseau
 - [ ] **160** 🔵 Ajouter le support du mode hors ligne
 - [ ] **161** 🔵 Ajouter le support multi-écran pour les moniteurs 4K
@@ -341,7 +341,7 @@
 ## Synthèse par Priorité
 
 | Priorité | Nombre | Effort estimé |
-|---|---|---|
+| :--- | :--- | :--- |
 | 🔴 Critique | 12 | ~2 semaines |
 | 🟡 Haute | 78 | ~8 semaines |
 | 🔵 Moyenne | 78 | ~8 semaines |
@@ -351,7 +351,7 @@
 ## Progression Réelle (Session 1-3)
 
 | Catégorie | Avant | Après | Statut |
-|---|---|---|---|
+| :--- | :--- | :--- | :--- |
 | F821 (undefined names) | ~30 | **0** | ✅ Résolu |
 | F811 (redéfinitions) | 7 | **0** | ✅ Résolu |
 | E712 (== True/False) | 6 | **0** | ✅ Résolu |
@@ -371,7 +371,7 @@
 ## Fichiers Clés Modifiés (Sessions 1-4)
 
 | Fichier | Modifications |
-|---|---|
+| :--- | :--- |
 | `creative-studio-ui/src/App.tsx` | 1299 lignes → wrapper minimal (30 lignes) |
 | `creative-studio-ui/src/AppProviders.tsx` | ✅ Nouveau — tous les providers |
 | `creative-studio-ui/src/AppRoutes.tsx` | ✅ Fix import ImageEnhancementPanel |
@@ -389,14 +389,17 @@
 ## Prochaines Étapes Prioritaires
 
 ### Phase 4 - Performance (81-100) 🟡
+
 - [ ] 81-85: Optimisations frontend (React.memo, useMemo, virtualisation)
 - [ ] 91-100: Optimisations backend (cache Redis, pagination, pooling)
 
 ### Phase 5 - Sécurité (101-120) 🔴
+
 - [ ] 101-103: Sanitization prompts, CSP headers, secrets
 - [ ] 104-110: Rate limiting, Pydantic validation, JWT, vault
 
 ### Phase 6 - Gestion d'État (121-135) 🟡
+
 - [ ] 121: Migrer Redux → Zustand
 - [ ] 122-126: Middleware Immer, persistence, types stricts
 | `creative-studio-ui/src/AppRoutes.tsx` | ✅ Nouveau — routage + lazy loading |
@@ -425,4 +428,3 @@
 - Les 248 tests échoués sont des **bugs préexistants** non liés au refactoring (composants manquants, mocks incomplets, erreurs de rendu asynchrone).
 - Le build TypeScript passe sans erreurs.
 - L'architecture est désormais modulaire et maintenable.
-

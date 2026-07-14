@@ -5,8 +5,16 @@
  * Coordinates with VoiceHttpClient for backend communication
  */
 
-import { VoiceHttpClient, VoiceApiResponse } from './voiceHttpClient';
-import type { VoiceRecording, PhraseData, SyncStatus } from '@/types';
+import { VoiceHttpClient, VoiceApiResponse, VoiceUploadResponse, PhraseSyncResponse } from './voiceHttpClient';
+import type { VoiceRecording, PhraseData } from '@/types';
+
+export interface SyncStatus {
+  phraseId: string;
+  status: 'idle' | 'syncing' | 'synced' | 'failed';
+  lastUpdated: string;
+  error?: string;
+  retries?: number;
+}
 
 /**
  * Phrase Synchronization Manager Configuration
@@ -296,20 +304,23 @@ export class MockPhraseSyncManager extends PhraseSyncManager {
 class MockVoiceHttpClient extends VoiceHttpClient {
   async uploadVoiceRecording(
     _recording: VoiceRecording
-  ): Promise<VoiceApiResponse<{ recordingId: string }>> {
+  ): Promise<VoiceApiResponse<VoiceUploadResponse>> {
     await this.wait(100);
 
     return {
       success: true,
       data: {
         recordingId: `recording-${Date.now()}`,
+        status: 'uploaded',
+        message: 'Mock upload successful',
+        timestamp: new Date().toISOString(),
       },
     };
   }
 
   async syncPhraseData(
     phrase: PhraseData
-  ): Promise<VoiceApiResponse<{ phraseId: string; recordingId: string }>> {
+  ): Promise<VoiceApiResponse<PhraseSyncResponse>> {
     await this.wait(100);
 
     return {
@@ -317,6 +328,8 @@ class MockVoiceHttpClient extends VoiceHttpClient {
       data: {
         phraseId: phrase.id,
         recordingId: `recording-${phrase.id}`,
+        syncStatus: 'synced',
+        timestamp: new Date().toISOString(),
       },
     };
   }

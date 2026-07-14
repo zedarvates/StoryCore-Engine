@@ -84,8 +84,8 @@ export class ComfyUIInstanceManager {
       status: 'stopped',
       health: this.createInitialHealth(),
       stats: this.createInitialStats(),
-      createdAt: new Date(),
-      lastUsedAt: new Date(),
+      createdAt: Date.now(),
+      lastUsedAt: Date.now(),
     };
 
     // Create the ComfyUI client for this instance
@@ -235,7 +235,7 @@ export class ComfyUIInstanceManager {
 
       instance.status = 'running';
       instance.health = this.updateHealthFromCheck(instance.health, healthCheck);
-      instance.lastUsedAt = new Date();
+      instance.lastUsedAt = Date.now();
 
       await this.saveInstances();
 
@@ -275,7 +275,7 @@ export class ComfyUIInstanceManager {
     // to the ComfyUI process. For now, we just update the status.
 
     instance.status = 'stopped';
-    instance.lastUsedAt = new Date();
+    instance.lastUsedAt = Date.now();
 
     await this.saveInstances();
 
@@ -311,7 +311,7 @@ export class ComfyUIInstanceManager {
     }
 
     instance.status = 'paused';
-    instance.lastUsedAt = new Date();
+    instance.lastUsedAt = Date.now();
 
     await this.saveInstances();
 
@@ -347,7 +347,7 @@ export class ComfyUIInstanceManager {
     }
 
     instance.status = 'running';
-    instance.lastUsedAt = new Date();
+    instance.lastUsedAt = Date.now();
 
     await this.saveInstances();
 
@@ -409,7 +409,7 @@ export class ComfyUIInstanceManager {
     this.activeInstanceId = instanceId;
 
     if (instance) {
-      instance.lastUsedAt = new Date();
+      instance.lastUsedAt = Date.now();
     }
 
     this.logger.info('comfyui-instance', 'Changed active instance', {
@@ -502,7 +502,7 @@ export class ComfyUIInstanceManager {
   private createInitialHealth(): InstanceHealth {
     return {
       status: 'unhealthy',
-      lastChecked: new Date(),
+      lastChecked: Date.now(),
       responseTime: 0,
       errorCount: 0,
       consecutiveFailures: 0,
@@ -573,7 +573,7 @@ export class ComfyUIInstanceManager {
   }
 
   private updateHealthFromCheck(health: InstanceHealth, check: HealthCheckResult): InstanceHealth {
-    const now = new Date();
+    const now = Date.now();
 
     if (check.success) {
       return {
@@ -666,7 +666,8 @@ export class ComfyUIInstanceManager {
           status: 'stopped',
           health: this.createInitialHealth(),
           stats: this.createInitialStats(),
-          lastUsedAt: new Date(),
+          createdAt: Date.now(),
+          lastUsedAt: Date.now(),
         };
 
         // Create the ComfyUI client for this instance

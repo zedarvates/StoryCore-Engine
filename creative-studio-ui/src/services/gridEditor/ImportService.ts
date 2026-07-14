@@ -242,7 +242,7 @@ export class ImportService {
       return { success: true };
     }
 
-    const errors = result.error?.issues.map((err: unknown) => {
+    const errors = result.error?.issues.map((err: any) => {
       const path = err.path.join('.');
       return path ? `${path}: ${err.message}` : err.message;
     }) || ['Unknown validation error'];

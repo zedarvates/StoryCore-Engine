@@ -67,13 +67,13 @@ export class FormAutoFill {
 
     // Genres
     if (worldContext.genre && worldContext.genre.length > 0) {
-      formData.genre = worldContext.genre;
+      formData.genre = worldContext.genre as any;
       filledFields.push('genre');
     }
 
     // Tons
     if (worldContext.tone && worldContext.tone.length > 0) {
-      formData.tone = worldContext.tone;
+      formData.tone = worldContext.tone as any;
       filledFields.push('tone');
     }
 
@@ -194,7 +194,7 @@ export class FormAutoFill {
         facial_structure: '',
         distinctive_features: [],
         age_range: characterContext.age || '',
-        gender: '',
+        gender: '' as any,
         height: '',
         build: '',
         posture: '',
@@ -214,7 +214,8 @@ export class FormAutoFill {
         education: '',
         family: '',
         significant_events: [],
-        current_situation: characterContext.background || ''
+        current_situation: characterContext.background || '',
+        backstory: ''
       };
       filledFields.push('background');
     }

@@ -29,6 +29,10 @@ window.electronAPI = {
     /** Show native save dialog for export */
     showSaveDialog: (options) => ipcRenderer.invoke('ffmpeg:save-dialog', options),
 
+    /** Generate a thumbnail from a video file */
+    generateThumbnail: (filePath, time, width, height) => 
+        ipcRenderer.invoke('ffmpeg:thumbnail', { filePath, time, width, height }),
+
     /** Listen for FFmpeg progress events */
     onFFmpegProgress: (callback) => {
         ipcRenderer.on('ffmpeg:progress', (event, data) => callback(data));

@@ -273,8 +273,9 @@ class TestComfyUIIntegrationQuality:
         with tempfile.TemporaryDirectory() as tmpdir:
             image_path = Path(tmpdir) / "test.png"
 
-            # Create valid test image
+            # Create valid test image with some variation (not blank)
             img = Image.new("RGB", (1920, 1080), color="blue")
+            img.putpixel((0, 0), (255, 0, 0))  # Add one red pixel for variation
             img.save(image_path)
 
             integration = ComfyUIIntegration(backend_url="http://localhost:8188")

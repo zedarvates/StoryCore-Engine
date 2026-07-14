@@ -1,33 +1,35 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, X, Shrink, Maximize2 } from 'lucide-react';
 
-import { useAppDispatch, useAppSelector } from '../../store';
-import { 
-  addMessage, 
-  setIsOpen, 
-  setIsMinimized, 
-  setIsThinking 
-} from '../../store/slices/chatSlice';
+import { useChatStore } from '@/stores/editor/chatStore';
 
 export const CompactAssistant: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { messages, isOpen, isMinimized, isThinking } = useAppSelector(state => state.chat);
+  const { 
+    messages, 
+    isOpen, 
+    isMinimized, 
+    isThinking,
+    addMessage,
+    setIsOpen,
+    setIsMinimized,
+    setIsThinking
+  } = useChatStore();
   const [input, setInput] = useState('');
 
   const handleSend = () => {
     if (!input.trim() || isThinking) return;
     
-    dispatch(addMessage({ role: 'user', content: input }));
+    addMessage({ role: 'user', content: input });
     setInput('');
-    dispatch(setIsThinking(true));
+    setIsThinking(true);
     
     // Simulate thinking...
     setTimeout(() => {
-      dispatch(addMessage({ 
+      addMessage({ 
         role: 'assistant', 
         content: "I'm analyzing your request. Shall I generate a few environment variations for you?" 
-      }));
-      dispatch(setIsThinking(false));
+      });
+      setIsThinking(false);
     }, 1500);
   };
 
@@ -35,7 +37,7 @@ export const CompactAssistant: React.FC = () => {
     return (
       <button 
         className="assistant-footer-trigger"
-        onClick={() => dispatch(setIsOpen(true))}
+        onClick={() => setIsOpen(true)}
       >
         <Sparkles className="w-4 h-4 text-indigo-400" />
         <span className="text-[11px] font-black uppercase tracking-widest ml-2 text-white/90">Assistant LLM compact</span>
@@ -63,14 +65,14 @@ export const CompactAssistant: React.FC = () => {
         <div className="flex items-center gap-1">
           <button 
             className="p-1.5 hover:bg-white/5 rounded-md text-white/40" 
-            onClick={() => dispatch(setIsMinimized(!isMinimized))}
+            onClick={() => setIsMinimized(!isMinimized)}
             title={isMinimized ? "Maximize Assistant" : "Minimize Assistant"}
           >
             {isMinimized ? <Maximize2 className="w-3.5 h-3.5" /> : <Shrink className="w-3.5 h-3.5" />}
           </button>
           <button 
             className="p-1.5 hover:bg-red-500/20 rounded-md text-white/40 hover:text-red-400" 
-            onClick={() => dispatch(setIsOpen(false))}
+            onClick={() => setIsOpen(false)}
             title="Close Assistant"
           >
             <X className="w-3.5 h-3.5" />

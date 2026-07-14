@@ -435,9 +435,9 @@ export async function runLLMDiagnostic(): Promise<DiagnosticResult> {
 /**
  * Print diagnostic results to console in a readable format
  */
-export function printDiagnostic(result: Di_agnosticResult): void {
+export function printDiagnostic(result: DiagnosticResult): void {
 
-  Object.entries(result.checks).forEach(([name, check]) => {
+  Object.entries(result.checks).forEach(([name, check]: [string, any]) => {
     const icon = check.status === 'pass' ? '✓' : check.status === 'warning' ? '⚠' : '✗';
     if (check.details) {
     }
@@ -447,7 +447,7 @@ export function printDiagnostic(result: Di_agnosticResult): void {
   } else {
   }
 
-  result.recommendations.forEach((rec, i) => {
+  result.recommendations.forEach((rec: string, i: number) => {
   });
 
 }

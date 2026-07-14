@@ -5,9 +5,9 @@
 
 import { 
   LottieAnimation, 
-  _LottiePlaybackSettings, 
   LottieLayer,
-  LottieConfig 
+  LottieConfig,
+  LottieAsset
 } from '../types/lottie';
 
 interface LottieServiceConfig {
@@ -50,7 +50,7 @@ class LottieService {
   /**
    * Parse Lottie JSON format into our internal representation
    */
-  private parseLottieJSON(data: unknown, id: string, url: string): LottieAnimation {
+  private parseLottieJSON(data: any, id: string, url: string): LottieAnimation {
     const layers = this.parseLayers(data.layers || []);
     const assets = this.parseAssets(data.assets || []);
     
@@ -71,13 +71,14 @@ class LottieService {
         updatedAt: new Date().toISOString(),
         author: data.copyright || 'Unknown',
         version: data.v || '1.0.0',
+        framework: 'lottie-web',
         keywords: [],
         category: 'custom',
       },
     };
   }
 
-  private parseLayers(layersData: unknown[]): LottieLayer[] {
+  private parseLayers(layersData: any[]): LottieLayer[] {
     return layersData.map((layer, index) => ({
       id: layer.refId || `layer-${index}`,
       name: layer.nm || `Layer ${index + 1}`,
@@ -112,7 +113,7 @@ class LottieService {
     return typeMap[type] || 'null';
   }
 
-  private parseAssets(assetsData: unknown[]): unknown[] {
+  private parseAssets(assetsData: any[]): LottieAsset[] {
     return assetsData.map((asset, index) => ({
       id: asset.id || `asset-${index}`,
       type: this.mapAssetType(asset.ty),
@@ -132,7 +133,7 @@ class LottieService {
     return typeMap[type] || 'image';
   }
 
-  private calculateDuration(data: unknown): number {
+  private calculateDuration(data: any): number {
     const frameRate = data.fr || 30;
     const totalFrames = (data.op?.[0] || 0) - (data.ip?.[0] || 0);
     return totalFrames / frameRate;

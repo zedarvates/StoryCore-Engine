@@ -5,7 +5,6 @@
  */
 
 export { MenuStateManager } from './MenuStateManager';
-export type { StateChangeCallback } from './MenuStateManager';
 
 export {
   MenuConfigValidator,

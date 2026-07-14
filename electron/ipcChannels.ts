@@ -204,6 +204,57 @@ registerHandlers(): void {
   }
 
   /**
+   * Resolves a project path or GUID to an absolute path
+   */
+  private async resolveProjectPath(projectPath: string): Promise<string> {
+    if (!projectPath || typeof projectPath !== "string") {
+      return projectPath;
+    }
+
+    // If the path exists as is, return it
+    if (fs.existsSync(projectPath)) {
+      return projectPath;
+    }
+
+    // If it looks like a GUID, try to resolve from recent projects
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectPath)) {
+      console.log(`[IPC] Path not found but looks like a GUID: ${projectPath}. Attempting to resolve...`);
+      const recentProjects = this.recentProjectsManager.getProjects();
+      const match = recentProjects.find((p) => p.id?.toLowerCase() === projectPath.toLowerCase());
+      if (match && fs.existsSync(match.path)) {
+        console.log(`[IPC] Resolved GUID ${projectPath} to path via RecentProjects: ${match.path}`);
+        return match.path;
+      }
+
+      // If not in recent, try discovered projects
+      console.log(`[IPC] GUID ${projectPath} not in recent projects. Scanning projects directory...`);
+      const discoveryResult = await this.projectDiscoveryService.scanProjectDirectory({ bypassCache: true });
+      
+      // Try to match by checking the already extracted IDs
+      for (const p of discoveryResult.projects) {
+        if (p.id?.toLowerCase() === projectPath.toLowerCase()) {
+          console.log(`[IPC] SUCCESS: Resolved GUID ${projectPath} to path via Discovery: ${p.path}`);
+          // Also add to recent projects for future fast lookup
+          try {
+            this.recentProjectsManager.addProject({
+              id: p.id,
+              name: p.name,
+              path: p.path
+            });
+          } catch (addError) {
+            console.warn('[IPC] Failed to add resolved project to recent projects:', addError);
+          }
+          return p.path;
+        }
+      }
+      
+      console.warn(`[IPC] FAILED to resolve GUID ${projectPath} after checking ${discoveryResult.projects.length} projects.`);
+    }
+
+    return projectPath;
+  }
+
+  /**
    * Unregister all IPC handlers
    */
   unregisterHandlers(): void {
@@ -283,8 +334,9 @@ registerHandlers(): void {
       IPC_CHANNELS.ROVER_SYNC,
       async (_event, projectPath: string, projectId: string, message: string, data: any) => {
         try {
-          await this.roverService.initialize(projectPath, projectId);
-          const commit = await this.roverService.commit(projectPath, message, data);
+          const resolvedPath = await this.resolveProjectPath(projectPath);
+          await this.roverService.initialize(resolvedPath, projectId);
+          const commit = await this.roverService.commit(resolvedPath, message, data);
           return { success: true, commit };
         } catch (error) {
           console.error('Rover Sync Failed:', error);
@@ -296,7 +348,8 @@ registerHandlers(): void {
     // Get project history
     ipcMain.handle(IPC_CHANNELS.ROVER_GET_HISTORY, async (_event, projectPath: string) => {
       try {
-        const history = await this.roverService.getHistory(projectPath);
+        const resolvedPath = await this.resolveProjectPath(projectPath);
+        const history = await this.roverService.getHistory(resolvedPath);
         return { success: true, history };
       } catch (error) {
         console.error('Rover Get History Failed:', error);
@@ -307,7 +360,8 @@ registerHandlers(): void {
     // Restore checkpoint
     ipcMain.handle(IPC_CHANNELS.ROVER_RESTORE_CHECKPOINT, async (_event, projectPath: string, commitId: string) => {
       try {
-        const data = await this.roverService.restoreCheckpoint(projectPath, commitId);
+        const resolvedPath = await this.resolveProjectPath(projectPath);
+        const data = await this.roverService.restoreCheckpoint(resolvedPath, commitId);
         return { success: true, data };
       } catch (error) {
         console.error('Rover Restore Checkpoint Failed:', error);
@@ -378,13 +432,14 @@ registerHandlers(): void {
     // Delete project
     ipcMain.handle(IPC_CHANNELS.PROJECT_DELETE, async (_event, projectPath: string) => {
       try {
+        const resolvedPath = await this.resolveProjectPath(projectPath);
         // Validate input
-        if (!projectPath || typeof projectPath !== 'string') {
+        if (!resolvedPath || typeof resolvedPath !== 'string') {
           throw new Error('Invalid project path');
         }
 
         // Delete project files
-        await this.projectService.deleteProject(projectPath);
+        await this.projectService.deleteProject(resolvedPath);
 
         // Remove from recent projects
         this.recentProjectsManager.removeProject(projectPath);
@@ -466,13 +521,11 @@ registerHandlers(): void {
     // Open project
     ipcMain.handle(IPC_CHANNELS.PROJECT_OPEN, async (_event, projectPath: string) => {
       try {
-        // Validate input
-        if (!projectPath || typeof projectPath !== 'string') {
-          throw new Error('Invalid project path');
-        }
+        const resolvedPath = await this.resolveProjectPath(projectPath);
 
-        // Open project
-        const project = await this.projectService.openProject(projectPath);
+        // Open project - pass original projectPath if it's a GUID to ensure ID stability
+        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectPath);
+        const project = await this.projectService.openProject(resolvedPath, isGuid ? projectPath : undefined);
 
         // Update recent projects
         this.recentProjectsManager.addProject({
@@ -558,13 +611,10 @@ registerHandlers(): void {
     // Validate project
     ipcMain.handle(IPC_CHANNELS.PROJECT_VALIDATE, async (_event, projectPath: string) => {
       try {
-        // Validate input
-        if (!projectPath || typeof projectPath !== 'string') {
-          throw new Error('Invalid project path');
-        }
+        const resolvedPath = await this.resolveProjectPath(projectPath);
 
         // Validate project
-        const validation = await this.projectService.validateProject(projectPath);
+        const validation = await this.projectService.validateProject(resolvedPath);
 
         return {
           success: true,
@@ -582,8 +632,9 @@ registerHandlers(): void {
     // Update project metadata
     ipcMain.handle(IPC_CHANNELS.PROJECT_UPDATE_METADATA, async (_event, projectPath: string, metadata: Record<string, any>) => {
       try {
+        const resolvedPath = await this.resolveProjectPath(projectPath);
         // Validate input
-        if (!projectPath || typeof projectPath !== 'string') {
+        if (!resolvedPath || typeof resolvedPath !== 'string') {
           throw new Error('Invalid project path');
         }
 
@@ -592,7 +643,7 @@ registerHandlers(): void {
         }
 
         // Update metadata
-        const updatedProject = await this.projectService.updateMetadata(projectPath, metadata);
+        const updatedProject = await this.projectService.updateMetadata(resolvedPath, metadata);
 
         return {
           success: true,
@@ -713,8 +764,9 @@ registerHandlers(): void {
       IPC_CHANNELS.SEQUENCE_UPDATE_SHOT,
       async (_event, projectPath: string, sequenceId: string, shotId: string, updates: Record<string, any>) => {
         try {
+          const resolvedPath = await this.resolveProjectPath(projectPath);
           // Validate input
-          if (!projectPath || typeof projectPath !== 'string') {
+          if (!resolvedPath || typeof resolvedPath !== 'string') {
             throw new Error('Invalid project path');
           }
           if (!sequenceId || typeof sequenceId !== 'string') {
@@ -728,7 +780,7 @@ registerHandlers(): void {
           }
 
           // Update shot
-          await this.projectService.updateShotInSequence(projectPath, sequenceId, shotId, updates);
+          await this.projectService.updateShotInSequence(resolvedPath, sequenceId, shotId, updates);
 
           return {
             success: true,
@@ -748,8 +800,9 @@ registerHandlers(): void {
       IPC_CHANNELS.SEQUENCE_GET_SHOTS,
       async (_event, projectPath: string, sequenceId: string) => {
         try {
+          const resolvedPath = await this.resolveProjectPath(projectPath);
           // Validate input
-          if (!projectPath || typeof projectPath !== 'string') {
+          if (!resolvedPath || typeof resolvedPath !== 'string') {
             throw new Error('Invalid project path');
           }
           if (!sequenceId || typeof sequenceId !== 'string') {
@@ -757,7 +810,7 @@ registerHandlers(): void {
           }
 
           // Get shots
-          const shots = await this.projectService.getShotsFromSequence(projectPath, sequenceId);
+          const shots = await this.projectService.getShotsFromSequence(resolvedPath, sequenceId);
 
           return {
             success: true,
@@ -779,13 +832,14 @@ registerHandlers(): void {
       IPC_CHANNELS.SEQUENCE_GET_ALL,
       async (_event, projectPath: string) => {
         try {
+          const resolvedPath = await this.resolveProjectPath(projectPath);
           // Validate input
-          if (!projectPath || typeof projectPath !== 'string') {
+          if (!resolvedPath || typeof resolvedPath !== 'string') {
             throw new Error('Invalid project path');
           }
 
           // Get all sequences
-          const sequences = await this.projectService.getAllSequences(projectPath);
+          const sequences = await this.projectService.getAllSequences(resolvedPath);
 
           return {
             success: true,
@@ -1041,14 +1095,16 @@ registerHandlers(): void {
           };
         }
 
-        // Server manager doesn't expose isRunning/getServerInfo yet
-        // For now, return basic status
+        const status = this.serverManager.getStatus();
+        
         return {
           success: true,
           status: {
-            running: true,
-            url: null,
-            port: null,
+            running: status.state === 'running',
+            url: status.url || null,
+            port: status.port || null,
+            uptime: status.uptime || 0,
+            error: status.error || null
           },
         };
       } catch (error) {
@@ -1751,6 +1807,8 @@ registerHandlers(): void {
         };
       }
     });
+
+
   }
 
   /**

@@ -5,9 +5,6 @@
  * Features a vertical navigation bar on the left (LibraryNavigator)
  * and a main content grid on the right (LibraryBrowser).
  */
-import { LegacyAny } from '@/types/legacy';
-
-
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { AssetGrid } from './AssetGrid';
@@ -20,7 +17,7 @@ import { setAssetCategory } from '../../store/slices/panelsSlice';
 import { PresetLibrary } from './PresetLibrary';
 import { AssetLibraryService, type AssetSource } from '../../../services/assetLibraryService';
 import { ServiceAsset } from '../../types';
-import { useProductionStore } from '../../../stores/productionStore';
+import { useProductionStore, type ManifestedAsset } from '../../../stores/productionStore';
 import { MCPResourceLibrary } from './MCPResourceLibrary';
 
 // Icons
@@ -55,7 +52,7 @@ const CATEGORY_CONFIGS: CategoryConfig[] = [
 ];
 
 // Helper to get assets (keep original logic)
-function getAssetsForCategory(categoryId: string, sources: AssetSource[], neuralAssets: LegacyAny[]): ServiceAsset[] {
+function getAssetsForCategory(categoryId: string, sources: AssetSource[], neuralAssets: ManifestedAsset[]): ServiceAsset[] {
   const allAssets: ServiceAsset[] = [];
   
   if (categoryId === 'neural') {
@@ -101,6 +98,8 @@ function getAssetsForCategory(categoryId: string, sources: AssetSource[], neural
 export const AssetLibrary: React.FC = () => {
   const dispatch = useAppDispatch();
   const [sources, setSources] = useState<AssetSource[]>([]);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { activeAssetCategory } = useAppSelector((state) => state.panels);
@@ -128,8 +127,12 @@ export const AssetLibrary: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (searchQuery) setIsSearching(true);
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => setDebouncedQuery(searchQuery), 300);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setIsSearching(false);
+    }, 300);
     return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
   }, [searchQuery]);
 
@@ -179,12 +182,14 @@ export const AssetLibrary: React.FC = () => {
       {/* Main Browser (Green Zone from Image 2) */}
       <main className="asset-library-browser">
          <header className="browser-header">
-           <div className="search-group glassmorphic-dark">
+           <div className={`search-group glassmorphic-dark ${isSearchFocused ? 'focused' : ''}`}>
              <Search className="w-3.5 h-3.5 opacity-40 ml-3" />
              <input
                type="text"
                placeholder={`Search ${currentCategory.name.toLowerCase()}...`}
                value={searchQuery}
+               onFocus={() => setIsSearchFocused(true)}
+               onBlur={() => setIsSearchFocused(false)}
                onChange={(e) => setSearchQuery(e.target.value)}
                className="browser-search-input"
              />
@@ -195,7 +200,7 @@ export const AssetLibrary: React.FC = () => {
          </header>
 
          <div className="browser-content-area">
-            {loading ? (
+            {loading || isSearching ? (
               <div className="flex flex-col items-center justify-center h-full opacity-50">
                 <div className="animate-spin mb-4"><Binary className="w-8 h-8" /></div>
                 <p className="text-sm font-medium">Indexing Assets...</p>

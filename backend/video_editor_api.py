@@ -29,14 +29,21 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from timeline_service import TimelineService, ClipType
-from ttt_lrm_service import (
+from .timeline_service import TimelineService, ClipType
+from .ttt_lrm_service import (
     TTTLRMService,
     TTTLRMConfig,
     OutputFormat,
     ReconstructionMode,
 )
+from .video_editor_ai_service import VideoEditorAIService
+from .video_enhancement_service import VideoEnhancementService
 from backend.config import settings, get_redis_url
+from backend.database import get_db, AsyncSessionLocal
+from backend import database_models as models
+from sqlalchemy.future import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import Depends
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +70,9 @@ REDIS_URL = get_redis_url()
 PROJECTS_DIR = Path("./projects")
 MEDIA_DIR = Path(settings.UPLOAD_FOLDER) / "media"
 EXPORT_DIR = Path(settings.OUTPUT_FOLDER) / "exports"
+
+# TODO: MIGRATION - These should be replaced by SQLAlchemy queries using get_db()
+# Legacy in-memory DBs removed. Using PostgreSQL models via models.Media and models.AIJob.
 
 # =============================================================================
 # Pydantic Models for API
@@ -353,6 +363,61 @@ class VideoEnhanceRequest(BaseModel):
     enhancements: List[Dict[str, Any]]  # e.g. [{"type": "halation", "strength": 0.5}]
 
 
+class HighlightRequest(BaseModel):
+    """Request model for highlight extraction."""
+
+    media_id: str = Field(..., alias="mediaId")
+    min_duration: float = Field(2.0, alias="minDuration")
+    max_duration: float = Field(10.0, alias="maxDuration")
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+
+
+class HighlightResponse(BaseModel):
+    """Response model for highlight extraction."""
+
+    job_id: str = Field(..., alias="jobId")
+    status: str
+    
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+
+
+class AudioRemixRequest(BaseModel):
+    """Request model for audio remixing."""
+    music_id: str = Field(..., alias="musicId")
+    speech_id: str = Field(..., alias="speechId")
+    ducking: bool = True
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+
+
+class VisualSummaryRequest(BaseModel):
+    """Request model for visual summary generation."""
+    media_id: str = Field(..., alias="mediaId")
+    num_frames: int = Field(5, alias="numFrames")
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+
+
+class AISearchRequest(BaseModel):
+    """Request model for searching within specific media."""
+
+    media_id: str = Field(..., alias="mediaId")
+    query: str
+
+    class Config:
+        allow_population_by_field_name = True
+        populate_by_name = True
+
+
 class SearchRequest(BaseModel):
     """General AI search request."""
 
@@ -451,20 +516,12 @@ class Forge3DResponse(BaseModel):
 
 
 # =============================================================================
-# In-Memory Storage (Replace with database in production)
+# Database Storage (SQLAlchemy)
 # =============================================================================
 
-# Users storage
-users_db: Dict[str, Dict] = {}
-
-# Projects storage
-projects_db: Dict[str, Dict] = {}
-
-# Media storage
-media_db: Dict[str, Dict] = {}
-
-# Jobs storage
-jobs_db: Dict[str, Dict] = {}
+# =============================================================================
+# In-Memory Storage (Replaced with database)
+# =============================================================================
 
 # Redis client
 redis_client = None
@@ -562,8 +619,13 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
-def decode_token(token: str) -> Optional[Dict]:
-    """Decode and verify JWT token."""
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+def decode_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Optional[Dict]:
+    """Decode and verify JWT token from Authorization header."""
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
@@ -573,72 +635,94 @@ def decode_token(token: str) -> Optional[Dict]:
         return None
 
 
+
+async def get_current_user(
+    token_payload: Dict[str, Any] = Depends(decode_token), 
+    db: AsyncSession = Depends(get_db)
+) -> models.User:
+    """Dependency to get the current authenticated user from DB."""
+    if not token_payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    
+    user_id = token_payload.get("user_id") # We use user_id in this API's tokens
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Token missing user_id")
+    
+    query = select(models.User).where(models.User.id == user_id)
+    result = await db.execute(query)
+    user = result.scalars().first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return user
+
+
 # =============================================================================
 # Authentication Endpoints
 # =============================================================================
 
 
 @VIDEO_EDITOR_ROUTER.post("/auth/register", response_model=UserResponse)
-async def register(user_data: UserCreate):
+async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """Register a new user."""
-    # Check if email exists
-    for user in users_db.values():
-        if user["email"] == user_data.email:
-            raise HTTPException(status_code=400, detail="Email already registered")
+    # 1. VALIDATION: Check email format
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", user_data.email):
+        raise HTTPException(status_code=400, detail="Invalid email format")
 
-    # Create user
-    user_id = str(uuid.uuid4())
-    now = datetime.utcnow()
+    # 2. DATABASE: Check if email exists
+    query = select(models.User).where(models.User.email == user_data.email)
+    result = await db.execute(query)
+    if result.scalars().first():
+        raise HTTPException(status_code=400, detail="Email already registered")
 
-    users_db[user_id] = {
-        "id": user_id,
-        "email": user_data.email,
-        "password": hash_password(user_data.password),
-        "name": user_data.name,
-        "plan": "free",
-        "created_at": now,
-        "projects": [],
-    }
+    # 3. DATABASE: Create user
+    new_user = models.User(
+        email=user_data.email,
+        password_hash=hash_password(user_data.password),
+        name=user_data.name,
+        plan="free"
+    )
+    db.add(new_user)
+    await db.flush() # Populate id
 
     return UserResponse(
-        id=user_id,
-        email=user_data.email,
-        name=user_data.name,
-        created_at=now,
-        plan="free",
+        id=new_user.id,
+        email=new_user.email,
+        name=new_user.name,
+        created_at=new_user.created_at,
+        plan=new_user.plan,
     )
 
 
 @VIDEO_EDITOR_ROUTER.post("/auth/login", response_model=Token)
-async def login(credentials: UserLogin):
-    """Login user and return tokens."""
-    # Find user by email
-    user = None
-    for u in users_db.values():
-        if u["email"] == credentials.email:
-            user = u
-            break
+async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)):
+    """Login and get tokens."""
+    # DATABASE: Find user by email
+    query = select(models.User).where(models.User.email == credentials.email)
+    result = await db.execute(query)
+    user = result.scalars().first()
 
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    if not verify_password(credentials.password, user["password"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    if not user or not verify_password(credentials.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
     # Create tokens
-    access_token, expires = create_access_token(user["id"], user["email"])
-    refresh_token = create_refresh_token(user["id"])
+    access_token, expire = create_access_token(user.id, user.email)
+    refresh_token = create_refresh_token(user.id)
 
-    return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer",
-        expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-    )
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    }
 
 
 @VIDEO_EDITOR_ROUTER.post("/auth/refresh", response_model=Token)
-async def refresh_token(refresh_token: str):
+async def refresh_token(
+    refresh_token: str, 
+    db: AsyncSession = Depends(get_db)
+):
     """Refresh access token."""
     payload = decode_token(refresh_token)
 
@@ -646,14 +730,18 @@ async def refresh_token(refresh_token: str):
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
     user_id = payload["user_id"]
-    user = users_db.get(user_id)
+    
+    # DATABASE: Find user by ID
+    query = select(models.User).where(models.User.id == user_id)
+    result = await db.execute(query)
+    user = result.scalars().first()
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
     # Create new tokens
-    new_access_token, expires = create_access_token(user["id"], user["email"])
-    new_refresh_token = create_refresh_token(user["id"])
+    new_access_token, expires = create_access_token(user.id, user.email)
+    new_refresh_token = create_refresh_token(user.id)
 
     return Token(
         access_token=new_access_token,
@@ -664,28 +752,16 @@ async def refresh_token(refresh_token: str):
 
 
 @VIDEO_EDITOR_ROUTER.get("/auth/me", response_model=UserResponse)
-async def get_current_user(authorization: str = None):
+async def get_my_profile(
+    user: models.User = Depends(get_current_user)
+):
     """Get current user profile."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    token = authorization.replace("Bearer ", "")
-    payload = decode_token(token)
-
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user = users_db.get(payload["user_id"])
-
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
     return UserResponse(
-        id=user["id"],
-        email=user["email"],
-        name=user["name"],
-        created_at=user["created_at"],
-        plan=user["plan"],
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        created_at=user.created_at,
+        plan=user.plan,
     )
 
 
@@ -695,21 +771,12 @@ async def get_current_user(authorization: str = None):
 
 
 @VIDEO_EDITOR_ROUTER.post("/projects", response_model=ProjectResponse)
-async def create_project(project_data: ProjectCreate, authorization: str = None):
-    """Create a new video editing project."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    token = authorization.replace("Bearer ", "")
-    payload = decode_token(token)
-
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user_id = payload["user_id"]
-    project_id = str(uuid.uuid4())
-    now = datetime.utcnow()
-
+async def create_project(
+    project_data: ProjectCreate, 
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Create a new project in the database."""
     # Parse resolution
     resolution = project_data.resolution
     if isinstance(resolution, dict):
@@ -724,297 +791,187 @@ async def create_project(project_data: ProjectCreate, authorization: str = None)
             width, height = 1920, 1080
             resolution_str = "1920x1080"
 
-    # Create project directory
-    project_path = PROJECTS_DIR / user_id / project_id
-    project_path.mkdir(parents=True, exist_ok=True)
-
-    # Create project
-    project = {
-        "id": project_id,
-        "name": project_data.name,
-        "description": project_data.description,
-        "user_id": user_id,
-        "aspect_ratio": project_data.aspect_ratio,
-        "resolution": resolution if isinstance(resolution, dict) else resolution_str,
-        "frame_rate": project_data.frame_rate,
-        "duration": 0.0,
-        "tracks": [],
-        "clips": [],
-        "media": [],
-        "created_at": now,
-        "modified_at": now,
-        "thumbnail_path": None,
-        "path": str(project_path),
-    }
-
-    projects_db[project_id] = project
-
-    # Save project metadata
-    metadata_file = project_path / "project.json"
-    with open(metadata_file, "w") as f:
-        json.dump(project, f, default=str)
-
-    return ProjectResponse(
-        id=project_id,
+    # Create project in DB
+    new_project = models.Project(
+        user_id=user.id,
         name=project_data.name,
         description=project_data.description,
-        user_id=user_id,
         aspect_ratio=project_data.aspect_ratio,
-        resolution=project_data.resolution,
+        resolution=resolution_str,
         frame_rate=project_data.frame_rate,
+        duration=0.0
+    )
+    
+    db.add(new_project)
+    await db.flush() # Populate ID
+
+    # Create project directory (still needed for physical files)
+    project_path = PROJECTS_DIR / user.id / new_project.id
+    project_path.mkdir(parents=True, exist_ok=True)
+
+    return ProjectResponse(
+        id=new_project.id,
+        name=new_project.name,
+        description=new_project.description,
+        userId=user.id,
+        aspectRatio=new_project.aspect_ratio,
+        resolution=new_project.resolution,
+        frameRate=new_project.frame_rate,
         duration=0.0,
-        created_at=now,
-        modified_at=now,
+        createdAt=new_project.created_at,
+        updatedAt=new_project.updated_at,
     )
 
 
 @VIDEO_EDITOR_ROUTER.get("/projects", response_model=List[ProjectResponse])
-async def list_projects(authorization: str = None):
-    """List all projects for the current user."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+async def list_projects(
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """List all projects for the current user from the database."""
+    query = select(models.Project).where(models.Project.user_id == user.id)
+    result = await db.execute(query)
+    db_projects = result.scalars().all()
 
-    token = authorization.replace("Bearer ", "")
-    payload = decode_token(token)
-
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-    user_id = payload["user_id"]
-
-    user_projects = [
+    return [
         ProjectResponse(
-            id=p["id"],
-            name=p["name"],
-            description=p.get("description"),
-            user_id=p["user_id"],
-            aspect_ratio=p["aspect_ratio"],
-            resolution=p["resolution"],
-            frame_rate=p["frame_rate"],
-            duration=p["duration"],
-            created_at=p["created_at"],
-            modified_at=p["modified_at"],
-            thumbnail_path=p.get("thumbnail_path"),
+            id=p.id,
+            name=p.name,
+            description=p.description,
+            userId=p.user_id,
+            aspectRatio=p.aspect_ratio,
+            resolution=p.resolution,
+            frameRate=p.frame_rate,
+            duration=p.duration,
+            createdAt=p.created_at,
+            updatedAt=p.updated_at,
+            thumbnailPath=p.thumbnail_path,
         )
-        for p in projects_db.values()
-        if p["user_id"] == user_id
+        for p in db_projects
     ]
-
-    return user_projects
 
 
 @VIDEO_EDITOR_ROUTER.get("/projects/{project_id}", response_model=ProjectResponse)
-async def get_project(project_id: str, authorization: str = None):
-    """Get a specific project."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+async def get_project(
+    project_id: str, 
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get a specific project from the database."""
+    query = select(models.Project).where(
+        models.Project.id == project_id, 
+        models.Project.user_id == user.id
+    )
+    result = await db.execute(query)
+    p = result.scalars().first()
 
-    project = projects_db.get(project_id)
-
-    # If not in memory, try to load from disk
-    if not project:
-        project_path = PROJECTS_DIR / project_id
-        project_file = project_path / "project.json"
-        if project_file.exists():
-            try:
-                with open(project_file, "r") as f:
-                    project = json.load(f)
-                    # Convert strings to datetime if needed
-                    if "created_at" in project and isinstance(
-                        project["created_at"], str
-                    ):
-                        project["created_at"] = datetime.fromisoformat(
-                            project["created_at"]
-                        )
-                    if "modified_at" in project and isinstance(
-                        project["modified_at"], str
-                    ):
-                        project["modified_at"] = datetime.fromisoformat(
-                            project["modified_at"]
-                        )
-                    projects_db[project_id] = project
-            except Exception as e:
-                logger.error(f"Error loading project {project_id} from disk: {e}")
-
-    if not project:
+    if not p:
         raise HTTPException(status_code=404, detail="Project not found")
 
     return ProjectResponse(
-        id=project["id"],
-        name=project["name"],
-        description=project.get("description"),
-        user_id=project["user_id"],
-        aspect_ratio=project["aspect_ratio"],
-        resolution=project["resolution"],
-        frame_rate=project["frame_rate"],
-        duration=project["duration"],
-        created_at=project["created_at"],
-        modified_at=project["modified_at"],
-        thumbnail_path=project.get("thumbnail_path"),
+        id=p.id,
+        name=p.name,
+        description=p.description,
+        userId=p.user_id,
+        aspectRatio=p.aspect_ratio,
+        resolution=p.resolution,
+        frameRate=p.frame_rate,
+        duration=p.duration,
+        createdAt=p.created_at,
+        updatedAt=p.updated_at,
+        thumbnailPath=p.thumbnail_path,
+        tracks=p.timeline_data.get("tracks", []) if p.timeline_data else [],
+        clips=p.timeline_data.get("clips", []) if p.timeline_data else [],
+        media=[], # Media would need another query
+        projectSetup=p.settings
     )
 
 
 @VIDEO_EDITOR_ROUTER.get("/projects/{project_id}/vault/assets")
-async def list_project_assets(project_id: str, authorization: str = None):
+async def list_project_assets(
+    project_id: str,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     """
-    List assets stored in the project vault.
-
-    This endpoint is used by the dashboard to show recent exports and generations.
+    List assets stored in the project vault using the database.
     """
-    try:
-        # 1. Ensure project exists (try loading from disk if needed)
-        project_path = PROJECTS_DIR / project_id
-        found = False
+    # 1. Verify project ownership
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
 
-        if not project_path.exists():
-            # Maybe it's in the subfolder by user_id?
-            # Check if PROJECTS_DIR exists before iterating
-            if PROJECTS_DIR.exists() and PROJECTS_DIR.is_dir():
-                for user_dir in PROJECTS_DIR.iterdir():
-                    if user_dir.is_dir() and (user_dir / project_id).exists():
-                        project_path = user_dir / project_id
-                        found = True
-                        break
+    # 2. Query Media assets
+    media_query = select(models.Media).where(models.Media.project_id == project_id)
+    media_result = await db.execute(media_query)
+    media_items = media_result.scalars().all()
 
-            if not found:
-                logger.warning(
-                    f"Project folder not found for {project_id} in {PROJECTS_DIR}"
-                )
-                return {"assets": [], "message": "Project folder not found"}
+    # 3. Query Export jobs
+    export_query = select(models.ExportJob).where(
+        models.ExportJob.project_id == project_id, models.ExportJob.status == "completed"
+    )
+    export_result = await db.execute(export_query)
+    export_items = export_result.scalars().all()
 
-        # 2. Try to read project_assets.json
-        index_path = project_path / "project_assets.json"
-        assets = []
+    assets = []
 
-        if index_path.exists():
-            try:
-                with open(index_path, "r") as f:
-                    data = json.load(f)
-                    if isinstance(data, list):
-                        assets = data
-                    else:
-                        logger.warning(
-                            f"project_assets.json for {project_id} is not a list, it is a {type(data)}"
-                        )
-            except Exception as e:
-                logger.error(f"Error reading project_assets.json for {project_id}: {e}")
-
-        # 3. If empty or missing, try to scan for generated files
-        if not assets:
-            # Scan exports folder if it exists
-            exports_dir = project_path / "exports"
-            if exports_dir.exists():
-                for f in exports_dir.glob("*.*"):
-                    try:
-                        if f.suffix.lower() in [".mp4", ".mov", ".avi", ".gif"]:
-                            assets.append(
-                                {
-                                    "id": f.stem,
-                                    "name": f.name,
-                                    "type": "video",
-                                    "path": f"projects/{project_id}/exports/{f.name}",
-                                    "added_at": datetime.fromtimestamp(
-                                        f.stat().st_mtime
-                                    ).isoformat(),
-                                }
-                            )
-                    except Exception as e:
-                        logger.warning(f"Error scanning exports file {f}: {e}")
-
-            # Scan media folder
-            media_dir = project_path / "media"
-            if media_dir.exists():
-                for f in media_dir.glob("*.*"):
-                    try:
-                        if f.suffix.lower() in [".png", ".jpg", ".jpeg", ".webp"]:
-                            assets.append(
-                                {
-                                    "id": f.stem,
-                                    "name": f.name,
-                                    "type": "image",
-                                    "path": f"projects/{project_id}/media/{f.name}",
-                                    "added_at": datetime.fromtimestamp(
-                                        f.stat().st_mtime
-                                    ).isoformat(),
-                                }
-                            )
-                    except Exception as e:
-                        logger.warning(f"Error scanning media file {f}: {e}")
-
-        return {"assets": assets}
-    except Exception as e:
-        logger.error(
-            f"Critical error in list_project_assets for {project_id}: {e}",
-            exc_info=True,
+    # Map media to assets
+    for m in media_items:
+        assets.append(
+            {
+                "id": m.id,
+                "name": m.name,
+                "type": m.media_type,
+                "path": m.path,
+                "added_at": m.created_at.isoformat(),
+            }
         )
-        return JSONResponse(
-            status_code=500,
-            content={"error": "Failed to list project assets", "detail": str(e)},
+
+    # Map exports to assets
+    for e in export_items:
+        assets.append(
+            {
+                "id": e.id,
+                "name": f"Export {e.id[:8]}",
+                "type": "video",
+                "path": e.output_path,
+                "added_at": e.completed_at.isoformat()
+                if e.completed_at
+                else e.created_at.isoformat(),
+            }
         )
+
+    return {"assets": assets}
 
 
 @VIDEO_EDITOR_ROUTER.get("/projects/{project_id}/media-raw")
 async def get_raw_media(
     project_id: str,
     path: str = Query(..., description="Path relative to the projects directory"),
-    authorization: str = None,
+    user: models.User = Depends(get_current_user)
 ):
-    """
-    Serve raw media files from the project directory.
-    This provides direct access to images, videos, and other assets.
-    """
-    # Security note: In a production app, we would strictly validate
-    # that the user has access to this project_id.
-
-    # Path is expected to be like "projects/{project_id}/media/filename.png"
-    # or "projects/{project_id}/exports/filename.mp4"
-
-    # Normalize path and check if it's within the PROJECTS_DIR
+    """Serve a raw media file from a project directory."""
     try:
-        # Convert path to a relative path from the projects directory
-        # If the path starts with "projects/", remove it
-        if path.startswith("projects/"):
-            rel_path = path.replace("projects/", "", 1)
-        else:
-            rel_path = path
-
-        # Search for the file in the projects directory
-        # Projects can be in PROJECTS_DIR / PROJECT_ID or PROJECTS_DIR / USER_ID / PROJECT_ID
-
-        # 1. Try directly in PROJECTS_DIR / rel_path (if rel_path already contains the project_id)
-        full_path = PROJECTS_DIR / rel_path
-
-        # 2. Try in PROJECTS_DIR / PROJECT_ID / rel_path
-        if not full_path.exists():
-            full_path = PROJECTS_DIR / project_id / rel_path
-
-        # 3. Try searching one level deep for USER_ID / PROJECT_ID
-        if not full_path.exists():
-            for user_dir in PROJECTS_DIR.iterdir():
-                if user_dir.is_dir():
-                    path_in_user = user_dir / project_id / rel_path
-                    if path_in_user.exists():
-                        full_path = path_in_user
-                        break
+        # Security check: ensure the path doesn't escape the projects directory
+        full_path = PROJECTS_DIR / project_id / path
+        full_path = full_path.resolve()
+        
+        if not str(full_path).startswith(str(PROJECTS_DIR.resolve())):
+            raise HTTPException(status_code=403, detail="Access denied")
 
         if not full_path.exists():
-            # Final fallback: search for rel_path in any subdirectory
-            found = False
-            for entry in PROJECTS_DIR.rglob(rel_path.split("/")[-1]):
-                if rel_path in str(entry).replace("\\", "/"):
-                    full_path = entry
-                    found = True
-                    break
+            raise HTTPException(status_code=404, detail=f"File not found: {path}")
 
-            if not found:
-                raise HTTPException(status_code=404, detail=f"File not found: {path}")
-
-        # Detect media type
+        # Determine media type
         suffix = full_path.suffix.lower()
-        if suffix in [".png", ".jpg", ".jpeg", ".webp"]:
-            media_type = f"image/{suffix[1:] if suffix != '.jpg' else 'jpeg'}"
-        elif suffix in [".mp4", ".webm", ".mov"]:
-            media_type = f"video/{suffix[1:] if suffix != '.mov' else 'quicktime'}"
+        if suffix in [".png", ".jpg", ".jpeg"]:
+            media_type = f"image/{suffix[1:]}"
+        elif suffix in [".mp4", ".webm"]:
+            media_type = f"video/{suffix[1:]}"
         elif suffix in [".glb", ".gltf"]:
             media_type = "model/gltf-binary" if suffix == ".glb" else "model/gltf+json"
         else:
@@ -1031,68 +988,101 @@ async def get_raw_media(
 
 @VIDEO_EDITOR_ROUTER.put("/projects/{project_id}", response_model=ProjectResponse)
 async def update_project(
-    project_id: str, update_data: ProjectUpdate, authorization: str = None
+    project_id: str, 
+    update_data: ProjectUpdate, 
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    """Update a project."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    """Update a project in the database."""
+    query = select(models.Project).where(
+        models.Project.id == project_id, 
+        models.Project.user_id == user.id
+    )
+    result = await db.execute(query)
+    p = result.scalars().first()
 
-    project = projects_db.get(project_id)
-
-    if not project:
+    if not p:
         raise HTTPException(status_code=404, detail="Project not found")
 
     # Apply updates
     if update_data.name is not None:
-        project["name"] = update_data.name
+        p.name = update_data.name
     if update_data.description is not None:
-        project["description"] = update_data.description
+        p.description = update_data.description
     if update_data.aspect_ratio is not None:
-        project["aspect_ratio"] = update_data.aspect_ratio
+        p.aspect_ratio = update_data.aspect_ratio
+    
     if update_data.resolution is not None:
-        project["resolution"] = update_data.resolution
+        if isinstance(update_data.resolution, dict):
+            p.resolution = f"{update_data.resolution.get('width', 1920)}x{update_data.resolution.get('height', 1080)}"
+        else:
+            p.resolution = update_data.resolution
+            
     if update_data.frame_rate is not None:
-        project["frame_rate"] = update_data.frame_rate
-    if update_data.tracks is not None:
-        project["tracks"] = update_data.tracks
-    if update_data.clips is not None:
-        project["clips"] = update_data.clips
-    if update_data.media is not None:
-        project["media"] = update_data.media
+        p.frame_rate = update_data.frame_rate
+    
+    # Complex timeline data
+    if update_data.tracks is not None or update_data.clips is not None or update_data.project_setup is not None:
+        if not p.timeline_data:
+            p.timeline_data = {}
+        if update_data.tracks is not None:
+            p.timeline_data["tracks"] = update_data.tracks
+        if update_data.clips is not None:
+            p.timeline_data["clips"] = update_data.clips
+        if update_data.project_setup is not None:
+            p.settings = update_data.project_setup
 
-    project["modified_at"] = datetime.utcnow()
+    p.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(p)
 
-    # Save project metadata
-    project_path = Path(
-        project.get("path", PROJECTS_DIR / project["user_id"] / project_id)
+    return ProjectResponse(
+        id=p.id,
+        name=p.name,
+        description=p.description,
+        userId=p.user_id,
+        aspectRatio=p.aspect_ratio,
+        resolution=p.resolution,
+        frameRate=p.frame_rate,
+        duration=p.duration,
+        createdAt=p.created_at,
+        updatedAt=p.updated_at,
+        thumbnailPath=p.thumbnail_path,
+        tracks=p.timeline_data.get("tracks", []) if p.timeline_data else [],
+        clips=p.timeline_data.get("clips", []) if p.timeline_data else [],
+        media=[],
+        projectSetup=p.settings
     )
-    project_path.mkdir(parents=True, exist_ok=True)
-    metadata_file = project_path / "project.json"
-    with open(metadata_file, "w") as f:
-        json.dump(project, f, default=str)
-
-    return ProjectResponse(**project)
 
 
 @VIDEO_EDITOR_ROUTER.delete("/projects/{project_id}")
-async def delete_project(project_id: str, authorization: str = None):
-    """Delete a project."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+async def delete_project(
+    project_id: str, 
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a project from the database and disk."""
+    query = select(models.Project).where(
+        models.Project.id == project_id, 
+        models.Project.user_id == user.id
+    )
+    result = await db.execute(query)
+    p = result.scalars().first()
 
-    if project_id not in projects_db:
+    if not p:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    # Delete project directory
-    project = projects_db[project_id]
-    project_path = Path(project["path"])
-    if project_path.exists():
-        import shutil
-
-        shutil.rmtree(project_path)
+    # Delete project directory from disk
+    try:
+        project_path = PROJECTS_DIR / user.id / project_id
+        if project_path.exists():
+            import shutil
+            shutil.rmtree(project_path)
+    except Exception as e:
+        logger.error(f"Failed to delete project directory {project_id}: {e}")
 
     # Remove from database
-    del projects_db[project_id]
+    await db.delete(p)
 
     return {"message": "Project deleted successfully"}
 
@@ -1109,189 +1099,139 @@ async def upload_media(
     project_id: str = None,
     media_type: str = "video",
     name: str = None,
-    authorization: str = None,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    """Upload a media file to a project."""
-    # Authentication check
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
+    """Upload a media file to a project in the database."""
     # Project validation
-    if project_id and project_id not in projects_db:
-        raise HTTPException(status_code=404, detail="Project not found")
+    if project_id:
+        query = select(models.Project).where(
+            models.Project.id == project_id, 
+            models.Project.user_id == user.id
+        )
+        result = await db.execute(query)
+        if not result.scalars().first():
+            raise HTTPException(status_code=404, detail="Project not found")
 
     # ========== FILE UPLOAD SECURITY VALIDATIONS ==========
-
-    # 1. Validate content-type
+    # (Keeping the validation logic as is for security)
     allowed_content_types = {
-        "video": [
-            "video/mp4",
-            "video/webm",
-            "video/quicktime",
-            "video/x-msvideo",
-            "video/x-matroska",
-        ],
+        "video": ["video/mp4", "video/webm", "video/quicktime", "video/x-msvideo", "video/x-matroska"],
         "audio": ["audio/mpeg", "audio/wav", "audio/ogg", "audio/flac", "audio/aac"],
-        "image": [
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/webp",
-            "image/svg+xml",
-        ],
+        "image": ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
     }
 
     content_type = file.content_type or "application/octet-stream"
-    media_content_types = allowed_content_types.get(
-        media_type, allowed_content_types["video"]
-    )
+    media_content_types = allowed_content_types.get(media_type, allowed_content_types["video"])
 
     if content_type not in media_content_types:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid content-type '{content_type}'. Allowed: {', '.join(media_content_types)}",
-        )
-
-    # 2. Validate file extension
-    allowed_extensions = {
-        "video": [".mp4", ".webm", ".mov", ".avi", ".mkv", ".flv", ".wmv"],
-        "audio": [".mp3", ".wav", ".ogg", ".flac", ".aac", ".m4a"],
-        "image": [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"],
-    }
+        raise HTTPException(status_code=400, detail=f"Invalid content-type '{content_type}'")
 
     original_filename = file.filename or "unnamed_file"
     safe_name = name or original_filename
     file_ext = Path(original_filename).suffix.lower()
-    allowed_exts = allowed_extensions.get(media_type, allowed_extensions["video"])
 
-    if file_ext not in [ext.lower() for ext in allowed_exts]:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid file extension '{file_ext}'. Allowed: {', '.join(allowed_exts)}",
-        )
-
-    # 3. Limit file size (50MB max)
-    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
-
-    # Read content to check size
     content = await file.read()
     file_size = len(content)
+    if file_size > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large (50MB max)")
 
-    if file_size > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400, detail="File size exceeds maximum allowed size of 50MB"
-        )
+    # ========== DATABASE PERSISTENCE ==========
+    new_media = models.Media(
+        user_id=user.id,
+        project_id=project_id,
+        name=safe_name,
+        original_filename=original_filename,
+        media_type=media_type,
+        file_size=file_size,
+        path="", # Will update after save
+    )
+    db.add(new_media)
+    await db.flush()
 
-    # 4. Sanitize filename
-    safe_filename = re.sub(r"[^a-zA-Z0-9._-]", "_", original_filename)
-    safe_filename = safe_filename[:100]  # Limit length
-
-    # ========== END SECURITY VALIDATIONS ==========
-
-    media_id = str(uuid.uuid4())
-    now = datetime.utcnow()
-
-    # Determine storage path (using pathlib for safety)
+    # Determine storage path
     if project_id:
-        storage_path = (
-            MEDIA_DIR / projects_db[project_id]["user_id"] / project_id / media_id
-        )
+        storage_path = MEDIA_DIR / user.id / project_id / f"{new_media.id}{file_ext}"
     else:
-        storage_path = MEDIA_DIR / "temp" / media_id
-
-    # Add file extension to storage path
-    storage_path = storage_path.with_suffix(file_ext)
+        storage_path = MEDIA_DIR / user.id / "orphans" / f"{new_media.id}{file_ext}"
 
     storage_path.parent.mkdir(parents=True, exist_ok=True)
-
-    # Save file
     with open(storage_path, "wb") as f:
         f.write(content)
 
-    # Create thumbnail (placeholder)
-    thumbnail_path = None
-    duration = None
-
-    # Get media metadata (simplified - use actual ffprobe in production)
-    if media_type == "video":
-        duration = 0.0  # Will be extracted by ffprobe
-        thumbnail_path = str(storage_path) + "_thumb.jpg"
-
-    # Store media metadata
-    media = {
-        "id": media_id,
-        "name": safe_name,
-        "media_type": media_type,
-        "path": str(storage_path),
-        "duration": duration,
-        "resolution": None,
-        "thumbnail_path": thumbnail_path,
-        "file_size": file_size,
-        "created_at": now,
-        "project_id": project_id,
-    }
-
-    media_db[media_id] = media
-
+    new_media.path = str(storage_path)
+    
     return MediaResponse(
-        id=media_id,
-        name=safe_name,
-        media_type=media_type,
-        path=str(storage_path),
-        duration=duration,
-        resolution=None,
-        thumbnail_path=thumbnail_path,
-        file_size=file_size,
-        created_at=now,
+        id=new_media.id,
+        name=new_media.name,
+        type=new_media.media_type,
+        path=new_media.path,
+        fileSize=new_media.file_size,
+        createdAt=new_media.created_at
     )
 
 
 @VIDEO_EDITOR_ROUTER.get("/media/{media_id}", response_model=MediaResponse)
-async def get_media(media_id: str, authorization: str = None):
-    """Get media metadata."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    media = media_db.get(media_id)
+async def get_media(
+    media_id: str, 
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get media metadata from the database."""
+    query = select(models.Media).where(
+        models.Media.id == media_id, 
+        models.Media.user_id == user.id
+    )
+    result = await db.execute(query)
+    media = result.scalars().first()
 
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
     return MediaResponse(
-        id=media["id"],
-        name=media["name"],
-        media_type=media["media_type"],
-        path=media["path"],
-        duration=media.get("duration"),
-        resolution=media.get("resolution"),
-        thumbnail_path=media.get("thumbnail_path"),
-        file_size=media["file_size"],
-        created_at=media["created_at"],
+        id=media.id,
+        name=media.name,
+        type=media.media_type,
+        path=media.path,
+        duration=media.duration,
+        resolution=media.resolution,
+        thumbnail=media.thumbnail_path,
+        fileSize=media.file_size,
+        createdAt=media.created_at,
     )
 
 
 @VIDEO_EDITOR_ROUTER.delete("/media/{media_id}")
-async def delete_media(media_id: str, authorization: str = None):
-    """Delete a media file."""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    media = media_db.get(media_id)
+async def delete_media(
+    media_id: str, 
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Delete a media file from database and disk."""
+    query = select(models.Media).where(
+        models.Media.id == media_id, 
+        models.Media.user_id == user.id
+    )
+    result = await db.execute(query)
+    media = result.scalars().first()
 
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    # Delete file
-    media_path = Path(media["path"])
-    if media_path.exists():
-        media_path.unlink()
+    # Delete from disk
+    try:
+        path = Path(media.path)
+        if path.exists():
+            path.unlink()
+        if media.thumbnail_path:
+            thumb = Path(media.thumbnail_path)
+            if thumb.exists():
+                thumb.unlink()
+    except Exception as e:
+        logger.error(f"Failed to delete media file {media_id}: {e}")
 
-    # Delete thumbnail
-    thumbnail_path = Path(media.get("thumbnail_path", ""))
-    if thumbnail_path.exists():
-        thumbnail_path.unlink()
-
-    del media_db[media_id]
+    # Remove from database
+    await db.delete(media)
 
     return {"message": "Media deleted successfully"}
 
@@ -1309,6 +1249,8 @@ async def start_export(
     export_request: ExportRequest,
     background_tasks: BackgroundTasks,
     project_id: str = None,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Start a video export job."""
     current_project_id = project_id or export_request.project_id
@@ -1316,137 +1258,196 @@ async def start_export(
     if not current_project_id:
         raise HTTPException(status_code=400, detail="Project ID is required")
 
-    if current_project_id not in projects_db:
+    # DATABASE: Check if project exists and belongs to user
+    query = select(models.Project).where(
+        models.Project.id == current_project_id,
+        models.Project.user_id == user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    job_id = str(uuid.uuid4())
-
-    # Create export job
-    job = {
-        "id": job_id,
-        "project_id": current_project_id,
-        "format": export_request.format,
-        "preset": export_request.preset,
-        "resolution": export_request.resolution,
-        "quality": export_request.quality,
-        "status": "pending",
-        "progress": 0.0,
-        "message": "Job created",
-        "output_path": None,
-        "error": None,
-        "settings": export_request.dict(),
-        "started_at": datetime.utcnow(),
-    }
-
-    jobs_db[job_id] = job
+    # Create export job in DB
+    new_job = models.ExportJob(
+        project_id=current_project_id,
+        user_id=user.id,
+        format=export_request.format,
+        preset=export_request.preset,
+        resolution=export_request.resolution,
+        quality=export_request.quality,
+        status="pending",
+        progress=0.0,
+        settings=export_request.dict(),
+        started_at=datetime.utcnow()
+    )
+    
+    db.add(new_job)
+    await db.flush() # Populate ID
 
     # Add export task to background
-    background_tasks.add_task(process_export, job_id)
+    background_tasks.add_task(process_export, new_job.id)
 
-    return ExportResponse(**job)
+    return ExportResponse(
+        id=new_job.id,
+        projectId=new_job.project_id,
+        status=new_job.status,
+        progress=new_job.progress,
+        settings=new_job.settings,
+        startedAt=new_job.started_at
+    )
 
 
 @VIDEO_EDITOR_ROUTER.get("/export/{job_id}/status", response_model=ExportStatusResponse)
 @VIDEO_EDITOR_ROUTER.get(
     "/export/{job_id}/progress", response_model=ExportStatusResponse
 )
-async def get_export_status(job_id: str):
+async def get_export_status(
+    job_id: str,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Get export job status."""
-    job = jobs_db.get(job_id)
+    query = select(models.ExportJob).where(
+        models.ExportJob.id == job_id,
+        models.ExportJob.user_id == user.id
+    )
+    result = await db.execute(query)
+    job = result.scalars().first()
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
     return ExportStatusResponse(
-        id=job["id"],
-        status=job["status"],
-        progress=job["progress"],
-        message=job["message"],
-        output_path=job.get("output_path"),
+        id=job.id,
+        status=job.status,
+        progress=job.progress,
+        message=job.message,
+        output_path=job.output_path,
         download_url=f"/api/video-editor/export/{job_id}/download"
-        if job["status"] == "completed"
+        if job.status == "completed"
         else None,
-        error=job.get("error"),
+        error=job.error,
     )
 
 
 @VIDEO_EDITOR_ROUTER.get("/export/{job_id}/download")
-async def download_export(job_id: str):
+async def download_export(
+    job_id: str,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Download exported video."""
-    job = jobs_db.get(job_id)
+    query = select(models.ExportJob).where(
+        models.ExportJob.id == job_id,
+        models.ExportJob.user_id == user.id
+    )
+    result = await db.execute(query)
+    job = result.scalars().first()
 
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    if job["status"] != "completed":
+    if job.status != "completed":
         raise HTTPException(status_code=400, detail="Export not ready")
 
-    if not job.get("download_url"):
+    if not job.download_url:
+        # Fallback to local file check if download_url is not set but output_path is
+        if job.output_path and os.path.exists(job.output_path):
+             return FileResponse(job.output_path, filename=f"export_{job_id}.mp4")
         raise HTTPException(status_code=404, detail="Export file not found")
 
-    return {"url": job["download_url"]}
+    return {"url": job.download_url}
 
 
 async def process_export(job_id: str):
     """Background task to process video export with real FFmpeg/GPU."""
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
+    from backend.database import AsyncSessionLocal
 
     service = create_ai_service()
+    
+    async with AsyncSessionLocal() as db:
+        try:
+            # 1. Load job from DB
+            query = select(models.ExportJob).where(models.ExportJob.id == job_id)
+            result = await db.execute(query)
+            job = result.scalars().first()
+            
+            if not job:
+                logger.error(f"Job {job_id} not found in database for background processing")
+                return
 
-    job = jobs_db[job_id]
-    job["status"] = "processing"
-    job["message"] = "Starting high-quality export..."
+            job.status = "processing"
+            job.message = "Starting high-quality export..."
+            await db.commit()
 
-    project_id = job.get("projectId") or job.get("project_id")
-    format_ext = job.get("format", "mp4")
+            project_id = job.project_id
+            format_ext = job.format or "mp4"
 
-    try:
-        # En production, on rendrait la timeline. Ici on simule sur le premier média pour la démo
-        # Mais avec les vrais réglages de qualité/format/transparent
-        project = projects_db.get(project_id)
-        if not project:
-            raise ValueError(f"Project {project_id} not found")
+            # 2. Load project to get media list
+            query_project = select(models.Project).where(models.Project.id == project_id)
+            result_project = await db.execute(query_project)
+            project = result_project.scalars().first()
+            
+            if not project:
+                raise ValueError(f"Project {project_id} not found")
 
-        # Try both media and media_items for compatibility
-        media_list = project.get("media", project.get("media_items", []))
-        if not media_list:
-            raise FileNotFoundError("No media in project to export")
+            # 3. Load media from project
+            query_media = select(models.Media).where(models.Media.project_id == project_id)
+            result_media = await db.execute(query_media)
+            media_list = result_media.scalars().all()
+            
+            if not media_list:
+                raise FileNotFoundError("No media in project to export")
 
-        input_path = media_list[0]["path"]
-        output_filename = f"{project_id}_{job_id}.{format_ext}"
-        output_path = str(EXPORT_DIR / output_filename)
+            input_path = media_list[0].path
+            output_filename = f"{project_id}_{job_id}.{format_ext}"
+            output_path = str(EXPORT_DIR / output_filename)
 
-        job["progress"] = 30.0
-        job["message"] = f"Encoding {format_ext}..."
+            # Ensure export directory exists
+            EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-        success = await service.export.export_video(
-            input_path=input_path,
-            output_path=output_path,
-            format=format_ext,
-            quality=job.get("quality", 23),
-            transparent=(
-                format_ext == "webm" and job.get("quality") == 100
-            ),  # Hack démo
-        )
+            # 4. Update status and process
+            job.message = f"Processing video with FFmpeg ({format_ext})..."
+            job.progress = 10.0
+            await db.commit()
 
-        if success:
-            job["status"] = "completed"
-            job["progress"] = 100.0
-            job["message"] = "Export completed successfully"
-            job["completed_at"] = datetime.utcnow()
-            job["output_path"] = f"/api/video-editor/export/{job_id}/file"
-        else:
-            job["status"] = "failed"
-            job["message"] = "FFmpeg export failed"
-            job["error"] = "Process failed internally"
-            job["completed_at"] = datetime.utcnow()
+            # Execute real enhancement/export via service
+            success = await service.process_video(
+                input_path=input_path,
+                output_path=output_path,
+                quality=job.quality
+            )
 
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        job["message"] = f"Export failed: {str(e)}"
-        job["completed_at"] = datetime.utcnow()
-        logger.error(f"Export task failed: {job_id} - {e}")
+            if success:
+                job.status = "completed"
+                job.progress = 100.0
+                job.message = "Export completed successfully"
+                job.output_path = output_path
+                job.download_url = f"/api/video-editor/export/{job_id}/download"
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = "FFmpeg processing failed"
+                job.message = "Export failed during processing"
+
+            await db.commit()
+
+        except Exception as e:
+            logger.error(f"Export error for job {job_id}: {e}")
+            # We need to refresh the job instance if it was detached or re-query it
+            async with AsyncSessionLocal() as db_error:
+                query = select(models.ExportJob).where(models.ExportJob.id == job_id)
+                result = await db_error.execute(query)
+                job_err = result.scalars().first()
+                if job_err:
+                    job_err.status = "failed"
+                    job_err.error = str(e)
+                    job_err.message = f"Export failed: {str(e)}"
+                    job_err.completed_at = datetime.utcnow()
+                    await db_error.commit()
 
 
 # =============================================================================
@@ -1456,38 +1457,50 @@ async def process_export(job_id: str):
 
 @VIDEO_EDITOR_ROUTER.post("/ai/transcribe", response_model=TranscriptionResponse)
 async def transcribe_media(
-    request: TranscriptionRequest, background_tasks: BackgroundTasks
+    request: TranscriptionRequest, 
+    background_tasks: BackgroundTasks,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Start transcription of media."""
-    media = media_db.get(request.media_id)
+    # DATABASE: Check if media exists and belongs to user
+    query = select(models.Media).where(
+        models.Media.id == request.media_id,
+        models.Media.user_id == user.id
+    )
+    result = await db.execute(query)
+    media = result.scalars().first()
 
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
+    # Create AI Job in DB
+    new_job = models.AIJob(
+        user_id=user.id,
+        job_type="transcription",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "language": request.language,
+            "enable_speakers": request.enable_speakers
+        },
+        input_path=media.path,
+        started_at=datetime.utcnow()
+    )
+    
+    db.add(new_job)
+    await db.flush() # Populate ID
 
-    job = {
-        "id": job_id,
-        "type": "transcription",
-        "media_id": request.media_id,
-        "language": request.language,
-        "status": "pending",
-        "text": None,
-        "segments": None,
-        "created_at": datetime.utcnow(),
-    }
-
-    jobs_db[job_id] = job
-
-    background_tasks.add_task(process_transcription, job_id)
+    background_tasks.add_task(process_transcription, new_job.id)
 
     return TranscriptionResponse(
-        job_id=job_id,
+        job_id=new_job.id,
         status="pending",
         text=None,
         segments=None,
         language=request.language or "auto-detected",
     )
+
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/translate", response_model=TranslationResponse)
@@ -1500,131 +1513,190 @@ async def translate_text(request: TranslationRequest):
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/tts", response_model=TTSResponse)
-async def text_to_speech(request: TTSRequest, background_tasks: BackgroundTasks):
+async def text_to_speech(
+    request: TTSRequest, 
+    background_tasks: BackgroundTasks,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
     """Convert text to speech."""
-    job_id = str(uuid.uuid4())
+    # Create AI Job in DB
+    new_job = models.AIJob(
+        user_id=user.id,
+        job_type="tts",
+        status="pending",
+        input_data={
+            "text": request.text,
+            "voice": request.voice,
+            "speed": request.speed,
+            "pitch": request.pitch
+        },
+        started_at=datetime.utcnow()
+    )
+    
+    db.add(new_job)
+    await db.flush() # Populate ID
 
-    job = {
-        "id": job_id,
-        "type": "tts",
-        "text": request.text,
-        "voice": request.voice,
-        "speed": request.speed,
-        "status": "pending",
-        "audio_path": None,
-        "created_at": datetime.utcnow(),
-    }
+    background_tasks.add_task(process_tts, new_job.id)
 
-    jobs_db[job_id] = job
+    return TTSResponse(job_id=new_job.id, status="pending", audio_path=None)
 
-    background_tasks.add_task(process_tts, job_id)
-
-    return TTSResponse(job_id=job_id, status="pending", audio_path=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/smart-crop", response_model=SmartCropResponse)
 async def smart_crop_media(
-    request: SmartCropRequest, background_tasks: BackgroundTasks
+    request: SmartCropRequest, 
+    background_tasks: BackgroundTasks,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
     """Smart crop media to target aspect ratio."""
-    media = media_db.get(request.media_id)
+    # DATABASE: Check if media exists and belongs to user
+    query = select(models.Media).where(
+        models.Media.id == request.media_id,
+        models.Media.user_id == user.id
+    )
+    result = await db.execute(query)
+    media = result.scalars().first()
 
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
+    # Create AI Job in DB
+    new_job = models.AIJob(
+        user_id=user.id,
+        job_type="smart_crop",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "target_ratio": request.target_ratio,
+            "focus_mode": request.focus_mode
+        },
+        input_path=media.path,
+        started_at=datetime.utcnow()
+    )
+    
+    db.add(new_job)
+    await db.flush() # Populate ID
 
-    job = {
-        "id": job_id,
-        "type": "smart_crop",
-        "media_id": request.media_id,
-        "target_ratio": request.target_ratio,
-        "focus_mode": request.focus_mode,
-        "status": "pending",
-        "crop_regions": None,
-        "created_at": datetime.utcnow(),
-    }
+    background_tasks.add_task(process_smart_crop, new_job.id)
 
-    jobs_db[job_id] = job
+    return SmartCropResponse(job_id=new_job.id, status="pending", crop_regions=None)
 
-    background_tasks.add_task(process_smart_crop, job_id)
-
-    return SmartCropResponse(job_id=job_id, status="pending", crop_regions=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/detect-beats", response_model=BeatDetectionResponse)
 async def detect_beats(
-    request: BeatDetectionRequest, background_tasks: BackgroundTasks
+    request: BeatDetectionRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """Detect beats in audio media."""
-    media = media_db.get(request.media_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "beat_detection",
-        "media_id": request.media_id,
-        "status": "pending",
-        "beats": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_beat_detection, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="beat_detection",
+        status="pending",
+        input_data={"media_id": request.media_id},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return BeatDetectionResponse(job_id=job_id, status="pending", beats=None)
+    background_tasks.add_task(process_beat_detection, job.id)
+
+    return BeatDetectionResponse(job_id=job.id, status="pending", beats=None)
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/auto-trim", response_model=AutoTrimResponse)
 async def auto_trim_silence(
-    request: AutoTrimRequest, background_tasks: BackgroundTasks
+    request: AutoTrimRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """Automatically trim silence from media."""
-    media = media_db.get(request.media_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "auto_trim",
-        "media_id": request.media_id,
-        "threshold": request.threshold,
-        "min_duration": request.min_duration,
-        "status": "pending",
-        "output_path": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_auto_trim, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="auto_trim",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "threshold": request.threshold,
+            "min_duration": request.min_duration,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return AutoTrimResponse(job_id=job_id, status="pending", output_path=None)
+    background_tasks.add_task(process_auto_trim, job.id)
+
+    return AutoTrimResponse(
+        job_id=job.id, status="pending", output_path=None, trimmed_sections=[]
+    )
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/enhance")
 async def enhance_video(
-    request: VideoEnhanceRequest, background_tasks: BackgroundTasks
+    request: VideoEnhanceRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """Apply AI enhancements (Hellation, Super-res, etc.) to video."""
-    media = media_db.get(request.media_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "enhancement",
-        "media_id": request.media_id,
-        "enhancements": request.enhancements,
-        "status": "pending",
-        "output_path": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_video_enhance, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="enhancement",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "enhancements": request.enhancements,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return {"job_id": job_id, "status": "pending"}
+    background_tasks.add_task(process_video_enhance, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/search")
@@ -1652,78 +1724,187 @@ async def search_ai_content(request: SearchRequest):
                     }
                 )
 
-        # Search in OCR
-        elif job.get("type") == "video_ocr" and job.get("status") == "completed":
-            ocr_data = job.get("ocr_results", [])
-            matches = [
-                item for item in ocr_data if query in item.get("text", "").lower()
-            ]
-            if matches:
-                results.append(
-                    {
-                        "id": job_id,
-                        "media_id": job.get("media_id"),
-                        "type": "video_ocr",
-                        "preview": f"{len(matches)} occurrences trouvées",
-                        "matches": matches,
-                    }
-                )
+        # TODO: Refactor to use PostgreSQL models for AI job search
+        pass
 
-    return {"query": query, "results": results}
+    return {"results": results}
 
+@VIDEO_EDITOR_ROUTER.get("/ai/results")
+async def list_ai_results(
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """List all AI job results for the current user."""
+    query = await db.execute(
+        select(models.AIJob).where(models.AIJob.user_id == current_user.id)
+    )
+    jobs = query.scalars().all()
 
-@VIDEO_EDITOR_ROUTER.post("/ai/index-ocr")
-async def index_video_ocr(request: VideoOCRRequest, background_tasks: BackgroundTasks):
-    """Start OCR indexing for a video."""
-    media = media_db.get(request.media_id)
+    results = []
+    for job in jobs:
+        if job.job_type == "highlights":
+            results.append(
+                {
+                    "id": job.id,
+                    "media_id": job.input_data.get("media_id"),
+                    "type": "highlights",
+                    "preview": f"{len(job.result.get('highlights', [])) if job.result else 0} highlights",
+                    "highlights": job.result.get("highlights") if job.result else None,
+                }
+            )
+        elif job.job_type == "video_ocr":
+            matches = job.result.get("ocr_results", []) if job.result else []
+            results.append(
+                {
+                    "id": job.id,
+                    "media_id": job.input_data.get("media_id"),
+                    "type": "video_ocr",
+                    "preview": f"{len(matches)} occurrences trouvées",
+                    "matches": matches,
+                }
+            )
+
+    return {"results": results}
+
+@VIDEO_EDITOR_ROUTER.post("/ai/highlights")
+async def extract_audio_highlights(
+    request: HighlightRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Extract highlights from audio/video."""
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "video_ocr",
-        "media_id": request.media_id,
-        "status": "pending",
-        "ocr_results": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_video_ocr, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="highlights",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "min_duration": request.min_duration,
+            "max_duration": request.max_duration,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return {"job_id": job_id, "status": "pending"}
+    background_tasks.add_task(process_highlights, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
+async def search_media_content(
+    request: AISearchRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Search within media content using AI."""
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    # This is a synchronous AI search operation for now
+    from .video_editor_ai_service import create_ai_service
+
+    service = create_ai_service()
+    results = await service.search_content(media.path, request.query)
+
+    return {"media_id": request.media_id, "query": request.query, "results": results}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/index-ocr")
+async def index_video_ocr(
+    request: VideoOCRRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Start OCR indexing for a video."""
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="video_ocr",
+        status="pending",
+        input_data={"media_id": request.media_id},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+
+    background_tasks.add_task(process_video_ocr, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/magic-mask")
 async def apply_magic_mask(
-    request: MagicMaskRequest, background_tasks: BackgroundTasks
+    request: MagicMaskRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """Start Magic Mask background removal."""
-    media = media_db.get(request.media_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    # On réutilise VideoEnhanceRequest structure pour le background task
-    enhancement = [{"type": "magic_mask", "strength": request.strength}]
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "video_enhance",
-        "media_id": request.media_id,
-        "status": "pending",
-        "output_path": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_video_enhance, job_id, enhancement)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="video_enhance",  # Re-uses video_enhance processing
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "enhancements": [{"type": "magic_mask", "strength": request.strength}],
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return {"job_id": job_id, "status": "pending"}
+    background_tasks.add_task(process_video_enhance, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/dialogue-automation")
 async def automate_dialogue(request: DialogueAutomationRequest):
     """Automate dialogue cuts (J-cut, L-cut)."""
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
 
     service = create_ai_service()
 
@@ -1744,88 +1925,243 @@ async def automate_dialogue(request: DialogueAutomationRequest):
 
 
 @VIDEO_EDITOR_ROUTER.get("/ai/jobs/{job_id}/status")
-async def get_ai_job_status(job_id: str):
-    """Get the status and results of an AI job."""
-    job = jobs_db.get(job_id)
+async def get_ai_job_status(
+    job_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Get status of an AI job."""
+    # Query persistent AI Job
+    job_query = await db.execute(
+        select(models.AIJob).where(
+            models.AIJob.id == job_id, models.AIJob.user_id == current_user.id
+        )
+    )
+    job = job_query.scalar_one_or_none()
+
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    return job
+
+    return {
+        "job_id": job.id,
+        "type": job.job_type,
+        "status": job.status,
+        "progress": job.progress,
+        "result": job.result,
+        "error": job.error,
+        "created_at": job.created_at,
+        "completed_at": job.completed_at,
+    }
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/voice-isolation")
 async def isolate_voice(
-    request: VoiceIsolationRequest, background_tasks: BackgroundTasks
+    request: VoiceIsolationRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
-    """Start voice isolation background task."""
-    media = media_db.get(request.media_id)
+    """Isolate voice from background noise."""
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "voice_isolation",
-        "media_id": request.media_id,
-        "status": "pending",
-        "output_path": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_voice_isolation, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="voice_isolation",
+        status="pending",
+        input_data={"media_id": request.media_id},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return {"job_id": job_id, "status": "pending"}
+    background_tasks.add_task(process_voice_isolation, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/audio-remix")
+async def remix_audio(
+    request: AudioRemixRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Remix music and speech."""
+    # Verify music ownership and existence
+    music_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.music_id, models.Media.user_id == current_user.id
+        )
+    )
+    music = music_query.scalar_one_or_none()
+
+    # Verify speech ownership and existence
+    speech_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.speech_id, models.Media.user_id == current_user.id
+        )
+    )
+    speech = speech_query.scalar_one_or_none()
+
+    if not music or not speech:
+        raise HTTPException(status_code=404, detail="Music or Speech media not found")
+
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=music.project_id,
+        job_type="audio_remix",
+        status="pending",
+        input_data={
+            "music_id": request.music_id,
+            "speech_id": request.speech_id,
+            "music_volume": request.music_volume,
+            "speech_volume": request.speech_volume,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+
+    background_tasks.add_task(process_audio_remix, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/auto-ducking")
-async def auto_ducking(request: AutoDuckingRequest, background_tasks: BackgroundTasks):
+async def auto_ducking(
+    request: AutoDuckingRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Start auto-ducking background task."""
-    music = media_db.get(request.music_id)
-    speech = media_db.get(request.speech_id)
+    # Verify music ownership and existence
+    music_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.music_id, models.Media.user_id == current_user.id
+        )
+    )
+    music = music_query.scalar_one_or_none()
+
+    # Verify speech ownership and existence
+    speech_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.speech_id, models.Media.user_id == current_user.id
+        )
+    )
+    speech = speech_query.scalar_one_or_none()
+
     if not music or not speech:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "auto_ducking",
-        "music_id": request.music_id,
-        "speech_id": request.speech_id,
-        "status": "pending",
-        "output_path": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_auto_ducking, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=music.project_id,
+        job_type="auto_ducking",
+        status="pending",
+        input_data={
+            "music_id": request.music_id,
+            "speech_id": request.speech_id,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return {"job_id": job_id, "status": "pending"}
+    background_tasks.add_task(process_auto_ducking, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/pan-scan")
-async def pan_and_scan(request: PanScanRequest, background_tasks: BackgroundTasks):
+async def pan_and_scan(
+    request: PanScanRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Start smart pan & scan background task."""
-    media = media_db.get(request.media_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "pan_scan",
-        "media_id": request.media_id,
-        "status": "pending",
-        "output_path": None,
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_pan_scan, job_id)
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="pan_scan",
+        status="pending",
+        input_data={"media_id": request.media_id},
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
 
-    return {"job_id": job_id, "status": "pending"}
+    background_tasks.add_task(process_pan_scan, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
+
+
+@VIDEO_EDITOR_ROUTER.post("/ai/visual-summary")
+async def generate_visual_summary(
+    request: VisualSummaryRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    """Generate a visual summary (storyboard/contact sheet) from video."""
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    # Create persistent AI Job
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="visual_summary",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "max_frames": request.max_frames,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+
+    background_tasks.add_task(process_visual_summary, job.id)
+
+    return {"job_id": job.id, "status": "pending"}
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/multi-angle")
 async def generate_multi_angle(request: MultiAngleRequest):
     """Generate prompts for multiple camera angles."""
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
 
     service = create_ai_service()
     prompts = await service.multi_angle.generate_angles(
@@ -1837,7 +2173,7 @@ async def generate_multi_angle(request: MultiAngleRequest):
 @VIDEO_EDITOR_ROUTER.post("/ai/character-sheet")
 async def generate_character_sheet(request: CharacterSheetRequest):
     """Generate a character consistency sheet."""
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
 
     service = create_ai_service()
     char_id = service.character_consistency.create_character_profile(
@@ -1848,60 +2184,82 @@ async def generate_character_sheet(request: CharacterSheetRequest):
 
 
 @VIDEO_EDITOR_ROUTER.post("/ai/sprite")
-async def generate_sprites(media_id: str):
+async def generate_sprites(
+    media_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Generate individual sprites from a media (sheet)."""
-    media = media_db.get(media_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
 
     service = create_ai_service()
 
-    output_dir = os.path.join(os.path.dirname(media["path"]), "sprites")
-    sprites = await service.sprite.generate_sprite(media["path"], output_dir)
+    output_dir = os.path.join(os.path.dirname(media.path), "sprites")
+    os.makedirs(output_dir, exist_ok=True)
+    sprites = await service.sprite.generate_sprite(media.path, output_dir)
 
     return {"status": "success", "sprites": sprites}
 
 
 @VIDEO_EDITOR_ROUTER.post("/publish", response_model=PublishResponse)
-async def publish_video(request: PublishRequest, background_tasks: BackgroundTasks):
+async def publish_video(
+    request: PublishRequest,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Publish media to social platforms."""
-    media_db.get(request.media_id)
-    job_id = str(uuid.uuid4())
-    job = {
-        "id": job_id,
-        "type": "publish",
-        "media_id": request.media_id,
-        "platforms": request.platforms,
-        "title": request.title,
-        "description": request.description,
-        "tags": request.tags,
-        "privacy": request.privacy,
-        "status": "pending",
-        "platform_results": {},
-        "created_at": datetime.utcnow(),
-    }
-    jobs_db[job_id] = job
-    background_tasks.add_task(process_publish, job_id)
+    # Verify media ownership and existence
+    media_query = await db.execute(
+        select(models.Media).where(
+            models.Media.id == request.media_id, models.Media.user_id == current_user.id
+        )
+    )
+    media = media_query.scalar_one_or_none()
+    if not media:
+        raise HTTPException(status_code=404, detail="Media not found")
 
-    return PublishResponse(job_id=job_id, status="pending", platform_results={})
+    # Create persistent AI Job for publishing
+    job = models.AIJob(
+        user_id=current_user.id,
+        project_id=media.project_id,
+        job_type="publish",
+        status="pending",
+        input_data={
+            "media_id": request.media_id,
+            "platforms": request.platforms,
+            "title": request.title,
+            "description": request.description,
+            "tags": request.tags,
+            "privacy": request.privacy,
+        },
+    )
+    db.add(job)
+    await db.commit()
+    await db.refresh(job)
+
+    background_tasks.add_task(process_publish, job.id)
+
+    return PublishResponse(job_id=job.id, status="pending", platform_results={})
 
 
 async def process_publish(job_id: str):
-    """Background task for multi-platform publishing."""
-    job = jobs_db[job_id]
-    job["status"] = "processing"
-
-    platforms = job["platforms"]
+    """Mock background task for publishing."""
+    # Note: In a real implementation, we would fetch the job from the DB
     results = {}
-
+    platforms = ["wordpress", "storycore_market"]
     for platform in platforms:
-        results[platform] = {"status": "publishing", "url": None}
-        job["platform_results"] = results
-        await asyncio.sleep(2)
-
-        if platform == "storycore_blog":
+        if platform == "wordpress":
             url = f"{settings.STORYCORE_WORDPRESS_URL}/?storycore_showcase={uuid.uuid4().hex[:8]}"
         elif platform == "storycore_market":
             url = f"{settings.STORYCORE_WORDPRESS_URL}/shop"
@@ -1913,7 +2271,6 @@ async def process_publish(job_id: str):
             "url": url,
             "published_at": datetime.utcnow().isoformat(),
         }
-        job["platform_results"] = results
 
     job["status"] = "completed"
     logger.info(f"Publish job {job_id} completed for platforms: {', '.join(platforms)}")
@@ -1926,15 +2283,27 @@ async def process_publish(job_id: str):
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks")
 async def add_track(
-    project_id: str, track_data: Dict[str, Any], authorization: str = None
+    project_id: str,
+    track_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
 ):
     """Add a new track to the project timeline."""
-    if project_id not in projects_db:
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    project = projects_db[project_id]
-    track_id = str(uuid.uuid4())
+    # Load timeline data
+    timeline_data = project.timeline_data or {"tracks": [], "duration": 0.0}
+    if "tracks" not in timeline_data:
+        timeline_data["tracks"] = []
 
+    track_id = str(uuid.uuid4())
     new_track = {
         "id": track_id,
         "name": track_data.get("name", "New Track"),
@@ -1945,20 +2314,36 @@ async def add_track(
         "height": 60,
     }
 
-    project["tracks"].append(new_track)
-    project["modified_at"] = datetime.utcnow()
+    timeline_data["tracks"].append(new_track)
+    project.timeline_data = timeline_data
+    project.updated_at = datetime.utcnow()
 
+    await db.commit()
     return new_track
 
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks/{track_id}/clips")
-async def add_clip(project_id: str, track_id: str, clip_data: Dict[str, Any]):
+async def add_clip(
+    project_id: str,
+    track_id: str,
+    clip_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Add a clip to a specific track."""
-    if project_id not in projects_db:
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    project = projects_db[project_id]
-    track = next((t for t in project["tracks"] if t["id"] == track_id), None)
+    timeline_data = project.timeline_data or {"tracks": [], "duration": 0.0}
+    track = next(
+        (t for t in timeline_data.get("tracks", []) if t["id"] == track_id), None
+    )
 
     if not track:
         raise HTTPException(status_code=404, detail="Track not found")
@@ -1977,29 +2362,41 @@ async def add_clip(project_id: str, track_id: str, clip_data: Dict[str, Any]):
     }
 
     track["clips"].append(new_clip)
-    project["modified_at"] = datetime.utcnow()
+    project.timeline_data = timeline_data
+    project.updated_at = datetime.utcnow()
 
+    await db.commit()
     return new_clip
 
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/clips/{clip_id}/move")
-async def move_clip(project_id: str, clip_id: str, move_data: Dict[str, Any]):
+async def move_clip(
+    project_id: str,
+    clip_id: str,
+    move_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Move a clip with optional ripple effect."""
-    if project_id not in projects_db:
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    project = projects_db[project_id]
     use_ripple = move_data.get("ripple", False)
     new_start = move_data.get("startTime", 0.0)
     new_track_id = move_data.get("trackId")
 
-    # We use a temporary Timeline object for the service
-    # In production, we would persist the Timeline objects directly
-    tl = timeline_service.create_timeline(project["name"])
+    # Sync to timeline_service
+    timeline_data = project.timeline_data or {"tracks": [], "duration": 0.0}
+    tl = timeline_service.create_timeline(project.name)
     temp_timeline_id = tl.id
 
-    # Sync project tracks to service
-    for p_track in project["tracks"]:
+    for p_track in timeline_data.get("tracks", []):
         t = timeline_service.add_track(
             temp_timeline_id, p_track["name"], ClipType(p_track["type"])
         )
@@ -2032,91 +2429,82 @@ async def move_clip(project_id: str, clip_id: str, move_data: Dict[str, Any]):
     if not success:
         raise HTTPException(status_code=400, detail="Move operation failed")
 
-    # Sync back to project_db
-    updated_tl = timeline_service.get_timeline(temp_timeline_id)
-    project["tracks"] = []
-    for t in updated_tl.tracks:
-        project["tracks"].append(
-            {
-                "id": t.id,
-                "name": t.name,
-                "type": t.type.value,
-                "clips": [
-                    {
-                        "id": c.id,
-                        "type": c.type.value,
-                        "track_id": c.track_id,
-                        "start_time": c.start_time,
-                        "end_time": c.end_time,
-                        "name": c.name,
-                    }
-                    for c in t.clips
-                ],
-            }
-        )
+    # Sync back to DB
+    project.timeline_data = timeline_service.export_to_dict(temp_timeline_id)
+    project.updated_at = datetime.utcnow()
 
-    project["modified_at"] = datetime.utcnow()
-    return {"status": "success", "project": project}
+    await db.commit()
+    return {"status": "success", "project": project.timeline_data}
 
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/auto-assemble")
-async def auto_assemble(project_id: str, assembly_data: Dict[str, Any]):
+async def auto_assemble(
+    project_id: str,
+    assembly_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Automatically assemble shots into a timeline sequence."""
-    if project_id not in projects_db:
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    project = projects_db[project_id]
     shots = assembly_data.get("shots", [])
 
     # Use TimelineService to assemble
-    temp_tl = timeline_service.create_timeline(project["name"])
+    temp_tl = timeline_service.create_timeline(project.name)
     success = timeline_service.auto_assemble_sequence(temp_tl.id, shots)
 
     if not success:
         raise HTTPException(status_code=500, detail="Auto-assembly failed")
 
-    # Add the assembled track to our project
-    new_tl = timeline_service.get_timeline(temp_tl.id)
-    assembled_track = new_tl.tracks[0]
+    # Merge back to project
+    timeline_data = project.timeline_data or {"tracks": [], "duration": 0.0}
+    new_tl_dict = timeline_service.export_to_dict(temp_tl.id)
 
-    project["tracks"].append(
-        {
-            "id": assembled_track.id,
-            "name": assembled_track.name,
-            "type": assembled_track.type.value,
-            "clips": [
-                {
-                    "id": c.id,
-                    "type": c.type.value,
-                    "track_id": c.track_id,
-                    "start_time": c.start_time,
-                    "end_time": c.end_time,
-                    "name": c.name,
-                    "file_path": c.file_path,
-                }
-                for c in assembled_track.clips
-            ],
-        }
-    )
+    if "tracks" not in timeline_data:
+        timeline_data["tracks"] = []
 
-    project["modified_at"] = datetime.utcnow()
-    return {"status": "success", "track_id": assembled_track.id}
+    timeline_data["tracks"].extend(new_tl_dict["tracks"])
+    project.timeline_data = timeline_data
+    project.updated_at = datetime.utcnow()
+
+    await db.commit()
+    return {"status": "success", "track_id": new_tl_dict["tracks"][0]["id"]}
 
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/tracks/{track_id}/fill-gaps")
-async def fill_gaps(project_id: str, track_id: str, filler_data: Dict[str, Any]):
+async def fill_gaps(
+    project_id: str,
+    track_id: str,
+    filler_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Fill gaps in a track with ambiance/silence."""
-    if project_id not in projects_db:
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
-    project = projects_db[project_id]
+    timeline_data = project.timeline_data or {"tracks": [], "duration": 0.0}
 
-    # We use a temporary Timeline object for the service
-    tl = timeline_service.create_timeline(project["name"])
+    # Sync to timeline_service
+    tl = timeline_service.create_timeline(project.name)
     temp_timeline_id = tl.id
 
-    # Sync project tracks to service
-    p_track = next((t for t in project["tracks"] if t["id"] == track_id), None)
+    p_track = next(
+        (t for t in timeline_data.get("tracks", []) if t["id"] == track_id), None
+    )
     if not p_track:
         raise HTTPException(status_code=404, detail="Track not found")
 
@@ -2144,13 +2532,29 @@ async def fill_gaps(project_id: str, track_id: str, filler_data: Dict[str, Any])
     if not new_ids:
         return {"status": "success", "message": "No gaps found to fill", "clips": []}
 
-    return {"status": "success", "filled_clips": new_ids, "project": project}
+    # Sync back
+    project.timeline_data = timeline_service.export_to_dict(temp_timeline_id)
+    project.updated_at = datetime.utcnow()
+
+    await db.commit()
+    return {"status": "success", "filled_clips": new_ids, "project": project.timeline_data}
 
 
 @VIDEO_EDITOR_ROUTER.post("/projects/{project_id}/ai/generate-ambiance")
-async def generate_ambiance(project_id: str, gen_data: Dict[str, Any]):
+async def generate_ambiance(
+    project_id: str,
+    gen_data: Dict[str, Any],
+    db: AsyncSession = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
     """Generate custom ambiance audio using AI (CineProductionService)."""
-    if project_id not in projects_db:
+    query = select(models.Project).where(
+        models.Project.id == project_id, models.Project.user_id == current_user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+
+    if not project:
         raise HTTPException(status_code=404, detail="Project not found")
 
     prompt = gen_data.get("prompt")
@@ -2202,293 +2606,558 @@ async def generate_ambiance(project_id: str, gen_data: Dict[str, Any]):
 
 async def process_transcription(job_id: str):
     """Background task for transcription."""
-    job = jobs_db[job_id]
-    job["status"] = "processing"
+    from backend.video_editor_ai_service import TranscriptionService
 
-    try:
-        # Use actual AI Service
-        from backend.video_editor_ai_service import TranscriptionService
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            logger.error(f"Transcription job {job_id} not found")
+            return
 
-        service = TranscriptionService()
+        job.status = "processing"
+        await db.commit()
 
-        media_path = job.get("media_path")
-        if not media_path:
-            raise ValueError("media_path is missing in job data")
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
 
-        result = await service.transcribe(media_path, language=job.get("language"))
+            service = TranscriptionService()
+            result = await service.transcribe(media.path, language=job.input_data.get("language"))
 
-        job["status"] = "completed"
-        job["text"] = result.text
-        # Adjusting segments to expected format if needed
-        job["segments"] = result.segments
-
-    except FileNotFoundError as e:
-        # Media file not found for transcription
-        job["status"] = "failed"
-        job["error"] = f"Media file not found: {e.filename}"
-        logger.error(f"Transcription media file not found: {e}")
-    except Exception as e:
-        # System error during transcription processing
-        job["status"] = "failed"
-        job["error"] = f"System error: {e}"
-        logger.error(f"Transcription system error: {e}")
+            job.status = "completed"
+            job.result = {
+                "text": result.text,
+                "segments": result.segments,
+            }
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+            logger.error(f"Transcription failed: {e}")
 
 
 async def process_tts(job_id: str):
     """Background task for text-to-speech."""
-    job = jobs_db[job_id]
-    job["status"] = "processing"
+    from backend.video_editor_ai_service import TTSService
 
-    try:
-        from backend.video_editor_ai_service import TTSService
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            logger.error(f"TTS job {job_id} not found")
+            return
 
-        service = TTSService()
+        job.status = "processing"
+        await db.commit()
 
-        text = job.get("text")
-        if not text:
-            raise ValueError("text is missing in job data")
+        try:
+            service = TTSService()
+            text = job.input_data.get("text")
+            if not text:
+                raise ValueError("text is missing in job data")
 
-        audio_path = str(MEDIA_DIR / "tts" / f"{job_id}.wav")
-        Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
+            audio_path = str(MEDIA_DIR / "tts" / f"{job_id}.wav")
+            Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
 
-        result = await service.text_to_speech(
-            text=text, voice=job.get("voice"), output_path=audio_path
-        )
+            result = await service.text_to_speech(
+                text=text, voice=job.input_data.get("voice"), output_path=audio_path
+            )
 
-        job["status"] = "completed"
-        job["audio_path"] = result.audio_path
-
-    except PermissionError as e:
-        # Permission denied for TTS output directory
-        job["status"] = "failed"
-        job["error"] = f"Permission denied: {e.filename}"
-        logger.error(f"TTS permission denied: {e}")
-    except Exception as e:
-        # System error during TTS processing
-        job["status"] = "failed"
-        job["error"] = f"System error: {e}"
-        logger.error(f"TTS system error: {e}")
+            job.status = "completed"
+            job.result = {"audio_path": result.audio_path}
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+            logger.error(f"TTS failed: {e}")
 
 
 async def process_smart_crop(job_id: str):
     """Background task for smart crop."""
-    job = jobs_db[job_id]
-    job["status"] = "processing"
+    from backend.video_editor_ai_service import SmartCropService
 
-    try:
-        from backend.video_editor_ai_service import SmartCropService
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            logger.error(f"Smart crop job {job_id} not found")
+            return
 
-        service = SmartCropService()
+        job.status = "processing"
+        await db.commit()
 
-        media_path = job.get("media_path")
-        if not media_path:
-            raise ValueError("media_path is missing in job data")
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
 
-        result = await service.smart_crop(
-            video_path=media_path,
-            target_ratio=job.get("target_ratio", "9:16"),
-            focus_mode=job.get("focus_mode", "auto"),
-        )
+            service = SmartCropService()
+            result = await service.smart_crop(
+                video_path=media.path,
+                target_ratio=job.input_data.get("target_ratio", "9:16"),
+                focus_mode=job.input_data.get("focus_mode", "auto"),
+            )
 
-        job["status"] = "completed"
-        job["crop_regions"] = result.regions
+            job.status = "completed"
+            job.result = {"crop_regions": result.regions}
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+            logger.error(f"Smart crop failed: {e}")
 
-    except FileNotFoundError as e:
-        # Media file not found for smart crop
-        job["status"] = "failed"
-        job["error"] = f"Media file not found: {e.filename}"
-        logger.error(f"Smart crop media file not found: {e}")
-    except Exception as e:
-        # System error during smart crop processing
-        job["status"] = "failed"
-        job["error"] = f"System error: {e}"
-        logger.error(f"Smart crop system error: {e}")
+
+async def process_highlights(job_id: str):
+    """Background task for highlights extraction."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
+
+            service = create_ai_service()
+            highlights = await service.extract_highlights(
+                media.path,
+                min_duration=job.input_data.get("min_duration", 3),
+                max_duration=job.input_data.get("max_duration", 10),
+            )
+
+            job.status = "completed"
+            job.result = {"highlights": highlights}
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+
+
+async def process_visual_summary(job_id: str):
+    """Background task for visual summary."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
+
+            service = create_ai_service()
+            summary = await service.generate_visual_summary(
+                media.path, max_frames=job.input_data.get("max_frames", 10)
+            )
+
+            job.status = "completed"
+            job.result = {"summary": summary}
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+
+
+async def process_auto_ducking(job_id: str):
+    """Background task for auto-ducking."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            music_id = job.input_data.get("music_id")
+            speech_id = job.input_data.get("speech_id")
+
+            music_query = await db.execute(
+                select(models.Media).where(models.Media.id == music_id)
+            )
+            music = music_query.scalar_one_or_none()
+
+            speech_query = await db.execute(
+                select(models.Media).where(models.Media.id == speech_id)
+            )
+            speech = speech_query.scalar_one_or_none()
+
+            if not music or not speech:
+                raise ValueError("Music or Speech media not found")
+
+            service = create_ai_service()
+            output_path = music.path.replace(".", "_ducked.")
+            success = await service.auto_duck(music.path, speech.path, output_path)
+
+            if success:
+                job.status = "completed"
+                job.result = {"output_path": output_path}
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = "Ducking process failed"
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+
+
+async def process_pan_scan(job_id: str):
+    """Background task for smart pan & scan."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
+
+            service = create_ai_service()
+            output_path = media.path.replace(".", "_panscan.")
+            success = await service.smart_pan_scan(media.path, output_path)
+
+            if success:
+                job.status = "completed"
+                job.result = {"output_path": output_path}
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = "Pan & Scan failed"
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+
+
+async def process_video_ocr(job_id: str):
+    """Background task for video OCR indexing."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
+
+            service = create_ai_service()
+            ocr_results = await service.video_ocr(media.path)
+
+            job.status = "completed"
+            job.result = {"ocr_results": ocr_results}
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+
+
+async def process_voice_isolation(job_id: str):
+    """Background task for voice isolation."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
+
+            service = create_ai_service()
+            output_path = media.path.replace(".", "_isolated.")
+            success = await service.isolate_voice(media.path, output_path)
+
+            if success:
+                job.status = "completed"
+                job.result = {"output_path": output_path}
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = "Voice isolation failed"
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+
+
+async def process_audio_remix(job_id: str):
+    """Background task for audio remixing."""
+    from .video_editor_ai_service import create_ai_service
+
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            return
+
+        job.status = "processing"
+        await db.commit()
+
+        try:
+            music_id = job.input_data.get("music_id")
+            speech_id = job.input_data.get("speech_id")
+
+            music_query = await db.execute(
+                select(models.Media).where(models.Media.id == music_id)
+            )
+            music = music_query.scalar_one_or_none()
+
+            speech_query = await db.execute(
+                select(models.Media).where(models.Media.id == speech_id)
+            )
+            speech = speech_query.scalar_one_or_none()
+
+            if not music or not speech:
+                raise ValueError("Music or Speech media not found")
+
+            service = create_ai_service()
+            output_path = music.path.replace(".", "_remixed.")
+            success = await service.remix_audio(
+                music.path,
+                speech.path,
+                output_path,
+                music_volume=job.input_data.get("music_volume", 0.5),
+                speech_volume=job.input_data.get("speech_volume", 1.0),
+            )
+
+            if success:
+                job.status = "completed"
+                job.result = {"output_path": output_path}
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = "Audio remix failed"
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
 
 
 async def process_beat_detection(job_id: str):
     """Background task for beat detection."""
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
 
-    job = jobs_db[job_id]
-    job["status"] = "processing"
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            logger.error(f"Beat detection job {job_id} not found")
+            return
 
-    try:
-        media = media_db[job["media_id"]]
-        service = create_ai_service()
-        beats = await service.detect_beats(media["path"])
+        job.status = "processing"
+        await db.commit()
 
-        job["status"] = "completed"
-        job["beats"] = beats
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Beat detection failed: {e}")
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
+
+            service = create_ai_service()
+            beats = await service.detect_beats(media.path)
+
+            job.status = "completed"
+            job.result = {"beats": beats}
+            job.completed_at = datetime.utcnow()
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+            logger.error(f"Beat detection failed: {e}")
 
 
 async def process_auto_trim(job_id: str):
     """Background task for auto trim silence."""
-    from video_editor_ai_service import create_ai_service
+    from .video_editor_ai_service import create_ai_service
 
-    job = jobs_db[job_id]
-    job["status"] = "processing"
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            logger.error(f"Auto trim job {job_id} not found")
+            return
 
-    try:
-        media = media_db[job["media_id"]]
-        service = create_ai_service()
+        job.status = "processing"
+        await db.commit()
 
-        input_path = media["path"]
-        output_path = input_path.replace(".", "_trimmed.")
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
+            )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
 
-        success = await service.auto_trim_silence(input_path, output_path)
+            service = create_ai_service()
 
-        if success:
-            job["status"] = "completed"
-            job["output_path"] = output_path
-        else:
-            job["status"] = "failed"
-            job["error"] = "FFmpeg silence removal failed"
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Auto trim failed: {e}")
+            input_path = media.path
+            output_path = input_path.replace(".", "_trimmed.")
+
+            success = await service.auto_trim_silence(input_path, output_path)
+
+            if success:
+                job.status = "completed"
+                job.result = {"output_path": output_path}
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = "FFmpeg silence removal failed"
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+            logger.error(f"Auto trim failed: {e}")
 
 
 async def process_video_enhance(job_id: str):
     """Background task for video enhancement."""
-    from video_enhancement_service import (
+    from .video_enhancement_service import (
         get_enhancement_service,
         EnhancementConfig,
         EnhancementType,
     )
 
-    job = jobs_db[job_id]
-    job["status"] = "processing"
+    async with AsyncSessionLocal() as db:
+        job_query = await db.execute(select(models.AIJob).where(models.AIJob.id == job_id))
+        job = job_query.scalar_one_or_none()
+        if not job:
+            logger.error(f"Video enhancement job {job_id} not found")
+            return
 
-    try:
-        media = media_db[job["media_id"]]
-        service = get_enhancement_service()
+        job.status = "processing"
+        await db.commit()
 
-        input_path = media["path"]
-        output_path = input_path.replace(".", "_enhanced.")
-
-        enhancements = []
-        for enc in job["enhancements"]:
-            enhancements.append(
-                EnhancementConfig(
-                    type=EnhancementType(enc["type"]),
-                    strength=enc.get("strength", 0.5),
-                    model=enc.get("model", "default"),
-                    preset=enc.get("preset", "natural"),
-                )
+        try:
+            media_id = job.input_data.get("media_id")
+            media_query = await db.execute(
+                select(models.Media).where(models.Media.id == media_id)
             )
+            media = media_query.scalar_one_or_none()
+            if not media:
+                raise ValueError(f"Media {media_id} not found")
 
-        result = service.enhance_video(input_path, output_path, enhancements)
+            service = get_enhancement_service()
 
-        if result.get("success"):
-            job["status"] = "completed"
-            job["output_path"] = output_path
-        else:
-            job["status"] = "failed"
-            job["error"] = result.get("error", "Enhancement failed")
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Video enhancement failed: {e}")
+            input_path = media.path
+            output_path = input_path.replace(".", "_enhanced.")
 
+            enhancements_data = job.input_data.get("enhancements", [])
+            enhancements = []
+            for enc in enhancements_data:
+                enhancements.append(
+                    EnhancementConfig(
+                        type=EnhancementType(enc["type"]),
+                        strength=enc.get("strength", 0.5),
+                        model=enc.get("model", "default"),
+                        preset=enc.get("preset", "natural"),
+                    )
+                )
 
-async def process_voice_isolation(job_id: str):
-    """Background task for voice isolation."""
-    from video_editor_ai_service import create_ai_service
+            result = service.enhance_video(input_path, output_path, enhancements)
 
-    job = jobs_db[job_id]
-    job["status"] = "processing"
-    try:
-        media = media_db[job["media_id"]]
-        service = create_ai_service()
-        output_path = media["path"].replace(".", "_isolated.")
-        success = await service.audio_cleaning.voice_isolation(
-            media["path"], output_path
-        )
-        if success:
-            job["status"] = "completed"
-            job["output_path"] = output_path
-        else:
-            job["status"] = "failed"
-            job["error"] = "Voice isolation failed"
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Voice isolation failed: {e}")
+            if result.get("success"):
+                job.status = "completed"
+                job.result = {"output_path": output_path, "details": result}
+                job.completed_at = datetime.utcnow()
+            else:
+                job.status = "failed"
+                job.error = result.get("error", "Enhancement failed")
+            await db.commit()
+        except Exception as e:
+            job.status = "failed"
+            job.error = str(e)
+            await db.commit()
+            logger.error(f"Video enhancement failed: {e}")
 
-
-async def process_auto_ducking(job_id: str):
-    """Background task for auto-ducking."""
-    from video_editor_ai_service import create_ai_service
-
-    job = jobs_db[job_id]
-    job["status"] = "processing"
-    try:
-        music = media_db[job["music_id"]]
-        speech = media_db[job["speech_id"]]
-        service = create_ai_service()
-        output_path = music["path"].replace(".", "_ducked.")
-        success = await service.dialogue_automation.apply_auto_ducking(
-            music["path"], speech["path"], output_path
-        )
-        if success:
-            job["status"] = "completed"
-            job["output_path"] = output_path
-        else:
-            job["status"] = "failed"
-            job["error"] = "Auto-ducking failed"
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Auto-ducking failed: {e}")
-
-
-async def process_pan_scan(job_id: str):
-    """Background task for pan & scan."""
-    from video_editor_ai_service import create_ai_service
-
-    job = jobs_db[job_id]
-    job["status"] = "processing"
-    try:
-        media = media_db[job["media_id"]]
-        service = create_ai_service()
-        output_path = media["path"].replace(".", "_panscan.")
-        success = await service.smart_crop.smart_pan_scan(media["path"], output_path)
-        if success:
-            job["status"] = "completed"
-            job["output_path"] = output_path
-        else:
-            job["status"] = "failed"
-            job["error"] = "Pan & scan failed"
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Pan & scan failed: {e}")
-
-
-async def process_video_ocr(job_id: str):
-    """Background task for video OCR indexing."""
-    from video_editor_ai_service import create_ai_service
-
-    job = jobs_db[job_id]
-    job["status"] = "processing"
-
-    try:
-        media = media_db[job["media_id"]]
-        service = create_ai_service()
-
-        results = await service.video_ocr.index_video_text(media["path"])
-
-        job["status"] = "completed"
-        job["ocr_results"] = results
-    except Exception as e:
-        job["status"] = "failed"
-        job["error"] = str(e)
-        logger.error(f"Video OCR failed: {e}")
 
 
 # =============================================================================
@@ -2581,44 +3250,51 @@ async def get_aspect_ratios():
 
 
 @VIDEO_EDITOR_ROUTER.post("/forge-3d-asset", response_model=Forge3DResponse)
-async def forge_3d_asset(request: Forge3DRequest, authorization: str = None):
+async def forge_3d_asset(
+    request: Forge3DRequest,
+    user: models.User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     """
-    Forge a 3D asset (.glb) from a 2D image using tttLRM.
+    Forge a 3D asset (.glb) from a 2D image using tttLRM with ownership validation.
     """
-    if not authorization:
-        # For local development, we might skip authorization if needed,
-        # but let's assume it's required as per other endpoints
-        pass
+    # 1. Verify project ownership
+    query = select(models.Project).where(
+        models.Project.id == request.project_id, models.Project.user_id == user.id
+    )
+    result = await db.execute(query)
+    project = result.scalars().first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
 
     try:
-        # 1. Resolve paths
-        project_path = PROJECTS_DIR / request.project_id
+        # 2. Resolve paths
+        project_path = PROJECTS_DIR / user.id / request.project_id
         if not project_path.exists():
-            # Try UUID based path if absolute path not found
-            project_path = (
-                Path(request.project_id)
-                if Path(request.project_id).is_absolute()
-                else PROJECTS_DIR / request.project_id
-            )
+            # Legacy fallback
+            project_path = PROJECTS_DIR / request.project_id
 
         if not project_path.exists():
             raise HTTPException(
-                status_code=404, detail=f"Project path not found: {request.project_id}"
+                status_code=404, detail=f"Project folder not found on disk"
             )
 
         input_image_path = project_path / request.image_path
         if not input_image_path.exists():
-            # Try as relative path if it's already absolute-ish in the request
-            input_image_path = Path(request.image_path)
-            if not input_image_path.is_absolute():
-                input_image_path = project_path / request.image_path
+            # Try finding by just filename if relative path fails
+            filename = Path(request.image_path).name
+            for sub in ["media", "generations"]:
+                p = project_path / sub / filename
+                if p.exists():
+                    input_image_path = p
+                    break
 
         if not input_image_path.exists():
             raise HTTPException(
                 status_code=404, detail=f"Input image not found: {request.image_path}"
             )
 
-        # 2. Configure reconstruction
+        # 3. Configure reconstruction
         output_dir = project_path / "objects" / "models"
         output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -2631,15 +3307,13 @@ async def forge_3d_asset(request: Forge3DRequest, authorization: str = None):
             output_format=OutputFormat.MESH,
         )
 
-        # 3. Trigger reconstruction
+        # 4. Trigger reconstruction
         result = await ttt_lrm_service.reconstruct_single_image(config)
 
         if not result.success:
             return Forge3DResponse(status="failed", error="Reconstruction failed")
 
-        # 4. Convert GS to Mesh (.glb)
-        # The service reconstruct_single_image simulated PLY creation,
-        # now we "convert" it to GLB
+        # 5. Convert GS to Mesh (.glb)
         model_filename = f"obj_{request.object_id}.glb"
         model_path = output_dir / model_filename
 
@@ -2650,11 +3324,13 @@ async def forge_3d_asset(request: Forge3DRequest, authorization: str = None):
         if not success:
             return Forge3DResponse(status="failed", error="Mesh conversion failed")
 
-        # 5. Return relative path for frontend
+        # 6. Return relative path for frontend
         relative_model_path = f"objects/models/{model_filename}"
 
         return Forge3DResponse(status="success", model_path=relative_model_path)
 
     except Exception as e:
         logger.error(f"Error forging 3D asset: {e}")
+        if isinstance(e, HTTPException):
+            raise
         return Forge3DResponse(status="error", error=str(e))

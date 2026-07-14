@@ -8,7 +8,24 @@
  * 
  * Requirements: 10.2, 10.3, 10.4, 10.7
  */
-import type { WorkerMessage, WorkerResponse } from './processing.worker';
+import { LegacyAny } from '../types/legacy';
+
+export interface WorkerMessage {
+  id?: string;
+  type: string;
+  taskId?: string;
+  taskType?: string;
+  data?: any;
+  workerId?: number;
+}
+
+export interface WorkerResponse<R = any> {
+  id: string;
+  status: 'progress' | 'error' | 'completed';
+  progress?: number;
+  result?: R;
+  error?: string;
+}
 
 /**
  * Sends a response to the main thread
@@ -350,7 +367,8 @@ async function analyzeVideoQuality(
 const activeTasks = new Map<string, AbortController>();
 
 self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
-  const { id, type, data } = event.data;
+  const id = event.data.id || '';
+  const { type, data } = event.data;
 
   // Handle cancellation
   if (type === 'cancel') {

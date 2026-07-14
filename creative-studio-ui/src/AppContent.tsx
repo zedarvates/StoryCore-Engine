@@ -304,7 +304,26 @@ function AppContentInner() {
         const currentStorePath = project?.path || (project?.metadata?.path as string) || '';
         const normalizedStorePath = normalize(currentStorePath);
 
-        const needsLoading = !project || normalizedUrlPath !== normalizedStorePath;
+        // Check if projectPath is a GUID
+        const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectPath);
+        
+        // Determine if we need to load the project
+        // 1. If no project is loaded
+        // 2. If it's a GUID and doesn't match current project ID
+        // 3. If it's a path and doesn't match current project path
+        const matchesCurrentProject = project && (
+          isGuid ? (
+            (project.id?.toLowerCase() === projectPath.toLowerCase()) || 
+            ((project.metadata as any)?.id?.toLowerCase() === projectPath.toLowerCase())
+          ) : 
+          (normalizedUrlPath === normalizedStorePath)
+        );
+
+        if (!matchesCurrentProject && project) {
+          console.log(`[Sync] Project mismatch: URL=${projectPath}, StoreID=${project.id}, StorePath=${currentStorePath}`);
+        }
+
+        const needsLoading = !matchesCurrentProject;
 
         if (needsLoading && projectPath && projectPath !== 'default') {
           isSyncingRef.current = true;
@@ -315,12 +334,14 @@ function AppContentInner() {
             const api = (window as unknown as { electronAPI: ElectronAPI }).electronAPI;
             if (api?.project?.open) {
               const electronProject = await api.project.open(projectPath);
-              if (electronProject) {
+                if (electronProject) {
                 const storeProject = convertElectronProjectToStore(electronProject);
-                const finalPath = projectPath;
-                if (!storeProject.path) storeProject.path = finalPath;
+                const resolvedPath = electronProject.path; // Use the actual path from backend
+                const finalPath = projectPath; // Keep URL path for store consistency if needed, but use resolvedPath for FS
+                
+                if (!storeProject.path) storeProject.path = resolvedPath;
                 if (storeProject.metadata && !storeProject.metadata.path) {
-                  storeProject.metadata.path = finalPath;
+                  storeProject.metadata.path = resolvedPath;
                 }
 
                 let characters: Character[] = [];
@@ -333,11 +354,11 @@ function AppContentInner() {
                   const scanDir = async (dirName: string, subFile?: string) => {
                     const items: unknown[] = [];
                     try {
-                      if (api.fs && await api.fs.exists(`${projectPath}/${dirName}`)) {
-                        const files = await api.fs.readdir(`${projectPath}/${dirName}`);
+                      if (api.fs && await api.fs.exists(`${resolvedPath}/${dirName}`)) {
+                        const files = await api.fs.readdir(`${resolvedPath}/${dirName}`);
                         for (const file of files) {
                           try {
-                            const itemPath = subFile ? `${projectPath}/${dirName}/${file}/${subFile}` : `${projectPath}/${dirName}/${file}`;
+                            const itemPath = subFile ? `${resolvedPath}/${dirName}/${file}/${subFile}` : `${resolvedPath}/${dirName}/${file}`;
                             if (await api.fs.exists(itemPath)) {
                               const buffer = await api.fs.readFile(itemPath);
                               const json = JSON.parse(new TextDecoder().decode(buffer));
@@ -354,16 +375,16 @@ function AppContentInner() {
                     return items;
                   };
 
-                  if (api.character?.list) characters = await api.character.list(projectPath);
+                  if (api.character?.list) characters = await api.character.list(resolvedPath);
                   else characters = await scanDir('characters', 'character.json');
 
-                  if (api.world?.list) worlds = await api.world.list(projectPath);
+                  if (api.world?.list) worlds = await api.world.list(resolvedPath);
                   else worlds = await scanDir('worlds');
 
-                  if (api.location?.list) locations = await api.location.list(projectPath);
+                  if (api.location?.list) locations = await api.location.list(resolvedPath);
                   else locations = await scanDir('locations');
 
-                  if (api.story?.list) stories = await api.story.list(projectPath);
+                  if (api.story?.list) stories = await api.story.list(resolvedPath);
                   else stories = await scanDir('stories');
 
                   if (stories.length === 0) {
@@ -371,8 +392,8 @@ function AppContentInner() {
                     if (legacyStories.length > 0) stories = legacyStories;
                   }
 
-                  if (api.sequence?.getAll) sequences = await api.sequence.getAll(projectPath);
-                  else if (api.sequence?.list) sequences = await api.sequence.list(projectPath);
+                  if (api.sequence?.getAll) sequences = await api.sequence.getAll(resolvedPath);
+                  else if (api.sequence?.list) sequences = await api.sequence.list(resolvedPath);
                   else sequences = await scanDir('sequences');
                 } catch (e) {
                   console.warn('[App] Failed to load some project entities:', e);
@@ -385,10 +406,10 @@ function AppContentInner() {
                   locations: locations?.length > 0 ? locations : storeProject.locations || [],
                   objects: storeProject.objects || [],
                   stories: stories?.length > 0 ? stories : storeProject.stories || [],
-                  sequencePlans: (sequences?.length > 0 ? sequences : storeProject.sequencePlans) || []
+                  sequencePlans: Array.from(new Map((sequences?.length > 0 ? sequences : storeProject.sequencePlans || []).map(s => [s.id, s])).values())
                 };
 
-                await projectCreationService.loadProjectIntoStores(finalProject as unknown as Project, projectPath, finalProject.sequencePlans);
+                await projectCreationService.loadProjectIntoStores(finalProject as unknown as Project, resolvedPath, finalProject.sequencePlans);
                 console.log('[App] Project successfully loaded into stores');
               } else {
                 console.error('[App] Failed to open project: electronProject is null');
@@ -436,9 +457,12 @@ function AppContentInner() {
     const handleNavigateToDashboard = () => {
       setCurrentView('dashboard');
       setSelectedSequenceId(undefined);
-      const pId = project?.path || project?.metadata?.path || project?.metadata?.id || project?.project_name;
+      const pId = project?.path || project?.metadata?.path;
       if (pId) {
         navigate(`/project/${encodeURIComponent(pId as string)}`);
+      } else if (project?.metadata?.id) {
+        // Fallback to ID if path is missing, backend now handles GUID resolution
+        navigate(`/project/${encodeURIComponent(project.metadata.id)}`);
       } else {
         navigate('/');
       }

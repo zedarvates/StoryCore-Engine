@@ -205,10 +205,37 @@
   height: 100%;
 }
 
-/* Override child component styles if needed for specific aesthetic themes */
-.asset-grid {
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
-  gap: 16px !important;
+/* Virtualized Grid Styles */
+.asset-grid-virtual-container {
+  height: 100%;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.asset-grid-virtual-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.asset-grid-virtual-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.asset-grid-scroll-content {
+  width: 100%;
+  will-change: transform;
+}
+
+.asset-grid-row {
+  display: grid !important;
+  /* Columns and gap are handled via inline styles for dynamic responsiveness */
+  padding: 0 4px;
+}
+
+.asset-grid-spacer {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .asset-card {

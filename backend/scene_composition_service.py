@@ -71,16 +71,13 @@ class ColorGradingPreset(Enum):
     FILM_NOIR = "film_noir"
 
 
-class CompositionRule(Enum):
-    RULE_OF_THIRDS = "rule_of_thirds"
-    GOLDEN_RATIO = "golden_ratio"
-    GOLDEN_SPIRAL = "golden_spiral"
-    LEADING_LINES = "leading_lines"
-    SYMMETRY = "symmetry"
-    FRAMING = "framing"
-    DEPTH = "depth"
-    NEGATIVE_SPACE = "negative_space"
-    CROP = "crop"
+@dataclass
+class CompositionRule:
+    id: str
+    name: str
+    description: str
+    rule_type: str
+    application: str
 
 
 @dataclass

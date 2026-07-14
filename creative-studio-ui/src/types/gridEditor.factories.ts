@@ -189,7 +189,7 @@ export function createPanelWithImage(
 // ============================================================================
 
 export function createEmptyGridConfiguration(projectId: string): GridConfiguration {
-  const now = new Date().toISOString();
+  const now = Date.now();
   const panels: Panel[] = [];
   
   // Create 3x3 grid of empty panels

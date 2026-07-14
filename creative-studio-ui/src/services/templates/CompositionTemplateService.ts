@@ -354,7 +354,7 @@ export class CompositionTemplateService {
             relativeStartTime: layer.startTime - minStart,
             duration: layer.duration,
             type: layer.type,
-            data: { ...layer.data },
+            data: { ...(layer.data as any) },
             opacity: layer.opacity,
             blendMode: layer.blendMode,
             isEditable: layer.type === 'text', // Text layers are editable by default

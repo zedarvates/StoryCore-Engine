@@ -9,6 +9,7 @@ import React, { useCallback } from 'react';
 import { useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import { LazyImage } from './LazyImage';
+import { ServiceAsset } from '../../types';
 import './assetLibrary.css';
 
 // ============================================================================
@@ -18,9 +19,6 @@ import './assetLibrary.css';
 export const DND_ITEM_TYPES = {
   ASSET: 'asset',
 } as const;
-
-import { ServiceAsset } from '../../types';
-import './assetLibrary.css';
 
 // ============================================================================
 // Types

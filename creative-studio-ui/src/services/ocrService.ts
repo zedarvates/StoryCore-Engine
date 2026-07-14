@@ -196,7 +196,7 @@ class OCRService {
       
       onProgress?.({ progress: 10, status: 'Processing image...' });
 
-      const result: TesseractResult = await worker.recognize(imageSource);
+      const result: TesseractResult = (await worker.recognize(imageSource)) as any;
 
       onProgress?.({ progress: 90, status: 'Extracting text blocks...' });
 
@@ -318,13 +318,13 @@ class OCRService {
       onProgress?.({ progress: 0, status: 'Quick scan initializing...' });
 
       // Use Tesseract's recognize function directly
-      const result: TesseractResult = await recognize(imageSource, language, {
+      const result: TesseractResult = (await recognize(imageSource, language, {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             onProgress?.({ progress: Math.round(m.progress * 100), status: 'Scanning...' });
           }
         },
-      });
+      })) as any;
 
       const ocrResult = this.parseOCRResult(result, startTime);
 

@@ -7,7 +7,33 @@
  * 
  * Exigences: 10.1, 10.6
  */
-import type { WorkerTask, WorkerMessage, WorkerResponse } from './WorkerPool';
+import { LegacyAny } from '../../types/legacy';
+
+export interface WorkerTask<T = any, R = any> {
+  id: string;
+  type: string;
+  data: T;
+  resolve: (value: R) => void;
+  reject: (error: any) => void;
+  priority?: number;
+}
+
+export interface WorkerMessage {
+  id?: string;
+  type: string;
+  taskId?: string;
+  taskType?: string;
+  data?: any;
+  workerId?: number;
+}
+
+export interface WorkerResponse {
+  id: string;
+  status: 'progress' | 'error' | 'completed';
+  progress?: number;
+  result?: any;
+  error?: string;
+}
 
 /**
  * WorkerPool - Manages a pool of Web Workers for async processing

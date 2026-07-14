@@ -158,15 +158,15 @@ export function generatePromptSuggestions(
   if (shot.prompt.trim().length < 30) {
     suggestions.push('Add more descriptive details to improve generation quality');
     
-    if (!shot.metadata.cameraAngle) {
+    if (!shot.metadata?.cameraAngle) {
       suggestions.push('Specify a camera angle (e.g., "wide shot", "close-up", "medium shot")');
     }
     
-    if (!shot.metadata.lighting) {
+    if (!shot.metadata?.lighting) {
       suggestions.push('Describe the lighting (e.g., "bright daylight", "moody shadows", "golden hour")');
     }
     
-    if (!shot.metadata.mood) {
+    if (!shot.metadata?.mood) {
       suggestions.push('Include the mood or atmosphere (e.g., "tense", "peaceful", "dramatic")');
     }
   }

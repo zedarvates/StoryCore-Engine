@@ -176,7 +176,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
         try {
           // TODO: Integrate with WorldBuilderService
           await new Promise(resolve => setTimeout(resolve, 100)); // Mock
-          set({ l_astSaved: new Date(), isLoading: false });
+          set({ lastSaved: new Date(), isLoading: false });
         } catch (error) {
           set({ error: 'Failed to save world', isLoading: false });
         }
@@ -187,7 +187,7 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
         try {
           // TODO: Integrate with WorldBuilderService
           await new Promise(resolve => setTimeout(resolve, 100)); // Mock
-          set({ i_sLoading: false });
+          set({ isLoading: false });
         } catch (error) {
           set({ error: 'Failed to load world', isLoading: false });
         }

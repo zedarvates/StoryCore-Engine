@@ -58,3 +58,34 @@ export function isInDefaultProjectsDirectory(projectPath: string): boolean {
   
   return normalizedPath.startsWith(normalizedProjectsDir);
 }
+
+/**
+ * Get the application icon path with environment-aware resolution
+ * @returns Path to the icon or undefined if not found
+ */
+export function getAppIconPath(): string | undefined {
+  const possiblePaths = [
+    // Production paths (when app is packaged)
+    path.join(process.resourcesPath, 'StorycoreIconeV2.png'),
+    path.join(process.resourcesPath, 'build', 'icon.ico'),
+    path.join(process.resourcesPath, 'icon.ico'),
+    path.join(process.resourcesPath, 'app-icon.ico'),
+    // Development paths (when running from source)
+    path.join(__dirname, '../StorycoreIconeV2.png'),
+    path.join(__dirname, '../build/icon.ico'),
+    path.join(__dirname, '../../resources/icon.ico'),
+    path.join(__dirname, '../../resources/app-icon.ico'),
+  ];
+
+  for (const iconPath of possiblePaths) {
+    try {
+      if (fs.existsSync(iconPath)) {
+        return iconPath;
+      }
+    } catch {
+      // Continue to next candidate
+    }
+  }
+
+  return undefined;
+}

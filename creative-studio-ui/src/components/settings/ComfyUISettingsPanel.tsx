@@ -116,6 +116,8 @@ export function ComfyUISettingsPanel({
   const [gpuMemory, setGpuMemory] = useState<number | undefined>(currentConfig?.server?.gpuMemory);
   const [modelsPath, setModelsPath] = useState(currentConfig?.server?.modelsPath || '');
   const [workflowsPath, setWorkflowsPath] = useState(currentConfig?.server?.workflowsPath || '');
+  const [outputPath, setOutputPath] = useState(currentConfig?.server?.outputPath || '');
+  const [inputPath, setInputPath] = useState(currentConfig?.server?.inputPath || '');
 
   const [imageWorkflow, setImageWorkflow] = useState(
     currentConfig?.workflows?.imageGeneration || ''
@@ -179,6 +181,21 @@ export function ComfyUISettingsPanel({
   // ============================================================================
   // Handlers
   // ============================================================================
+
+  const handleSelectDirectory = async (setter: (value: string) => void) => {
+    try {
+      if (window.electronAPI?.project?.selectDirectory) {
+        const path = await window.electronAPI.project.selectDirectory();
+        if (path) {
+          setter(path);
+        }
+      } else {
+        alert('File browser not available in this environment.');
+      }
+    } catch (error) {
+      console.error('Failed to select directory:', error);
+    }
+  };
 
   const validateConfiguration = (): string | null => {
     // Validate server URL
@@ -298,6 +315,8 @@ export function ComfyUISettingsPanel({
           gpuMemory,
           modelsPath,
           workflowsPath,
+          outputPath,
+          inputPath,
         },
         workflows: {
           imageGeneration: imageWorkflow,
@@ -402,6 +421,9 @@ export function ComfyUISettingsPanel({
                 {validateServerUrl(serverUrl)}
               </p>
             )}
+            <p className="text-[10px] italic text-amber-500/80">
+              Note: If "localhost" fails, try using "http://127.0.0.1:8188" instead.
+            </p>
           </div>
 
           {/* Authentication Type */}
@@ -638,16 +660,63 @@ export function ComfyUISettingsPanel({
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => {
-                  // In a real implementation, this would open an Electron file dialog
-                  alert('File browser would open here (Electron dialog)');
-                }}
+                onClick={() => handleSelectDirectory(setModelsPath)}
               >
                 <FolderOpen className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
               Path to ComfyUI models directory
+            </p>
+          </div>
+
+          {/* Output Path */}
+          <div className="space-y-2">
+            <Label htmlFor="outputPath">Output Directory (Generated Assets)</Label>
+            <div className="flex gap-2">
+              <Input
+                id="outputPath"
+                type="text"
+                value={outputPath}
+                onChange={(e) => setOutputPath(e.target.value)}
+                placeholder="/path/to/save/generations"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => handleSelectDirectory(setOutputPath)}
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Where AI-generated images and videos will be saved locally
+            </p>
+          </div>
+
+          {/* Input Path */}
+          <div className="space-y-2">
+            <Label htmlFor="inputPath">Input Directory</Label>
+            <div className="flex gap-2">
+              <Input
+                id="inputPath"
+                type="text"
+                value={inputPath}
+                onChange={(e) => setInputPath(e.target.value)}
+                placeholder="/path/to/input/assets"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => handleSelectDirectory(setInputPath)}
+              >
+                <FolderOpen className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Directory for reference images and other input files
             </p>
           </div>
 
@@ -666,10 +735,7 @@ export function ComfyUISettingsPanel({
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => {
-                  // In a real implementation, this would open an Electron file dialog
-                  alert('File browser would open here (Electron dialog)');
-                }}
+                onClick={() => handleSelectDirectory(setWorkflowsPath)}
               >
                 <FolderOpen className="h-4 w-4" />
               </Button>

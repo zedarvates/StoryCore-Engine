@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 
 // Example store with memoized selectors
 interface ProjectState {
@@ -49,7 +49,7 @@ export const useProjectStore = create<ProjectState>()(
 // Memoized selectors
 export const useFilteredProjects = () => {
   return useProjectStore(
-    (state) => {
+    useShallow((state) => {
       const { projects, filters } = state;
       
       return projects.filter((project) => {
@@ -71,22 +71,20 @@ export const useFilteredProjects = () => {
         
         return true;
       });
-    },
-    shallow // Prevent re-renders if array reference hasn't changed
+    })
   );
 };
 
 export const useSelectedProject = () => {
   return useProjectStore(
-    (state) => 
-      state.projects.find((p) => p.id === state.selectedProjectId),
-    shallow
+    useShallow((state) => 
+      state.projects.find((p) => p.id === state.selectedProjectId))
   );
 };
 
 export const useProjectStats = () => {
   return useProjectStore(
-    (state) => {
+    useShallow((state) => {
       const { projects } = state;
       
       return {
@@ -95,8 +93,7 @@ export const useProjectStats = () => {
         completed: projects.filter((p) => p.status === 'completed').length,
         onHold: projects.filter((p) => p.status === 'on_hold').length,
       };
-    },
-    shallow
+    })
   );
 };
 

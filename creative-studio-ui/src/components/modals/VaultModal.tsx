@@ -13,7 +13,8 @@
  * @version 1.0.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import './VaultModal.css';
 import {
   Dialog,
@@ -95,6 +96,24 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
   const [selectedAssets, setSelectedAssets] = useState<Set<string>>(new Set());
   const [previewAsset, setPreviewAsset] = useState<VaultAsset | null>(null);
 
+  // Virtualization refs and state
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  // Measure container width for grid calculation
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+
+    observer.observe(scrollContainerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   // Stats
   const [stats, setStats] = useState({
     totalAssets: 0,
@@ -105,43 +124,8 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
     favoriteCount: 0,
   });
 
-  // Load assets on open
-  useEffect(() => {
-    if (project?.id && isOpen) {
-      loadAssets();
-    }
-  }, [project?.id, isOpen]);
-
-  // Load all assets from API
-  const loadAssets = async () => {
-    setIsLoading(true);
-    try {
-      const response = await videoEditorAPI.listProjectAssets(project?.id || '');
-      const loadedAssets: VaultAsset[] = (response.assets || []).map((asset: { id?: string; path: string; type: VaultAsset['type']; size?: number; duration?: number; added_at?: string; metadata?: VaultAsset['metadata']; favorite?: boolean; tags?: string[] }) => ({
-        id: asset.id || crypto.randomUUID(),
-        path: asset.path,
-        type: asset.type,
-        name: asset.path.split('/').pop() || asset.path,
-        size: asset.size,
-        duration: asset.duration,
-        added_at: asset.added_at,
-        metadata: asset.metadata,
-        favorite: asset.favorite || false,
-        tags: asset.tags || [],
-      }));
-
-      setAssets(loadedAssets);
-      calculateStats(loadedAssets);
-    } catch (error) {
-      console.error('[VaultModal] Failed to load assets:', error);
-      notificationService.error('Error', 'Failed to load vault assets');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Calculate statistics
-  const calculateStats = (assetList: VaultAsset[]) => {
+  const calculateStats = useCallback((assetList: VaultAsset[]) => {
     const totalSize = assetList.reduce((sum, a) => sum + (a.size || 0), 0);
     const videosCount = assetList.filter(a => a.type === 'generated_video' || a.type === 'video').length;
     const imagesCount = assetList.filter(a => a.type === 'generated_image' || a.type === 'image').length;
@@ -156,7 +140,43 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
       audioCount,
       favoriteCount,
     });
-  };
+  }, []);
+
+  // Load all assets from API
+  const loadAssets = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await videoEditorAPI.listProjectAssets(project?.id || '');
+      const assetsList = (response.assets || []) as Record<string, any>[];
+      const loadedAssets: VaultAsset[] = assetsList.map((asset) => ({
+        id: (asset.id as string) || crypto.randomUUID(),
+        path: asset.path as string,
+        type: asset.type as VaultAsset['type'],
+        name: (asset.path as string).split('/').pop() || (asset.path as string),
+        size: asset.size as number | undefined,
+        duration: asset.duration as number | undefined,
+        added_at: asset.added_at as string | undefined,
+        metadata: asset.metadata as VaultAsset['metadata'],
+        favorite: (asset.favorite as boolean) || false,
+        tags: (asset.tags as string[]) || [],
+      }));
+
+      setAssets(loadedAssets);
+      calculateStats(loadedAssets);
+    } catch (error) {
+      console.error('[VaultModal] Failed to load assets:', error);
+      notificationService.error('Error', 'Failed to load vault assets');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [project?.id, calculateStats]);
+
+  // Load assets on open
+  useEffect(() => {
+    if (project?.id && isOpen) {
+      loadAssets();
+    }
+  }, [project?.id, isOpen, loadAssets]);
 
   // Filtered and sorted assets
   const filteredAssets = useMemo(() => {
@@ -213,6 +233,34 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
 
     return filtered;
   }, [assets, selectedType, searchQuery, showOnlyFavorites, sortBy]);
+
+  // Virtualization constants
+  const GRID_COLUMN_MIN_WIDTH = 180;
+  const GRID_GAP = 12;
+  const GRID_ROW_HEIGHT = 200;
+  const LIST_ROW_HEIGHT = 48;
+
+  // Calculate grid columns
+  const columns = useMemo(() => {
+    if (!containerWidth) return 1;
+    return Math.max(2, Math.floor((containerWidth - 32) / (GRID_COLUMN_MIN_WIDTH + GRID_GAP)));
+  }, [containerWidth]);
+
+  // Calculate row count based on view mode
+  const rowCount = useMemo(() => {
+    if (viewMode === 'grid') {
+      return Math.ceil(filteredAssets.length / columns);
+    }
+    return filteredAssets.length;
+  }, [filteredAssets.length, viewMode, columns]);
+
+  // Row virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => viewMode === 'grid' ? GRID_ROW_HEIGHT : LIST_ROW_HEIGHT,
+    overscan: 5,
+  });
 
   // Toggle favorite
   const toggleFavorite = (assetId: string) => {
@@ -434,6 +482,7 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
 
           {/* Sort */}
           <select
+            title="Sort assets by"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as SortOption)}
             className="px-3 py-1.5 text-sm border rounded-md bg-background"
@@ -495,7 +544,10 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
         )}
 
         {/* Assets Display */}
-        <div className="flex-1 overflow-auto p-4">
+        <div 
+          ref={scrollContainerRef}
+          className="flex-1 overflow-auto p-4 custom-scrollbar"
+        >
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
               <RefreshCw className="w-8 h-8 animate-spin mb-4" />
@@ -515,221 +567,280 @@ export function VaultModal({ isOpen, onClose }: VaultModalProps) {
                   : 'Generated videos, images, and audio will appear here automatically.'}
               </p>
             </div>
-          ) : viewMode === 'grid' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {filteredAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  className={`vault-asset-card group relative bg-muted rounded-lg overflow-hidden border transition-all cursor-pointer hover:shadow-lg ${
-                    selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : 'hover:border-primary/50'
-                  }`}
-                  onClick={() => setPreviewAsset(asset)}
-                >
-                  {/* Selection Checkbox */}
-                  <div
-                    className="absolute top-2 left-2 z-10"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleSelection(asset.id);
-                    }}
-                  >
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center ${
-                      selectedAssets.has(asset.id)
-                        ? 'bg-primary border-primary'
-                        : 'bg-black/50 border-white/30'
-                    }`}>
-                      {selectedAssets.has(asset.id) && (
-                        <Check className="w-3 h-3 text-white" />
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Favorite Badge */}
-                  {asset.favorite && (
-                    <div className="absolute top-2 right-2 z-10">
-                      <Heart className="w-4 h-4 text-red-500 fill-current drop-shadow" />
-                    </div>
-                  )}
-
-                  {/* Thumbnail */}
-                  <div className="aspect-video bg-black/50 relative">
-                    {(asset.type === 'generated_video' || asset.type === 'video') ? (
-                      <video
-                        src={getAssetUrl(asset)}
-                        className="w-full h-full object-cover"
-                        muted
-                        playsInline
-                        onMouseEnter={(e) => (e.target as HTMLVideoElement).play()}
-                        onMouseLeave={(e) => {
-                          (e.target as HTMLVideoElement).pause();
-                          (e.target as HTMLVideoElement).currentTime = 0;
-                        }}
-                      />
-                    ) : (asset.type === 'generated_image' || asset.type === 'image') ? (
-                      <img
-                        src={getAssetUrl(asset)}
-                        alt={asset.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-blue-500/20">
-                        <Music className="w-8 h-8 text-purple-400" />
-                      </div>
-                    )}
-
-                    {/* Duration Badge for Videos */}
-                    {asset.duration && (
-                      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 rounded text-[10px] text-white font-mono">
-                        {formatDuration(asset.duration)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-2">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      {getAssetIcon(asset.type)}
-                      <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                        {asset.type.replace('generated_', '')}
-                      </span>
-                    </div>
-                    <p className="text-xs font-medium truncate" title={asset.name}>
-                      {asset.name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
-                      <span>{formatSize(asset.size)}</span>
-                      {asset.added_at && (
-                        <>
-                          <span>•</span>
-                          <span>{new Date(asset.added_at).toLocaleDateString()}</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Hover Actions */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="h-8 w-8"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPreviewAsset(asset);
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="h-8 w-8"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        downloadAsset(asset);
-                      }}
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className={`h-8 w-8 ${asset.favorite ? 'text-red-500' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(asset.id);
-                      }}
-                    >
-                      <Heart className={`w-4 h-4 ${asset.favorite ? 'fill-current' : ''}`} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
           ) : (
-            /* List View */
-            <div className="space-y-1">
-              {/* Header */}
-              <div className="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-medium text-muted-foreground border-b">
-                <div className="col-span-1 flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedAssets.size === filteredAssets.length && filteredAssets.length > 0}
-                    onChange={() => selectedAssets.size === filteredAssets.length ? clearSelection() : selectAll()}
-                    className="rounded"
-                  />
-                </div>
-                <div className="col-span-4">Name</div>
-                <div className="col-span-2">Type</div>
-                <div className="col-span-2">Size</div>
-                <div className="col-span-2">Date</div>
-                <div className="col-span-1 text-right">Actions</div>
-              </div>
+            <div
+              /* eslint-disable-next-line */
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: '100%',
+                position: 'relative',
+              }}
+            >
+              {viewMode === 'grid' ? (
+                /* Virtualized Grid View */
+                rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const rowIndex = virtualRow.index;
+                  const startAssetIndex = rowIndex * columns;
+                  const rowAssets = filteredAssets.slice(startAssetIndex, startAssetIndex + columns);
 
-              {/* Rows */}
-              {filteredAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  className={`grid grid-cols-12 gap-4 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors ${
-                    selectedAssets.has(asset.id) ? 'bg-primary/10' : ''
-                  }`}
-                >
-                  <div className="col-span-1 flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedAssets.has(asset.id)}
-                      onChange={() => toggleSelection(asset.id)}
-                      className="rounded"
-                    />
-                  </div>
-                  <div
-                    className="col-span-4 flex items-center gap-2 cursor-pointer"
-                    onClick={() => setPreviewAsset(asset)}
+                  return (
+                    <div
+                      key={virtualRow.key}
+                      /* eslint-disable-next-line */
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                        gap: `${GRID_GAP}px`,
+                        paddingBottom: `${GRID_GAP}px`
+                      }}
+                    >
+                      {rowAssets.map((asset) => (
+                        <div
+                          key={asset.id}
+                          className={`vault-asset-card group relative bg-muted rounded-lg overflow-hidden border transition-all cursor-pointer hover:shadow-lg ${
+                            selectedAssets.has(asset.id) ? 'ring-2 ring-primary' : 'hover:border-primary/50'
+                          }`}
+                          onClick={() => setPreviewAsset(asset)}
+                        >
+                          {/* Selection Checkbox */}
+                          <div
+                            className="absolute top-2 left-2 z-10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSelection(asset.id);
+                            }}
+                          >
+                            <div className={`w-5 h-5 rounded border flex items-center justify-center ${
+                              selectedAssets.has(asset.id)
+                                ? 'bg-primary border-primary'
+                                : 'bg-black/50 border-white/30'
+                            }`}>
+                              {selectedAssets.has(asset.id) && (
+                                <Check className="w-3 h-3 text-white" />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Favorite Badge */}
+                          {asset.favorite && (
+                            <div className="absolute top-2 right-2 z-10">
+                              <Heart className="w-4 h-4 text-red-500 fill-current drop-shadow" />
+                            </div>
+                          )}
+
+                          {/* Thumbnail */}
+                          <div className="aspect-video bg-black/50 relative">
+                            {(asset.type === 'generated_video' || asset.type === 'video') ? (
+                              <video
+                                src={getAssetUrl(asset)}
+                                className="w-full h-full object-cover"
+                                muted
+                                playsInline
+                                onMouseEnter={(e) => (e.target as HTMLVideoElement).play()}
+                                onMouseLeave={(e) => {
+                                  (e.target as HTMLVideoElement).pause();
+                                  (e.target as HTMLVideoElement).currentTime = 0;
+                                }}
+                              />
+                            ) : (asset.type === 'generated_image' || asset.type === 'image') ? (
+                              <img
+                                src={getAssetUrl(asset)}
+                                alt={asset.name}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500/20 to-blue-500/20">
+                                <Music className="w-8 h-8 text-purple-400" />
+                              </div>
+                            )}
+
+                            {/* Duration Badge for Videos */}
+                            {asset.duration && (
+                              <div className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/70 rounded text-[10px] text-white font-mono">
+                                {formatDuration(asset.duration)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="p-2">
+                            <div className="flex items-center gap-1.5 mb-1">
+                              {getAssetIcon(asset.type)}
+                              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                                {asset.type.replace('generated_', '')}
+                              </span>
+                            </div>
+                            <p className="text-xs font-medium truncate" title={asset.name}>
+                              {asset.name}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
+                              <span>{formatSize(asset.size)}</span>
+                              {asset.added_at && (
+                                <>
+                                  <span>•</span>
+                                  <span>{new Date(asset.added_at).toLocaleDateString()}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Hover Actions */}
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewAsset(asset);
+                              }}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                downloadAsset(asset);
+                              }}
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className={`h-8 w-8 ${asset.favorite ? 'text-red-500' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(asset.id);
+                              }}
+                            >
+                              <Heart className={`w-4 h-4 ${asset.favorite ? 'fill-current' : ''}`} />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Pad empty slots in the last row to maintain grid alignment */}
+                      {rowAssets.length < columns && 
+                        Array.from({ length: columns - rowAssets.length }).map((_, i) => (
+                          <div key={`empty-${i}`} className="vault-asset-spacer" />
+                        ))
+                      }
+                    </div>
+                  );
+                })
+              ) : (
+                /* Virtualized List View */
+                <div className="space-y-1">
+                  {/* Header - Fixed at top of list */}
+                  <div 
+                    className="grid grid-cols-12 gap-4 px-3 py-2 text-xs font-medium text-muted-foreground border-b bg-background z-10 sticky top-0"
+                    /* eslint-disable-next-line */
+                    style={{ height: `${LIST_ROW_HEIGHT}px` }}
                   >
-                    {getAssetIcon(asset.type)}
-                    <span className="truncate font-medium">{asset.name}</span>
-                    {asset.favorite && <Heart className="w-3 h-3 text-red-500 fill-current flex-shrink-0" />}
+                    <div className="col-span-1 flex items-center">
+                      <input
+                        title="Select all assets"
+                        type="checkbox"
+                        checked={selectedAssets.size === filteredAssets.length && filteredAssets.length > 0}
+                        onChange={() => selectedAssets.size === filteredAssets.length ? clearSelection() : selectAll()}
+                        className="rounded"
+                      />
+                    </div>
+                    <div className="col-span-4 flex items-center">Name</div>
+                    <div className="col-span-2 flex items-center">Type</div>
+                    <div className="col-span-2 flex items-center">Size</div>
+                    <div className="col-span-2 flex items-center">Date</div>
+                    <div className="col-span-1 text-right flex items-center justify-end">Actions</div>
                   </div>
-                  <div className="col-span-2 flex items-center">
-                    <Badge variant="outline" className="text-xs">
-                      {asset.type.replace('generated_', '').toUpperCase()}
-                    </Badge>
-                  </div>
-                  <div className="col-span-2 flex items-center text-sm text-muted-foreground">
-                    {formatSize(asset.size)}
-                  </div>
-                  <div className="col-span-2 flex items-center text-sm text-muted-foreground">
-                    {asset.added_at ? new Date(asset.added_at).toLocaleDateString() : 'N/A'}
-                  </div>
-                  <div className="col-span-1 flex items-center justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => downloadAsset(asset)}
-                    >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`h-7 w-7 ${asset.favorite ? 'text-red-500' : ''}`}
-                      onClick={() => toggleFavorite(asset.id)}
-                    >
-                      <Heart className={`w-3 h-3 ${asset.favorite ? 'fill-current' : ''}`} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:text-destructive"
-                      onClick={() => deleteAsset(asset)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+
+                  {/* Virtual Items */}
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const asset = filteredAssets[virtualRow.index];
+                    return (
+                      <div
+                        key={virtualRow.key}
+                        /* eslint-disable-next-line */
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: `${virtualRow.size}px`,
+                          transform: `translateY(${virtualRow.start + LIST_ROW_HEIGHT}px)`, // Offset by header height
+                        }}
+                        className={`grid grid-cols-12 gap-4 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors ${
+                          selectedAssets.has(asset.id) ? 'bg-primary/10' : ''
+                        }`}
+                      >
+                        <div className="col-span-1 flex items-center">
+                          <input
+                            title={`Select ${asset.name}`}
+                            type="checkbox"
+                            checked={selectedAssets.has(asset.id)}
+                            onChange={() => toggleSelection(asset.id)}
+                            className="rounded"
+                          />
+                        </div>
+                        <div
+                          className="col-span-4 flex items-center gap-2 cursor-pointer overflow-hidden"
+                          onClick={() => setPreviewAsset(asset)}
+                        >
+                          {getAssetIcon(asset.type)}
+                          <span className="truncate font-medium">{asset.name}</span>
+                          {asset.favorite && <Heart className="w-3 h-3 text-red-500 fill-current flex-shrink-0" />}
+                        </div>
+                        <div className="col-span-2 flex items-center">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            {asset.type.replace('generated_', '').toUpperCase()}
+                          </Badge>
+                        </div>
+                        <div className="col-span-2 flex items-center text-xs text-muted-foreground">
+                          {formatSize(asset.size)}
+                        </div>
+                        <div className="col-span-2 flex items-center text-xs text-muted-foreground">
+                          {asset.added_at ? new Date(asset.added_at).toLocaleDateString() : 'N/A'}
+                        </div>
+                        <div className="col-span-1 flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => downloadAsset(asset)}
+                          >
+                            <Download className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-7 w-7 ${asset.favorite ? 'text-red-500' : ''}`}
+                            onClick={() => toggleFavorite(asset.id)}
+                          >
+                            <Heart className={`w-3 h-3 ${asset.favorite ? 'fill-current' : ''}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            onClick={() => deleteAsset(asset)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
             </div>
           )}
         </div>

@@ -339,10 +339,10 @@ export const useSequencePlanStore = create<SequencePlanState>()(
           duration: splitTime,
           position: shot.position,
           // Split audio tracks at the split time
-          audioTracks: shot.audioTracks.map(track => ({
+          audioTracks: (shot.audioTracks || []).map(track => ({
             ...track,
-            duration: Math.min(track.duration, splitTime - track.startTime),
-          })).filter(track => track.duration > 0),
+            duration: Math.min(track.duration || 0, splitTime - (track.startTime || 0)),
+          })).filter(track => (track.duration || 0) > 0),
           // Keep all effects and text layers in first part
         };
 
@@ -354,11 +354,11 @@ export const useSequencePlanStore = create<SequencePlanState>()(
           duration: shot.duration - splitTime,
           position: shot.position + 1,
           // Shift audio tracks for second part
-          audioTracks: shot.audioTracks.map(track => ({
+          audioTracks: (shot.audioTracks || []).map(track => ({
             ...track,
-            startTime: Math.max(0, track.startTime - splitTime),
-            duration: Math.max(0, (track.startTime + track.duration) - splitTime),
-          })).filter(track => track.duration > 0),
+            startTime: Math.max(0, (track.startTime || 0) - splitTime),
+            duration: Math.max(0, ((track.startTime || 0) + (track.duration || 0)) - splitTime),
+          })).filter(track => (track.duration || 0) > 0),
           // Keep all effects and text layers in second part
         };
 
@@ -412,18 +412,18 @@ export const useSequencePlanStore = create<SequencePlanState>()(
           position: Math.min(shot1.position, shot2.position),
           // Combine audio tracks
           audioTracks: [
-            ...shot1.audioTracks,
-            ...shot2.audioTracks.map(track => ({
+            ...(shot1.audioTracks || []),
+            ...(shot2.audioTracks || []).map(track => ({
               ...track,
-              startTime: track.startTime + shot1.duration, // Shift start time
+              startTime: (track.startTime || 0) + shot1.duration, // Shift start time
             })),
           ],
           // Combine effects (keep both)
-          effects: [...shot1.effects, ...shot2.effects],
+          effects: [...(shot1.effects || []), ...(shot2.effects || [])],
           // Combine text layers (keep both)
-          textLayers: [...shot1.textLayers, ...shot2.textLayers],
+          textLayers: [...(shot1.textLayers || []), ...(shot2.textLayers || [])],
           // Combine animations (keep both)
-          animations: [...shot1.animations, ...shot2.animations],
+          animations: [...(shot1.animations || []), ...(shot2.animations || [])],
           // Keep transition from second shot if it exists
           transitionOut: shot2.transitionOut,
           // Merge metadata

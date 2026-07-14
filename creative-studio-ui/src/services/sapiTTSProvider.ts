@@ -66,7 +66,7 @@ class SapiTTSProvider {
     const tts = (window as LegacyAny).coquiTTS;
     const speakers = await tts.getSpeakers?.() || [];
     
-    return speakers.map((speaker: unknown) => ({
+    return speakers.map((speaker: any) => ({
       id: speaker.id || speaker.name,
       name: speaker.name || speaker.id,
       gender: this.inferGender(speaker.name || speaker.id),

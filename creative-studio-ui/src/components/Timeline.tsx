@@ -1,3 +1,4 @@
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useSequencePlanStore, useCurrentPlanShots, useSequencePlanActions } from '@/stores/sequencePlanStore';
@@ -615,7 +616,7 @@ export const Timeline: React.FC<TimelineProps> = ({
 
   // Calculate shot positions - memoized to avoid recalculation
   const shotPositions = useMemo(() => {
-    let currentPosition = 0;
+    let currentPosition = 0; // Position in pixels
     return shots.map((shot) => {
       const startX = currentPosition;
 
@@ -623,12 +624,12 @@ export const Timeline: React.FC<TimelineProps> = ({
       const effectiveDuration = shot.duration;
 
       const width = effectiveDuration * pixelsPerSecond;
-      currentPosition += effectiveDuration;
+      currentPosition += width;
 
       let transitionWidth = 0;
       if (shot.transitionOut) {
         transitionWidth = shot.transitionOut.duration * pixelsPerSecond;
-        currentPosition += shot.transitionOut.duration;
+        currentPosition += transitionWidth;
       }
 
       return {
@@ -640,6 +641,27 @@ export const Timeline: React.FC<TimelineProps> = ({
       };
     });
   }, [shots, pixelsPerSecond]);
+
+  // Horizontal Virtualization for shots
+  const shotVirtualizer = useVirtualizer({
+    horizontal: true,
+    count: shotPositions.length,
+    getScrollElement: () => timelineRef.current,
+    estimateSize: (index) => {
+      const pos = shotPositions[index];
+      return pos ? pos.width + pos.transitionWidth : 100;
+    },
+    overscan: 10,
+  });
+
+  // Time markers virtualization
+  const markerVirtualizer = useVirtualizer({
+    horizontal: true,
+    count: timeMarkers.length,
+    getScrollElement: () => timelineRef.current,
+    estimateSize: () => 5 * pixelsPerSecond, // Every 5 seconds
+    overscan: 10,
+  });
 
   // Handle shot reordering - memoized callback
   const handleShotReorder = useCallback(async (dragIndex: number, hoverIndex: number) => {
@@ -1779,16 +1801,26 @@ export default memo(Timeline);
             >
               {/* Time Markers */}
               <div className="time-markers" ref={el => el?.style.setProperty('--marker-height', `${TIME_MARKER_HEIGHT}px`)}>
-                {timeMarkers.map((time) => (
-                  <div
-                    key={time}
-                    className="time-marker"
-                    ref={el => el?.style.setProperty('--marker-left', `${time * pixelsPerSecond}px`)}
-                  >
-                    <div className="w-px h-2 bg-gray-600" />
-                    <span className="text-xs text-gray-400 mt-1">{formatTime(time)}</span>
-                  </div>
-                ))}
+                {markerVirtualizer.getVirtualItems().map((virtualMarker) => {
+                  const time = timeMarkers[virtualMarker.index];
+                  return (
+                    <div
+                      key={virtualMarker.key}
+                      className="time-marker"
+                      /* eslint-disable-next-line */
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        height: '100%',
+                        transform: `translateX(${time * pixelsPerSecond}px)`
+                      }}
+                    >
+                      <div className="w-px h-2 bg-gray-600" />
+                      <span className="text-xs text-gray-400 mt-1">{formatTime(time)}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Shot Track */}
@@ -1801,22 +1833,25 @@ export default memo(Timeline);
                   }
                 }}
               >
-                {shotPositions.map(({ shot, startX, width, transitionWidth }, index) => (
-                  <TimelineShot
-                    key={shot.id}
-                    shot={shot}
-                    startX={startX}
-                    width={width}
-                    transitionWidth={transitionWidth}
-                    index={index}
-                    isSelected={selectedShotId === shot.id}
-                    isMultiSelected={multiSelectMode && selectedShotIds.includes(shot.id)}
-                    onReorder={handleShotReorder}
-                    onDurationChange={handleDurationChange}
-                    onSelect={handleShotSelect}
-                    onContextMenu={handleShotContextMenu}
-                  />
-                ))}
+                {shotVirtualizer.getVirtualItems().map((virtualShot) => {
+                  const { shot, startX, width, transitionWidth } = shotPositions[virtualShot.index];
+                  return (
+                    <TimelineShot
+                      key={shot.id}
+                      shot={shot}
+                      startX={startX}
+                      width={width}
+                      transitionWidth={transitionWidth}
+                      index={virtualShot.index}
+                      isSelected={selectedShotId === shot.id}
+                      isMultiSelected={multiSelectMode && selectedShotIds.includes(shot.id)}
+                      onReorder={handleShotReorder}
+                      onDurationChange={handleDurationChange}
+                      onSelect={handleShotSelect}
+                      onContextMenu={handleShotContextMenu}
+                    />
+                  );
+                })}
               </div>
 
               {/* Audio Tracks with Waveform Visualization */}
@@ -1830,25 +1865,27 @@ export default memo(Timeline);
                   }
                 }}
               >
-                {shotPositions.map(({ shot, startX }) => (
-                  <div key={`audio-${shot.id}`}>
-                    {(shot.audioTracks || []).map((track, index) => {
-                      const trackStartX = startX + ((track.startTime || 0) * pixelsPerSecond);
-                      const trackWidth = (track.duration || 0) * pixelsPerSecond;
+                {shotVirtualizer.getVirtualItems().map((virtualShot) => {
+                  const { shot, startX } = shotPositions[virtualShot.index];
+                  return (
+                    <div key={`audio-${shot.id}`}>
+                      {(shot.audioTracks || []).map((track, index) => {
+                        const trackStartX = startX + ((track.startTime || 0) * pixelsPerSecond);
+                        const trackWidth = (track.duration || 0) * pixelsPerSecond;
 
-                      return (
-                        <div
-                          key={track.id}
-                          className="absolute group"
-                          ref={el => {
-                            if (el) {
-                              el.style.left = `${trackStartX}px`;
-                              el.style.width = `${trackWidth}px`;
-                              el.style.top = `${index * 20}px`;
-                              el.style.height = '18px';
-                            }
-                          }}
-                        >
+                        return (
+                          <div
+                            key={track.id}
+                            className="absolute group"
+                            ref={el => {
+                              if (el) {
+                                el.style.left = `${trackStartX}px`;
+                                el.style.width = `${trackWidth}px`;
+                                el.style.top = `${index * 20}px`;
+                                el.style.height = '18px';
+                              }
+                            }}
+                          >
                           <div className="h-full bg-green-600 border border-green-400 rounded px-1 flex items-center relative overflow-hidden">
                             {/* Waveform Visualization */}
                             {track.waveformData && track.waveformData.length > 0 ? (
@@ -1896,8 +1933,9 @@ export default memo(Timeline);
                         </div>
                       );
                     })}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Playhead */}
@@ -2127,3 +2165,4 @@ export default memo(Timeline);
       </div>
   );
 };
+

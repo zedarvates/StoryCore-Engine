@@ -13,16 +13,20 @@ import {
   Fade,
   LinearProgress,
   CircularProgress,
-  Chip
+  Chip,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon
 } from '@mui/material';
-import { 
-  AutoAwesome, 
-  Camera, 
-  Settings, 
-  Download, 
-  History,
-  PlayCircleOutline
-} from '@mui/icons-material';
+import AutoAwesome from '@mui/icons-material/AutoAwesome';
+import Camera from '@mui/icons-material/Camera';
+import Settings from '@mui/icons-material/Settings';
+import Download from '@mui/icons-material/Download';
+import History from '@mui/icons-material/History';
+import PlayCircleOutline from '@mui/icons-material/PlayCircleOutline';
 import { GaussianSplatViewer } from '../editor/3d/GaussianSplatViewer';
 
 interface TTTLRMToolboxProps {
@@ -43,6 +47,8 @@ export const TTTLRMToolbox: React.FC<TTTLRMToolboxProps> = ({ initialImagePath }
   const [resolution, setResolution] = useState(1024);
   const [isConverting, setIsConverting] = useState(false);
   const [meshResult, setMeshResult] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<Array<{id: string, date: number, mode: string, result: string, resolution: number}>>([]);
 
   const handleStartReconstruction = async () => {
     setStatus('running');
@@ -77,8 +83,18 @@ export const TTTLRMToolbox: React.FC<TTTLRMToolboxProps> = ({ initialImagePath }
         const data = await response.json();
         clearInterval(interval);
         setProgress(100);
-        setCurrentResult(data.output_path || 'demo_splat.ply');
+        const resultPath = data.output_path || 'demo_splat.ply';
+        setCurrentResult(resultPath);
         setStatus('complete');
+
+        // Add to history
+        setHistory(prev => [{
+          id: Math.random().toString(36).substring(7),
+          date: Date.now(),
+          mode: mode,
+          result: resultPath,
+          resolution: resolution
+        }, ...prev]);
       } else {
         throw new Error('API failed');
       }
@@ -295,12 +311,72 @@ export const TTTLRMToolbox: React.FC<TTTLRMToolboxProps> = ({ initialImagePath }
             </IconButton>
           </Tooltip>
           <Tooltip title="Historique">
-            <IconButton sx={{ bgcolor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' } }}>
+            <IconButton 
+              onClick={() => setHistoryOpen(true)}
+              sx={{ bgcolor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)', '&:hover': { bgcolor: 'rgba(0,0,0,0.8)' } }}
+            >
               <History fontSize="small" sx={{ color: 'white' }} />
             </IconButton>
           </Tooltip>
         </Box>
       </Box>
+
+      {/* History Drawer */}
+      <Drawer
+        anchor="right"
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 320,
+            bgcolor: 'rgba(18, 18, 20, 0.98)',
+            backdropFilter: 'blur(10px)',
+            color: 'white',
+            borderLeft: '1px solid rgba(255,255,255,0.1)'
+          }
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <History /> Historique 3D
+          </Typography>
+          <Divider sx={{ mb: 2, borderColor: 'rgba(255,255,255,0.1)' }} />
+          
+          {history.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ mt: 4 }}>
+              Aucune reconstruction dans l'historique.
+            </Typography>
+          ) : (
+            <List>
+              {history.map((item) => (
+                <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
+                  <ListItemButton 
+                    onClick={() => {
+                      setCurrentResult(item.result);
+                      setHistoryOpen(false);
+                    }}
+                    sx={{ 
+                      borderRadius: '8px',
+                      bgcolor: 'rgba(255,255,255,0.03)',
+                      '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' }
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Camera sx={{ color: 'primary.light' }} />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={`${item.mode === 'ttt_adapted' ? 'Raffiné' : 'FF'} - ${item.resolution}px`}
+                      secondary={new Date(item.date).toLocaleString()}
+                      primaryTypographyProps={{ variant: 'body2', fontWeight: 'bold' }}
+                      secondaryTypographyProps={{ variant: 'caption', sx: { opacity: 0.6 } }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
+          )}
+        </Box>
+      </Drawer>
     </Paper>
   );
 };

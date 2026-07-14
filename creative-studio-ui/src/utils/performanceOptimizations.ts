@@ -357,8 +357,8 @@ export class WorkerPool {
   private availableWorkers: Worker[] = [];
   private taskQueue: Array<{
     data: unknown;
-    resolve: (value: unknown) => void;
-    reject: (error: unknown) => void;
+    resolve: (value: any) => void;
+    reject: (error: any) => void;
   }> = [];
 
   constructor(workerScript: string, poolSize: number = navigator.hardwareConcurrency || 4) {
@@ -393,8 +393,8 @@ export class WorkerPool {
   private executeInWorker(
     worker: Worker,
     data: unknown,
-    resolve: (value: unknown) => void,
-    reject: (error: unknown) => void
+    resolve: (value: any) => void,
+    reject: (error: any) => void
   ): void {
     const handleMessage = (e: MessageEvent) => {
       worker.removeEventListener('message', handleMessage);

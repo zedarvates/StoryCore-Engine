@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DndProvider, useDragLayer } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AssetDragLayer } from '../AssetDragLayer';
@@ -42,7 +42,7 @@ const mockAsset: Asset = {
   },
   tags: ['test'],
   source: 'builtin',
-  createdAt: new Date('2024-01-01'),
+  createdAt: new Date('2024-01-01').getTime(),
 };
 
 const mockDragItem = {
@@ -354,6 +354,26 @@ describe('AssetDragLayer', () => {
       const dragIcon = container.querySelector('.drag-icon');
       expect(dragIcon).toBeInTheDocument();
       expect(dragIcon).toHaveTextContent('🎯');
+    });
+
+    it('should handle image load errors in preview with fallback', () => {
+      mockUseDragLayer.mockReturnValue({
+        itemType: DND_ITEM_TYPES.ASSET,
+        isDragging: true,
+        item: mockDragItem,
+        initialOffset: { x: 0, y: 0 },
+        currentOffset: { x: 100, y: 100 },
+      });
+
+      renderWithDnd(<AssetDragLayer />);
+      
+      const image = screen.getByAltText('Test Character') as HTMLImageElement;
+      
+      // Simulate error
+      fireEvent.error(image);
+      
+      expect(image.src).toContain('data:image/svg+xml');
+      expect(image.src).toContain('No%20Preview');
     });
   });
 });

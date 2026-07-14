@@ -384,7 +384,7 @@ export const ShotSchema = z.object({
   transitionOut: TransitionSchema.optional(),
   
   // Metadata and legacy fields
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.string(), z.any()).optional(),
   referenceImage: z.string().optional(),
   result_url: z.string().optional(),
   

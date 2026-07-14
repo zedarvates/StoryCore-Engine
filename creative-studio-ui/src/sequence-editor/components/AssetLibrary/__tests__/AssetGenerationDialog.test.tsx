@@ -14,6 +14,18 @@ import assetsReducer from '../../../store/slices/assetsSlice';
 import timelineReducer from '../../../store/slices/timelineSlice';
 import historyReducer from '../../../store/slices/historySlice';
 
+// Mock the image generation service
+vi.mock('../../../../services/imageGenerationService', () => ({
+  generateImage: vi.fn().mockImplementation(async (params, onProgress) => {
+    console.log('[TEST MOCK] generateImage called with:', params.prompt);
+    if (onProgress) {
+      onProgress(0.5, 'Generating...');
+      onProgress(1.0, 'Done');
+    }
+    return 'https://example.com/generated-asset.jpg';
+  }),
+}));
+
 // Helper to create a test store
 function createTestStore() {
   return configureStore({

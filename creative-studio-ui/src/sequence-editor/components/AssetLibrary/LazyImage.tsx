@@ -4,9 +4,6 @@
  * Lazy loads images using Intersection Observer and caches them in IndexedDB.
  * Requirements: 5.3
  */
-import { LegacyAny } from '@/types/legacy';
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchAndCacheThumbnail } from '../../utils/thumbnailCache';
 
@@ -103,7 +100,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   };
 
   return (
-    <div className={`lazy-image-container ${className}`} ref={imgRef as LegacyAny}>
+    <div className={`lazy-image-container ${className}`} ref={imgRef}>
       {isLoading && !imageSrc && (
         <div className="lazy-image-placeholder">
           <div className="lazy-image-spinner" />

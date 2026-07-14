@@ -264,7 +264,7 @@ export class SequenceGenerationService {
       });
 
       const promotionResult = await this.executeWithRetry(
-        () => this.promoteShots(comfyuiResult, (shotIndex) => {
+        () => this.promoteShots(project.name || '', comfyuiResult, (shotIndex) => {
           const progress = 60 + Math.floor((shotIndex / totalShots) * 15);
           onProgress?.({
             stage: 'promotion',
@@ -458,9 +458,9 @@ export class SequenceGenerationService {
     this.checkAborted();
 
     // Call backend to generate grid
-    const response = await this.backendApi.invokeCliCommand('grid', {
+    const response = (await this.backendApi.invokeCliCommand('grid', {
       project: project.name,
-    });
+    })) as any;
 
     if (!response.success) {
       throw new Error(response.error || 'Failed to generate Master Coherence Sheet');
@@ -514,7 +514,7 @@ export class SequenceGenerationService {
       }
 
       // Poll for completion
-      const result = await this.pollComfyUICompletion(workflowResponse.data.promptId);
+      const result = await this.pollComfyUICompletion(workflowResponse.data.prompt_id);
       
       if (result.outputs && result.outputs.length > 0) {
         outputs.push({
@@ -568,6 +568,7 @@ export class SequenceGenerationService {
    * Requirements: 3.5
    */
   private async promoteShots(
+    projectName: string,
     comfyuiResult: ComfyUIResult,
     onShotProgress: (shotIndex: number) => void
   ): Promise<PromotionResult> {
@@ -588,10 +589,11 @@ export class SequenceGenerationService {
       const startTime = Date.now();
 
       // Call promotion engine
-      const response = await this.backendApi.invokeCliCommand('promote', {
+      const response = (await this.backendApi.invokeCliCommand('promote', {
+        project: projectName,
         shotId: output.shotId,
         imageUrl: output.imageUrl,
-      });
+      })) as any;
 
       if (!response.success) {
         throw new Error(`Failed to promote shot ${output.shotId}: ${response.error}`);
@@ -617,9 +619,9 @@ export class SequenceGenerationService {
     this.checkAborted();
 
     // Call QA engine
-    const response = await this.backendApi.invokeCliCommand('qa', {
+    const response = (await this.backendApi.invokeCliCommand('qa', {
       shots: promotionResult.promotedShots,
-    });
+    })) as any;
 
     if (!response.success) {
       throw new Error(`QA analysis failed: ${response.error}`);
@@ -652,12 +654,12 @@ export class SequenceGenerationService {
     this.checkAborted();
 
     // Call export engine
-    const response = await this.backendApi.invokeCliCommand('export', {
+    const response = (await this.backendApi.invokeCliCommand('export', {
       project: project.name,
       gridUrl: gridResult.masterCoherenceSheetUrl,
       shots: promotionResult.promotedShots,
       qaReport: qaResult.report,
-    });
+    })) as any;
 
     if (!response.success) {
       throw new Error(`Export failed: ${response.error}`);

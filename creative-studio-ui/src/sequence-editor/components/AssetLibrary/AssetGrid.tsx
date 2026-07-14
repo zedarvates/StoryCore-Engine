@@ -8,7 +8,8 @@
  * This prevents the "Rendered fewer hooks than expected" error.
  */
 
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo, useRef, useEffect } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { DraggableAsset } from './DraggableAsset';
 import { TemplatePreview } from '../TemplatePreview';
 import { PresetPreview } from '../PresetPreview';
@@ -82,6 +83,46 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
   // Hook 3: useTemplates for template operations
   // Called third to maintain consistent hook order
   const { applyTemplate, applyPreset } = useTemplates();
+
+  // Hook 4: Virtualization state
+  const parentRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(800);
+
+  // Hook 5: Resize observer for grid responsiveness
+  useEffect(() => {
+    if (!parentRef.current) return;
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width);
+      }
+    });
+
+    observer.observe(parentRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Constants for grid calculation
+  const GRID_COLUMN_MIN_WIDTH = 140;
+  const GRID_GAP = 16;
+  const ESTIMATED_ROW_HEIGHT = 240;
+
+  // Calculate grid layout
+  const columns = useMemo(() => {
+    if (!containerWidth) return 1;
+    return Math.max(1, Math.floor((containerWidth + GRID_GAP) / (GRID_COLUMN_MIN_WIDTH + GRID_GAP)));
+  }, [containerWidth]);
+
+  const rowCount = Math.ceil(assets.length / columns);
+
+  // Hook 6: Virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ESTIMATED_ROW_HEIGHT,
+    overscan: 3,
+    initialRect: { width: 800, height: 600 },
+  });
 
   // ============================================================================
   // STEP 2: COMPUTED VALUES (safe to calculate after hooks)
@@ -182,18 +223,67 @@ export const AssetGrid: React.FC<AssetGridProps> = ({
   
   return (
     <>
-      <div className="asset-grid">
-        {assets.map((asset) => (
-          <DraggableAsset
-            key={asset.id}
-            asset={asset}
-            categoryId={categoryId}
-            onPreview={handlePreview}
-            onPublish={handlePublish}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ))}
+      <div 
+        ref={parentRef} 
+        className="asset-grid-virtual-container"
+        style={{
+          height: '100%',
+          overflowY: 'auto',
+          width: '100%',
+          position: 'relative'
+        }}
+      >
+        <div
+          className="asset-grid-scroll-content"
+          style={{
+            height: `${rowVirtualizer.getTotalSize()}px`,
+            width: '100%',
+            position: 'relative',
+          }}
+        >
+          {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+            const rowIndex = virtualRow.index;
+            const startAssetIndex = rowIndex * columns;
+            const rowAssets = assets.slice(startAssetIndex, startAssetIndex + columns);
+
+            return (
+              <div
+                key={virtualRow.key}
+                className="asset-grid-row"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start}px)`,
+                  display: 'grid',
+                  gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                  gap: `${GRID_GAP}px`,
+                  paddingBottom: `${GRID_GAP}px`
+                }}
+              >
+                {rowAssets.map((asset) => (
+                  <DraggableAsset
+                    key={asset.id}
+                    asset={asset}
+                    categoryId={categoryId}
+                    onPreview={handlePreview}
+                    onPublish={handlePublish}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+                {/* Pad empty slots in the last row to maintain grid alignment */}
+                {rowAssets.length < columns && 
+                  Array.from({ length: columns - rowAssets.length }).map((_, i) => (
+                    <div key={`empty-${i}`} className="asset-grid-spacer" />
+                  ))
+                }
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Template Preview Dialog */}

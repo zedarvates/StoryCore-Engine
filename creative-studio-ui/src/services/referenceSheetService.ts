@@ -22,7 +22,7 @@ import type {
   SequenceStyle,
   PreviousEpisodeReference,
   ShotReference,
-  _ConsistencyOverride,
+  ConsistencyOverride,
   AppearanceImage,
   TransitionType,
 } from '../types/reference';

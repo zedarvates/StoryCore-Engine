@@ -263,7 +263,7 @@ export class ProjectService {
         throw new Error('Shot title cannot be empty');
       }
       
-      if (shotData.duration <= 0) {
+      if ((shotData.duration || 0) <= 0) {
         throw new Error('Shot duration must be a positive number');
       }
       
@@ -272,20 +272,34 @@ export class ProjectService {
       
       // Generate unique shot ID
       const timestamp = Date.now();
-      const index = project.storyboard.length;
+      const index = (project.storyboard || []).length;
       const shotId = `shot_${timestamp}_${index}`;
       
       // Create shot object
       const shot: Shot = {
         id: shotId,
         title: shotData.title,
-        description: shotData.description,
-        duration: shotData.duration,
+        name: shotData.title,
+        description: shotData.description || '',
+        prompt: (shotData as any).prompt || '',
+        duration: shotData.duration || 60,
+        startTime: (shotData as any).startTime || 0,
         position: index,
         audioTracks: [],
         effects: [],
         textLayers: [],
         animations: [],
+        layers: [],
+        referenceImages: [],
+        parameters: {
+          seed: -1,
+          denoising: 0.7,
+          steps: 20,
+          guidance: 7,
+          scheduler: 'euler',
+          sampler: 'dpmpp_2m'
+        },
+        characterIds: [],
         metadata: {
           source: 'manual',
           created_at: new Date().toISOString(),
@@ -294,6 +308,7 @@ export class ProjectService {
       };
       
       // Add shot to storyboard
+      project.storyboard = project.storyboard || [];
       project.storyboard.push(shot);
       
       // Save updated project
@@ -319,7 +334,7 @@ export class ProjectService {
       const project = await this.loadProject(projectPath);
       
       // Find shot index
-      const shotIndex = project.storyboard.findIndex(shot => shot.id === shotId);
+      const shotIndex = (project.storyboard || []).findIndex(shot => shot.id === shotId);
       if (shotIndex === -1) {
         throw new Error(`Shot with ID ${shotId} not found`);
       }
@@ -334,6 +349,7 @@ export class ProjectService {
       }
       
       // Apply updates
+      project.storyboard = project.storyboard || [];
       project.storyboard[shotIndex] = {
         ...project.storyboard[shotIndex],
         ...updates,
@@ -360,12 +376,12 @@ export class ProjectService {
       const project = await this.loadProject(projectPath);
       
       // Find shot
-      const shotIndex = project.storyboard.findIndex(shot => shot.id === shotId);
+      const shotIndex = (project.storyboard || []).findIndex(shot => shot.id === shotId);
       if (shotIndex === -1) {
         throw new Error(`Shot with ID ${shotId} not found`);
       }
       
-      const shot = project.storyboard[shotIndex];
+      const shot = (project.storyboard || [])[shotIndex];
       
       // Cleanup associated files
       const filesToDelete: string[] = [];
@@ -376,7 +392,7 @@ export class ProjectService {
       }
       
       // Add audio tracks
-      shot.audioTracks.forEach(track => {
+      (shot.audioTracks || []).forEach(track => {
         if (track.url && !track.url.startsWith('http')) {
           filesToDelete.push(joinPath(projectPath, track.url));
         }
@@ -401,6 +417,7 @@ export class ProjectService {
       }
       
       // Remove shot from storyboard
+      project.storyboard = project.storyboard || [];
       project.storyboard.splice(shotIndex, 1);
       
       // Update positions of remaining shots
@@ -429,11 +446,12 @@ export class ProjectService {
       const project = await this.loadProject(projectPath);
       
       // Get current max position
-      const currentMaxPosition = project.storyboard.length;
+      const currentMaxPosition = (project.storyboard || []).length;
       
       // Add shots with correct positions
       shots.forEach((shot, index) => {
         shot.position = currentMaxPosition + index;
+        project.storyboard = project.storyboard || [];
         project.storyboard.push(shot);
       });
       
@@ -458,7 +476,7 @@ export class ProjectService {
       const project = await this.loadProject(projectPath);
       
       // Validate that all shot IDs exist
-      const existingIds = new Set(project.storyboard.map(shot => shot.id));
+      const existingIds = new Set((project.storyboard || []).map(shot => shot.id));
       const missingIds = shotIds.filter(id => !existingIds.has(id));
       
       if (missingIds.length > 0) {
@@ -466,12 +484,12 @@ export class ProjectService {
       }
       
       // Validate that all shots are included
-      if (shotIds.length !== project.storyboard.length) {
-        throw new Error(`Shot count mismatch: expected ${project.storyboard.length}, got ${shotIds.length}`);
+      if (shotIds.length !== (project.storyboard || []).length) {
+        throw new Error(`Shot count mismatch: expected ${(project.storyboard || []).length}, got ${shotIds.length}`);
       }
       
       // Create a map for quick lookup
-      const shotMap = new Map(project.storyboard.map(shot => [shot.id, shot]));
+      const shotMap = new Map((project.storyboard || []).map(shot => [shot.id, shot]));
       
       // Reorder shots
       project.storyboard = shotIds.map((id, index) => {
@@ -712,13 +730,27 @@ export class ProjectService {
         return {
           id: (shotRecord.id as string) || `shot_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
           title: (shotRecord.title as string) || 'Untitled Shot',
+          name: (shotRecord.name as string) || (shotRecord.title as string) || 'Untitled Shot',
           description: (shotRecord.description as string) || '',
+          prompt: (shotRecord.prompt as string) || '',
           duration: (shotRecord.duration as number) || 60,
+          startTime: (shotRecord.startTime as number) || 0,
           position: (shotRecord.order as number) || 0,
           audioTracks: [],
           effects: [],
           textLayers: [],
           animations: [],
+          layers: [],
+          referenceImages: [],
+          parameters: {
+            seed: (shotRecord.seed as number) || -1,
+            denoising: (shotRecord.denoising as number) || 0.7,
+            steps: (shotRecord.steps as number) || 20,
+            guidance: (shotRecord.guidance as number) || 7,
+            scheduler: (shotRecord.scheduler as string) || 'euler',
+            sampler: (shotRecord.sampler as string) || 'dpmpp_2m'
+          },
+          characterIds: [],
           metadata: {
             source: 'migrated',
             created_at: (shotMetadata?.created_at as string) || new Date().toISOString(),
@@ -774,7 +806,7 @@ export class ProjectService {
     
     logger.debug('[ProjectService] Migration completed successfully');
     logger.debug('[ProjectService] Migrated data keys:', Object.keys(migratedData));
-    logger.debug('[ProjectService] Storyboard length:', migratedData.storyboard.length);
+    logger.debug('[ProjectService] Storyboard length:', (migratedData.storyboard || []).length);
     
     return migratedData;
   }

@@ -187,6 +187,9 @@ class JSONFileStorage:
         # Maps index_value -> set of item_ids
         self._index_field = index_field
         self._owner_index: Dict[str, Set[str]] = {}
+        # Performance Fix: Reverse index for O(1) updates
+        # Maps item_id -> index_value
+        self._item_to_owner: Dict[str, str] = {}
         self._lock = threading.Lock()
 
         # Scan disk to populate index on startup
@@ -228,18 +231,21 @@ class JSONFileStorage:
 
         # Remove old index entry if item exists
         with self._lock:
-            for owner_id, item_ids in list(self._owner_index.items()):
-                if item_id in item_ids:
-                    item_ids.discard(item_id)
-                    if not item_ids:
-                        del self._owner_index[owner_id]
+            old_owner_id = self._item_to_owner.get(item_id)
+            if old_owner_id:
+                if old_owner_id in self._owner_index:
+                    self._owner_index[old_owner_id].discard(item_id)
+                    if not self._owner_index[old_owner_id]:
+                        del self._owner_index[old_owner_id]
+                del self._item_to_owner[item_id]
 
             # Add new index entry if data has the index field
             if data and self._index_field in data:
-                owner_id = data[self._index_field]
-                if owner_id not in self._owner_index:
-                    self._owner_index[owner_id] = set()
-                self._owner_index[owner_id].add(item_id)
+                new_owner_id = data[self._index_field]
+                if new_owner_id not in self._owner_index:
+                    self._owner_index[new_owner_id] = set()
+                self._owner_index[new_owner_id].add(item_id)
+                self._item_to_owner[item_id] = new_owner_id
 
     def get_by_owner(self, owner_id: str) -> List[Dict[str, Any]]:
         """

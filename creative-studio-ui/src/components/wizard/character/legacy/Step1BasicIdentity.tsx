@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea }_ from '@/components/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, X, Activity, Fingerprint, User, Clock } from 'lucide-react';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';

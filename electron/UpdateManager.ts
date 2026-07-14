@@ -10,6 +10,7 @@ import { UpdateChecker } from './UpdateChecker';
 import { UpdateDownloader } from './UpdateDownloader';
 import { UpdateInstaller } from './UpdateInstaller';
 import { RollbackManager } from './RollbackManager';
+import { getAppIconPath } from './defaultPaths';
 
 export interface UpdateInfo {
   version: string;
@@ -59,16 +60,9 @@ export class UpdateManager {
    */
   private setApplicationIcon(): void {
     if (process.platform === 'win32') {
-      try {
-        const iconPath = app.isPackaged
-          ? `${process.resourcesPath}/app-icon.ico`
-          : `${__dirname}/../../resources/app-icon.ico`;
-        
-        if (require('fs').existsSync(iconPath)) {
-          console.log('Application icon found:', iconPath);
-        }
-      } catch (error) {
-        console.warn('Could not set application icon:', error);
+      const iconPath = getAppIconPath();
+      if (iconPath) {
+        console.log('Application icon set for UpdateManager:', iconPath);
       }
     }
   }
@@ -282,7 +276,7 @@ export class UpdateManager {
       const notification = new Notification({
         title,
         body,
-        icon: 'path/to/icon.png'
+        icon: getAppIconPath()
       });
       notification.show();
     }

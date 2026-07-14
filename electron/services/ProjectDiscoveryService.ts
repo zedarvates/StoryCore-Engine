@@ -14,11 +14,13 @@ import { ProjectConfig } from '../ProjectValidator';
  * Discovered project metadata
  */
 export interface DiscoveredProject {
+  id: string; // Data Contract v1 ID
   name: string;
   path: string;
   lastModified: number;
   isValid: boolean;
   metadata?: {
+    id: string;
     schema_version: string;
     project_name: string;
     capabilities: Record<string, boolean>;
@@ -93,6 +95,8 @@ export class ProjectDiscoveryService {
 
     const projectsDir = getDefaultProjectsDirectory();
     const errors: Array<{ path: string; error: string }> = [];
+    const projects: DiscoveredProject[] = [];
+    const maxDepth = options?.maxDepth ?? 3; // Default to 3 for reasonable recursive scan
 
     try {
       // Check if directory exists
@@ -107,44 +111,13 @@ export class ProjectDiscoveryService {
         return result;
       }
 
-      // Read directory contents
-      const entries = await fs.promises.readdir(projectsDir, { withFileTypes: true });
-      
-      // Filter for directories only
-      const folders = entries.filter(entry => entry.isDirectory());
-      
-      // Scan each folder for valid projects
-      const projects: DiscoveredProject[] = [];
-      
-      for (const folder of folders) {
-        const folderPath = path.join(projectsDir, folder.name);
-        
-        try {
-          // Check if it's a valid project
-          const isValid = await this.isValidProject(folderPath);
-          
-          if (isValid) {
-            const metadata = await this.extractProjectMetadata(folderPath);
-            
-            if (metadata) {
-              projects.push(metadata);
-            } else {
-              errors.push({
-                path: folderPath,
-                error: 'Failed to extract project metadata',
-              });
-            }
-          }
-        } catch (error) {
-          // Log error and add to errors array
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          console.warn(`[ProjectDiscoveryService] Error scanning folder ${folder.name}:`, error);
-          errors.push({
-            path: folderPath,
-            error: errorMessage,
-          });
-        }
-      }
+      await this.discoverProjectsRecursive(
+        projectsDir,
+        maxDepth,
+        0,
+        projects,
+        errors
+      );
 
       // Create result
       const result: DiscoveryResult = {
@@ -347,11 +320,13 @@ export class ProjectDiscoveryService {
 
       // Extract metadata
       const metadata: DiscoveredProject = {
+        id: (config as any).id || (config.metadata as any)?.id || (config as any).guid || projectPath,
         name: config.project_name,
         path: projectPath,
         lastModified: stats.mtime.getTime(), // Convert to timestamp
         isValid: true,
         metadata: {
+          id: (config as any).id || (config.metadata as any)?.id || (config as any).guid || projectPath,
           schema_version: config.schema_version,
           project_name: config.project_name,
           capabilities: config.capabilities,
@@ -376,6 +351,65 @@ export class ProjectDiscoveryService {
     } catch (error) {
       console.error(`[ProjectDiscoveryService] Failed to extract metadata from ${projectPath}:`, error);
       return null;
+    }
+  }
+
+  /**
+   * Recursively discovers projects in the filesystem
+   */
+  private async discoverProjectsRecursive(
+    currentPath: string,
+    maxDepth: number,
+    currentDepth: number,
+    projects: DiscoveredProject[],
+    errors: Array<{ path: string; error: string }>
+  ): Promise<void> {
+    // Safety check for depth
+    if (currentDepth > maxDepth) return;
+
+    try {
+      // 1. Check if current directory is a valid project
+      // We don't check the root projects directory itself as a project
+      if (currentDepth > 0) {
+        const isValid = await this.isValidProject(currentPath);
+        if (isValid) {
+          const metadata = await this.extractProjectMetadata(currentPath);
+          if (metadata) {
+            projects.push(metadata);
+            // Optimization: If we found a project, we don't scan its subdirectories
+            // StoryCore projects don't support nesting projects inside projects
+            return;
+          }
+        }
+      }
+
+      // 2. If not a project (or root), scan subdirectories
+      if (currentDepth < maxDepth) {
+        const entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
+        
+        // Use Promise.all for parallel scanning of subdirectories
+        await Promise.all(
+          entries
+            .filter(entry => entry.isDirectory() && !entry.name.startsWith('.'))
+            .map(entry => {
+              const subPath = path.join(currentPath, entry.name);
+              return this.discoverProjectsRecursive(
+                subPath,
+                maxDepth,
+                currentDepth + 1,
+                projects,
+                errors
+              );
+            })
+        );
+      }
+    } catch (error) {
+      // Don't log normal ENOENT or PERM errors during recursive scan to avoid noise
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (!errorMessage.includes('ENOENT') && !errorMessage.includes('EPERM')) {
+        console.warn(`[ProjectDiscoveryService] Error in recursive scan at ${currentPath}:`, error);
+      }
+      errors.push({ path: currentPath, error: errorMessage });
     }
   }
 

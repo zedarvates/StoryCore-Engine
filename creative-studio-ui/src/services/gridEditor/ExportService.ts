@@ -6,7 +6,7 @@
  */
 
 import { GridConfiguration } from '../../stores/gridEditorStore';
-import { validateGridConfiguration, _GridConfigurationSchema } from '../../types/gridEditor.validation';
+import { validateGridConfiguration } from '../../types/gridEditor.validation';
 
 export type ExportFormat = 'json' | 'zip';
 
@@ -55,7 +55,7 @@ export class ExportService {
         ...config,
         metadata: {
           ...config.metadata,
-          modifiedAt: new Date().toISOString(),
+          modifiedAt: Date.now(),
         },
       };
 

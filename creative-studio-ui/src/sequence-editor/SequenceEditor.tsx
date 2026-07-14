@@ -1,9 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from './store';
-import { 
-  toggleLibrary, toggleInspector, toggleMixer, toggleMetadata, toggleAlignmentDashboard 
-} from './store/slices/panelsSlice';
+import { usePanelsStore } from '@/stores/editor/panelsStore';
 import { useProjectStore } from '@/stores/useProjectStore';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -20,7 +18,7 @@ import { AlignmentDashboard } from './components/Alignment/AlignmentDashboard';
 import { StatusBar } from './components/StatusBar/StatusBar';
 import { BottomBar } from './components/BottomBar/BottomBar';
 import { LayerManager } from './components/LayerManager/LayerManager';
-import { addMessage, setIsOpen as setChatOpen } from './store/slices/chatSlice';
+import { useChatStore } from '@/stores/editor/chatStore';
 import { AudioMixerPanel } from './components/AudioMixerPanel/AudioMixerPanel';
 import { ExportDialog } from './components/Dialogs/ExportDialog';
 import { SettingsDialog } from './components/Dialogs/SettingsDialog';
@@ -42,15 +40,15 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
   const sequenceId = propSequenceId || routeSequenceId;
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { addMessage, setIsOpen: setChatOpen } = useChatStore();
 
   // Redux & Global State
+  // Panels State from Zustand
   const { 
-    libraryVisible, inspectorVisible, mixerVisible 
-  } = useAppSelector((state) => state.panels);
-  const showLayerManager = useAppSelector((state) => state.panels.showLayerManager);
-  const compactMode = useAppSelector((state) => state.panels.compactMode);
-  const showAlignmentDashboard = useAppSelector((state) => state.panels.showAlignmentDashboard);
-  const productionStudioMode = useAppSelector((state) => state.panels.productionStudioMode);
+    libraryVisible, inspectorVisible, mixerVisible,
+    showLayerManager, compactMode, showAlignmentDashboard, productionStudioMode,
+    toggleLibrary, toggleInspector, toggleMixer, toggleMetadata, toggleAlignmentDashboard
+  } = usePanelsStore();
   
   // Alignment State from Unified Project Store
   const { 
@@ -191,11 +189,11 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
       <HeaderBar 
         title={projectState.metadata?.name ? `${projectState.metadata.name}${sequenceId ? ` › ${sequenceId}` : ''}` : 'StoryCore Sequence'}
         onBack={onBack || handleBackToDashboard}
-        onMediaPoolToggle={() => dispatch(toggleLibrary())}
-        onInspectorToggle={() => dispatch(toggleInspector())}
-        onMixerToggle={() => dispatch(toggleMixer())}
-        onMetadataToggle={() => dispatch(toggleMetadata())}
-        onHealthToggle={() => dispatch(toggleAlignmentDashboard())}
+        onMediaPoolToggle={toggleLibrary}
+        onInspectorToggle={toggleInspector}
+        onMixerToggle={toggleMixer}
+        onMetadataToggle={toggleMetadata}
+        onHealthToggle={toggleAlignmentDashboard}
       />
       
       <ToolBar 
@@ -290,19 +288,19 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
                     onFixSingle={(rec) => {
                       console.log('Fixing single:', rec);
                       // Logic for specific repair
-                      dispatch(addMessage({ 
+                      addMessage({ 
                         role: 'assistant', 
                         content: `I've analyzed the recommendation: "${rec}". I am now preparing an automated repair plan for your sequence.` 
-                      }));
-                      dispatch(setChatOpen(true));
+                      });
+                      setChatOpen(true);
                     }}
                     onChat={(rec) => {
                       // Logic to open chat with this recommendation
-                      dispatch(addMessage({ 
+                      addMessage({ 
                         role: 'user', 
                         content: `How can I fix this issue: "${rec}"?` 
-                      }));
-                      dispatch(setChatOpen(true));
+                      });
+                      setChatOpen(true);
                     }}
                   />
                 ) : showLayerManager ? (

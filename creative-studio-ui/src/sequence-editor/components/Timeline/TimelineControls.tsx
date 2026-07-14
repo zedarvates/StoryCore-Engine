@@ -6,7 +6,7 @@
  * Substitutes emojis for high-end Lucide icons to match DaVinci Resolve vision.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useProjectStore } from '@/stores/useProjectStore';
 import { useShallow } from 'zustand/react/shallow';
 import type { LayerType } from '../../types';
@@ -110,6 +110,37 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
   const handlePreviousFrame = useCallback(() => setCurrentTime(Math.max(0, playheadPosition - 1)), [setCurrentTime, playheadPosition]);
   const handleNextFrame = useCallback(() => setCurrentTime(Math.min(duration, playheadPosition + 1)), [setCurrentTime, playheadPosition, duration]);
 
+  // Register global keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Avoid triggering shortcuts when typing in inputs/textareas
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // Navigation
+      if (e.key === 'Space' || e.key === ' ') {
+        e.preventDefault();
+        handlePlayPause();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        handleGoToStart();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        handleGoToEnd();
+      } else if (e.key === 'ArrowLeft' || e.key === 'j' || e.key === 'J') {
+        e.preventDefault();
+        handlePreviousFrame();
+      } else if (e.key === 'ArrowRight' || e.key === 'l' || e.key === 'L') {
+        e.preventDefault();
+        handleNextFrame();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePlayPause, handleGoToStart, handleGoToEnd, handlePreviousFrame, handleNextFrame]);
+
   const formatTime = (frames: number) => {
     const fps = 24;
     const totalSeconds = Math.floor(frames / fps);
@@ -167,15 +198,14 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
         <button className="timeline-control-btn" onClick={() => onZoomChange(Math.max(1, zoomLevel / 1.5))} title="Zoom Out"><ZoomOut className="w-4 h-4" /></button>
         <div className="zoom-level-display text-[10px] font-bold w-10 text-center">{Math.round(zoomLevel * 10)}%</div>
         <button className="timeline-control-btn" onClick={() => onZoomChange(Math.min(100, zoomLevel * 1.5))} title="Zoom In"><ZoomIn className="w-4 h-4" /></button>
-        <button className="timeline-control-btn" onClick={() => onZoomChange(10)} title="Fit"><Maximize className="w-4 h-4" /></button>
+        <button className="timeline-control-btn" onClick={() => onZoomChange(10)} title="Fit to Window"><Maximize className="w-4 h-4" /></button>
       </div>
 
       {/* 4. Track Management */}
       <div className="timeline-controls-group">
         <div className="relative">
           <button className="tool-btn px-3 flex items-center gap-2 h-8" onClick={() => setShowAddTrackMenu(!showAddTrackMenu)}>
-            <Plus className="w-3.5 h-3.5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Track</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">+ Track</span>
           </button>
           {showAddTrackMenu && (
             <div className="add-track-menu glassmorphic !bg-[#151525]/95">
@@ -188,12 +218,12 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
             </div>
           )}
         </div>
-        <button className="timeline-control-btn text-red-400/50 hover:text-red-400" onClick={onDeleteTrack} disabled={!onDeleteTrack} title="Delete Track"><Minus className="w-4 h-4" /></button>
+        <button className="timeline-control-btn text-red-400/50 hover:text-red-400" onClick={onDeleteTrack} disabled={!onDeleteTrack} title="Delete Track"><Minus className="w-4 h-4" /> - Track</button>
       </div>
 
       {/* 5. DaVinci Style Edit Toggles (Magnet, Ripple, etc.) */}
       <div className="timeline-controls-group border-l border-white/10 pl-4 ml-2">
-        <button className={`timeline-control-btn ${snapToGrid ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleSnapToGrid} title="Snap (S)"><Magnet className="w-4 h-4" /></button>
+        <button className={`timeline-control-btn ${snapToGrid ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleSnapToGrid} title="Snap to Grid (S)"><Magnet className="w-4 h-4" /></button>
         <button className={`timeline-control-btn ${rippleEdit ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleRippleEdit} title="Ripple Edit (R)"><ShuffleIcon className="w-4 h-4 rotate-90" /></button>
         <button className={`timeline-control-btn ${magneticTimeline ? 'active text-indigo-400' : 'opacity-40'}`} onClick={onToggleMagneticTimeline} title="Magnetic Timeline (M)"><Link className="w-4 h-4" /></button>
       </div>
@@ -208,8 +238,8 @@ export const TimelineControls: React.FC<TimelineControlsProps> = ({
 
       <div className="ml-auto flex items-center gap-2">
         <div className="flex border border-white/10 rounded-lg overflow-hidden bg-white/5">
-          <button className={`p-1.5 ${viewMode === 'timeline' ? 'bg-indigo-600 text-white' : 'text-white/40'}`} onClick={() => onViewModeChange?.('timeline')} title="Timeline View"><MonitorPlay className="w-4 h-4" /></button>
-          <button className={`p-1.5 ${viewMode === 'storyboard' ? 'bg-indigo-600 text-white' : 'text-white/40'}`} onClick={() => onViewModeChange?.('storyboard')} title="Storyboard View"><Layout className="w-4 h-4" /></button>
+          <button className={`p-1.5 ${viewMode === 'timeline' ? 'active bg-indigo-600 text-white' : 'text-white/40'}`} onClick={() => onViewModeChange?.('timeline')} title="Timeline View"><MonitorPlay className="w-4 h-4" /></button>
+          <button className={`p-1.5 ${viewMode === 'storyboard' ? 'active bg-indigo-600 text-white' : 'text-white/40'}`} onClick={() => onViewModeChange?.('storyboard')} title="Storyboard View"><Layout className="w-4 h-4" /></button>
         </div>
         <GenerateButton />
       </div>

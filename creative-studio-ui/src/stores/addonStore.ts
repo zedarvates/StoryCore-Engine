@@ -502,7 +502,13 @@ export const useAddonStore = create<AddonStore>()(
         });
       },
     }),
-    { name: 'AddonStore' }
+    { 
+      name: 'AddonStore',
+      stateSanitizer: (state: any) => {
+        const { redactState } = require('../utils/redact');
+        return redactState(state);
+      }
+    }
   )
 );
 

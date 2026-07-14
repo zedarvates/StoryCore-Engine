@@ -67,7 +67,7 @@ export const useProjectStore = create<UnifiedProjectStore>()(
           // Implementation for pushHistory if needed at root level
           // (Usually called within slices, but exposed here as well)
           pushHistory: (entry: HistoryEntry) => {
-            historySlice.pushHistory(entry);
+            historySlice.pushHistory?.(entry);
           }
         } as UnifiedProjectStore;
       },

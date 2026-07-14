@@ -560,6 +560,7 @@ export const CinematicAssembler: React.FC<CinematicAssemblerProps> = ({ plan, on
                     width={1024}
                     height={576}
                     onAnnotationSave={(a: Annotation) => console.log("Annotation added:", a)}
+                    onClose={() => setReviewMode(false)}
                   />
                 )}
 

@@ -154,7 +154,7 @@ describe('TimelineDropTarget - Drop Functionality', () => {
 
     it('should accept visual styles on effects track', () => {
       const effectsTrack: Track = { ...mockTrack, type: 'effects' };
-      const st_yleAsset: Asset = { ...mockAsset, type: 'visual-style' };
+      const styleAsset: Asset = { ...mockAsset, type: 'visual-style' };
       
       const { store } = renderWithProviders(
         <>

@@ -12,7 +12,6 @@ export type { ImportOptions, ImportResult, UnsavedChangesCallback } from './Impo
 
 export {
   GridAPIService,
-  MockGridAPIService,
   createGridAPIService,
   gridApi,
 } from './GridAPIService';
@@ -47,7 +46,5 @@ export type {
   GridEditorTemplate,
   ExportMetadata,
   ExportedGridConfiguration,
-  ImportResult,
   ConfigurationConflict,
-  ExportFormat
 } from './ConfigurationExportImport';

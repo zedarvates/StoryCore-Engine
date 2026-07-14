@@ -6,7 +6,7 @@
  * 
  * Requirements: 13.2, 13.4
  */
-import { LegacyAny } from '@/types/legacy';
+
 
 
 import { WizardError } from './types';
@@ -26,7 +26,7 @@ export interface RetryConfig {
 /**
  * Retry state for tracking retry attempts
  */
-export interface RetryState<T = any> {
+export interface RetryState<T = unknown> {
   operationId: string;
   operation: string;
   parameters: T;
@@ -84,7 +84,7 @@ export class RetryManager {
    * 
    * Requirements: 13.2, 13.4
    */
-  async executeWithRetry<T, P = any>(
+  async executeWithRetry<T, P = unknown>(
     operationId: string,
     operation: (params: P) => Promise<T>,
     parameters: P,
@@ -215,7 +215,7 @@ export class RetryManager {
     return {
       success: false,
       error: lastError,
-      attemptCount: retryConfig.maxAttempts,
+      attemptCount: retryState.attemptCount,
       totalDuration,
     };
   }
@@ -249,7 +249,7 @@ export class RetryManager {
    * 
    * Requirements: 13.4
    */
-  getPreservedParameters<T = any>(operationId: string): T | undefined {
+  getPreservedParameters<T = unknown>(operationId: string): T | undefined {
     const state = this.retryStates.get(operationId);
     return state?.parameters as T | undefined;
   }
@@ -288,7 +288,7 @@ export class RetryManager {
    */
   updateConfig(config: Partial<RetryConfig>): void {
     this.config = { ...this.config, ...config };
-    this.logger.info('retry', 'Retry configuration updated', this.config as LegacyAny);
+    this.logger.info('retry', 'Retry configuration updated', this.config as unknown as Record<string, unknown>);
   }
 
   /**
@@ -348,7 +348,7 @@ export function setRetryManager(manager: RetryManager): void {
  * 
  * Requirements: 13.2, 13.4
  */
-export async function executeWithRetry<T, P = any>(
+export async function executeWithRetry<T, P = unknown>(
   operationId: string,
   operation: (params: P) => Promise<T>,
   parameters: P,
@@ -366,7 +366,7 @@ export async function executeWithRetry<T, P = any>(
  * 
  * Requirements: 13.4
  */
-export function getPreservedParameters<T = any>(operationId: string): T | undefined {
+export function getPreservedParameters<T = unknown>(operationId: string): T | undefined {
   const manager = getRetryManager();
   return manager.getPreservedParameters<T>(operationId);
 }

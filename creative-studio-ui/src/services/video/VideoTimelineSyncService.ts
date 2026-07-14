@@ -119,6 +119,12 @@ export interface TimelineCallbacks {
   
   /** Called when timeline requests video seek */
   onSeekRequest?: (position: number) => void;
+  
+  /** Called when play state changes */
+  onPlayStateChange?: (isPlaying: boolean) => void;
+  
+  /** Called when seek occurs */
+  onSeek?: (position: number) => void;
 }
 
 export interface VideoCallbacks {

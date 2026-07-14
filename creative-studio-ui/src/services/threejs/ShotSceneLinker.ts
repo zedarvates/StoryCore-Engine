@@ -55,7 +55,7 @@ export class ShotSceneLinker {
     /**
      * Infers the framing type based on distance to target.
      */
-    private static inferFraming(pos: [number, number, number], target: [number, number, number]): unknown {
+    private static inferFraming(pos: [number, number, number], target: [number, number, number]): any {
         const distance = Math.sqrt(
             Math.pow(pos[0] - target[0], 2) +
             Math.pow(pos[1] - target[1], 2) +
@@ -72,7 +72,7 @@ export class ShotSceneLinker {
     /**
      * Infers the camera angle based on relative height to target.
      */
-    private static inferAngle(pos: [number, number, number], target: [number, number, number]): unknown {
+    private static inferAngle(pos: [number, number, number], target: [number, number, number]): any {
         const heightDiff = pos[1] - target[1];
 
         if (heightDiff > 2) return 'high';

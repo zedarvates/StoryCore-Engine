@@ -227,7 +227,7 @@ export class MenuStateManager {
     id: string;
     name: string;
     path: string;
-    lastModified: Date;
+    lastModified: Date | number;
     thumbnail?: string;
   }): void {
     const recentProjects = [...this.state.recentProjects];
@@ -238,8 +238,12 @@ export class MenuStateManager {
       recentProjects.splice(existingIndex, 1);
     }
     
-    // Add new entry at the beginning
-    recentProjects.unshift(project);
+    // Add new entry at the beginning, ensuring lastModified is a timestamp number
+    const newEntry = {
+      ...project,
+      lastModified: project.lastModified instanceof Date ? project.lastModified.getTime() : project.lastModified
+    };
+    recentProjects.unshift(newEntry);
     
     // Keep only the 10 most recent
     if (recentProjects.length > 10) {

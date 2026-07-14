@@ -26,7 +26,7 @@ const taskHandlers = {
     try {
       // Simulate thumbnail generation
       // In real implementation, this would extract frames from video
-      await de_lay(100); // Simulate processing time
+      await delay(100); // Simulate processing time
 
       const { timestamp, width = 160, height = 90 } = taskData as { timestamp: number; width?: number; height?: number };
 
@@ -53,7 +53,7 @@ const taskHandlers = {
   async video_processing(_taskData: unknown): Promise<TaskResult> {
     try {
       // Simulate video processing
-      await de_lay(200);
+      await delay(200);
 
       return {
         success: true,
@@ -163,7 +163,7 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
 
   switch (type) {
     case 'INIT':
-      workerId = msgWorkerId!;
+      _workerId = msgWorkerId!;
       self.postMessage({ type: 'WORKER_READY' });
       break;
 

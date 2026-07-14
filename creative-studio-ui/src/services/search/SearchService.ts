@@ -1,5 +1,5 @@
 import type { Shot } from '../../types';
-import type { SearchCriteria, _SearchOperator, SearchFilter } from '../../types/gridEditorAdvanced';
+import type { SearchCriteria, SearchFilter } from '../../types/gridEditorAdvanced';
 
 /**
  * SearchService - Advanced search and filtering for shots
@@ -39,7 +39,7 @@ export class SearchService {
     
     return this.shots.filter(shot => {
       return (
-        shot.title.toLowerCase().includes(lowerQuery) ||
+        (shot.title || '').toLowerCase().includes(lowerQuery) ||
         shot.description?.toLowerCase().includes(lowerQuery) ||
         this.matchTags(shot, lowerQuery) ||
         this.matchType(shot, lowerQuery) ||
@@ -131,11 +131,11 @@ export class SearchService {
    */
   private matchCriterion(shot: Shot, criterion: SearchCriteria): boolean {
     const { field, value } = criterion;
-    const lowerValue = value.toLowerCase().trim();
+    const lowerValue = String(value).toLowerCase().trim();
 
-    switch (field) {
+    switch (field as string) {
       case 'title':
-        return shot.title.toLowerCase().includes(lowerValue);
+        return shot.title?.toLowerCase().includes(lowerValue) ?? false;
       
       case 'description':
         return shot.description?.toLowerCase().includes(lowerValue) ?? false;
@@ -144,7 +144,7 @@ export class SearchService {
         return this.matchTags(shot, lowerValue);
       
       case 'duration':
-        return this.matchDuration(shot.duration, value);
+        return this.matchDuration(shot.duration, String(value));
       
       case 'type':
         return this.matchType(shot, lowerValue);
@@ -299,7 +299,7 @@ export class SearchService {
 
     // Suggest titles
     this.shots.forEach(shot => {
-      if (shot.title.toLowerCase().includes(lowerQuery)) {
+      if (shot.title && shot.title.toLowerCase().includes(lowerQuery)) {
         suggestions.add(shot.title);
       }
     });

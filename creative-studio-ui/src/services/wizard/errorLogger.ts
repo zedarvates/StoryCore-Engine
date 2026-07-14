@@ -287,7 +287,7 @@ export class ErrorLogger {
     }
 
     const sanitized: Record<string, unknown> = {};
-    const sensitiveKeys = ['password', 'token', 'apiKey', 'secret', 'credential'];
+    const sensitiveKeys = ['password', 'token', 'apikey', 'secret', 'credential'];
 
     for (const [key, value] of Object.entries(details)) {
       const lowerKey = key.toLowerCase();
@@ -296,7 +296,7 @@ export class ErrorLogger {
       if (isSensitive) {
         sanitized[key] = '[REDACTED]';
       } else if (typeof value === 'object' && value !== null) {
-        sanitized[key] = this.sanitizeDetails(value);
+        sanitized[key] = this.sanitizeDetails(value as Record<string, unknown>);
       } else {
         sanitized[key] = value;
       }
@@ -528,7 +528,7 @@ export class ErrorLogger {
    */
   updateConfig(config: Partial<ErrorLoggerConfig>): void {
     this.config = { ...this.config, ...config };
-    this.logger.info('error-logger', 'Configuration updated', this.config);
+    this.logger.info('error-logger', 'Configuration updated', this.config as unknown as Record<string, unknown>);
   }
 
   /**

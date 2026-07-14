@@ -264,7 +264,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   /**
    * Render effect layer (placeholder for future effects)
    */
-  co_nst renderEffectLayer = useCallback((
+  const renderEffectLayer = useCallback((
     _ctx: CanvasRenderingContext2D,
     _content: EffectContent,
     bounds: { x: number; y: number; width: number; height: number }

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ..base import BaseHandler
 from ..errors import UserError, SystemError
-from src.wizard.models import RecoveryReport
+from src.memory_system.data_models import RecoveryReport
 
 
 class MemoryRecoverHandler(BaseHandler):

@@ -4,7 +4,6 @@
  */
 
 import { getPerformanceMonitoringService } from './performanceMonitoringService';
-import { _videoFrameCache, _estimateSize } from '../utils/memoryMonitor';
 import { logger } from '../utils/logger';
 
 // ============================================================================

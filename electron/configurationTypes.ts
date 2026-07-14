@@ -74,6 +74,39 @@ export interface LLMConfiguration {
 
 export interface ComfyUIConfiguration {
   serverUrl: string;
+  authentication?: {
+    type: string;
+    username?: string;
+    password?: string;
+    token?: string;
+  };
+  server?: {
+    autoStart?: boolean;
+    corsHeaders?: boolean;
+    modelsPath?: string;
+    workflowsPath?: string;
+    outputPath?: string;
+    inputPath?: string;
+  };
+  performance?: {
+    batchSize?: number;
+    precision?: string;
+    steps?: number;
+    denoisingStrength?: number;
+  };
+  models?: {
+    preferredCheckpoint?: string;
+    preferredVAE?: string;
+    preferredCLIP?: string;
+    preferredLora?: string[];
+  };
+  workflows?: {
+    imageGeneration?: string;
+    videoGeneration?: string;
+    upscaling?: string;
+    inpainting?: string;
+    characterGeneration?: string;
+  };
   apiKey?: string;
   defaultWorkflows: {
     [taskType: string]: string; // taskType -> workflow ID

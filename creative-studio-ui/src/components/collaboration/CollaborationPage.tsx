@@ -5,7 +5,7 @@ import styles from './CollaborationPanel.module.css';
 interface CollaborationPageProps {}
 
 export const CollaborationPage: React.FC<CollaborationPageProps> = () => {
-  const [activeTab,_ setActiveTab] = useState<'projects' | 'users' | 'sync' | 'version'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'users' | 'sync' | 'version'>('projects');
   const [projects, setProjects] = useState<LegacyAny[]>([
     {
       id: 'project_1',

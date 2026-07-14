@@ -7,7 +7,7 @@
  * Requirements: 1.3, 1.4, 13.1, 13.3, 13.7
  */
 
-import { WizardError, type _WizardErrorCategory } from './types';
+import { WizardError } from './types';
 
 /**
  * Error message template
@@ -78,7 +78,8 @@ function generateConnectionErrorMessage(
   service?: string,
   endpoint?: string
 ): ErrorMessageTemplate {
-  const serviceName = service || 'Backend Service';
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const serviceName = service ? capitalize(service) : 'Backend Service';
   const serviceEndpoint = endpoint || 'the configured endpoint';
 
   let recoveryInstructions: string[] = [];

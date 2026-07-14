@@ -42,7 +42,6 @@ export interface SystemMetrics {
 
   // Cache
   cacheSize: number;
-  cacheHitRate: number;
   cacheEvictionRate: number;
 }
 
@@ -52,6 +51,7 @@ export interface MetricThreshold {
   operator: '>' | '<' | '>=' | '<=' | '==';
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
+  cooldown?: number;
 }
 
 export interface AlertConfig {
@@ -232,7 +232,7 @@ export class MetricsService {
         activeUsers: 1, // Simplifié - devrait track les utilisateurs actifs
         totalProjects,
         totalEntities,
-        sessi_onCount: 1 // Simplifié
+        sessionCount: 1 // Simplifié
       };
     } catch (error) {
       return {};
@@ -256,7 +256,7 @@ export class MetricsService {
       let cacheHitRate = 0;
       try {
         const { persistenceCache } = await import('./PersistenceCache');
-        const c_acheStats = persistenceCache.getStats();
+        const cacheStats = persistenceCache.getStats();
         cacheHitRate = cacheStats.hitRate;
       } catch (error) {
         // Cache pas disponible
@@ -265,7 +265,7 @@ export class MetricsService {
       return {
         storageUsed,
         cacheHitRate,
-        backu_pSuccessRate: 95 // Simplifié
+        backupSuccessRate: 95 // Simplifié
       };
     } catch (error) {
       return {};
@@ -308,7 +308,7 @@ export class MetricsService {
       return {
         persistenceSuccessRate,
         syncConflictRate: 2, // À implémenter avec SyncManager
-        migra_tionSuccessRate: 98 // À implémenter avec MigrationService
+        migrationSuccessRate: 98 // À implémenter avec MigrationService
       };
     } catch (error) {
       return {};
@@ -355,7 +355,7 @@ export class MetricsService {
     const lastAlert = this.alertCooldowns.get(alertKey);
 
     // Check cooldown
-    if (lastAlert && Date.now() - lastAlert.getTime() < threshold.cooldown * 60 * 1000) {
+    if (lastAlert && Date.now() - lastAlert.getTime() < (threshold.cooldown || 5) * 60 * 1000) {
       return; // In cooldown
     }
 

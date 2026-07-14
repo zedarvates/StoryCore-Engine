@@ -63,6 +63,8 @@ if (typeof window !== 'undefined') {
       height: 0
     })),
     setTransform: vi.fn(),
+    setLineDash: vi.fn(),
+    getLineDash: vi.fn(() => []),
     drawImage: vi.fn(),
     save: vi.fn(),
     restore: vi.fn(),
@@ -91,35 +93,35 @@ if (typeof window !== 'undefined') {
       addColorStop: vi.fn(),
     })),
     createPattern: vi.fn(),
-  }) as RenderingContext2D;
+  }) as any;
 }
 
 
 // Mock IndexedDB
 if (typeof window !== 'undefined') {
   const mockRequest = () => {
+    const listeners: Record<string, ((event: any) => void)[]> = {};
     const request = {
-      onupgradeneeded: null,
-      onsuccess: null,
-      onerror: null,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
+      onupgradeneeded: null as ((this: IDBOpenDBRequest, ev: IDBVersionChangeEvent) => any) | null,
+      onsuccess: null as ((this: IDBRequest<IDBDatabase>, ev: Event) => any) | null,
+      onerror: null as ((this: IDBRequest<IDBDatabase>, ev: Event) => any) | null,
+      readyState: 'pending' as IDBRequestReadyState,
       result: {
         objectStoreNames: {
           contains: vi.fn().mockReturnValue(true),
           length: 0,
           item: vi.fn(),
           [Symbol.iterator]: function* () {},
-        },
+        } as unknown as DOMStringList,
         createObjectStore: vi.fn().mockReturnValue({
           createIndex: vi.fn(),
-          add: vi.fn(),
-          put: vi.fn(),
-          get: vi.fn(),
-          getAll: vi.fn(),
-          delete: vi.fn(),
-          clear: vi.fn(),
-          openCursor: vi.fn(),
+          add: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+          put: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+          get: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+          getAll: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+          delete: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+          clear: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+          openCursor: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
         }),
         transaction: vi.fn().mockReturnValue({
           objectStore: vi.fn().mockReturnValue({
@@ -127,32 +129,62 @@ if (typeof window !== 'undefined') {
             put: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
             delete: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
             clear: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+            getAll: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+            getAllKeys: vi.fn().mockReturnValue({ onsuccess: null, addEventListener: vi.fn(), removeEventListener: vi.fn() }),
           }),
           oncomplete: null,
           onerror: null,
           abort: vi.fn(),
+          commit: vi.fn(),
         }),
         close: vi.fn(),
-      },
+      } as unknown as IDBDatabase,
+      addEventListener: vi.fn((type: string, listener: (event: any) => void) => {
+        if (!listeners[type]) listeners[type] = [];
+        listeners[type].push(listener);
+      }),
+      removeEventListener: vi.fn((type: string, listener: (event: any) => void) => {
+        if (listeners[type]) {
+          listeners[type] = listeners[type].filter(l => l !== listener);
+        }
+      }),
+      dispatchEvent: vi.fn((event: any) => {
+        const type = event.type;
+        if (listeners[type]) {
+          listeners[type].forEach(l => l(event));
+        }
+        if (type === 'success' && request.onsuccess) (request.onsuccess as any)(event);
+        if (type === 'error' && request.onerror) (request.onerror as any)(event);
+        if (type === 'upgradeneeded' && request.onupgradeneeded) (request.onupgradeneeded as any)(event);
+        return true;
+      }),
     } as unknown as IDBOpenDBRequest;
     
     // Simulate async success
     setTimeout(() => {
-      if (request.onsuccess) (request.onsuccess as (evt: { target: IDBOpenDBRequest }) => void)({ target: request });
+      (request as any).readyState = 'done';
+      const event = { type: 'success', target: request };
+      if (request.onsuccess) (request.onsuccess as any)(event);
+      if (listeners['success']) listeners['success'].forEach(l => l(event));
     }, 0);
     
-    return request as unknown as IDBOpenDBRequest;
+    return request;
   };
   
+  const idbMock = {
+    open: vi.fn().mockImplementation(mockRequest),
+    deleteDatabase: vi.fn().mockImplementation(mockRequest),
+    cmp: vi.fn(),
+    databases: vi.fn().mockResolvedValue([]),
+  } as unknown as IDBFactory;
+
   Object.defineProperty(window, 'indexedDB', {
-    value: {
-      open: vi.fn().mockImplementation(mockRequest),
-      deleteDatabase: vi.fn().mockImplementation(mockRequest),
-      cmp: vi.fn(),
-      databases: vi.fn().mockResolvedValue([]),
-    },
+    value: idbMock,
     writable: true,
   });
+
+  // Also set on global for Node environments/utilities
+  (global as { indexedDB?: IDBFactory }).indexedDB = idbMock;
 }
 
 // Mock Worker for web worker tests

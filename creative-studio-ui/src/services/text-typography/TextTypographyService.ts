@@ -12,8 +12,6 @@ import {
   TextAnimationConfig,
   TextAnimationType,
   TextMaskConfig,
-  _MaskType,
-  _MaskDirection,
   TextPreset,
   TextPresetCollection,
   TextTypographyState,

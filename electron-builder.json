@@ -7,15 +7,20 @@
   "files": [
     "dist-electron/**/*",
     "dist/**/*",
+    "creative-studio-ui/dist/**/*",
     "node_modules/**/*",
     "package.json",
-    "documentation/**/*"
+    "docs/**/*"
   ],
   "extraResources": [
     {
-      "from": "documentation",
-      "to": "documentation",
+      "from": "docs",
+      "to": "docs",
       "filter": ["**/*.md", "**/*.pdf"]
+    },
+    {
+      "from": "StorycoreIconeV2.png",
+      "to": "StorycoreIconeV2.png"
     }
   ],
   "publish": {

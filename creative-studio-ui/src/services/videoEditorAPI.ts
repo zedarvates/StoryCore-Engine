@@ -72,10 +72,18 @@ class VideoEditorAPI {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minutes
 
+    // Get auth token from localStorage (matches BackendApiService pattern)
+    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    const authHeaders: Record<string, string> = {};
+    if (token) {
+      authHeaders['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
           ...options.headers,
         },
         ...options,

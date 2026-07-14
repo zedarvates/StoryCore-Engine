@@ -11,6 +11,7 @@ import type {
   UpdateComfyUIServerInput,
 } from '@/types/comfyuiServers';
 import { testComfyUIConnection } from './comfyuiService';
+import { encryptValue, decryptValue } from '../utils/secureStorage';
 
 const STORAGE_KEY = 'comfyui-servers';
 const CONFIG_VERSION = '1.0';
@@ -52,7 +53,16 @@ export class ComfyUIServersService {
   private config: ComfyUIServersConfig;
 
   constructor() {
-    this.config = this.loadFromStorage();
+    this.config = getDefaultConfig();
+  }
+
+  /**
+   * Initialize service (asynchronous)
+   */
+  public async initialize(): Promise<void> {
+    this.config = await this.loadFromStorage();
+    // Initial sync with backend
+    await this.syncActiveServerToBackend();
   }
 
   // ============================================================================
@@ -77,7 +87,8 @@ export class ComfyUIServersService {
       this.config.activeServerId = server.id;
     }
 
-    this.saveToStorage();
+    this.saveToStorage(); // Fire and forget or handle properly if needed
+    this.syncActiveServerToBackend();
     return server;
   }
 
@@ -94,6 +105,7 @@ export class ComfyUIServersService {
     };
 
     this.saveToStorage();
+    this.syncActiveServerToBackend();
     return this.config.servers[index];
   }
 
@@ -160,6 +172,7 @@ export class ComfyUIServersService {
 
     this.config.activeServerId = id;
     this.saveToStorage();
+    this.syncActiveServerToBackend();
     return true;
   }
 
@@ -341,35 +354,39 @@ export class ComfyUIServersService {
   // ============================================================================
 
   /**
-   * Save configuration to localStorage
+   * Save configuration to localStorage with encryption
    */
-  private saveToStorage(): void {
+  private async saveToStorage(): Promise<void> {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.config));
+      const configToSave = await this.encryptSensitiveFields(this.config);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(configToSave));
     } catch (_error) {
       console.error('Failed to save ComfyUI servers config:', _error);
     }
   }
 
   /**
-   * Load configuration from localStorage
+   * Load configuration from localStorage with decryption
    */
-  private loadFromStorage(): ComfyUIServersConfig {
+  private async loadFromStorage(): Promise<ComfyUIServersConfig> {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (!stored) {
-        return this.migrateFromOldConfig();
+        return await this.migrateFromOldConfig();
       }
 
-      const config = JSON.parse(stored) as ComfyUIServersConfig;
+      const config = JSON.parse(stored);
+      
+      // Decrypt sensitive fields
+      const decryptedConfig = await this.decryptSensitiveFields(config);
       
       // Validate version
-      if (config.version !== CONFIG_VERSION) {
+      if (decryptedConfig.version !== CONFIG_VERSION) {
         console.warn('ComfyUI servers config version mismatch, using defaults');
         return getDefaultConfig();
       }
 
-      return config;
+      return decryptedConfig;
     } catch (error) {
       console.error('Failed to load ComfyUI servers config:', error);
       return getDefaultConfig();
@@ -377,9 +394,59 @@ export class ComfyUIServersService {
   }
 
   /**
+   * Encrypt sensitive fields (passwords, tokens)
+   */
+  private async encryptSensitiveFields(config: ComfyUIServersConfig): Promise<any> {
+    const encrypted = JSON.parse(JSON.stringify(config));
+    
+    for (const server of encrypted.servers) {
+      if (server.authentication?.password) {
+        const { encrypted: val, iv } = await encryptValue(server.authentication.password);
+        server.authentication.password = `${val}:${iv}`;
+      }
+      if (server.authentication?.token) {
+        const { encrypted: val, iv } = await encryptValue(server.authentication.token);
+        server.authentication.token = `${val}:${iv}`;
+      }
+    }
+    
+    return encrypted;
+  }
+
+  /**
+   * Decrypt sensitive fields
+   */
+  private async decryptSensitiveFields(config: any): Promise<ComfyUIServersConfig> {
+    const decrypted = JSON.parse(JSON.stringify(config));
+    
+    for (const server of decrypted.servers) {
+      if (server.authentication?.password && server.authentication.password.includes(':')) {
+        try {
+          const [val, iv] = server.authentication.password.split(':');
+          server.authentication.password = await decryptValue(val, iv);
+        } catch (e) {
+          console.error('Failed to decrypt password for server:', server.name);
+          server.authentication.password = '';
+        }
+      }
+      if (server.authentication?.token && server.authentication.token.includes(':')) {
+        try {
+          const [val, iv] = server.authentication.token.split(':');
+          server.authentication.token = await decryptValue(val, iv);
+        } catch (e) {
+          console.error('Failed to decrypt token for server:', server.name);
+          server.authentication.token = '';
+        }
+      }
+    }
+    
+    return decrypted as ComfyUIServersConfig;
+  }
+
+  /**
    * Migrate from old single-server configuration
    */
-  private migrateFromOldConfig(): ComfyUIServersConfig {
+  private async migrateFromOldConfig(): Promise<ComfyUIServersConfig> {
     try {
       const oldConfig = localStorage.getItem('comfyui-settings');
       if (!oldConfig) {
@@ -411,7 +478,7 @@ export class ComfyUIServersService {
       };
 
       // Save migrated config
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      await this.saveToStorage();
       
       return config;
     } catch (error) {
@@ -455,6 +522,38 @@ export class ComfyUIServersService {
       return false;
     }
   }
+
+  /**
+   * Sync active server configuration to Electron backend
+   */
+  private async syncActiveServerToBackend(): Promise<void> {
+    const activeServer = this.getActiveServer();
+    const electronAPI = (window as any).electronAPI;
+    
+    if (activeServer && electronAPI?.comfyui?.updateConfig) {
+      try {
+        await electronAPI.comfyui.updateConfig({
+          serverUrl: activeServer.serverUrl,
+          authentication: activeServer.authentication,
+          server: {
+            autoStart: activeServer.autoStart,
+            corsHeaders: activeServer.corsHeaders,
+            modelsPath: activeServer.modelsPath,
+            workflowsPath: activeServer.workflowsPath,
+            outputPath: activeServer.outputPath,
+            inputPath: activeServer.inputPath,
+          },
+          performance: activeServer.performance,
+          models: activeServer.models,
+          workflows: activeServer.workflows,
+          timeout: activeServer.timeout,
+        });
+        console.log(`[ComfyUIServersService] Synced active server "${activeServer.name}" to backend (${activeServer.serverUrl})`);
+      } catch (error) {
+        console.error('[ComfyUIServersService] Failed to sync to backend:', error);
+      }
+    }
+  }
 }
 
 // ============================================================================
@@ -471,6 +570,14 @@ export function getComfyUIServersService(): ComfyUIServersService {
     serviceInstance = new ComfyUIServersService();
   }
   return serviceInstance;
+}
+
+/**
+ * Initialize ComfyUI Servers Service
+ */
+export async function initializeComfyUIServersService(): Promise<void> {
+  const service = getComfyUIServersService();
+  await service.initialize();
 }
 
 /**

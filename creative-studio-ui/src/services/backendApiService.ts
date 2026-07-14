@@ -571,10 +571,39 @@ export class BackendApiService {
       try {
         socket = new WebSocket(wsUrl);
 
+        const throttledUpdates = new Map<string, { data: any, timer: any }>();
+        const THROTTLE_MS = 250;
+
         socket.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            callback(data);
+            const promptId = data.promptId || (data.data?.prompt_id);
+
+            if (promptId) {
+              // If we already have a pending update for this ID, just update the data
+              const existing = throttledUpdates.get(promptId);
+              if (existing) {
+                existing.data = data;
+                return;
+              }
+
+              // Otherwise, send immediately if it's been long enough, or set a timer
+              const timer = setTimeout(() => {
+                const pending = throttledUpdates.get(promptId);
+                if (pending) {
+                  callback(pending.data);
+                  throttledUpdates.delete(promptId);
+                }
+              }, THROTTLE_MS);
+
+              throttledUpdates.set(promptId, { data, timer });
+              
+              // Always send the first message immediately for responsiveness
+              callback(data);
+            } else {
+              // Not a progress message or no ID, send immediately
+              callback(data);
+            }
           } catch (e) {
             console.warn('[BackendApiService] Failed to parse WebSocket message', e);
           }
@@ -601,6 +630,11 @@ export class BackendApiService {
     return () => {
       isExplicitlyClosed = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
+      
+      // Clear all throttle timers
+      throttledUpdates.forEach(update => clearTimeout(update.timer));
+      throttledUpdates.clear();
+
       if (socket) {
         socket.close();
         socket = null;

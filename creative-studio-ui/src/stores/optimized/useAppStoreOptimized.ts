@@ -12,10 +12,11 @@
  * - Memoized selectors
  */
 
+import { useState, useCallback } from 'react';
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import type { 
   Project, Shot, Asset, GenerationTask, PanelSizes, 
   ChatMessage, Sequence, SequencePlan, World, Character 
@@ -203,7 +204,7 @@ const initialState: AppState = {
   currentTime: 0,
   showChat: false,
   showTaskQueue: false,
-  panelSizes: {},
+  panelSizes: { assetLibrary: 20, canvas: 60, propertiesOrChat: 20 },
   chatPanelPosition: { x: 100, y: 100 },
   chatPanelSize: { width: 400, height: 600 },
   chatPanelMinimized: false,
@@ -296,18 +297,18 @@ export const useAppStore = create<AppState & AppActions>()(
       setCharacters: (characters) => set({ characters }),
       addCharacter: (character) =>
         set((state) => {
-          state.characters.push({ ...character, id: generateId() });
+          state.characters.push({ ...character, character_id: generateId() });
         }),
       updateCharacter: (id, updates) =>
         set((state) => {
-          const index = state.characters.findIndex((c) => c.id === id);
+          const index = state.characters.findIndex((c) => c.character_id === id);
           if (index !== -1) {
             Object.assign(state.characters[index], updates);
           }
         }),
       deleteCharacter: (id) =>
         set((state) => {
-          state.characters = state.characters.filter((c) => c.id !== id);
+          state.characters = state.characters.filter((c) => c.character_id !== id);
         }),
 
       // World actions
@@ -437,7 +438,7 @@ export const useAppStore = create<AppState & AppActions>()(
             present: state,
             future: [],
           },
-        }),
+        })),
 
       // Loading state actions
       setLoading: (key, loading) =>
@@ -454,7 +455,11 @@ export const useAppStore = create<AppState & AppActions>()(
     })),
     {
       name: 'app-storage',
-      storage: createJSONStorage(() => StorageManager.getStorage()),
+      storage: createJSONStorage(() => ({
+        getItem: (name) => StorageManager.getItem(name),
+        setItem: async (name, value) => { await StorageManager.setItem(name, value); },
+        removeItem: async (name) => StorageManager.removeItem(name),
+      })),
       partialize: (state) => ({
         project: state.project,
         shots: state.shots,
@@ -543,25 +548,22 @@ export const handleStoreError = (error: unknown, context: string): void => {
 // MEMOIZED SELECTORS (COMPLEX)
 // ============================================
 
-export const useShotsBySequenceWithAssets = (sequenceId: string | null) => {
+export const useFilteredShots = (sequenceId: string) => {
   return useAppStore(
-    (state) => {
-      if (!sequenceId) return [];
-      
+    useShallow((state) => {
       const shots = state.shots.filter((s) => s.sequenceId === sequenceId);
       
       return shots.map((shot) => ({
         ...shot,
         assets: state.assets.filter((a) => a.shotId === shot.id),
       }));
-    },
-    shallow
+    })
   );
 };
 
 export const useProjectTimeline = () => {
   return useAppStore(
-    (state) => {
+    useShallow((state) => {
       const sortedShots = [...state.shots].sort(
         (a, b) => (a.startTime || 0) - (b.startTime || 0)
       );
@@ -570,27 +572,24 @@ export const useProjectTimeline = () => {
         ...shot,
         assets: state.assets.filter((a) => a.shotId === shot.id),
         characterCount: state.characters.filter((c) =>
-          shot.characterIds?.includes(c.id || '')
+          shot.characterIds?.includes(c.character_id || '')
         ).length,
       }));
-    },
-    shallow
+    })
   );
 };
 
 export const useStoreHealth = () => {
   return useAppStore(
-    (state) => ({
+    useShallow((state) => ({
       hasProject: !!state.project,
       shotCount: state.shots.length,
       assetCount: state.assets.length,
       characterCount: state.characters.length,
-      hasErrors: Object.values(state.errorStates).some((e) => e !== null),
-      loadingKeys: Object.entries(state.loadingStates)
-        .filter(([, loading]) => loading)
-        .map(([key]) => key),
-    }),
-    shallow
+      worldCount: state.worlds.length,
+      pendingTasks: state.taskQueue.filter((t) => t.status === 'pending')
+        .map((t) => t.id),
+    }))
   );
 };
 
@@ -599,16 +598,15 @@ export const useStoreHealth = () => {
 // ============================================
 
 export const useStoreRollback = () => {
-  const store = useAppStore();
-  const [history, setHistory] = useState<AppState[]>([]);
+  const [history, setHistory] = useState<any[]>([]);
   
   const saveCheckpoint = useCallback(() => {
-    const currentState = store.getState();
-    setHistory((prev) => {
+    const currentState = useAppStore.getState();
+    setHistory((prev: any[]) => {
       const newHistory = [...prev, currentState];
       return newHistory.slice(-50); // Keep last 50 checkpoints
     });
-  }, [store]);
+  }, []);
   
   const rollback = useCallback((steps: number = 1) => {
     if (history.length < steps) {
@@ -616,10 +614,10 @@ export const useStoreRollback = () => {
     }
     
     const targetState = history[history.length - steps];
-    store.setState(targetState, true);
+    useAppStore.setState(targetState, true);
     
-    setHistory((prev) => prev.slice(0, -steps));
-  }, [history, store]);
+    setHistory((prev: any[]) => prev.slice(0, -steps));
+  }, [history]);
   
   return { saveCheckpoint, rollback, history };
 };
@@ -630,14 +628,12 @@ export const useStoreRollback = () => {
 
 export const useStoreActions = () => {
   return useAppStore(
-    (state) => ({
+    useShallow((state) => ({
       setProject: state.setProject,
       setShots: state.setShots,
       addShot: state.addShot,
       updateShot: state.updateShot,
       deleteShot: state.deleteShot,
-      setCurrentShot: state.setCurrentShot,
-      setSelectedShotId: state.setSelectedShotId,
       setAssets: state.setAssets,
       addAsset: state.addAsset,
       updateAsset: state.updateAsset,
@@ -650,7 +646,9 @@ export const useStoreActions = () => {
       addWorld: state.addWorld,
       updateWorld: state.updateWorld,
       deleteWorld: state.deleteWorld,
+      setCurrentShot: state.setCurrentShot,
       setCurrentSequence: state.setCurrentSequence,
+      setSelectedShotId: state.setSelectedShotId,
       setCurrentTime: state.setCurrentTime,
       setShowChat: state.setShowChat,
       setShowTaskQueue: state.setShowTaskQueue,
@@ -672,7 +670,6 @@ export const useStoreActions = () => {
       setLoading: state.setLoading,
       setError: state.setError,
       reset: state.reset,
-    }),
-    shallow
+    }))
   );
 };

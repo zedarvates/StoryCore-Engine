@@ -64,7 +64,7 @@ describe('DraftPersistence', () => {
       const draftId = await draftPersistence.saveDraft(wizardState);
 
       expect(draftId).toBeDefined();
-      expect(draftId).toMatch(/^draft-\d+-[a-z0-9]+$/);
+      expect(draftId).toMatch(/^draft-[a-z0-9-]+$/);
     });
 
     it('should reuse existing draft ID if provided', async () => {

@@ -4,10 +4,7 @@
  * Tests for lazy loading and caching functionality.
  * Requirements: 5.3
  */
-import { LegacyAny } from '@/types/legacy';
-
-
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { LazyImage } from '../LazyImage';
 import * as thumbnailCache from '../../../utils/thumbnailCache';
@@ -28,7 +25,7 @@ class MockIntersectionObserver {
     setTimeout(() => {
       this.callback(
         [{ isIntersecting: true, target } as IntersectionObserverEntry],
-        this as LegacyAny
+        this as unknown as IntersectionObserver
       );
     }, 0);
   }
@@ -40,8 +37,11 @@ class MockIntersectionObserver {
 describe('LazyImage Component', () => {
   beforeEach(() => {
     // Setup IntersectionObserver mock
-    global.IntersectionObserver = MockIntersectionObserver as LegacyAny;
+    global.IntersectionObserver = MockIntersectionObserver as unknown as typeof IntersectionObserver;
+    
+    // Reset mocks and restore default implementation
     vi.clearAllMocks();
+    vi.mocked(thumbnailCache.fetchAndCacheThumbnail).mockImplementation((url: string) => Promise.resolve(url));
   });
 
   afterEach(() => {
@@ -113,6 +113,7 @@ describe('LazyImage Component', () => {
 
   describe('Error Handling', () => {
     it('should handle fetch errors gracefully', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       vi.mocked(thumbnailCache.fetchAndCacheThumbnail).mockRejectedValue(
         new Error('Fetch failed')
       );
@@ -124,6 +125,8 @@ describe('LazyImage Component', () => {
         // Should still attempt to display image with fallback
         expect(img).toBeInTheDocument();
       });
+      
+      consoleSpy.mockRestore();
     });
 
     it('should call custom error handler if provided', async () => {

@@ -207,6 +207,7 @@ export const TimelineDropTarget: React.FC<TimelineDropTargetProps> = ({
     <div
       ref={(node) => { drop(node); }}
       className={`timeline-drop-target ${isActive ? 'drop-active' : ''} ${isInvalid ? 'drop-invalid' : ''} ${canDrop && !isOver ? 'drop-ready' : ''}`}
+      style={{ position: 'relative', width: '100%', height: '100%' }}
     >
       {children}
 

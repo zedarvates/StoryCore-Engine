@@ -156,9 +156,19 @@ export function useThumbnailCacheStats() {
     diskSizeMB: number;
   } | null>(null);
 
+  const fetchStats = useCallback(async () => {
+    try {
+      await globalCache.initialize();
+      const currentStats = await globalCache.getStats();
+      setStats(currentStats);
+    } catch (error) {
+      console.warn('Failed to load cache stats:', error);
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
-    const fetchStats = async () => {
+    const fetchStatsOnInit = async () => {
       try {
         await globalCache.initialize();
         const currentStats = await globalCache.getStats();
@@ -170,13 +180,23 @@ export function useThumbnailCacheStats() {
       }
     };
     
-    fetchStats();
+    fetchStatsOnInit();
     return () => { isMounted = false; };
   }, []);
+
+  const clearCache = useCallback(async () => {
+    try {
+      await globalCache.initialize();
+      await globalCache.clear();
+      await fetchStats();
+    } catch (error) {
+      console.warn('Failed to clear cache:', error);
+    }
+  }, [fetchStats]);
 
   return {
     stats,
     clearCache,
-    reloadStats: loadStats
+    reloadStats: fetchStats
   };
 }

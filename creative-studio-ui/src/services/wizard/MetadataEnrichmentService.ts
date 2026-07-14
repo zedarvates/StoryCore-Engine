@@ -549,7 +549,7 @@ export class MetadataEnrichmentService {
   /**
    * Get nested value from object using dot notation
    */
-  private getNestedValue(obj: unknown, path: string): unknown {
+  private getNestedValue(obj: any, path: string): any {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 

@@ -184,14 +184,14 @@ describe('pathUtils', () => {
       const id1 = generateUniqueId('shot');
       const id2 = generateUniqueId('shot');
       
-      expect(id1).toMatch(/^shot_\d+$/);
-      expect(id2).toMatch(/^shot_\d+$/);
+      expect(id1).toMatch(/^shot_\d+_\d+$/);
+      expect(id2).toMatch(/^shot_\d+_\d+$/);
       expect(id1).not.toBe(id2);
     });
 
     it('should include index when provided', () => {
       const id = generateUniqueId('shot', 5);
-      expect(id).toMatch(/^shot_\d+_5$/);
+      expect(id).toMatch(/^shot_\d+_5_\d+$/);
     });
   });
 
@@ -200,8 +200,8 @@ describe('pathUtils', () => {
       const filename1 = generateUniqueFilename('asset', 'png');
       const filename2 = generateUniqueFilename('asset', 'png');
       
-      expect(filename1).toMatch(/^asset_\d+\.png$/);
-      expect(filename2).toMatch(/^asset_\d+\.png$/);
+      expect(filename1).toMatch(/^asset_\d+_\d+\.png$/);
+      expect(filename2).toMatch(/^asset_\d+_\d+\.png$/);
       expect(filename1).not.toBe(filename2);
     });
   });

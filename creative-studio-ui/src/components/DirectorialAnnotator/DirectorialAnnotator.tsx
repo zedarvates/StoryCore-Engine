@@ -32,6 +32,7 @@ interface DirectorialAnnotatorProps {
   width: number;
   height: number;
   onAnnotationSave?: (annotation: Annotation) => void;
+  onClose?: () => void;
   id?: string;
 }
 
@@ -40,6 +41,7 @@ export const DirectorialAnnotator: React.FC<DirectorialAnnotatorProps> = ({
   width,
   height,
   onAnnotationSave,
+  onClose,
   id
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -192,9 +194,20 @@ export const DirectorialAnnotator: React.FC<DirectorialAnnotatorProps> = ({
       </div>
 
       {/* Frame Status Overlay */}
-      <div className="absolute top-4 right-4 p-2 px-3 bg-slate-900 border border-slate-800 rounded-xl pointer-events-none z-20 flex items-center gap-2">
-         <Zap className="w-3 h-3 text-amber-400 animate-pulse" />
-         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Review Mode Frame {currentFrame}</span>
+      <div className="absolute top-4 right-4 p-2 px-3 bg-slate-900 border border-slate-800 rounded-xl pointer-events-auto z-20 flex items-center gap-4 shadow-2xl">
+         <div className="flex items-center gap-2 pointer-events-none">
+           <Zap className="w-3 h-3 text-amber-400 animate-pulse" />
+           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Review Mode Frame {currentFrame}</span>
+         </div>
+         {onClose && (
+           <button 
+             onClick={onClose}
+             className="w-6 h-6 rounded-lg bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border border-slate-700"
+             title="Fermer le mode révision"
+           >
+             <XCircle className="w-4 h-4" />
+           </button>
+         )}
       </div>
 
       {/* Note Input Popup */}
@@ -247,6 +260,7 @@ export const DirectorialAnnotator: React.FC<DirectorialAnnotatorProps> = ({
                  <p className="text-[11px] text-slate-300 italic">{ann.type === 'draw' ? 'Annotation graphique' : ann.text}</p>
                   <button 
                     title="Supprimer cette note"
+                    onClick={() => setAnnotations(prev => prev.filter(a => a.id !== ann.id))}
                     className="text-slate-600 hover:text-red-400 transition-colors ml-4"
                   >
                     <XCircle className="w-3 h-3" />

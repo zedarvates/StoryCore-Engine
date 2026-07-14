@@ -48,7 +48,7 @@ export class RecentProjectsService {
     // Add to beginning of list
     this.recentProjects.unshift({
       ...project,
-      lastModified: new Date(project.lastModified), // Ensure Date object
+      lastModified: typeof project.lastModified === 'number' ? project.lastModified : new Date(project.lastModified).getTime(),
     });
     
     // Enforce maximum size limit
@@ -202,7 +202,7 @@ export class RecentProjectsService {
         if (Array.isArray(parsed)) {
           this.recentProjects = parsed.map(p => ({
             ...p,
-            lastModified: new Date(p.lastModified),
+            lastModified: typeof p.lastModified === 'number' ? p.lastModified : new Date(p.lastModified).getTime(),
           }));
           
           // Enforce size limit in case storage was manually edited

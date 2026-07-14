@@ -13,7 +13,7 @@ import type {
   LLMSettingsUpdatedPayload,
   ComfyUISettingsUpdatedPayload,
 } from './eventEmitter';
-import { llmService, _setDefaultLLMService, _createLLMService } from './llmService';
+import { llmService } from './llmService';
 import type { LLMConfig } from './llmService';
 import { backendApi } from './backendApiService';
 import type { ComfyUIConfig } from './comfyuiService';

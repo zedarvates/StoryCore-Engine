@@ -7,12 +7,9 @@
 
 import React, { useCallback } from 'react';
 import { useAppDispatch, useAppSelector, store, useUndoRedo } from '../../store';
-import { setActiveTool } from '../../store/slices/toolsSlice';
+import { useToolsStore } from '@stores/editor/toolsStore';
 import { markSaved, setSaveStatus } from '../../store/slices/projectSlice';
-import { 
-  setActivePanel, toggleLayerManager, toggleCompactMode, 
-  setAssetCategory, setLibraryVisible, toggleProductionStudioMode
-} from '../../store/slices/panelsSlice';
+import { usePanelsStore } from '@stores/editor/panelsStore';
 import { saveProjectToFile, generateProjectFilename } from '../../services/projectPersistence';
 import type { ToolType } from '../../types';
 
@@ -29,7 +26,7 @@ import {
   Grid3X3, MapPin, AlignLeft, Clapperboard
 } from 'lucide-react';
 import './toolBar.css';
-import { toggleGrid, toggleMarkers, togglePrompts } from '../../store/slices/panelsSlice';
+
 
 // ============================================================================
 // Types
@@ -94,17 +91,22 @@ interface ToolBarProps {
 export const ToolBar: React.FC<ToolBarProps> = ({ 
   onBack, onAction, onExportToggle, onSettingsToggle 
 }) => {
+  const { activeTool, setActiveTool } = useToolsStore();
   const dispatch = useAppDispatch();
-  const { activeTool } = useAppSelector((state) => state.tools);
   const { saveStatus } = useAppSelector((state) => state.project);
-  const { showLayerManager, activePanel, activeAssetCategory } = useAppSelector((state) => state.panels);
+  const { 
+    showLayerManager, activePanel, activeAssetCategory,
+    compactMode, productionStudioMode, gridVisible, markersVisible, promptsVisible,
+    toggleLayerManager, setAssetCategory, setActivePanel, setLibraryVisible,
+    toggleCompactMode, toggleProductionStudioMode, toggleGrid, toggleMarkers, togglePrompts
+  } = usePanelsStore();
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   // Handlers
   const handleToolSelect = useCallback((toolId: ToolType) => {
-    dispatch(setActiveTool(toolId));
+    setActiveTool(toolId);
     if (onAction) onAction();
-  }, [dispatch, onAction]);
+  }, [setActiveTool, onAction]);
 
   const handlePanelToggle = useCallback((panelId: string) => {
     console.log(`[ToolBar] Toggling panel: ${panelId}`);
@@ -118,13 +120,13 @@ export const ToolBar: React.FC<ToolBarProps> = ({
 
     const category = categoryMap[panelId];
     if (category) {
-      dispatch(setAssetCategory(category));
-      dispatch(setActivePanel('assetLibrary')); 
-      dispatch(setLibraryVisible(true));
+      setAssetCategory(category);
+      setActivePanel('assetLibrary'); 
+      setLibraryVisible(true);
     } else if (panelId === 'index') {
-       dispatch(setActivePanel('timeline')); 
+       setActivePanel('timeline'); 
     }
-  }, [dispatch]);
+  }, [setAssetCategory, setActivePanel, setLibraryVisible]);
 
   const handleSaveProject = useCallback(() => {
     dispatch(setSaveStatus({ state: 'saving' }));
@@ -143,9 +145,9 @@ export const ToolBar: React.FC<ToolBarProps> = ({
   }, [dispatch, onAction]);
 
   const handleToggleAdvanced = useCallback(() => {
-    dispatch(toggleLayerManager());
+    toggleLayerManager();
     if (onAction) onAction();
-  }, [dispatch, onAction]);
+  }, [toggleLayerManager, onAction]);
 
   return (
     <div className="tool-bar">
@@ -255,8 +257,8 @@ export const ToolBar: React.FC<ToolBarProps> = ({
         </button>
 
         <button 
-          className={`tool-btn px-3 ${useAppSelector(state => state.panels.compactMode) ? 'active text-amber-500' : ''}`}
-          onClick={() => dispatch(toggleCompactMode())}
+          className={`tool-btn px-3 ${compactMode ? 'active text-amber-500' : ''}`}
+          onClick={toggleCompactMode}
           title="Compact Director Dashboard (K)"
         >
           <Box className="w-4 h-4 mr-2" />
@@ -264,8 +266,8 @@ export const ToolBar: React.FC<ToolBarProps> = ({
         </button>
         
         <button 
-          className={`tool-btn px-3 ${useAppSelector(state => state.panels.productionStudioMode) ? 'active studio-active border-amber-500/50' : ''}`}
-          onClick={() => dispatch(toggleProductionStudioMode())}
+          className={`tool-btn px-3 ${productionStudioMode ? 'active studio-active border-amber-500/50' : ''}`}
+          onClick={toggleProductionStudioMode}
           title="Production Studio (CapCut Style) (Shift+S)"
         >
           <Clapperboard className="w-4 h-4 mr-2 text-amber-400" />
@@ -277,22 +279,22 @@ export const ToolBar: React.FC<ToolBarProps> = ({
         {/* 7. View Toggles (Point 5.1/5.2 Grid/Marker control) */}
         <div className="tool-group tool-group-pill bg-primary/5 mx-2">
           <button 
-            className={`tool-btn-icon ${useAppSelector(state => state.panels.gridVisible) ? 'active text-primary' : 'opacity-40'}`} 
-            onClick={() => dispatch(toggleGrid())} 
+            className={`tool-btn-icon ${gridVisible ? 'active text-primary' : 'opacity-40'}`} 
+            onClick={toggleGrid} 
             title="Toggle Timeline Grid (G)"
           >
             <Grid3X3 className="w-3.5 h-3.5" />
           </button>
           <button 
-            className={`tool-btn-icon ${useAppSelector(state => state.panels.markersVisible) ? 'active text-primary' : 'opacity-40'}`} 
-            onClick={() => dispatch(toggleMarkers())} 
+            className={`tool-btn-icon ${markersVisible ? 'active text-primary' : 'opacity-40'}`} 
+            onClick={toggleMarkers} 
             title="Toggle Timeline Markers (M)"
           >
             <MapPin className="w-3.5 h-3.5" />
           </button>
           <button 
-            className={`tool-btn-icon ${useAppSelector(state => state.panels.promptsVisible) ? 'active text-primary' : 'opacity-40'}`} 
-            onClick={() => dispatch(togglePrompts())} 
+            className={`tool-btn-icon ${promptsVisible ? 'active text-primary' : 'opacity-40'}`} 
+            onClick={togglePrompts} 
             title="Toggle Shot Prompts (P)"
           >
             <AlignLeft className="w-3.5 h-3.5" />

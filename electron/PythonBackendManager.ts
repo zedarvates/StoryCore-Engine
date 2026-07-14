@@ -71,6 +71,17 @@ export class PythonBackendManager {
       // Wait for the backend to be ready
       await this.waitForBackendReady(config.port, config.timeout);
 
+      // Perform version compatibility check
+      try {
+        await this.checkVersion(config.port);
+        console.log('[Backend] Version compatibility verified');
+      } catch (versionError) {
+        console.error('[Backend] Version check failed:', versionError);
+        // We stop the backend if it's incompatible
+        await this.stop();
+        throw versionError;
+      }
+
       this.backendInfo = {
         port: config.port,
         url: `http://${config.host}:${config.port}`,
@@ -235,5 +246,59 @@ export class PythonBackendManager {
         resolve(false);
       });
     });
+  }
+
+  /**
+   * Performs a version check against the backend
+   */
+  private async checkVersion(port: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const req = http.get(`http://localhost:${port}/health`, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const response = JSON.parse(data);
+            const version = response.version;
+            
+            if (!version) {
+              reject(new Error('Backend did not provide a version number'));
+              return;
+            }
+
+            console.log(`[Backend] Detected version: ${version}`);
+            
+            const minVersion = '1.0.0';
+            if (this.isVersionCompatible(version, minVersion)) {
+              resolve();
+            } else {
+              reject(new Error(`Incompatible backend version: ${version}. Minimum required: ${minVersion}`));
+            }
+          } catch (e) {
+            reject(new Error('Failed to parse backend version response'));
+          }
+        });
+      });
+      
+      req.on('error', (e) => {
+        reject(new Error(`Failed to contact backend for version check: ${e.message}`));
+      });
+    });
+  }
+
+  /**
+   * Simple semantic version comparison
+   */
+  private isVersionCompatible(current: string, minimum: string): boolean {
+    const v1 = current.split('.').map(Number);
+    const v2 = minimum.split('.').map(Number);
+    
+    for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+      const n1 = v1[i] || 0;
+      const n2 = v2[i] || 0;
+      if (n1 > n2) return true;
+      if (n1 < n2) return false;
+    }
+    return true;
   }
 }

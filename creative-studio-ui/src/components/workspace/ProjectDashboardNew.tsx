@@ -1669,13 +1669,18 @@ export function ProjectDashboardNew({
 
     try {
       if (window.electronAPI?.comfyui?.startService) {
-        await window.electronAPI.comfyui.startService();
-        addChatMessage({
-          id: `sys-${Date.now()}-ok`,
-          role: 'system',
-          content: 'Visual Engine successfully restarted. Systems are back online.',
-          timestamp: new Date()
-        });
+        const result = await window.electronAPI.comfyui.startService();
+        
+        if (result && result.success) {
+          addChatMessage({
+            id: `sys-${Date.now()}-ok`,
+            role: 'system',
+            content: 'Visual Engine successfully restarted. Systems are back online.',
+            timestamp: new Date()
+          });
+        } else {
+          throw new Error(result?.error || 'Failed to start service');
+        }
       } else {
         throw new Error('Electron API not available');
       }

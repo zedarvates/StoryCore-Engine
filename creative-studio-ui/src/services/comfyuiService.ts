@@ -33,6 +33,8 @@ export interface ComfyUIConfig {
     gpuMemory?: number; // Manual GPU memory allocation in GB
     modelsPath?: string;
     workflowsPath?: string;
+    outputPath?: string;
+    inputPath?: string;
   };
   workflows: {
     imageGeneration: string;  // Workflow file for image generation
@@ -106,6 +108,8 @@ export function getDefaultComfyUIConfig(): ComfyUIConfig {
       gpuMemory: undefined, // Auto-detect by default
       modelsPath: '',
       workflowsPath: '',
+      outputPath: '',
+      inputPath: '',
     },
     workflows: {
       imageGeneration: '',
@@ -1151,7 +1155,7 @@ export async function testComfyUIConnection(
     // Use Electron IPC as a pre-check if available to avoid red logs in browser console
     if (window.electronAPI?.comfyui?.getServiceStatus) {
       try {
-        const status = await window.electronAPI.comfyui.getServiceStatus();
+        const status = await window.electronAPI.comfyui.getServiceStatus(config.serverUrl);
         if (!status.running) {
            clearTimeout(timeoutId);
            return { success: false, message: `ComfyUI server is not running`, isOffline: true };

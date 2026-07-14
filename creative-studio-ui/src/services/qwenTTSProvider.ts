@@ -103,7 +103,7 @@ class QwenTTSProvider {
       const models = data.models || [];
       
       // Check if Qwen audio model is available
-      const hasQwenAudio = models.some((m: unknown) => 
+      const hasQwenAudio = models.some((m: any) => 
         m.name?.includes('qwen2-audio') || 
         m.model?.includes('qwen2-audio')
       );

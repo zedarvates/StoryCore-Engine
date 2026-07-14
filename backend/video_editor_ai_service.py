@@ -1300,7 +1300,7 @@ class MagicMaskService:
 # =============================================================================
 
 
-class AIVideoEditorService:
+class VideoEditorAIService:
     """Main AI service manager for video editor."""
 
     def __init__(self, config: AIConfig = None):
@@ -1408,11 +1408,11 @@ def create_smart_crop_service(config: AIConfig = None) -> SmartCropService:
 _ai_service_instance = None
 
 
-def create_ai_service(config: AIConfig = None) -> AIVideoEditorService:
+def create_ai_service(config: AIConfig = None) -> VideoEditorAIService:
     """Create or return main AI service instance (singleton for performance)."""
     global _ai_service_instance
     if _ai_service_instance is None:
-        _ai_service_instance = AIVideoEditorService(config)
+        _ai_service_instance = VideoEditorAIService(config)
     return _ai_service_instance
 
 

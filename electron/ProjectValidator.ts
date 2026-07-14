@@ -13,6 +13,8 @@ import { ValidationError } from './errors';
  * Project configuration schema (Data Contract v1)
  */
 export interface ProjectConfig {
+  id?: string;
+  guid?: string;
   schema_version: string;
   project_name: string;
   created_at?: string;

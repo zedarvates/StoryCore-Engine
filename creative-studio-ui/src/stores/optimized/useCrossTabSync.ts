@@ -11,6 +11,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from './useAppStoreOptimized';
 
 const CHANNEL_NAME = 'storycore-store-sync';
+const TAB_SESSION_ID = typeof window !== 'undefined' ? Math.random().toString(36).substring(2, 9) : 'ssr';
 
 /**
  * Creates a BroadcastChannel for cross-tab communication
@@ -31,7 +32,6 @@ export const createBroadcastChannel = () => {
  */
 export const useCrossTabSync = () => {
   const channel = useRef<BroadcastChannel | null>(null);
-  const store = useAppStore();
   
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -55,13 +55,12 @@ export const useCrossTabSync = () => {
       const { type, payload } = event.data;
       
       if (type === 'STORE_UPDATE') {
-        const { state, source, timestamp } = payload;
-        const currentSessionId = store.getState().sessionId;
+        const { state, source } = payload;
         
         // Prevent infinite loops by checking if update is from this tab
-        if (source !== currentSessionId) {
+        if (source !== TAB_SESSION_ID) {
           console.log('[CrossTab Sync] Received state update from tab:', source);
-          store.setState(state, true);
+          useAppStore.setState(state, true);
         }
       }
       
@@ -80,7 +79,7 @@ export const useCrossTabSync = () => {
       channel.current?.removeEventListener('message', handleMessage);
       channel.current?.close();
     };
-  }, [store]);
+  }, []);
   
   /**
    * Broadcast current state to other tabs
@@ -90,27 +89,27 @@ export const useCrossTabSync = () => {
       return;
     }
     
-    const state = store.getState();
+    const state = useAppStore.getState();
     
     try {
       channel.current.postMessage({
         type: 'STORE_UPDATE',
         payload: {
           state,
-          source: state.sessionId,
+          source: TAB_SESSION_ID,
           timestamp: Date.now(),
         },
       });
     } catch (error) {
       console.warn('[CrossTab Sync] Failed to broadcast state:', error);
     }
-  }, [store]);
+  }, []);
   
   /**
    * Subscribe to store changes and broadcast them
    */
   useEffect(() => {
-    const unsubscribe = store.subscribe((state, prevState) => {
+    const unsubscribe = useAppStore.subscribe((state: any, prevState: any) => {
       // Only broadcast if state actually changed
       if (state !== prevState) {
         broadcastState();
@@ -118,7 +117,7 @@ export const useCrossTabSync = () => {
     });
     
     return unsubscribe;
-  }, [store, broadcastState]);
+  }, [broadcastState]);
   
   return { broadcastState };
 };

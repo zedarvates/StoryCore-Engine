@@ -122,6 +122,9 @@ ipcMain.handle('ffmpeg:run', async (event, { jobId, args, outputPath }) => {
 
     // Parse progress from stderr
     let stderrData = '';
+    let lastProgressTime = 0;
+    const PROGRESS_THROTTLE_MS = 200; // Send updates at most every 200ms
+
     proc.stderr.on('data', (chunk) => {
       stderrData += chunk.toString();
 
@@ -131,8 +134,12 @@ ipcMain.handle('ffmpeg:run', async (event, { jobId, args, outputPath }) => {
 
       for (const line of lines) {
         if (line.startsWith('frame=')) {
-          const frame = parseInt(line.split('=')[1]?.trim() || '0', 10);
-          mainWindow?.webContents.send('ffmpeg:progress', { jobId, frame });
+          const now = Date.now();
+          if (now - lastProgressTime >= PROGRESS_THROTTLE_MS) {
+            const frame = parseInt(line.split('=')[1]?.trim() || '0', 10);
+            mainWindow?.webContents.send('ffmpeg:progress', { jobId, frame });
+            lastProgressTime = now;
+          }
         }
         if (line.startsWith('progress=end')) {
           mainWindow?.webContents.send('ffmpeg:progress', { jobId, frame: -1, done: true });
@@ -226,6 +233,53 @@ ipcMain.handle('ffmpeg:save-dialog', async (event, { defaultName, filters }) => 
     ],
   });
   return result.canceled ? null : result.filePath;
+});
+
+/**
+ * IPC: Generate a thumbnail from a video at a specific time.
+ * Uses FFmpeg to extract a single frame.
+ * 
+ * Args: { filePath, time, width, height }
+ * Returns base64 encoded image string.
+ */
+ipcMain.handle('ffmpeg:thumbnail', async (event, { filePath, time, width = 320, height = 180 }) => {
+  const ffmpegPath = findFFmpegPath();
+  const tempDir = app.getPath('temp');
+  const tempPath = path.join(tempDir, `thumb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`);
+
+  return new Promise((resolve, reject) => {
+    // Command: ffmpeg -ss [time] -i [filePath] -vframes 1 -s [width]x[height] -f image2 [tempPath]
+    // Note: -ss BEFORE -i is faster for thumbnails (fast seek)
+    const args = [
+      '-ss', time.toString(),
+      '-i', filePath,
+      '-vframes', '1',
+      '-s', `${width}x${height}`,
+      '-f', 'image2',
+      '-y',
+      tempPath
+    ];
+
+    execFile(ffmpegPath, args, (err) => {
+      if (err) {
+        if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        return reject(new Error(`Failed to generate thumbnail: ${err.message}`));
+      }
+
+      try {
+        const imageBuffer = fs.readFileSync(tempPath);
+        const base64Image = imageBuffer.toString('base64');
+        
+        // Clean up temp file
+        fs.unlinkSync(tempPath);
+        
+        resolve(`data:image/jpeg;base64,${base64Image}`);
+      } catch (readErr) {
+        if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+        reject(new Error(`Failed to read generated thumbnail: ${readErr.message}`));
+      }
+    });
+  });
 });
 
 // =============================================================================

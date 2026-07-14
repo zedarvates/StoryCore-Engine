@@ -1,6 +1,6 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
-import { Close } from '@mui/icons-material';
+import Close from '@mui/icons-material/Close';
 import { TTTLRMToolbox } from '../ai/TTTLRMToolbox';
 import { useAppStore } from '@/stores/useAppStore';
 

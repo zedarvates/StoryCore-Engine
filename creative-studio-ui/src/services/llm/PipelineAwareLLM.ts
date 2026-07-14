@@ -10,8 +10,8 @@
 
 import { useGenerationStore } from '../../stores/generationStore';
 import { useAppStore } from '../../stores/useAppStore';
-import { _useEditorStore } from '../../stores/editorStore';
-import type { _GenerationPipelineState, _GeneratedAsset } from '../../types/generation';
+import { useEditorStore } from '../../stores/editorStore';
+import type { GenerationPipelineState, GeneratedAsset } from '../../types/generation';
 
 // =============================================================================
 // Types
@@ -345,7 +345,7 @@ CONTEXTE DU PROJET:
 - Complétion: ${projectStatus.completionPercentage}%
 - Personnages: ${project?.characters?.length || 0}
 - Shots: ${project?.shots?.length || 0}
-- Séquences: ${project?.sequences?.length || 0}
+- Séquences: ${(project as any)?.sequences?.length || 0}
 
 ÉTAT DU PIPELINE:
 - Progression globale: ${pipelineStatus.overallProgress}%

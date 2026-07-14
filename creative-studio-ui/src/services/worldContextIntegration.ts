@@ -231,7 +231,7 @@ export function validateContentAgainstWorld(
 
   // Check if content mentions genres not in the world
   Object.entries(genreKeywords).forEach(([genre, keywords]) => {
-    if (!world.genre.includes(genre)) {
+    if (!world.genre.includes(genre as any)) {
       const hasKeywords = keywords.some((keyword) =>
         contentLower.includes(keyword)
       );

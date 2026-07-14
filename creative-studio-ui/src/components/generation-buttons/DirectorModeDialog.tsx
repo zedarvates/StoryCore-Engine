@@ -36,7 +36,7 @@ export const DirectorModeDialog: React.FC<DirectorModeDialogProps> = ({
         </DialogHeader>
         
         <div className="relative">
-          <NanoBananaDirector />
+          <NanoBananaDirector onClose={onClose} />
         </div>
       </DialogContent>
     </Dialog>

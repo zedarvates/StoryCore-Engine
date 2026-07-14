@@ -106,7 +106,7 @@ export class AnimeEffectRenderer {
       gradientEndColor,
       direction,
       angle,
-      _focalPoint,
+      focalPoint,
       spiralTightness,
       style,
       lineCap,
@@ -226,13 +226,13 @@ export class AnimeEffectRenderer {
     effect: ImpactFrameEffect,
     position: Point2D
   ): EffectRenderResult {
-    co_nst { ctx, width, height, time } = context;
+    const { ctx, width, height, time } = context;
     const {
       impactType,
       impactSize,
       impactShape,
       flashColor,
-      _flashDuration,
+      flashDuration,
       flashIntensity,
       glowRadius,
       screenShake,
@@ -337,18 +337,18 @@ export class AnimeEffectRenderer {
   private renderMotionTrail(
     context: RenderContext,
     effect: MotionTrailEffect,
-    position: Poi_nt2D
+    position: Point2D
   ): EffectRenderResult {
     const { ctx, time } = context;
     const {
       trailLength,
-      _trailOpacity,
+      trailOpacity,
       trailColor,
       trailBlur,
-      _fadeMode,
-      _persistence,
-      _style,
-      _outlineThickness,
+      fadeMode,
+      persistence,
+      style,
+      outlineThickness,
       outlineColor,
       colorShift,
       intensity
@@ -478,7 +478,7 @@ export class AnimeEffectRenderer {
   private renderMangaPanel(
     context: RenderContext,
     effect: MangaPanelEffect,
-    position: Poi_nt2D
+    position: Point2D
   ): EffectRenderResult {
     const { ctx, width, height, time } = context;
     const {
@@ -491,11 +491,11 @@ export class AnimeEffectRenderer {
       backgroundColor,
       backgroundOpacity,
       screenTone,
-      _screenToneIntensity,
-      _screenToneColor,
-      _focusEffect,
-      _focusPoint,
-      _focusSize,
+      screenToneIntensity,
+      screenToneColor,
+      focusEffect,
+      focusPoint,
+      focusSize,
       focusFeather,
       vignetteIntensity,
       sfxText,
@@ -582,7 +582,7 @@ export class AnimeEffectRenderer {
     effect: AuraEffect,
     position: Point2D
   ): EffectRenderResult {
-    co_nst { ctx, time } = context;
+    const { ctx, time } = context;
     const {
       auraType,
       color,

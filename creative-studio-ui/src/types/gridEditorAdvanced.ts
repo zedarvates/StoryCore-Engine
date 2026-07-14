@@ -345,7 +345,7 @@ export interface ResponsiveGridConfig {
 export type SearchOperator = 'AND' | 'OR' | 'NOT';
 
 export interface SearchCriteria {
-  field: 'name' | 'tags' | 'duration' | 'type' | 'status';
+  field: 'name' | 'tags' | 'duration' | 'type' | 'status' | 'title' | 'description';
   operator: SearchOperator;
   value: string | number;
 }

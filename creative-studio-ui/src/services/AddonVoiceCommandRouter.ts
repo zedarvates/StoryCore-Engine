@@ -25,6 +25,7 @@ export type AddonId =
   | 'project-translator'
   | 'credits-screen'
   | 'video-publisher'
+  | 'hermes-novelist'
   | 'image-to-3d';
 
 export type VerbCategory =
@@ -132,6 +133,7 @@ class VoiceIntentParser {
     'project-translator': ['traducteur', 'traduction', 'translator', 'translate', 'traduire'],
     'credits-screen': ['crédits', 'générique', 'remerciements', 'credits', 'thanks'],
     'video-publisher': ['publisher', 'publication', 'publier', 'video publisher', 'social hub', 'postbot'],
+    'hermes-novelist': ['hermes', 'hermès', 'roman', 'romancier', 'novelist', 'histoire', 'story'],
     'image-to-3d': ['3d pipeline', 'reconstruction 3d', 'modélisation', 'studio 3d'],
   };
 
@@ -246,6 +248,8 @@ export class AddonVoiceCommandRouter {
       case 'video-publisher':
       case 'image-to-3d':
         return this.handleImageVideoAddon(intent);
+      case 'hermes-novelist':
+        return this.handleHermes(intent);
       default:
         return {
           success: false,
@@ -428,6 +432,29 @@ export class AddonVoiceCommandRouter {
       success: true,
       message: `La commande de type "${verb}" a été transmise à l'addon ${addonId}.`,
       actionTaken: eventType,
+    };
+  }
+
+  // HERMES NOVELIST — Automatisation Conversationnelle
+  // ============================================================================
+
+  private handleHermes(intent: ParsedVoiceIntent): VoiceCommandResult {
+    const { verb, subject, rawTranscript } = intent;
+    
+    // On émet un événement spécial pour l'agent conversationnel
+    eventEmitter.emit('addon:hermes:voice-command', {
+      timestamp: new Date(),
+      source: 'VoiceCommandRouter',
+      addonId: 'hermes-novelist',
+      verb,
+      transcript: rawTranscript,
+      subject
+    });
+
+    return {
+      success: true,
+      message: 'Demande transmise à Hermès...',
+      actionTaken: 'hermes:process-voice'
     };
   }
 

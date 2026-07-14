@@ -9,7 +9,8 @@ import {
   Sparkles,
   Music,
   Scissors,
-  PenTool
+  PenTool,
+  XCircle
 } from 'lucide-react';
 import './NanoBananaDirector.css';
 
@@ -30,7 +31,11 @@ interface GPUStatus {
   status: string;
 }
 
-export const NanoBananaDirector: React.FC = () => {
+interface NanoBananaDirectorProps {
+  onClose?: () => void;
+}
+
+export const NanoBananaDirector: React.FC<NanoBananaDirectorProps> = ({ onClose }) => {
   // --- States ---
   const [prompt, setPrompt] = useState('');
   const [audioPrompt, setAudioPrompt] = useState('');
@@ -132,6 +137,11 @@ export const NanoBananaDirector: React.FC = () => {
           </div>
         </div>
         <div className="director-badge">Ultra-Consistency</div>
+        {onClose && (
+          <button className="close-button" onClick={onClose} title="Fermer le mode réalisateur">
+            <XCircle className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       <div className="director-grid">

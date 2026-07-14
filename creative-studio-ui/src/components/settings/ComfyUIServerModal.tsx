@@ -73,6 +73,8 @@ export function ComfyUIServerModal({
   const [workflowsPath, setWorkflowsPath] = useState('');
   const [autoStart, setAutoStart] = useState(false);
   const [corsHeaders, setCorsHeaders] = useState(false);
+  const [outputPath, setOutputPath] = useState('');
+  const [inputPath, setInputPath] = useState('');
 
   // Performance settings
   const [batchSize, setBatchSize] = useState(1);
@@ -112,6 +114,8 @@ export function ComfyUIServerModal({
         setWorkflowsPath(server.workflowsPath || '');
         setAutoStart(server.autoStart || false);
         setCorsHeaders(server.corsHeaders || false);
+        setOutputPath(server.outputPath || '');
+        setInputPath(server.inputPath || '');
         
         // Load performance
         setBatchSize(server.performance?.batchSize || 1);
@@ -155,6 +159,8 @@ export function ComfyUIServerModal({
         setWorkflowsPath('');
         setAutoStart(false);
         setCorsHeaders(false);
+        setOutputPath('');
+        setInputPath('');
         setBatchSize(1);
         setPrecision('FP16');
         setSteps(20);
@@ -247,6 +253,20 @@ export function ComfyUIServerModal({
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+  
+  const handleSelectDirectory = async (type: 'models' | 'workflows' | 'output' | 'input') => {
+    try {
+      const path = await (window as any).electronAPI?.project?.selectDirectory();
+      if (path) {
+        if (type === 'models') setModelsPath(path);
+        else if (type === 'workflows') setWorkflowsPath(path);
+        else if (type === 'output') setOutputPath(path);
+        else if (type === 'input') setInputPath(path);
+      }
+    } catch (error) {
+      console.error('Failed to select directory:', error);
+    }
+  };
 
   const handleSave = () => {
     if (!validate()) return;
@@ -281,6 +301,8 @@ export function ComfyUIServerModal({
       workflowsPath: workflowsPath.trim() || undefined,
       autoStart,
       corsHeaders,
+      outputPath: outputPath.trim() || undefined,
+      inputPath: inputPath.trim() || undefined,
       performance: {
         batchSize,
         precision,
@@ -617,22 +639,66 @@ export function ComfyUIServerModal({
 
               <div className="space-y-2">
                 <Label htmlFor="modelsPath">Models Path</Label>
-                <Input
-                  id="modelsPath"
-                  value={modelsPath}
-                  onChange={(e) => setModelsPath(e.target.value)}
-                  placeholder="/path/to/ComfyUI/models"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="modelsPath"
+                    value={modelsPath}
+                    onChange={(e) => setModelsPath(e.target.value)}
+                    placeholder="/path/to/ComfyUI/models"
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="sm" onClick={() => handleSelectDirectory('models')}>
+                    Browse
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="workflowsPath">Workflows Path</Label>
-                <Input
-                  id="workflowsPath"
-                  value={workflowsPath}
-                  onChange={(e) => setWorkflowsPath(e.target.value)}
-                  placeholder="/path/to/ComfyUI/workflows"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="workflowsPath"
+                    value={workflowsPath}
+                    onChange={(e) => setWorkflowsPath(e.target.value)}
+                    placeholder="/path/to/ComfyUI/workflows"
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="sm" onClick={() => handleSelectDirectory('workflows')}>
+                    Browse
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="outputPath">Output Path (Assets Storage)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="outputPath"
+                    value={outputPath}
+                    onChange={(e) => setOutputPath(e.target.value)}
+                    placeholder="/path/to/ComfyUI/output"
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="sm" onClick={() => handleSelectDirectory('output')}>
+                    Browse
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="inputPath">Input Path (Reference Images)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="inputPath"
+                    value={inputPath}
+                    onChange={(e) => setInputPath(e.target.value)}
+                    placeholder="/path/to/ComfyUI/input"
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="sm" onClick={() => handleSelectDirectory('input')}>
+                    Browse
+                  </Button>
+                </div>
               </div>
             </TabsContent>
 

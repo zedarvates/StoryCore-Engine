@@ -575,9 +575,9 @@ function parseYAML(content: string): ExportedGridConfiguration {
     // Try to extract JSON-like structure from YAML
     // This is a very basic implementation
     const lines = content.split('\n');
-    const result: unknown = { metadata: {}, configuration: {} };
+    const result: any = { metadata: {}, configuration: {} };
     
-    let currentSection: unknown = result;
+    let currentSection: any = result;
     let currentPath: string[] = [];
     
     for (const line of lines) {
@@ -587,7 +587,7 @@ function parseYAML(content: string): ExportedGridConfiguration {
       if (match) {
         const indent = match[1].length;
         const key = match[2];
-        let value: unknown = match[3];
+        let value: any = match[3];
         
         // Parse value
         if (value === 'true') value = true;
@@ -600,11 +600,11 @@ function parseYAML(content: string): ExportedGridConfiguration {
         
         // Set value in result
         if (indent === 0) {
-          _currentSection = result[key] = value || {};
+          currentSection = result[key] = value || {};
           currentPath = [key];
         } else {
           // Nested value
-          let target = result;
+          let target: any = result;
           for (const p of currentPath) {
             target = target[p];
           }
@@ -680,7 +680,7 @@ function downloadFile(blob: Blob, filename: string): void {
 /**
  * Set nested value in object
  */
-function setNestedValue(obj: unknown, path: string, value: unknown): void {
+function setNestedValue(obj: any, path: string, value: any): void {
   const parts = path.split('.');
   let current = obj;
   
@@ -744,7 +744,7 @@ export class ConfigurationExportImport {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to parse JSON',
+        errors: [error instanceof Error ? error.message : 'Failed to parse JSON'],
         warnings: []
       };
     }
@@ -779,7 +779,7 @@ export class ConfigurationExportImport {
       if (!url.startsWith(URL_PREFIX)) {
         return {
           success: false,
-          error: 'Invalid URL format',
+          errors: ['Invalid URL format'],
           warnings: []
         };
       }
@@ -789,7 +789,7 @@ export class ConfigurationExportImport {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to decode URL',
+        errors: [error instanceof Error ? error.message : 'Failed to decode URL'],
         warnings: []
       };
     }

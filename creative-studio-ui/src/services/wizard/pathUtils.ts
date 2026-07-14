@@ -21,25 +21,48 @@ const _WIN_SEP = '\\';
  * @returns Joined path with forward slashes
  */
 export function joinPath(...segments: string[]): string {
-  // Filter out empty segments
-  const filtered = segments.filter(seg => seg && seg.length > 0);
+  // Filter out empty segments and normalize separators
+  const filtered = segments
+    .filter(seg => seg && typeof seg === 'string' && seg.length > 0)
+    .map(seg => seg.replace(/\\/g, POSIX_SEP));
   
   if (filtered.length === 0) {
     return '.';
   }
   
-  // Join with forward slash and normalize
-  let joined = filtered.join(POSIX_SEP);
+  // Handle absolute paths in segments (if a later segment is absolute, it becomes the new base)
+  let resultParts: string[] = [];
+  for (const seg of filtered) {
+    if (seg.startsWith(POSIX_SEP) || /^[a-zA-Z]:[\\\/]/.test(seg)) {
+      resultParts = seg.split(POSIX_SEP);
+    } else {
+      resultParts.push(...seg.split(POSIX_SEP));
+    }
+  }
+
+  // Normalize parts (handle . and ..)
+  const normalizedParts: string[] = [];
+  for (const part of resultParts) {
+    if (part === '.' || part === '') continue;
+    if (part === '..') {
+      if (normalizedParts.length > 0 && normalizedParts[normalizedParts.length - 1] !== '..') {
+        normalizedParts.pop();
+      } else {
+        normalizedParts.push('..');
+      }
+    } else {
+      normalizedParts.push(part);
+    }
+  }
+
+  const isAbsolute = filtered[0].startsWith(POSIX_SEP) || /^[a-zA-Z]:[\\\/]/.test(filtered[0]);
+  let joined = normalizedParts.join(POSIX_SEP);
   
-  // Normalize multiple slashes
-  joined = joined.replace(/\/+/g, POSIX_SEP);
-  
-  // Remove trailing slash unless it's the root
-  if (joined.length > 1 && joined.endsWith(POSIX_SEP)) {
-    joined = joined.slice(0, -1);
+  if (isAbsolute && !joined.startsWith(POSIX_SEP) && !/^[a-zA-Z]:/.test(joined)) {
+    joined = POSIX_SEP + joined;
   }
   
-  return joined;
+  return joined || '.';
 }
 
 /**
@@ -245,7 +268,8 @@ export function buildAssetFilePath(
  */
 export function generateUniqueFilename(prefix: string, extension: string): string {
   const timestamp = Date.now();
-  return `${prefix}_${timestamp}.${extension}`;
+  const random = Math.floor(Math.random() * 10000);
+  return `${prefix}_${timestamp}_${random}.${extension}`;
 }
 
 /**
@@ -257,10 +281,11 @@ export function generateUniqueFilename(prefix: string, extension: string): strin
  */
 export function generateUniqueId(prefix: string, index?: number): string {
   const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 10000);
   if (index !== undefined) {
-    return `${prefix}_${timestamp}_${index}`;
+    return `${prefix}_${timestamp}_${index}_${random}`;
   }
-  return `${prefix}_${timestamp}`;
+  return `${prefix}_${timestamp}_${random}`;
 }
 
 /**

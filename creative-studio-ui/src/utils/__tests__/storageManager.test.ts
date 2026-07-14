@@ -27,9 +27,9 @@ describe('StorageManager', () => {
       expect(stats.percentage).toBeLessThanOrEqual(100);
     });
 
-    it('should calculate percentage correctly', () => {
+    it('should calculate percentage correctly', async () => {
       const testData = 'x'.repeat(1000);
-      StorageManager.setItem('test', testData);
+      await StorageManager.setItem('test', testData);
       
       const stats = StorageManager.getStats();
       expect(stats.used).toBeGreaterThan(0);
@@ -52,45 +52,45 @@ describe('StorageManager', () => {
   });
 
   describe('setItem and getItem', () => {
-    it('should store and retrieve data', () => {
+    it('should store and retrieve data', async () => {
       const key = 'test-key';
       const value = 'test-value';
       
-      StorageManager.setItem(key, value);
-      const retrieved = StorageManager.getItem(key);
+      await StorageManager.setItem(key, value);
+      const retrieved = await StorageManager.getItem(key);
       
       expect(retrieved).toBe(value);
     });
 
-    it('should handle JSON data', () => {
+    it('should handle JSON data', async () => {
       const key = 'test-json';
       const data = { name: 'Test', value: 123 };
       const jsonString = JSON.stringify(data);
       
-      StorageManager.setItem(key, jsonString);
-      const retrieved = StorageManager.getItem(key);
+      await StorageManager.setItem(key, jsonString);
+      const retrieved = await StorageManager.getItem(key);
       const parsed = JSON.parse(retrieved || '{}');
       
       expect(parsed).toEqual(data);
     });
 
-    it('should return null for non-existent keys', () => {
-      const retrieved = StorageManager.getItem('non-existent');
+    it('should return null for non-existent keys', async () => {
+      const retrieved = await StorageManager.getItem('non-existent');
       
       expect(retrieved).toBeNull();
     });
   });
 
   describe('removeItem', () => {
-    it('should remove stored items', () => {
+    it('should remove stored items', async () => {
       const key = 'test-remove';
       const value = 'test-value';
       
-      StorageManager.setItem(key, value);
-      expect(StorageManager.getItem(key)).toBe(value);
+      await StorageManager.setItem(key, value);
+      expect(await StorageManager.getItem(key)).toBe(value);
       
       StorageManager.removeItem(key);
-      expect(StorageManager.getItem(key)).toBeNull();
+      expect(await StorageManager.getItem(key)).toBeNull();
     });
   });
 });

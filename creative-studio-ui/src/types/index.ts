@@ -137,6 +137,7 @@ export interface Shot {
 
   // NLE — Liaison video↔audio (LTX-Desktop style linked clips)
   linkedShotIds?: string[];
+  characterIds?: string[];
 
   // NLE — Sprite & 3D Scene clip config (Phase 10)
   spriteConfig?: SpriteClipConfig;
@@ -340,6 +341,7 @@ export interface AudioTrack {
   fadeIn?: number; // seconds
   fadeOut?: number; // seconds
   pan?: number; // -100 (left) to 100 (right) for stereo
+  volume?: number; // volume level
 
   // Surround sound configuration
   surroundConfig?: SurroundConfig;
@@ -575,6 +577,7 @@ export interface Asset {
   source?: 'builtin' | 'user' | 'ai-generated';
   createdAt?: number; // timestamp
   path?: string; // Local file path if available
+  shotId?: string; // Associated shot ID
 }
 
 export interface Project {

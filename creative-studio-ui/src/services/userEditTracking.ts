@@ -128,10 +128,10 @@ export function mergeWithUserEdits<T extends Record<string, unknown>>(
   // Recursively preserve edited fields
   // Using 'any' for recursive merge to handle nested objects of varying structures
   function preserveEdits(
-    generated: unknown,
-    current: unknown,
+    generated: any,
+    current: any,
     path: string = ''
-  ): unknown {
+  ): any {
     if (typeof generated !== 'object' || generated === null) {
       // Check if this field was edited
       if (editTracker.isFieldEdited(path)) {
@@ -150,7 +150,7 @@ export function mergeWithUserEdits<T extends Record<string, unknown>>(
 
     // For objects, recursively check each property
     // Using 'any' for result object to build merged structure dynamically
-    const result: unknown = {};
+    const result: any = {};
     const allKeys = new Set([
       ...Object.keys(generated),
       ...Object.keys(current || {}),
@@ -207,7 +207,7 @@ export function parseFieldPath(fieldPath: string): string[] {
  * Gets the value at a field path in an object
  */
 // Using 'any' for obj parameter and return type to support accessing any object structure
-export function getValueAtPath(obj: unknown, fieldPath: string): unknown {
+export function getValueAtPath(obj: any, fieldPath: string): any {
   const segments = parseFieldPath(fieldPath);
   let current = obj;
 
@@ -226,9 +226,9 @@ export function getValueAtPath(obj: unknown, fieldPath: string): unknown {
  */
 // Using 'any' for obj and value parameters to support setting values in any object structure
 export function setValueAtPath(
-  obj: unknown,
+  obj: any,
   fieldPath: string,
-  value: unknown
+  value: any
 ): void {
   const segments = parseFieldPath(fieldPath);
   let current = obj;

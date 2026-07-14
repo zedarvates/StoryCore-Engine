@@ -11,13 +11,11 @@ Ou pour initialiser au démarrage de l'API :
     from backend.gem_migration import run_gem_migration
     await run_gem_migration()
 
-Version: 1.0.0
-"""
-
 import asyncio
 import logging
 import os
 import sys
+from backend.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +161,7 @@ async def run_gem_migration_sqlalchemy():
     Crée les tables GemReward via create_all() SQLAlchemy.
     Utilisé au startup de l'API si DATABASE_URL est configuré.
     """
-    database_url = os.getenv("DATABASE_URL", "")
+    database_url = settings.DATABASE_URL
 
     if not database_url:
         logger.info(
@@ -225,7 +223,7 @@ async def run_gem_migration_raw_sql():
     Exécute le DDL SQL directement via asyncpg.
     Utilisé en fallback si la migration SQLAlchemy échoue.
     """
-    database_url = os.getenv("DATABASE_URL", "")
+    database_url = settings.DATABASE_URL
     if not database_url:
         return False
 

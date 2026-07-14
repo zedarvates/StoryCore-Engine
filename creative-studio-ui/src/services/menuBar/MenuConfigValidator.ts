@@ -277,7 +277,7 @@ export class MenuConfigValidator {
    * Validate keyboard shortcut
    */
   private validateShortcut(
-    shortcut: unknown,
+    shortcut: any,
     menuId: string,
     itemId: string,
     path: string

@@ -6,7 +6,7 @@
  */
 
 import type { ChatboxLLMConfig } from './llmConfigStorage';
-import { saveConfiguration, _saveLanguagePreference, STORAGE_KEYS } from './llmConfigStorage';
+import { saveConfiguration, STORAGE_KEYS } from './llmConfigStorage';
 
 // ============================================================================
 // Types

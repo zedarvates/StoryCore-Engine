@@ -15,11 +15,19 @@ import psutil
 import yaml
 
 # Configuration du logging
+log_path = "/var/log/storycore/monitor_ai_operations.log"
+try:
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+except Exception:
+    # Fallback to local logs directory if system directory is not writable (e.g. on Windows)
+    log_path = os.path.join("logs", "monitor_ai_operations.log")
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("/var/log/storycore/monitor_ai_operations.log"),
+        logging.FileHandler(log_path),
         logging.StreamHandler(),
     ],
 )

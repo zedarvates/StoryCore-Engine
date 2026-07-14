@@ -261,7 +261,12 @@ class SSEConnection extends MCPConnection {
     
     return new Promise(async (resolve, reject) => {
       try {
-        const response = await fetch(this.url);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second connection timeout
+
+        const response = await fetch(this.url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
           throw new Error(`SSE Connection failed: ${response.status}`);
         }

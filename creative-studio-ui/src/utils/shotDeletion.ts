@@ -62,7 +62,7 @@ export function validateShotDeletion(
   }
 
   // Find associated dialogue phrases
-  const associatedPhrases = project.audioPhrases.filter(
+  const associatedPhrases = (project.audioPhrases || []).filter(
     phrase => phrase.shotId === shotId
   );
 
@@ -123,7 +123,7 @@ export function getAssociatedPhrases(
 export function detectOrphanedPhrases(project: Project): DialoguePhrase[] {
   const shotIds = new Set(project.shots.map(shot => shot.id));
   
-  return project.audioPhrases.filter(phrase => {
+  return (project.audioPhrases || []).filter(phrase => {
     // Empty shotId is allowed (unlinked phrase)
     if (phrase.shotId === '') return false;
     
@@ -165,12 +165,12 @@ export function simulateShotDeletion(
   
   if (options.deletePhrases) {
     // Delete all phrases linked to this shot
-    updatedPhrases = project.audioPhrases.filter(
+    updatedPhrases = (project.audioPhrases || []).filter(
       phrase => phrase.shotId !== shotId
     );
   } else {
     // Unlink phrases by setting shotId to empty string
-    updatedPhrases = project.audioPhrases.map(phrase =>
+    updatedPhrases = (project.audioPhrases || []).map(phrase =>
       phrase.shotId === shotId
         ? { ...phrase, shotId: '' }
         : phrase

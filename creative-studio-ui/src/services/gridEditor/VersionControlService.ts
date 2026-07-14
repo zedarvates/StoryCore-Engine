@@ -278,8 +278,8 @@ export class VersionControlService {
    */
   private compareLayerArrays(
     panelId: string,
-    layers1: unknown[],
-    layers2: unknown[]
+    layers1: any[],
+    layers2: any[]
   ): VersionDifference[] {
     const differences: VersionDifference[] = [];
 

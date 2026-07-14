@@ -11,6 +11,7 @@
 import React from 'react';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
+import type { HistoryEntry } from '@/types/generation';
 
 // ============================================================================
 // Event Types
@@ -44,6 +45,7 @@ export const WizardEventType = {
   // Generation queue events
   QUEUE_UPDATED: 'queue:updated',
   GENERATION_COMPLETED: 'generation:completed',
+  HISTORY_UPDATED: 'history:updated',
 } as const;
 
 // ============================================================================
@@ -247,6 +249,13 @@ export interface GenerationCompletedPayload extends BaseEventPayload {
 }
 
 /**
+ * Generation History update event payload
+ */
+export interface HistoryUpdatedPayload extends BaseEventPayload {
+  entries: HistoryEntry[];
+}
+
+/**
  * Cinematic Editor specific payload
  */
 export interface CinematicActionPayload extends BaseEventPayload {
@@ -286,7 +295,8 @@ export type EventPayload =
   | UIConfirmationPayload
   | UISuggestionsPayload
   | QueueUpdatedPayload
-  | GenerationCompletedPayload;
+  | GenerationCompletedPayload
+  | HistoryUpdatedPayload;
 
 // ============================================================================
 // Event Listener Types

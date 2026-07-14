@@ -13,8 +13,9 @@ from unittest.mock import patch
 
 import pytest
 
-# Add project root to path
+# Add project root and src to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from run_comfyui_tests import parse_arguments, get_config_from_args
 

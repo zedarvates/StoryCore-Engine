@@ -19,6 +19,7 @@ from .deployment.health_checker import HealthChecker
 from .deployment.monitoring import MonitoringSystem
 from .deployment.backup import BackupManager
 from .deployment.alerting import AlertingSystem
+from .deployment.utils import create_deployment_scripts
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

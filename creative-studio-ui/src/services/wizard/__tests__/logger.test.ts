@@ -12,7 +12,7 @@ describe('WizardLogger', () => {
   let logger: WizardLogger;
 
   beforeEach(() => {
-    logger = createLogger({ enableFile: false }); // Disable file logging for tests
+    logger = createLogger({ level: 'debug', enableFile: false }); // Enable debug level and disable file logging for tests
     logger.clearLogs();
   });
 

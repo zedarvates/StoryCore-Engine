@@ -20,8 +20,6 @@ import type {
   GenerationTask,
   GeneratedAsset,
   GeneratedPrompt,
-  _GenerationHistory,
-  _HistoryEntry,
   StageState,
   GenerationProgress,
   BatchGenerationConfig,

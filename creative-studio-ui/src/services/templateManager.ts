@@ -8,22 +8,18 @@ import { SequenceTemplate, ShotTemplate, GenerationPreset, AssetTemplate } from 
 import {
   SEQUENCE_TEMPLATES,
   getSequenceTemplateById,
-  _getSequenceTemplatesByCategory,
 } from '../data/templates/sequenceTemplates';
 import {
   SHOT_TEMPLATES,
   getShotTemplateById,
-  _getShotTemplatesByCategory,
 } from '../data/templates/shotTemplates';
 import {
   GENERATION_PRESETS,
   getGenerationPresetById,
-  _getGenerationPresetsByCategory,
 } from '../data/templates/generationPresets';
 import {
   assetTemplates,
   getAssetTemplateById,
-  _getAssetTemplatesByCategory,
 } from '../data/assetTemplates';
 
 // ============================================================================

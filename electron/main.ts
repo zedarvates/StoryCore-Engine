@@ -9,16 +9,17 @@ import { ConfigStorage } from './ConfigStorage';
 import { IPCHandlers } from './ipcChannels';
 import { CaptureService } from './services/CaptureService';
 // DISABLED: TOS Dialog imports (dialog has been disabled)
-// import { createTOSWindow } from './tosDialogManager';
-// import { TOSStorageService } from './tosStorageService';
 // import { UpdateManager } from './UpdateManager';
+import { SplashWindow } from './SplashWindow';
+import { getAppIconPath } from './defaultPaths';
 import { pathToFileURL } from 'url';
 
 // Register custom protocol for local files before app is ready
 // Requirements: 99335124-d3ad-4905-a578-646dbeda00bc (CSP fix)
 if (protocol && typeof protocol.registerSchemesAsPrivileged === 'function') {
   protocol.registerSchemesAsPrivileged([
-    { scheme: 'sc-file', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true, stream: true } }
+    { scheme: 'sc-file', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true, stream: true } },
+    { scheme: 'storycore', privileges: { standard: true, secure: true, corsEnabled: true, supportFetchAPI: true } }
   ]);
 } else {
   console.log('protocol.registerSchemesAsPrivileged not available — running Electron 40+');
@@ -31,35 +32,8 @@ let serverManager: ViteServerManager | null = null;
 let backendManager: PythonBackendManager | null = null;
 let ipcHandlers: IPCHandlers | null = null;
 // let updateManager: UpdateManager | null = null;
+let splashWindow: SplashWindow | null = null;
 
-/**
- * Get the icon path with environment-aware resolution and fallback handling
- * Requirements: 2.1, 2.2, 2.3
- */
-function getIconPath(): string | undefined {
-  const possiblePaths = [
-    // Production paths (when app is packaged)
-    path.join(process.resourcesPath, 'StorycoreIconeV2.png'),
-    path.join(process.resourcesPath, 'build', 'icon.ico'),
-    // Development paths (when running from source)
-    path.join(__dirname, '../StorycoreIconeV2.png'),
-    path.join(__dirname, '../build/icon.ico'),
-  ];
-
-  for (const iconPath of possiblePaths) {
-    try {
-      if (fs.existsSync(iconPath)) {
-        console.log(`Using icon from: ${iconPath}`);
-        return iconPath;
-      }
-    } catch (error) {
-      console.warn(`Error checking icon path ${iconPath}:`, error);
-    }
-  }
-
-  console.warn('No icon found in any expected location, using default Electron icon');
-  return undefined;
-}
 
 /**
  * Create the main application window
@@ -69,7 +43,7 @@ function createWindow(url: string): void {
   Menu.setApplicationMenu(null);
 
   // Get icon path with environment-aware resolution and fallback
-  const iconPath = getIconPath();
+  const iconPath = getAppIconPath();
 
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -84,10 +58,13 @@ function createWindow(url: string): void {
     },
     title: 'StoryCore Creative Studio',
     show: false, // Don't show until ready
-    backgroundColor: '#0a0a0f', // Dark background to match neon theme
+    backgroundColor: '#00000000', // Transparent for Mica/Acrylic
     icon: iconPath,
-    autoHideMenuBar: true, // Hide menu bar (can be shown with Alt key)
-    frame: true, // Keep window frame for minimize/maximize/close buttons
+    autoHideMenuBar: true,
+    frame: true,
+    titleBarStyle: 'default',
+    // Windows 11 Specific: Mica background
+    backgroundMaterial: 'mica',
   });
 
   // 2. Content Security Policy (Centralized Management)
@@ -136,6 +113,12 @@ function createWindow(url: string): void {
 
   // Show window when ready to prevent flickering
   mainWindow!.once('ready-to-show', () => {
+    // Close splash before showing main window
+    if (splashWindow) {
+      splashWindow.close();
+      splashWindow = null;
+    }
+    
     mainWindow?.show();
     console.log('StoryCore Creative Studio window ready');
   });
@@ -155,6 +138,29 @@ function createWindow(url: string): void {
 }
 
 /**
+ * Get the path to the production UI build
+ */
+function getProductionUIPath(): string | null {
+  const possiblePaths = [
+    // Standard path relative to compiled main.js
+    path.join(__dirname, '..', '..', 'creative-studio-ui', 'dist'),
+    // Alternative path if packaged differently
+    path.join(__dirname, '..', 'ui'),
+    path.join(__dirname, 'ui'),
+    path.join(process.resourcesPath, 'app.asar', 'creative-studio-ui', 'dist'),
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(path.join(p, 'index.html'))) {
+      console.log(`Found production UI at: ${p}`);
+      return p;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Get the URL for loading pages (handles both dev and production)
  */
 function getAppUrl(): string | null {
@@ -165,9 +171,9 @@ function getAppUrl(): string | null {
     return 'http://localhost:5173';
   } else {
     // In production, use file protocol
-    const distPath = path.join(__dirname, '..', '..', 'creative-studio-ui', 'dist');
-    if (fs.existsSync(distPath)) {
-      return `file://${distPath.replace(/\\/g, '/')}`;
+    const uiPath = getProductionUIPath();
+    if (uiPath) {
+      return `file://${uiPath.replace(/\\/g, '/')}`;
     }
   }
   return null;
@@ -184,7 +190,7 @@ function createChatWindow(): BrowserWindow | null {
     return chatWindow;
   }
 
-  const iconPath = getIconPath();
+  const iconPath = getAppIconPath();
   const appUrl = getAppUrl();
 
   if (!appUrl) {
@@ -313,6 +319,7 @@ async function startServer(): Promise<void> {
     };
 
     try {
+      splashWindow?.update('Starting Python backend...', 40);
       await backendManager.start(backendConfig);
       console.log('Python backend connected or started successfully');
     } catch (error) {
@@ -343,10 +350,12 @@ async function startServer(): Promise<void> {
 
       try {
         console.log('Starting Vite server...');
+        splashWindow?.update('Starting UI development server...', 70);
         const serverInfo = await serverManager.start(config);
         console.log(`Vite server started on ${serverInfo.url}`);
 
         // Create window with the server URL
+        splashWindow?.update('Loading interface...', 90);
         createWindow(serverInfo.url);
       } catch (error) {
         console.error('Failed to start Vite server:', error);
@@ -360,23 +369,25 @@ async function startServer(): Promise<void> {
     }
   } else {
     // In production, load from built files
-    // The files are packaged in the app.asar, so we use a relative path
-    const indexPath = path.join(__dirname, '..', '..', 'creative-studio-ui', 'dist', 'index.html');
-
-    if (!fs.existsSync(indexPath)) {
-      console.error('Production build not found at:', indexPath);
-      console.error('Please run "npm run build" first');
+    const uiPath = getProductionUIPath();
+    
+    if (!uiPath) {
+      const expectedPath = path.join(__dirname, '..', '..', 'creative-studio-ui', 'dist', 'index.html');
+      console.error('Production build not found. Checked multiple locations.');
+      console.error('Last checked expected path:', expectedPath);
+      
       await dialog.showErrorBox(
-        'Build Not Found',
-        `Production build not found.\n\nExpected location: ${indexPath}\n\nPlease run "npm run build" to create the production build.`
+        'StoryCore Build Error',
+        `Production UI build not found.\n\nPlease ensure you have run "npm run build" before packaging.\n\nChecked path: ${expectedPath}`
       );
       app.quit();
       return;
     }
 
+    const indexPath = path.join(uiPath, 'index.html');
     const url = `file://${indexPath.replace(/\\/g, '/')}`;
     console.log('Loading production UI from:', url);
-    console.log('Index file exists:', fs.existsSync(indexPath));
+    splashWindow?.update('Loading interface...', 90);
     createWindow(url);
   }
 }
@@ -485,6 +496,29 @@ function initializeServices(): void {
     }
   });
   console.log('sc-file protocol handler registered');
+
+  // Register the storycore:// protocol for deep linking
+  app.setAsDefaultProtocolClient('storycore');
+  
+  protocol.handle('storycore', (request) => {
+    const url = new URL(request.url);
+    const host = url.host; // e.g., 'open-project'
+    const params = url.searchParams;
+    
+    console.log(`Deep link received: ${host}`, Object.fromEntries(params));
+    
+    if (host === 'open-project') {
+      const projectPath = params.get('path');
+      if (projectPath && mainWindow) {
+        mainWindow.webContents.send('project:open-request', { path: projectPath });
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+      }
+    }
+    
+    return new Response('OK', { status: 200 });
+  });
+  console.log('storycore:// protocol handler registered');
 }
 
 /**
@@ -494,6 +528,10 @@ async function initialize(): Promise<void> {
   try {
     await app.whenReady();
     console.log('Electron app ready');
+
+    // Create splash screen immediately
+    splashWindow = new SplashWindow();
+    splashWindow.update('Initializing services...', 10);
 
     // DISABLED: Terms of Service dialog
     // The TOS dialog has been disabled as it doesn't have the desired appearance
@@ -544,6 +582,7 @@ async function initialize(): Promise<void> {
     // Initialize services and IPC handlers
     initializeServices();
     new CaptureService(); // Initialize capture service handlers
+    splashWindow?.update('Connecting to backend engine...', 30);
 
     // Register global shortcut for voice activation (Alt+Space)
     try {
@@ -552,6 +591,20 @@ async function initialize(): Promise<void> {
           mainWindow.webContents.send('voice:toggle');
         }
       });
+
+      // Task 156: Global shortcut to show/hide application (Alt+Shift+S)
+      globalShortcut.register('Alt+Shift+S', () => {
+        if (mainWindow) {
+          if (mainWindow.isVisible() && mainWindow.isFocused()) {
+            mainWindow.hide();
+          } else {
+            mainWindow.show();
+            mainWindow.focus();
+          }
+        }
+      });
+      
+      console.log('Global shortcuts registered (Alt+Space, Alt+Shift+S)');
     } catch (e) {
       console.error('Error registering global shortcut:', e);
     }

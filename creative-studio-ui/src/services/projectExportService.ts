@@ -12,7 +12,7 @@
  * Requirements: 1.5, 13.1-13.6
  */
 
-import type { Project, Shot, _Asset } from '@/types';
+import type { Project, Shot } from '@/types';
 import { logger } from '@/utils/logger';
 
 /**
@@ -386,7 +386,7 @@ export class ProjectExportService {
         this.reportProgress(80, 'Saving file...');
         // Use ArrayBuffer directly - Electron IPC supports it via structured clone
         const arrayBuffer = await pdfBlob.arrayBuffer();
-        await window.electronAPI.fs.writeFile(result.filePath, arrayBuffer);
+        await window.electronAPI.fs.writeFile(result.filePath, Buffer.from(arrayBuffer));
 
         this.reportProgress(100, 'Export complete');
         return { success: true, filePath: result.filePath };
@@ -477,7 +477,7 @@ export class ProjectExportService {
         this.reportProgress(90, 'Saving file...');
         // Use ArrayBuffer directly - Electron IPC supports it via structured clone
         const arrayBuffer = await videoBlob.arrayBuffer();
-        await window.electronAPI.fs.writeFile(result.filePath, arrayBuffer);
+        await window.electronAPI.fs.writeFile(result.filePath, Buffer.from(arrayBuffer));
 
         this.reportProgress(100, 'Export complete');
         return { success: true, filePath: result.filePath };

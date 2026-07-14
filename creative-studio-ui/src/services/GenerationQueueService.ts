@@ -335,7 +335,11 @@ class GenerationQueueService {
           duration_seconds: params.duration === '10s' ? 10 : 6,
           concatenation_enabled: params.concatenation,
           output_count_per_prompt: params.outputCount,
-          seed: params.seed
+          seed: params.seed,
+          negative_prompt: params.negativePrompt,
+          creativity_scale: params.creativityScale,
+          resolution: params.resolution,
+          fps: params.fps
         }
       }),
     });
@@ -344,11 +348,84 @@ class GenerationQueueService {
       throw new Error(`Grok API error ${response.status}`);
     }
 
-    const result = await response.json();
-    if (result.status === 'success') {
-      this.updateTaskStatus(task.id, 'completed');
+    const startResult = await response.json();
+    if (startResult.job_id) {
+      const { job_id } = startResult;
+      
+      // Poll for status
+      let completed = false;
+      while (!completed && this.isProcessing) {
+        const statusResponse = await fetch(`/api/addons/grok-imagine/status/${job_id}`);
+        if (!statusResponse.ok) {
+          throw new Error(`Grok Status error ${statusResponse.status}`);
+        }
+        
+        const statusData = await statusResponse.json();
+
+        if (statusData.status === 'completed') {
+          completed = true;
+          
+          // Extract result
+          const result = statusData.result;
+          if (result) {
+            const { generationHistoryService } = await import('./GenerationHistoryService');
+            
+            // Grok result might have multiple images or a video
+            const urls: string[] = [];
+            if (result.images && Array.isArray(result.images)) urls.push(...result.images);
+            if (result.video) urls.unshift(result.video);
+
+            if (urls.length > 0) {
+              // Log all results to history
+              for (const url of urls) {
+                const asset: GeneratedAsset = {
+                  id: generateId(),
+                  type: url.endsWith('.mp4') ? 'video' : 'image',
+                  url: url,
+                  timestamp: Date.now(),
+                  relatedAssets: [],
+                  metadata: result.metadata || { 
+                    format: url.endsWith('.mp4') ? 'mp4' : 'png',
+                    fileSize: 0,
+                    dimensions: { width: 1024, height: 1024 }, // Default
+                    generationParams: task.params
+                  }
+                };
+                
+                generationHistoryService.logGeneration(
+                  task.pipelineId,
+                  asset.type,
+                  task.params,
+                  asset
+                );
+                
+                // Update task with result (the last one will be the primary one in task)
+                this.updateTaskStatus(task.id, 'completed', asset);
+              }
+            } else {
+              this.updateTaskStatus(task.id, 'completed');
+            }
+          } else {
+            this.updateTaskStatus(task.id, 'completed');
+          }
+        } else if (statusData.status === 'failed') {
+          throw new Error(statusData.error || 'Grok generation failed');
+        } else {
+          // Update progress if available
+          const t = this.queue.find(item => item.id === task.id);
+          if (t) {
+            t.progress = {
+              ...t.progress!,
+              overallProgress: statusData.progress || 0.5,
+              message: `Generating with Grok... ${Math.round((statusData.progress || 0.5) * 100)}%`
+            };
+            this.saveToStorage();
+          }
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
     } else {
-      throw new Error(result.error || 'Grok generation failed');
+      throw new Error(startResult.error || 'Grok generation failed to start');
     }
   }
 }

@@ -32,12 +32,13 @@ export class ComfyUIService {
    * Get current ComfyUI configuration
    */
   async getConfiguration(): Promise<ComfyUIConfiguration> {
-    return comfyuiConfigStore.comfyui || {
+    const config = comfyuiConfigStore.comfyui || {
       serverUrl: 'http://127.0.0.1:8000',
       defaultWorkflows: {},
       timeout: 300000,
       enableQueueMonitoring: true,
     };
+    return config;
   }
 
   /**
@@ -47,6 +48,7 @@ export class ComfyUIService {
     const current = await this.getConfiguration();
     const updated = { ...current, ...config };
     comfyuiConfigStore.comfyui = updated;
+    console.log(`[Electron ComfyUIService] Configuration updated. New serverUrl: ${updated.serverUrl}`);
     return updated;
   }
 
@@ -56,9 +58,11 @@ export class ComfyUIService {
   async getServiceStatus(url?: string): Promise<ComfyUIStatus> {
     const config = await this.getConfiguration();
     const targetUrl = url || config.serverUrl;
+    const baseUrl = targetUrl.endsWith('/') ? targetUrl.slice(0, -1) : targetUrl;
     
+    console.log(`[Electron ComfyUIService] Testing status for: ${baseUrl}/system_stats`);
     try {
-      const response = await this.fetchWithTimeout(`${targetUrl}/system_stats`, {
+      const response = await this.fetchWithTimeout(`${baseUrl}/system_stats`, {
         method: 'GET',
       });
 
@@ -80,6 +84,7 @@ export class ComfyUIService {
         version: data.version || 'unknown',
       };
     } catch (error) {
+      console.error(`[Electron ComfyUIService] Status check failed for ${baseUrl}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       return {
         running: false,
         url: null,
@@ -256,23 +261,35 @@ export class ComfyUIService {
    */
   async startService(): Promise<{ success: boolean; message?: string; error?: string }> {
     try {
-      // This would need to be implemented based on how ComfyUI is deployed
-      // For now, just check if it's already running
+      const config = await this.getConfiguration();
+      const isRemote = !config.serverUrl.includes('127.0.0.1') && !config.serverUrl.includes('localhost');
+      
+      console.log(`[Electron ComfyUIService] Attempting to start/reconnect to service at ${config.serverUrl} (Remote: ${isRemote})`);
+      
       const status = await this.getServiceStatus();
       if (status.running) {
         return {
           success: true,
-          message: 'ComfyUI service is already running',
+          message: `ComfyUI service is running at ${status.url}`,
         };
       }
+
+      if (isRemote) {
+        return {
+          success: false,
+          error: `Remote ComfyUI server at ${config.serverUrl} is unreachable. Please ensure the server is running and CORS is enabled.`,
+        };
+      }
+
+      // For local servers, we could theoretically launch a process here if we had the path
       return {
         success: false,
-        error: 'ComfyUI service is not running. Please start it manually.',
+        error: 'Local ComfyUI service is not running. Please start it manually from your installation directory.',
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error during service start',
       };
     }
   }

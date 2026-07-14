@@ -9,8 +9,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { VirtualTimelineCanvas, TRACK_CONFIG } from '../VirtualTimelineCanvas';
-import { getTrackShots } from '../../../constants/timelineConstants';
+import { VirtualTimelineCanvas } from '../VirtualTimelineCanvas';
+import { getTrackShots, TRACK_CONFIG } from '../../../constants/timelineConstants';
 import { store } from '../../../store';
 import type { Track, Shot, LayerType, MediaLayerData } from '../../../types';
 
@@ -23,6 +23,8 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
   getImageData: vi.fn(),
   putImageData: vi.fn(),
   createImageData: vi.fn(),
+  setLineDash: vi.fn(),
+  getLineDash: vi.fn(() => []),
   setTransform: vi.fn(),
   drawImage: vi.fn(),
   save: vi.fn(),
@@ -57,7 +59,12 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
 
 // Helper to render with Redux provider
 function renderWithProvider(ui: React.ReactElement) {
-  return render(<Provider store={store}>{ui}</Provider>);
+  const result = render(<Provider store={store}>{ui}</Provider>);
+  return {
+    ...result,
+    rerenderWithProvider: (newUi: React.ReactElement) => 
+      result.rerender(<Provider store={store}>{newUi}</Provider>),
+  };
 }
 
 // Helper function to create sample tracks
@@ -210,7 +217,7 @@ describe('VirtualTimelineCanvas Component', () => {
         />
       );
 
-      expect(container.querySelector('.timeline-track-list')).toBeTruthy();
+      expect(container.querySelector('.timeline-track-list-container')).toBeTruthy();
     });
 
     it('should filter out hidden tracks', () => {
@@ -528,7 +535,7 @@ describe('VirtualTimelineCanvas Component', () => {
       const tracks = createSampleTracks();
       const shots = [createSampleShot('shot-1', 0, 60, 'media')];
       
-      const { rerender, container } = renderWithProvider(
+      const { rerenderWithProvider, container } = renderWithProvider(
         <VirtualTimelineCanvas
           tracks={tracks}
           shots={shots}
@@ -655,7 +662,7 @@ describe('VirtualTimelineCanvas Component', () => {
       );
 
       // Virtual list should be present
-      expect(container.querySelector('.timeline-track-list')).toBeTruthy();
+      expect(container.querySelector('.timeline-track-list-container')).toBeTruthy();
     });
   });
 });

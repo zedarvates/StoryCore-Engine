@@ -4,10 +4,10 @@
  * Tests for the draggable asset component with drag-and-drop functionality.
  * Requirements: 15.1 - Drag-and-drop interaction system
  */
-import { LegacyAny } from '@/types/legacy';
 
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -19,6 +19,13 @@ vi.mock('../../../utils/thumbnailCache', () => ({
   fetchAndCacheThumbnail: vi.fn((url: string) => Promise.resolve(url)),
   getCachedThumbnail: vi.fn(() => Promise.resolve(null)),
   cacheThumbnail: vi.fn(() => Promise.resolve()),
+}));
+
+// Mock LazyImage to render immediately
+vi.mock('../LazyImage', () => ({
+  LazyImage: ({ src, alt, className, onError }: { src: string; alt?: string; className?: string; onError?: () => void }) => (
+    <img src={src} alt={alt} className={className} onError={onError} />
+  ),
 }));
 
 // ============================================================================
@@ -54,14 +61,16 @@ const renderWithDnd = (component: React.ReactElement) => {
 // ============================================================================
 
 describe('DraggableAsset', () => {
-  let onPreview: LegacyAny;
-  let onEdit: LegacyAny;
-  let onDelete: LegacyAny;
+  let onPreview: Mock<(asset: ServiceAsset) => void>;
+  let onEdit: Mock<(asset: ServiceAsset) => void>;
+  let onDelete: Mock<(asset: ServiceAsset) => void>;
+  let onPublish: Mock<(asset: ServiceAsset) => void>;
 
   beforeEach(() => {
     onPreview = vi.fn();
     onEdit = vi.fn();
     onDelete = vi.fn();
+    onPublish = vi.fn();
   });
 
   describe('Rendering', () => {
@@ -76,7 +85,7 @@ describe('DraggableAsset', () => {
         />
       );
 
-      expect(screen.getByText('Test Character')).toBeInTheDocument();
+      expect(await screen.findByText('Test Character')).toBeInTheDocument();
       expect(await screen.findByAltText('Test Character')).toBeInTheDocument();
     });
 
@@ -250,6 +259,24 @@ describe('DraggableAsset', () => {
       
       expect(onDelete).toHaveBeenCalledWith(mockAsset);
     });
+
+    it('should call onPublish when publish button is clicked', async () => {
+      renderWithDnd(
+        <DraggableAsset
+          asset={mockAsset}
+          categoryId="characters"
+          onPreview={onPreview}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onPublish={onPublish}
+        />
+      );
+
+      const publishButton = screen.getByLabelText(`Publish ${mockAsset.name} to Marketplace`);
+      fireEvent.click(publishButton);
+      
+      expect(onPublish).toHaveBeenCalledWith(mockAsset);
+    });
   });
 
   describe('Drag and Drop', () => {
@@ -411,6 +438,23 @@ describe('DraggableAsset', () => {
       if (assetCard) {
         expect(() => fireEvent.doubleClick(assetCard)).not.toThrow();
       }
+    });
+
+    it('should handle image load errors with fallback', async () => {
+      renderWithDnd(
+        <DraggableAsset
+          asset={mockAsset}
+          categoryId="characters"
+        />
+      );
+
+      const image = await screen.findByAltText('Test Character') as HTMLImageElement;
+      
+      // Simulate error
+      fireEvent.error(image);
+      
+      expect(image.src).toContain('data:image/svg+xml');
+      expect(image.src).toContain('No%20Preview');
     });
   });
 });

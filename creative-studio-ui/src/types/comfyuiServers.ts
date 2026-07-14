@@ -47,6 +47,8 @@ export interface ComfyUIServer {
   autoStart?: boolean;
   corsHeaders?: boolean;
   workflowsPath?: string;
+  outputPath?: string;
+  inputPath?: string;
 
   // Performance settings
   performance?: {

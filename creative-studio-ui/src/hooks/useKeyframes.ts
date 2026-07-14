@@ -71,7 +71,7 @@ function parseKeyframes<T>(
   _keyframes: Array<Keyframe<T>>,
   _duration: number,
   fromValue: T extends number ? number : never,
-  toValue: T extends number _? number : never
+  toValue: T extends number ? number : never
 ): Array<{ time: number; value: number; easing?: EasingFunction }> {
   return keyframes.map((kf, index) => {
     let time: number;

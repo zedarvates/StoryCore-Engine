@@ -134,7 +134,12 @@ export class StorageManager {
   private static getItemIndexedDB(key: string): Promise<string | null> {
     return new Promise((resolve) => {
       try {
-        const request = indexedDB.open('StoryCore', 1);
+        const idb = (typeof window !== 'undefined' ? window.indexedDB : globalThis.indexedDB);
+        if (!idb) {
+          resolve(null);
+          return;
+        }
+        const request = idb.open('StoryCore', 1);
 
         request.onupgradeneeded = (event) => {
           const db = (event.target as IDBOpenDBRequest).result;

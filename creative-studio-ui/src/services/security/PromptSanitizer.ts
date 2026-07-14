@@ -67,6 +67,8 @@ export class PromptSanitizer {
         sanitized: '',
         isSafe: false,
         issues: [{ type: 'empty', severity: 'high', message: 'Prompt is empty' }],
+        suspiciousScore: 0,
+        length: 0,
       };
     }
 

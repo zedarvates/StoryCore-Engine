@@ -20,17 +20,14 @@ import {
   TimelineState,
   ClipboardState,
   ClipboardItem,
-  _UndoRedoAction,
   UndoActionType,
   SelectionState,
-  _NestedComposition,
   Duration,
   TimeStamp,
   TrackType,
   ClipType,
   VisualProperties,
   AudioProperties,
-  _Keyframe,
   HistoryEntry,
 } from '../services/animation/CompositionTypes';
 

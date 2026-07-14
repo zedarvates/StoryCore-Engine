@@ -134,14 +134,20 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
+            <label 
+              htmlFor="archetype-select"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1"
+            >
               {t('characterWizard.identity.archetype')}
             </label>
             <Select
               value={data.role?.archetype || ''}
               onValueChange={(val) => handleFieldChange('archetype', val)}
             >
-              <SelectTrigger className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl">
+              <SelectTrigger 
+                id="archetype-select"
+                className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl"
+              >
                 <SelectValue placeholder="Select archetype" />
               </SelectTrigger>
               <SelectContent>
@@ -155,7 +161,10 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
+            <label 
+              htmlFor="age-range-select"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1"
+            >
               {t('characterWizard.identity.maturityCycle')}
             </label>
             <div className="relative">
@@ -164,7 +173,10 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
                 value={data.visual_identity?.age_range || ''}
                 onValueChange={(val) => handleFieldChange('age_range', val)}
               >
-                <SelectTrigger className="pl-10 h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl">
+                <SelectTrigger 
+                  id="age-range-select"
+                  className="pl-10 h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl"
+                >
                   <SelectValue placeholder="Select age range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -177,14 +189,20 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
+            <label 
+              htmlFor="gender-select"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1"
+            >
               {t('characterWizard.identity.identityMatrix')}
             </label>
             <Select
               value={data.visual_identity?.gender || ''}
               onValueChange={(val) => handleFieldChange('gender', val)}
             >
-              <SelectTrigger className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl">
+              <SelectTrigger 
+                id="gender-select"
+                className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl"
+              >
                 <SelectValue placeholder="Select identity" />
               </SelectTrigger>
               <SelectContent>
@@ -196,14 +214,20 @@ export function IdentityStep({ data, onUpdate, onApplyPreset }: IdentityStepProp
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1">
+            <label 
+              htmlFor="ethnicity-select"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500/70 ml-1"
+            >
               {t('characterWizard.identity.ethnicity') || 'Ethnicity / Origin'}
             </label>
             <Select
               value={data.visual_identity?.ethnicity || ''}
               onValueChange={(val) => handleFieldChange('ethnicity', val)}
             >
-              <SelectTrigger className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl">
+              <SelectTrigger 
+                id="ethnicity-select"
+                className="h-12 bg-gray-50 dark:bg-gray-800 border-transparent focus:border-blue-500 transition-all rounded-xl"
+              >
                 <SelectValue placeholder={t('characterWizard.identity.placeholderEthnicity') || "Select origin"} />
               </SelectTrigger>
               <SelectContent>

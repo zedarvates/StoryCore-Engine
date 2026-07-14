@@ -207,6 +207,9 @@ export const useStore = create<Store>()(
         worlds: [],
         selectedWorldId: null,
         characters: [],
+        episodes: [],
+        locations: [],
+        sequencePlans: [],
         objects: [], // Initialize objects array
         stories: [],
         storyVersions: [],
@@ -231,8 +234,6 @@ export const useStore = create<Store>()(
         selectedEffectId: null,
         selectedTextLayerId: null,
         selectedKeyframeId: null,
-        sequencePlans: [],
-        locations: [],
 
         // ====================================================================
         // Project Actions
@@ -1249,6 +1250,7 @@ export const useStore = create<Store>()(
                     family: backgroundData.family || '',
                     significant_events: backgroundData.significant_events || [],
                     current_situation: backgroundData.current_situation || '',
+                    backstory: backgroundData.backstory || '',
                   },
                   relationships: charData.relationships || [],
                   role: {

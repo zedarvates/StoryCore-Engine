@@ -13,8 +13,7 @@ import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 import type { 
   MasterReferenceSheet, 
-  SequenceReferenceSheet,
-  _ShotReference 
+  SequenceReferenceSheet
 } from '@/types/reference';
 
 // ============================================================================
@@ -120,7 +119,7 @@ export interface Checkpoint {
 // ProjectBranchingService
 // ============================================================================
 
-class ProjectBranchingService {
+export class ProjectBranchingService {
   private checkpoints: Map<string, Checkpoint> = new Map();
   private branches: Map<string, BranchInfo> = new Map();
   private projectContexts: Map<string, ProjectContext> = new Map();
@@ -467,12 +466,17 @@ class ProjectBranchingService {
       ...shot,
       projectId,
       title: shot.name,
+      prompt: (shot as any).prompt || '',
+      startTime: (shot as any).startTime || 0,
       description: '',
       duration: 0,
       audioTracks: [],
       effects: [],
       textLayers: [],
       animations: [],
+      layers: (shot as any).layers || [],
+      referenceImages: (shot as any).referenceImages || [],
+      parameters: (shot as any).parameters || {},
       position: 0,
     })));
     
@@ -718,7 +722,7 @@ class ProjectBranchingService {
         characters.push({
           id: character.character_id,
           name: character.name,
-          appearanceSheetId: character.appearanceSheetId,
+          appearanceSheetId: (character as any).appearanceSheetId,
           lastUsedShotId: lastUsedShot?.id || '',
           usageCount: validShots.filter((s: Shot) => {
             const shotWithChars = s as { characterIds?: string[] };
@@ -741,7 +745,7 @@ class ProjectBranchingService {
         worlds.push({
           id: world.id,
           name: world.name,
-          environmentSheetId: world.environmentSheetId,
+          environmentSheetId: (world as any).environmentSheetId,
           lastUsedShotId: lastUsedShot?.id || '',
           usageCount: validShots.filter((s: Shot) => {
             const shotWithWorld = s as { worldId?: string };

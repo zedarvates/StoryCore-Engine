@@ -551,11 +551,19 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
           position: shotData.number || (currentProject.storyboard?.length || 0) + 1,
           description: shotData.description || '',
           duration: shotData.duration || 3,
+          prompt: '',
+          startTime: 0,
+          name: shotData.title || `Shot ${(currentProject.storyboard?.length || 0) + 1}`,
+          layers: [],
+          referenceImages: [],
+          parameters: {
+            aiProvider: 'openai',
+            model: 'gpt-4',
+          } as any,
           effects: [],
           audioTracks: [],
           textLayers: [],
           animations: [],
-
         };
 
         // Update current project

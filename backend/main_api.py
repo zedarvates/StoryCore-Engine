@@ -57,6 +57,8 @@ from backend.ai_advanced_api import router as ai_advanced_router
 from backend.ai_performance_api import router as ai_performance_router
 from backend.cli_api import router as cli_router
 from backend.hermes_novelist_api import router as hermes_novelist_router
+from backend.hermes_voice_api import router as hermes_voice_router
+from backend.middleware.static_cache import StaticCacheMiddleware
 
 # Configure logging
 logging.basicConfig(
@@ -199,6 +201,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(StaticCacheMiddleware)
+
 logger.info(f"CORS configured with origins: {cors_origins}")
 
 
@@ -324,6 +328,9 @@ app.include_router(cli_router, prefix="/api")
 
 # Include Hermes Novelist API router
 app.include_router(hermes_novelist_router, prefix="/api")
+
+# Include Hermes Voice Automation API router
+app.include_router(hermes_voice_router, prefix="/api")
 
 # ─── 💎 GemReward System ─────────────────────────────────────────────────────
 # Router Gems API (balance, history, stats, leaderboard, tiers)
@@ -480,6 +487,26 @@ except ImportError as e:
     )
 except Exception as e:
     logger.warning(f"[Project Translator] Router registration skipped: {e}")
+
+# Include Grok Imagine addon router
+try:
+    from addons.official.grok_imagine.src.main import (
+        router as grok_imagine_router,
+    )
+
+    if grok_imagine_router is not None:
+        app.include_router(
+            grok_imagine_router
+        )
+        logger.info(
+            "[Grok Imagine] Router registered at /api/addons/grok-imagine"
+        )
+except ImportError as e:
+    logger.warning(
+        f"[Grok Imagine] Could not load router (dependencies may be missing): {e}"
+    )
+except Exception as e:
+    logger.warning(f"[Grok Imagine] Router registration skipped: {e}")
 
 # Include Character Image API router
 try:

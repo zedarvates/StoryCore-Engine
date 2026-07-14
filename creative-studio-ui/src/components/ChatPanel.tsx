@@ -324,23 +324,26 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           display: (showChat || isClosing) ? 'flex' : 'none',
         }}
       >
-        {/* Drag Handle (invisible overlay on header) */}
-        <div
-          ref={dragHandleRef}
-          className="absolute top-0 left-0 right-0 h-12 cursor-move z-10"
-          onMouseDown={handleDragStart}
-          onDoubleClick={handleHeaderDoubleClick}
-        />
-
         {/* Chat Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 cursor-move hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 cursor-move hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors relative">
+          {/* Drag Handle (now only covers the text part, not the buttons) */}
+          <div
+            ref={dragHandleRef}
+            className="absolute inset-0 cursor-move z-10"
+            onMouseDown={handleDragStart}
+            onDoubleClick={handleHeaderDoubleClick}
+          />
+          
+          <div className="flex items-center gap-2 z-20 relative pointer-events-none">
             <Move className="w-4 h-4 text-gray-500" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               StoryCore AI Assistant
             </h3>
           </div>
-          <div className="flex items-center gap-2 z-20">
+          <div 
+            className="flex items-center gap-2 z-30 relative"
+            onMouseDown={(e) => e.stopPropagation()} // Prevent drag when clicking buttons
+          >
             {/* Shortcuts Toggle */}
             <button
               onClick={() => setShowShortcuts(!showShortcuts)}

@@ -23,6 +23,7 @@ import type {
   GemPackage,
   CreatorTier,
 } from './gemTypes';
+import { redactState } from '../../utils/redact';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -392,7 +393,6 @@ export const useNexRealmStore = create<NexRealmState>()(
             transactions: [tx, ...state.transactions],
           };
         });
-        return gemsEarned;
       },
 
       claimDailyBonus: () => {
@@ -422,7 +422,12 @@ export const useNexRealmStore = create<NexRealmState>()(
         });
       },
     }),
-    { name: 'NexRealmStore' }
+    { 
+      name: 'NexRealmStore',
+      stateSanitizer: (state: unknown) => {
+        return redactState(state as NexRealmState);
+      }
+    }
   )
 );
 

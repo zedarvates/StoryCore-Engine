@@ -17,14 +17,12 @@ import {
   StructuredDraftRefineOptions,
   LinearProgressiveOptions,
   IterativeChapterOptions,
-  _StorySkeleton,
-  _MasterOutline,
   RevisionEntry,
   IStoryMethodology,
 } from '../types/storyMethodology';
-import type { StoryGenerationParams, _StoryPart, GenerationProgress, ReviewScore } from '../types/story';
+import type { StoryGenerationParams, GenerationProgress, ReviewScore } from '../types/story';
 import { storyReviewer } from './StoryReviewer';
-import { _generateStoryContent, generateStorySummary } from './storyGenerationService';
+import { generateStorySummary } from './storyGenerationService';
 
 // ============================================================================
 // Base Abstract Class
@@ -365,7 +363,7 @@ export abstract class BaseStoryMethodology implements IStoryMethodology {
     let content = '';
     try {
       const { getLLMService } = await import('./llmService');
-      const llmService = getLLMService();
+      const llmService = await getLLMService();
       
       const response = await llmService.generateText(prompt, {
         temperature: 0.8,
@@ -1051,7 +1049,7 @@ export class SequentialMethodology extends BaseStoryMethodology {
   protected getDefaultOptions(
     _type: StoryMethodologyType,
     _userOptions: Partial<MethodologyState['options']>
-  ): Record<string, never> {
+  ): any {
     return {};
   }
   

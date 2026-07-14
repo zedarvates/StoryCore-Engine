@@ -10,6 +10,7 @@
  */
 
 import type { HistoryEntry, GeneratedAsset, GenerationHistory } from '../types/generation';
+import { eventEmitter } from './eventEmitter';
 
 /**
  * History query options
@@ -100,8 +101,15 @@ export class GenerationHistoryService {
     // Save to storage
     this.saveToStorage();
     
+    // Emit update event
+    eventEmitter.emit('history:updated', { 
+      entries: this.history.entries,
+      timestamp: new Date(),
+      source: 'HistoryService'
+    });
+    
     return entry;
-  }
+}
   
   /**
    * Add entry to history with automatic cleanup
@@ -348,6 +356,11 @@ export class GenerationHistoryService {
     this.history.entries = [];
     this.versionMap.clear();
     this.saveToStorage();
+    eventEmitter.emit('history:updated', { 
+      entries: [],
+      timestamp: new Date(),
+      source: 'HistoryService'
+    });
   }
   
   /**

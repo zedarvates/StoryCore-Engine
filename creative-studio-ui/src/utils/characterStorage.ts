@@ -74,6 +74,7 @@ export function mapWizardDataToCharacter(
       family: wizardData.background?.family || '',
       significant_events: wizardData.background?.significant_events || [],
       current_situation: wizardData.background?.current_situation || '',
+      backstory: wizardData.background?.backstory || '',
     },
 
     relationships: wizardData.relationships || [],
