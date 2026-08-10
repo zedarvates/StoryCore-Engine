@@ -1,3 +1,5 @@
+
+
 # 🎬 StoryCore Engine
 
 ## The Self-Correcting Multimodal Production Pipeline
@@ -123,6 +125,7 @@ graph LR
    ```bash
    pip install -r requirements.txt
    npm install
+   cd creative-studio-ui && npm install && cd ..
    ```
 
 3. Install ComfyUI (Optional but Recommended)
