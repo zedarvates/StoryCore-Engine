@@ -31,7 +31,7 @@ test("Anna harness allows the declared llm.complete capability", async () => {
   assert.equal(harness.calls.lastOf("llm.complete")?.outcome, "ok");
 });
 
-test("Anna harness accepts the declared storage surface and app-facing shapes", async () => {
+test("Anna harness accepts the declared storage get/set shapes", async () => {
   const value = {
     schemaVersion: "storycore-harbour.project.v1",
     project: { id: "runtime-test" },
@@ -62,6 +62,47 @@ test("Anna harness accepts the declared storage surface and app-facing shapes", 
   assert.equal(loaded.etag, etag);
   assert.equal(harness.calls.byNs("storage").length, 2);
   assert.equal(harness.calls.lastOf("storage.get")?.outcome, "ok");
+});
+
+test("Anna harness accepts paginated project listing and ETag deletion", async () => {
+  const etag = 'W/"snapshot-1"';
+  const harness = await mountBundle({
+    manifest,
+    mocks: {
+      "storage.list": () => ({
+        items: [
+          {
+            key: "projects/by-id/project-1",
+            etag,
+            generation: 7,
+            kind: "kv",
+            updated_at: "2026-08-12T12:00:00.000Z",
+          },
+        ],
+        next_cursor: null,
+      }),
+      "storage.delete": () => ({ deleted: true }),
+    },
+  });
+
+  const listed = await harness.runtime.storage.list({
+    prefix: "projects/",
+    limit: 100,
+    kind: "kv",
+  });
+  const deleted = await harness.runtime.storage.delete({
+    key: listed.items[0].key,
+    if_match: listed.items[0].etag,
+  });
+
+  assert.equal(listed.items.length, 1);
+  assert.equal(listed.items[0].key, "projects/by-id/project-1");
+  assert.equal(listed.items[0].etag, etag);
+  assert.equal(listed.next_cursor, null);
+  assert.equal(deleted.deleted, true);
+  assert.equal(harness.calls.lastOf("storage.list")?.outcome, "ok");
+  assert.equal(harness.calls.lastOf("storage.delete")?.outcome, "ok");
+  assert.match(JSON.stringify(harness.calls.lastOf("storage.delete")?.args), /snapshot-1/);
 });
 
 test("Anna harness rejects Host API namespaces absent from the manifest", async () => {
