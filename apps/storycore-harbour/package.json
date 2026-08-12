@@ -1,0 +1,23 @@
+{
+  "name": "storycore-harbour",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Anna-native StoryCore production-planning App.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "anna-app dev --storage aps",
+    "dev:mock": "anna-app dev --mock-llm fixtures/happy-path.jsonl",
+    "dev:off": "anna-app dev --no-llm",
+    "validate": "anna-app validate",
+    "validate:strict": "anna-app validate --strict",
+    "test": "node --test tests/*.test.mjs",
+    "contract:check": "node scripts/validate-project.mjs examples/sample-project.json",
+    "check": "npm run test && npm run contract:check && npm run validate:strict"
+  },
+  "devDependencies": {
+    "@anna-ai/cli": "^0.1.30"
+  }
+}

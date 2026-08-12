@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.engine/contracts/storycore-harbour.project.v1.schema.json",
+  "title": "StoryCore Harbour Project v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "project",
+    "productionBible",
+    "characters",
+    "locations",
+    "scenes",
+    "continuityReport"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "storycore-harbour.project.v1"
+    },
+    "project": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "language",
+        "format",
+        "durationMinutes",
+        "audience",
+        "tone",
+        "sourceIdea",
+        "createdAt",
+        "updatedAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "language": { "type": "string", "minLength": 2, "maxLength": 20 },
+        "format": {
+          "type": "string",
+          "enum": [
+            "short-film",
+            "advertisement",
+            "music-video",
+            "documentary",
+            "comic-webtoon",
+            "social-video"
+          ]
+        },
+        "durationMinutes": { "type": "number", "exclusiveMinimum": 0, "maximum": 240 },
+        "audience": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "tone": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "sourceIdea": { "type": "string", "minLength": 20, "maxLength": 12000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "productionBible": {
+      "type": "object",
+      "required": ["logline", "synopsis", "themes", "visualDirection", "continuityRules"],
+      "properties": {
+        "logline": { "type": "string", "minLength": 1 },
+        "synopsis": { "type": "string", "minLength": 1 },
+        "themes": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "visualDirection": {
+          "type": "object",
+          "required": ["style", "palette", "lighting", "cameraLanguage"],
+          "properties": {
+            "style": { "type": "string", "minLength": 1 },
+            "palette": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+            "lighting": { "type": "string", "minLength": 1 },
+            "cameraLanguage": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": true
+        },
+        "continuityRules": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      },
+      "additionalProperties": true
+    },
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "role", "goal", "conflict", "visualIdentity", "continuityRules"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "goal": { "type": "string", "minLength": 1 },
+          "conflict": { "type": "string", "minLength": 1 },
+          "visualIdentity": { "type": "string", "minLength": 1 },
+          "continuityRules": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "locations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "purpose", "visualIdentity", "continuityRules"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "visualIdentity": { "type": "string", "minLength": 1 },
+          "continuityRules": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "order", "title", "purpose", "locationId", "characterIds", "durationSeconds", "shots"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "order": { "type": "integer", "minimum": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "purpose": { "type": "string", "minLength": 1 },
+          "locationId": { "type": "string", "minLength": 1 },
+          "characterIds": { "type": "array", "items": { "type": "string" } },
+          "durationSeconds": { "type": "number", "exclusiveMinimum": 0 },
+          "shots": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["id", "order", "framing", "camera", "action", "dialogue", "sound", "characterIds", "generationPrompt"],
+              "properties": {
+                "id": { "type": "string", "minLength": 1 },
+                "order": { "type": "integer", "minimum": 1 },
+                "framing": { "type": "string", "minLength": 1 },
+                "camera": { "type": "string", "minLength": 1 },
+                "action": { "type": "string", "minLength": 1 },
+                "dialogue": { "type": "string" },
+                "sound": { "type": "string" },
+                "characterIds": { "type": "array", "items": { "type": "string" } },
+                "generationPrompt": { "type": "string", "minLength": 1 }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "continuityReport": {
+      "type": "object",
+      "required": ["score", "warnings", "checkedAt"],
+      "properties": {
+        "score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["severity", "message"],
+            "properties": {
+              "severity": { "type": "string", "enum": ["info", "warning", "error"] },
+              "message": { "type": "string", "minLength": 1 },
+              "sceneId": { "type": ["string", "null"] }
+            },
+            "additionalProperties": true
+          }
+        },
+        "checkedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

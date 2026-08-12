@@ -1,0 +1,9 @@
+{
+  "slug": "storycore-harbour",
+  "name": "StoryCore Harbour",
+  "version": "0.1.0",
+  "tagline": "Turn an idea into a coherent, production-ready visual story.",
+  "description": "StoryCore Harbour transforms a concept, synopsis, or short script into a structured production package inside Anna. It produces a production bible, visual direction, characters, locations, scenes, shots, reusable generation prompts, and a continuity report, then saves and exports the validated project.\n\n**Core workflow**\n\n- Describe the project and choose its format, duration, language, tone, and audience.\n- Build a coherent world with stable character and location identities.\n- Review an ordered scene and shot plan.\n- Save the project and export StoryCore-compatible JSON.\n\nThe core workflow does not require a local GPU, ComfyUI, Blender, or a separate API key.",
+  "category": "creative-tools",
+  "pricing_model": "free"
+}

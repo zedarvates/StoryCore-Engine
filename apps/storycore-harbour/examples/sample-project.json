@@ -1,0 +1,128 @@
+{
+  "schemaVersion": "storycore-harbour.project.v1",
+  "project": {
+    "id": "harbour-sample-001",
+    "title": "The Last Ferry",
+    "language": "en",
+    "format": "short-film",
+    "durationMinutes": 4,
+    "audience": "Young adult science-fiction viewers",
+    "tone": "Hopeful cyberpunk drama",
+    "sourceIdea": "At dawn, a courier must cross a flooded neon harbour on the final autonomous ferry to deliver a memory archive.",
+    "createdAt": "2026-08-12T12:00:00.000Z",
+    "updatedAt": "2026-08-12T12:00:00.000Z"
+  },
+  "productionBible": {
+    "logline": "A courier races across a drowned neon harbour to deliver the last intact memory of a vanished family.",
+    "synopsis": "As the final autonomous ferry prepares to leave, Mina boards with a damaged memory archive and discovers that its only other passenger has orders to destroy it.",
+    "themes": ["memory", "trust", "displacement"],
+    "visualDirection": {
+      "style": "grounded cyberpunk with maritime textures",
+      "palette": ["deep navy", "harbour cyan", "signal red"],
+      "lighting": "pre-dawn fog cut by ferry navigation lights",
+      "cameraLanguage": "measured wides interrupted by intimate handheld close-ups"
+    },
+    "continuityRules": [
+      "Mina always wears the red waterproof courier jacket.",
+      "The archive case has one cracked cyan status light.",
+      "Exterior scenes remain before sunrise."
+    ]
+  },
+  "characters": [
+    {
+      "id": "char-mina",
+      "name": "Mina",
+      "role": "protagonist",
+      "goal": "deliver the archive before the ferry reaches the outer checkpoint",
+      "conflict": "she cannot know whether the other passenger is an ally",
+      "visualIdentity": "young courier, cropped black hair, weathered red waterproof jacket, silver archive case",
+      "continuityRules": ["red jacket remains wet", "archive case stays in her left hand until scene 3"]
+    },
+    {
+      "id": "char-chen",
+      "name": "Chen",
+      "role": "opposing passenger",
+      "goal": "verify and possibly destroy the archive",
+      "conflict": "his orders conflict with his personal memory of the family",
+      "visualIdentity": "older man, charcoal ferry uniform, brass identity badge, calm posture",
+      "continuityRules": ["brass badge visible", "never carries a weapon"]
+    }
+  ],
+  "locations": [
+    {
+      "id": "loc-terminal",
+      "name": "Flooded Harbour Terminal",
+      "purpose": "departure and urgency",
+      "visualIdentity": "half-submerged concrete terminal, cyan signs reflected in black water",
+      "continuityRules": ["water reaches the third stair", "only emergency lights operate"]
+    },
+    {
+      "id": "loc-ferry",
+      "name": "Autonomous Ferry Cabin",
+      "purpose": "confined confrontation",
+      "visualIdentity": "aged white composite cabin, fogged windows, red navigation glow",
+      "continuityRules": ["six empty seats", "cracked window on port side"]
+    }
+  ],
+  "scenes": [
+    {
+      "id": "scene-1",
+      "order": 1,
+      "title": "Last Boarding",
+      "purpose": "establish the deadline and the archive",
+      "locationId": "loc-terminal",
+      "characterIds": ["char-mina"],
+      "durationSeconds": 55,
+      "shots": [
+        {
+          "id": "shot-1-1",
+          "order": 1,
+          "framing": "wide establishing",
+          "camera": "slow crane down toward the flooded platform",
+          "action": "Mina runs through ankle-deep water as the ferry doors begin to close.",
+          "dialogue": "",
+          "sound": "rain, warning bell, distant engines",
+          "characterIds": ["char-mina"],
+          "generationPrompt": "Pre-dawn flooded Hong Kong-inspired harbour terminal, Mina in a wet red courier jacket running toward the last ferry, cyan emergency signs, grounded cyberpunk, cinematic wide shot."
+        }
+      ]
+    },
+    {
+      "id": "scene-2",
+      "order": 2,
+      "title": "The Other Passenger",
+      "purpose": "introduce mistrust",
+      "locationId": "loc-ferry",
+      "characterIds": ["char-mina", "char-chen"],
+      "durationSeconds": 90,
+      "shots": [
+        {
+          "id": "shot-2-1",
+          "order": 1,
+          "framing": "medium two-shot",
+          "camera": "locked camera with ferry vibration",
+          "action": "Mina sits opposite Chen and notices his brass badge.",
+          "dialogue": "CHEN: That case should not have survived.",
+          "sound": "hull vibration and rain on glass",
+          "characterIds": ["char-mina", "char-chen"],
+          "generationPrompt": "Inside an old autonomous ferry cabin before dawn, wet red-jacket courier Mina opposite older uniformed Chen with brass badge, fogged windows, red navigation glow, tense medium two-shot."
+        }
+      ]
+    }
+  ],
+  "continuityReport": {
+    "score": 94,
+    "warnings": [
+      {
+        "severity": "info",
+        "message": "Confirm which hand holds the archive after scene 2.",
+        "sceneId": "scene-2"
+      }
+    ],
+    "checkedAt": "2026-08-12T12:00:00.000Z"
+  },
+  "metadata": {
+    "generator": "storycore-harbour-bootstrap",
+    "mock": true
+  }
+}
