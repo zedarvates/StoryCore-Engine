@@ -47,8 +47,8 @@ jobs:
       - name: Validate sample export
         run: npm run contract:check
 
-      - name: Verify Anna fixture
-        run: npx anna-app fixture verify fixtures/happy-path.jsonl
+      - name: Validate mock LLM fixture
+        run: npm run mock:check
 
       - name: Run strict Anna validation
         run: npm run validate:strict
