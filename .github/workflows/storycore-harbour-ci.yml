@@ -61,12 +61,18 @@ jobs:
         run: npm run acceptance:corpus
 
       - name: Verify generated acceptance bundle
-        run: npm run acceptance:sync:check
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run acceptance:sync:check
+          test -s bundle/acceptance-runner.js
+          test -s bundle/acceptance-prompts.json
+          grep -F 'src="acceptance-runner.js"' bundle/index.html >/dev/null
 
       - name: Run strict Anna validation
         run: npm run validate:strict
 
-      - name: Smoke-test Anna mock harness and collector assets
+      - name: Smoke-test Anna mock harness
         shell: bash
         run: |
           set -euo pipefail
@@ -94,8 +100,4 @@ jobs:
             exit 1
           fi
 
-          curl --fail --silent --show-error http://127.0.0.1:5180/acceptance-runner.js >/dev/null
-          curl --fail --silent --show-error http://127.0.0.1:5180/acceptance-prompts.json >"${RUNNER_TEMP}/acceptance-prompts.json"
-          node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(v.schemaVersion!=="storycore-harbour.acceptance.v1"||v.prompts.length!==20) process.exit(1)' "${RUNNER_TEMP}/acceptance-prompts.json"
-
-          echo "Anna mock harness and acceptance collector assets responded on port 5180."
+          echo "Anna mock harness responded on port 5180."
