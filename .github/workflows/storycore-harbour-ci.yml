@@ -41,7 +41,12 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Verify JavaScript syntax
-        run: node --check bundle/app.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in bundle/*.js scripts/*.mjs tests/*.mjs; do
+            node --check "${file}"
+          done
 
       - name: Run contract tests
         run: npm test
