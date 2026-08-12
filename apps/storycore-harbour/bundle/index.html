@@ -18,22 +18,22 @@
         </div>
       </div>
       <p class="tagline">From idea to production-ready visual story.</p>
-      <span id="runtime-status" class="status" role="status">Connecting to Anna…</span>
+      <span id="runtime-status" class="status" role="status" aria-live="polite" aria-atomic="true">Connecting to Anna…</span>
     </header>
 
-    <nav class="steps" aria-label="Project steps">
-      <button type="button" class="step active" data-step="1" aria-current="step"><span>1</span> Concept</button>
-      <button type="button" class="step" data-step="2" disabled><span>2</span> World</button>
-      <button type="button" class="step" data-step="3" disabled><span>3</span> Scenes</button>
-      <button type="button" class="step" data-step="4" disabled><span>4</span> Continuity</button>
+    <nav class="steps" aria-label="Project steps" role="tablist">
+      <button id="step-tab-1" type="button" class="step active" data-step="1" role="tab" aria-controls="step-1" aria-selected="true" aria-current="step" tabindex="0"><span>1</span> Concept</button>
+      <button id="step-tab-2" type="button" class="step" data-step="2" role="tab" aria-controls="step-2" aria-selected="false" tabindex="-1" disabled><span>2</span> World</button>
+      <button id="step-tab-3" type="button" class="step" data-step="3" role="tab" aria-controls="step-3" aria-selected="false" tabindex="-1" disabled><span>3</span> Scenes</button>
+      <button id="step-tab-4" type="button" class="step" data-step="4" role="tab" aria-controls="step-4" aria-selected="false" tabindex="-1" disabled><span>4</span> Continuity</button>
     </nav>
 
-    <main>
-      <section id="step-1" class="panel step-panel">
+    <main id="main-content">
+      <section id="step-1" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-1" aria-hidden="false" tabindex="-1">
         <div class="panel-heading">
           <div>
             <p class="eyebrow">ARRIVAL</p>
-            <h2>Describe the story you want to build</h2>
+            <h2 tabindex="-1">Describe the story you want to build</h2>
           </div>
           <p>Harbour will structure the world, scenes, shots, and continuity. It will not render media in this version.</p>
         </div>
@@ -41,7 +41,7 @@
         <form id="concept-form" novalidate>
           <div class="field wide">
             <label for="idea">Concept, synopsis, or short script <strong>*</strong></label>
-            <textarea id="idea" name="idea" rows="8" maxlength="12000" required placeholder="Example: At dawn, a courier must cross a flooded neon harbour on the final autonomous ferry to deliver a memory archive."></textarea>
+            <textarea id="idea" name="idea" rows="8" maxlength="12000" required aria-describedby="idea-help idea-count" placeholder="Example: At dawn, a courier must cross a flooded neon harbour on the final autonomous ferry to deliver a memory archive."></textarea>
             <div class="field-meta"><span id="idea-help">Minimum 20 characters.</span><span id="idea-count">0 / 12,000</span></div>
           </div>
 
@@ -82,7 +82,7 @@
             </div>
           </div>
 
-          <div id="form-error" class="message error" role="alert" hidden></div>
+          <div id="form-error" class="message error" role="alert" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></div>
           <div class="actions">
             <button id="generate-button" class="primary" type="submit">Build my visual story</button>
             <button id="load-button" type="button">Load latest saved project</button>
@@ -90,9 +90,9 @@
         </form>
       </section>
 
-      <section id="step-2" class="panel step-panel" hidden>
+      <section id="step-2" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-2" aria-hidden="true" tabindex="-1" hidden>
         <div class="panel-heading">
-          <div><p class="eyebrow">WORLD</p><h2 id="world-title">Production bible</h2></div>
+          <div><p class="eyebrow">WORLD</p><h2 id="world-title" tabindex="-1">Production bible</h2></div>
           <button type="button" class="next-button" data-next="3">Continue to scenes</button>
         </div>
         <div id="bible-content"></div>
@@ -102,20 +102,20 @@
         <div id="location-list" class="card-grid"></div>
       </section>
 
-      <section id="step-3" class="panel step-panel" hidden>
+      <section id="step-3" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-3" aria-hidden="true" tabindex="-1" hidden>
         <div class="panel-heading">
-          <div><p class="eyebrow">ROUTE</p><h2>Scenes and shots</h2></div>
+          <div><p class="eyebrow">ROUTE</p><h2 tabindex="-1">Scenes and shots</h2></div>
           <button type="button" class="next-button" data-next="4">Review continuity</button>
         </div>
         <div id="scene-list" class="scene-list"></div>
       </section>
 
-      <section id="step-4" class="panel step-panel" hidden>
+      <section id="step-4" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-4" aria-hidden="true" tabindex="-1" hidden>
         <div class="panel-heading">
-          <div><p class="eyebrow">DEPARTURE</p><h2>Continuity and export</h2></div>
+          <div><p class="eyebrow">DEPARTURE</p><h2 tabindex="-1">Continuity and export</h2></div>
         </div>
         <div id="continuity-content"></div>
-        <div id="save-status" class="message" aria-live="polite"></div>
+        <div id="save-status" class="message" role="status" aria-live="polite" aria-atomic="true"></div>
         <div class="actions">
           <button id="save-button" class="primary" type="button">Save project</button>
           <button id="export-button" type="button">Export JSON</button>
@@ -123,17 +123,17 @@
         </div>
       </section>
 
-      <section id="run-progress" class="progress-card" aria-live="polite" hidden>
+      <section id="run-progress" class="progress-card" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" hidden>
         <div class="spinner" aria-hidden="true"></div>
         <div>
-          <h2 id="progress-title">Building your production package…</h2>
+          <h2 id="progress-title" tabindex="-1">Building your production package…</h2>
           <p id="progress-detail">Structuring the world, scenes, and continuity.</p>
         </div>
       </section>
 
-      <section id="fatal-error" class="panel error-panel" hidden>
+      <section id="fatal-error" class="panel error-panel" role="alert" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden>
         <p class="eyebrow">RUN INTERRUPTED</p>
-        <h2 id="fatal-title">The project could not be completed</h2>
+        <h2 id="fatal-title" tabindex="-1">The project could not be completed</h2>
         <p id="fatal-detail"></p>
         <button id="retry-button" type="button">Return to concept</button>
       </section>
@@ -146,6 +146,7 @@
 
     <script src="runtime-handoff.js" type="module"></script>
     <script src="app.js" type="module"></script>
+    <script src="accessibility.js" type="module"></script>
     <script src="acceptance-runner.js" type="module"></script>
   </body>
 </html>
