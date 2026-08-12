@@ -57,7 +57,29 @@ Updated: 2026-08-12
 - generated static-bundle corpus kept synchronized with its single canonical source;
 - official `mountBundle` tests verify declared LLM/storage/window grants and rejection of undeclared tool invocation.
 
-**Latest implementation gate:** all 35 Node tests pass, followed by sample export, mock response, immutable corpus, generated bundle, strict Anna validation, and mock-harness startup.
+### HBR-004 — Automated UI and accessibility gates
+
+- responsive four-step interface validated at the manifest minimum size of 520 × 680;
+- no horizontal overflow in the complete browser flow;
+- tab/tablist/tabpanel semantics for Concept, World, Scenes, and Continuity;
+- Arrow, Home, and End keyboard navigation across enabled steps;
+- focus moves to local form errors and each newly active panel heading;
+- runtime, loading, save, validation, and fatal states use live announcements;
+- generated project content is rendered as text, never untrusted HTML;
+- reduced-motion preference is honored;
+- browser test completes local validation, mock LLM generation, save/read-back, world rendering, scene/shot rendering, continuity, keyboard navigation, and JSON export;
+- the exported project and safe filename pass the canonical contract.
+
+The browser test uses a deterministic storage adapter only because CLI 0.1.30's `--mock-llm` dashboard does not round-trip its documented WindowStore values. Production code still calls Anna storage directly; production APS remains a separate authenticated gate.
+
+### HBR-006 — Review-package drafts
+
+- Marketplace tagline, descriptions, keywords, limits, screenshot captions, and prohibited claims;
+- privacy and data-handling draft with explicit retention/deletion limitation;
+- Marketplace reviewer functional, accessibility, security, persistence, and export guide;
+- external beta protocol for 10–20 independent participants;
+- release-blocking launch checklist;
+- existing App icon retained.
 
 ## In progress
 
@@ -73,19 +95,50 @@ Remaining work:
 - tune scene/shot counts or prompts only from measured failures;
 - rerun the complete corpus after every reliability change.
 
+### HBR-004 — Human accessibility and usability gates
+
+Remaining work:
+
+- manual screen-reader pass;
+- manual 200% zoom and high/forced-contrast checks;
+- first-time-user confirmation through the external beta.
+
 ### HBR-005 — Production APS verification
 
 Remaining work:
 
 - verify real production App storage write and read-back;
 - reload a saved project in a new App session;
-- induce an ETag conflict and confirm that the newer project is not overwritten.
+- induce an ETag conflict and confirm that the newer project is not overwritten;
+- confirm a sufficient deletion path or add delete-all UX.
+
+### HBR-006 — Final Marketplace assets
+
+Remaining work:
+
+- capture four final screenshots with fictional content;
+- confirm Anna's screenshot dimensions/file limits;
+- record a short demonstration;
+- run the external beta and resolve all P0/P1 defects;
+- finalize publisher privacy/support details and immutable 0.1.0 package.
+
+## Latest automated gate
+
+The latest green CI includes:
+
+- all 35 Node tests;
+- sample export validation;
+- mock LLM response validation;
+- immutable acceptance corpus and generated-bundle synchronization;
+- strict Anna manifest validation;
+- official Anna mock-harness startup;
+- full Chromium flow at 520 × 680 with validation focus, keyboard step navigation, panel focus, save/read-back, scene/shot rendering, continuity, and contract-valid export.
 
 ## Still externally unverified
 
 - real Anna production Host API handshake;
 - model completion success rate and latency;
-- production APS and ETag conflict behavior;
+- production APS, deletion controls, and ETag conflict behavior;
 - Qualified App MAU instrumentation and visibility;
 - App slug and developer-handle availability;
 - current Developer Terms and revenue-share policy;
@@ -105,6 +158,6 @@ npm run check
 npm run dev:mock
 ```
 
-Then read `AGENTS.md`, `CODEX_ENTRYPOINT.md`, `CODEX_TASKS.md`, and `acceptance/README.md`.
+Then read `AGENTS.md`, `CODEX_ENTRYPOINT.md`, `CODEX_TASKS.md`, `acceptance/README.md`, and `review/LAUNCH_CHECKLIST.md`.
 
-Codex should inspect the latest CI result first. The next legitimate HBR-003 step is the authenticated Anna corpus run or a narrowly scoped fix derived from that run. It must not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
+Codex should inspect the latest CI result first. The preferred next step is the authenticated Anna corpus and APS run. Non-authenticated work may prepare final screenshots, manual-accessibility checks, or deletion UX, but must not bypass the real-platform, legal, and beta gates or add an Executa/backend/media renderer.
