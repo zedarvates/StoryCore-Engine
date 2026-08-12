@@ -43,7 +43,9 @@
       ],
       "storage": [
         "get",
-        "set"
+        "set",
+        "list",
+        "delete"
       ],
       "window": [
         "set_title"
