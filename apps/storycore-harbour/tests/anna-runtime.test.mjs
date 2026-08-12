@@ -31,18 +31,35 @@ test("Anna harness allows the declared llm.complete capability", async () => {
   assert.equal(harness.calls.lastOf("llm.complete")?.outcome, "ok");
 });
 
-test("Anna harness provides isolated in-memory App storage", async () => {
-  const harness = await mountBundle({ manifest });
-  const value = { schemaVersion: "storycore-harbour.project.v1", project: { id: "runtime-test" } };
+test("Anna harness accepts the declared storage surface and app-facing shapes", async () => {
+  const value = {
+    schemaVersion: "storycore-harbour.project.v1",
+    project: { id: "runtime-test" },
+  };
+  const etag = 'W/"runtime-test"';
+  const harness = await mountBundle({
+    manifest,
+    mocks: {
+      "storage.set": () => ({ etag, generation: 1 }),
+      "storage.get": () => ({
+        exists: true,
+        value,
+        etag,
+        generation: 1,
+      }),
+    },
+  });
 
-  await harness.runtime.storage.set({
+  const created = await harness.runtime.storage.set({
     key: "projects/current",
     value,
   });
-
   const loaded = await harness.runtime.storage.get({ key: "projects/current" });
+
+  assert.equal(created.etag, etag);
   assert.equal(loaded.exists, true);
   assert.deepEqual(loaded.value, value);
+  assert.equal(loaded.etag, etag);
   assert.equal(harness.calls.byNs("storage").length, 2);
   assert.equal(harness.calls.lastOf("storage.get")?.outcome, "ok");
 });
@@ -51,7 +68,11 @@ test("Anna harness rejects Host API namespaces absent from the manifest", async 
   const harness = await mountBundle({ manifest });
 
   await assert.rejects(
-    () => harness.runtime.call("tools", "invoke", { tool_id: "not-declared", method: "run", args: {} }),
+    () => harness.runtime.call("tools", "invoke", {
+      tool_id: "not-declared",
+      method: "run",
+      args: {},
+    }),
     HostApiError,
   );
 
