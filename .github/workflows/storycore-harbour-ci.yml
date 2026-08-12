@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   validate:
-    name: Anna manifest, contract, and mock harness
+    name: Anna manifest, contract, browser, and mock harness
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -72,7 +72,7 @@ jobs:
       - name: Run strict Anna validation
         run: npm run validate:strict
 
-      - name: Smoke-test Anna mock harness
+      - name: Exercise the mock App in a real browser at minimum size
         shell: bash
         run: |
           set -euo pipefail
@@ -100,4 +100,14 @@ jobs:
             exit 1
           fi
 
-          echo "Anna mock harness responded on port 5180."
+          browser="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "${browser}" ]; then
+            echo "No system Chromium/Chrome executable was found on the GitHub runner."
+            exit 1
+          fi
+
+          BROWSER_EXECUTABLE="${browser}" \
+          HARBOUR_URL="http://127.0.0.1:5180/" \
+          npm run browser:smoke
+
+          echo "Anna mock harness and minimum-size browser flow passed."
