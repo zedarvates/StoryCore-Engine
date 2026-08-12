@@ -21,7 +21,7 @@ Status legend: ✅ completed · 🟡 implemented, awaiting real-platform gate ·
 - [x] Run the full Node test suite.
 - [x] Validate the sample export.
 - [x] Validate the mock LLM response fixture.
-- [x] Run `anna-app validate --strict` with `@anna-ai/cli` 0.1.30.
+- [x] Run `anna-app validate --strict` with exact `@anna-ai/cli` 0.1.30.
 - [x] Confirm `npm run dev:mock` starts the official Anna harness and responds on port 5180.
 - [x] Add reproducible GitHub Actions validation.
 
@@ -30,7 +30,7 @@ Status legend: ✅ completed · 🟡 implemented, awaiting real-platform gate ·
 ## HBR-002 — Harden the project contract ✅
 
 - [x] Replace the lightweight runtime checks with one canonical executable contract.
-- [x] Align browser, CLI, mock fixture, and test validation.
+- [x] Align browser, CLI, mock response, and test validation.
 - [x] Validate project identity, supported formats, limits, and date fields.
 - [x] Validate production bible and visual direction.
 - [x] Validate unique character, location, scene, and shot IDs.
@@ -51,24 +51,31 @@ Implemented foundation:
 - [x] Refine the bounded system prompt.
 - [x] Add explicit input-size and model-response limits.
 - [x] Normalize supported MCP completion response shapes.
-- [x] Add exactly one repair attempt.
+- [x] Add exactly one repair attempt and record its use.
 - [x] Classify Anna errors by stable error name.
 - [x] Add finite timeout and duplicate-submit protection.
+- [x] Preserve a supplied working title unconditionally.
 - [x] Create an immutable twenty-prompt corpus covering all six formats.
-- [x] Include ten English and ten French prompts.
+- [x] Include exactly ten English and ten French prompts.
 - [x] Cover very short and longer durations, dialogue/no-dialogue, factual caution, safety constraints, ensembles, recurring props, and spatial continuity.
 - [x] Add a deterministic evaluator for contract success, preserved inputs, latency, repair use, duplicates, missing results, and stable failure categories.
 - [x] Add evaluator unit tests and corpus validation to CI.
-- [x] Ignore real acceptance result files so private model outputs are not committed.
+- [x] Keep real result files out of Git.
+- [x] Add a hidden authenticated collector using the normal UI/LLM/repair/storage flow.
+- [x] Require explicit quota/storage confirmation before enabling the collector.
+- [x] Add safe stop and local JSONL download.
+- [x] Generate the static-bundle corpus from one canonical source.
+- [x] Test Host API ACLs and expected response shapes with the official `mountBundle` harness.
 
-Work still required:
+Real-platform work still required:
 
-- [ ] Preserve a supplied working title unconditionally in runtime normalization.
-- [ ] Add an authenticated real-Anna collection path that writes one privacy-safe JSONL record per corpus prompt.
-- [ ] Test against a real Anna account and at least one enabled provider.
-- [ ] Tune scene/shot counts by format and duration using measured failures only.
+- [ ] Authenticate or activate a real Anna developer test environment.
+- [ ] Run all twenty prompts against at least one enabled model.
+- [ ] Evaluate the downloaded JSONL with `npm run acceptance:evaluate`.
+- [ ] Tune scene/shot counts or prompt constraints only from measured failures.
 - [ ] Reach at least 18/20 valid projects without manual intervention.
 - [ ] Keep median successful completion time at or below 180 seconds.
+- [ ] Rerun the complete immutable corpus after every reliability fix.
 
 **Acceptance:** the committed evaluator reports `Acceptance gate: PASS` on a real, complete result file.
 
@@ -77,8 +84,8 @@ Work still required:
 - [ ] Finish responsive cards and scene navigation.
 - [ ] Add complete keyboard navigation and `aria-live` status.
 - [ ] Add empty, loading, retry, quota, permission, provider, contract, and storage-conflict states.
-- [ ] Add a browser-level test of the mock flow at the manifest minimum size.
-- [ ] Ensure no untrusted HTML injection.
+- [ ] Add a browser-level test of the complete mock flow at the manifest minimum size.
+- [ ] Ensure no untrusted HTML injection through all rendered fields.
 - [x] Add reduced-motion support.
 
 **Acceptance:** a first-time tester can finish the flow without guidance.
@@ -88,6 +95,7 @@ Work still required:
 - [x] Save only validated projects.
 - [x] Read back and revalidate after save.
 - [x] Add `etag` / `if_match` optimistic concurrency for overwrite operations.
+- [x] Test declared storage ACL and app-facing response shapes with `mountBundle` mocks.
 - [ ] Test a real production APS write, read-back, reload, and induced conflict.
 - [ ] Add recent-project selection only if it remains simple and reliable.
 - [x] Sanitize export names.
@@ -109,10 +117,12 @@ Work still required:
 ## Codex resume rule
 
 1. Inspect the latest `StoryCore Harbour CI` result on draft PR #30.
-2. Preserve the user-supplied title in `bundle/app.js` and cover it with a pure-function or browser-level test.
-3. Design the real-Anna acceptance collector without committing creative outputs or adding a custom backend.
-4. If a gate turns red, fix only that Harbour gate before doing new product work.
-5. Do not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
+2. Read `acceptance/README.md` before operating the real collector.
+3. Do not run the twenty-prompt collector without an authenticated test account, enabled model, sufficient quota, and explicit human confirmation in the UI.
+4. Evaluate the resulting local JSONL; do not commit or paste it into the PR.
+5. Make reliability changes only from measured prompt IDs and validation categories, not by weakening the contract or replacing difficult corpus entries.
+6. If a gate turns red, fix only that Harbour gate before doing new product work.
+7. Do not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
 
 ## Optional after 0.1
 
