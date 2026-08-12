@@ -13,9 +13,10 @@
     "dev:off": "anna-app dev --no-llm",
     "validate": "anna-app validate",
     "validate:strict": "anna-app validate --strict",
+    "fixture:verify": "anna-app fixture verify fixtures/happy-path.jsonl",
     "test": "node --test tests/*.test.mjs",
     "contract:check": "node scripts/validate-project.mjs examples/sample-project.json",
-    "check": "npm run test && npm run contract:check && npm run validate:strict"
+    "check": "npm run test && npm run contract:check && npm run fixture:verify && npm run validate:strict"
   },
   "devDependencies": {
     "@anna-ai/cli": "^0.1.30"
