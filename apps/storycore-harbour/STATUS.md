@@ -25,7 +25,7 @@ Updated: 2026-08-12
 - the official Anna mock harness starts and responds on port 5180;
 - dedicated path-scoped GitHub Actions CI is in place.
 
-### HBR-002 — Contract hardening implemented
+### HBR-002 — Contract hardening
 
 - one canonical contract is shared by the browser App and Node tooling;
 - project identity, formats, lengths, dates, production bible, visual direction, and continuity rules are validated;
@@ -36,9 +36,10 @@ Updated: 2026-08-12
 - duration totals must remain plausible relative to the requested project duration;
 - invalid projects cannot be rendered, saved, loaded, or treated as successful;
 - Anna storage overwrites use `etag` / `if_match` when available;
-- saved data is read back and revalidated.
+- saved data is read back and revalidated;
+- the suite covers twenty distinct invalid-contract cases plus the valid reference project.
 
-The expanded HBR-002 suite is awaiting the latest CI conclusion after the final shared-validator integration.
+**Gate result:** StoryCore Harbour CI run 15 passed every step: syntax, 21 tests, sample export, mock response, strict Anna validation, and mock-harness startup.
 
 ## In progress
 
@@ -87,4 +88,4 @@ npm run dev:mock
 
 Then read `AGENTS.md` and `CODEX_ENTRYPOINT.md`.
 
-Codex should first inspect the latest CI result. If green, close HBR-002 and begin HBR-003 by building the acceptance corpus and evaluator. It must not add an Executa, backend, GPU service, image generation, or video generation.
+Codex should begin HBR-003 with the fixed acceptance corpus and evaluator. It must not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
