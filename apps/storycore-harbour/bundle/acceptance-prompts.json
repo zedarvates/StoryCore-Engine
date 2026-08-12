@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "storycore-harbour.acceptance.v1",
+  "targetPasses": 18,
+  "maxMedianDurationMs": 180000,
+  "prompts": []
+}
