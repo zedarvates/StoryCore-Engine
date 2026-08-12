@@ -27,6 +27,7 @@ Characters in a shot must also be listed in the parent scene.
 Keep visual identities and continuity rules explicit and stable.
 The sum of scene durations must plausibly match the requested project duration.
 Write all human-facing content in the requested language.
+If input.title is non-empty, copy it exactly to project.title.
 Do not claim to generate images, audio, or video.`;
 
 const annaReady = connectToAnna();
@@ -177,13 +178,13 @@ function localRunMetadata() {
   };
 }
 
-function addLocalMetadata(project, input, metadata) {
+function addLocalMetadata(project, input, metadata, repairUsed = false) {
   if (!project || typeof project !== "object" || Array.isArray(project)) return project;
   project.schemaVersion = PROJECT_SCHEMA;
   project.project = {
     ...(project.project || {}),
     id: metadata.id,
-    title: project.project?.title || input.title || "Untitled visual story",
+    title: input.title || project.project?.title || "Untitled visual story",
     language: input.language,
     format: input.format,
     durationMinutes: input.durationMinutes,
@@ -202,6 +203,7 @@ function addLocalMetadata(project, input, metadata) {
     generator: "storycore-harbour",
     generatedAt: metadata.updatedAt,
     runtime: state.runtimeMode,
+    repairUsed,
   };
   return project;
 }
@@ -231,7 +233,7 @@ async function generateProject(input) {
   let errors;
 
   try {
-    project = addLocalMetadata(parseJsonText(raw), input, metadata);
+    project = addLocalMetadata(parseJsonText(raw), input, metadata, false);
     errors = validateProject(project);
   } catch (error) {
     errors = [`JSON parse failed: ${error.message}`];
@@ -253,7 +255,7 @@ ${raw.slice(0, 22_000)}`;
     { role: "user", content: { type: "text", text: repairPrompt } },
   ]);
   raw = responseText(repaired);
-  project = addLocalMetadata(parseJsonText(raw), input, metadata);
+  project = addLocalMetadata(parseJsonText(raw), input, metadata, true);
   errors = validateProject(project);
   if (errors.length) {
     throw new Error(`The repaired project still failed validation: ${errors.join(" ")}`);
