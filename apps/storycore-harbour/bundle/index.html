@@ -86,6 +86,7 @@
           <div class="actions">
             <button id="generate-button" class="primary" type="submit">Build my visual story</button>
             <button id="load-button" type="button">Load latest saved project</button>
+            <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status" aria-label="Delete all StoryCore Harbour saved projects">Delete saved projects</button>
           </div>
         </form>
       </section>
@@ -120,8 +121,11 @@
           <button id="save-button" class="primary" type="button">Save project</button>
           <button id="export-button" type="button">Export JSON</button>
           <button id="new-button" type="button">Start another project</button>
+          <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status" aria-label="Delete all StoryCore Harbour saved projects">Delete saved projects</button>
         </div>
       </section>
+
+      <div id="deletion-status" class="message deletion-status" role="status" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></div>
 
       <section id="run-progress" class="progress-card" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" hidden>
         <div class="spinner" aria-hidden="true"></div>
@@ -147,6 +151,7 @@
     <script src="runtime-handoff.js" type="module"></script>
     <script src="app.js" type="module"></script>
     <script src="accessibility.js" type="module"></script>
+    <script src="project-deletion.js" type="module"></script>
     <script src="acceptance-runner.js" type="module"></script>
   </body>
 </html>
