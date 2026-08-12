@@ -26,10 +26,14 @@ const context = await browser.newContext({
 });
 const page = await context.newPage();
 const pageErrors = [];
+const consoleErrors = [];
 const tempDirectory = await mkdtemp(join(tmpdir(), "storycore-harbour-browser-"));
 
 page.on("pageerror", (error) => {
   pageErrors.push(error.message);
+});
+page.on("console", (message) => {
+  if (message.type() === "error") consoleErrors.push(message.text());
 });
 
 try {
@@ -73,7 +77,14 @@ try {
   assert.match(ideaCount || "", /\/ 12,000/);
 
   await app.getByRole("button", { name: "Build my visual story" }).click();
-  await app.locator("#step-2").waitFor({ state: "visible", timeout: 30_000 });
+  const outcome = await waitForGenerationOutcome(app, 35_000);
+  if (outcome.type !== "success") {
+    throw new Error(
+      `StoryCore Harbour browser generation ${outcome.type}: ${outcome.detail}. ` +
+      `Runtime=${outcome.runtimeStatus}; progress=${outcome.progressDetail}; ` +
+      `form=${outcome.formError}; console=${consoleErrors.join(" | ") || "none"}`,
+    );
+  }
 
   await assertText(app.locator("#world-title"), /^Browser Smoke Story$/);
   await assertText(app.locator("#save-status"), /Saved and verified in your Anna App storage/i);
@@ -112,6 +123,7 @@ try {
   assert.equal(exportedProject.metadata?.repairUsed, false);
 
   assert.deepEqual(pageErrors, [], `Unexpected browser page errors: ${pageErrors.join(" | ")}`);
+  assert.deepEqual(consoleErrors, [], `Unexpected browser console errors: ${consoleErrors.join(" | ")}`);
 
   console.log(JSON.stringify({
     result: "pass",
@@ -128,7 +140,33 @@ try {
   await rm(tempDirectory, { recursive: true, force: true });
 }
 
+async function waitForGenerationOutcome(app, timeoutMs) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (await app.locator("#step-2").isVisible()) return { type: "success" };
+    if (await app.locator("#fatal-error").isVisible()) {
+      return diagnostics(app, "fatal", await app.locator("#fatal-detail").textContent());
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  return diagnostics(app, "timeout", "No success or fatal state became visible before the browser deadline");
+}
+
+async function diagnostics(app, type, detail) {
+  return {
+    type,
+    detail: clean(detail),
+    runtimeStatus: clean(await app.locator("#runtime-status").textContent()),
+    progressDetail: clean(await app.locator("#progress-detail").textContent()),
+    formError: clean(await app.locator("#form-error").textContent()),
+  };
+}
+
 async function assertText(locator, pattern) {
   const text = await locator.textContent();
   assert.match((text || "").trim(), pattern);
+}
+
+function clean(value) {
+  return String(value || "none").replace(/[\r\n]+/g, " ").slice(0, 500);
 }
