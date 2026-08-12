@@ -44,9 +44,9 @@
 
 **Decision:** add `.github/workflows/storycore-harbour-ci.yml` as the only initial cross-directory change.
 
-**Reason:** the current execution environment cannot reliably install the Anna CLI from npm. GitHub Actions provides a clean Node 22 + `uv` environment where the official validator and local harness can run reproducibly. The workflow is path-scoped to StoryCore Harbour and does not alter StoryCore Engine runtime code.
+**Reason:** the original execution environment could not reliably install the Anna CLI from npm. GitHub Actions provides a clean Node 22 + `uv` environment where the official validator and local harness can run reproducibly. The workflow is path-scoped to StoryCore Harbour and does not alter StoryCore Engine runtime code.
 
-**Consequences:** every Harbour change must pass JavaScript syntax checks, contract tests, sample-export validation, mock-fixture validation, strict Anna manifest validation, and a mock-harness startup test.
+**Consequences:** every Harbour change must pass JavaScript syntax checks, contract tests, acceptance-evaluator tests, sample-export validation, mock-response validation, corpus synchronization, strict Anna manifest validation, and a mock-harness startup test.
 
 ### ADR-008 — Mock LLM fixtures are not harness recordings
 
@@ -54,7 +54,7 @@
 
 **Reason:** `anna-app dev --mock-llm` consumes namespace/method mock responses (`ns=llm`, `method=complete`). `anna-app fixture verify` validates a different artifact: a recorded harness event stream carrying recording-specific fields such as `kind`. Treating the mock input as a recording produced the misleading error `unknown kind: (missing)`.
 
-**Consequences:** the custom validator parses each mocked completion, extracts the MCP-shaped text response, parses the embedded StoryCore project, and runs the canonical project contract. If we later record a real harness session, that recording will be stored separately and checked with the official fixture command.
+**Consequences:** the custom validator parses each mocked completion, extracts the MCP-shaped text response, parses the embedded StoryCore project, and runs the canonical project contract. A future real harness recording must be stored separately and checked with the official fixture command.
 
 ### ADR-009 — One canonical runtime contract
 
@@ -72,11 +72,38 @@
 
 **Consequences:** a concurrency conflict is shown to the user instead of overwriting a newer project. The default per-App/per-user storage scope remains unchanged and needs no broader capability grant.
 
+### ADR-011 — Immutable twenty-prompt acceptance corpus
+
+**Decision:** use `acceptance/prompts.json` as the fixed reliability corpus for version 0.1.
+
+**Reason:** selecting prompts after seeing model failures would make the reliability score meaningless. The corpus covers all six formats, exactly ten English and ten French requests, short and longer durations, dialogue and no-dialogue work, factual caution, safety constraints, ensembles, recurring props, and spatial continuity.
+
+**Gate:** at least 18 of 20 valid projects, preserved input fields, no duplicate/unknown results, and median successful completion at or below 180 seconds.
+
+**Consequences:** corpus changes require owner review, a documented reason, and a reset of historical comparisons. The canonical file is copied into the static bundle by `npm run acceptance:sync`; the generated copy is not committed.
+
+### ADR-012 — Consented real-Anna collector inside the App
+
+**Decision:** expose the acceptance collector only when the local App URL includes `?acceptance=1` and require an explicit quota/storage consent checkbox before enabling the run.
+
+**Reason:** the trustworthy acceptance test must exercise the same form submission, LLM call, one-repair policy, validation, storage write, read-back, and rendering path as normal users. A separate backend runner could accidentally measure different behavior.
+
+**Consequences:** the test can make 20 primary model calls and up to 20 repair calls, stores test projects in the active Anna account, can stop safely between prompts, and produces a local JSONL file. The collector does not add an Executa, backend, provider key, external tracker, or automatic unattended run.
+
+### ADR-013 — Official Anna harness with explicit stable mocks
+
+**Decision:** test Host API grants and call recording through `@anna-ai/cli/test` `mountBundle`, while explicitly mocking the application-facing LLM and storage response shapes.
+
+**Reason:** CLI 0.1.30 correctly enforces manifest ACLs and records calls, but its default direct Node storage handler returns `null`; relying on that undocumented default would test the harness implementation rather than StoryCore Harbour. Explicit mocks make the expected `exists`, `value`, `etag`, and `generation` contract visible and deterministic.
+
+**Consequences:** CI verifies that `llm.complete`, `storage.get/set`, and `window.set_title` are allowed, and that undeclared `tools.invoke` is denied. Production APS persistence and real ETag conflict behavior remain a separate authenticated-platform gate.
+
 ## Documentation drift observed
 
-- Anna's current CLI successfully installs as `@anna-ai/cli` 0.1.30 and validates this schema 2 App with `anna-app validate --strict`.
-- The public example repository still contains mock LLM JSONL entries using `ns` / `method`, while `anna-app fixture verify` now validates harness recordings, not those mock inputs. The distinction is now explicit in our scripts.
-- Jiao's email says developer activation is self-service, while the public Verified Developer reference still describes manual administrator activation. This remains an external blocker until Anna confirms the live path.
+- Anna's current CLI installs as `@anna-ai/cli` 0.1.30 and validates this schema 2 App with `anna-app validate --strict`.
+- The public example repository still contains mock LLM JSONL entries using `ns` / `method`, while `anna-app fixture verify` validates harness recordings, not those mock inputs.
+- `mountBundle` ACL and call recording work in CLI 0.1.30, while its default storage value semantics require explicit mocks for deterministic Node tests.
+- Jiao's email says developer activation is self-service, while the public Verified Developer reference still describes manual administrator activation. This remains externally unresolved.
 
 ## Pending external confirmation from Anna
 
