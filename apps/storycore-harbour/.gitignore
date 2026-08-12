@@ -5,3 +5,4 @@ node_modules/
 coverage/
 acceptance/results*.jsonl
 acceptance/results*.json
+bundle/acceptance-prompts.json
