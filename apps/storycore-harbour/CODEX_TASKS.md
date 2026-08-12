@@ -2,7 +2,7 @@
 
 Complete tasks in order. Do not start an optional phase until the previous gate passes.
 
-Status legend: ✅ completed · 🟡 implemented, awaiting real-platform gate · ⬜ not started
+Status legend: ✅ completed · 🟡 implemented, awaiting real-platform or human gate · ⬜ not started
 
 ## HBR-000 — Repository orientation ✅
 
@@ -57,7 +57,7 @@ Implemented foundation:
 - [x] Preserve a supplied working title unconditionally.
 - [x] Create an immutable twenty-prompt corpus covering all six formats.
 - [x] Include exactly ten English and ten French prompts.
-- [x] Cover very short and longer durations, dialogue/no-dialogue, factual caution, safety constraints, ensembles, recurring props, and spatial continuity.
+- [x] Cover short/long, dialogue/no-dialogue, factual, safety, ensemble, prop, and spatial cases.
 - [x] Add a deterministic evaluator for contract success, preserved inputs, latency, repair use, duplicates, missing results, and stable failure categories.
 - [x] Add evaluator unit tests and corpus validation to CI.
 - [x] Keep real result files out of Git.
@@ -79,16 +79,23 @@ Real-platform work still required:
 
 **Acceptance:** the committed evaluator reports `Acceptance gate: PASS` on a real, complete result file.
 
-## HBR-004 — Complete the four-step UI ⬜
+## HBR-004 — Complete the four-step UI 🟡
 
-- [ ] Finish responsive cards and scene navigation.
-- [ ] Add complete keyboard navigation and `aria-live` status.
-- [ ] Add empty, loading, retry, quota, permission, provider, contract, and storage-conflict states.
-- [ ] Add a browser-level test of the complete mock flow at the manifest minimum size.
-- [ ] Ensure no untrusted HTML injection through all rendered fields.
-- [x] Add reduced-motion support.
+- [x] Finish responsive cards and scene navigation.
+- [x] Add tab/tablist/tabpanel semantics for the four steps.
+- [x] Add Arrow, Home, and End keyboard navigation with roving focus.
+- [x] Move focus to form errors, active panel headings, and fatal errors.
+- [x] Add `aria-live` status for runtime, loading, save, validation, and fatal states.
+- [x] Implement empty, loading, retry, quota, permission, provider, contract, storage, and concurrency messages.
+- [x] Add a real-browser test of the complete mock flow at 520 × 680.
+- [x] Test local validation focus, keyboard step navigation, panel focus, save/read-back, continuity, and JSON export.
+- [x] Verify no horizontal overflow at the declared minimum width.
+- [x] Ensure generated content is inserted as text rather than untrusted HTML.
+- [x] Honor reduced-motion preference.
+- [ ] Complete a manual screen-reader pass.
+- [ ] Complete manual 200% zoom and forced/high-contrast checks.
 
-**Acceptance:** a first-time tester can finish the flow without guidance.
+**Acceptance:** automated accessibility/navigation gates pass; close after the remaining manual accessibility checks and external beta confirm that first-time users can finish unaided.
 
 ## HBR-005 — Persistence and export 🟡
 
@@ -96,23 +103,33 @@ Real-platform work still required:
 - [x] Read back and revalidate after save.
 - [x] Add `etag` / `if_match` optimistic concurrency for overwrite operations.
 - [x] Test declared storage ACL and app-facing response shapes with `mountBundle` mocks.
+- [x] Exercise UI save/read-back and export in a real browser with a deterministic test adapter.
 - [ ] Test a real production APS write, read-back, reload, and induced conflict.
+- [ ] Confirm a sufficient user-facing deletion path; add delete-all if Anna controls are insufficient.
 - [ ] Add recent-project selection only if it remains simple and reliable.
 - [x] Sanitize export names.
 - [x] Document the `storycore-harbour.project.v1` import contract.
 
-**Acceptance:** reload restores the latest valid project; exported JSON passes the local contract validator; production APS conflict handling is verified.
+**Acceptance:** reload restores the latest valid project; exported JSON passes the local contract validator; production APS conflict and deletion behavior are verified.
 
-## HBR-006 — Review and launch package ⬜
+## HBR-006 — Review and launch package 🟡
 
-- [ ] Create marketplace copy, icon, screenshots, privacy notes, and reviewer test instructions.
+- [x] Draft Marketplace tagline, descriptions, keywords, limits, screenshot captions, and prohibited claims.
+- [x] Prepare an App privacy/data-handling draft.
+- [x] Prepare reviewer functional/security instructions.
+- [x] Prepare an external 10–20 participant beta protocol and exit gate.
+- [x] Prepare a release-blocking launch checklist.
+- [x] Provide an App icon.
+- [ ] Capture four final screenshots with fictional content.
+- [ ] Confirm Anna screenshot dimensions and file limits.
 - [ ] Record a short end-to-end demonstration.
 - [ ] Run 10–20 external beta tests.
-- [ ] Fix all P0/P1 defects.
+- [ ] Fix all P0/P1 defects and disposition P2 findings.
+- [ ] Verify deletion controls and finalize publisher privacy contact.
 - [ ] Prepare immutable version `0.1.0`.
 - [ ] Do not release until the owner reviews Anna's Developer Terms and revenue-share policy.
 
-**Acceptance:** reviewer can reproduce a successful core run with no private setup.
+**Acceptance:** reviewer can reproduce a successful core run with no private setup and all real-platform, legal, accessibility, and beta gates pass.
 
 ## Codex resume rule
 
@@ -121,8 +138,9 @@ Real-platform work still required:
 3. Do not run the twenty-prompt collector without an authenticated test account, enabled model, sufficient quota, and explicit human confirmation in the UI.
 4. Evaluate the resulting local JSONL; do not commit or paste it into the PR.
 5. Make reliability changes only from measured prompt IDs and validation categories, not by weakening the contract or replacing difficult corpus entries.
-6. If a gate turns red, fix only that Harbour gate before doing new product work.
-7. Do not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
+6. The next non-authenticated work may cover final screenshots, manual-accessibility preparation, or deletion UX, but must not bypass the real Anna gates.
+7. If a gate turns red, fix only that Harbour gate before doing new product work.
+8. Do not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
 
 ## Optional after 0.1
 
