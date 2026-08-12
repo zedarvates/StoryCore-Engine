@@ -1,14 +1,23 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { validateProject } from "../bundle/project-contract.js";
 
 const dashboardUrl = process.env.HARBOUR_URL || "http://127.0.0.1:5180/";
 const executablePath = process.env.BROWSER_EXECUTABLE;
+const screenshotDirectory = process.env.HARBOUR_SCREENSHOT_DIR || "";
+const minimumFrameSize = { width: 520, height: 680 };
+const marketplaceFrameSize = { width: 900, height: 820 };
 
 if (!executablePath) {
   console.error("BROWSER_EXECUTABLE is required for the StoryCore Harbour browser smoke test.");
   process.exit(2);
+}
+
+if (screenshotDirectory) {
+  await mkdir(screenshotDirectory, { recursive: true });
 }
 
 const browser = await chromium.launch({
@@ -17,13 +26,14 @@ const browser = await chromium.launch({
   args: ["--no-sandbox", "--disable-dev-shm-usage"],
 });
 const context = await browser.newContext({
-  viewport: { width: 560, height: 720 },
+  viewport: { width: 980, height: 900 },
   reducedMotion: "reduce",
 });
 const page = await context.newPage();
 const pageErrors = [];
 const consoleErrors = [];
 const failedResponses = [];
+const screenshots = [];
 
 page.on("pageerror", (error) => pageErrors.push(error.message));
 page.on("console", (message) => {
@@ -44,16 +54,7 @@ try {
   const frameSelector = 'iframe[src*="/anna-apps/storycore-harbour/dev/"]';
   const frameElement = page.locator(frameSelector);
   await frameElement.waitFor({ state: "attached", timeout: 30_000 });
-  await frameElement.evaluate((iframe) => {
-    Object.assign(iframe.style, {
-      position: "fixed",
-      inset: "0 auto auto 0",
-      width: "520px",
-      height: "680px",
-      border: "0",
-      zIndex: "2147483647",
-    });
-  });
+  await setFrameSize(frameElement, minimumFrameSize);
 
   const app = page.frameLocator(frameSelector);
   await app.locator("#concept-form").waitFor({ state: "visible", timeout: 30_000 });
@@ -74,6 +75,13 @@ try {
   const storageAdapterMode = await installDeterministicTestStorage(app);
   await installExportCapture(app);
 
+  await fillReferenceProject(app);
+  await captureMarketplaceScreenshot({
+    app,
+    frameElement,
+    filename: "01-concept.png",
+  });
+
   // Local form validation must prevent a model call and move keyboard focus to
   // the actionable error announcement.
   await app.locator("#idea").fill("Too short");
@@ -84,16 +92,7 @@ try {
   assert.equal(await app.locator("#step-1").isVisible(), true);
   assert.equal(await app.locator("#step-2").isVisible(), false);
 
-  await app.locator("#idea").fill(
-    "At dawn, a courier crosses a flooded harbour on the final autonomous ferry to deliver a damaged memory archive before the checkpoint closes.",
-  );
-  await app.locator("#title").fill("Browser Smoke Story");
-  await app.locator("#format").selectOption("short-film");
-  await app.locator("#duration").fill("3");
-  await app.locator("#language").selectOption("en");
-  await app.locator("#tone").fill("Grounded cyberpunk drama with clear visual continuity");
-  await app.locator("#audience").fill("Young adult science-fiction viewers");
-
+  await fillReferenceProject(app);
   assert.match((await app.locator("#idea-count").textContent()) || "", /\/ 12,000/);
 
   await app.getByRole("button", { name: "Build my visual story" }).click();
@@ -119,11 +118,21 @@ try {
     clientWidth: root.clientWidth,
     scrollWidth: root.scrollWidth,
   }));
-  assert.equal(dimensions.clientWidth, 520, "The App iframe must be tested at the declared 520px minimum width.");
+  assert.equal(
+    dimensions.clientWidth,
+    minimumFrameSize.width,
+    "The App iframe must be tested at the declared 520px minimum width.",
+  );
   assert.ok(
     dimensions.scrollWidth <= dimensions.clientWidth + 1,
     `The minimum-size App must not overflow horizontally (${dimensions.scrollWidth} > ${dimensions.clientWidth}).`,
   );
+
+  await captureMarketplaceScreenshot({
+    app,
+    frameElement,
+    filename: "02-world.png",
+  });
 
   // Roving-tabindex and ArrowRight navigation must activate the next enabled
   // step, update ARIA selection, and focus its heading.
@@ -135,12 +144,24 @@ try {
   assert.ok(await app.locator("#scene-list .scene").count(), "At least one scene must render.");
   assert.ok(await app.locator("#scene-list .shot").count(), "At least one shot must render.");
 
+  await captureMarketplaceScreenshot({
+    app,
+    frameElement,
+    filename: "03-scenes.png",
+  });
+
   await app.locator("#step-tab-3").focus();
   await app.locator("#step-tab-3").press("ArrowRight");
   await app.locator("#step-4").waitFor({ state: "visible" });
   await waitForFocus(app.locator("#step-4 h2"));
   assert.equal(await app.locator("#step-tab-4").getAttribute("aria-selected"), "true");
   await assertText(app.locator("#continuity-content .score"), /^96$/);
+
+  await captureMarketplaceScreenshot({
+    app,
+    frameElement,
+    filename: "04-continuity.png",
+  });
 
   // Sandboxed Anna App iframes do not necessarily surface a top-level browser
   // download event. Capture the exact Blob and filename produced by the real
@@ -152,6 +173,14 @@ try {
   assert.deepEqual(validateProject(exportedProject), []);
   assert.equal(exportedProject.project.title, "Browser Smoke Story");
   assert.equal(exportedProject.metadata?.repairUsed, false);
+
+  if (screenshotDirectory) {
+    assert.deepEqual(
+      screenshots.map((path) => path.split(/[\\/]/).at(-1)),
+      ["01-concept.png", "02-world.png", "03-scenes.png", "04-continuity.png"],
+      "The browser flow must create exactly the four expected Marketplace screenshot drafts.",
+    );
+  }
 
   const unexpectedConsoleErrors = consoleErrors.filter(
     (message) => !/Failed to load resource/i.test(message),
@@ -170,7 +199,7 @@ try {
 
   console.log(JSON.stringify({
     result: "pass",
-    viewport: { width: dimensions.clientWidth, height: 680 },
+    viewport: { width: dimensions.clientWidth, height: minimumFrameSize.height },
     formValidationFocus: "pass",
     keyboardStepNavigation: "pass",
     panelFocusManagement: "pass",
@@ -179,11 +208,57 @@ try {
     scenesRendered: await app.locator("#scene-list .scene").count(),
     shotsRendered: await app.locator("#scene-list .shot").count(),
     exportContract: "valid",
+    screenshotsCaptured: screenshots.length,
     storage: storageAdapterMode,
   }));
 } finally {
   await context.close().catch(() => {});
   await browser.close().catch(() => {});
+}
+
+async function fillReferenceProject(app) {
+  await app.locator("#idea").fill(
+    "At dawn, a courier crosses a flooded harbour on the final autonomous ferry to deliver a damaged memory archive before the checkpoint closes.",
+  );
+  await app.locator("#title").fill("Browser Smoke Story");
+  await app.locator("#format").selectOption("short-film");
+  await app.locator("#duration").fill("3");
+  await app.locator("#language").selectOption("en");
+  await app.locator("#tone").fill("Grounded cyberpunk drama with clear visual continuity");
+  await app.locator("#audience").fill("Young adult science-fiction viewers");
+}
+
+async function captureMarketplaceScreenshot({ app, frameElement, filename }) {
+  if (!screenshotDirectory) return;
+
+  await setFrameSize(frameElement, marketplaceFrameSize);
+  await app.locator("body").evaluate(() => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    window.scrollTo({ top: 0, behavior: "instant" });
+  });
+
+  const path = join(screenshotDirectory, filename);
+  await app.locator("body").screenshot({
+    path,
+    animations: "disabled",
+    caret: "hide",
+  });
+  screenshots.push(path);
+
+  await setFrameSize(frameElement, minimumFrameSize);
+}
+
+async function setFrameSize(frameElement, size) {
+  await frameElement.evaluate((iframe, next) => {
+    Object.assign(iframe.style, {
+      position: "fixed",
+      inset: "0 auto auto 0",
+      width: `${next.width}px`,
+      height: `${next.height}px`,
+      border: "0",
+      zIndex: "2147483647",
+    });
+  }, size);
 }
 
 async function installDeterministicTestStorage(app) {
