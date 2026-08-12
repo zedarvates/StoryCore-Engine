@@ -74,7 +74,7 @@ try {
   // using anna.storage unchanged; this browser-only adapter supplies the
   // documented get/set/etag shapes so the UI flow can test persistence and
   // read-back without confusing a harness backend limitation with an App bug.
-  await installDeterministicTestStorage(app);
+  const storageAdapterMode = await installDeterministicTestStorage(app);
 
   await app.locator("#idea").fill(
     "At dawn, a courier crosses a flooded harbour on the final autonomous ferry to deliver a damaged memory archive before the checkpoint closes.",
@@ -95,7 +95,8 @@ try {
     throw new Error(
       `StoryCore Harbour browser generation ${outcome.type}: ${outcome.detail}. ` +
       `Runtime=${outcome.runtimeStatus}; progress=${outcome.progressDetail}; ` +
-      `form=${outcome.formError}; console=${consoleErrors.join(" | ") || "none"}`,
+      `form=${outcome.formError}; storageAdapter=${storageAdapterMode}; ` +
+      `console=${consoleErrors.join(" | ") || "none"}`,
     );
   }
 
@@ -158,7 +159,7 @@ try {
     scenesRendered: await app.locator("#scene-list .scene").count(),
     shotsRendered: await app.locator("#scene-list .shot").count(),
     exportContract: "valid",
-    storage: "deterministic-browser-adapter",
+    storage: storageAdapterMode,
   }));
 } finally {
   await context.close().catch(() => {});
@@ -167,8 +168,9 @@ try {
 }
 
 async function installDeterministicTestStorage(app) {
-  await app.locator("html").evaluate(() => {
-    if (!window.anna?.storage) {
+  return app.locator("html").evaluate(() => {
+    const runtime = window.anna;
+    if (!runtime?.storage) {
       throw new Error("The connected Anna runtime was not exposed to the App window.");
     }
 
@@ -176,35 +178,60 @@ async function installDeterministicTestStorage(app) {
     let generation = 0;
     const clone = (value) => structuredClone(value);
 
-    window.anna.storage.get = async ({ key }) => {
-      const row = rows.get(key);
-      if (!row) return { exists: false, value: null };
-      return {
-        exists: true,
-        value: clone(row.value),
-        etag: row.etag,
-        generation: row.generation,
-      };
+    const testStorage = {
+      async get({ key }) {
+        const row = rows.get(key);
+        if (!row) return { exists: false, value: null };
+        return {
+          exists: true,
+          value: clone(row.value),
+          etag: row.etag,
+          generation: row.generation,
+        };
+      },
+
+      async set({ key, value, if_match }) {
+        const current = rows.get(key);
+        if (if_match !== undefined && current?.etag !== if_match) {
+          const error = new Error("Storage precondition failed in browser adapter.");
+          error.name = "precondition_failed";
+          error.code = "precondition_failed";
+          throw error;
+        }
+
+        generation += 1;
+        const etag = `W/\"browser-${generation}\"`;
+        rows.set(key, {
+          value: clone(value),
+          etag,
+          generation,
+        });
+        return { etag, generation };
+      },
     };
 
-    window.anna.storage.set = async ({ key, value, if_match }) => {
-      const current = rows.get(key);
-      if (if_match !== undefined && current?.etag !== if_match) {
-        const error = new Error("Storage precondition failed in browser adapter.");
-        error.name = "precondition_failed";
-        error.code = "precondition_failed";
-        throw error;
-      }
-
-      generation += 1;
-      const etag = `W/\"browser-${generation}\"`;
-      rows.set(key, {
-        value: clone(value),
-        etag,
-        generation,
+    let mode = "storage-property";
+    try {
+      Object.defineProperty(runtime, "storage", {
+        value: testStorage,
+        configurable: true,
+        enumerable: true,
+        writable: false,
       });
-      return { etag, generation };
+    } catch {
+      mode = "storage-assignment";
+      runtime.storage = testStorage;
+    }
+
+    if (runtime.storage !== testStorage || runtime.storage.get !== testStorage.get) {
+      throw new Error("The Anna runtime rejected the deterministic storage namespace replacement.");
+    }
+
+    window.__STORYCORE_HARBOUR_TEST_STORAGE__ = {
+      mode,
+      size: () => rows.size,
     };
+    return mode;
   });
 }
 
