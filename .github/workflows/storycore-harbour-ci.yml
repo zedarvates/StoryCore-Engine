@@ -37,7 +37,7 @@ jobs:
         with:
           enable-cache: false
 
-      - name: Install Anna CLI dependency
+      - name: Install Anna CLI dependency and generate bundle assets
         run: npm install --no-audit --no-fund
 
       - name: Verify JavaScript syntax
@@ -60,10 +60,13 @@ jobs:
       - name: Validate immutable acceptance corpus
         run: npm run acceptance:corpus
 
+      - name: Verify generated acceptance bundle
+        run: npm run acceptance:sync:check
+
       - name: Run strict Anna validation
         run: npm run validate:strict
 
-      - name: Smoke-test Anna mock harness
+      - name: Smoke-test Anna mock harness and collector assets
         shell: bash
         run: |
           set -euo pipefail
@@ -91,4 +94,8 @@ jobs:
             exit 1
           fi
 
-          echo "Anna mock harness responded on port 5180."
+          curl --fail --silent --show-error http://127.0.0.1:5180/acceptance-runner.js >/dev/null
+          curl --fail --silent --show-error http://127.0.0.1:5180/acceptance-prompts.json >"${RUNNER_TEMP}/acceptance-prompts.json"
+          node -e 'const fs=require("node:fs"); const v=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); if(v.schemaVersion!=="storycore-harbour.acceptance.v1"||v.prompts.length!==20) process.exit(1)' "${RUNNER_TEMP}/acceptance-prompts.json"
+
+          echo "Anna mock harness and acceptance collector assets responded on port 5180."
