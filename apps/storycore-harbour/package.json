@@ -19,6 +19,6 @@
     "check": "npm run test && npm run contract:check && npm run mock:check && npm run validate:strict"
   },
   "devDependencies": {
-    "@anna-ai/cli": "^0.1.30"
+    "@anna-ai/cli": "0.1.30"
   }
 }
