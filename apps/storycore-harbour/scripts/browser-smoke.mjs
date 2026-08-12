@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { validateProject } from "../bundle/project-contract.js";
 
@@ -21,18 +18,14 @@ const browser = await chromium.launch({
 });
 const context = await browser.newContext({
   viewport: { width: 560, height: 720 },
-  acceptDownloads: true,
   reducedMotion: "reduce",
 });
 const page = await context.newPage();
 const pageErrors = [];
 const consoleErrors = [];
 const failedResponses = [];
-const tempDirectory = await mkdtemp(join(tmpdir(), "storycore-harbour-browser-"));
 
-page.on("pageerror", (error) => {
-  pageErrors.push(error.message);
-});
+page.on("pageerror", (error) => pageErrors.push(error.message));
 page.on("console", (message) => {
   if (message.type() === "error") consoleErrors.push(message.text());
 });
@@ -51,8 +44,6 @@ try {
   const frameSelector = 'iframe[src*="/anna-apps/storycore-harbour/dev/"]';
   const frameElement = page.locator(frameSelector);
   await frameElement.waitFor({ state: "attached", timeout: 30_000 });
-
-  // Exercise the exact minimum view dimensions declared in manifest.json.
   await frameElement.evaluate((iframe) => {
     Object.assign(iframe.style, {
       position: "fixed",
@@ -67,14 +58,18 @@ try {
   const app = page.frameLocator(frameSelector);
   await app.locator("#concept-form").waitFor({ state: "visible", timeout: 30_000 });
   await assertText(app.locator("#runtime-status"), /Connected to Anna/i);
-  assert.equal(await app.locator(".acceptance-panel").count(), 0, "Acceptance mode must remain hidden in the normal App flow.");
+  assert.equal(
+    await app.locator(".acceptance-panel").count(),
+    0,
+    "Acceptance mode must remain hidden in the normal App flow.",
+  );
 
-  // `anna-app dev --mock-llm` currently serves deterministic model fixtures but
-  // does not reliably round-trip WindowStore values. The production App keeps
-  // using anna.storage unchanged; this browser-only adapter supplies the
-  // documented get/set/etag shapes so the UI flow can test persistence and
-  // read-back without confusing a harness backend limitation with an App bug.
+  // The CLI's --mock-llm path serves deterministic model output but its
+  // WindowStore does not currently round-trip values. Replace only the
+  // connected runtime object's storage namespace inside this browser test.
+  // Production code continues to call Anna storage without fallback.
   const storageAdapterMode = await installDeterministicTestStorage(app);
+  await installExportCapture(app);
 
   await app.locator("#idea").fill(
     "At dawn, a courier crosses a flooded harbour on the final autonomous ferry to deliver a damaged memory archive before the checkpoint closes.",
@@ -86,8 +81,7 @@ try {
   await app.locator("#tone").fill("Grounded cyberpunk drama with clear visual continuity");
   await app.locator("#audience").fill("Young adult science-fiction viewers");
 
-  const ideaCount = await app.locator("#idea-count").textContent();
-  assert.match(ideaCount || "", /\/ 12,000/);
+  assert.match((await app.locator("#idea-count").textContent()) || "", /\/ 12,000/);
 
   await app.getByRole("button", { name: "Build my visual story" }).click();
   const outcome = await waitForGenerationOutcome(app, 35_000);
@@ -124,14 +118,13 @@ try {
   await app.locator("#step-4").waitFor({ state: "visible" });
   await assertText(app.locator("#continuity-content .score"), /^96$/);
 
-  const downloadPromise = page.waitForEvent("download", { timeout: 15_000 });
+  // Sandboxed Anna App iframes do not necessarily surface a top-level browser
+  // download event. Capture the exact Blob and filename produced by the real
+  // export button instead of weakening the App or the sandbox.
   await app.getByRole("button", { name: "Export JSON" }).click();
-  const download = await downloadPromise;
-  assert.match(download.suggestedFilename(), /^browser-smoke-story\.storycore-harbour\.json$/);
-
-  const exportedPath = join(tempDirectory, download.suggestedFilename());
-  await download.saveAs(exportedPath);
-  const exportedProject = JSON.parse(await readFile(exportedPath, "utf8"));
+  const exported = await readCapturedExport(app);
+  assert.match(exported.filename, /^browser-smoke-story\.storycore-harbour\.json$/);
+  const exportedProject = JSON.parse(exported.text);
   assert.deepEqual(validateProject(exportedProject), []);
   assert.equal(exportedProject.project.title, "Browser Smoke Story");
   assert.equal(exportedProject.metadata?.repairUsed, false);
@@ -164,7 +157,6 @@ try {
 } finally {
   await context.close().catch(() => {});
   await browser.close().catch(() => {});
-  await rm(tempDirectory, { recursive: true, force: true });
 }
 
 async function installDeterministicTestStorage(app) {
@@ -177,7 +169,6 @@ async function installDeterministicTestStorage(app) {
     const rows = new Map();
     let generation = 0;
     const clone = (value) => structuredClone(value);
-
     const testStorage = {
       async get({ key }) {
         const row = rows.get(key);
@@ -189,7 +180,6 @@ async function installDeterministicTestStorage(app) {
           generation: row.generation,
         };
       },
-
       async set({ key, value, if_match }) {
         const current = rows.get(key);
         if (if_match !== undefined && current?.etag !== if_match) {
@@ -198,14 +188,9 @@ async function installDeterministicTestStorage(app) {
           error.code = "precondition_failed";
           throw error;
         }
-
         generation += 1;
         const etag = `W/\"browser-${generation}\"`;
-        rows.set(key, {
-          value: clone(value),
-          etag,
-          generation,
-        });
+        rows.set(key, { value: clone(value), etag, generation });
         return { etag, generation };
       },
     };
@@ -226,12 +211,41 @@ async function installDeterministicTestStorage(app) {
     if (runtime.storage !== testStorage || runtime.storage.get !== testStorage.get) {
       throw new Error("The Anna runtime rejected the deterministic storage namespace replacement.");
     }
-
-    window.__STORYCORE_HARBOUR_TEST_STORAGE__ = {
-      mode,
-      size: () => rows.size,
-    };
     return mode;
+  });
+}
+
+async function installExportCapture(app) {
+  await app.locator("html").evaluate(() => {
+    const capture = { blob: null, filename: null };
+    const createObjectURL = URL.createObjectURL.bind(URL);
+
+    URL.createObjectURL = (blob) => {
+      capture.blob = blob;
+      return createObjectURL(blob);
+    };
+    URL.revokeObjectURL = () => {};
+    HTMLAnchorElement.prototype.click = function click() {
+      capture.filename = this.download;
+    };
+    window.__STORYCORE_HARBOUR_EXPORT_CAPTURE__ = capture;
+  });
+}
+
+async function readCapturedExport(app) {
+  return app.locator("html").evaluate(async () => {
+    const deadline = Date.now() + 5_000;
+    const capture = window.__STORYCORE_HARBOUR_EXPORT_CAPTURE__;
+    while ((!capture?.blob || !capture?.filename) && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    if (!capture?.blob || !capture?.filename) {
+      throw new Error("The export button did not produce a Blob and filename.");
+    }
+    return {
+      filename: capture.filename,
+      text: await capture.blob.text(),
+    };
   });
 }
 
@@ -264,8 +278,7 @@ async function assertText(locator, pattern) {
 
 function isIgnorableResponse(url) {
   try {
-    const parsed = new URL(url);
-    return parsed.pathname.endsWith("/favicon.ico");
+    return new URL(url).pathname.endsWith("/favicon.ico");
   } catch {
     return false;
   }
