@@ -18,16 +18,15 @@ Updated: 2026-08-12
 ### HBR-001 — Bootstrap validation
 
 - Node.js syntax checks pass;
-- project contract tests pass;
 - sample StoryCore Harbour export validates;
-- mock LLM fixture validates against the project contract;
-- `anna-app validate --strict` passes with `@anna-ai/cli` 0.1.30;
+- mock LLM response validates against the project contract;
+- `anna-app validate --strict` passes with exact `@anna-ai/cli` 0.1.30;
 - the official Anna mock harness starts and responds on port 5180;
 - dedicated path-scoped GitHub Actions CI is in place.
 
 ### HBR-002 — Contract hardening
 
-- one canonical contract is shared by the browser App and Node tooling;
+- one canonical executable contract is shared by the browser App and Node tooling;
 - project identity, formats, lengths, dates, production bible, visual direction, and continuity rules are validated;
 - character, location, scene, and shot IDs must be unique;
 - scene and shot orders must be unique in their scopes;
@@ -37,43 +36,63 @@ Updated: 2026-08-12
 - invalid projects cannot be rendered, saved, loaded, or treated as successful;
 - Anna storage overwrites use `etag` / `if_match` when available;
 - saved data is read back and revalidated;
-- the suite covers twenty distinct invalid-contract cases plus the valid reference project.
+- the contract suite covers twenty distinct invalid conditions plus the valid reference project.
 
-**Gate result:** StoryCore Harbour CI run 15 passed every step: syntax, 21 tests, sample export, mock response, strict Anna validation, and mock-harness startup.
+### HBR-003 — Reliability infrastructure implemented
+
+- bounded input and model-response lengths;
+- MCP-shaped completion response extraction;
+- JSON-only system contract;
+- exactly one repair attempt, recorded in project metadata;
+- finite 180-second host-call timeout;
+- duplicate-submit protection;
+- stable user-facing categories for quota, permission, provider, timeout, storage, and concurrency errors;
+- supplied working title preserved exactly;
+- immutable twenty-prompt corpus covering all six formats;
+- exactly ten English and ten French prompts;
+- deterministic evaluator for contract success, input preservation, latency, repair use, missing/duplicate results, and stable failure categories;
+- hidden real-Anna collector activated only by `?acceptance=1`;
+- explicit confirmation required before consuming model quota and writing test projects;
+- safe stop between prompts and local JSONL download;
+- generated static-bundle corpus kept synchronized with its single canonical source;
+- official `mountBundle` tests verify declared LLM/storage/window grants and rejection of undeclared tool invocation.
+
+**Latest implementation gate:** all 35 Node tests pass, followed by sample export, mock response, immutable corpus, generated bundle, strict Anna validation, and mock-harness startup.
 
 ## In progress
 
-### HBR-003 — Generation reliability
+### HBR-003 — Authenticated real-model gate
 
-Current foundation:
+Remaining work:
 
-- bounded input lengths;
-- bounded model response length;
-- MCP-shaped response extraction;
-- JSON-only prompt contract;
-- exactly one repair attempt;
-- finite 180-second host-call timeout;
-- duplicate-submit protection;
-- stable user-facing categories for quota, permission, provider, timeout, storage, and concurrency errors.
-
-Next work:
-
-- create the fixed 20-prompt acceptance corpus;
-- add a deterministic evaluator for contract success and latency;
-- run the corpus against a real Anna account and enabled model;
+- activate or authenticate a real Anna developer test environment;
+- run the twenty-prompt collector against at least one enabled model;
+- evaluate the downloaded JSONL locally;
 - reach at least 18/20 valid projects without manual intervention;
-- tune scene/shot counts by duration and format.
+- keep median successful completion time at or below 180 seconds;
+- tune scene/shot counts or prompts only from measured failures;
+- rerun the complete corpus after every reliability change.
+
+### HBR-005 — Production APS verification
+
+Remaining work:
+
+- verify real production App storage write and read-back;
+- reload a saved project in a new App session;
+- induce an ETag conflict and confirm that the newer project is not overwritten.
 
 ## Still externally unverified
 
-- real Anna account handshake in the production App host;
-- real model completion success rate and latency;
-- persistence against production APS, including an induced concurrency conflict;
+- real Anna production Host API handshake;
+- model completion success rate and latency;
+- production APS and ETag conflict behavior;
 - Qualified App MAU instrumentation and visibility;
 - App slug and developer-handle availability;
 - current Developer Terms and revenue-share policy;
 - developer activation path;
 - Marketplace review and launch support.
+
+No new reply from Jiao was present at the latest Gmail check on 2026-08-12.
 
 ## Codex resume point
 
@@ -86,6 +105,6 @@ npm run check
 npm run dev:mock
 ```
 
-Then read `AGENTS.md` and `CODEX_ENTRYPOINT.md`.
+Then read `AGENTS.md`, `CODEX_ENTRYPOINT.md`, `CODEX_TASKS.md`, and `acceptance/README.md`.
 
-Codex should begin HBR-003 with the fixed acceptance corpus and evaluator. It must not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
+Codex should inspect the latest CI result first. The next legitimate HBR-003 step is the authenticated Anna corpus run or a narrowly scoped fix derived from that run. It must not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
