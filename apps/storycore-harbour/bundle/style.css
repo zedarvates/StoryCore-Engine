@@ -46,6 +46,21 @@ button.primary {
   color: #fff;
   font-weight: 700;
 }
+button.danger-outline {
+  border-color: rgba(255, 141, 153, .6);
+  color: var(--danger);
+  background: rgba(255, 141, 153, .04);
+}
+button.danger-outline:hover:not(:disabled) {
+  border-color: var(--danger);
+  background: rgba(255, 141, 153, .12);
+}
+button.danger-outline.armed {
+  border-color: var(--danger);
+  color: #07121b;
+  background: var(--danger);
+  font-weight: 800;
+}
 .topbar {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -135,6 +150,25 @@ textarea { resize: vertical; line-height: 1.5; }
   background: rgba(39, 70, 91, .3);
 }
 .message.error, .error-panel { color: var(--danger); border-color: rgba(255, 141, 153, .55); }
+.deletion-status {
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .16);
+}
+.deletion-status.warning {
+  border-color: rgba(247, 198, 90, .55);
+  color: var(--gold);
+  background: rgba(247, 198, 90, .08);
+}
+.deletion-status.success {
+  border-color: rgba(101, 214, 166, .55);
+  color: var(--success);
+  background: rgba(101, 214, 166, .08);
+}
+.deletion-status.error {
+  border-color: rgba(255, 141, 153, .55);
+  color: var(--danger);
+  background: rgba(255, 141, 153, .08);
+}
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
 .card, .scene {
   border: 1px solid var(--line);
