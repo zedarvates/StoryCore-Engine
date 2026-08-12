@@ -48,7 +48,7 @@ jobs:
             node --check "${file}"
           done
 
-      - name: Run contract tests
+      - name: Run contract and evaluator tests
         run: npm test
 
       - name: Validate sample export
@@ -56,6 +56,9 @@ jobs:
 
       - name: Validate mock LLM fixture
         run: npm run mock:check
+
+      - name: Validate immutable acceptance corpus
+        run: npm run acceptance:corpus
 
       - name: Run strict Anna validation
         run: npm run validate:strict
