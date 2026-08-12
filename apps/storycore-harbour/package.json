@@ -16,6 +16,7 @@
     "validate:strict": "anna-app validate --strict",
     "mock:check": "node scripts/validate-mock-fixture.mjs fixtures/happy-path.jsonl",
     "test": "node --test tests/*.test.mjs",
+    "browser:smoke": "node scripts/browser-smoke.mjs",
     "contract:check": "node scripts/validate-project.mjs examples/sample-project.json",
     "acceptance:sync": "node scripts/sync-acceptance-corpus.mjs",
     "acceptance:sync:check": "node scripts/check-bundled-corpus.mjs",
@@ -24,6 +25,7 @@
     "check": "npm run test && npm run contract:check && npm run mock:check && npm run acceptance:corpus && npm run acceptance:sync:check && npm run validate:strict"
   },
   "devDependencies": {
-    "@anna-ai/cli": "0.1.30"
+    "@anna-ai/cli": "0.1.30",
+    "playwright-core": "1.61.1"
   }
 }
