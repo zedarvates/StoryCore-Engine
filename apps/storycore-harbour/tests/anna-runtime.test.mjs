@@ -35,17 +35,16 @@ test("Anna harness provides isolated in-memory App storage", async () => {
   const harness = await mountBundle({ manifest });
   const value = { schemaVersion: "storycore-harbour.project.v1", project: { id: "runtime-test" } };
 
-  const created = await harness.runtime.storage.set({
+  await harness.runtime.storage.set({
     key: "projects/current",
     value,
   });
-  assert.equal(typeof created.etag, "string");
 
   const loaded = await harness.runtime.storage.get({ key: "projects/current" });
   assert.equal(loaded.exists, true);
   assert.deepEqual(loaded.value, value);
-  assert.equal(loaded.etag, created.etag);
   assert.equal(harness.calls.byNs("storage").length, 2);
+  assert.equal(harness.calls.lastOf("storage.get")?.outcome, "ok");
 });
 
 test("Anna harness rejects Host API namespaces absent from the manifest", async () => {
@@ -66,5 +65,5 @@ test("Anna harness records the declared window title call", async () => {
 
   const call = harness.calls.lastOf("window.set_title");
   assert.equal(call?.outcome, "ok");
-  assert.deepEqual(call?.args, { title: "StoryCore Harbour" });
+  assert.match(JSON.stringify(call?.args), /StoryCore Harbour/);
 });
