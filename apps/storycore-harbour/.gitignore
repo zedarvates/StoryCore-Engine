@@ -3,3 +3,5 @@ node_modules/
 .DS_Store
 *.log
 coverage/
+acceptance/results*.jsonl
+acceptance/results*.json
