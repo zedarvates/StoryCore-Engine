@@ -232,13 +232,13 @@ async function captureMarketplaceScreenshot({ app, frameElement, filename }) {
   if (!screenshotDirectory) return;
 
   await setFrameSize(frameElement, marketplaceFrameSize);
-  await app.locator("body").evaluate(() => {
+  await app.locator("html").evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
     window.scrollTo({ top: 0, behavior: "instant" });
   });
 
   const path = join(screenshotDirectory, filename);
-  await app.locator("body").screenshot({
+  await frameElement.screenshot({
     path,
     animations: "disabled",
     caret: "hide",
