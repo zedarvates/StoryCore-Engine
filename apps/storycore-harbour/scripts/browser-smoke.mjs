@@ -63,6 +63,9 @@ try {
     0,
     "Acceptance mode must remain hidden in the normal App flow.",
   );
+  assert.equal(await app.locator(".steps").getAttribute("role"), "tablist");
+  assert.equal(await app.locator("#step-tab-1").getAttribute("aria-selected"), "true");
+  assert.equal(await app.locator("#step-1").getAttribute("role"), "tabpanel");
 
   // The CLI's --mock-llm path serves deterministic model output but its
   // WindowStore does not currently round-trip values. Replace only the
@@ -70,6 +73,16 @@ try {
   // Production code continues to call Anna storage without fallback.
   const storageAdapterMode = await installDeterministicTestStorage(app);
   await installExportCapture(app);
+
+  // Local form validation must prevent a model call and move keyboard focus to
+  // the actionable error announcement.
+  await app.locator("#idea").fill("Too short");
+  await app.getByRole("button", { name: "Build my visual story" }).click();
+  await app.locator("#form-error").waitFor({ state: "visible" });
+  await assertText(app.locator("#form-error"), /at least 20 characters/i);
+  await waitForFocus(app.locator("#form-error"));
+  assert.equal(await app.locator("#step-1").isVisible(), true);
+  assert.equal(await app.locator("#step-2").isVisible(), false);
 
   await app.locator("#idea").fill(
     "At dawn, a courier crosses a flooded harbour on the final autonomous ferry to deliver a damaged memory archive before the checkpoint closes.",
@@ -96,6 +109,9 @@ try {
 
   await assertText(app.locator("#world-title"), /^Browser Smoke Story$/);
   await assertText(app.locator("#save-status"), /Saved and verified in your Anna App storage/i);
+  await waitForFocus(app.locator("#world-title"));
+  assert.equal(await app.locator("#step-tab-2").getAttribute("aria-selected"), "true");
+  assert.equal(await app.locator("#step-2").getAttribute("aria-hidden"), "false");
   assert.ok(await app.locator("#character-list .card").count(), "At least one character card must render.");
   assert.ok(await app.locator("#location-list .card").count(), "At least one location card must render.");
 
@@ -109,13 +125,21 @@ try {
     `The minimum-size App must not overflow horizontally (${dimensions.scrollWidth} > ${dimensions.clientWidth}).`,
   );
 
-  await app.getByRole("button", { name: "Continue to scenes" }).click();
+  // Roving-tabindex and ArrowRight navigation must activate the next enabled
+  // step, update ARIA selection, and focus its heading.
+  await app.locator("#step-tab-2").focus();
+  await app.locator("#step-tab-2").press("ArrowRight");
   await app.locator("#step-3").waitFor({ state: "visible" });
+  await waitForFocus(app.locator("#step-3 h2"));
+  assert.equal(await app.locator("#step-tab-3").getAttribute("aria-selected"), "true");
   assert.ok(await app.locator("#scene-list .scene").count(), "At least one scene must render.");
   assert.ok(await app.locator("#scene-list .shot").count(), "At least one shot must render.");
 
-  await app.getByRole("button", { name: "Review continuity" }).click();
+  await app.locator("#step-tab-3").focus();
+  await app.locator("#step-tab-3").press("ArrowRight");
   await app.locator("#step-4").waitFor({ state: "visible" });
+  await waitForFocus(app.locator("#step-4 h2"));
+  assert.equal(await app.locator("#step-tab-4").getAttribute("aria-selected"), "true");
   await assertText(app.locator("#continuity-content .score"), /^96$/);
 
   // Sandboxed Anna App iframes do not necessarily surface a top-level browser
@@ -147,6 +171,9 @@ try {
   console.log(JSON.stringify({
     result: "pass",
     viewport: { width: dimensions.clientWidth, height: 680 },
+    formValidationFocus: "pass",
+    keyboardStepNavigation: "pass",
+    panelFocusManagement: "pass",
     charactersRendered: await app.locator("#character-list .card").count(),
     locationsRendered: await app.locator("#location-list .card").count(),
     scenesRendered: await app.locator("#scene-list .scene").count(),
@@ -259,6 +286,15 @@ async function waitForGenerationOutcome(app, timeoutMs) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   return diagnostics(app, "timeout", "No success or fatal state became visible before the browser deadline");
+}
+
+async function waitForFocus(locator, timeoutMs = 5_000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (await locator.evaluate((node) => document.activeElement === node)) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error("Expected element did not receive keyboard focus.");
 }
 
 async function diagnostics(app, type, detail) {
