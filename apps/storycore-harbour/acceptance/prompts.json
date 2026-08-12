@@ -1,0 +1,267 @@
+{
+  "schemaVersion": "storycore-harbour.acceptance.v1",
+  "targetPasses": 18,
+  "maxMedianDurationMs": 180000,
+  "prompts": [
+    {
+      "id": "HBR-A01",
+      "input": {
+        "title": "The Last Ferry",
+        "format": "short-film",
+        "durationMinutes": 4,
+        "language": "en",
+        "tone": "Grounded cyberpunk drama with maritime textures and restrained emotion",
+        "audience": "Young adult science-fiction viewers",
+        "idea": "At dawn, a courier must cross a flooded neon harbour on the final autonomous ferry to deliver a damaged memory archive before a corporate checkpoint seals the city."
+      },
+      "coverage": ["fiction", "two-character-conflict", "visual-continuity", "english"]
+    },
+    {
+      "id": "HBR-A02",
+      "input": {
+        "title": "Le verger qui se souvenait",
+        "format": "short-film",
+        "durationMinutes": 7,
+        "language": "fr",
+        "tone": "Réalisme magique rural, chaleureux mais mélancolique",
+        "audience": "Public familial à partir de dix ans",
+        "idea": "Dans un village frappé par la sécheresse, une adolescente découvre que les vieux pommiers répètent les souvenirs des habitants chaque fois qu’elle les arrose avec l’eau du puits familial."
+      },
+      "coverage": ["fiction", "rural", "magical-realism", "french"]
+    },
+    {
+      "id": "HBR-A03",
+      "input": {
+        "title": "Refill in Thirty Seconds",
+        "format": "advertisement",
+        "durationMinutes": 0.5,
+        "language": "en",
+        "tone": "Clean, energetic, tactile product film with credible sustainability claims",
+        "audience": "Urban commuters aged eighteen to thirty-five",
+        "idea": "Create a thirty-second advertisement for a reusable insulated bottle whose cap measures water intake without a phone. Show one commuter refilling it at a public fountain and avoid unverified health claims."
+      },
+      "coverage": ["advertisement", "minimum-runtime", "product-constraints", "english"]
+    },
+    {
+      "id": "HBR-A04",
+      "input": {
+        "title": "La tasse de l’atelier",
+        "format": "advertisement",
+        "durationMinutes": 0.75,
+        "language": "fr",
+        "tone": "Film artisanal élégant, lumière naturelle, gestes précis et matière visible",
+        "audience": "Acheteurs sensibles à l’artisanat local et aux objets durables",
+        "idea": "Réaliser une publicité de quarante-cinq secondes pour une tasse en grès fabriquée dans un petit atelier familial. Suivre la terre, le tournage, l’émaillage puis le premier café, sans prétendre que chaque pièce est identique."
+      },
+      "coverage": ["advertisement", "craft", "process-story", "french"]
+    },
+    {
+      "id": "HBR-A05",
+      "input": {
+        "title": "Signal Bloom",
+        "format": "music-video",
+        "durationMinutes": 3.5,
+        "language": "en",
+        "tone": "Abstract electronic dreamscape, precise rhythmic transitions, no spoken dialogue",
+        "audience": "Electronic music and visual-art audiences",
+        "idea": "A lone radio operator in a desert listens to static that grows into luminous flowers across abandoned satellite dishes. Build a music-video narrative entirely through image, movement, rhythm, and recurring visual motifs, with no dialogue."
+      },
+      "coverage": ["music-video", "no-dialogue", "abstract", "english"]
+    },
+    {
+      "id": "HBR-A06",
+      "input": {
+        "title": "Dernier métro",
+        "format": "music-video",
+        "durationMinutes": 4,
+        "language": "fr",
+        "tone": "Rap narratif nocturne, réalisme urbain, énergie progressive sans glorification de la violence",
+        "audience": "Public rap francophone de seize à trente-cinq ans",
+        "idea": "Un rappeur traverse les mêmes trois stations de métro à trois âges différents. Les affiches, les vêtements et les passagers changent, mais une montre cassée reste identique et relie les trois périodes jusqu’au dernier refrain."
+      },
+      "coverage": ["music-video", "temporal-continuity", "recurring-prop", "french"]
+    },
+    {
+      "id": "HBR-A07",
+      "input": {
+        "title": "Inside the Urban Heat Island",
+        "format": "documentary",
+        "durationMinutes": 8,
+        "language": "en",
+        "tone": "Clear scientific documentary, observational images, cautious factual language",
+        "audience": "Secondary-school students and curious adults",
+        "idea": "Plan an eight-minute documentary explaining urban heat islands through one summer day in a dense neighbourhood. Follow a street tree, a dark roof, a shaded courtyard, and two temperature sensors while clearly separating observed facts from proposed solutions."
+      },
+      "coverage": ["documentary", "science", "factual-caution", "english"]
+    },
+    {
+      "id": "HBR-A08",
+      "input": {
+        "title": "L’eau, les salades et les truites",
+        "format": "documentary",
+        "durationMinutes": 10,
+        "language": "fr",
+        "tone": "Documentaire pratique et honnête, pédagogique, proche du terrain",
+        "audience": "Débutants en aquaponie et jardiniers autonomes",
+        "idea": "Préparer un documentaire suivant pendant une journée un petit système aquaponique à truites alimenté par solaire. Montrer la pompe, l’aération, les bacs, le débit, les contrôles d’eau et les risques, sans présenter le système comme autonome sans entretien."
+      },
+      "coverage": ["documentary", "technical-process", "risk-communication", "french"]
+    },
+    {
+      "id": "HBR-A09",
+      "input": {
+        "title": "Archive Diver",
+        "format": "comic-webtoon",
+        "durationMinutes": 6,
+        "language": "en",
+        "tone": "Vertical science-fiction mystery with strong silhouettes and readable mobile compositions",
+        "audience": "Teen and young-adult webtoon readers",
+        "idea": "A salvage diver enters a submerged library where every opened book projects one minute from a stranger’s life. The diver searches for a missing sibling while a mechanical eel silently rearranges the shelves behind them."
+      },
+      "coverage": ["comic-webtoon", "vertical-composition", "mystery", "english"]
+    },
+    {
+      "id": "HBR-A10",
+      "input": {
+        "title": "Les deux ombres du chevalier",
+        "format": "comic-webtoon",
+        "durationMinutes": 5,
+        "language": "fr",
+        "tone": "Fantasy européenne lisible, humour discret, compositions verticales dynamiques",
+        "audience": "Lecteurs de webtoon fantasy à partir de douze ans",
+        "idea": "Un jeune chevalier découvre que son ombre courageuse et son ombre peureuse se séparent au coucher du soleil. Pour franchir un pont gardé par un géant myope, il doit convaincre les deux ombres de coopérer sans combat."
+      },
+      "coverage": ["comic-webtoon", "fantasy", "three-entity-continuity", "french"]
+    },
+    {
+      "id": "HBR-A11",
+      "input": {
+        "title": "One-Minute Repair",
+        "format": "social-video",
+        "durationMinutes": 0.5,
+        "language": "en",
+        "tone": "Fast but calm practical tutorial with large readable details",
+        "audience": "People learning basic household maintenance on a phone",
+        "idea": "Create a thirty-second social tutorial showing how to identify a loose cabinet hinge, support the door, tighten the correct screws, test the alignment, and stop if the wood is split. Keep hands and tools visually consistent."
+      },
+      "coverage": ["social-video", "tutorial", "safety-stop", "english"]
+    },
+    {
+      "id": "HBR-A12",
+      "input": {
+        "title": "Trois gestes pour économiser l’eau",
+        "format": "social-video",
+        "durationMinutes": 1,
+        "language": "fr",
+        "tone": "Vidéo verticale positive, concrète et sans culpabilisation",
+        "audience": "Familles et jeunes adultes sur mobile",
+        "idea": "Créer une vidéo sociale d’une minute présentant trois gestes mesurables pour réduire l’eau utilisée en cuisine : récupérer l’eau de rinçage, couvrir la casserole et vérifier une fuite simple. Conserver la même cuisine et les mêmes récipients."
+      },
+      "coverage": ["social-video", "three-part-structure", "prop-continuity", "french"]
+    },
+    {
+      "id": "HBR-A13",
+      "input": {
+        "title": "The Quiet Committee",
+        "format": "short-film",
+        "durationMinutes": 12,
+        "language": "en",
+        "tone": "Contained ensemble drama with dry humour and escalating moral tension",
+        "audience": "Adult festival and streaming audiences",
+        "idea": "Five residents meet in a community hall to decide whether an emergency generator should power the clinic or the apartment block. Each person hides one relevant fact, and the truth emerges through ordinary objects on the table rather than flashbacks."
+      },
+      "coverage": ["fiction", "ensemble", "single-location", "english"]
+    },
+    {
+      "id": "HBR-A14",
+      "input": {
+        "title": "La porte 27",
+        "format": "short-film",
+        "durationMinutes": 2,
+        "language": "fr",
+        "tone": "Thriller minimaliste, tension sonore, aucune violence graphique",
+        "audience": "Public de courts métrages et plateformes mobiles",
+        "idea": "Dans le couloir d’un hôtel, une réceptionniste entend chaque nuit quelqu’un frapper derrière la porte 27, alors que la chambre n’existe pas sur le plan. Tout se déroule dans le couloir avec une lampe, un chariot et un trousseau de clés."
+      },
+      "coverage": ["fiction", "single-location", "suspense", "french"]
+    },
+    {
+      "id": "HBR-A15",
+      "input": {
+        "title": "A Mapmaker’s Working Day",
+        "format": "documentary",
+        "durationMinutes": 3,
+        "language": "en",
+        "tone": "Historical micro-documentary with transparent uncertainty and tactile detail",
+        "audience": "Museum visitors and history learners",
+        "idea": "Plan a three-minute portrait of an eighteenth-century mapmaker’s working day using tools, paper, ink, field notes, and archival maps. Avoid inventing quotations and mark any reconstructed action as a reconstruction."
+      },
+      "coverage": ["documentary", "history", "reconstruction-label", "english"]
+    },
+    {
+      "id": "HBR-A16",
+      "input": {
+        "title": "Réfléchir avant de cliquer",
+        "format": "advertisement",
+        "durationMinutes": 0.25,
+        "language": "fr",
+        "tone": "Message de sensibilisation très clair, direct, rassurant et non anxiogène",
+        "audience": "Utilisateurs de services numériques de tous âges",
+        "idea": "Concevoir un spot de quinze secondes pour rappeler de vérifier l’adresse d’un site avant de saisir un mot de passe. Montrer une fausse page puis les indices visibles, sans afficher de véritable identifiant ni reproduire une marque existante."
+      },
+      "coverage": ["advertisement", "minimum-duration", "security-awareness", "french"]
+    },
+    {
+      "id": "HBR-A17",
+      "input": {
+        "title": "Gravity Choir",
+        "format": "music-video",
+        "durationMinutes": 5,
+        "language": "en",
+        "tone": "Large-scale performance film blending practical stagecraft and cosmic imagery",
+        "audience": "Alternative rock and cinematic music-video audiences",
+        "idea": "A six-person band performs inside a rotating circular room while loose objects slowly appear to defy gravity. Between choruses, the room opens onto a quiet star field, but each performer and instrument must remain spatially traceable."
+      },
+      "coverage": ["music-video", "ensemble-performance", "spatial-continuity", "english"]
+    },
+    {
+      "id": "HBR-A18",
+      "input": {
+        "title": "La boussole d’Héraclite",
+        "format": "comic-webtoon",
+        "durationMinutes": 8,
+        "language": "fr",
+        "tone": "Aventure science-fantasy vive, humour de caractère et mystère progressif",
+        "audience": "Lecteurs adolescents et jeunes adultes de BD verticale",
+        "idea": "Un prisonnier évadé d’un vaisseau alien trouve une poignée cassée qui devient une lame lumineuse et une boussole capricieuse parlant comme un philosophe. Elles le conduisent vers un sceau ancien au milieu d’un tournoi d’arts martiaux."
+      },
+      "coverage": ["comic-webtoon", "science-fantasy", "recurring-artifacts", "french"]
+    },
+    {
+      "id": "HBR-A19",
+      "input": {
+        "title": "Why the Moon Changes Shape",
+        "format": "social-video",
+        "durationMinutes": 1.5,
+        "language": "en",
+        "tone": "Friendly visual science explanation with simple physical models and no misleading scale claims",
+        "audience": "Children aged nine to thirteen watching with an adult or teacher",
+        "idea": "Explain the phases of the Moon in ninety seconds using one lamp, one ball, and one child walking around the model. Keep the positions clear, distinguish phases from eclipses, and avoid implying that Earth’s shadow causes normal phases."
+      },
+      "coverage": ["social-video", "education", "misconception-prevention", "english"]
+    },
+    {
+      "id": "HBR-A20",
+      "input": {
+        "title": "Le silence sous la ville",
+        "format": "documentary",
+        "durationMinutes": 6,
+        "language": "fr",
+        "tone": "Documentaire sonore contemplatif, factuel et respectueux des personnes filmées",
+        "audience": "Public culturel adulte et étudiants en urbanisme",
+        "idea": "Suivre les espaces silencieux d’une grande ville, depuis une bibliothèque matinale jusqu’à un tunnel technique et un jardin fermé le soir. Utiliser les témoignages uniquement comme pistes d’expérience et éviter toute conclusion médicale sur le bruit."
+      },
+      "coverage": ["documentary", "sound-led", "privacy-respect", "french"]
+    }
+  ]
+}
