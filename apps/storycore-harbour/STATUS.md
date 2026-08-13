@@ -66,7 +66,8 @@ Updated: 2026-08-13
 - visible deletion labels and dynamic accessible names match exactly;
 - reduced-motion preference is honored;
 - browser test completes local validation, mock generation, save/read-back, rendering, keyboard navigation, continuity, and JSON export;
-- a separate browser test verifies paginated project listing, ETag-protected deletion, preservation of unrelated App data, form clearing, and failed reload after deletion.
+- a separate browser test verifies paginated project listing, ETag-protected deletion, preservation of unrelated App data, form clearing, and failed reload after deletion;
+- the minimum-width browser gate now verifies 400% text reflow without horizontal page overflow.
 
 The browser tests use deterministic storage adapters only because CLI 0.1.30's `--mock-llm` dashboard does not round-trip its documented WindowStore values. Production code still calls Anna storage directly; production APS remains a separate authenticated gate.
 
@@ -124,6 +125,14 @@ Remaining work:
 - manual VoiceOver pass on macOS;
 - manual 200%/400% zoom and forced/high-contrast checks;
 - first-time-user confirmation through the external beta.
+
+Automated Edge/Windows evidence on 2026-08-13 found a horizontal reflow defect
+at 400% text scaling in the 520px minimum view. The responsive CSS was narrowed
+to fix intrinsic grid/flex widths, structural spacing, header stacking, step
+wrapping, and action stacking. A repeat measurement kept the document and
+active panel at 520px with no horizontal page overflow at 100%, 200%, or 400%.
+This is automated proxy evidence only and does not close the manual zoom,
+screen-reader, real Anna WebView, or forced-colours gates.
 
 ### HBR-005 — Production APS verification
 

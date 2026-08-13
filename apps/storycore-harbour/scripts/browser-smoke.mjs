@@ -128,6 +128,22 @@ try {
     `The minimum-size App must not overflow horizontally (${dimensions.scrollWidth} > ${dimensions.clientWidth}).`,
   );
 
+  const reflowDimensions = await app.locator("html").evaluate((root) => {
+    root.style.fontSize = "400%";
+    return {
+      clientWidth: root.clientWidth,
+      scrollWidth: root.scrollWidth,
+    };
+  });
+  assert.ok(
+    reflowDimensions.scrollWidth <= reflowDimensions.clientWidth + 1,
+    `The minimum-size App must reflow at 400% text without horizontal overflow ` +
+      `(${reflowDimensions.scrollWidth} > ${reflowDimensions.clientWidth}).`,
+  );
+  await app.locator("html").evaluate((root) => {
+    root.style.removeProperty("font-size");
+  });
+
   await captureMarketplaceScreenshot({
     app,
     frameElement,
@@ -200,6 +216,7 @@ try {
   console.log(JSON.stringify({
     result: "pass",
     viewport: { width: dimensions.clientWidth, height: minimumFrameSize.height },
+    textReflow400Percent: "pass",
     formValidationFocus: "pass",
     keyboardStepNavigation: "pass",
     panelFocusManagement: "pass",

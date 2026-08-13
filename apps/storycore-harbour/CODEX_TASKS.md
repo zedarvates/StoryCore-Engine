@@ -102,6 +102,7 @@ Real-platform work still required:
 - [x] Ensure generated content is inserted as text rather than untrusted HTML.
 - [x] Ensure visible and accessible deletion labels match.
 - [x] Honor reduced-motion preference.
+- [x] Add an automated 400% text-reflow gate at the declared 520px minimum width.
 - [ ] Complete a manual NVDA pass on Windows.
 - [ ] Complete a manual VoiceOver pass on macOS.
 - [ ] Complete manual 200%/400% zoom and forced/high-contrast checks.
