@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { resolveExistingAppFile, safeFileErrorCode } from "./safe-path.mjs";
 import { validateProject } from "./validate-project.mjs";
 
 function extractText(result) {
@@ -27,8 +28,8 @@ export function validateMockFixture(source) {
     let entry;
     try {
       entry = JSON.parse(line);
-    } catch (error) {
-      errors.push(`Line ${index + 1} is not valid JSON: ${error.message}`);
+    } catch {
+      errors.push(`Line ${index + 1} is not valid JSON.`);
       continue;
     }
 
@@ -47,8 +48,8 @@ export function validateMockFixture(source) {
     let project;
     try {
       project = JSON.parse(text);
-    } catch (error) {
-      errors.push(`Line ${index + 1} result text is not valid project JSON: ${error.message}`);
+    } catch {
+      errors.push(`Line ${index + 1} result text is not valid project JSON.`);
       continue;
     }
 
@@ -63,18 +64,23 @@ export function validateMockFixture(source) {
 }
 
 async function main() {
-  const path = process.argv[2] || "fixtures/happy-path.jsonl";
+  const requestedPath = process.argv[2] || "fixtures/happy-path.jsonl";
+  let displayPath = "mock fixture";
   try {
-    const errors = validateMockFixture(await readFile(path, "utf8"));
+    const resolved = await resolveExistingAppFile(requestedPath, {
+      allowedExtensions: [".jsonl"],
+    });
+    displayPath = resolved.displayPath;
+    const errors = validateMockFixture(await readFile(resolved.absolutePath, "utf8"));
     if (errors.length) {
       console.error(`Mock fixture validation failed (${errors.length}):`);
       for (const error of errors) console.error(`- ${error}`);
       process.exitCode = 1;
       return;
     }
-    console.log(`Valid StoryCore Harbour mock LLM fixture: ${path}`);
+    console.log(`Valid StoryCore Harbour mock LLM fixture: ${displayPath}`);
   } catch (error) {
-    console.error(`Unable to validate ${path}: ${error.message}`);
+    console.error(`Unable to validate ${displayPath} (${safeFileErrorCode(error)}).`);
     process.exitCode = 1;
   }
 }
