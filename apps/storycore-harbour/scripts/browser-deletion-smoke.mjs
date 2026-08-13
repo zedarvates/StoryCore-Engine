@@ -86,7 +86,11 @@ try {
   await deleteButton.click();
   await assertText(deleteButton, /Confirm permanent deletion/i);
   await assertText(app.locator("#deletion-status"), /again within 15 seconds/i);
-  assert.equal(await deleteButton.getAttribute("aria-label"), "Confirm permanent deletion of all StoryCore Harbour saved projects");
+  assert.equal(
+    await deleteButton.getAttribute("aria-label"),
+    "Confirm permanent deletion",
+    "The dynamic accessible name must exactly match the visible confirmation label.",
+  );
 
   await deleteButton.click();
   await app.locator("#step-1").waitFor({ state: "visible", timeout: 10_000 });
