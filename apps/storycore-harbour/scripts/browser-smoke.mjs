@@ -291,7 +291,7 @@ async function installDeterministicTestStorage(app) {
           throw error;
         }
         generation += 1;
-        const etag = `W/\"browser-${generation}\"`;
+        const etag = `W/"browser-${generation}"`;
         rows.set(key, { value: clone(value), etag, generation });
         return { etag, generation };
       },
