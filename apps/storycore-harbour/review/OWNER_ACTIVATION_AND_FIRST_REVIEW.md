@@ -61,7 +61,7 @@ cd apps/storycore-harbour
 node --version
 npm --version
 uv --version
-npm install --no-audit --no-fund
+npm ci --no-audit --no-fund
 npx --no-install anna-app doctor
 npm run check
 ```
@@ -71,8 +71,41 @@ Expected minimum environment:
 - Node.js 22 or newer;
 - `uv` available on `PATH`;
 - the locally pinned `@anna-ai/cli` dependency installed;
-- `anna-app doctor` succeeds;
+- `anna-app doctor` succeeds, except for the documented Windows-only key-mode
+  false negative below;
 - `npm run check` succeeds.
+
+### Windows key-permission preflight
+
+`@anna-ai/cli` 0.1.30 checks the development key with Unix permission bits and
+requires exactly `0600`. Node.js reports `0666` for files on Windows even after
+their NTFS ACL has been restricted, so `anna-app doctor` can fail its key check
+on Windows when the ACL is otherwise safe.
+
+Do not work around this by deleting, copying, printing, or committing
+`%USERPROFILE%\.anna-app\dev.key`. Before treating the `0666` result as a CLI
+portability defect, the owner must inspect the actual Windows ACL without
+reading the key:
+
+```powershell
+$annaDevKey = Join-Path $env:USERPROFILE ".anna-app\dev.key"
+icacls.exe $annaDevKey
+```
+
+Only the owner account, `SYSTEM`, and the local `Administrators` group should
+have access. If another user or group has read, write, modify, or full-control
+access, stop and let the owner correct the ACL before authentication or a real
+model run. Repository automation must not change this owner credential ACL.
+
+After the ACL is owner-verified, a Windows `doctor` result is eligible to
+continue only when its sole failure is exactly:
+
+```text
+dev.key mode 666 (expected 0600)
+```
+
+Any missing `uv`, runtime, schema, or additional key error remains blocking.
+On macOS and Linux, `anna-app doctor` must pass normally; do not waive `0600`.
 
 Do not continue from a dirty branch with unexplained local changes:
 
@@ -96,6 +129,11 @@ npx --no-install anna-app whoami --json
 The login command uses Anna's device-code flow and stores a PAT in the user's Anna credentials file. Never paste the PAT into GitHub, a prompt, a log, a screenshot, or the repository.
 
 Verify that the returned account and handle belong to the intended owner. If `storycore-labs` is rejected as unavailable, stop.
+
+An empty `whoami` result such as `{"accounts":[],"current":null}` means the
+environment is not authenticated. In that state, even `apps push --dry-run`
+cannot resolve the remote identity and must not be treated as a completed
+preflight.
 
 ## 4. Verify the local App identity before the first push
 

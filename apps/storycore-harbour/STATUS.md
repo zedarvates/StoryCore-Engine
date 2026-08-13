@@ -173,6 +173,24 @@ Commit `afcebcb575bd223840a8c695ca8ed1808a9cbb6d` passed:
 - actual availability and successful claim of `storycore-labs` and `storycore-harbour`;
 - exact Marketplace screenshot requirements and finalized launch-support channels.
 
+## Latest owner-environment preflight — 2026-08-13
+
+- Node.js, npm, `uv`, and the pinned `anna-app` 0.1.30 CLI are installed;
+- all local repository checks remain green;
+- `anna-app whoami --json` reports no saved account;
+- `apps push --dry-run --json` therefore stops before remote identity resolution
+  with no PAT configured;
+- the Windows development-key ACL includes inherited read access for a
+  non-owner local group, so it has not been approved for authenticated use;
+- no credential, ACL, developer handle, App slug, remote draft, model quota, or
+  production APS record was changed.
+
+The next owner gate is to review and restrict the local key ACL, complete the
+Developer Console/ToS steps, and authenticate the intended account. The
+repository must then re-run `whoami`, the App push dry-run, and the immutable
+real-model/APS gates. CLI 0.1.30's raw `0666` key-mode result is separately
+documented as a Windows portability defect and is not, by itself, an ACL audit.
+
 ## Codex resume point
 
 ```bash

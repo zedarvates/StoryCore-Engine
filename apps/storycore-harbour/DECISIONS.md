@@ -116,6 +116,30 @@
 
 **Consequences:** Marketplace copy and business forecasts must separate confirmed program eligibility from prospective promotional support.
 
+### ADR-016 — Windows key safety uses NTFS ACL evidence
+
+**Decision:** on Windows, treat `anna-app doctor` 0.1.30's `dev.key mode 666
+(expected 0600)` result as a known portability defect only after the owner has
+verified that the NTFS ACL grants access solely to the owner, `SYSTEM`, and
+local administrators. Any additional identity with access is a real blocker.
+
+**Reason:** the CLI checks `fs.statSync(path).mode & 0o777` for an exact Unix
+`0600` value. Node.js reports `0666` for Windows files independently of their
+effective NTFS ACL, so the check cannot prove Windows confidentiality. In the
+current owner environment, a non-owner local group has inherited read access,
+which is independently unsafe even though the CLI would show the same `0666`
+after a correct ACL restriction.
+
+**Alternatives rejected:** deleting or regenerating the key risks breaking the
+local development identity; blindly ignoring `doctor` could expose a local
+secret; changing credential ACLs through repository automation would exceed
+the owner-controlled account boundary.
+
+**Consequences:** the owner runbook uses `icacls` as a read-only Windows ACL
+inspection, repository automation never reads or changes the key, and all
+non-key `doctor` failures remain blocking. macOS and Linux still require the
+normal exact `0600` check.
+
 ## Documentation drift observed
 
 - Anna's current CLI installs as `@anna-ai/cli` 0.1.30 and validates this schema 2 App with `anna-app validate --strict`.
