@@ -29,6 +29,7 @@ const CANONICAL_PROMPT_IDS = Object.freeze(
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const isText = (value, min = 1, max = Number.POSITIVE_INFINITY) =>
   typeof value === "string" && value.trim().length >= min && value.length <= max;
+const compareText = (left, right) => left.localeCompare(right);
 
 function percentile(values, ratio) {
   if (!values.length) return null;
@@ -329,7 +330,9 @@ function publicCategory(value) {
 }
 
 function failureCategoryCounts(failures) {
-  const counts = Object.fromEntries([...PUBLIC_CATEGORIES].sort().map((category) => [category, 0]));
+  const counts = Object.fromEntries(
+    [...PUBLIC_CATEGORIES].sort(compareText).map((category) => [category, 0]),
+  );
   for (const failure of failures) {
     counts[publicCategory(failure.category)] += 1;
   }
