@@ -1,4 +1,3 @@
-import { AnnaAppRuntime } from "/static/anna-apps/_sdk/latest/index.js";
 import { validateProject } from "./project-contract.js";
 
 const params = new URLSearchParams(window.location.search);
@@ -9,14 +8,37 @@ if (acceptanceEnabled) {
 }
 
 async function installAcceptanceRunner() {
-  const $ = (id) => document.getElementById(id);
-  const main = document.querySelector("main");
-  const normalPanels = [...document.querySelectorAll(".steps, .step-panel, .progress-card, .error-panel")];
+  hideNormalPanels();
+  const ui = createAcceptancePanel();
+  document.querySelector("main").prepend(ui.panel);
+
+  const corpus = await loadAcceptanceCorpus(ui.progress);
+  if (!corpus) return;
+
+  const controller = {
+    anna: await waitForAnnaRuntime(),
+    corpus,
+    results: [],
+    running: false,
+    stopRequested: false,
+    ui,
+  };
+  wireAcceptanceControls(controller);
+  ui.progress.textContent = "Corpus loaded. Select the confirmation box to enable the run.";
+  ui.runButton.disabled = !ui.consent.checked;
+}
+
+function hideNormalPanels() {
+  const normalPanels = [
+    ...document.querySelectorAll(".steps, .step-panel, .progress-card, .error-panel"),
+  ];
   normalPanels.forEach((node) => {
     node.dataset.acceptanceDisplay = node.style.display || "";
     node.style.display = "none";
   });
+}
 
+function createAcceptancePanel() {
   const panel = element("section", null, "panel acceptance-panel");
   panel.append(
     element("p", "DEVELOPER ACCEPTANCE MODE", "eyebrow"),
@@ -31,7 +53,10 @@ async function installAcceptanceRunner() {
   const consent = document.createElement("input");
   consent.type = "checkbox";
   consent.id = "acceptance-consent";
-  consentLabel.append(consent, document.createTextNode(" I understand the model-quota and storage impact."));
+  consentLabel.append(
+    consent,
+    document.createTextNode(" I understand the model-quota and storage impact."),
+  );
   panel.append(consentLabel);
 
   const actions = element("div", null, "actions");
@@ -46,134 +71,193 @@ async function installAcceptanceRunner() {
   const counters = element("p", "0 / 20 complete", "scene-meta");
   const list = element("ol", null, "acceptance-results");
   panel.append(progress, counters, list);
-  main.prepend(panel);
 
-  let corpus;
+  return {
+    panel,
+    consent,
+    runButton,
+    stopButton,
+    downloadButton,
+    progress,
+    counters,
+    list,
+  };
+}
+
+async function loadAcceptanceCorpus(progress) {
   try {
     const response = await fetch("acceptance-prompts.json", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    corpus = await response.json();
-    if (corpus?.schemaVersion !== "storycore-harbour.acceptance.v1" || corpus?.prompts?.length !== 20) {
-      throw new Error("The bundled corpus is missing or out of sync.");
-    }
-    progress.textContent = "Corpus loaded. Select the confirmation box to enable the run.";
-    runButton.disabled = !consent.checked;
+    const corpus = await response.json();
+    const validShape =
+      corpus?.schemaVersion === "storycore-harbour.acceptance.v1" &&
+      corpus?.prompts?.length === 20;
+    if (!validShape) throw new Error("The bundled corpus is missing or out of sync.");
+    return corpus;
   } catch (error) {
     progress.textContent = `Acceptance corpus could not be loaded: ${safeText(error?.message)}`;
+    return null;
+  }
+}
+
+function waitForAnnaRuntime(timeoutMs = 5_000) {
+  if (window.anna) return Promise.resolve(window.anna);
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(() => resolve(window.anna || null), timeoutMs);
+    window.addEventListener(
+      "storycore-harbour:anna-ready",
+      () => {
+        window.clearTimeout(timer);
+        resolve(window.anna || null);
+      },
+      { once: true },
+    );
+  });
+}
+
+function wireAcceptanceControls(controller) {
+  const { ui } = controller;
+  ui.consent.addEventListener("change", () => {
+    ui.runButton.disabled = controller.running || !ui.consent.checked;
+  });
+
+  ui.stopButton.addEventListener("click", () => {
+    controller.stopRequested = true;
+    ui.stopButton.disabled = true;
+    ui.progress.textContent = "Stop requested. The current prompt will finish first.";
+  });
+
+  ui.downloadButton.addEventListener("click", () => downloadJsonl(controller.results));
+  ui.runButton.addEventListener("click", () => runAcceptanceCorpus(controller));
+}
+
+async function runAcceptanceCorpus(controller) {
+  const { ui } = controller;
+  if (controller.running || !ui.consent.checked) return;
+
+  beginRun(controller);
+  for (const [index, prompt] of controller.corpus.prompts.entries()) {
+    if (controller.stopRequested) break;
+    await runAcceptancePrompt(controller, prompt, index);
+    updateCounters(controller);
+  }
+  finishRun(controller);
+}
+
+function beginRun(controller) {
+  controller.running = true;
+  controller.stopRequested = false;
+  controller.results.length = 0;
+  controller.ui.runButton.disabled = true;
+  controller.ui.stopButton.disabled = false;
+  controller.ui.downloadButton.disabled = true;
+  clearNode(controller.ui.list);
+}
+
+async function runAcceptancePrompt(controller, prompt, index) {
+  const { corpus, ui } = controller;
+  ui.progress.textContent = `Running ${prompt.id} (${index + 1} of ${corpus.prompts.length})…`;
+  const row = element("li", `${prompt.id}: running…`);
+  ui.list.append(row);
+  const started = performance.now();
+
+  try {
+    prepareForm(prompt.input);
+    document.getElementById("concept-form").dispatchEvent(
+      new Event("submit", { bubbles: true, cancelable: true }),
+    );
+    const outcome = await waitForUiOutcome(190_000);
+    const durationMs = Math.round(performance.now() - started);
+    if (outcome === "failure") {
+      recordVisibleFailure(controller.results, row, prompt.id, durationMs);
+      resetUiAfterFailure();
+      return;
+    }
+
+    const project = await readCurrentProject(controller.anna);
+    recordProjectOutcome(controller.results, row, prompt, project, durationMs);
+    resetUiAfterSuccess();
+  } catch (error) {
+    const durationMs = Math.round(performance.now() - started);
+    recordCollectorFailure(controller.results, row, prompt.id, durationMs, error);
+    resetUiAfterFailure();
+  }
+}
+
+function recordVisibleFailure(results, row, promptId, durationMs) {
+  const visible = document.getElementById("fatal-detail")?.textContent || "UI run failed";
+  const category = classifyVisibleError(visible);
+  results.push({
+    promptId,
+    durationMs,
+    repairUsed: false,
+    error: { category, name: "ui_run_failed" },
+  });
+  row.textContent = `${promptId}: FAIL (${category})`;
+}
+
+function recordProjectOutcome(results, row, prompt, project, durationMs) {
+  const validationErrors = validateProject(project);
+  const inputErrors = compareInput(project, prompt.input);
+  const repairUsed = project?.metadata?.repairUsed === true;
+
+  if (validationErrors.length || inputErrors.length) {
+    results.push({
+      promptId: prompt.id,
+      durationMs,
+      repairUsed,
+      error: {
+        category: "contract",
+        name: validationErrors.length ? "contract_invalid" : "input_mismatch",
+      },
+    });
+    row.textContent = `${prompt.id}: FAIL (contract)`;
     return;
   }
 
-  let anna = null;
-  try {
-    anna = window.anna || await AnnaAppRuntime.connect();
-  } catch {
-    // Local preview fallback uses localStorage. Real acceptance must use Anna.
+  results.push({
+    promptId: prompt.id,
+    durationMs,
+    repairUsed,
+    project,
+  });
+  const repairLabel = repairUsed ? " after repair" : "";
+  row.textContent = `${prompt.id}: PASS${repairLabel} (${formatDuration(durationMs)})`;
+}
+
+function recordCollectorFailure(results, row, promptId, durationMs, error) {
+  const category = /timeout/i.test(error?.message || "") ? "timeout" : "runtime";
+  results.push({
+    promptId,
+    durationMs,
+    repairUsed: false,
+    error: { category, name: category === "timeout" ? "timeout" : "collector_error" },
+  });
+  row.textContent = `${promptId}: FAIL (${category})`;
+}
+
+function updateCounters(controller) {
+  controller.ui.counters.textContent =
+    `${controller.results.length} / ${controller.corpus.prompts.length} complete`;
+  controller.ui.downloadButton.disabled = controller.results.length === 0;
+}
+
+function finishRun(controller) {
+  controller.running = false;
+  controller.ui.stopButton.disabled = true;
+  controller.ui.runButton.disabled = !controller.ui.consent.checked;
+
+  const passes = controller.results.filter((entry) => entry.project).length;
+  const repaired = controller.results.filter((entry) => entry.repairUsed).length;
+  if (controller.stopRequested) {
+    controller.ui.progress.textContent =
+      `Stopped with ${passes}/${controller.results.length} completed runs passing. ` +
+      "Download the partial JSONL.";
+    return;
   }
-
-  const results = [];
-  let running = false;
-  let stopRequested = false;
-
-  consent.addEventListener("change", () => {
-    runButton.disabled = running || !consent.checked;
-  });
-
-  stopButton.addEventListener("click", () => {
-    stopRequested = true;
-    stopButton.disabled = true;
-    progress.textContent = "Stop requested. The current prompt will finish first.";
-  });
-
-  downloadButton.addEventListener("click", () => downloadJsonl(results));
-
-  runButton.addEventListener("click", async () => {
-    if (running || !consent.checked) return;
-    running = true;
-    stopRequested = false;
-    runButton.disabled = true;
-    stopButton.disabled = false;
-    downloadButton.disabled = results.length === 0;
-    results.length = 0;
-    clearNode(list);
-
-    for (const [index, prompt] of corpus.prompts.entries()) {
-      if (stopRequested) break;
-      progress.textContent = `Running ${prompt.id} (${index + 1} of ${corpus.prompts.length})…`;
-      const row = element("li", `${prompt.id}: running…`);
-      list.append(row);
-      const started = performance.now();
-
-      try {
-        prepareForm(prompt.input);
-        $("concept-form").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-        const outcome = await waitForUiOutcome(190_000);
-        const durationMs = Math.round(performance.now() - started);
-
-        if (outcome === "failure") {
-          const visible = $("fatal-detail")?.textContent || "UI run failed";
-          results.push({
-            promptId: prompt.id,
-            durationMs,
-            repairUsed: false,
-            error: {
-              category: classifyVisibleError(visible),
-              name: "ui_run_failed",
-            },
-          });
-          row.textContent = `${prompt.id}: FAIL (${classifyVisibleError(visible)})`;
-          resetUiAfterFailure();
-        } else {
-          const project = await readCurrentProject(anna);
-          const validationErrors = validateProject(project);
-          const inputErrors = compareInput(project, prompt.input);
-          if (validationErrors.length || inputErrors.length) {
-            results.push({
-              promptId: prompt.id,
-              durationMs,
-              repairUsed: project?.metadata?.repairUsed === true,
-              error: {
-                category: "contract",
-                name: validationErrors.length ? "contract_invalid" : "input_mismatch",
-              },
-            });
-            row.textContent = `${prompt.id}: FAIL (contract)`;
-          } else {
-            results.push({
-              promptId: prompt.id,
-              durationMs,
-              repairUsed: project?.metadata?.repairUsed === true,
-              project,
-            });
-            row.textContent = `${prompt.id}: PASS${project?.metadata?.repairUsed ? " after repair" : ""} (${formatDuration(durationMs)})`;
-          }
-          resetUiAfterSuccess();
-        }
-      } catch (error) {
-        const durationMs = Math.round(performance.now() - started);
-        const category = /timeout/i.test(error?.message || "") ? "timeout" : "runtime";
-        results.push({
-          promptId: prompt.id,
-          durationMs,
-          repairUsed: false,
-          error: { category, name: category === "timeout" ? "timeout" : "collector_error" },
-        });
-        row.textContent = `${prompt.id}: FAIL (${category})`;
-        resetUiAfterFailure();
-      }
-
-      counters.textContent = `${results.length} / ${corpus.prompts.length} complete`;
-      downloadButton.disabled = results.length === 0;
-    }
-
-    running = false;
-    stopButton.disabled = true;
-    runButton.disabled = !consent.checked;
-    const passes = results.filter((entry) => entry.project).length;
-    const repaired = results.filter((entry) => entry.repairUsed).length;
-    progress.textContent = stopRequested
-      ? `Stopped with ${passes}/${results.length} completed runs passing. Download the partial JSONL.`
-      : `Finished: ${passes}/${corpus.prompts.length} passed; ${repaired} used repair. Download the JSONL, then run npm run acceptance:evaluate.`;
-  });
+  controller.ui.progress.textContent =
+    `Finished: ${passes}/${controller.corpus.prompts.length} passed; ${repaired} used repair. ` +
+    "Download the JSONL, then run npm run acceptance:evaluate.";
 }
 
 function prepareForm(input) {
@@ -195,7 +279,9 @@ function waitForUiOutcome(timeoutMs) {
       const world = document.getElementById("step-2");
       if (fatal && !fatal.hidden) return resolve("failure");
       if (world && !world.hidden) return resolve("success");
-      if (performance.now() - started >= timeoutMs) return reject(new Error("Acceptance prompt timed out."));
+      if (performance.now() - started >= timeoutMs) {
+        return reject(new Error("Acceptance prompt timed out."));
+      }
       window.setTimeout(tick, 250);
     };
     tick();
@@ -219,7 +305,9 @@ function compareInput(project, input) {
   for (const field of ["language", "format", "audience", "tone"]) {
     if (identity[field] !== input[field]) errors.push(field);
   }
-  if (Number(identity.durationMinutes) !== Number(input.durationMinutes)) errors.push("durationMinutes");
+  if (Number(identity.durationMinutes) !== Number(input.durationMinutes)) {
+    errors.push("durationMinutes");
+  }
   if (identity.sourceIdea !== input.idea) errors.push("sourceIdea");
   if (input.title && identity.title !== input.title) errors.push("title");
   return errors;
@@ -240,7 +328,9 @@ function classifyVisibleError(message) {
   if (value.includes("provider")) return "provider";
   if (value.includes("timed out") || value.includes("timeout")) return "timeout";
   if (value.includes("storage") || value.includes("saved")) return "storage";
-  if (value.includes("json") || value.includes("validation") || value.includes("contract")) return "contract";
+  if (value.includes("json") || value.includes("validation") || value.includes("contract")) {
+    return "contract";
+  }
   return "unknown";
 }
 
@@ -251,7 +341,8 @@ function downloadJsonl(results) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `storycore-harbour-acceptance-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`;
+  link.download =
+    `storycore-harbour-acceptance-${new Date().toISOString().replace(/[:.]/g, "-")}.jsonl`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
@@ -271,7 +362,7 @@ function button(text, disabled) {
 }
 
 function clearNode(node) {
-  while (node.firstChild) node.removeChild(node.firstChild);
+  while (node.firstChild) node.firstChild.remove();
 }
 
 function formatDuration(ms) {
