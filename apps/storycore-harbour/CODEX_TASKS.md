@@ -24,25 +24,25 @@ Status legend: ✅ completed · 🟡 implemented, awaiting real-platform or huma
 - [x] Run `anna-app validate --strict` with exact `@anna-ai/cli` 0.1.30.
 - [x] Confirm `npm run dev:mock` starts the official Anna harness and responds on port 5180.
 - [x] Add reproducible GitHub Actions validation.
+- [x] Pass the SonarQube Cloud Quality Gate with zero new issues and zero hotspots.
 
-**Acceptance result:** bootstrap, strict Anna validation, and mock-harness startup pass.
+**Acceptance result:** bootstrap, strict Anna validation, mock harness, browser flows, and static analysis pass.
 
-## HBR-002 — Harden the project contract ✅
+## HBR-002 — Harden the project contract and security ✅
 
-- [x] Replace the lightweight runtime checks with one canonical executable contract.
+- [x] Replace lightweight runtime checks with one canonical executable contract.
 - [x] Align browser, CLI, mock response, and test validation.
-- [x] Validate project identity, supported formats, limits, and date fields.
-- [x] Validate production bible and visual direction.
-- [x] Validate unique character, location, scene, and shot IDs.
-- [x] Validate scene and shot ordering.
-- [x] Validate every location, character, and warning scene reference.
-- [x] Require shot characters to belong to the parent scene.
-- [x] Validate plausible scene duration totals.
+- [x] Validate project identity, formats, limits, dates, references, ordering, durations, and continuity.
 - [x] Cover twenty invalid-contract conditions plus the valid reference project.
-- [x] Prevent invalid data from rendering, saving, loading, or passing storage read-back.
-- [x] Pass the final shared-validator CI gate.
+- [x] Prevent invalid data from rendering, saving, loading, exporting, or passing storage read-back.
+- [x] Constrain CLI file arguments to existing app-local files with extension allow-lists.
+- [x] Redact model-derived validation text and unknown identifiers from evaluator output.
+- [x] Replace the optional Markdown-fence regex with bounded manual parsing.
+- [x] Render generated content as text rather than untrusted HTML.
+- [x] Centralize the required same-origin Anna runtime SDK import.
+- [x] Pass the final shared-validator, browser, and Sonar gates.
 
-**Acceptance result:** invalid references and malformed model output cannot be saved; the complete CI gate is green.
+**Acceptance result:** invalid references, malformed model output, unsafe CLI paths, and model-derived log leakage are blocked without weakening the product contract.
 
 ## HBR-003 — Generation reliability 🟡
 
@@ -59,17 +59,27 @@ Implemented foundation:
 - [x] Include exactly ten English and ten French prompts.
 - [x] Cover short/long, dialogue/no-dialogue, factual, safety, ensemble, prop, and spatial cases.
 - [x] Add a deterministic evaluator for contract success, preserved inputs, latency, repair use, duplicates, missing results, and stable failure categories.
-- [x] Add evaluator unit tests and corpus validation to CI.
+- [x] Add evaluator unit tests, privacy-output tests, and corpus validation to CI.
 - [x] Keep real result files out of Git.
 - [x] Add a hidden authenticated collector using the normal UI/LLM/repair/storage flow.
 - [x] Require explicit quota/storage confirmation before enabling the collector.
 - [x] Add safe stop and local JSONL download.
 - [x] Generate the static-bundle corpus from one canonical source.
 - [x] Test Host API ACLs and expected response shapes with the official `mountBundle` harness.
+- [x] Obtain Anna confirmation that a Host-API-only Schema 2 App can qualify without a local Executa/runtime.
+- [x] Obtain Anna confirmation that developer activation is self-service.
+
+Owner/account actions required before the real gate:
+
+- [ ] Sign in to or create the Anna account and verify the email.
+- [ ] Read and accept the Developer ToS.
+- [ ] Activate the developer profile in the Developer Console.
+- [ ] Claim `storycore-labs` if available.
+- [ ] Create the `storycore-harbour` App draft if available.
+- [ ] Provide the authenticated environment or URL needed for real testing.
 
 Real-platform work still required:
 
-- [ ] Authenticate or activate a real Anna developer test environment.
 - [ ] Run all twenty prompts against at least one enabled model.
 - [ ] Evaluate the downloaded JSONL with `npm run acceptance:evaluate`.
 - [ ] Tune scene/shot counts or prompt constraints only from measured failures.
@@ -85,62 +95,81 @@ Real-platform work still required:
 - [x] Add tab/tablist/tabpanel semantics for the four steps.
 - [x] Add Arrow, Home, and End keyboard navigation with roving focus.
 - [x] Move focus to form errors, active panel headings, and fatal errors.
-- [x] Add `aria-live` status for runtime, loading, save, validation, and fatal states.
+- [x] Add live status for runtime, loading, save, validation, deletion, and fatal states.
 - [x] Implement empty, loading, retry, quota, permission, provider, contract, storage, and concurrency messages.
 - [x] Add a real-browser test of the complete mock flow at 520 × 680.
-- [x] Test local validation focus, keyboard step navigation, panel focus, save/read-back, continuity, and JSON export.
 - [x] Verify no horizontal overflow at the declared minimum width.
 - [x] Ensure generated content is inserted as text rather than untrusted HTML.
+- [x] Ensure visible and accessible deletion labels match.
 - [x] Honor reduced-motion preference.
-- [ ] Complete a manual screen-reader pass.
-- [ ] Complete manual 200% zoom and forced/high-contrast checks.
+- [ ] Complete a manual NVDA pass on Windows.
+- [ ] Complete a manual VoiceOver pass on macOS.
+- [ ] Complete manual 200%/400% zoom and forced/high-contrast checks.
 
-**Acceptance:** automated accessibility/navigation gates pass; close after the remaining manual accessibility checks and external beta confirm that first-time users can finish unaided.
+**Acceptance:** automated accessibility/navigation gates pass; close after manual accessibility checks and external beta confirm that first-time users can finish unaided.
 
-## HBR-005 — Persistence and export 🟡
+## HBR-005 — Persistence, deletion, and export 🟡
 
 - [x] Save only validated projects.
 - [x] Read back and revalidate after save.
 - [x] Add `etag` / `if_match` optimistic concurrency for overwrite operations.
-- [x] Test declared storage ACL and app-facing response shapes with `mountBundle` mocks.
+- [x] Test declared storage get/set/list/delete ACLs and response shapes with `mountBundle` mocks.
 - [x] Exercise UI save/read-back and export in a real browser with a deterministic test adapter.
-- [ ] Test a real production APS write, read-back, reload, and induced conflict.
-- [ ] Confirm a sufficient user-facing deletion path; add delete-all if Anna controls are insufficient.
-- [ ] Add recent-project selection only if it remains simple and reliable.
+- [x] Add a double-confirmed user-facing delete-all path limited to `projects/`.
+- [x] Paginate project listing and delete `projects/current` last.
+- [x] Pass ETags to every deletion when available.
+- [x] Re-list and re-read after deletion before reporting success.
+- [x] Test that unrelated App data survives deletion and deleted projects cannot reload.
 - [x] Sanitize export names.
 - [x] Document the `storycore-harbour.project.v1` import contract.
+- [ ] Test a real production APS write, read-back, reload, and induced overwrite conflict.
+- [ ] Test production paginated delete-all and an induced deletion conflict.
+- [ ] Add recent-project selection only if measured beta needs justify the complexity.
 
-**Acceptance:** reload restores the latest valid project; exported JSON passes the local contract validator; production APS conflict and deletion behavior are verified.
+**Acceptance:** production reload restores the latest valid project; export passes the contract; overwrite and deletion conflicts preserve newer data; delete-all removes only StoryCore Harbour project records.
 
 ## HBR-006 — Review and launch package 🟡
 
 - [x] Draft Marketplace tagline, descriptions, keywords, limits, screenshot captions, and prohibited claims.
 - [x] Prepare an App privacy/data-handling draft.
-- [x] Prepare reviewer functional/security instructions.
+- [x] Prepare reviewer functional/security/persistence/deletion instructions.
 - [x] Prepare an external 10–20 participant beta protocol and exit gate.
 - [x] Prepare a release-blocking launch checklist.
 - [x] Provide an App icon.
-- [ ] Capture four final screenshots with fictional content.
+- [x] Capture four deterministic fictional screenshot drafts in CI.
+- [x] Obtain confirmation that Anna plans launch/growth initiatives while making no guaranteed placement claim.
 - [ ] Confirm Anna screenshot dimensions and file limits.
 - [ ] Record a short end-to-end demonstration.
 - [ ] Run 10–20 external beta tests.
 - [ ] Fix all P0/P1 defects and disposition P2 findings.
-- [ ] Verify deletion controls and finalize publisher privacy contact.
+- [ ] Complete manual accessibility checks.
+- [ ] Finalize publisher privacy/support details.
 - [ ] Prepare immutable version `0.1.0`.
+- [ ] Submit a first review after the authenticated core flow and APS checks are credible.
 - [ ] Do not release until the owner reviews Anna's Developer Terms and revenue-share policy.
 
 **Acceptance:** reviewer can reproduce a successful core run with no private setup and all real-platform, legal, accessibility, and beta gates pass.
 
+## Outstanding Anna confirmations
+
+Jiao is coordinating confirmed answers for:
+
+- [ ] exact current Developer Terms text/link;
+- [ ] detailed calculation of 70% of eligible usage profit, deductions, payment threshold, and schedule;
+- [ ] how Qualified App MAU and Qualified Runs are displayed in the Developer Console.
+
+These do not block continued development or a first review, but they remain release/business gates.
+
 ## Codex resume rule
 
-1. Inspect the latest `StoryCore Harbour CI` result on draft PR #30.
+1. Inspect the latest `StoryCore Harbour CI` and Sonar results on draft PR #30.
 2. Read `acceptance/README.md` before operating the real collector.
-3. Do not run the twenty-prompt collector without an authenticated test account, enabled model, sufficient quota, and explicit human confirmation in the UI.
-4. Evaluate the resulting local JSONL; do not commit or paste it into the PR.
-5. Make reliability changes only from measured prompt IDs and validation categories, not by weakening the contract or replacing difficult corpus entries.
-6. The next non-authenticated work may cover final screenshots, manual-accessibility preparation, or deletion UX, but must not bypass the real Anna gates.
+3. Do not accept legal terms, claim identities, or operate the owner's Anna account without an authenticated owner-controlled session.
+4. Do not run the twenty-prompt collector without an authenticated test account, enabled model, sufficient quota, and explicit human confirmation in the UI.
+5. Evaluate the resulting local JSONL; do not commit or paste it into the PR.
+6. Make reliability changes only from measured prompt IDs and privacy-safe validation categories, not by weakening the contract or replacing difficult corpus entries.
 7. If a gate turns red, fix only that Harbour gate before doing new product work.
-8. Do not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender.
+8. Do not add an Executa, backend, GPU service, image generation, video generation, ComfyUI, or Blender merely to bypass the authenticated platform gate.
 
 ## Optional after 0.1
 
