@@ -5,7 +5,7 @@ const MAX_PAGES = 100;
 const CONFIRMATION_WINDOW_MS = 15_000;
 
 const buttons = [...document.querySelectorAll(".delete-projects-button")];
-const status = document.getElementById("deletion-status");
+const statusNode = document.getElementById("deletion-status");
 const runProgress = document.getElementById("run-progress");
 
 let armedUntil = 0;
@@ -45,7 +45,7 @@ function armConfirmation() {
   for (const button of buttons) {
     button.textContent = "Confirm permanent deletion";
     button.classList.add("armed");
-    button.setAttribute("aria-label", "Confirm permanent deletion of all StoryCore Harbour saved projects");
+    button.setAttribute("aria-label", "Confirm permanent deletion");
   }
   setStatus(
     "Press “Confirm permanent deletion” again within 15 seconds to delete every StoryCore Harbour project saved in this App scope. This cannot be undone.",
@@ -68,7 +68,7 @@ function resetConfirmation() {
   for (const button of buttons) {
     button.textContent = "Delete saved projects";
     button.classList.remove("armed");
-    button.setAttribute("aria-label", "Delete all StoryCore Harbour saved projects");
+    button.setAttribute("aria-label", "Delete saved projects");
   }
 }
 
@@ -88,18 +88,25 @@ async function deleteAllSavedProjects() {
       : deleteLocalPreviewProjects();
 
     resetProjectUi();
-    setStatus(
-      deletedCount === 0
-        ? "No saved StoryCore Harbour project was found."
-        : `Deleted ${deletedCount} saved StoryCore Harbour project record${deletedCount === 1 ? "" : "s"}.`,
-      "success",
-    );
+    setDeletionSuccess(deletedCount);
   } catch (error) {
     setStatus(normalizeDeletionError(error), "error");
   } finally {
     deleting = false;
     setButtonsDisabled(false);
   }
+}
+
+function setDeletionSuccess(deletedCount) {
+  if (deletedCount === 0) {
+    setStatus("No saved StoryCore Harbour project was found.", "success");
+    return;
+  }
+  const suffix = deletedCount === 1 ? "" : "s";
+  setStatus(
+    `Deleted ${deletedCount} saved StoryCore Harbour project record${suffix}.`,
+    "success",
+  );
 }
 
 async function getAnnaRuntime() {
@@ -271,10 +278,10 @@ function setButtonsDisabled(disabled) {
 }
 
 function setStatus(message, tone = "") {
-  if (!status) return;
-  status.textContent = message;
-  status.hidden = !message;
-  status.className = `message deletion-status ${tone}`.trim();
+  if (!statusNode) return;
+  statusNode.textContent = message;
+  statusNode.hidden = !message;
+  statusNode.className = `message deletion-status ${tone}`.trim();
 }
 
 function namedError(name, message) {
