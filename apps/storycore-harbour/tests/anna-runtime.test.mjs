@@ -85,12 +85,16 @@ test("Anna harness accepts paginated project listing and ETag deletion", async (
     },
   });
 
-  const listed = await harness.runtime.storage.list({
+  // @anna-ai/cli 0.1.30 validates list/delete through the generic Host API
+  // dispatcher even though its test-runtime convenience object only exposes
+  // storage.get/set. Exercising runtime.call therefore checks the real ACL and
+  // request shapes without weakening the App's declared permissions.
+  const listed = await harness.runtime.call("storage", "list", {
     prefix: "projects/",
     limit: 100,
     kind: "kv",
   });
-  const deleted = await harness.runtime.storage.delete({
+  const deleted = await harness.runtime.call("storage", "delete", {
     key: listed.items[0].key,
     if_match: listed.items[0].etag,
   });
