@@ -53,7 +53,7 @@ try {
 
   const app = page.frameLocator(frameSelector);
   await app.locator("#concept-form").waitFor({ state: "visible", timeout: 30_000 });
-  await assertText(app.locator("#runtime-status"), /Connected to Anna/i);
+  await waitForText(app.locator("#runtime-status"), /Connected to Anna/i);
   await installDeterministicStorage(app);
 
   await app.locator("#idea").fill(
@@ -70,13 +70,12 @@ try {
   await waitForOutcome(app, 35_000);
 
   const before = await storageSnapshot(app);
-  assert.deepEqual(
-    before.projectKeys.sort(compareText),
-    [
-      "projects/by-id/mock-harbour-project",
-      "projects/current",
-    ],
-    "The normal flow must create the current project and one snapshot.",
+  const currentProject = before.currentProject;
+  assert.equal(before.projectKeys.length, 2, "The normal flow must create the current project and one snapshot.");
+  assert.ok(before.projectKeys.includes("projects/current"), "The normal flow must create projects/current.");
+  assert.ok(
+    before.projectKeys.includes(`projects/by-id/${currentProject?.project?.id}`),
+    "The snapshot key must use the locally assigned project id.",
   );
   assert.ok(before.allKeys.includes("settings/keep"), "The unrelated App key must exist before project deletion.");
 
@@ -229,6 +228,7 @@ async function installDeterministicStorage(app) {
         return {
           allKeys,
           projectKeys: allKeys.filter((key) => key.startsWith("projects/")),
+          currentProject: clone(rows.get("projects/current")?.value),
         };
       },
       diagnostics() {
@@ -257,4 +257,8 @@ async function waitForOutcome(app, timeoutMs) {
 async function assertText(locator, pattern) {
   const text = await locator.textContent();
   assert.match((text || "").trim(), pattern);
+}
+
+async function waitForText(locator, pattern, timeoutMs = 10_000) {
+  await locator.filter({ hasText: pattern }).waitFor({ state: "visible", timeout: timeoutMs });
 }

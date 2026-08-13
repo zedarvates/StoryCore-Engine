@@ -71,6 +71,10 @@ function showFormError(message = "") {
   const node = $("form-error");
   node.textContent = message;
   node.hidden = !message;
+  if (message) {
+    node.focus({ preventScroll: true });
+    node.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
 }
 
 function showFatal(title, detail) {

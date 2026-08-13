@@ -17,6 +17,7 @@
     "mock:check": "node scripts/validate-mock-fixture.mjs fixtures/happy-path.jsonl",
     "test": "node --test tests/*.test.mjs",
     "browser:smoke": "node scripts/browser-smoke.mjs",
+    "browser:deletion-smoke": "node scripts/browser-deletion-smoke.mjs",
     "contract:check": "node scripts/validate-project.mjs examples/sample-project.json",
     "acceptance:sync": "node scripts/sync-acceptance-corpus.mjs",
     "acceptance:sync:check": "node scripts/check-bundled-corpus.mjs",

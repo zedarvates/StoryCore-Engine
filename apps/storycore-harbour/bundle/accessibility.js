@@ -29,16 +29,6 @@ function focusPanelHeading(panel) {
   heading.scrollIntoView({ block: "start", behavior: "smooth" });
 }
 
-function focusVisibleError() {
-  queueMicrotask(() => {
-    if (formError && !formError.hidden && formError.textContent.trim()) {
-      formError.tabIndex = -1;
-      formError.focus({ preventScroll: true });
-      formError.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  });
-}
-
 for (const button of stepButtons) {
   button.addEventListener("keydown", (event) => {
     const buttons = enabledSteps();
@@ -62,8 +52,6 @@ for (const button of stepButtons) {
     target.click();
   });
 }
-
-form?.addEventListener("submit", focusVisibleError);
 
 const observer = new MutationObserver((records) => {
   syncStepAccessibility();

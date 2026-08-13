@@ -58,7 +58,7 @@ try {
 
   const app = page.frameLocator(frameSelector);
   await app.locator("#concept-form").waitFor({ state: "visible", timeout: 30_000 });
-  await assertText(app.locator("#runtime-status"), /Connected to Anna/i);
+  await waitForText(app.locator("#runtime-status"), /Connected to Anna/i);
   assert.equal(
     await app.locator(".acceptance-panel").count(),
     0,
@@ -385,6 +385,10 @@ async function diagnostics(app, type, detail) {
 async function assertText(locator, pattern) {
   const text = await locator.textContent();
   assert.match((text || "").trim(), pattern);
+}
+
+async function waitForText(locator, pattern, timeoutMs = 10_000) {
+  await locator.filter({ hasText: pattern }).waitFor({ state: "visible", timeout: timeoutMs });
 }
 
 function isIgnorableResponse(url) {

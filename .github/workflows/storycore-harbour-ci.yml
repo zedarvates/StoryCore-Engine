@@ -37,8 +37,8 @@ jobs:
         with:
           enable-cache: false
 
-      - name: Install Anna CLI dependency and generate bundle assets
-        run: npm install --no-audit --no-fund
+      - name: Install locked Anna CLI dependency and generate bundle assets
+        run: npm ci --no-audit --no-fund
 
       - name: Verify JavaScript syntax
         shell: bash
@@ -111,6 +111,9 @@ jobs:
           HARBOUR_URL="http://127.0.0.1:5180/" \
           HARBOUR_SCREENSHOT_DIR="${screenshot_dir}" \
           npm run browser:smoke
+          BROWSER_EXECUTABLE="${browser}" \
+          HARBOUR_URL="http://127.0.0.1:5180/" \
+          npm run browser:deletion-smoke
 
           screenshot_count="$(find "${screenshot_dir}" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')"
           if [ "${screenshot_count}" -ne 4 ]; then
@@ -119,7 +122,7 @@ jobs:
             exit 1
           fi
 
-          echo "Anna mock harness, minimum-size browser flow, and four screenshot drafts passed."
+          echo "Anna mock harness, minimum-size browser flow, project deletion, and four screenshot drafts passed."
 
       - name: Upload Marketplace screenshot drafts
         if: always()
