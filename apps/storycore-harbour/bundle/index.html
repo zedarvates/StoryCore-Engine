@@ -18,7 +18,7 @@
         </div>
       </div>
       <p class="tagline">From idea to production-ready visual story.</p>
-      <span id="runtime-status" class="status" role="status" aria-live="polite" aria-atomic="true">Connecting to Anna…</span>
+      <output id="runtime-status" class="status" aria-live="polite" aria-atomic="true">Connecting to Anna…</output>
     </header>
 
     <nav class="steps" aria-label="Project steps" role="tablist">
@@ -86,7 +86,7 @@
           <div class="actions">
             <button id="generate-button" class="primary" type="submit">Build my visual story</button>
             <button id="load-button" type="button">Load latest saved project</button>
-            <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status" aria-label="Delete all StoryCore Harbour saved projects">Delete saved projects</button>
+            <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status">Delete saved projects</button>
           </div>
         </form>
       </section>
@@ -116,18 +116,18 @@
           <div><p class="eyebrow">DEPARTURE</p><h2 tabindex="-1">Continuity and export</h2></div>
         </div>
         <div id="continuity-content"></div>
-        <div id="save-status" class="message" role="status" aria-live="polite" aria-atomic="true"></div>
+        <output id="save-status" class="message" aria-live="polite" aria-atomic="true"></output>
         <div class="actions">
           <button id="save-button" class="primary" type="button">Save project</button>
           <button id="export-button" type="button">Export JSON</button>
           <button id="new-button" type="button">Start another project</button>
-          <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status" aria-label="Delete all StoryCore Harbour saved projects">Delete saved projects</button>
+          <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status">Delete saved projects</button>
         </div>
       </section>
 
-      <div id="deletion-status" class="message deletion-status" role="status" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></div>
+      <output id="deletion-status" class="message deletion-status" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></output>
 
-      <section id="run-progress" class="progress-card" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" hidden>
+      <section id="run-progress" class="progress-card" aria-live="polite" aria-atomic="true" aria-busy="true" hidden>
         <div class="spinner" aria-hidden="true"></div>
         <div>
           <h2 id="progress-title" tabindex="-1">Building your production package…</h2>
