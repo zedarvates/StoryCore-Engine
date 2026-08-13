@@ -1,19 +1,19 @@
 # Current status
 
-Updated: 2026-08-12
+Updated: 2026-08-13
 
 ## Completed
 
 ### Product and repository bootstrap
 
 - product name and boundary selected;
-- strategic reply sent to Anna;
+- strategic exchange opened with Anna;
 - isolated feature branch and draft PR created;
 - schema 2 manifest created with no Executa;
 - static four-step UI created;
 - Host LLM call and one bounded repair attempt implemented;
-- default App-scope persistence and JSON export implemented;
-- Codex mission, architecture, decisions, stop gates, and numbered work plan created.
+- App-scope persistence, verified read-back, JSON export, and delete-all UX implemented;
+- Codex mission, architecture, decisions, stop gates, review package, and numbered work plan created.
 
 ### HBR-001 — Bootstrap validation
 
@@ -24,19 +24,18 @@ Updated: 2026-08-12
 - the official Anna mock harness starts and responds on port 5180;
 - dedicated path-scoped GitHub Actions CI is in place.
 
-### HBR-002 — Contract hardening
+### HBR-002 — Contract and security hardening
 
 - one canonical executable contract is shared by the browser App and Node tooling;
-- project identity, formats, lengths, dates, production bible, visual direction, and continuity rules are validated;
-- character, location, scene, and shot IDs must be unique;
-- scene and shot orders must be unique in their scopes;
-- character, location, and warning scene references must resolve;
-- shot characters must also be declared in their parent scene;
-- duration totals must remain plausible relative to the requested project duration;
-- invalid projects cannot be rendered, saved, loaded, or treated as successful;
-- Anna storage overwrites use `etag` / `if_match` when available;
+- project identity, formats, lengths, dates, production bible, visual direction, references, ordering, durations, and continuity are validated;
+- invalid projects cannot be rendered, saved, loaded, exported, or treated as successful;
+- storage overwrites and deletion use opaque ETags when available;
 - saved data is read back and revalidated;
-- the contract suite covers twenty distinct invalid conditions plus the valid reference project.
+- CLI file arguments are confined to existing files inside `apps/storycore-harbour/` with explicit extension allow-lists;
+- evaluator output strips model-derived validation text and unknown identifiers;
+- generated content is rendered as text rather than untrusted HTML;
+- optional JSON fence handling uses bounded manual parsing rather than a backtracking regex;
+- the SonarQube Cloud Quality Gate passes with zero new issues, zero accepted issues, zero security hotspots, and zero annotations.
 
 ### HBR-003 — Reliability infrastructure implemented
 
@@ -54,7 +53,6 @@ Updated: 2026-08-12
 - hidden real-Anna collector activated only by `?acceptance=1`;
 - explicit confirmation required before consuming model quota and writing test projects;
 - safe stop between prompts and local JSONL download;
-- generated static-bundle corpus kept synchronized with its single canonical source;
 - official `mountBundle` tests verify declared LLM/storage/window grants and rejection of undeclared tool invocation.
 
 ### HBR-004 — Automated UI and accessibility gates
@@ -64,22 +62,46 @@ Updated: 2026-08-12
 - tab/tablist/tabpanel semantics for Concept, World, Scenes, and Continuity;
 - Arrow, Home, and End keyboard navigation across enabled steps;
 - focus moves to local form errors and each newly active panel heading;
-- runtime, loading, save, validation, and fatal states use live announcements;
-- generated project content is rendered as text, never untrusted HTML;
+- runtime, loading, save, validation, deletion, and fatal states use live announcements;
+- visible deletion labels and dynamic accessible names match exactly;
 - reduced-motion preference is honored;
-- browser test completes local validation, mock LLM generation, save/read-back, world rendering, scene/shot rendering, continuity, keyboard navigation, and JSON export;
-- the exported project and safe filename pass the canonical contract.
+- browser test completes local validation, mock generation, save/read-back, rendering, keyboard navigation, continuity, and JSON export;
+- a separate browser test verifies paginated project listing, ETag-protected deletion, preservation of unrelated App data, form clearing, and failed reload after deletion.
 
-The browser test uses a deterministic storage adapter only because CLI 0.1.30's `--mock-llm` dashboard does not round-trip its documented WindowStore values. Production code still calls Anna storage directly; production APS remains a separate authenticated gate.
+The browser tests use deterministic storage adapters only because CLI 0.1.30's `--mock-llm` dashboard does not round-trip its documented WindowStore values. Production code still calls Anna storage directly; production APS remains a separate authenticated gate.
 
 ### HBR-006 — Review-package drafts
 
 - Marketplace tagline, descriptions, keywords, limits, screenshot captions, and prohibited claims;
-- privacy and data-handling draft with explicit retention/deletion limitation;
-- Marketplace reviewer functional, accessibility, security, persistence, and export guide;
+- privacy and data-handling draft;
+- Marketplace reviewer functional, accessibility, security, persistence, deletion, and export guide;
 - external beta protocol for 10–20 independent participants;
 - release-blocking launch checklist;
+- four deterministic fictional Marketplace screenshot drafts generated by CI;
 - existing App icon retained.
+
+### Anna confirmations received on 2026-08-13
+
+- a Host-API-only Schema 2 App can qualify without a local Executa/runtime;
+- Executa is an extension point rather than a requirement;
+- developer activation is self-service and instant after account creation, email verification, Developer ToS acceptance, and Developer Console activation;
+- developer handles and App slugs are first-come-first-served and lock when claimed/created;
+- launch/growth support initiatives are planned for strong Apps, but no specific placement is guaranteed;
+- the first App Review submission may be made when the core workflow works end-to-end; it does not need to be perfect before Anna's first look.
+
+## Owner action required now
+
+These steps require an authenticated owner session and cannot be performed safely by repository automation:
+
+1. create or sign in to the Anna account;
+2. verify the email address;
+3. read and accept the Developer ToS;
+4. activate the developer profile in the Developer Console;
+5. claim the developer handle `storycore-labs` immediately if available;
+6. create the `storycore-harbour` App draft immediately if available;
+7. provide the authenticated development/review URL or local environment needed for the real corpus and APS tests.
+
+Because the handle and slug are first-come-first-served, steps 5 and 6 are time-sensitive.
 
 ## In progress
 
@@ -87,7 +109,6 @@ The browser test uses a deterministic storage adapter only because CLI 0.1.30's 
 
 Remaining work:
 
-- activate or authenticate a real Anna developer test environment;
 - run the twenty-prompt collector against at least one enabled model;
 - evaluate the downloaded JSONL locally;
 - reach at least 18/20 valid projects without manual intervention;
@@ -99,8 +120,9 @@ Remaining work:
 
 Remaining work:
 
-- manual screen-reader pass;
-- manual 200% zoom and high/forced-contrast checks;
+- manual NVDA pass on Windows;
+- manual VoiceOver pass on macOS;
+- manual 200%/400% zoom and forced/high-contrast checks;
 - first-time-user confirmation through the external beta.
 
 ### HBR-005 — Production APS verification
@@ -109,43 +131,47 @@ Remaining work:
 
 - verify real production App storage write and read-back;
 - reload a saved project in a new App session;
-- induce an ETag conflict and confirm that the newer project is not overwritten;
-- confirm a sufficient deletion path or add delete-all UX.
+- induce an ETag overwrite conflict and confirm that newer data is preserved;
+- verify paginated delete-all on production APS;
+- induce an ETag deletion conflict and confirm that nothing is force-deleted.
 
-### HBR-006 — Final Marketplace assets
+### HBR-006 — Final Marketplace assets and first review
 
 Remaining work:
 
-- capture four final screenshots with fictional content;
-- confirm Anna's screenshot dimensions/file limits;
+- confirm Anna's screenshot dimensions and file limits;
+- replace draft screenshots only if Anna requires a different specification;
 - record a short demonstration;
 - run the external beta and resolve all P0/P1 defects;
-- finalize publisher privacy/support details and immutable 0.1.0 package.
+- finalize publisher privacy/support details and immutable 0.1.0 package;
+- submit a first review once the authenticated core run and APS checks are credible.
 
-## Latest automated gate
+## Latest automated implementation gate
 
-The latest green CI includes:
+Commit `afcebcb575bd223840a8c695ca8ed1808a9cbb6d` passed:
 
-- all 35 Node tests;
+- StoryCore Harbour CI run 90;
+- all 42 Node tests;
 - sample export validation;
 - mock LLM response validation;
 - immutable acceptance corpus and generated-bundle synchronization;
 - strict Anna manifest validation;
-- official Anna mock-harness startup;
-- full Chromium flow at 520 × 680 with validation focus, keyboard step navigation, panel focus, save/read-back, scene/shot rendering, continuity, and contract-valid export.
+- full Chromium generation/export flow at 520 × 680;
+- full Chromium paginated/ETag deletion flow;
+- four deterministic Marketplace screenshot drafts;
+- SonarQube Cloud Quality Gate with zero annotations.
 
-## Still externally unverified
+## Still externally unverified or pending
 
 - real Anna production Host API handshake;
-- model completion success rate and latency;
-- production APS, deletion controls, and ETag conflict behavior;
-- Qualified App MAU instrumentation and visibility;
-- App slug and developer-handle availability;
-- current Developer Terms and revenue-share policy;
-- developer activation path;
-- Marketplace review and launch support.
-
-No new reply from Jiao was present at the latest Gmail check on 2026-08-12.
+- real-model completion success rate and latency;
+- production APS write/read/reload and conflict behavior;
+- production paginated deletion and deletion-conflict behavior;
+- exact Developer Terms text/link;
+- detailed definition and calculation of 70% of eligible usage profit, including deductions, threshold, and payment schedule;
+- how Qualified App MAU and Qualified Runs are surfaced in the Developer Console;
+- actual availability and successful claim of `storycore-labs` and `storycore-harbour`;
+- exact Marketplace screenshot requirements and finalized launch-support channels.
 
 ## Codex resume point
 
@@ -160,4 +186,4 @@ npm run dev:mock
 
 Then read `AGENTS.md`, `CODEX_ENTRYPOINT.md`, `CODEX_TASKS.md`, `acceptance/README.md`, and `review/LAUNCH_CHECKLIST.md`.
 
-Codex should inspect the latest CI result first. The preferred next step is the authenticated Anna corpus and APS run. Non-authenticated work may prepare final screenshots, manual-accessibility checks, or deletion UX, but must not bypass the real-platform, legal, and beta gates or add an Executa/backend/media renderer.
+Codex must inspect the latest CI and Sonar results first. The next legitimate implementation work requires an authenticated Anna environment and explicit human consent before spending model quota or altering production APS. It must not add an Executa, backend, GPU service, image/video generation, ComfyUI, or Blender merely to avoid the real-platform gate.
