@@ -21,6 +21,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-wrap: anywhere;
   color: var(--text);
   background:
     radial-gradient(circle at 85% 0%, rgba(71, 215, 232, .12), transparent 32rem),
