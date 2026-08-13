@@ -8,7 +8,7 @@
 
 **Reason:** the name connects naturally to Hong Kong and communicates a place where creative material is organized before departure into production. It is understandable internationally and remains tied to the StoryCore parent product.
 
-**Status:** working name pending final availability and brand clearance.
+**Status:** working name pending final availability and brand clearance. Anna confirmed that the App slug is locked when the draft is created; there is no separate reservation process.
 
 ### ADR-002 — Product slice
 
@@ -26,7 +26,9 @@
 
 **Decision:** required and optional Executa arrays remain empty.
 
-**Revisit when:** official Anna validation or a measured browser limitation prevents deterministic contract validation.
+**Evidence:** Jiao confirmed by email on 2026-08-13 that a Schema 2 App built around Anna Host APIs such as `llm`, `storage`, and `image` can qualify without requiring users to install a local Executa/runtime. Executa is an extension point rather than a qualification requirement.
+
+**Revisit when:** a measured production limitation prevents the independently useful core workflow, not merely to add unnecessary architecture.
 
 ### ADR-005 — Versioned interchange contract
 
@@ -46,7 +48,7 @@
 
 **Reason:** the original execution environment could not reliably install the Anna CLI from npm. GitHub Actions provides a clean Node 22 + `uv` environment where the official validator and local harness can run reproducibly. The workflow is path-scoped to StoryCore Harbour and does not alter StoryCore Engine runtime code.
 
-**Consequences:** every Harbour change must pass JavaScript syntax checks, contract tests, acceptance-evaluator tests, sample-export validation, mock-response validation, corpus synchronization, strict Anna manifest validation, and a mock-harness startup test.
+**Consequences:** every Harbour change must pass JavaScript syntax checks, contract tests, acceptance-evaluator tests, sample-export validation, mock-response validation, corpus synchronization, strict Anna manifest validation, real-browser flows, and Marketplace screenshot generation.
 
 ### ADR-008 — Mock LLM fixtures are not harness recordings
 
@@ -94,26 +96,47 @@
 
 **Decision:** test Host API grants and call recording through `@anna-ai/cli/test` `mountBundle`, while explicitly mocking the application-facing LLM and storage response shapes.
 
-**Reason:** CLI 0.1.30 correctly enforces manifest ACLs and records calls, but its default direct Node storage handler returns `null`; relying on that undocumented default would test the harness implementation rather than StoryCore Harbour. Explicit mocks make the expected `exists`, `value`, `etag`, and `generation` contract visible and deterministic.
+**Reason:** CLI 0.1.30 correctly enforces manifest ACLs and records calls, but its default direct Node storage handler returns `null`; relying on that undocumented default would test the harness implementation rather than StoryCore Harbour. Explicit mocks make the expected `exists`, `value`, `etag`, `generation`, list, and delete contracts visible and deterministic.
 
-**Consequences:** CI verifies that `llm.complete`, `storage.get/set`, and `window.set_title` are allowed, and that undeclared `tools.invoke` is denied. Production APS persistence and real ETag conflict behavior remain a separate authenticated-platform gate.
+**Consequences:** CI verifies that declared LLM, storage, and window methods are allowed and that undeclared `tools.invoke` is denied. Production APS persistence and real ETag conflict behavior remain a separate authenticated-platform gate.
+
+### ADR-014 — Self-service activation and first-come identities
+
+**Decision:** treat Anna developer activation and identity claiming as owner-operated account actions, not implementation blockers.
+
+**Evidence:** Jiao confirmed by email on 2026-08-13 that activation is self-service and instant after account creation, email verification, Developer ToS acceptance, and activation in the Developer Console. Developer handles and App slugs are first-come-first-served and lock when claimed/created; no manual reservation mechanism exists.
+
+**Consequences:** the owner should claim `storycore-labs` and create the `storycore-harbour` App draft as soon as possible. CI, Codex, and repository automation must not attempt to accept legal terms or operate the owner's Anna account without an authenticated owner session.
+
+### ADR-015 — Launch support is prospective, not guaranteed
+
+**Decision:** plan launch assets and retention work, but do not state that a Marketplace feature, newsletter placement, Discord promotion, or other channel is guaranteed.
+
+**Evidence:** Anna confirmed that launch/growth initiatives are being planned for strong Founding Builder Apps, while explicitly declining to promise a specific placement before plans are finalized.
+
+**Consequences:** Marketplace copy and business forecasts must separate confirmed program eligibility from prospective promotional support.
 
 ## Documentation drift observed
 
 - Anna's current CLI installs as `@anna-ai/cli` 0.1.30 and validates this schema 2 App with `anna-app validate --strict`.
 - The public example repository still contains mock LLM JSONL entries using `ns` / `method`, while `anna-app fixture verify` validates harness recordings, not those mock inputs.
 - `mountBundle` ACL and call recording work in CLI 0.1.30, while its default storage value semantics require explicit mocks for deterministic Node tests.
-- Jiao's email says developer activation is self-service, while the public Verified Developer reference still describes manual administrator activation. This remains externally unresolved.
+- Older Verified Developer documentation describes manual activation. Anna explicitly instructed builders on 2026-08-13 to follow the latest self-service Developer Console flow instead.
+
+## Confirmed externally by Anna on 2026-08-13
+
+- Host-API-only Schema 2 Apps can qualify without a local Executa/runtime;
+- developer activation is self-service and instant after ToS acceptance;
+- launch/growth support initiatives are planned, but no specific promotional placement is guaranteed;
+- developer handles are first-come-first-served and lock when claimed;
+- App slugs are first-come-first-served and lock when the draft is created;
+- the first review submission may be made once the core workflow works end-to-end; perfection is not required for the first look.
 
 ## Pending external confirmation from Anna
 
-- current Developer Terms accepted in the console;
-- written definition of the announced 70% eligible usage profit;
-- whether Host-API-only schema 2 runs qualify without a local runtime;
-- exact Qualified App MAU visibility;
-- self-service versus manually granted developer activation;
-- launch and marketplace support;
-- availability of `storycore-harbour` and `storycore-labs`.
+- exact current Developer Terms text/link;
+- detailed definition and calculation of 70% of eligible usage profit, including deductions, threshold, and payment schedule;
+- how Qualified App MAU and Qualified Runs are surfaced to builders in the Developer Console.
 
 ## Decision log template
 
