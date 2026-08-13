@@ -1,5 +1,9 @@
-import { AnnaAppRuntime } from "/static/anna-apps/_sdk/latest/index.js";
 import { PROJECT_SCHEMA, validateProject } from "./project-contract.js";
+
+const AnnaAppRuntime = window.__STORYCORE_HARBOUR_RUNTIME__?.AnnaAppRuntime;
+if (!AnnaAppRuntime) {
+  throw new Error("StoryCore Harbour could not initialize the Anna runtime bridge.");
+}
 
 const STORAGE_CURRENT = "projects/current";
 const MAX_MODEL_RESPONSE_CHARS = 28_000;
@@ -37,13 +41,13 @@ async function connectToAnna() {
     const anna = await AnnaAppRuntime.connect();
     state.anna = anna;
     state.runtimeMode = "anna";
-    await anna.window.set_title({ title: "StoryCore Harbour" }).catch(() => {});
+    await anna.window.set_title({ title: "StoryCore Harbour" }).catch(() => undefined);
     setRuntimeStatus("Connected to Anna", "ready");
     return anna;
-  } catch (error) {
+  } catch {
     state.runtimeMode = "offline";
     setRuntimeStatus("Local preview mode", "offline");
-    console.warn("[storycore-harbour] Anna runtime unavailable:", error?.message || error);
+    console.warn("[storycore-harbour] Anna runtime unavailable; using local preview mode.");
     return null;
   }
 }
@@ -159,13 +163,22 @@ function responseText(response) {
   throw new Error("The model returned an unsupported response shape.");
 }
 
+function stripOptionalJsonFence(value) {
+  if (!value.startsWith("```") || !value.endsWith("```")) return value;
+  const firstLineEnd = value.indexOf("\n");
+  if (firstLineEnd < 0) return value;
+
+  const openingFence = value.slice(0, firstLineEnd).trim().toLowerCase();
+  if (openingFence !== "```" && openingFence !== "```json") return value;
+  return value.slice(firstLineEnd + 1, -3).trim();
+}
+
 function parseJsonText(text) {
   let value = String(text || "").trim();
   if (value.length > MAX_MODEL_RESPONSE_CHARS) {
     throw new Error(`The model response exceeded ${MAX_MODEL_RESPONSE_CHARS.toLocaleString()} characters.`);
   }
-  const fenced = value.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  if (fenced) value = fenced[1].trim();
+  value = stripOptionalJsonFence(value);
   return JSON.parse(value);
 }
 
@@ -178,11 +191,15 @@ function localRunMetadata() {
   };
 }
 
+function objectRecord(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
 function addLocalMetadata(project, input, metadata, repairUsed = false) {
   if (!project || typeof project !== "object" || Array.isArray(project)) return project;
   project.schemaVersion = PROJECT_SCHEMA;
   project.project = {
-    ...(project.project || {}),
+    ...objectRecord(project.project),
     id: metadata.id,
     title: input.title || project.project?.title || "Untitled visual story",
     language: input.language,
@@ -195,11 +212,11 @@ function addLocalMetadata(project, input, metadata, repairUsed = false) {
     updatedAt: metadata.updatedAt,
   };
   project.continuityReport = {
-    ...(project.continuityReport || {}),
+    ...objectRecord(project.continuityReport),
     checkedAt: metadata.updatedAt,
   };
   project.metadata = {
-    ...(project.metadata || {}),
+    ...objectRecord(project.metadata),
     generator: "storycore-harbour",
     generatedAt: metadata.updatedAt,
     runtime: state.runtimeMode,
@@ -309,7 +326,7 @@ async function loadCurrentProject() {
 }
 
 function clearNode(node) {
-  while (node.firstChild) node.removeChild(node.firstChild);
+  while (node.firstChild) node.firstChild.remove();
 }
 
 function element(tag, text, className) {
@@ -324,20 +341,18 @@ function addDefinition(card, label, value) {
   list.append(element("dt", label), element("dd", value || "—"));
 }
 
-function renderProject(project) {
-  const errors = validateProject(project);
-  if (errors.length) throw new Error(`Cannot render an invalid project: ${errors.join(" ")}`);
-  state.project = project;
-
+function renderBible(project) {
   const bible = project.productionBible;
   $("world-title").textContent = project.project.title;
   clearNode($("bible-content"));
+
   const bibleGrid = element("div", null, "bible-grid");
   const storyCard = element("article", null, "card");
   storyCard.append(element("h3", "Story"));
   addDefinition(storyCard, "Logline", bible.logline);
   addDefinition(storyCard, "Synopsis", bible.synopsis);
   addDefinition(storyCard, "Themes", bible.themes.join(" · "));
+
   const visualCard = element("article", null, "card");
   visualCard.append(element("h3", "Visual direction"));
   addDefinition(visualCard, "Style", bible.visualDirection.style);
@@ -345,11 +360,15 @@ function renderProject(project) {
   addDefinition(visualCard, "Lighting", bible.visualDirection.lighting);
   addDefinition(visualCard, "Camera language", bible.visualDirection.cameraLanguage);
   addDefinition(visualCard, "Continuity rules", bible.continuityRules.join(" · "));
+
   bibleGrid.append(storyCard, visualCard);
   $("bible-content").append(bibleGrid);
+}
 
-  clearNode($("character-list"));
-  for (const character of project.characters) {
+function renderCharacters(characters) {
+  const container = $("character-list");
+  clearNode(container);
+  for (const character of characters) {
     const card = element("article", null, "card");
     card.append(element("h4", character.name));
     addDefinition(card, "Role", character.role);
@@ -357,48 +376,69 @@ function renderProject(project) {
     addDefinition(card, "Conflict", character.conflict);
     addDefinition(card, "Visual identity", character.visualIdentity);
     addDefinition(card, "Continuity", character.continuityRules.join(" · "));
-    $("character-list").append(card);
+    container.append(card);
   }
+}
 
-  clearNode($("location-list"));
-  for (const location of project.locations) {
+function renderLocations(locations) {
+  const container = $("location-list");
+  clearNode(container);
+  for (const location of locations) {
     const card = element("article", null, "card");
     card.append(element("h4", location.name));
     addDefinition(card, "Purpose", location.purpose);
     addDefinition(card, "Visual identity", location.visualIdentity);
     addDefinition(card, "Continuity", location.continuityRules.join(" · "));
-    $("location-list").append(card);
+    container.append(card);
   }
+}
 
-  clearNode($("scene-list"));
+function renderShot(shot, characterNames) {
+  const shotCard = element("div", null, "shot");
+  shotCard.append(element("h4", `Shot ${shot.order} · ${shot.framing}`));
+  shotCard.append(element("p", `Camera: ${shot.camera}`));
+  shotCard.append(element("p", `Action: ${shot.action}`));
+  if (shot.dialogue) shotCard.append(element("p", `Dialogue: ${shot.dialogue}`));
+  if (shot.sound) shotCard.append(element("p", `Sound: ${shot.sound}`));
+
+  const names = shot.characterIds.map((id) => characterNames.get(id));
+  if (names.length) shotCard.append(element("p", `Characters: ${names.join(", ")}`));
+  shotCard.append(element("div", shot.generationPrompt, "prompt"));
+  return shotCard;
+}
+
+function renderScene(scene, characterNames, locationNames) {
+  const card = element("article", null, "scene");
+  card.append(element("p", `SCENE ${scene.order}`, "eyebrow"), element("h3", scene.title));
+  card.append(
+    element("p", `${locationNames.get(scene.locationId)} · ${scene.durationSeconds}s`, "scene-meta"),
+    element("p", scene.purpose),
+  );
+
+  const shots = element("div", null, "shots");
+  for (const shot of [...scene.shots].sort((left, right) => left.order - right.order)) {
+    shots.append(renderShot(shot, characterNames));
+  }
+  card.append(shots);
+  return card;
+}
+
+function renderScenes(project) {
+  const container = $("scene-list");
+  clearNode(container);
   const characterNames = new Map(project.characters.map((item) => [item.id, item.name]));
   const locationNames = new Map(project.locations.map((item) => [item.id, item.name]));
-  for (const scene of [...project.scenes].sort((a, b) => a.order - b.order)) {
-    const card = element("article", null, "scene");
-    card.append(element("p", `SCENE ${scene.order}`, "eyebrow"), element("h3", scene.title));
-    card.append(element("p", `${locationNames.get(scene.locationId)} · ${scene.durationSeconds}s`, "scene-meta"));
-    card.append(element("p", scene.purpose));
-    const shots = element("div", null, "shots");
-    for (const shot of [...scene.shots].sort((a, b) => a.order - b.order)) {
-      const shotCard = element("div", null, "shot");
-      shotCard.append(element("h4", `Shot ${shot.order} · ${shot.framing}`));
-      shotCard.append(element("p", `Camera: ${shot.camera}`));
-      shotCard.append(element("p", `Action: ${shot.action}`));
-      if (shot.dialogue) shotCard.append(element("p", `Dialogue: ${shot.dialogue}`));
-      if (shot.sound) shotCard.append(element("p", `Sound: ${shot.sound}`));
-      const names = shot.characterIds.map((id) => characterNames.get(id));
-      if (names.length) shotCard.append(element("p", `Characters: ${names.join(", ")}`));
-      shotCard.append(element("div", shot.generationPrompt, "prompt"));
-      shots.append(shotCard);
-    }
-    card.append(shots);
-    $("scene-list").append(card);
+  for (const scene of [...project.scenes].sort((left, right) => left.order - right.order)) {
+    container.append(renderScene(scene, characterNames, locationNames));
   }
+}
 
-  clearNode($("continuity-content"));
-  const report = project.continuityReport;
+function renderContinuity(report) {
+  const container = $("continuity-content");
+  clearNode(container);
   const summary = element("div", null, "bible-grid");
   summary.append(element("div", Math.round(report.score), "score"));
+
   const warningCard = element("article", null, "card");
   warningCard.append(element("h3", report.warnings.length ? "Continuity notes" : "Continuity clear"));
   if (report.warnings.length) {
@@ -410,8 +450,21 @@ function renderProject(project) {
   } else {
     warningCard.append(element("p", "No continuity warning was reported by this run."));
   }
+
   summary.append(warningCard);
-  $("continuity-content").append(summary);
+  container.append(summary);
+}
+
+function renderProject(project) {
+  const errors = validateProject(project);
+  if (errors.length) throw new Error(`Cannot render an invalid project: ${errors.join(" ")}`);
+  state.project = project;
+
+  renderBible(project);
+  renderCharacters(project.characters);
+  renderLocations(project.locations);
+  renderScenes(project);
+  renderContinuity(project.continuityReport);
   $("save-status").textContent = "Project validated. Save or export it.";
   unlockSteps();
   showStep(2);
@@ -468,10 +521,10 @@ $("concept-form").addEventListener("submit", async (event) => {
   try {
     setBusy(true);
     const project = await generateProject(input);
-    const status = await saveProject(project);
+    const statusText = await saveProject(project);
     setBusy(false);
     renderProject(project);
-    $("save-status").textContent = status;
+    $("save-status").textContent = statusText;
   } catch (error) {
     showFatal("The project could not be completed", normalizeError(error));
   }
