@@ -4,6 +4,7 @@ import { chromium } from "playwright-core";
 
 const dashboardUrl = process.env.HARBOUR_URL || "http://127.0.0.1:5180/";
 const executablePath = process.env.BROWSER_EXECUTABLE;
+const compareText = (left, right) => left.localeCompare(right);
 
 if (!executablePath) {
   console.error("BROWSER_EXECUTABLE is required for the StoryCore Harbour deletion smoke test.");
@@ -70,7 +71,7 @@ try {
 
   const before = await storageSnapshot(app);
   assert.deepEqual(
-    before.projectKeys.sort(),
+    before.projectKeys.sort(compareText),
     [
       "projects/by-id/mock-harbour-project",
       "projects/current",
@@ -164,7 +165,7 @@ async function installDeterministicStorage(app) {
           throw error;
         }
         generation += 1;
-        const etag = `W/\"deletion-${generation}\"`;
+        const etag = `W/"deletion-${generation}"`;
         rows.set(key, {
           value: clone(value),
           etag,
@@ -220,7 +221,7 @@ async function installDeterministicStorage(app) {
 
     window.__STORYCORE_HARBOUR_TEST_STORAGE__ = {
       snapshot() {
-        const allKeys = [...rows.keys()].sort();
+        const allKeys = [...rows.keys()].sort((left, right) => left.localeCompare(right));
         return {
           allKeys,
           projectKeys: allKeys.filter((key) => key.startsWith("projects/")),
