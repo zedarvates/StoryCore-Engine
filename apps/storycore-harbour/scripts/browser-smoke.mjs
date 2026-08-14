@@ -179,6 +179,35 @@ try {
     filename: "04-continuity.png",
   });
 
+  // Starting another project must remove the previous creative content from
+  // the live UI, restore the form defaults, lock result steps, and leave the
+  // saved project available for an explicit restore.
+  await app.getByRole("button", { name: "Start another project" }).click();
+  await app.locator("#step-1").waitFor({ state: "visible" });
+  await waitForFocus(app.locator("#idea"));
+  assert.equal(await app.locator("#idea").inputValue(), "");
+  assert.equal(await app.locator("#idea-count").textContent(), "0 / 12,000");
+  assert.equal(await app.locator("#step-tab-2").isDisabled(), true);
+  assert.equal(await app.locator("#bible-content").locator("*").count(), 0);
+  assert.equal(await app.locator("#character-list").locator("*").count(), 0);
+  assert.equal(await app.locator("#location-list").locator("*").count(), 0);
+  assert.equal(await app.locator("#scene-list").locator("*").count(), 0);
+  assert.equal(await app.locator("#continuity-content").locator("*").count(), 0);
+
+  await app.getByRole("button", { name: "Load latest saved project" }).click();
+  await app.locator("#step-2").waitFor({ state: "visible" });
+  await waitForFocus(app.locator("#world-title"));
+  await assertText(app.locator("#world-title"), /^Browser Smoke Story$/);
+  await assertText(app.locator("#save-status"), /Latest saved project loaded and verified/i);
+  assert.ok(await app.locator("#character-list .card").count());
+  assert.ok(await app.locator("#location-list .card").count());
+  assert.ok(await app.locator("#scene-list .scene").count());
+  assert.ok(await app.locator("#scene-list .shot").count());
+
+  await app.locator("#step-tab-4").click();
+  await app.locator("#step-4").waitFor({ state: "visible" });
+  await waitForFocus(app.locator("#step-4 h2"));
+
   // Sandboxed Anna App iframes do not necessarily surface a top-level browser
   // download event. Capture the exact Blob and filename produced by the real
   // export button instead of weakening the App or the sandbox.
@@ -220,6 +249,8 @@ try {
     formValidationFocus: "pass",
     keyboardStepNavigation: "pass",
     panelFocusManagement: "pass",
+    newProjectReset: "pass",
+    savedProjectRestore: "pass",
     charactersRendered: await app.locator("#character-list .card").count(),
     locationsRendered: await app.locator("#location-list .card").count(),
     scenesRendered: await app.locator("#scene-list .scene").count(),

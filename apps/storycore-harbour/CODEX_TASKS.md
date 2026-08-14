@@ -103,6 +103,7 @@ Real-platform work still required:
 - [x] Ensure visible and accessible deletion labels match.
 - [x] Honor reduced-motion preference.
 - [x] Add an automated 400% text-reflow gate at the declared 520px minimum width.
+- [x] Clear the prior form and generated content when starting another project, then focus the new concept field.
 - [ ] Complete a manual NVDA pass on Windows.
 - [ ] Complete a manual VoiceOver pass on macOS.
 - [ ] Complete manual 200%/400% zoom and forced/high-contrast checks.
@@ -116,6 +117,7 @@ Real-platform work still required:
 - [x] Add `etag` / `if_match` optimistic concurrency for overwrite operations.
 - [x] Test declared storage get/set/list/delete ACLs and response shapes with `mountBundle` mocks.
 - [x] Exercise UI save/read-back and export in a real browser with a deterministic test adapter.
+- [x] Exercise a positive saved-project restore after resetting the active project UI.
 - [x] Add a double-confirmed user-facing delete-all path limited to `projects/`.
 - [x] Paginate project listing and delete `projects/current` last.
 - [x] Pass ETags to every deletion when available.
