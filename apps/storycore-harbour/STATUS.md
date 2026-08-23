@@ -247,4 +247,7 @@ Codex must inspect the latest CI and Sonar results first. The next legitimate im
 - A `kind=complete` developer session minted successfully (`HTTP 200`), proving PAT, handle, App slug, and session authorization.
 - The first fictional `llm.complete` request failed at transport with `fetch failed` before parse, repair, or storage. No successful project and no acceptance score can be claimed.
 - Current official Anna documentation states that Host LLM completion selects only among providers the user has enabled. Confirm an enabled provider/model in the owner account before requesting consent for one retry.
+- A second owner-consented attempt reached the real model. Both the primary response and the single repair used MiniMax M3 through OpenRouter, each reached the 4,096-output-token cap, and each ended as truncated JSON. The App rejected both and wrote no project.
+- Changing the model shown in the Anna chat UI to Gemma did not change the model used by Host App completion; the real response metadata still identified MiniMax M3/OpenRouter.
+- The generation and repair prompts now require a compact result below 12,000 characters: exactly three scenes, one shot per scene, bounded characters/locations, and bounded prose. Local 44-test, contract, fixture, corpus, synchronization, and strict-validation gates pass; a new real call requires fresh quota consent.
 - Do not start the twenty-prompt corpus until one normal real project validates, saves, reloads, and exports.

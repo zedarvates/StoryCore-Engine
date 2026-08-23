@@ -25,7 +25,12 @@ The JSON must use schemaVersion "${PROJECT_SCHEMA}" and contain:
 - scenes[]: id,order,title,purpose,locationId,characterIds[],durationSeconds,shots[]
 - each shot: id,order,framing,camera,action,dialogue,sound,characterIds[],generationPrompt
 - continuityReport: score (0-100), warnings[] {severity,message,sceneId|null}, checkedAt
-Create 3-5 scenes and 1-3 shots per scene, proportionate to the requested duration.
+Keep the complete JSON below 12,000 characters so it cannot be truncated by the host token limit.
+Create exactly 3 scenes and exactly 1 shot per scene, proportionate to the requested duration.
+Create 1-3 characters and 1-3 locations. Reuse locations when possible.
+Keep the synopsis below 80 words, every other descriptive field below 40 words, and every generationPrompt below 60 words.
+Use at most 3 themes, 3 production continuity rules, and 2 continuity rules per character or location.
+Avoid repeating visual details outside the canonical visualIdentity and continuityRules fields.
 Use unique stable IDs. Every reference must point to a declared character, location, or scene.
 Characters in a shot must also be listed in the parent scene.
 Keep visual identities and continuity rules explicit and stable.
@@ -263,14 +268,17 @@ async function generateProject(input) {
   if (!errors.length) return project;
 
   setBusy(true, "Repairing the structured result after contract validation…");
-  const repairPrompt = `Repair the previous response so it becomes exactly one JSON object matching StoryCore Harbour's required contract.
-Return JSON only. Preserve useful creative content. Correct every listed error. Do not add commentary.
+  const repairPrompt = `Rebuild the previous response as exactly one compact JSON object matching StoryCore Harbour's required contract.
+Return JSON only. Correct every listed error. Do not add commentary.
+Keep the complete JSON below 12,000 characters. Use exactly 3 scenes with exactly 1 shot each, 1-3 characters, and 1-3 locations.
+Keep the synopsis below 80 words, other descriptions below 40 words, and generation prompts below 60 words.
+Discard verbose repetition rather than carrying it into the repaired result.
 
 VALIDATION ERRORS:
 ${errors.map((error) => `- ${error}`).join("\n")}
 
 PREVIOUS RESPONSE:
-${raw.slice(0, 22_000)}`;
+${raw.slice(0, 12_000)}`;
 
   const repaired = await modelComplete([
     { role: "user", content: { type: "text", text: repairPrompt } },
