@@ -212,19 +212,18 @@ Never use client work, unpublished scripts, personal identifiers, credentials, o
 
 ## 7. Run the immutable twenty-prompt collector
 
-The acceptance interface is hidden unless the App iframe URL contains `acceptance=1`.
+The acceptance interface is hidden unless the local dashboard URL contains `acceptance=1`.
 
 From the harness dashboard:
 
-1. inspect the StoryCore Harbour iframe URL;
-2. open that iframe URL in a separate tab;
-3. preserve its existing `wid` and `t` query parameters;
-4. append `&acceptance=1` when a query string already exists;
-5. confirm the page shows `DEVELOPER ACCEPTANCE MODE`;
-6. read the quota/storage warning;
-7. select the consent box only when sufficient model quota is available;
-8. run the fixed twenty prompts;
-9. download the resulting JSONL.
+1. open the dashboard URL printed by `anna-app dev`;
+2. append `?acceptance=1` to that dashboard URL, for example `http://127.0.0.1:5180/?acceptance=1`;
+3. do not open the iframe URL as a top-level page — it loses the parent runtime bridge and falls back to local preview mode;
+4. confirm the iframe shows `DEVELOPER ACCEPTANCE MODE` and `Connected to Anna`;
+5. read the quota/storage warning;
+6. select the consent box only when sufficient model quota is available;
+7. run the fixed twenty prompts;
+8. download the resulting JSONL.
 
 Move or copy the downloaded result to:
 

@@ -80,14 +80,16 @@ Owner/account actions required before the real gate:
 
 Real-platform work still required:
 
-- [ ] Run all twenty prompts against at least one enabled model.
-- [ ] Evaluate the downloaded JSONL with `npm run acceptance:evaluate`.
+- [x] Run all twenty prompts against at least one enabled model.
+- [x] Evaluate the downloaded JSONL with `npm run acceptance:evaluate`.
 - [ ] Tune scene/shot counts or prompt constraints only from measured failures.
 - [ ] Reach at least 18/20 valid projects without manual intervention.
-- [ ] Keep median successful completion time at or below 180 seconds.
+- [x] Keep median successful completion time at or below 180 seconds (measured 27.18 seconds on the 2026-08-23 baseline).
 - [ ] Rerun the complete immutable corpus after every reliability fix.
 
 **Acceptance:** the committed evaluator reports `Acceptance gate: PASS` on a real, complete result file.
+
+**Measured baseline — 2026-08-23:** FAIL at 6/20 valid projects, median 27.18 seconds, p95 63.32 seconds, 5 repaired passes, 11 contract failures, and 3 timeouts. The immutable corpus remains unchanged; reliability work must target these measured prompt IDs before a full rerun.
 
 ## HBR-004 — Complete the four-step UI 🟡
 

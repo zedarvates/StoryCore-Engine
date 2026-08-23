@@ -164,6 +164,14 @@ normal exact `0600` check.
 
 ## Decision log template
 
+### ADR-019 — Activate the acceptance collector from the connected loopback dashboard
+
+**Decision:** enable developer acceptance mode when `acceptance=1` is present on the App URL or on a loopback dashboard referrer.
+
+**Evidence:** opening the iframe URL as a top-level tab under CLI 0.1.30 lost the parent Anna runtime bridge, fell back to local preview mode, and produced 20 immediate non-Anna failures. Opening `http://127.0.0.1:5180/?acceptance=1` retained the bridge and ran the real immutable corpus. Three tests keep normal URLs hidden and cover direct plus connected-dashboard activation.
+
+**Consequences:** the owner runbook must use the dashboard query. Non-loopback referrers cannot activate the hidden collector. Local-preview output must never be evaluated as real Anna evidence.
+
 ### ADR-017 — Use Node 22 for authenticated Anna lifecycle commands on Windows
 
 **Decision:** run CLI 0.1.30 authenticated lifecycle commands with Node 22 until the Node 24 Windows assertion is fixed upstream.

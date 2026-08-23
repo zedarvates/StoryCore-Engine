@@ -50,6 +50,8 @@ The collector is a hidden developer-only mode in the same static App. It uses th
    http://127.0.0.1:<port>/?acceptance=1
    ```
 
+   Add the query to the **dashboard URL**, not to the iframe URL. The dashboard keeps the Anna runtime bridge connected and passes developer mode to its loopback iframe through the referrer. Opening the iframe URL as a top-level tab falls back to local preview mode and produces invalid non-Anna results.
+
 5. Read the quota/storage warning and explicitly select the confirmation checkbox. The Run button remains disabled until consent is provided.
 6. Start the corpus. “Stop after current prompt” performs a safe stop between prompts.
 7. Download the generated JSONL when complete. Save it locally as `acceptance/results.local.jsonl`; this path is ignored by Git.

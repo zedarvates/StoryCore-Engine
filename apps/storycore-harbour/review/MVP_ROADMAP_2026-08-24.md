@@ -56,10 +56,19 @@ This roadmap distinguishes a demonstrable local MVP from an Anna submission or p
 
 Do not replace production-platform gates with these local results.
 
-- `npm run check`: PASS — 44/44 Node tests, sample export, mock fixture, fixed twenty-prompt corpus, bundle synchronization, and strict Anna validation.
+- `npm run check`: PASS — 47/47 Node tests, sample export, mock fixture, fixed twenty-prompt corpus, bundle synchronization, and strict Anna validation.
 - `npm run browser:smoke`: PASS in 12.7 seconds — 520 x 680 viewport, 400% text reflow, validation focus, keyboard navigation, one character, one location, one scene, one shot, valid export, and four screenshots.
 - `npm run browser:deletion-smoke`: PASS in 3.5 seconds — two project records deleted with ETags, unrelated key preserved, and deleted current project could not reload.
 - JavaScript syntax plus `git diff --check`: PASS.
 - Export validator: PASS on `demo/output.local/browser-smoke-story.storycore-harbour.json`.
 - Visual inspection: PASS for the concept and continuity/export screenshots; generated text remains fictional mock evidence.
 - Root StoryCore checkout: intentionally not modified by this isolated adapter continuation.
+
+## Real Anna acceptance baseline — 23 August 2026
+
+- Complete immutable corpus: 20/20 prompts executed through the connected Anna harness.
+- Gate: FAIL — 6/20 valid projects versus target 18/20.
+- Successful-run median: 27.18 seconds; p95: 63.32 seconds; latency target of 180 seconds passed.
+- Five passing projects required repair; one passed directly.
+- Failures: 11 contract and 3 timeout for 14 total failures.
+- Private JSONL: `acceptance/results.local.jsonl` (ignored; never commit or paste publicly).
