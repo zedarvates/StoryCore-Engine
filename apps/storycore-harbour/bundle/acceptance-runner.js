@@ -1,7 +1,10 @@
 import { validateProject } from "./project-contract.js";
+import { acceptanceModeEnabled } from "./acceptance-mode.js";
 
-const params = new URLSearchParams(window.location.search);
-const acceptanceEnabled = params.get("acceptance") === "1";
+const acceptanceEnabled = acceptanceModeEnabled({
+  locationSearch: window.location.search,
+  referrer: document.referrer,
+});
 
 if (acceptanceEnabled) {
   await installAcceptanceRunner();
