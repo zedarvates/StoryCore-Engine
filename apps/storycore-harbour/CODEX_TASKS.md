@@ -82,7 +82,7 @@ Real-platform work still required:
 
 - [x] Run all twenty prompts against at least one enabled model.
 - [x] Evaluate the downloaded JSONL with `npm run acceptance:evaluate`.
-- [ ] Tune scene/shot counts or prompt constraints only from measured failures.
+- [x] Tune scene/shot counts and warning normalization only from measured failures.
 - [ ] Reach at least 18/20 valid projects without manual intervention.
 - [x] Keep median successful completion time at or below 180 seconds (measured 27.18 seconds on the 2026-08-23 baseline).
 - [ ] Rerun the complete immutable corpus after every reliability fix.
@@ -90,6 +90,8 @@ Real-platform work still required:
 **Acceptance:** the committed evaluator reports `Acceptance gate: PASS` on a real, complete result file.
 
 **Measured baseline — 2026-08-23:** FAIL at 6/20 valid projects, median 27.18 seconds, p95 63.32 seconds, 5 repaired passes, 11 contract failures, and 3 timeouts. The immutable corpus remains unchanged; reliability work must target these measured prompt IDs before a full rerun.
+
+**Bounded diagnostic pilot:** after compact-output and warning-severity normalization, HBR-A01, HBR-A02, and HBR-A05 passed 3/3 with preserved inputs and median 43.68 seconds. This is positive evidence for the targeted fix but does not replace the complete 6/20 baseline or satisfy the 18/20 gate.
 
 ## HBR-004 — Complete the four-step UI 🟡
 
