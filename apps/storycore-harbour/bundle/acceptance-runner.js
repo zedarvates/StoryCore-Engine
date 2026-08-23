@@ -1,8 +1,12 @@
 import { validateProject } from "./project-contract.js";
-import { acceptanceModeEnabled } from "./acceptance-mode.js";
+import { acceptanceModeEnabled, acceptancePromptIds } from "./acceptance-mode.js";
 import { publicFailureName } from "./acceptance-failure.js";
 
 const acceptanceEnabled = acceptanceModeEnabled({
+  locationSearch: window.location.search,
+  referrer: document.referrer,
+});
+const requestedPromptIds = acceptancePromptIds({
   locationSearch: window.location.search,
   referrer: document.referrer,
 });
@@ -16,8 +20,19 @@ async function installAcceptanceRunner() {
   const ui = createAcceptancePanel();
   document.querySelector("main").prepend(ui.panel);
 
-  const corpus = await loadAcceptanceCorpus(ui.progress);
+  const loadedCorpus = await loadAcceptanceCorpus(ui.progress);
+  if (!loadedCorpus) return;
+  const corpus = selectCorpusPrompts(loadedCorpus, requestedPromptIds, ui.progress);
   if (!corpus) return;
+
+  const promptCount = corpus.prompts.length;
+  ui.runButton.textContent = `Run ${promptCount} prompts`;
+  ui.counters.textContent = `0 / ${promptCount} complete`;
+  if (promptCount !== 20) {
+    ui.description.textContent =
+      `Diagnostic subset: ${promptCount} fixed corpus prompts. ` +
+      "Results do not replace the official twenty-prompt acceptance score.";
+  }
 
   const controller = {
     anna: await waitForAnnaRuntime(),
@@ -52,6 +67,7 @@ function createAcceptancePanel() {
       "This local developer mode submits 20 fixed projects sequentially through the real UI flow. It may make up to 40 model calls when repair is needed and stores test projects in the current Anna account.",
     ),
   );
+  const description = panel.lastElementChild;
 
   const consentLabel = element("label", null, "acceptance-consent");
   const consent = document.createElement("input");
@@ -78,6 +94,7 @@ function createAcceptancePanel() {
 
   return {
     panel,
+    description,
     consent,
     runButton,
     stopButton,
@@ -86,6 +103,17 @@ function createAcceptancePanel() {
     counters,
     list,
   };
+}
+
+function selectCorpusPrompts(corpus, requestedIds, progress) {
+  if (!requestedIds.length) return corpus;
+  const byId = new Map(corpus.prompts.map((prompt) => [prompt.id, prompt]));
+  const unknown = requestedIds.filter((id) => !byId.has(id));
+  if (unknown.length) {
+    progress.textContent = "Diagnostic prompt selection contains an unknown corpus id.";
+    return null;
+  }
+  return { ...corpus, prompts: requestedIds.map((id) => byId.get(id)) };
 }
 
 async function loadAcceptanceCorpus(progress) {
