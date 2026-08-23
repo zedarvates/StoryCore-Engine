@@ -56,7 +56,7 @@ This roadmap distinguishes a demonstrable local MVP from an Anna submission or p
 
 Do not replace production-platform gates with these local results.
 
-- `npm run check`: PASS — 48/48 Node tests, sample export, mock fixture, fixed twenty-prompt corpus, bundle synchronization, and strict Anna validation.
+- `npm run check`: PASS — 51/51 Node tests, sample export, mock fixture, fixed twenty-prompt corpus, bundle synchronization, and strict Anna validation.
 - `npm run browser:smoke`: PASS in 12.7 seconds — 520 x 680 viewport, 400% text reflow, validation focus, keyboard navigation, one character, one location, one scene, one shot, valid export, and four screenshots.
 - `npm run browser:deletion-smoke`: PASS in 3.5 seconds — two project records deleted with ETags, unrelated key preserved, and deleted current project could not reload.
 - JavaScript syntax plus `git diff --check`: PASS.

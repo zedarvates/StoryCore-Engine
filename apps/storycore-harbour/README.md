@@ -30,7 +30,7 @@ The full StoryCore Desktop application remains the advanced production destinati
 
 The branch includes:
 
-- 48 Node tests covering the project contract, model-output normalization, demo artifacts, acceptance mode, acceptance evaluator, and official Anna Host API harness;
+- 51 Node tests covering the project contract, privacy-safe failure diagnostics, model-output normalization, demo artifacts, acceptance mode, acceptance evaluator, and official Anna Host API harness;
 - strict `anna-app validate --strict` validation with pinned `@anna-ai/cli` 0.1.30;
 - Anna mock-harness startup in CI;
 - a fixed twenty-prompt acceptance corpus covering all six formats, ten English and ten French cases;

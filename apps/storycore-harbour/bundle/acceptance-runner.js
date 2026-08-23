@@ -1,5 +1,6 @@
 import { validateProject } from "./project-contract.js";
 import { acceptanceModeEnabled } from "./acceptance-mode.js";
+import { publicFailureName } from "./acceptance-failure.js";
 
 const acceptanceEnabled = acceptanceModeEnabled({
   locationSearch: window.location.search,
@@ -194,7 +195,7 @@ function recordVisibleFailure(results, row, promptId, durationMs) {
     promptId,
     durationMs,
     repairUsed: false,
-    error: { category, name: "ui_run_failed" },
+    error: { category, name: publicFailureName(visible, category) },
   });
   row.textContent = `${promptId}: FAIL (${category})`;
 }
