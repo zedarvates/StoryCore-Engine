@@ -2,6 +2,8 @@
 
 Updated: 2026-08-23
 
+Final owner handoff: `review/FINAL_HANDOFF_2026-08-24.md`.
+
 ## Submission-focused roadmap
 
 The current priority split is maintained in `review/MVP_ROADMAP_2026-08-24.md`:
