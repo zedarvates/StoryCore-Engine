@@ -30,7 +30,7 @@ The full StoryCore Desktop application remains the advanced production destinati
 
 The branch includes:
 
-- 35 Node tests covering the project contract, acceptance evaluator, and official Anna Host API harness;
+- 44 Node tests covering the project contract, demo artifacts, acceptance evaluator, and official Anna Host API harness;
 - strict `anna-app validate --strict` validation with pinned `@anna-ai/cli` 0.1.30;
 - Anna mock-harness startup in CI;
 - a fixed twenty-prompt acceptance corpus covering all six formats, ten English and ten French cases;
@@ -52,6 +52,8 @@ Codex must read these files in order:
 7. `STATUS.md`
 8. `acceptance/README.md`
 9. `CODEX_ENTRYPOINT.md`
+
+For the deterministic reviewer path and its exported artifacts, see `demo/README.md`.
 
 ## Local commands
 

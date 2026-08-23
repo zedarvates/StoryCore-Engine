@@ -4,6 +4,8 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "playwright-core";
 import { validateProject } from "../bundle/project-contract.js";
+import demoConcept from "../demo/concept.json" with { type: "json" };
+import { persistDemoExport } from "./demo-artifacts.mjs";
 
 const dashboardUrl = process.env.HARBOUR_URL || "http://127.0.0.1:5180/";
 const executablePath = process.env.BROWSER_EXECUTABLE;
@@ -34,6 +36,7 @@ const pageErrors = [];
 const consoleErrors = [];
 const failedResponses = [];
 const screenshots = [];
+let demoExportPath = "";
 
 page.on("pageerror", (error) => pageErrors.push(error.message));
 page.on("console", (message) => {
@@ -191,6 +194,11 @@ try {
   assert.equal(exportedProject.metadata?.repairUsed, false);
 
   if (screenshotDirectory) {
+    demoExportPath = await persistDemoExport({
+      outputDirectory: screenshotDirectory,
+      filename: exported.filename,
+      text: exported.text,
+    });
     assert.deepEqual(
       screenshots.map((path) => path.split(/[\\/]/).at(-1)),
       ["01-concept.png", "02-world.png", "03-scenes.png", "04-continuity.png"],
@@ -225,6 +233,7 @@ try {
     scenesRendered: await app.locator("#scene-list .scene").count(),
     shotsRendered: await app.locator("#scene-list .shot").count(),
     exportContract: "valid",
+    demoExportPath,
     screenshotsCaptured: screenshots.length,
     storage: storageAdapterMode,
   }));
@@ -234,15 +243,13 @@ try {
 }
 
 async function fillReferenceProject(app) {
-  await app.locator("#idea").fill(
-    "At dawn, a courier crosses a flooded harbour on the final autonomous ferry to deliver a damaged memory archive before the checkpoint closes.",
-  );
-  await app.locator("#title").fill("Browser Smoke Story");
-  await app.locator("#format").selectOption("short-film");
-  await app.locator("#duration").fill("3");
-  await app.locator("#language").selectOption("en");
-  await app.locator("#tone").fill("Grounded cyberpunk drama with clear visual continuity");
-  await app.locator("#audience").fill("Young adult science-fiction viewers");
+  await app.locator("#idea").fill(demoConcept.idea);
+  await app.locator("#title").fill(demoConcept.title);
+  await app.locator("#format").selectOption(demoConcept.format);
+  await app.locator("#duration").fill(String(demoConcept.durationMinutes));
+  await app.locator("#language").selectOption(demoConcept.language);
+  await app.locator("#tone").fill(demoConcept.tone);
+  await app.locator("#audience").fill(demoConcept.audience);
 }
 
 async function captureMarketplaceScreenshot({ app, frameElement, filename }) {
