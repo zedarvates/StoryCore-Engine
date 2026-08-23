@@ -72,4 +72,7 @@ Do not replace production-platform gates with these local results.
 - Five passing projects required repair; one passed directly.
 - Failures: 11 contract and 3 timeout for 14 total failures.
 - Private JSONL: `acceptance/results.local.jsonl` (ignored; never commit or paste publicly).
-- Bounded follow-up pilot after targeted fixes: HBR-A01/A02/A05 passed 3/3, all inputs preserved, median 43.68 seconds. This does not alter the official 6/20 baseline.
+- Bounded follow-up pilot after targeted fixes: HBR-A01/A02/A05 passed 3/3, all inputs preserved, median 43.68 seconds. As a subset, it did not replace the then-current 6/20 baseline.
+- Complete rerun after targeted fixes: 12/20 valid projects, median 30.54 seconds, p95 121.17 seconds, 8 repaired passes. This is the latest official result and remains below the 18/20 submission gate.
+- Remaining rerun failures: four timeout, one `json_invalid`, one `duration_invalid`, and two `contract_invalid`.
+- Private rerun JSONL: `acceptance/results.rerun.local.jsonl` (ignored; never commit or paste publicly).

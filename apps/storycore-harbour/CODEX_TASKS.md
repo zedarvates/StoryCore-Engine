@@ -93,6 +93,8 @@ Real-platform work still required:
 
 **Bounded diagnostic pilot:** after compact-output and warning-severity normalization, HBR-A01, HBR-A02, and HBR-A05 passed 3/3 with preserved inputs and median 43.68 seconds. This is positive evidence for the targeted fix but does not replace the complete 6/20 baseline or satisfy the 18/20 gate.
 
+**Complete rerun after targeted fixes:** FAIL at 12/20 valid projects, median 30.54 seconds, p95 121.17 seconds, and 8 repaired passes. Failures were four timeouts (A01/A07/A13/A17), `json_invalid` (A12), `duration_invalid` (A19), and two remaining `contract_invalid` cases (A09/A10). This supersedes 6/20 as the latest official result but still blocks readiness.
+
 ## HBR-004 — Complete the four-step UI 🟡
 
 - [x] Finish responsive cards and scene navigation.

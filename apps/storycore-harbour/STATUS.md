@@ -263,4 +263,6 @@ Codex must inspect the latest CI and Sonar results first. The next legitimate im
 - Future collector failures now record privacy-safe stable names such as `json_invalid`, `reference_invalid`, `duration_invalid`, and `required_field_invalid`; unrecognized details collapse to `contract_invalid` and generated text is never persisted in the failure name.
 - Loopback-only `acceptance_ids` supports bounded diagnostic subsets without editing the immutable corpus; subset results are explicitly labelled non-official and cannot replace the twenty-prompt score.
 - Owner-consented diagnostic pilot HBR-A01/A02/A05 passed 3/3 after the targeted fixes. All three projects passed the canonical contract and input-preservation checks; median duration was 43.68 seconds, A01/A02 used repair, and A05 passed directly. Private output remains ignored at `acceptance/results.diagnostic.local.jsonl`.
-- The official gate remains the prior complete result, 6/20 FAIL. A complete rerun is required before any readiness claim.
+- The owner-consented complete rerun improved the official result from 6/20 to 12/20, with median 30.54 seconds, p95 121.17 seconds, and 8 repaired passes. It remains `Acceptance gate: FAIL` against the 18/20 target.
+- Rerun failures are privacy-safe and actionable: A01/A07/A13/A17 timeout, A12 `json_invalid`, A19 `duration_invalid`, and A09/A10 `contract_invalid`. Private output remains ignored at `acceptance/results.rerun.local.jsonl`.
+- The 12/20 rerun is the latest official result. No readiness, version cut, review, or release claim is permitted.
