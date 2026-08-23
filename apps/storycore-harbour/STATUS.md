@@ -237,8 +237,8 @@ Codex must inspect the latest CI and Sonar results first. The next legitimate im
 
 - Developer access activated by the owner; public handle `storycore-labs` confirmed.
 - CLI device authorization completed; local PAT lifetime reported as 90 days.
-- Working draft created as `@storycore-labs/storycore-harbour`, server App id `214`, revision `1`, status `draft`.
-- Static bundle uploaded successfully: 10 files, 92,765 bytes, bundle status `ready`; no Executa or local shim installed.
+- Working draft created as `@storycore-labs/storycore-harbour`, server App id `214`, then updated to revision `2` with the compact real-model prompt; status remains `draft`.
+- Revision 2 static bundle uploaded successfully: 10 files, 93,542 bytes, bundle status `ready`; no Executa or local shim installed.
 - No immutable version, review submission, or public release was created.
 - Server listing category changed from locally accepted `creative-tools` to server-supported `creative`.
 - CLI 0.1.30 lifecycle calls hit a Windows/libuv assertion under Node 24.13.0; the same dry-run and push completed under Node 22.23.2.
