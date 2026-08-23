@@ -164,6 +164,22 @@ normal exact `0600` check.
 
 ## Decision log template
 
+### ADR-017 — Use Node 22 for authenticated Anna lifecycle commands on Windows
+
+**Decision:** run CLI 0.1.30 authenticated lifecycle commands with Node 22 until the Node 24 Windows assertion is fixed upstream.
+
+**Evidence:** strict validation passed under Node 24.13.0, but `apps push --dry-run` aborted in libuv with `Assertion failed: !(handle->flags & UV_HANDLE_CLOSING)`. The identical command and the authorized working-draft push completed under Node 22.23.2.
+
+**Consequences:** this is a local CLI compatibility boundary, not proof that the App bundle requires Node 22 at runtime. CI already uses Node 22. Do not weaken validation or retry state-changing lifecycle commands blindly after a native abort.
+
+### ADR-018 — Use the server-supported `creative` listing category
+
+**Decision:** map StoryCore Harbour to Anna category `creative`.
+
+**Evidence:** CLI 0.1.30 strict validation accepted `creative-tools`, but the authenticated create request returned HTTP 400 and enumerated the current supported server categories. After changing only the category to `creative`, the draft and bundle upload succeeded.
+
+**Consequences:** treat the server taxonomy as authoritative for publishing while retaining the CLI validation result as a separate local gate. Recheck the category before cutting an immutable version.
+
 ```text
 ### ADR-NNN — Title
 Decision:

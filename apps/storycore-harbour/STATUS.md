@@ -232,3 +232,19 @@ npm run dev:mock
 Then read `AGENTS.md`, `CODEX_ENTRYPOINT.md`, `CODEX_TASKS.md`, `acceptance/README.md`, and `review/LAUNCH_CHECKLIST.md`.
 
 Codex must inspect the latest CI and Sonar results first. The next legitimate implementation work requires an authenticated Anna environment and explicit human consent before spending model quota or altering production APS. It must not add an Executa, backend, GPU service, image/video generation, ComfyUI, or Blender merely to avoid the real-platform gate.
+
+## Real Anna continuation — 2026-08-23
+
+- Developer access activated by the owner; public handle `storycore-labs` confirmed.
+- CLI device authorization completed; local PAT lifetime reported as 90 days.
+- Working draft created as `@storycore-labs/storycore-harbour`, server App id `214`, revision `1`, status `draft`.
+- Static bundle uploaded successfully: 10 files, 92,765 bytes, bundle status `ready`; no Executa or local shim installed.
+- No immutable version, review submission, or public release was created.
+- Server listing category changed from locally accepted `creative-tools` to server-supported `creative`.
+- CLI 0.1.30 lifecycle calls hit a Windows/libuv assertion under Node 24.13.0; the same dry-run and push completed under Node 22.23.2.
+- Real harness connected with the declared LLM, storage, and window scopes.
+- Production APS `storage.get(projects/current)` passed and returned `exists: false`; no project record existed or was written.
+- A `kind=complete` developer session minted successfully (`HTTP 200`), proving PAT, handle, App slug, and session authorization.
+- The first fictional `llm.complete` request failed at transport with `fetch failed` before parse, repair, or storage. No successful project and no acceptance score can be claimed.
+- Current official Anna documentation states that Host LLM completion selects only among providers the user has enabled. Confirm an enabled provider/model in the owner account before requesting consent for one retry.
+- Do not start the twenty-prompt corpus until one normal real project validates, saves, reloads, and exports.
