@@ -1,5 +1,6 @@
 import {
   normalizeWarningSeverities,
+  normalizeSceneDurations,
   PROJECT_SCHEMA,
   validateProject,
 } from "./project-contract.js";
@@ -263,7 +264,9 @@ async function generateProject(input) {
   let errors;
 
   try {
-    project = addLocalMetadata(normalizeWarningSeverities(parseJsonText(raw)), input, metadata, false);
+    project = normalizeSceneDurations(
+      addLocalMetadata(normalizeWarningSeverities(parseJsonText(raw)), input, metadata, false),
+    );
     errors = validateProject(project);
   } catch (error) {
     errors = [`JSON parse failed: ${error.message}`];
@@ -288,7 +291,9 @@ ${raw.slice(0, 12_000)}`;
     { role: "user", content: { type: "text", text: repairPrompt } },
   ]);
   raw = responseText(repaired);
-  project = addLocalMetadata(normalizeWarningSeverities(parseJsonText(raw)), input, metadata, true);
+  project = normalizeSceneDurations(
+    addLocalMetadata(normalizeWarningSeverities(parseJsonText(raw)), input, metadata, true),
+  );
   errors = validateProject(project);
   if (errors.length) {
     throw new Error(`The repaired project still failed validation: ${errors.join(" ")}`);

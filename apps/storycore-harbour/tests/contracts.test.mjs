@@ -2,7 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { validateProject } from "../scripts/validate-project.mjs";
-import { normalizeWarningSeverities } from "../bundle/project-contract.js";
+import {
+  normalizeSceneDurations,
+  normalizeWarningSeverities,
+} from "../bundle/project-contract.js";
 
 const sample = JSON.parse(
   await readFile(new URL("../examples/sample-project.json", import.meta.url), "utf8")
@@ -39,6 +42,29 @@ test("known model warning severities normalize without accepting unknown values"
     ["info", "warning", "error", "critical"],
   );
   assert.match(validateProject(value).join("\n"), /severity must be info, warning, or error/);
+});
+
+test("implausible scene totals normalize to the requested duration", () => {
+  const value = structuredClone(sample);
+  value.project.durationMinutes = 1;
+  value.scenes.forEach((scene) => { scene.durationSeconds = 120; });
+
+  normalizeSceneDurations(value);
+
+  assert.equal(
+    value.scenes.reduce((total, scene) => total + scene.durationSeconds, 0),
+    60,
+  );
+  assert.deepEqual(validateProject(value), []);
+});
+
+test("plausible scene totals remain unchanged", () => {
+  const value = structuredClone(sample);
+  const before = value.scenes.map((scene) => scene.durationSeconds);
+
+  normalizeSceneDurations(value);
+
+  assert.deepEqual(value.scenes.map((scene) => scene.durationSeconds), before);
 });
 
 expectContractError("wrong schema version is rejected", (value) => {

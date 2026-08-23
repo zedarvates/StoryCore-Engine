@@ -381,6 +381,35 @@ export function normalizeWarningSeverities(project) {
   return project;
 }
 
+export function normalizeSceneDurations(project) {
+  const durationMinutes = Number(project?.project?.durationMinutes);
+  const scenes = project?.scenes;
+  if (!Number.isFinite(durationMinutes) || durationMinutes <= 0 || !Array.isArray(scenes) || scenes.length === 0) {
+    return project;
+  }
+
+  const targetSeconds = Math.round(durationMinutes * 60);
+  const durations = scenes.map((scene) => Number(scene?.durationSeconds));
+  const allPositive = durations.every((duration) => Number.isFinite(duration) && duration > 0);
+  const currentTotal = allPositive ? durations.reduce((total, duration) => total + duration, 0) : 0;
+  if (currentTotal >= targetSeconds * 0.15 && currentTotal <= targetSeconds * 1.25) {
+    return project;
+  }
+
+  const weights = allPositive ? durations : scenes.map(() => 1);
+  const weightTotal = weights.reduce((total, weight) => total + weight, 0);
+  let allocated = 0;
+  scenes.forEach((scene, index) => {
+    const isLast = index === scenes.length - 1;
+    const seconds = isLast
+      ? Math.max(1, targetSeconds - allocated)
+      : Math.max(1, Math.round((targetSeconds * weights[index]) / weightTotal));
+    scene.durationSeconds = seconds;
+    allocated += seconds;
+  });
+  return project;
+}
+
 export function validateProject(project) {
   if (!isObject(project)) return ["Project must be a JSON object."];
 
