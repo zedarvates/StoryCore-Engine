@@ -250,4 +250,10 @@ Codex must inspect the latest CI and Sonar results first. The next legitimate im
 - A second owner-consented attempt reached the real model. Both the primary response and the single repair used MiniMax M3 through OpenRouter, each reached the 4,096-output-token cap, and each ended as truncated JSON. The App rejected both and wrote no project.
 - Changing the model shown in the Anna chat UI to Gemma did not change the model used by Host App completion; the real response metadata still identified MiniMax M3/OpenRouter.
 - The generation and repair prompts now require a compact result below 12,000 characters: exactly three scenes, one shot per scene, bounded characters/locations, and bounded prose. Local 44-test, contract, fixture, corpus, synchronization, and strict-validation gates pass; a new real call requires fresh quota consent.
-- Do not start the twenty-prompt corpus until one normal real project validates, saves, reloads, and exports.
+- The owner-consented compact retry succeeded. The primary MiniMax M3/OpenRouter response completed in 1,860 output tokens; one bounded repair normalized contract-invalid warning severities and produced a valid project.
+- The validated project contains 2 characters, 3 locations, 3 scenes, 3 shots, continuity score 94, and `repairUsed: true`.
+- Production APS wrote the snapshot and `projects/current`, returned generation `1` and a 7,566-byte current record, then passed immediate read-back validation.
+- A separate fresh App session loaded `projects/current`, revalidated it, and rendered the expected title, characters, and locations.
+- The APS value was exported locally to ignored `acceptance/results.real-project.json` and passed the canonical CLI contract validator.
+- The Anna chat model selector showed Gemma after the owner changed it, but Host App completion continued to report MiniMax M3/OpenRouter. Do not treat the chat selector as the App default-model control.
+- The normal-project prerequisite for the twenty-prompt corpus is now satisfied. The corpus still requires separate owner consent for 20 primary calls, up to 20 repairs, and APS writes.
