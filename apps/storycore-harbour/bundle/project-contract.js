@@ -10,6 +10,11 @@ export const SUPPORTED_FORMATS = new Set([
 ]);
 
 const WARNING_SEVERITIES = new Set(["info", "warning", "error"]);
+const WARNING_SEVERITY_ALIASES = new Map([
+  ["low", "info"],
+  ["medium", "warning"],
+  ["high", "error"],
+]);
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const isText = (value, min = 1, max = Number.POSITIVE_INFINITY) =>
@@ -363,6 +368,17 @@ function validateContinuityReport(project, sceneIds, errors) {
   if (!isIsoDate(report.checkedAt)) {
     errors.push("continuityReport.checkedAt must be an ISO-compatible date-time.");
   }
+}
+
+export function normalizeWarningSeverities(project) {
+  const warnings = project?.continuityReport?.warnings;
+  if (!Array.isArray(warnings)) return project;
+  for (const warning of warnings) {
+    if (!isObject(warning) || typeof warning.severity !== "string") continue;
+    const canonical = WARNING_SEVERITY_ALIASES.get(warning.severity.toLowerCase());
+    if (canonical) warning.severity = canonical;
+  }
+  return project;
 }
 
 export function validateProject(project) {

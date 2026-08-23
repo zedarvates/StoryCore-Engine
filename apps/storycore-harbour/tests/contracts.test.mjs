@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { validateProject } from "../scripts/validate-project.mjs";
+import { normalizeWarningSeverities } from "../bundle/project-contract.js";
 
 const sample = JSON.parse(
   await readFile(new URL("../examples/sample-project.json", import.meta.url), "utf8")
@@ -20,6 +21,24 @@ function expectContractError(name, mutate, pattern) {
 
 test("sample project passes the contract", () => {
   assert.deepEqual(validateProject(sample), []);
+});
+
+test("known model warning severities normalize without accepting unknown values", () => {
+  const value = structuredClone(sample);
+  value.continuityReport.warnings = [
+    { severity: "low", message: "Low", sceneId: null },
+    { severity: "medium", message: "Medium", sceneId: null },
+    { severity: "high", message: "High", sceneId: null },
+    { severity: "critical", message: "Unknown", sceneId: null },
+  ];
+
+  normalizeWarningSeverities(value);
+
+  assert.deepEqual(
+    value.continuityReport.warnings.map((warning) => warning.severity),
+    ["info", "warning", "error", "critical"],
+  );
+  assert.match(validateProject(value).join("\n"), /severity must be info, warning, or error/);
 });
 
 expectContractError("wrong schema version is rejected", (value) => {
