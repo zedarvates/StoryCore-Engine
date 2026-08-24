@@ -491,6 +491,35 @@ function renderProject(project) {
   showStep(2);
 }
 
+function resetProjectUi() {
+  state.project = null;
+  $("concept-form").reset();
+  $("idea").dispatchEvent(new Event("input", { bubbles: true }));
+  showFormError();
+
+  $("world-title").textContent = "Production bible";
+  for (const id of [
+    "bible-content",
+    "character-list",
+    "location-list",
+    "scene-list",
+    "continuity-content",
+  ]) {
+    clearNode($(id));
+  }
+  $("save-status").textContent = "";
+
+  document.querySelectorAll(".step").forEach((button, index) => {
+    button.disabled = index > 0;
+  });
+  showStep(1);
+
+  requestAnimationFrame(() => {
+    $("idea").focus({ preventScroll: true });
+    $("idea").scrollIntoView({ block: "nearest", behavior: "smooth" });
+  });
+}
+
 function unlockSteps() {
   document.querySelectorAll(".step").forEach((button) => {
     button.disabled = false;
@@ -572,13 +601,7 @@ $("save-button").addEventListener("click", async () => {
 });
 
 $("export-button").addEventListener("click", exportProject);
-$("new-button").addEventListener("click", () => {
-  state.project = null;
-  document.querySelectorAll(".step").forEach((button, index) => {
-    button.disabled = index > 0;
-  });
-  showStep(1);
-});
+$("new-button").addEventListener("click", resetProjectUi);
 $("retry-button").addEventListener("click", () => showStep(1));
 
 document.querySelectorAll(".step").forEach((button) => {
