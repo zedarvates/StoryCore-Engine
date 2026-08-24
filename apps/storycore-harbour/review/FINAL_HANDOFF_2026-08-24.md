@@ -17,9 +17,9 @@ This document records the verified draft state. It is not authorization to cut a
 
 - public identity: `@storycore-labs/storycore-harbour`;
 - server App id: `214`;
-- working revision: `6`;
-- content hash: `b52470ae269f2ee3ebeeaae4971ad511effd3db5a8834997276b17208429e846`;
-- bundle: 13 files, 101,041 bytes, `ready`;
+- working revision: `7`;
+- content hash: `0aac8b600b4e950022cc10af49ec106d7553009c73082ecaec54991bccf9b331`;
+- bundle: 14 files, 101,030 bytes, `ready`;
 - status: `draft`, not published;
 - immutable versions: 0;
 - Executas/local shims: 0.
@@ -45,7 +45,7 @@ This document records the verified draft state. It is not authorization to cut a
 - failures: A02/A07/A15/A18, all `json_invalid`;
 - timeouts: 0.
 
-The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 6. The latest complete rerun confirms that A09, A10, A12, and A19 now pass. Four different prompts still produced unusable JSON even after the bounded repair path, so the candidate remains below its own readiness threshold.
+The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 7. The latest complete rerun confirms that A09, A10, A12, and A19 now pass. Four different prompts still produced unusable JSON even after the former bounded repair path, so the measured candidate remains below its own readiness threshold.
 
 Post-run harness metadata showed that all four remaining failures exhausted the
 4,096-token MiniMax M3/OpenRouter allowance on both primary and repair calls.
@@ -53,8 +53,8 @@ The repair path also omitted the source input and quoted the partial output,
 which could yield a structurally valid but semantically unrelated project.
 The local candidate now rebuilds repairs from the exact source input and
 validation errors while discarding the partial response. This change passes
-61/61 tests, strict Anna validation, and both Edge browser smokes, but is not
-included in Anna draft revision 6 and has not yet been measured by a real pilot.
+61/61 tests, strict Anna validation, and both Edge browser smokes. It is
+included in Anna draft revision 7 but has not yet been measured by a real pilot.
 
 ### User model boundary
 
