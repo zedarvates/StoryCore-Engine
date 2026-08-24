@@ -207,6 +207,10 @@ selected `gemma-4-E4B-it` through Runpod rather than MiniMax M3/OpenRouter.
 A02 passed after repair, and the four-case A02/A07/A15/A18 pilot improved from
 0/4 on MiniMax to 3/4 on Gemma with complete JSON responses.
 
+The subsequent complete fixed corpus showed the tradeoff rather than a global
+win: Gemma preference scored 14/20 versus 16/20 on Anna default. Gemma was
+faster and did not truncate, but produced more schema/reference failures.
+
 **Consequences:** users retain their own Anna model/provider configuration and
 quota boundary. StoryCore remains provider-neutral. Reliability evidence must
 record the actual response metadata and treat provider timeouts as measured
