@@ -5,6 +5,8 @@ import {
   validateProject,
 } from "./project-contract.js";
 import { parseModelJson } from "./model-json.js";
+import { modelPreferencesForHint } from "./model-preferences.js";
+import { createRepairPrompt } from "./repair-prompt.js";
 
 const AnnaAppRuntime = window.__STORYCORE_HARBOUR_RUNTIME__?.AnnaAppRuntime;
 if (!AnnaAppRuntime) {
@@ -130,6 +132,8 @@ function normalizeError(error) {
 }
 
 function readForm() {
+  const modelHint = $("model-hint").value.trim();
+  const modelPreferences = modelPreferencesForHint(modelHint);
   const input = {
     idea: $("idea").value.trim(),
     title: $("title").value.trim(),
@@ -148,7 +152,10 @@ function readForm() {
   if (!input.tone || input.tone.length > 240) errors.push("Add a tone or visual style under 240 characters.");
   if (!input.audience || input.audience.length > 240) errors.push("Add an intended audience under 240 characters.");
   if (input.title.length > 160) errors.push("The working title must not exceed 160 characters.");
-  return { input, errors };
+  if (modelHint && !modelPreferences) {
+    errors.push("Use a model name containing only letters, numbers, dots, dashes, underscores, slashes, or colons.");
+  }
+  return { input, errors, modelPreferences };
 }
 
 function createUserPrompt(input) {
@@ -220,26 +227,29 @@ function addLocalMetadata(project, input, metadata, repairUsed = false) {
   return project;
 }
 
-async function modelComplete(messages, systemPrompt = SYSTEM_PROMPT) {
+async function modelComplete(messages, systemPrompt = SYSTEM_PROMPT, modelPreferences) {
   const anna = await annaReady;
   if (!anna) {
     throw new Error("Anna runtime is unavailable. Open StoryCore Harbour inside Anna or run its official mock harness.");
   }
+  const effectiveModelPreferences =
+    modelPreferences || window.__STORYCORE_HARBOUR_ACCEPTANCE_MODEL_PREFERENCES__;
   return anna.llm.complete(
     {
       messages,
       systemPrompt,
       maxTokens: 4096,
       temperature: 0.3,
+      ...(effectiveModelPreferences ? { modelPreferences: effectiveModelPreferences } : {}),
     },
     { timeoutMs: 180_000 },
   );
 }
 
-async function generateProject(input) {
+async function generateProject(input, modelPreferences) {
   const metadata = localRunMetadata();
   const request = [{ role: "user", content: { type: "text", text: createUserPrompt(input) } }];
-  const first = await modelComplete(request);
+  const first = await modelComplete(request, SYSTEM_PROMPT, modelPreferences);
   let raw = responseText(first);
   let project;
   let errors;
@@ -256,21 +266,11 @@ async function generateProject(input) {
   if (!errors.length) return project;
 
   setBusy(true, "Repairing the structured result after contract validation…");
-  const repairPrompt = `Rebuild the previous response as exactly one compact JSON object matching StoryCore Harbour's required contract.
-Return JSON only. Correct every listed error. Do not add commentary.
-Keep the complete JSON below 12,000 characters. Use exactly 3 scenes with exactly 1 shot each, 1-3 characters, and 1-3 locations.
-Keep the synopsis below 80 words, other descriptions below 40 words, and generation prompts below 60 words.
-Discard verbose repetition rather than carrying it into the repaired result.
-
-VALIDATION ERRORS:
-${errors.map((error) => `- ${error}`).join("\n")}
-
-PREVIOUS RESPONSE:
-${raw.slice(0, 12_000)}`;
+  const repairPrompt = createRepairPrompt(input, errors);
 
   const repaired = await modelComplete([
     { role: "user", content: { type: "text", text: repairPrompt } },
-  ]);
+  ], SYSTEM_PROMPT, modelPreferences);
   raw = responseText(repaired);
   project = normalizeSceneDurations(
     addLocalMetadata(normalizeWarningSeverities(parseModelJson(raw)), input, metadata, true),
@@ -545,13 +545,13 @@ $("idea").addEventListener("input", () => {
 $("concept-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (state.running) return;
-  const { input, errors } = readForm();
+  const { input, errors, modelPreferences } = readForm();
   showFormError(errors.join(" "));
   if (errors.length) return;
 
   try {
     setBusy(true);
-    const project = await generateProject(input);
+    const project = await generateProject(input, modelPreferences);
     const statusText = await saveProject(project);
     setBusy(false);
     renderProject(project);

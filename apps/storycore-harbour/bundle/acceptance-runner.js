@@ -1,5 +1,9 @@
 import { validateProject } from "./project-contract.js";
-import { acceptanceModeEnabled, acceptancePromptIds } from "./acceptance-mode.js";
+import {
+  acceptanceModeEnabled,
+  acceptanceModelPreferences,
+  acceptancePromptIds,
+} from "./acceptance-mode.js";
 import { publicFailureName } from "./acceptance-failure.js";
 
 const acceptanceEnabled = acceptanceModeEnabled({
@@ -10,8 +14,13 @@ const requestedPromptIds = acceptancePromptIds({
   locationSearch: window.location.search,
   referrer: document.referrer,
 });
+const requestedModelPreferences = acceptanceModelPreferences({
+  locationSearch: window.location.search,
+  referrer: document.referrer,
+});
 
 if (acceptanceEnabled) {
+  window.__STORYCORE_HARBOUR_ACCEPTANCE_MODEL_PREFERENCES__ = requestedModelPreferences;
   await installAcceptanceRunner();
 }
 

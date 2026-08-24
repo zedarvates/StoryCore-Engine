@@ -190,10 +190,11 @@ normal exact `0600` check.
 
 ### ADR-020 — Respect the user's enabled Anna model configuration
 
-**Decision:** omit `modelPreferences` and provider/model identifiers from
-StoryCore Harbour Host LLM requests. The App uses the model Anna selects from
-the providers enabled for the current user and never asks for a StoryCore-owned
-provider key or subscription.
+**Decision:** omit `modelPreferences` by default. An optional Anna-adapter
+field may send one advisory model-name hint explicitly entered by the user;
+the hint is restricted to a short model identifier and can only select among
+models already enabled in that user's Anna account. The App never asks for a
+StoryCore-owned provider key or subscription.
 
 **Evidence:** the Host API reference describes completion as using the user's
 configured and enabled models. In the real owner session, changing the model
@@ -201,13 +202,22 @@ shown in Anna chat to Gemma did not change the Host App response metadata,
 which continued to identify MiniMax M3 through OpenRouter. The chat selector is
 therefore not evidence of an App-level preference control.
 
+A loopback-only diagnostic hint for `gemma` was then measured directly. Anna
+selected `gemma-4-E4B-it` through Runpod rather than MiniMax M3/OpenRouter.
+A02 passed after repair, and the four-case A02/A07/A15/A18 pilot improved from
+0/4 on MiniMax to 3/4 on Gemma with complete JSON responses.
+
+The subsequent complete fixed corpus showed the tradeoff rather than a global
+win: Gemma preference scored 14/20 versus 16/20 on Anna default. Gemma was
+faster and did not truncate, but produced more schema/reference failures.
+
 **Consequences:** users retain their own Anna model/provider configuration and
 quota boundary. StoryCore remains provider-neutral. Reliability evidence must
 record the actual response metadata and treat provider timeouts as measured
 runtime variance; the App must not silently force a model or fall back to a
-StoryCore credential. If Anna later exposes a documented App-level user model
-picker, it can be added as an optional adapter setting without changing the
-generic StoryCore contract.
+StoryCore credential. The optional hint is an Anna-adapter preference, not a
+guaranteed model pin: Anna may ignore it or fall back when the hinted model is
+not enabled. The generic StoryCore contract remains unchanged.
 
 ### ADR-021 — Do not hide upstream completion timeouts with longer local waits
 
@@ -227,6 +237,26 @@ extending the UI wait would not improve them. A future paid rerun should retain
 the same fixed corpus and record provider/model latency metadata when Anna
 exposes it without generated content. Any provider preference remains an
 explicit user choice under ADR-020.
+
+### ADR-022 — Rebuild repairs from source input, never from truncated output
+
+**Decision:** the single repair call receives the exact normalized user input
+and privacy-safe validation errors. It does not receive or quote the preceding
+model response.
+
+**Evidence:** the 16/20 real run showed that every `json_invalid` failure
+reached the 4,096-token host cap on both the primary and repair call. MiniMax
+M3 sometimes returned an empty or partial visible JSON body while reporting
+4,096 output tokens. The former repair prompt omitted the source input and
+instead embedded up to 12,000 characters of the partial response. When the
+primary body was empty, a contract-valid repair could therefore invent an
+unrelated story before local metadata restored only the top-level input fields.
+
+**Consequences:** repair is now a clean reconstruction from the user's concept,
+title, format, duration, language, tone, and audience. Removing the partial
+response also shortens and decontaminates the repair context. The one-repair
+limit, 4,096-token request cap, canonical validator, and provider-neutral model
+selection remain unchanged.
 
 ```text
 ### ADR-NNN — Title

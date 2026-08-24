@@ -17,9 +17,9 @@ This document records the verified draft state. It is not authorization to cut a
 
 - public identity: `@storycore-labs/storycore-harbour`;
 - server App id: `214`;
-- working revision: `6`;
-- content hash: `b52470ae269f2ee3ebeeaae4971ad511effd3db5a8834997276b17208429e846`;
-- bundle: 13 files, 101,041 bytes, `ready`;
+- working revision: `9`;
+- content hash: `762e175e7f150d47845b3fa4ace51d2f058d1758cc4c19f06d621b9756dada74`;
+- bundle: 15 files, 103,405 bytes, `ready`;
 - status: `draft`, not published;
 - immutable versions: 0;
 - Executas/local shims: 0.
@@ -38,14 +38,51 @@ This document records the verified draft state. It is not authorization to cut a
 ### Latest official reliability result
 
 - fixed corpus: 20/20 prompts executed;
-- valid projects: 12/20, target 18/20 — **FAIL**;
-- median successful duration: 30.54 seconds;
-- p95 successful duration: 121.17 seconds;
-- repaired passes: 8;
-- failures: four timeout and four contract;
-- private result: `acceptance/results.rerun.local.jsonl` (ignored, never publish).
+- valid projects: 16/20, target 18/20 — **FAIL**;
+- median successful duration: 51.46 seconds;
+- p95 successful duration: 90.94 seconds;
+- repaired passes: 11;
+- failures: A02/A07/A15/A18, all `json_invalid`;
+- timeouts: 0.
 
-The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 6. A bounded real pilot remeasured the four contract failures: A09, A10, and A12 produced valid input-preserving projects; A19 no longer failed duration validation and instead timed out. The diagnostic result is 3/4, but the 12/20 complete rerun remains the only valid readiness score.
+The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 7. The latest complete rerun confirms that A09, A10, A12, and A19 now pass. Four different prompts still produced unusable JSON even after the former bounded repair path, so the measured candidate remains below its own readiness threshold.
+
+Post-run harness metadata showed that all four remaining failures exhausted the
+4,096-token MiniMax M3/OpenRouter allowance on both primary and repair calls.
+The repair path also omitted the source input and quoted the partial output,
+which could yield a structurally valid but semantically unrelated project.
+The local candidate now rebuilds repairs from the exact source input and
+validation errors while discarding the partial response. This change passes
+61/61 tests, strict Anna validation, and both Edge browser smokes. It is
+included in Anna draft revision 7.
+
+That post-fix pilot has now been measured on A02/A07/A15/A18: 0/4 passed.
+Every repair carried the exact source input and excluded the previous response,
+confirming the semantic fix was active. Seven of eight MiniMax M3/OpenRouter
+calls nevertheless exhausted the 4,096-token cap and returned incomplete or
+empty visible JSON. Do not fund another full corpus on this same Host-model
+configuration; first verify a different user-enabled model or a documented
+App-level preference mechanism.
+
+That preference mechanism is now verified. An advisory `gemma` hint selected
+`gemma-4-E4B-it` through Runpod. A02 passed after repair in 41.5 seconds; the
+four-case A02/A07/A15/A18 pilot then passed 3/4 with complete responses, versus
+0/4 on MiniMax. The Anna adapter now offers the same optional validated hint
+to users while leaving the field blank by default. Anna may still fall back
+when a hinted model is not enabled. The local change passes 65/65 tests, strict
+validation, and both Edge browser smokes; it is included in draft revision 9.
+
+The complete fixed corpus was then run with the user preference `gemma`.
+Result: 14/20, median 21.67 seconds, p95 39.78 seconds, and 6 repaired passes.
+Gemma eliminated truncation and was faster, but six projects failed schema or
+reference validation. Preserve both profiles in reporting: Anna default 16/20;
+Gemma preference 14/20. Neither reaches the 18/20 gate.
+
+Exact local replay of the private A02 and A10 outputs confirms two safe aliases:
+warning `sceneId: "null"` and severity `minor`. They now canonicalize to `null`
+and `info`, making those exact projects valid and projecting Gemma to 16/20.
+This is not a measured rerun. A06/A09/A11 remain malformed JSON and A19 lacks
+the required production bible, characters, locations, and scenes.
 
 ### User model boundary
 
@@ -63,6 +100,14 @@ without addressing the failure.
 ### Submission decision
 
 Do not cut `0.1.0`, submit for review, mark PR #30 ready, merge, or release while the official gate remains below 18/20. The App is demonstrable and its working draft is reserved, but it is not submission-ready under the repository's own rules.
+
+### Anna installation diagnosis
+
+- Developer Console shows the working draft as `v0.0.0`, `WORKING`, and `Unpublished`;
+- clicking Install reports `App 暂无可用发布版本` (no available published version);
+- the draft has zero immutable versions, so the current Install path has no version to install;
+- cutting `0.1.0` would create that immutable version but must not be used as a workaround while the 18/20 reliability gate still fails;
+- the Console web session also expired on reload and redirected to login, which is a separate authentication condition rather than the original installation cause.
 
 ## AIMesher Anna App
 
@@ -99,7 +144,7 @@ The separate draft `executa-tool-dev-aimesher-patch-surgeon` (App id `215`) rema
 
 ## Owner-only actions remaining
 
-1. Decide whether to fund another complete StoryCore corpus after additional measured reliability work.
+1. Decide whether to fund another complete StoryCore corpus only after a measured fix for the four remaining `json_invalid` cases.
 2. Complete manual NVDA/VoiceOver, high-contrast/zoom, and external beta gates.
 3. Review final Anna legal, revenue-share, payout, qualified-usage, privacy, and support terms.
 4. Review GitHub feedback on PR #30 and the AIMesher branch. Both branches are pushed; no merge or AIMesher PR was created by this handoff.
