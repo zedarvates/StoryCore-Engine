@@ -8,6 +8,7 @@ This document records the verified draft state. It is not authorization to cut a
 
 - branch: `codex/anna-mvp-20260824`;
 - latest integration commit before this handoff refresh: `ec2d9da7`;
+- GitHub branch `agent/storycore-harbour-bootstrap` was updated through PR #30 without force-push; the PR remains draft and unmerged;
 - core StoryCore Engine checkout was not merged, reset, cleaned, or overwritten;
 - Anna adapter remains isolated under `apps/storycore-harbour/`;
 - automated gate: 55/55 Node tests, sample contract, mock fixture, fixed corpus, bundle synchronization, and strict Anna validation pass.
@@ -88,5 +89,5 @@ The separate draft `executa-tool-dev-aimesher-patch-surgeon` (App id `215`) rema
 1. Decide whether to fund another complete StoryCore corpus after additional measured reliability work.
 2. Complete manual NVDA/VoiceOver, high-contrast/zoom, and external beta gates.
 3. Review final Anna legal, revenue-share, payout, qualified-usage, privacy, and support terms.
-4. Decide whether to push the local StoryCore and AIMesher branches to GitHub. StoryCore now contains the concurrent PR commits and is fast-forwardable onto PR #30; no repository push was performed by this handoff.
+4. Review GitHub feedback on PR #30 and the AIMesher branch. Both branches are pushed; no merge or AIMesher PR was created by this handoff.
 5. Separately authorize any immutable version cut, App Review submission, merge, or public release.
