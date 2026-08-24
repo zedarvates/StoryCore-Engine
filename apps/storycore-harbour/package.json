@@ -1,0 +1,32 @@
+{
+  "name": "storycore-harbour",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Anna-native StoryCore production-planning App.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepare": "npm run acceptance:sync",
+    "dev": "anna-app dev --storage aps",
+    "dev:mock": "anna-app dev --mock-llm fixtures/happy-path.jsonl",
+    "dev:off": "anna-app dev --no-llm",
+    "validate": "anna-app validate",
+    "validate:strict": "anna-app validate --strict",
+    "mock:check": "node scripts/validate-mock-fixture.mjs fixtures/happy-path.jsonl",
+    "test": "node --test tests/*.test.mjs",
+    "browser:smoke": "node scripts/browser-smoke.mjs",
+    "browser:deletion-smoke": "node scripts/browser-deletion-smoke.mjs",
+    "contract:check": "node scripts/validate-project.mjs examples/sample-project.json",
+    "acceptance:sync": "node scripts/sync-acceptance-corpus.mjs",
+    "acceptance:sync:check": "node scripts/check-bundled-corpus.mjs",
+    "acceptance:corpus": "node scripts/evaluate-acceptance.mjs acceptance/prompts.json --corpus-only",
+    "acceptance:evaluate": "node scripts/evaluate-acceptance.mjs",
+    "check": "npm run test && npm run contract:check && npm run mock:check && npm run acceptance:corpus && npm run acceptance:sync:check && npm run validate:strict"
+  },
+  "devDependencies": {
+    "@anna-ai/cli": "0.1.30",
+    "playwright-core": "1.61.1"
+  }
+}

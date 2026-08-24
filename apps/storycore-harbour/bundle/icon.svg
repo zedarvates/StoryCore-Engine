@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">StoryCore Harbour</title>
+  <rect width="64" height="64" rx="16" fill="#071827"/>
+  <path d="M12 43c7-6 14-6 21 0s14 6 19 0" fill="none" stroke="#47d7e8" stroke-width="4" stroke-linecap="round"/>
+  <path d="M17 35h30l-5 8H22z" fill="#ef4b5f"/>
+  <path d="M29 14h6v21h-6z" fill="#f4f7fb"/>
+  <path d="M21 25l11-10 11 10z" fill="#f4f7fb"/>
+  <circle cx="32" cy="14" r="3" fill="#f7c65a"/>
+</svg>

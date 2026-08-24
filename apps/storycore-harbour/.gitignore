@@ -1,0 +1,9 @@
+node_modules/
+.anna/
+.DS_Store
+*.log
+coverage/
+acceptance/results*.jsonl
+acceptance/results*.json
+bundle/acceptance-prompts.json
+demo/output.local/

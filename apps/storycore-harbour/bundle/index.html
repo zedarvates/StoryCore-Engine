@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>StoryCore Harbour</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Turn an idea into a coherent, production-ready visual story." />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <img src="icon.svg" width="44" height="44" alt="" />
+        <div>
+          <p class="eyebrow">STORYCORE</p>
+          <h1>Harbour</h1>
+        </div>
+      </div>
+      <p class="tagline">From idea to production-ready visual story.</p>
+      <output id="runtime-status" class="status" aria-live="polite" aria-atomic="true">Connecting to Anna…</output>
+    </header>
+
+    <nav class="steps" aria-label="Project steps" role="tablist">
+      <button id="step-tab-1" type="button" class="step active" data-step="1" role="tab" aria-controls="step-1" aria-selected="true" aria-current="step" tabindex="0"><span>1</span> Concept</button>
+      <button id="step-tab-2" type="button" class="step" data-step="2" role="tab" aria-controls="step-2" aria-selected="false" tabindex="-1" disabled><span>2</span> World</button>
+      <button id="step-tab-3" type="button" class="step" data-step="3" role="tab" aria-controls="step-3" aria-selected="false" tabindex="-1" disabled><span>3</span> Scenes</button>
+      <button id="step-tab-4" type="button" class="step" data-step="4" role="tab" aria-controls="step-4" aria-selected="false" tabindex="-1" disabled><span>4</span> Continuity</button>
+    </nav>
+
+    <main id="main-content">
+      <section id="step-1" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-1" aria-hidden="false" tabindex="-1">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">ARRIVAL</p>
+            <h2 tabindex="-1">Describe the story you want to build</h2>
+          </div>
+          <p>Harbour will structure the world, scenes, shots, and continuity. It will not render media in this version.</p>
+        </div>
+
+        <form id="concept-form" novalidate>
+          <div class="field wide">
+            <label for="idea">Concept, synopsis, or short script <strong>*</strong></label>
+            <textarea id="idea" name="idea" rows="8" maxlength="12000" required aria-describedby="idea-help idea-count" placeholder="Example: At dawn, a courier must cross a flooded neon harbour on the final autonomous ferry to deliver a memory archive."></textarea>
+            <div class="field-meta"><span id="idea-help">Minimum 20 characters.</span><span id="idea-count">0 / 12,000</span></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="title">Working title</label>
+              <input id="title" name="title" maxlength="160" placeholder="Optional" />
+            </div>
+            <div class="field">
+              <label for="format">Format <strong>*</strong></label>
+              <select id="format" name="format" required>
+                <option value="short-film">Short film</option>
+                <option value="advertisement">Advertisement</option>
+                <option value="music-video">Music video</option>
+                <option value="documentary">Documentary</option>
+                <option value="comic-webtoon">Comic / webtoon</option>
+                <option value="social-video">Social video</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="duration">Approximate duration (minutes) <strong>*</strong></label>
+              <input id="duration" name="duration" type="number" min="0.25" max="240" step="0.25" value="3" required />
+            </div>
+            <div class="field">
+              <label for="language">Output language <strong>*</strong></label>
+              <select id="language" name="language" required>
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="tone">Tone and visual style <strong>*</strong></label>
+              <input id="tone" name="tone" maxlength="240" value="Cinematic, emotionally clear, visually coherent" required />
+            </div>
+            <div class="field">
+              <label for="audience">Audience <strong>*</strong></label>
+              <input id="audience" name="audience" maxlength="240" value="General audience" required />
+            </div>
+          </div>
+
+          <div id="form-error" class="message error" role="alert" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></div>
+          <div class="actions">
+            <button id="generate-button" class="primary" type="submit">Build my visual story</button>
+            <button id="load-button" type="button">Load latest saved project</button>
+            <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status">Delete saved projects</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="step-2" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-2" aria-hidden="true" tabindex="-1" hidden>
+        <div class="panel-heading">
+          <div><p class="eyebrow">WORLD</p><h2 id="world-title" tabindex="-1">Production bible</h2></div>
+          <button type="button" class="next-button" data-next="3">Continue to scenes</button>
+        </div>
+        <div id="bible-content"></div>
+        <h3>Characters</h3>
+        <div id="character-list" class="card-grid"></div>
+        <h3>Locations</h3>
+        <div id="location-list" class="card-grid"></div>
+      </section>
+
+      <section id="step-3" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-3" aria-hidden="true" tabindex="-1" hidden>
+        <div class="panel-heading">
+          <div><p class="eyebrow">ROUTE</p><h2 tabindex="-1">Scenes and shots</h2></div>
+          <button type="button" class="next-button" data-next="4">Review continuity</button>
+        </div>
+        <div id="scene-list" class="scene-list"></div>
+      </section>
+
+      <section id="step-4" class="panel step-panel" role="tabpanel" aria-labelledby="step-tab-4" aria-hidden="true" tabindex="-1" hidden>
+        <div class="panel-heading">
+          <div><p class="eyebrow">DEPARTURE</p><h2 tabindex="-1">Continuity and export</h2></div>
+        </div>
+        <div id="continuity-content"></div>
+        <output id="save-status" class="message" aria-live="polite" aria-atomic="true"></output>
+        <div class="actions">
+          <button id="save-button" class="primary" type="button">Save project</button>
+          <button id="export-button" type="button">Export JSON</button>
+          <button id="new-button" type="button">Start another project</button>
+          <button type="button" class="danger-outline delete-projects-button" aria-describedby="deletion-status">Delete saved projects</button>
+        </div>
+      </section>
+
+      <output id="deletion-status" class="message deletion-status" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></output>
+
+      <section id="run-progress" class="progress-card" aria-live="polite" aria-atomic="true" aria-busy="true" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <div>
+          <h2 id="progress-title" tabindex="-1">Building your production package…</h2>
+          <p id="progress-detail">Structuring the world, scenes, and continuity.</p>
+        </div>
+      </section>
+
+      <section id="fatal-error" class="panel error-panel" role="alert" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden>
+        <p class="eyebrow">RUN INTERRUPTED</p>
+        <h2 id="fatal-title" tabindex="-1">The project could not be completed</h2>
+        <p id="fatal-detail"></p>
+        <button id="retry-button" type="button">Return to concept</button>
+      </section>
+    </main>
+
+    <footer>
+      <span>StoryCore Harbour 0.1 bootstrap</span>
+      <span>No external tracker · No developer API key</span>
+    </footer>
+
+    <script src="runtime-handoff.js" type="module"></script>
+    <script src="app.js" type="module"></script>
+    <script src="accessibility.js" type="module"></script>
+    <script src="project-deletion.js" type="module"></script>
+    <script src="acceptance-runner.js" type="module"></script>
+  </body>
+</html>

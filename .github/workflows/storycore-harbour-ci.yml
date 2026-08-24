@@ -1,0 +1,134 @@
+name: StoryCore Harbour CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/storycore-harbour/**"
+      - ".github/workflows/storycore-harbour-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storycore-harbour-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Anna manifest, contract, browser, and mock harness
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: apps/storycore-harbour
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
+
+      - name: Install locked Anna CLI dependency and generate bundle assets
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in bundle/*.js scripts/*.mjs tests/*.mjs; do
+            node --check "${file}"
+          done
+
+      - name: Run contract and evaluator tests
+        run: npm test
+
+      - name: Validate sample export
+        run: npm run contract:check
+
+      - name: Validate mock LLM fixture
+        run: npm run mock:check
+
+      - name: Validate immutable acceptance corpus
+        run: npm run acceptance:corpus
+
+      - name: Verify generated acceptance bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run acceptance:sync:check
+          test -s bundle/acceptance-runner.js
+          test -s bundle/acceptance-prompts.json
+          grep -F 'src="acceptance-runner.js"' bundle/index.html >/dev/null
+
+      - name: Run strict Anna validation
+        run: npm run validate:strict
+
+      - name: Exercise the mock App in a real browser at minimum size
+        shell: bash
+        run: |
+          set -euo pipefail
+          log_file="${RUNNER_TEMP}/storycore-harbour-dev.log"
+          screenshot_dir="${RUNNER_TEMP}/storycore-harbour-screenshots"
+          npm run dev:mock -- --port 5180 --no-watch >"${log_file}" 2>&1 &
+          pid=$!
+          trap 'kill "${pid}" 2>/dev/null || true' EXIT
+
+          ready=0
+          for _ in $(seq 1 60); do
+            if curl --fail --silent --show-error http://127.0.0.1:5180/ >/dev/null; then
+              ready=1
+              break
+            fi
+            if ! kill -0 "${pid}" 2>/dev/null; then
+              cat "${log_file}"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          if [ "${ready}" -ne 1 ]; then
+            cat "${log_file}"
+            echo "Anna mock harness did not become ready within 60 seconds."
+            exit 1
+          fi
+
+          browser="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "${browser}" ]; then
+            echo "No system Chromium/Chrome executable was found on the GitHub runner."
+            exit 1
+          fi
+
+          BROWSER_EXECUTABLE="${browser}" \
+          HARBOUR_URL="http://127.0.0.1:5180/" \
+          HARBOUR_SCREENSHOT_DIR="${screenshot_dir}" \
+          npm run browser:smoke
+          BROWSER_EXECUTABLE="${browser}" \
+          HARBOUR_URL="http://127.0.0.1:5180/" \
+          npm run browser:deletion-smoke
+
+          screenshot_count="$(find "${screenshot_dir}" -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')"
+          if [ "${screenshot_count}" -ne 4 ]; then
+            find "${screenshot_dir}" -maxdepth 1 -type f -print || true
+            echo "Expected four Marketplace screenshot drafts, found ${screenshot_count}."
+            exit 1
+          fi
+
+          echo "Anna mock harness, minimum-size browser flow, project deletion, and four screenshot drafts passed."
+
+      - name: Upload Marketplace screenshot drafts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: storycore-harbour-marketplace-screenshots-${{ github.run_number }}
+          path: ${{ runner.temp }}/storycore-harbour-screenshots/*.png
+          if-no-files-found: warn
+          retention-days: 14

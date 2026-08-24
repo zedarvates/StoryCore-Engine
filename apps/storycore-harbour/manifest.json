@@ -1,0 +1,67 @@
+{
+  "schema": 2,
+  "permissions": [],
+  "required_executas": [],
+  "optional_executas": [],
+  "system_prompt_addendum": "The user has StoryCore Harbour open. It turns a concept or short script into a validated production bible, characters, locations, scenes, shots, prompts, and a continuity report. The core flow uses the App's UI and host LLM; it does not require local rendering tools. Do not claim that images or video were generated.",
+  "tags": [
+    "storyboard",
+    "screenwriting",
+    "video-production",
+    "visual-coherence",
+    "character-consistency",
+    "creative-tools"
+  ],
+  "ui": {
+    "bundle": {
+      "format": "static-spa",
+      "entry": "index.html",
+      "external_origins": []
+    },
+    "views": [
+      {
+        "name": "main",
+        "title": "StoryCore Harbour",
+        "default": true,
+        "entry": "index.html",
+        "min_size": {
+          "w": 520,
+          "h": 680
+        },
+        "default_size": {
+          "w": 900,
+          "h": 820
+        },
+        "resizable": true,
+        "movable": true,
+        "single_instance": true
+      }
+    ],
+    "host_api": {
+      "llm": [
+        "complete"
+      ],
+      "storage": [
+        "get",
+        "set",
+        "list",
+        "delete"
+      ],
+      "window": [
+        "set_title"
+      ]
+    },
+    "csp_overrides": {
+      "script-src": [
+        "'self'"
+      ]
+    },
+    "state_merge": "last_writer_wins"
+  },
+  "dev": {
+    "fixtures": [
+      "fixtures/*.jsonl"
+    ],
+    "user_id": 1
+  }
+}
