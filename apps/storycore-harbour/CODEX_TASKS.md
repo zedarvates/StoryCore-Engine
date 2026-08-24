@@ -95,6 +95,8 @@ Real-platform work still required:
 
 **Complete rerun after targeted fixes:** FAIL at 12/20 valid projects, median 30.54 seconds, p95 121.17 seconds, and 8 repaired passes. Failures were four timeouts (A01/A07/A13/A17), `json_invalid` (A12), `duration_invalid` (A19), and two remaining `contract_invalid` cases (A09/A10). This supersedes 6/20 as the latest official result but still blocks readiness.
 
+**Contract-failure pilot after bounded JSON/duration fixes:** A09, A10, and A12 passed with valid contracts and preserved inputs; A19 no longer reported `duration_invalid` but timed out at 144.66 seconds. Result 3/4, median successful duration 40.57 seconds. This pilot is diagnostic only and does not replace the official 12/20 score.
+
 ## HBR-004 — Complete the four-step UI 🟡
 
 - [x] Finish responsive cards and scene navigation.

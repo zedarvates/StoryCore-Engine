@@ -77,3 +77,5 @@ Do not replace production-platform gates with these local results.
 - Remaining rerun failures: four timeout, one `json_invalid`, one `duration_invalid`, and two `contract_invalid`.
 - Local fixes now target `json_invalid` and `duration_invalid`; neither has been remeasured in a complete real corpus.
 - Private rerun JSONL: `acceptance/results.rerun.local.jsonl` (ignored; never commit or paste publicly).
+- Four-prompt contract pilot after those fixes: A09/A10/A12 passed with valid preserved projects; A19 shifted from `duration_invalid` to timeout. Diagnostic result 3/4; official score remains 12/20.
+- Private contract-pilot JSONL: `acceptance/results.contract-pilot.local.jsonl` (ignored).
