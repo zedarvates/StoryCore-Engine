@@ -17,9 +17,9 @@ This document records the verified draft state. It is not authorization to cut a
 
 - public identity: `@storycore-labs/storycore-harbour`;
 - server App id: `214`;
-- working revision: `8`;
-- content hash: `2d6657605d9022f9e74355030a3db73870b1c63eafc09aebf81432c58ff1c256`;
-- bundle: 15 files, 103,232 bytes, `ready`;
+- working revision: `9`;
+- content hash: `762e175e7f150d47845b3fa4ace51d2f058d1758cc4c19f06d621b9756dada74`;
+- bundle: 15 files, 103,405 bytes, `ready`;
 - status: `draft`, not published;
 - immutable versions: 0;
 - Executas/local shims: 0.
@@ -70,7 +70,7 @@ four-case A02/A07/A15/A18 pilot then passed 3/4 with complete responses, versus
 0/4 on MiniMax. The Anna adapter now offers the same optional validated hint
 to users while leaving the field blank by default. Anna may still fall back
 when a hinted model is not enabled. The local change passes 65/65 tests, strict
-validation, and both Edge browser smokes; it is included in draft revision 8.
+validation, and both Edge browser smokes; it is included in draft revision 9.
 
 The complete fixed corpus was then run with the user preference `gemma`.
 Result: 14/20, median 21.67 seconds, p95 39.78 seconds, and 6 repaired passes.
