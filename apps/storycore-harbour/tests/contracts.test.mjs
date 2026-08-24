@@ -44,6 +44,20 @@ test("known model warning severities normalize without accepting unknown values"
   assert.match(validateProject(value).join("\n"), /severity must be info, warning, or error/);
 });
 
+test("minor warnings and string null scene references normalize to canonical values", () => {
+  const value = structuredClone(sample);
+  value.continuityReport.warnings = [
+    { severity: "minor", message: "Measured model warning", sceneId: "null" },
+  ];
+
+  normalizeWarningSeverities(value);
+
+  assert.deepEqual(value.continuityReport.warnings, [
+    { severity: "info", message: "Measured model warning", sceneId: null },
+  ]);
+  assert.deepEqual(validateProject(value), []);
+});
+
 test("implausible scene totals normalize to the requested duration", () => {
   const value = structuredClone(sample);
   value.project.durationMinutes = 1;

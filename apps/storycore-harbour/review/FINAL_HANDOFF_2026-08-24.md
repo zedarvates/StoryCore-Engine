@@ -78,6 +78,12 @@ Gemma eliminated truncation and was faster, but six projects failed schema or
 reference validation. Preserve both profiles in reporting: Anna default 16/20;
 Gemma preference 14/20. Neither reaches the 18/20 gate.
 
+Exact local replay of the private A02 and A10 outputs confirms two safe aliases:
+warning `sceneId: "null"` and severity `minor`. They now canonicalize to `null`
+and `info`, making those exact projects valid and projecting Gemma to 16/20.
+This is not a measured rerun. A06/A09/A11 remain malformed JSON and A19 lacks
+the required production bible, characters, locations, and scenes.
+
 ### User model boundary
 
 - StoryCore Harbour does not embed a provider key, subscription, or forced model;

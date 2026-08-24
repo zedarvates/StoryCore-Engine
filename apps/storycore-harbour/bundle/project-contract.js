@@ -12,6 +12,7 @@ export const SUPPORTED_FORMATS = new Set([
 const WARNING_SEVERITIES = new Set(["info", "warning", "error"]);
 const WARNING_SEVERITY_ALIASES = new Map([
   ["low", "info"],
+  ["minor", "info"],
   ["medium", "warning"],
   ["high", "error"],
 ]);
@@ -374,9 +375,14 @@ export function normalizeWarningSeverities(project) {
   const warnings = project?.continuityReport?.warnings;
   if (!Array.isArray(warnings)) return project;
   for (const warning of warnings) {
-    if (!isObject(warning) || typeof warning.severity !== "string") continue;
-    const canonical = WARNING_SEVERITY_ALIASES.get(warning.severity.toLowerCase());
-    if (canonical) warning.severity = canonical;
+    if (!isObject(warning)) continue;
+    if (typeof warning.severity === "string") {
+      const canonical = WARNING_SEVERITY_ALIASES.get(warning.severity.toLowerCase());
+      if (canonical) warning.severity = canonical;
+    }
+    if (typeof warning.sceneId === "string" && warning.sceneId.trim().toLowerCase() === "null") {
+      warning.sceneId = null;
+    }
   }
   return project;
 }
