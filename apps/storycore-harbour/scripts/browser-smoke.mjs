@@ -182,8 +182,9 @@ try {
     filename: "04-continuity.png",
   });
 
-  // A new project must clear prior creative content while preserving the
-  // saved project for an explicit, verified restore.
+  // Starting another project must remove the previous creative content from
+  // the live UI, restore the form defaults, lock result steps, and leave the
+  // saved project available for an explicit restore.
   await app.getByRole("button", { name: "Start another project" }).click();
   await app.locator("#step-1").waitFor({ state: "visible" });
   await waitForFocus(app.locator("#idea"));

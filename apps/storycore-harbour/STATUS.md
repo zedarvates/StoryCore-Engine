@@ -76,6 +76,8 @@ The current priority split is maintained in `review/MVP_ROADMAP_2026-08-24.md`:
 - visible deletion labels and dynamic accessible names match exactly;
 - reduced-motion preference is honored;
 - browser test completes local validation, mock generation, save/read-back, rendering, keyboard navigation, continuity, and JSON export;
+- starting another project clears the prior form and generated creative content, restores defaults, and focuses the new concept field;
+- the browser flow restores the latest saved project after that reset and revalidates its rendered content;
 - a separate browser test verifies paginated project listing, ETag-protected deletion, preservation of unrelated App data, form clearing, and failed reload after deletion;
 - the minimum-width browser gate now verifies 400% text reflow without horizontal page overflow.
 
