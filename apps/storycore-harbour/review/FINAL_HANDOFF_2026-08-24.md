@@ -54,7 +54,15 @@ which could yield a structurally valid but semantically unrelated project.
 The local candidate now rebuilds repairs from the exact source input and
 validation errors while discarding the partial response. This change passes
 61/61 tests, strict Anna validation, and both Edge browser smokes. It is
-included in Anna draft revision 7 but has not yet been measured by a real pilot.
+included in Anna draft revision 7.
+
+That post-fix pilot has now been measured on A02/A07/A15/A18: 0/4 passed.
+Every repair carried the exact source input and excluded the previous response,
+confirming the semantic fix was active. Seven of eight MiniMax M3/OpenRouter
+calls nevertheless exhausted the 4,096-token cap and returned incomplete or
+empty visible JSON. Do not fund another full corpus on this same Host-model
+configuration; first verify a different user-enabled model or a documented
+App-level preference mechanism.
 
 ### User model boundary
 
