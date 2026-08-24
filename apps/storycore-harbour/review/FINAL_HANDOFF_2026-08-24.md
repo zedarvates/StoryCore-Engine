@@ -45,7 +45,14 @@ This document records the verified draft state. It is not authorization to cut a
 - failures: four timeout and four contract;
 - private result: `acceptance/results.rerun.local.jsonl` (ignored, never publish).
 
-The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 6. They have automated coverage and have not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
+The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 6. A bounded real pilot remeasured the four contract failures: A09, A10, and A12 produced valid input-preserving projects; A19 no longer failed duration validation and instead timed out. The diagnostic result is 3/4, but the 12/20 complete rerun remains the only valid readiness score.
+
+### User model boundary
+
+- StoryCore Harbour does not embed a provider key, subscription, or forced model;
+- Host LLM requests omit `modelPreferences`, so Anna selects among models enabled for the current user;
+- the Anna chat model selector is not treated as an App model selector: changing it to Gemma did not change the real Host App metadata, which still reported MiniMax M3/OpenRouter;
+- a documented future App-level picker may be added in the Anna adapter only, without changing the generic StoryCore data contract.
 
 ### Submission decision
 

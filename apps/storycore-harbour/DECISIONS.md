@@ -188,6 +188,27 @@ normal exact `0600` check.
 
 **Consequences:** treat the server taxonomy as authoritative for publishing while retaining the CLI validation result as a separate local gate. Recheck the category before cutting an immutable version.
 
+### ADR-020 — Respect the user's enabled Anna model configuration
+
+**Decision:** omit `modelPreferences` and provider/model identifiers from
+StoryCore Harbour Host LLM requests. The App uses the model Anna selects from
+the providers enabled for the current user and never asks for a StoryCore-owned
+provider key or subscription.
+
+**Evidence:** the Host API reference describes completion as using the user's
+configured and enabled models. In the real owner session, changing the model
+shown in Anna chat to Gemma did not change the Host App response metadata,
+which continued to identify MiniMax M3 through OpenRouter. The chat selector is
+therefore not evidence of an App-level preference control.
+
+**Consequences:** users retain their own Anna model/provider configuration and
+quota boundary. StoryCore remains provider-neutral. Reliability evidence must
+record the actual response metadata and treat provider timeouts as measured
+runtime variance; the App must not silently force a model or fall back to a
+StoryCore credential. If Anna later exposes a documented App-level user model
+picker, it can be added as an optional adapter setting without changing the
+generic StoryCore contract.
+
 ```text
 ### ADR-NNN — Title
 Decision:
