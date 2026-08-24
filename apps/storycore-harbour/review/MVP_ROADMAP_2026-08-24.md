@@ -79,3 +79,5 @@ Do not replace production-platform gates with these local results.
 - Private rerun JSONL: `acceptance/results.rerun.local.jsonl` (ignored; never commit or paste publicly).
 - Four-prompt contract pilot after those fixes: A09/A10/A12 passed with valid preserved projects; A19 shifted from `duration_invalid` to timeout. Diagnostic result 3/4; official score remains 12/20.
 - Private contract-pilot JSONL: `acceptance/results.contract-pilot.local.jsonl` (ignored).
+- Latest complete real corpus: 16/20, median 51.46 seconds, p95 90.94 seconds, 11 repaired passes, and no timeouts. A02/A07/A15/A18 failed as `json_invalid`; readiness remains blocked below 18/20.
+- Anna installation is independently blocked because the mutable draft is still `v0.0.0` with zero immutable versions. Developer Console reports no available version to install. Do not cut `0.1.0` solely to bypass this while the reliability gate fails.
