@@ -47,6 +47,15 @@ This document records the verified draft state. It is not authorization to cut a
 
 The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 6. The latest complete rerun confirms that A09, A10, A12, and A19 now pass. Four different prompts still produced unusable JSON even after the bounded repair path, so the candidate remains below its own readiness threshold.
 
+Post-run harness metadata showed that all four remaining failures exhausted the
+4,096-token MiniMax M3/OpenRouter allowance on both primary and repair calls.
+The repair path also omitted the source input and quoted the partial output,
+which could yield a structurally valid but semantically unrelated project.
+The local candidate now rebuilds repairs from the exact source input and
+validation errors while discarding the partial response. This change passes
+61/61 tests, strict Anna validation, and both Edge browser smokes, but is not
+included in Anna draft revision 6 and has not yet been measured by a real pilot.
+
 ### User model boundary
 
 - StoryCore Harbour does not embed a provider key, subscription, or forced model;

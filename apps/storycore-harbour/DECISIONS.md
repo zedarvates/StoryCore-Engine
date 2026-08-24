@@ -228,6 +228,26 @@ the same fixed corpus and record provider/model latency metadata when Anna
 exposes it without generated content. Any provider preference remains an
 explicit user choice under ADR-020.
 
+### ADR-022 — Rebuild repairs from source input, never from truncated output
+
+**Decision:** the single repair call receives the exact normalized user input
+and privacy-safe validation errors. It does not receive or quote the preceding
+model response.
+
+**Evidence:** the 16/20 real run showed that every `json_invalid` failure
+reached the 4,096-token host cap on both the primary and repair call. MiniMax
+M3 sometimes returned an empty or partial visible JSON body while reporting
+4,096 output tokens. The former repair prompt omitted the source input and
+instead embedded up to 12,000 characters of the partial response. When the
+primary body was empty, a contract-valid repair could therefore invent an
+unrelated story before local metadata restored only the top-level input fields.
+
+**Consequences:** repair is now a clean reconstruction from the user's concept,
+title, format, duration, language, tone, and audience. Removing the partial
+response also shortens and decontaminates the repair context. The one-repair
+limit, 4,096-token request cap, canonical validator, and provider-neutral model
+selection remain unchanged.
+
 ```text
 ### ADR-NNN — Title
 Decision:

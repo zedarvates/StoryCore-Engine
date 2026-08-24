@@ -81,3 +81,5 @@ Do not replace production-platform gates with these local results.
 - Private contract-pilot JSONL: `acceptance/results.contract-pilot.local.jsonl` (ignored).
 - Latest complete real corpus: 16/20, median 51.46 seconds, p95 90.94 seconds, 11 repaired passes, and no timeouts. A02/A07/A15/A18 failed as `json_invalid`; readiness remains blocked below 18/20.
 - Anna installation is independently blocked because the mutable draft is still `v0.0.0` with zero immutable versions. Developer Console reports no available version to install. Do not cut `0.1.0` solely to bypass this while the reliability gate fails.
+- Root cause evidence: all four remaining failures exhausted the 4,096-token MiniMax M3/OpenRouter allowance on both primary and repair, leaving incomplete visible JSON. Repair previously lacked the exact user input and quoted the truncated response.
+- Local fix complete: repair is reconstructed from exact source input plus validation errors and discards the partial response. The fix has 61-test, strict-validation, real-browser flow, and deletion/storage-preservation coverage; it still requires a bounded real pilot before another complete corpus.

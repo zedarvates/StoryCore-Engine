@@ -5,6 +5,7 @@ import {
   validateProject,
 } from "./project-contract.js";
 import { parseModelJson } from "./model-json.js";
+import { createRepairPrompt } from "./repair-prompt.js";
 
 const AnnaAppRuntime = window.__STORYCORE_HARBOUR_RUNTIME__?.AnnaAppRuntime;
 if (!AnnaAppRuntime) {
@@ -256,17 +257,7 @@ async function generateProject(input) {
   if (!errors.length) return project;
 
   setBusy(true, "Repairing the structured result after contract validation…");
-  const repairPrompt = `Rebuild the previous response as exactly one compact JSON object matching StoryCore Harbour's required contract.
-Return JSON only. Correct every listed error. Do not add commentary.
-Keep the complete JSON below 12,000 characters. Use exactly 3 scenes with exactly 1 shot each, 1-3 characters, and 1-3 locations.
-Keep the synopsis below 80 words, other descriptions below 40 words, and generation prompts below 60 words.
-Discard verbose repetition rather than carrying it into the repaired result.
-
-VALIDATION ERRORS:
-${errors.map((error) => `- ${error}`).join("\n")}
-
-PREVIOUS RESPONSE:
-${raw.slice(0, 12_000)}`;
+  const repairPrompt = createRepairPrompt(input, errors);
 
   const repaired = await modelComplete([
     { role: "user", content: { type: "text", text: repairPrompt } },
