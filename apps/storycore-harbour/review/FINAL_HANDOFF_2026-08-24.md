@@ -54,6 +54,12 @@ The duration-normalization, reset/restore, and bounded JSON recovery fixes are i
 - the Anna chat model selector is not treated as an App model selector: changing it to Gemma did not change the real Host App metadata, which still reported MiniMax M3/OpenRouter;
 - a documented future App-level picker may be added in the Anna adapter only, without changing the generic StoryCore data contract.
 
+The four official timeout failures returned at 125.1–126.0 seconds, before the
+App's 180-second Host LLM timeout and the collector's 190-second UI deadline.
+A19 later reached 144.66 seconds in the pilot. The measured cutoff is upstream
+and variable; increasing StoryCore's local deadlines would only delay feedback
+without addressing the failure.
+
 ### Submission decision
 
 Do not cut `0.1.0`, submit for review, mark PR #30 ready, merge, or release while the official gate remains below 18/20. The App is demonstrable and its working draft is reserved, but it is not submission-ready under the repository's own rules.

@@ -209,6 +209,25 @@ StoryCore credential. If Anna later exposes a documented App-level user model
 picker, it can be added as an optional adapter setting without changing the
 generic StoryCore contract.
 
+### ADR-021 — Do not hide upstream completion timeouts with longer local waits
+
+**Decision:** retain the 180-second Host LLM timeout and the 190-second
+acceptance UI deadline. Do not increase either value or force a provider in
+response to the current corpus failures.
+
+**Evidence:** all four timeout failures in the latest official rerun completed
+between 125.1 and 126.0 seconds, before either local deadline. Anna documents
+`llm.complete` as a buffered, non-streaming call with a 180-second SDK default.
+The failures therefore arrived from the host/provider path rather than from
+StoryCore's acceptance collector. A later A19 pilot reached 144.66 seconds,
+showing that the cutoff is variable rather than a deterministic local timer.
+
+**Consequences:** these runs remain honest failures in the official score, but
+extending the UI wait would not improve them. A future paid rerun should retain
+the same fixed corpus and record provider/model latency metadata when Anna
+exposes it without generated content. Any provider preference remains an
+explicit user choice under ADR-020.
+
 ```text
 ### ADR-NNN — Title
 Decision:
