@@ -17,9 +17,9 @@ This document records the verified draft state. It is not authorization to cut a
 
 - public identity: `@storycore-labs/storycore-harbour`;
 - server App id: `214`;
-- working revision: `5`;
-- content hash: `f72337ebb59c78aa4d7d97791bba6a4f760b55a7e47297c4e71f3e3b2b3f626f`;
-- bundle: 12 files, 99,496 bytes, `ready`;
+- working revision: `6`;
+- content hash: `b52470ae269f2ee3ebeeaae4971ad511effd3db5a8834997276b17208429e846`;
+- bundle: 13 files, 101,041 bytes, `ready`;
 - status: `draft`, not published;
 - immutable versions: 0;
 - Executas/local shims: 0.
@@ -45,7 +45,7 @@ This document records the verified draft state. It is not authorization to cut a
 - failures: four timeout and four contract;
 - private result: `acceptance/results.rerun.local.jsonl` (ignored, never publish).
 
-The duration-normalization and reset/restore fixes are included in draft revision 5. Bounded JSON recovery was added locally afterward. These fixes have automated coverage and have not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
+The duration-normalization, reset/restore, and bounded JSON recovery fixes are included in draft revision 6. They have automated coverage and have not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
 
 ### Submission decision
 
