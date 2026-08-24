@@ -7,7 +7,7 @@ This document records the verified draft state. It is not authorization to cut a
 ### Local candidate
 
 - branch: `codex/anna-mvp-20260824`;
-- latest local commit at handoff creation: `595e168b` plus this documentation commit;
+- latest integration commit before this handoff refresh: `ec2d9da7`;
 - core StoryCore Engine checkout was not merged, reset, cleaned, or overwritten;
 - Anna adapter remains isolated under `apps/storycore-harbour/`;
 - automated gate: 55/55 Node tests, sample contract, mock fixture, fixed corpus, bundle synchronization, and strict Anna validation pass.
@@ -16,9 +16,9 @@ This document records the verified draft state. It is not authorization to cut a
 
 - public identity: `@storycore-labs/storycore-harbour`;
 - server App id: `214`;
-- working revision: `4`;
-- content hash: `4095bb83164f6f2df27a387c30b2ae48099ef3106dd241371802d21b4f1313a9`;
-- bundle: 12 files, 98,948 bytes, `ready`;
+- working revision: `5`;
+- content hash: `f72337ebb59c78aa4d7d97791bba6a4f760b55a7e47297c4e71f3e3b2b3f626f`;
+- bundle: 12 files, 99,496 bytes, `ready`;
 - status: `draft`, not published;
 - immutable versions: 0;
 - Executas/local shims: 0.
@@ -31,6 +31,8 @@ This document records the verified draft state. It is not authorization to cut a
 - production APS snapshot and `projects/current` write/read-back succeeded;
 - a fresh App session reloaded and revalidated the project;
 - private export passed the canonical validator.
+- starting another project clears prior form/generated content and restores defaults/focus;
+- a subsequent explicit load restores and revalidates the saved project.
 
 ### Latest official reliability result
 
@@ -42,7 +44,7 @@ This document records the verified draft state. It is not authorization to cut a
 - failures: four timeout and four contract;
 - private result: `acceptance/results.rerun.local.jsonl` (ignored, never publish).
 
-The duration-normalization fix is included in draft revision 4 but landed after the 12/20 rerun. It has unit coverage and has not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
+The duration-normalization and reset/restore fixes are included in draft revision 5 but landed after the 12/20 rerun. They have automated coverage and have not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
 
 ### Submission decision
 
@@ -86,5 +88,5 @@ The separate draft `executa-tool-dev-aimesher-patch-surgeon` (App id `215`) rema
 1. Decide whether to fund another complete StoryCore corpus after additional measured reliability work.
 2. Complete manual NVDA/VoiceOver, high-contrast/zoom, and external beta gates.
 3. Review final Anna legal, revenue-share, payout, qualified-usage, privacy, and support terms.
-4. Decide whether to push the local StoryCore and AIMesher branches to GitHub and how to update PR #30; no repository push was performed by this handoff.
+4. Decide whether to push the local StoryCore and AIMesher branches to GitHub. StoryCore now contains the concurrent PR commits and is fast-forwardable onto PR #30; no repository push was performed by this handoff.
 5. Separately authorize any immutable version cut, App Review submission, merge, or public release.
