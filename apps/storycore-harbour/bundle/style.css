@@ -134,6 +134,7 @@ main { max-width: 1100px; margin: 16px auto 48px; padding: 0 20px; }
 .field.wide { margin-bottom: 1rem; }
 .field label { font-weight: 700; }
 .field strong { color: var(--red); }
+.field .hint { color: var(--muted); font-size: .8rem; line-height: 1.4; }
 input, select, textarea {
   width: 100%;
   border: 1px solid var(--line);

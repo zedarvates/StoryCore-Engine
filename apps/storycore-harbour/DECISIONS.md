@@ -190,10 +190,11 @@ normal exact `0600` check.
 
 ### ADR-020 — Respect the user's enabled Anna model configuration
 
-**Decision:** omit `modelPreferences` and provider/model identifiers from
-StoryCore Harbour Host LLM requests. The App uses the model Anna selects from
-the providers enabled for the current user and never asks for a StoryCore-owned
-provider key or subscription.
+**Decision:** omit `modelPreferences` by default. An optional Anna-adapter
+field may send one advisory model-name hint explicitly entered by the user;
+the hint is restricted to a short model identifier and can only select among
+models already enabled in that user's Anna account. The App never asks for a
+StoryCore-owned provider key or subscription.
 
 **Evidence:** the Host API reference describes completion as using the user's
 configured and enabled models. In the real owner session, changing the model
@@ -201,13 +202,18 @@ shown in Anna chat to Gemma did not change the Host App response metadata,
 which continued to identify MiniMax M3 through OpenRouter. The chat selector is
 therefore not evidence of an App-level preference control.
 
+A loopback-only diagnostic hint for `gemma` was then measured directly. Anna
+selected `gemma-4-E4B-it` through Runpod rather than MiniMax M3/OpenRouter.
+A02 passed after repair, and the four-case A02/A07/A15/A18 pilot improved from
+0/4 on MiniMax to 3/4 on Gemma with complete JSON responses.
+
 **Consequences:** users retain their own Anna model/provider configuration and
 quota boundary. StoryCore remains provider-neutral. Reliability evidence must
 record the actual response metadata and treat provider timeouts as measured
 runtime variance; the App must not silently force a model or fall back to a
-StoryCore credential. If Anna later exposes a documented App-level user model
-picker, it can be added as an optional adapter setting without changing the
-generic StoryCore contract.
+StoryCore credential. The optional hint is an Anna-adapter preference, not a
+guaranteed model pin: Anna may ignore it or fall back when the hinted model is
+not enabled. The generic StoryCore contract remains unchanged.
 
 ### ADR-021 — Do not hide upstream completion timeouts with longer local waits
 

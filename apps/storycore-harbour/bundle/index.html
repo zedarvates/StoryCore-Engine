@@ -80,6 +80,11 @@
               <label for="audience">Audience <strong>*</strong></label>
               <input id="audience" name="audience" maxlength="240" value="General audience" required />
             </div>
+            <div class="field">
+              <label for="model-hint">Anna model preference</label>
+              <input id="model-hint" name="model-hint" maxlength="80" placeholder="Optional, for example gemma" aria-describedby="model-hint-help" />
+              <span id="model-hint-help" class="hint">Uses only models enabled in your Anna account. Anna may fall back to your default.</span>
+            </div>
           </div>
 
           <div id="form-error" class="message error" role="alert" aria-live="assertive" aria-atomic="true" tabindex="-1" hidden></div>

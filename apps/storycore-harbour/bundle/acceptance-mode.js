@@ -1,3 +1,5 @@
+import { modelPreferencesForHint } from "./model-preferences.js";
+
 export function acceptanceModeEnabled({ locationSearch, referrer }) {
   if (new URLSearchParams(locationSearch).get("acceptance") === "1") return true;
   if (!referrer) return false;
@@ -32,4 +34,18 @@ export function acceptancePromptIds({ locationSearch, referrer }) {
       .map((value) => value.trim())
       .filter((value) => /^HBR-A\d{2}$/.test(value)),
   )].slice(0, 20);
+}
+
+export function acceptanceModelPreferences({ referrer }) {
+  if (!referrer) return undefined;
+
+  try {
+    const parentUrl = new URL(referrer);
+    const loopbackHost = parentUrl.hostname === "127.0.0.1" || parentUrl.hostname === "localhost";
+    if (!loopbackHost || parentUrl.searchParams.get("acceptance") !== "1") return undefined;
+
+    return modelPreferencesForHint(parentUrl.searchParams.get("model_hint"));
+  } catch {
+    return undefined;
+  }
 }

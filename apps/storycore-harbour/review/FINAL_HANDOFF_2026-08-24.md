@@ -64,6 +64,14 @@ empty visible JSON. Do not fund another full corpus on this same Host-model
 configuration; first verify a different user-enabled model or a documented
 App-level preference mechanism.
 
+That preference mechanism is now verified. An advisory `gemma` hint selected
+`gemma-4-E4B-it` through Runpod. A02 passed after repair in 41.5 seconds; the
+four-case A02/A07/A15/A18 pilot then passed 3/4 with complete responses, versus
+0/4 on MiniMax. The Anna adapter now offers the same optional validated hint
+to users while leaving the field blank by default. Anna may still fall back
+when a hinted model is not enabled. The local change passes 65/65 tests, strict
+validation, and both Edge browser smokes; it is not yet in the remote draft.
+
 ### User model boundary
 
 - StoryCore Harbour does not embed a provider key, subscription, or forced model;
