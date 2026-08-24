@@ -56,7 +56,7 @@ This roadmap distinguishes a demonstrable local MVP from an Anna submission or p
 
 Do not replace production-platform gates with these local results.
 
-- `npm run check`: PASS — 55/55 Node tests, sample export, mock fixture, fixed twenty-prompt corpus, bundle synchronization, and strict Anna validation.
+- `npm run check`: PASS — 60/60 Node tests, sample export, mock fixture, fixed twenty-prompt corpus, bundle synchronization, and strict Anna validation.
 - `npm run browser:smoke`: PASS in 12.7 seconds — 520 x 680 viewport, 400% text reflow, validation focus, keyboard navigation, one character, one location, one scene, one shot, valid export, and four screenshots.
 - `npm run browser:deletion-smoke`: PASS in 3.5 seconds — two project records deleted with ETags, unrelated key preserved, and deleted current project could not reload.
 - JavaScript syntax plus `git diff --check`: PASS.
@@ -75,4 +75,5 @@ Do not replace production-platform gates with these local results.
 - Bounded follow-up pilot after targeted fixes: HBR-A01/A02/A05 passed 3/3, all inputs preserved, median 43.68 seconds. As a subset, it did not replace the then-current 6/20 baseline.
 - Complete rerun after targeted fixes: 12/20 valid projects, median 30.54 seconds, p95 121.17 seconds, 8 repaired passes. This is the latest official result and remains below the 18/20 submission gate.
 - Remaining rerun failures: four timeout, one `json_invalid`, one `duration_invalid`, and two `contract_invalid`.
+- Local fixes now target `json_invalid` and `duration_invalid`; neither has been remeasured in a complete real corpus.
 - Private rerun JSONL: `acceptance/results.rerun.local.jsonl` (ignored; never commit or paste publicly).

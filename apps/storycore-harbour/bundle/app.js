@@ -4,6 +4,7 @@ import {
   PROJECT_SCHEMA,
   validateProject,
 } from "./project-contract.js";
+import { parseModelJson } from "./model-json.js";
 
 const AnnaAppRuntime = window.__STORYCORE_HARBOUR_RUNTIME__?.AnnaAppRuntime;
 if (!AnnaAppRuntime) {
@@ -11,7 +12,6 @@ if (!AnnaAppRuntime) {
 }
 
 const STORAGE_CURRENT = "projects/current";
-const MAX_MODEL_RESPONSE_CHARS = 28_000;
 const $ = (id) => document.getElementById(id);
 const state = {
   anna: null,
@@ -177,25 +177,6 @@ function responseText(response) {
   throw new Error("The model returned an unsupported response shape.");
 }
 
-function stripOptionalJsonFence(value) {
-  if (!value.startsWith("```") || !value.endsWith("```")) return value;
-  const firstLineEnd = value.indexOf("\n");
-  if (firstLineEnd < 0) return value;
-
-  const openingFence = value.slice(0, firstLineEnd).trim().toLowerCase();
-  if (openingFence !== "```" && openingFence !== "```json") return value;
-  return value.slice(firstLineEnd + 1, -3).trim();
-}
-
-function parseJsonText(text) {
-  let value = String(text || "").trim();
-  if (value.length > MAX_MODEL_RESPONSE_CHARS) {
-    throw new Error(`The model response exceeded ${MAX_MODEL_RESPONSE_CHARS.toLocaleString()} characters.`);
-  }
-  value = stripOptionalJsonFence(value);
-  return JSON.parse(value);
-}
-
 function localRunMetadata() {
   const now = new Date().toISOString();
   return {
@@ -265,7 +246,7 @@ async function generateProject(input) {
 
   try {
     project = normalizeSceneDurations(
-      addLocalMetadata(normalizeWarningSeverities(parseJsonText(raw)), input, metadata, false),
+      addLocalMetadata(normalizeWarningSeverities(parseModelJson(raw)), input, metadata, false),
     );
     errors = validateProject(project);
   } catch (error) {
@@ -292,7 +273,7 @@ ${raw.slice(0, 12_000)}`;
   ]);
   raw = responseText(repaired);
   project = normalizeSceneDurations(
-    addLocalMetadata(normalizeWarningSeverities(parseJsonText(raw)), input, metadata, true),
+    addLocalMetadata(normalizeWarningSeverities(parseModelJson(raw)), input, metadata, true),
   );
   errors = validateProject(project);
   if (errors.length) {

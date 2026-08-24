@@ -46,7 +46,7 @@ The current priority split is maintained in `review/MVP_ROADMAP_2026-08-24.md`:
 - CLI file arguments are confined to existing files inside `apps/storycore-harbour/` with explicit extension allow-lists;
 - evaluator output strips model-derived validation text and unknown identifiers;
 - generated content is rendered as text rather than untrusted HTML;
-- optional JSON fence handling uses bounded manual parsing rather than a backtracking regex;
+- optional JSON fences and one complete object surrounded by prose use bounded manual parsing rather than a backtracking regex; truncated or multiple objects remain rejected;
 - the SonarQube Cloud Quality Gate passes with zero new issues, zero accepted issues, zero security hotspots, and zero annotations.
 
 ### HBR-003 — Reliability infrastructure implemented
@@ -255,7 +255,7 @@ Codex must inspect the latest CI and Sonar results first. The next legitimate im
 - Current official Anna documentation states that Host LLM completion selects only among providers the user has enabled. Confirm an enabled provider/model in the owner account before requesting consent for one retry.
 - A second owner-consented attempt reached the real model. Both the primary response and the single repair used MiniMax M3 through OpenRouter, each reached the 4,096-output-token cap, and each ended as truncated JSON. The App rejected both and wrote no project.
 - Changing the model shown in the Anna chat UI to Gemma did not change the model used by Host App completion; the real response metadata still identified MiniMax M3/OpenRouter.
-- The generation and repair prompts now require a compact result below 12,000 characters: exactly three scenes, one shot per scene, bounded characters/locations, and bounded prose. Local 55-test, contract, fixture, corpus, synchronization, and strict-validation gates pass.
+- The generation and repair prompts now require a compact result below 12,000 characters: exactly three scenes, one shot per scene, bounded characters/locations, and bounded prose. Local 60-test, contract, fixture, corpus, synchronization, and strict-validation gates pass.
 - The owner-consented compact retry succeeded. The primary MiniMax M3/OpenRouter response completed in 1,860 output tokens; one bounded repair normalized contract-invalid warning severities and produced a valid project.
 - The validated project contains 2 characters, 3 locations, 3 scenes, 3 shots, continuity score 94, and `repairUsed: true`.
 - Production APS wrote the snapshot and `projects/current`, returned generation `1` and a 7,566-byte current record, then passed immediate read-back validation.
@@ -272,4 +272,5 @@ Codex must inspect the latest CI and Sonar results first. The next legitimate im
 - Owner-consented diagnostic pilot HBR-A01/A02/A05 passed 3/3 after the targeted fixes. All three projects passed the canonical contract and input-preservation checks; median duration was 43.68 seconds, A01/A02 used repair, and A05 passed directly. Private output remains ignored at `acceptance/results.diagnostic.local.jsonl`.
 - The owner-consented complete rerun improved the official result from 6/20 to 12/20, with median 30.54 seconds, p95 121.17 seconds, and 8 repaired passes. It remains `Acceptance gate: FAIL` against the 18/20 target.
 - Rerun failures are privacy-safe and actionable: A01/A07/A13/A17 timeout, A12 `json_invalid`, A19 `duration_invalid`, and A09/A10 `contract_invalid`. Private output remains ignored at `acceptance/results.rerun.local.jsonl`.
+- Bounded JSON recovery now targets A12 by accepting exactly one complete object surrounded by model prose while rejecting truncated, ambiguous, oversized, or multiple objects. This has local/browser coverage and has not yet been remeasured by a complete real corpus.
 - The 12/20 rerun is the latest official result. No readiness, version cut, review, or release claim is permitted.

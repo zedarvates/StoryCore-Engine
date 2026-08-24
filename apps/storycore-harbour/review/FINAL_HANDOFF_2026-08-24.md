@@ -11,7 +11,7 @@ This document records the verified draft state. It is not authorization to cut a
 - GitHub branch `agent/storycore-harbour-bootstrap` was updated through PR #30 without force-push; the PR remains draft and unmerged;
 - core StoryCore Engine checkout was not merged, reset, cleaned, or overwritten;
 - Anna adapter remains isolated under `apps/storycore-harbour/`;
-- automated gate: 55/55 Node tests, sample contract, mock fixture, fixed corpus, bundle synchronization, and strict Anna validation pass.
+- automated gate: 60/60 Node tests, sample contract, mock fixture, fixed corpus, bundle synchronization, and strict Anna validation pass.
 
 ### Anna draft
 
@@ -45,7 +45,7 @@ This document records the verified draft state. It is not authorization to cut a
 - failures: four timeout and four contract;
 - private result: `acceptance/results.rerun.local.jsonl` (ignored, never publish).
 
-The duration-normalization and reset/restore fixes are included in draft revision 5 but landed after the 12/20 rerun. They have automated coverage and have not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
+The duration-normalization and reset/restore fixes are included in draft revision 5. Bounded JSON recovery was added locally afterward. These fixes have automated coverage and have not been remeasured by another complete real corpus. The 12/20 result therefore remains the only valid readiness score.
 
 ### Submission decision
 
