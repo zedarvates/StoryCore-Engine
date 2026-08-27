@@ -94,3 +94,12 @@ def test_invalid_score_fails_closed():
             subjects=["a", "b"],
             overrides={"interaction_strength": 1.2},
         )
+
+
+def test_non_boolean_contact_required_fails_closed():
+    with pytest.raises(ValueError, match="contact_required"):
+        extract_multi_subject_shot(
+            ShotLike(),
+            subjects=["a", "b"],
+            overrides={"contact_required": "yes"},
+        )
