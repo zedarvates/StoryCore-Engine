@@ -49,6 +49,14 @@ def _normalize_score(value: Any, *, name: str, default: float) -> float:
     return score
 
 
+def _normalize_bool(value: Any, *, name: str, default: bool) -> bool:
+    if value is None:
+        return default
+    if not isinstance(value, bool):
+        raise ValueError(f"{name} must be boolean")
+    return value
+
+
 def _camera_motion_score(value: Any) -> float:
     if value is None:
         return 0.0
@@ -109,7 +117,9 @@ def extract_multi_subject_shot(
         interaction_strength=_normalize_score(
             routing.get("interaction_strength"), name="interaction_strength", default=0.0
         ),
-        contact_required=bool(routing.get("contact_required", False)),
+        contact_required=_normalize_bool(
+            routing.get("contact_required"), name="contact_required", default=False
+        ),
         occlusion_level=_normalize_score(
             routing.get("occlusion_level"), name="occlusion_level", default=0.0
         ),
