@@ -1,5 +1,7 @@
 # Anna opportunity final handoff — 24 August 2026
 
+Updated with verified remote state on 28 August 2026.
+
 This document records the verified draft state. It is not authorization to cut a version, submit a review, publish, accept new terms, or spend additional model quota.
 
 ## StoryCore Harbour
@@ -7,19 +9,19 @@ This document records the verified draft state. It is not authorization to cut a
 ### Local candidate
 
 - branch: `codex/anna-mvp-20260824`;
-- latest integration commit before this handoff refresh: `ec2d9da7`;
-- GitHub branch `agent/storycore-harbour-bootstrap` was updated through PR #30 without force-push; the PR remains draft and unmerged;
+- latest integration commit at this handoff refresh: `03c2c54b`;
+- GitHub branch `agent/storycore-harbour-bootstrap` is synchronized through draft PR #37 without force-push; PR #30 and PR #36 are merged, while PR #37 remains open, green, and unmerged;
 - core StoryCore Engine checkout was not merged, reset, cleaned, or overwritten;
 - Anna adapter remains isolated under `apps/storycore-harbour/`;
-- automated gate: 60/60 Node tests, sample contract, mock fixture, fixed corpus, bundle synchronization, and strict Anna validation pass.
+- automated gate: 66/66 Node tests, sample contract, mock fixture, fixed corpus, bundle synchronization, strict Anna validation, GitHub Anna CI, and SonarQube pass.
 
 ### Anna draft
 
 - public identity: `@storycore-labs/storycore-harbour`;
 - server App id: `214`;
-- working revision: `9`;
-- content hash: `762e175e7f150d47845b3fa4ace51d2f058d1758cc4c19f06d621b9756dada74`;
-- bundle: 15 files, 103,405 bytes, `ready`;
+- working revision: `10`;
+- content hash: `7d3edf2a89b942055c4af9d53b7dcfb6de1777e0437b27711b05bef09e2049b9`;
+- bundle: 15 files, 104,031 bytes, `ready`;
 - status: `draft`, not published;
 - immutable versions: 0;
 - Executas/local shims: 0.
@@ -99,7 +101,7 @@ without addressing the failure.
 
 ### Submission decision
 
-Do not cut `0.1.0`, submit for review, mark PR #30 ready, merge, or release while the official gate remains below 18/20. The App is demonstrable and its working draft is reserved, but it is not submission-ready under the repository's own rules.
+Do not cut `0.1.0`, submit for review, mark PR #37 ready, merge, or release while the official gate remains below 18/20. The latest measured Gemma run is 15/20 and the latest Anna-default run is 6/20. The App is demonstrable and its working draft is reserved, but it is not submission-ready under the repository's own rules.
 
 ### Anna installation diagnosis
 

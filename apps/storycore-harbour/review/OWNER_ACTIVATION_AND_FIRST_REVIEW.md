@@ -173,9 +173,17 @@ Only after checking the dry-run output:
 npx --no-install anna-app apps push --json
 npx --no-install anna-app apps status storycore-harbour --json
 npx --no-install anna-app apps list --json
+npx --no-install anna-app apps grants storycore-harbour --json
 ```
 
 `apps push` creates or updates a mutable **working draft**. It is not a public release and should not make the App visible in the public Store.
+
+The grants endpoint is informational only. With the currently pinned CLI, a
+JSON result containing `"grants": null` means the server returned 404 for the
+public grants endpoint and the CLI has no endpoint data available. It does not
+prove that the App was denied the Host APIs declared in the manifest. Confirm
+actual LLM, storage, and window capabilities through the authenticated harness
+and recorded Host calls; do not infer permission state from `null`.
 
 After the first successful push:
 
