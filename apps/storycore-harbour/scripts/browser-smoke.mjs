@@ -291,7 +291,10 @@ async function captureMarketplaceScreenshot({ app, frameElement, filename }) {
   await setFrameSize(frameElement, marketplaceFrameSize);
   await app.locator("html").evaluate(() => {
     if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-    window.scrollTo({ top: 0, behavior: "instant" });
+    window.scrollTo(0, 0);
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   });
 
   const path = join(screenshotDirectory, filename);

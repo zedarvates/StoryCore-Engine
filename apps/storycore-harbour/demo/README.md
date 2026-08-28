@@ -28,21 +28,23 @@ Keep that terminal open. In a second PowerShell terminal, from the same director
 ```powershell
 $env:BROWSER_EXECUTABLE = 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
 $env:HARBOUR_URL = 'http://127.0.0.1:5180/'
-$env:HARBOUR_SCREENSHOT_DIR = (Resolve-Path '.').Path + '\demo\output.local'
-npm run browser:smoke
+$env:HARBOUR_SCREENSHOT_DIR = (Resolve-Path '.').Path + '\demo\output.local\current'
+npm run browser:check
 ```
 
 Expected final line:
 
 ```text
-{"result":"pass",...,"exportContract":"valid",...,"screenshotsCaptured":4,...}
+{"result":"pass",...,"forcedColors":"pass",...,"exportContract":"valid",...,"screenshotsCaptured":4,...}
+{"result":"pass","deletedProjectRecords":2,...,"unrelatedKeyPreserved":true,...}
 ```
 
 Stop the mock harness with `Ctrl+C` after the browser command finishes.
 
 ## Produced evidence
 
-The browser run writes these local, ignored artifacts to `demo/output.local/`:
+The browser run writes these local, ignored artifacts to the selected
+`HARBOUR_SCREENSHOT_DIR`:
 
 - `01-concept.png`;
 - `02-world.png`;
@@ -50,7 +52,13 @@ The browser run writes these local, ignored artifacts to `demo/output.local/`:
 - `04-continuity.png`;
 - `browser-smoke-story.storycore-harbour.json`.
 
-The browser test validates the actual export blob against `storycore-harbour.project.v1` before writing it. It also proves form validation, save/read-back, keyboard step navigation, focus management, the declared 520 x 680 minimum viewport, and 400% text reflow.
+Each PNG is captured at 900 x 820. The browser test resets the App scroll before
+every capture and validates the actual export blob against
+`storycore-harbour.project.v1` before writing it. It also proves form
+validation, save/read-back, keyboard step navigation, focus management,
+forced-colour states, the declared 520 x 680 minimum viewport, 400% text
+reflow, and safe project deletion. Hashes may vary with the Edge build and font
+renderer; use them as one-run evidence, not portable golden-image assertions.
 
 ## Presenter script
 
