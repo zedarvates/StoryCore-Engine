@@ -94,6 +94,7 @@ try {
   await waitForFocus(app.locator("#form-error"));
   assert.equal(await app.locator("#step-1").isVisible(), true);
   assert.equal(await app.locator("#step-2").isVisible(), false);
+  await assertForcedColorsAccessibility(page, app);
 
   await fillReferenceProject(app);
   assert.match((await app.locator("#idea-count").textContent()) || "", /\/ 12,000/);
@@ -254,6 +255,7 @@ try {
     result: "pass",
     viewport: { width: dimensions.clientWidth, height: minimumFrameSize.height },
     textReflow400Percent: "pass",
+    forcedColors: "pass",
     formValidationFocus: "pass",
     keyboardStepNavigation: "pass",
     panelFocusManagement: "pass",
@@ -314,6 +316,43 @@ async function setFrameSize(frameElement, size) {
       zIndex: "2147483647",
     });
   }, size);
+}
+
+async function assertForcedColorsAccessibility(page, app) {
+  await page.emulateMedia({ forcedColors: "active" });
+  try {
+    await app.getByRole("button", { name: "Build my visual story" }).focus();
+    const state = await app.locator("html").evaluate(() => {
+      const style = (selector) => getComputedStyle(document.querySelector(selector));
+      const activeStep = style(".step.active");
+      const disabledStep = style("#step-tab-2");
+      const error = style("#form-error");
+      const focusedButton = style("#generate-button");
+      return {
+        mediaActive: matchMedia("(forced-colors: active)").matches,
+        activeOutlineStyle: activeStep.outlineStyle,
+        activeOutlineWidth: activeStep.outlineWidth,
+        disabledOpacity: disabledStep.opacity,
+        disabledBorderStyle: disabledStep.borderTopStyle,
+        errorBorderStyle: error.borderTopStyle,
+        errorBorderWidth: error.borderTopWidth,
+        focusOutlineStyle: focusedButton.outlineStyle,
+        focusOutlineWidth: focusedButton.outlineWidth,
+      };
+    });
+
+    assert.equal(state.mediaActive, true, "Edge must activate the forced-colours media query.");
+    assert.equal(state.activeOutlineStyle, "solid", "The selected step needs a non-colour outline.");
+    assert.equal(state.activeOutlineWidth, "2px");
+    assert.equal(state.disabledOpacity, "1", "Disabled controls must remain legible in forced colours.");
+    assert.equal(state.disabledBorderStyle, "dashed", "Disabled controls need a non-colour distinction.");
+    assert.equal(state.errorBorderStyle, "solid", "Errors need a visible forced-colour boundary.");
+    assert.equal(state.errorBorderWidth, "2px");
+    assert.equal(state.focusOutlineStyle, "solid", "Keyboard focus must remain visible in forced colours.");
+    assert.equal(state.focusOutlineWidth, "3px");
+  } finally {
+    await page.emulateMedia({ forcedColors: "none" });
+  }
 }
 
 async function installDeterministicTestStorage(app) {
