@@ -3,6 +3,30 @@
 Prepared on 2026-08-29. This is a private support-report draft; it has not been
 sent or posted.
 
+## Resolution update
+
+After the owner completed a fresh Anna sign-in and returned through the
+Dashboard, **View manifest** succeeded in the same in-app browser. It displayed
+working draft r12 and the normalized remote manifest. The earlier failure is
+therefore resolved operationally by reauthentication, although the exact token
+or frontend validation mechanism remains unproven.
+
+The remote manifest confirms:
+
+- schema 2;
+- no required or optional Executas;
+- no top-level permissions;
+- no external bundle origins;
+- one desktop view with minimum 520 x 680 and default 900 x 820;
+- `llm.complete` only in the LLM namespace;
+- App storage `get`, `set`, `list`, and `delete`;
+- `window.set_title`;
+- CSP `script-src 'self'` and `last_writer_wins` state merge.
+
+These boundaries match the committed Host-API-only adapter. The support message
+below should now be sent only if the credential error recurs after a fresh
+login; it is retained as a reproducible diagnostic template.
+
 ## Summary
 
 The authenticated Anna Developer Console can list StoryCore Harbour and show
@@ -73,3 +97,9 @@ whether refreshing that credential is also required before using the new
 working-draft “Install & test” action? We have not clicked Install & test, cut a
 version, submitted review, or changed permissions.
 ```
+
+## Closure boundary
+
+This resolution does not authorize **Install & test**, enable Host API grants,
+cut a version, spend model quota, submit review, merge, or publish. It only
+closes the read-only remote-manifest comparison gate.

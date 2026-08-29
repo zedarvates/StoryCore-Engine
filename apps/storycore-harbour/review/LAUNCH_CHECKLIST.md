@@ -31,6 +31,7 @@ This checklist is a release gate. A checked implementation item does not overrid
 - [x] Manifest declares only LLM, App storage, and window-title Host APIs.
 - [x] Undeclared tool invocation is denied in the official test harness.
 - [x] Mock Anna harness starts in CI.
+- [x] Authenticated Console View manifest matches the committed Schema 2 Host-API-only boundaries at r12.
 - [x] Browser flow runs inside the Anna harness at 520 × 680.
 - [ ] Production Host API handshake verified in the target Anna account.
 - [ ] Production App storage write/read/reload verified.
