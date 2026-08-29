@@ -111,6 +111,14 @@ Do not cut `0.1.0`, submit for review, mark PR #37 ready, merge, or release whil
 - cutting `0.1.0` would create that immutable version but must not be used as a workaround while the 18/20 reliability gate still fails;
 - the Console web session also expired on reload and redirected to login, which is a separate authentication condition rather than the original installation cause.
 
+Update from 2026-08-29: the current Console now exposes a separate **Install &
+test** button inside the working-draft Versions tab at revision 12, while CLI
+status still reports zero immutable versions. This may provide a draft-testing
+path without cutting `0.1.0`, but it was not clicked because installation and
+permission prompts require explicit owner approval. **View manifest** returned
+`Could not validate credentials`; therefore the web-session credential path
+must be healthy before any installation result can be claimed.
+
 ## AIMesher Anna App
 
 ### Local candidate

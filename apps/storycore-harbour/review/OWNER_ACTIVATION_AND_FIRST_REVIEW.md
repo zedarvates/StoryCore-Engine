@@ -192,6 +192,26 @@ After the first successful push:
 - open the Developer Console and confirm the App is shown as a working/draft App;
 - confirm the locked slug is exactly `storycore-harbour`.
 
+### Working-draft installation path
+
+The authenticated Developer Console inspected on 2026-08-29 exposes an
+**Install & test** action inside the **Versions** tab for the mutable working
+draft, even while the App has zero immutable versions. This is distinct from
+the App-list **Install** action that previously failed with “no available
+published version”. Do not cut `0.1.0` merely to discover whether the current
+working-draft installation path is usable.
+
+Installing changes the owner's Installed Apps state and may open Host API
+permission controls. Use **Install & test** only after explicit owner approval
+at action time, then verify the exact App id, working revision, requested
+capabilities, and absence of unexpected Executas before confirming anything.
+
+During the same inspection, **View manifest** returned `Could not validate
+credentials` although the Console displayed working revision 12 and the CLI
+independently confirmed the draft. Treat that as a web-session/platform
+credential condition, not as evidence that the uploaded manifest or bundle is
+invalid. Reauthenticate or ask Anna support rather than recreating the App.
+
 If the CLI or Console creates an unexpected second App, stop before cutting a version. Preserve the outputs needed for diagnosis, but redact tokens.
 
 ## 6. Run StoryCore Harbour against real Anna services

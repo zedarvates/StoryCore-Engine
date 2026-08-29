@@ -37,6 +37,8 @@ This checklist is a release gate. A checked implementation item does not overrid
 - [ ] Production ETag conflict induced and safely rejected.
 - [ ] Qualified App MAU definition and dashboard visibility confirmed.
 - [ ] Host-API-only completion confirmed as eligible without local runtime installation.
+- [ ] Owner-approved working-draft **Install & test** completes from revision 12 without cutting a version.
+- [ ] Installed Apps exposes only the expected LLM, App storage, and window capabilities with no Executa.
 
 ## Reliability and CI
 
