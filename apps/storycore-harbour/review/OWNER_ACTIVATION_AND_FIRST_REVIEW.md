@@ -212,6 +212,11 @@ independently confirmed the draft. Treat that as a web-session/platform
 credential condition, not as evidence that the uploaded manifest or bundle is
 invalid. Reauthenticate or ask Anna support rather than recreating the App.
 
+A fresh owner sign-in subsequently restored **View manifest**. The normalized
+remote r12 manifest matched the committed Schema 2 Host-API-only boundaries.
+Keep `review/ANNA_VIEW_MANIFEST_CREDENTIAL_REPORT.md` as the recurrence report;
+do not send it while the read path remains healthy.
+
 If the CLI or Console creates an unexpected second App, stop before cutting a version. Preserve the outputs needed for diagnosis, but redact tokens.
 
 ## 6. Run StoryCore Harbour against real Anna services
