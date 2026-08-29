@@ -40,6 +40,8 @@ This checklist is a release gate. A checked implementation item does not overrid
 - [ ] Host-API-only completion confirmed as eligible without local runtime installation.
 - [ ] Owner-approved working-draft **Install & test** completes from revision 12 without cutting a version.
 - [ ] Installed Apps exposes only the expected LLM, App storage, and window capabilities with no Executa.
+- [x] Existing Installed Apps record identified as StoryCore Harbour `v0.0.0-dev`.
+- [ ] Resolve `App version not found` when opening permissions for the existing dev installation.
 
 ## Reliability and CI
 

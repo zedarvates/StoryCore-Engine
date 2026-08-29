@@ -119,6 +119,14 @@ permission prompts require explicit owner approval. **View manifest** returned
 `Could not validate credentials`; therefore the web-session credential path
 must be healthy before any installation result can be claimed.
 
+Second update from 2026-08-29: after reauthentication, **View manifest** works
+and matches the committed Host-API-only boundaries. Installed Apps already
+contains StoryCore Harbour as `v0.0.0-dev`, so another installation was not
+attempted. Its Permissions panel fails with `App version not found`, while CLI
+status still confirms zero immutable versions. The current blocker is therefore
+permission resolution for the existing development installation, not absence
+of an Installed Apps record. See `ANNA_DEV_INSTALL_PERMISSIONS_REPORT.md`.
+
 ## AIMesher Anna App
 
 ### Local candidate

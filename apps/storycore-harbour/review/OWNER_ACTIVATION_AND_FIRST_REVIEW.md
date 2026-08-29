@@ -217,6 +217,13 @@ remote r12 manifest matched the committed Schema 2 Host-API-only boundaries.
 Keep `review/ANNA_VIEW_MANIFEST_CREDENTIAL_REPORT.md` as the recurrence report;
 do not send it while the read path remains healthy.
 
+Installed Apps inspection then showed StoryCore Harbour already present as
+`v0.0.0-dev`. Do not click **Install & test** again merely because the
+Developer card remains at `v0.0.0`. The existing installation's Permissions
+panel currently returns `App version not found`; stop there and use
+`review/ANNA_DEV_INSTALL_PERMISSIONS_REPORT.md` rather than reinstalling,
+uninstalling, cutting a version, or changing grants speculatively.
+
 If the CLI or Console creates an unexpected second App, stop before cutting a version. Preserve the outputs needed for diagnosis, but redact tokens.
 
 ## 6. Run StoryCore Harbour against real Anna services
