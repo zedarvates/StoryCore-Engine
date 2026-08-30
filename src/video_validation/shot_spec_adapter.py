@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -44,8 +45,8 @@ def _normalize_score(value: Any, *, name: str, default: float) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ValueError(f"{name} must be numeric")
     score = float(value)
-    if not 0.0 <= score <= 1.0:
-        raise ValueError(f"{name} must be in [0, 1]")
+    if not math.isfinite(score) or not 0.0 <= score <= 1.0:
+        raise ValueError(f"{name} must be finite and in [0, 1]")
     return score
 
 
@@ -70,24 +71,37 @@ def _camera_motion_score(value: Any) -> float:
     return max(matched, default=0.25 if normalized.strip() else 0.0)
 
 
+def _sequence_count(value: Any) -> int | None:
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        return len(value)
+    return None
+
+
 def _subject_count(shot_spec: Any, *, subjects: Sequence[Any] | None, routing: Mapping[str, Any]) -> int:
+    candidates: list[tuple[str, int]] = []
+
     explicit = routing.get("subject_count", _read(shot_spec, "subject_count", None))
     if explicit is not None:
         if isinstance(explicit, bool) or not isinstance(explicit, int) or explicit < 0:
             raise ValueError("subject_count must be a non-negative integer")
-        return explicit
+        candidates.append(("subject_count", explicit))
 
     for key in ("characters_present", "subjects", "characters"):
-        value = _read(shot_spec, key, None)
-        if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
-            return len(value)
+        count = _sequence_count(_read(shot_spec, key, None))
+        if count is not None:
+            candidates.append((key, count))
 
     if subjects is not None:
-        return len(subjects)
+        candidates.append(("subjects_argument", len(subjects)))
 
-    # Fail closed rather than silently treating an unknown multi-character shot
-    # as a single-subject DIRECT generation.
-    raise ValueError("subject_count is required when the shot spec has no subject list")
+    if not candidates:
+        raise ValueError("subject_count is required when the shot spec has no subject list")
+
+    distinct = {count for _, count in candidates}
+    if len(distinct) != 1:
+        detail = ", ".join(f"{name}={count}" for name, count in candidates)
+        raise ValueError(f"contradictory subject counts: {detail}")
+    return candidates[0][1]
 
 
 def extract_multi_subject_shot(
