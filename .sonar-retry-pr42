@@ -1,2 +1,0 @@
-Trigger a fresh SonarQube Cloud analysis for PR #42 after an analysis-infrastructure failure.
-This file carries no runtime or product behavior.
