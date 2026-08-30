@@ -42,7 +42,7 @@
     "electron"
   ],
   "author": "StoryCore Team",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/zedarvates/StoryCore-Engine/issues"
