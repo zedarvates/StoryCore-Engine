@@ -347,7 +347,7 @@ func _update_interface() -> void:
 		else "Clic ou Espace : lâcher une rune   •   L : English   •   R : recommencer"
 	)
 	var objective: Dictionary = manifest["quest"]["objectives"][0]
-	var quest_title := _localized(manifest["quest"]["title"])
+	var quest_title: String = str(_localized(manifest["quest"]["title"]))
 	if locale == "en":
 		quest_label.text = "%s  •  Runes %d/%d  •  Score %d/%d  •  Drops %d/%d" % [
 			quest_title, collected, int(objective["required_count"]), score,
