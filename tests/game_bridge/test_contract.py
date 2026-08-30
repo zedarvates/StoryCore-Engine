@@ -116,41 +116,40 @@ class ContractTests(unittest.TestCase):
 
     def test_cli_rejects_absolute_paths(self) -> None:
         errors = io.StringIO()
+        argv = ["--input", str(FIXTURE), "--output-dir", "fixtures"]
 
         with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-            main(["--input", str(FIXTURE), "--output-dir", "fixtures"])
+            main(argv)
 
         self.assertEqual(raised.exception.code, 2)
         self.assertIn("allowlisted workspace-relative path", errors.getvalue())
 
     def test_cli_rejects_parent_traversal(self) -> None:
         errors = io.StringIO()
+        argv = [
+            "--input",
+            str(FIXTURE.relative_to(ROOT)),
+            "--output-dir",
+            "../storycore-game-escape",
+        ]
 
         with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-            main(
-                [
-                    "--input",
-                    str(FIXTURE.relative_to(ROOT)),
-                    "--output-dir",
-                    "../storycore-game-escape",
-                ]
-            )
+            main(argv)
 
         self.assertEqual(raised.exception.code, 2)
         self.assertIn("allowlisted workspace-relative path", errors.getvalue())
 
     def test_cli_rejects_non_allowlisted_path_characters(self) -> None:
         errors = io.StringIO()
+        argv = [
+            "--input",
+            str(FIXTURE.relative_to(ROOT)),
+            "--output-dir",
+            "fixtures/storycore-game/$escape",
+        ]
 
         with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-            main(
-                [
-                    "--input",
-                    str(FIXTURE.relative_to(ROOT)),
-                    "--output-dir",
-                    "fixtures/storycore-game/$escape",
-                ]
-            )
+            main(argv)
 
         self.assertEqual(raised.exception.code, 2)
         self.assertIn("allowlisted workspace-relative path", errors.getvalue())
@@ -163,16 +162,15 @@ class ContractTests(unittest.TestCase):
             target.write_text("unchanged", encoding="utf-8")
             (output / "storycore_game_manifest.json").symlink_to(target)
             errors = io.StringIO()
+            argv = [
+                "--input",
+                str(FIXTURE.relative_to(ROOT)),
+                "--output-dir",
+                str(output.relative_to(ROOT)),
+            ]
 
             with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-                main(
-                    [
-                        "--input",
-                        str(FIXTURE.relative_to(ROOT)),
-                        "--output-dir",
-                        str(output.relative_to(ROOT)),
-                    ]
-                )
+                main(argv)
 
             self.assertEqual(raised.exception.code, 2)
             self.assertEqual(target.read_text(encoding="utf-8"), "unchanged")
