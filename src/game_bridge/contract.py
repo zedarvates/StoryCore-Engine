@@ -537,6 +537,8 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _write_json(path: Path, value: Mapping[str, Any]) -> None:
     """Write a fixed-name output without following a final-component symlink."""
 
+    # The explicit check covers platforms without O_NOFOLLOW; the flag closes
+    # the check/open race on platforms that provide it.
     if path.is_symlink():
         _fail(str(path), "refuses to replace a symbolic link")
     flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
