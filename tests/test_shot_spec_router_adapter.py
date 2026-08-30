@@ -87,6 +87,22 @@ def test_routing_metadata_can_override_subject_count_and_budget():
     assert "compute_budget_constrained" in decision.reasons
 
 
+def test_contradictory_subject_counts_fail_closed():
+    spec = {
+        "subject_count": 1,
+        "characters_present": ["hero", "rival", "witness"],
+        "camera_movement": "static",
+    }
+    with pytest.raises(ValueError, match="contradictory subject counts"):
+        route_shot_spec(spec)
+
+
+def test_explicit_subject_argument_must_match_shot_metadata():
+    spec = {"characters_present": ["hero", "rival"], "camera_movement": "static"}
+    with pytest.raises(ValueError, match="contradictory subject counts"):
+        route_shot_spec(spec, subjects=["hero"])
+
+
 def test_invalid_score_fails_closed():
     with pytest.raises(ValueError, match="interaction_strength"):
         extract_multi_subject_shot(
@@ -94,6 +110,16 @@ def test_invalid_score_fails_closed():
             subjects=["a", "b"],
             overrides={"interaction_strength": 1.2},
         )
+
+
+def test_non_finite_score_fails_closed():
+    for value in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError, match="interaction_strength"):
+            extract_multi_subject_shot(
+                ShotLike(),
+                subjects=["a", "b"],
+                overrides={"interaction_strength": value},
+            )
 
 
 def test_non_boolean_contact_required_fails_closed():
