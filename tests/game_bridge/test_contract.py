@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr
@@ -113,16 +114,54 @@ class ContractTests(unittest.TestCase):
             self.assertTrue(verify_manifest(manifest))
             self.assertEqual(manifest["content_sha256"], evidence["content_sha256"])
 
-        def test_cli_rejects_absolute_paths(self) -> None:
-            errors = io.StringIO()
+    def test_cli_rejects_absolute_paths(self) -> None:
+        errors = io.StringIO()
 
-            with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-                main(["--input", str(FIXTURE), "--output-dir", "fixtures"])
+        with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+            main(["--input", str(FIXTURE), "--output-dir", "fixtures"])
 
-            self.assertEqual(raised.exception.code, 2)
-            self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("allowlisted workspace-relative path", errors.getvalue())
 
-        def test_cli_rejects_parent_traversal(self) -> None:
+    def test_cli_rejects_parent_traversal(self) -> None:
+        errors = io.StringIO()
+
+        with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+            main(
+                [
+                    "--input",
+                    str(FIXTURE.relative_to(ROOT)),
+                    "--output-dir",
+                    "../storycore-game-escape",
+                ]
+            )
+
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+    def test_cli_rejects_non_allowlisted_path_characters(self) -> None:
+        errors = io.StringIO()
+
+        with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+            main(
+                [
+                    "--input",
+                    str(FIXTURE.relative_to(ROOT)),
+                    "--output-dir",
+                    "fixtures/storycore-game/$escape",
+                ]
+            )
+
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+    @unittest.skipUnless(hasattr(os, "O_NOFOLLOW"), "requires O_NOFOLLOW")
+    def test_cli_refuses_final_output_symlinks(self) -> None:
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
+            output = Path(directory)
+            target = output / "target.json"
+            target.write_text("unchanged", encoding="utf-8")
+            (output / "storycore_game_manifest.json").symlink_to(target)
             errors = io.StringIO()
 
             with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
@@ -131,28 +170,12 @@ class ContractTests(unittest.TestCase):
                         "--input",
                         str(FIXTURE.relative_to(ROOT)),
                         "--output-dir",
-                        "../storycore-game-escape",
+                        str(output.relative_to(ROOT)),
                     ]
                 )
 
             self.assertEqual(raised.exception.code, 2)
-            self.assertIn("allowlisted workspace-relative path", errors.getvalue())
-
-        def test_cli_rejects_non_allowlisted_path_characters(self) -> None:
-            errors = io.StringIO()
-
-            with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-                main(
-                    [
-                        "--input",
-                        str(FIXTURE.relative_to(ROOT)),
-                        "--output-dir",
-                        "fixtures/storycore-game/$escape",
-                    ]
-                )
-
-            self.assertEqual(raised.exception.code, 2)
-            self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+            self.assertEqual(target.read_text(encoding="utf-8"), "unchanged")
 
     def test_checked_in_godot_inputs_match_compiler(self) -> None:
         expected_manifest, expected_evidence = compile_spec(load_fixture())
