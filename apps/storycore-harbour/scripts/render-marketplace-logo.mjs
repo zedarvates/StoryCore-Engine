@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import { mkdir, readFile } from "node:fs/promises";
-import { dirname, fileURLToPath } from "node:url";
+import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { chromium } from "playwright-core";
 
 const APP_ROOT = fileURLToPath(new URL("../", import.meta.url));
 const inputPath = resolve(APP_ROOT, "bundle/icon.svg");
-const outputPath = resolve(APP_ROOT, "review/marketplace-media/storycore-harbour-logo-256.png");
+const outputDirectory = resolve(APP_ROOT, "review/marketplace-media");
+const outputPath = resolve(outputDirectory, "storycore-harbour-logo-256.png");
 const executablePath = process.env.BROWSER_EXECUTABLE;
 
 if (!executablePath) {
@@ -14,7 +15,7 @@ if (!executablePath) {
   process.exit(2);
 }
 
-await mkdir(resolve(APP_ROOT, "review/marketplace-media"), { recursive: true });
+await mkdir(outputDirectory, { recursive: true });
 const browser = await chromium.launch({
   executablePath,
   headless: true,
