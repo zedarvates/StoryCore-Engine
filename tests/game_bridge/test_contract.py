@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import tempfile
@@ -132,6 +133,27 @@ class ContractTests(unittest.TestCase):
 
         self.assertEqual(checked_manifest, expected_manifest)
         self.assertEqual(checked_evidence, expected_evidence)
+
+    def test_godot_smoke_evidence_matches_fixture_sources(self) -> None:
+        evidence = json.loads(
+            (GODOT_FIXTURE / "godot_smoke_evidence.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected_hashes = {
+            "main_script_sha256": "Main.gd",
+            "manifest_file_sha256": "storycore_game_manifest.json",
+            "project_file_sha256": "project.godot",
+            "smoke_script_sha256": "SmokeTest.gd",
+        }
+
+        for evidence_key, file_name in expected_hashes.items():
+            content = (GODOT_FIXTURE / file_name).read_bytes()
+            self.assertEqual(
+                evidence["fixture"][evidence_key], hashlib.sha256(content).hexdigest()
+            )
+        self.assertEqual(evidence["status"], "pass")
+        self.assertEqual(evidence["result"]["marker"], "STORYCORE_GAME_SMOKE_PASS")
 
 
 if __name__ == "__main__":
