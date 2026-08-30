@@ -2,10 +2,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { chromium } from "playwright-core";
 
-const logoPath = resolve(process.argv[2] || "review/marketplace-media/storycore-harbour-logo-256.png");
+const APP_ROOT = fileURLToPath(new URL("../", import.meta.url));
+const logoPath = resolve(APP_ROOT, "review/marketplace-media/storycore-harbour-logo-256.png");
 const executablePath = process.env.BROWSER_EXECUTABLE;
 const bytes = await readFile(logoPath);
 const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -60,7 +61,6 @@ assert.ok(near(samples.cyanWave, [71, 215, 232, 255]), "Logo wave must render cy
 
 console.log(JSON.stringify({
   result: "pass",
-  logoPath,
   format: "PNG",
   width: 256,
   height: 256,
