@@ -1,0 +1,227 @@
+name: One-shot PR44 security fix v2
+
+on:
+  push:
+    branches: [codex/storycore-game-contract-v0.1]
+    paths: [.github/workflows/one-shot-pr44-security-fix-v2.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/storycore-game-contract-v0.1
+          fetch-depth: 0
+
+      - name: Apply narrowly scoped path-safety hardening
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          contract_path = Path('src/game_bridge/contract.py')
+          tests_path = Path('tests/game_bridge/test_contract.py')
+          contract = contract_path.read_text(encoding='utf-8')
+          tests = tests_path.read_text(encoding='utf-8')
+
+          def replace_once(text: str, old: str, new: str, label: str) -> str:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, found {count}')
+              return text.replace(old, new, 1)
+
+          def replace_between(text: str, start: str, end: str, replacement: str, label: str) -> str:
+              start_at = text.find(start)
+              if start_at < 0:
+                  raise SystemExit(f'{label}: start anchor not found')
+              end_at = text.find(end, start_at)
+              if end_at < 0:
+                  raise SystemExit(f'{label}: end anchor not found')
+              return text[:start_at] + replacement + text[end_at:]
+
+          contract = replace_once(contract, 'import hashlib\nimport json\nimport re\n', 'import hashlib\nimport json\nimport os\nimport re\n', 'imports')
+          contract = replace_once(
+              contract,
+              '_GODOT_VERSION_PATTERN = re.compile(r"^4\\.\\d+(?:\\.\\d+)?$")\n',
+              '_GODOT_VERSION_PATTERN = re.compile(r"^4\\.\\d+(?:\\.\\d+)?$")\n_CLI_RELATIVE_PATH_PATTERN = re.compile(r"^[A-Za-z0-9._/-]+$")\n',
+              'CLI path allowlist',
+          )
+
+          hardened_helpers = '''def _require_relative_cli_path(value: str, label: str) -> Path:
+              """Accept only an allowlisted workspace-relative CLI path."""
+
+              if not value or not _CLI_RELATIVE_PATH_PATTERN.fullmatch(value):
+                  _fail(label, "must be an allowlisted workspace-relative path")
+              candidate = Path(value)
+              if candidate.is_absolute() or ".." in candidate.parts:
+                  _fail(label, "must be an allowlisted workspace-relative path")
+              return candidate
+
+
+          def _resolve_workspace_path(
+              candidate: Path,
+              workspace_root: Path,
+              label: str,
+              *,
+              must_be_file: bool = False,
+              must_be_dir: bool = False,
+          ) -> Path:
+              """Resolve a validated relative path without allowing symlink escape."""
+
+              try:
+                  root = workspace_root.resolve(strict=True)
+                  resolved = (root / candidate).resolve(strict=True)
+                  relative = resolved.relative_to(root)
+              except (OSError, RuntimeError, ValueError) as exc:
+                  raise ContractError(
+                      f"{label}: must stay within workspace root {workspace_root}"
+                  ) from exc
+              if not root.is_dir():
+                  _fail("workspace", "root must be a directory")
+              if must_be_file and not resolved.is_file():
+                  _fail(label, "must reference an existing regular file")
+              if must_be_dir and not resolved.is_dir():
+                  _fail(label, "must reference an existing directory")
+              return root.joinpath(relative)
+
+
+          def _load_json(path: Path) -> dict[str, Any]:
+              try:
+                  loaded = json.loads(path.read_text(encoding="utf-8"))
+              except (OSError, json.JSONDecodeError) as exc:
+                  raise ContractError(f"unable to read {path}: {exc}") from exc
+              return _require_mapping(loaded, str(path))
+
+
+          def _write_json(path: Path, value: Mapping[str, Any]) -> None:
+              """Write a fixed-name output without following a final-component symlink."""
+
+              flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+              if hasattr(os, "O_NOFOLLOW"):
+                  flags |= os.O_NOFOLLOW
+              descriptor: int | None = None
+              try:
+                  descriptor = os.open(path, flags, 0o600)
+                  with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                      descriptor = None
+                      handle.write(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\\n")
+              except OSError as exc:
+                  raise ContractError(f"unable to write {path}: {exc}") from exc
+              finally:
+                  if descriptor is not None:
+                      os.close(descriptor)
+
+
+          '''.replace('          ', '')
+          contract = replace_between(contract, 'def _resolve_workspace_path(', 'def main(', hardened_helpers, 'path helper region')
+
+          old_cli = '''    parser.add_argument("--input", required=True, type=Path)
+              parser.add_argument("--output-dir", required=True, type=Path)
+              args = parser.parse_args(argv)
+
+              try:
+                  workspace_root = Path.cwd().resolve(strict=True)
+                  input_path = _resolve_workspace_path(
+                      args.input, workspace_root, "--input", must_be_file=True
+                  )
+                  output_dir = _resolve_workspace_path(
+                      args.output_dir, workspace_root, "--output-dir"
+                  )
+                  manifest_path = _resolve_workspace_path(
+                      output_dir / "storycore_game_manifest.json",
+                      workspace_root,
+                      "manifest output",
+                  )
+                  evidence_path = _resolve_workspace_path(
+                      output_dir / "storycore_game_evidence.json",
+                      workspace_root,
+                      "evidence output",
+                  )
+          '''.replace('              ', '')
+          new_cli = '''    parser.add_argument("--input", required=True)
+              parser.add_argument("--output-dir", required=True)
+              args = parser.parse_args(argv)
+
+              try:
+                  workspace_root = Path.cwd().resolve(strict=True)
+                  input_relative = _require_relative_cli_path(args.input, "--input")
+                  output_relative = _require_relative_cli_path(args.output_dir, "--output-dir")
+                  input_path = _resolve_workspace_path(
+                      input_relative, workspace_root, "--input", must_be_file=True
+                  )
+                  output_dir = _resolve_workspace_path(
+                      output_relative,
+                      workspace_root,
+                      "--output-dir",
+                      must_be_dir=True,
+                  )
+                  # Output filenames are constants, never user-controlled components.
+                  manifest_path = output_dir / "storycore_game_manifest.json"
+                  evidence_path = output_dir / "storycore_game_evidence.json"
+          '''.replace('              ', '')
+          contract = replace_once(contract, old_cli, new_cli, 'main CLI path handling')
+
+          tests = replace_once(
+              tests,
+              '                ["--input", str(FIXTURE), "--output-dir", str(output)]\n',
+              '                [\n                    "--input",\n                    str(FIXTURE.relative_to(ROOT)),\n                    "--output-dir",\n                    str(output.relative_to(ROOT)),\n                ]\n',
+              'CLI happy path',
+          )
+
+          negative_tests = '''    def test_cli_rejects_absolute_paths(self) -> None:
+              errors = io.StringIO()
+              with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+                  main(["--input", str(FIXTURE), "--output-dir", "fixtures"])
+              self.assertEqual(raised.exception.code, 2)
+              self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+              def test_cli_rejects_parent_traversal(self) -> None:
+                  errors = io.StringIO()
+                  with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+                      main([
+                          "--input", str(FIXTURE.relative_to(ROOT)),
+                          "--output-dir", "../storycore-game-escape",
+                      ])
+                  self.assertEqual(raised.exception.code, 2)
+                  self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+              def test_cli_rejects_non_allowlisted_path_characters(self) -> None:
+                  errors = io.StringIO()
+                  with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+                      main([
+                          "--input", str(FIXTURE.relative_to(ROOT)),
+                          "--output-dir", "fixtures/storycore-game/$escape",
+                      ])
+                  self.assertEqual(raised.exception.code, 2)
+                  self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+          '''.replace('              ', '')
+          tests = replace_between(
+              tests,
+              '    def test_cli_rejects_paths_outside_workspace(self) -> None:',
+              '    def test_checked_in_godot_inputs_match_compiler(self) -> None:',
+              negative_tests,
+              'CLI negative-test region',
+          )
+
+          contract_path.write_text(contract, encoding='utf-8')
+          tests_path.write_text(tests, encoding='utf-8')
+          PY
+
+      - name: Validate focused contract suite
+        run: |
+          python -m compileall -q src/game_bridge tests/game_bridge
+          python -m unittest discover -s tests/game_bridge -v
+
+      - name: Commit scoped fix
+        run: |
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/game_bridge/contract.py tests/game_bridge/test_contract.py
+          git commit -m "fix(game-bridge): harden CLI workspace paths"
+          git push origin HEAD:codex/storycore-game-contract-v0.1
