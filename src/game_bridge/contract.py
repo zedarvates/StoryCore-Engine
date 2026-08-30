@@ -537,6 +537,8 @@ def _load_json(path: Path) -> dict[str, Any]:
 def _write_json(path: Path, value: Mapping[str, Any]) -> None:
     """Write a fixed-name output without following a final-component symlink."""
 
+    if path.is_symlink():
+        _fail(str(path), "refuses to replace a symbolic link")
     flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
     if hasattr(os, "O_NOFOLLOW"):
         flags |= os.O_NOFOLLOW
@@ -579,7 +581,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "--output-dir",
             must_be_dir=True,
         )
-        # Output filenames are constants, never user-controlled path components.
+        # Output filenames are constants, never user-controlled components.
         manifest_path = output_dir / "storycore_game_manifest.json"
         evidence_path = output_dir / "storycore_game_evidence.json"
         manifest, evidence = compile_spec(_load_json(input_path))
