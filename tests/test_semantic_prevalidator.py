@@ -34,6 +34,7 @@ def test_high_score_passes_without_defect_signal(tmp_path):
     assert result.verdict == SemanticVerdict.PASS
     assert result.score == 0.92
     assert result.provider_id == "fake-viclip"
+    assert result.metadata["semantic_cache_hit"] is False
 
 
 def test_defect_signal_forces_escalation_even_with_high_score(tmp_path):
@@ -78,22 +79,45 @@ def test_cache_avoids_duplicate_provider_call(tmp_path):
     clip = _clip(tmp_path)
     first = gate.validate("A scene", clip)
     second = gate.validate("A scene", clip)
-    assert first == second
+    assert first.verdict == second.verdict
+    assert first.score == second.score
+    assert second.metadata["semantic_cache_hit"] is True
     assert scorer.calls == 1
 
 
-def test_changed_defect_signals_recompute_verdict_without_semantic_pass(tmp_path):
+def test_changed_defect_signals_reuse_semantic_score_and_recompute_verdict(tmp_path):
     scorer = FakeScorer(0.9)
     gate = SemanticPrevalidator(scorer)
     clip = _clip(tmp_path)
     assert gate.validate("A scene", clip).verdict == SemanticVerdict.PASS
     escalated = gate.validate("A scene", clip, defect_signals=["camera_mismatch"])
     assert escalated.verdict == SemanticVerdict.ESCALATE
+    assert escalated.metadata["semantic_cache_hit"] is True
+    assert scorer.calls == 1
+
+
+def test_force_refresh_calls_provider_again(tmp_path):
+    scorer = FakeScorer(0.9)
+    gate = SemanticPrevalidator(scorer)
+    clip = _clip(tmp_path)
+    gate.validate("A scene", clip)
+    refreshed = gate.validate("A scene", clip, force_refresh=True)
     assert scorer.calls == 2
+    assert refreshed.metadata["semantic_cache_hit"] is False
 
 
 def test_score_out_of_range_is_uncertain(tmp_path):
     gate = SemanticPrevalidator(FakeScorer(1.5))
     result = gate.validate("A scene", _clip(tmp_path))
     assert result.verdict == SemanticVerdict.UNCERTAIN
+    assert result.score is None
     assert "score_out_of_range" in result.reasons
+
+
+def test_non_finite_scores_are_uncertain(tmp_path):
+    clip = _clip(tmp_path)
+    for value in (float("nan"), float("inf"), float("-inf")):
+        result = SemanticPrevalidator(FakeScorer(value)).validate("A scene", clip)
+        assert result.verdict == SemanticVerdict.UNCERTAIN
+        assert result.score is None
+        assert "score_out_of_range" in result.reasons
