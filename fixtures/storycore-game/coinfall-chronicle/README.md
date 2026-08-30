@@ -45,6 +45,19 @@ Open `godot/project.godot` with Godot 4.2 or newer and run the main scene.
 - Recover at least five runes and reach 100 points within twelve drops.
 - Press R to restart.
 
+The automated quest smoke can be reproduced with a trusted Godot binary:
+
+```bash
+godot --headless \
+  --path fixtures/storycore-game/coinfall-chronicle/godot \
+  --script res://SmokeTest.gd
+```
+
+Success prints `STORYCORE_GAME_SMOKE_PASS`. The recorded acceptance run used
+the official Linux x86-64 Godot 4.7.2 binary (`ed1daf0bf`) after verifying its
+published SHA-256. Because Godot may still exit with status zero after a script
+parse error, automation must also reject `SCRIPT ERROR` and `ERROR:` in its log.
+
 ## Acceptance gate
 
 | Check | Local status | Promotion requirement |
@@ -52,8 +65,10 @@ Open `godot/project.godot` with Godot 4.2 or newer and run the main scene.
 | Strict contract and negative cases | Automated | All unit tests pass |
 | Deterministic manifest and evidence | Automated | Checked-in outputs match |
 | Manifest tamper detection | Automated | Modified content is rejected |
-| Godot import and script parse | Pending runtime | Godot 4.2 self-hosted job passes |
-| Full quest play-through | Pending runtime | Automated or recorded smoke test passes |
+| Godot import and script parse | Passed on 4.7.2 | Repeat on an isolated trusted runner |
+| Full quest play-through | Automated smoke passed | `STORYCORE_GAME_SMOKE_PASS` is present |
 | Private/public boundary | Automated + review | No private component or secret is present |
 
-The fixture must remain experimental until the two Godot runtime checks pass.
+The fixture remains experimental until the Quality Gate and human boundary
+review also pass. Never run public fork code on a self-hosted runner carrying
+personal, signing, deployment, or production credentials.
