@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any, Mapping, Sequence
@@ -21,6 +22,7 @@ COMPILER_ID = "storycore-game-bridge/0.1"
 _ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 _LOCALE_PATTERN = re.compile(r"^[a-z]{2}(?:-[A-Z]{2})?$")
 _GODOT_VERSION_PATTERN = re.compile(r"^4\.\d+(?:\.\d+)?$")
+_CLI_RELATIVE_PATH_PATTERN = re.compile(r"^[A-Za-z0-9._/-]+$")
 _ACTORS_PATH = "spec.actors"
 _ITEMS_PATH = "spec.items"
 _OBJECTIVES_PATH = "spec.quest.objectives"
@@ -486,19 +488,30 @@ def verify_manifest(manifest: Mapping[str, Any]) -> bool:
     )
 
 
+def _require_relative_cli_path(value: str, label: str) -> Path:
+    """Accept only an allowlisted workspace-relative CLI path."""
+
+    if not value or not _CLI_RELATIVE_PATH_PATTERN.fullmatch(value):
+        _fail(label, "must be an allowlisted workspace-relative path")
+    candidate = Path(value)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        _fail(label, "must be an allowlisted workspace-relative path")
+    return candidate
+
+
 def _resolve_workspace_path(
     candidate: Path,
     workspace_root: Path,
     label: str,
     *,
     must_be_file: bool = False,
+    must_be_dir: bool = False,
 ) -> Path:
-    """Resolve a CLI path without allowing workspace or symlink escape."""
+    """Resolve a validated relative path without allowing symlink escape."""
 
     try:
         root = workspace_root.resolve(strict=True)
-        unresolved = candidate if candidate.is_absolute() else root / candidate
-        resolved = unresolved.resolve(strict=must_be_file)
+        resolved = (root / candidate).resolve(strict=True)
         relative = resolved.relative_to(root)
     except (OSError, RuntimeError, ValueError) as exc:
         raise ContractError(
@@ -508,6 +521,8 @@ def _resolve_workspace_path(
         _fail("workspace", "root must be a directory")
     if must_be_file and not resolved.is_file():
         _fail(label, "must reference an existing regular file")
+    if must_be_dir and not resolved.is_dir():
+        _fail(label, "must reference an existing directory")
     return root.joinpath(relative)
 
 
@@ -520,42 +535,53 @@ def _load_json(path: Path) -> dict[str, Any]:
 
 
 def _write_json(path: Path, value: Mapping[str, Any]) -> None:
+    """Write a fixed-name output without following a final-component symlink."""
+
+    flags = os.O_WRONLY | os.O_CREAT | os.O_TRUNC
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor: int | None = None
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-            encoding="utf-8",
-        )
+        descriptor = os.open(path, flags, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            descriptor = None
+            handle.write(
+                json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2)
+                + "\n"
+            )
     except OSError as exc:
         raise ContractError(f"unable to write {path}: {exc}") from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Compile a public StoryCore game specification"
     )
-    parser.add_argument("--input", required=True, type=Path)
-    parser.add_argument("--output-dir", required=True, type=Path)
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--output-dir", required=True)
     args = parser.parse_args(argv)
 
     try:
         workspace_root = Path.cwd().resolve(strict=True)
+        input_relative = _require_relative_cli_path(args.input, "--input")
+        output_relative = _require_relative_cli_path(
+            args.output_dir, "--output-dir"
+        )
         input_path = _resolve_workspace_path(
-            args.input, workspace_root, "--input", must_be_file=True
+            input_relative, workspace_root, "--input", must_be_file=True
         )
         output_dir = _resolve_workspace_path(
-            args.output_dir, workspace_root, "--output-dir"
-        )
-        manifest_path = _resolve_workspace_path(
-            output_dir / "storycore_game_manifest.json",
+            output_relative,
             workspace_root,
-            "manifest output",
+            "--output-dir",
+            must_be_dir=True,
         )
-        evidence_path = _resolve_workspace_path(
-            output_dir / "storycore_game_evidence.json",
-            workspace_root,
-            "evidence output",
-        )
+        # Output filenames are constants, never user-controlled path components.
+        manifest_path = output_dir / "storycore_game_manifest.json"
+        evidence_path = output_dir / "storycore_game_evidence.json"
         manifest, evidence = compile_spec(_load_json(input_path))
         _write_json(manifest_path, manifest)
         _write_json(evidence_path, evidence)

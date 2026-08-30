@@ -95,7 +95,12 @@ class ContractTests(unittest.TestCase):
             output = Path(directory)
 
             result = main(
-                ["--input", str(FIXTURE), "--output-dir", str(output)]
+                [
+                    "--input",
+                    str(FIXTURE.relative_to(ROOT)),
+                    "--output-dir",
+                    str(output.relative_to(ROOT)),
+                ]
             )
 
             self.assertEqual(result, 0)
@@ -108,15 +113,46 @@ class ContractTests(unittest.TestCase):
             self.assertTrue(verify_manifest(manifest))
             self.assertEqual(manifest["content_sha256"], evidence["content_sha256"])
 
-    def test_cli_rejects_paths_outside_workspace(self) -> None:
-        outside = ROOT.parent / "storycore-game-escape"
-        errors = io.StringIO()
+        def test_cli_rejects_absolute_paths(self) -> None:
+            errors = io.StringIO()
 
-        with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
-            main(["--input", str(FIXTURE), "--output-dir", str(outside)])
+            with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+                main(["--input", str(FIXTURE), "--output-dir", "fixtures"])
 
-        self.assertEqual(raised.exception.code, 2)
-        self.assertIn("must stay within workspace root", errors.getvalue())
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+        def test_cli_rejects_parent_traversal(self) -> None:
+            errors = io.StringIO()
+
+            with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+                main(
+                    [
+                        "--input",
+                        str(FIXTURE.relative_to(ROOT)),
+                        "--output-dir",
+                        "../storycore-game-escape",
+                    ]
+                )
+
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("allowlisted workspace-relative path", errors.getvalue())
+
+        def test_cli_rejects_non_allowlisted_path_characters(self) -> None:
+            errors = io.StringIO()
+
+            with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+                main(
+                    [
+                        "--input",
+                        str(FIXTURE.relative_to(ROOT)),
+                        "--output-dir",
+                        "fixtures/storycore-game/$escape",
+                    ]
+                )
+
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("allowlisted workspace-relative path", errors.getvalue())
 
     def test_checked_in_godot_inputs_match_compiler(self) -> None:
         expected_manifest, expected_evidence = compile_spec(load_fixture())
