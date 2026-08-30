@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import math
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -34,12 +35,23 @@ class SemanticValidationResult:
     metadata: dict[str, object] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class _SemanticScore:
+    score: float | None
+    reasons: tuple[str, ...]
+    metadata: dict[str, object]
+
+
 class SemanticPrevalidator:
     """Cheap semantic gate before expensive VLM/temporal validation.
 
     A semantic PASS only means the clip is text-aligned enough to avoid an
     immediate semantic escalation. It never overrides downstream structural,
     identity, safety, or temporal validators.
+
+    Semantic scoring is cached independently from external defect signals. This
+    means a newly reported identity/camera/temporal defect can force escalation
+    without re-running a potentially expensive local video encoder.
     """
 
     def __init__(
@@ -54,7 +66,7 @@ class SemanticPrevalidator:
         self.scorer = scorer
         self.pass_threshold = pass_threshold
         self.uncertain_threshold = uncertain_threshold
-        self._cache: dict[str, SemanticValidationResult] = {}
+        self._score_cache: dict[str, _SemanticScore] = {}
 
     def validate(
         self,
@@ -65,6 +77,8 @@ class SemanticPrevalidator:
         force_refresh: bool = False,
     ) -> SemanticValidationResult:
         path = Path(clip_path)
+        defects = tuple(sorted({signal.strip() for signal in defect_signals if signal.strip()}))
+
         if not shot_spec.strip():
             return SemanticValidationResult(
                 verdict=SemanticVerdict.UNCERTAIN,
@@ -72,7 +86,7 @@ class SemanticPrevalidator:
                 provider_id=self.scorer.provider_id,
                 cache_key="",
                 reasons=("empty_shot_spec",),
-                defect_signals=tuple(defect_signals),
+                defect_signals=defects,
             )
         if not path.is_file():
             return SemanticValidationResult(
@@ -81,72 +95,72 @@ class SemanticPrevalidator:
                 provider_id=self.scorer.provider_id,
                 cache_key="",
                 reasons=("clip_missing",),
-                defect_signals=tuple(defect_signals),
+                defect_signals=defects,
             )
 
         cache_key = self._make_cache_key(shot_spec, path)
-        if not force_refresh and cache_key in self._cache:
-            cached = self._cache[cache_key]
-            if tuple(defect_signals) == cached.defect_signals:
-                return cached
+        semantic = None if force_refresh else self._score_cache.get(cache_key)
+        cache_hit = semantic is not None
+        if semantic is None:
+            semantic = self._score(shot_spec, path)
+            self._score_cache[cache_key] = semantic
 
-        try:
-            score = float(self.scorer.score(shot_spec, path))
-        except Exception as exc:  # provider failure must fail safe
-            result = SemanticValidationResult(
+        if semantic.score is None:
+            return SemanticValidationResult(
                 verdict=SemanticVerdict.UNCERTAIN,
                 score=None,
                 provider_id=self.scorer.provider_id,
                 cache_key=cache_key,
-                reasons=("provider_error",),
-                defect_signals=tuple(defect_signals),
-                metadata={"error_type": type(exc).__name__},
+                reasons=semantic.reasons,
+                defect_signals=defects,
+                metadata={**semantic.metadata, "semantic_cache_hit": cache_hit},
             )
-            self._cache[cache_key] = result
-            return result
 
-        if not 0 <= score <= 1:
-            result = SemanticValidationResult(
-                verdict=SemanticVerdict.UNCERTAIN,
-                score=score,
-                provider_id=self.scorer.provider_id,
-                cache_key=cache_key,
-                reasons=("score_out_of_range",),
-                defect_signals=tuple(defect_signals),
-            )
-            self._cache[cache_key] = result
-            return result
-
-        reasons: list[str] = []
-        defects = tuple(sorted({signal.strip() for signal in defect_signals if signal.strip()}))
-
+        score = semantic.score
         if defects:
             verdict = SemanticVerdict.ESCALATE
-            reasons.append("external_defect_signal")
+            reasons = ("external_defect_signal",)
         elif score >= self.pass_threshold:
             verdict = SemanticVerdict.PASS
-            reasons.append("semantic_alignment_high")
+            reasons = ("semantic_alignment_high",)
         elif score >= self.uncertain_threshold:
             verdict = SemanticVerdict.ESCALATE
-            reasons.append("semantic_alignment_ambiguous")
+            reasons = ("semantic_alignment_ambiguous",)
         else:
             verdict = SemanticVerdict.ESCALATE
-            reasons.append("semantic_alignment_low")
+            reasons = ("semantic_alignment_low",)
 
-        result = SemanticValidationResult(
+        return SemanticValidationResult(
             verdict=verdict,
             score=score,
             provider_id=self.scorer.provider_id,
             cache_key=cache_key,
-            reasons=tuple(reasons),
+            reasons=reasons,
             defect_signals=defects,
             metadata={
                 "pass_threshold": self.pass_threshold,
                 "uncertain_threshold": self.uncertain_threshold,
+                "semantic_cache_hit": cache_hit,
             },
         )
-        self._cache[cache_key] = result
-        return result
+
+    def _score(self, shot_spec: str, path: Path) -> _SemanticScore:
+        try:
+            score = float(self.scorer.score(shot_spec, path))
+        except Exception as exc:  # provider failure must fail safe
+            return _SemanticScore(
+                score=None,
+                reasons=("provider_error",),
+                metadata={"error_type": type(exc).__name__},
+            )
+
+        if not math.isfinite(score) or not 0 <= score <= 1:
+            return _SemanticScore(
+                score=None,
+                reasons=("score_out_of_range",),
+                metadata={"raw_score": score},
+            )
+        return _SemanticScore(score=score, reasons=(), metadata={})
 
     @staticmethod
     def _make_cache_key(shot_spec: str, clip_path: Path) -> str:
