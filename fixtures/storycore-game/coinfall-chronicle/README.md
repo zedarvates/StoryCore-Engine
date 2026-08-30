@@ -33,7 +33,8 @@ python -m unittest discover -s tests/game_bridge -v
 
 The compiler writes `storycore_game_manifest.json` plus a reproducible evidence
 record. The test suite also detects when the checked-in Godot inputs drift from
-the compiler output.
+the compiler output. For path safety, CLI input and output must resolve inside
+the current workspace; symlink and `..` escapes are rejected.
 
 ## Play
 
