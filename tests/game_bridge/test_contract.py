@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stderr
 from pathlib import Path
 
 from src.game_bridge.contract import (
@@ -88,7 +90,7 @@ class ContractTests(unittest.TestCase):
             compile_spec(spec)
 
     def test_cli_writes_manifest_and_evidence(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
+        with tempfile.TemporaryDirectory(dir=ROOT) as directory:
             output = Path(directory)
 
             result = main(
@@ -104,6 +106,16 @@ class ContractTests(unittest.TestCase):
             )
             self.assertTrue(verify_manifest(manifest))
             self.assertEqual(manifest["content_sha256"], evidence["content_sha256"])
+
+    def test_cli_rejects_paths_outside_workspace(self) -> None:
+        outside = ROOT.parent / "storycore-game-escape"
+        errors = io.StringIO()
+
+        with redirect_stderr(errors), self.assertRaises(SystemExit) as raised:
+            main(["--input", str(FIXTURE), "--output-dir", str(outside)])
+
+        self.assertEqual(raised.exception.code, 2)
+        self.assertIn("must stay within workspace root", errors.getvalue())
 
     def test_checked_in_godot_inputs_match_compiler(self) -> None:
         expected_manifest, expected_evidence = compile_spec(load_fixture())
