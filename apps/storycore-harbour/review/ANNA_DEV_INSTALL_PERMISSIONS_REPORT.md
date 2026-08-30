@@ -32,6 +32,28 @@ test**, create an immutable version, or repair the existing dev-install record
 server-side. Do not cut `0.1.0`, reinstall, uninstall, or change permissions as
 a diagnostic shortcut.
 
+## Public guidance checked on 2026-08-30
+
+Current Anna guidance is not unambiguous enough to choose a destructive or
+immutable workaround:
+
+- the beginner publishing guide describes a working draft as testable, but its
+  permission walkthrough says to cut a version and then install it;
+- an Anna Forum team response separately instructs developers to install a
+  working draft from Developer Console;
+- the beta.126 changelog calls `0.0.0-draft` a projection row and explicitly
+  excludes it from release-candidate selection.
+
+Sources:
+
+- <https://forum.anna.partners/t/from-zero-to-your-first-anna-app-a-hands-on-beginners-guide/117>
+- <https://forum.anna.partners/t/need-urgent-help-facing-multiple-critical-bugs-with-my-anna-app-build-related-to-host-upload-permission/133/2>
+- <https://forum.anna.partners/t/anna-1-1-0-beta-123-beta-126-self-serve-developer-activation-4-core-cloud-agents-a-smoother-publish-pipeline/219>
+
+This conflict reinforces the support question below. It does not justify
+cutting `0.1.0` while StoryCore's measured reliability gate remains below
+18/20.
+
 ## Safety boundary
 
 - **Install & test** was not clicked again because StoryCore is already listed.
