@@ -103,6 +103,12 @@ without addressing the failure.
 
 Do not cut `0.1.0`, submit for review, mark PR #37 ready, merge, or release while the official gate remains below 18/20. The latest measured Gemma run is 15/20 and the latest Anna-default run is 6/20. The App is demonstrable and its working draft is reserved, but it is not submission-ready under the repository's own rules.
 
+The owner-authorized 2026-08-31 Gemma rerun after the schema-complete repair
+also measured 15/20 (median 23.90 seconds, p95 44.00 seconds, 7 repaired
+passes). A01 failed at transport; A06/A08/A15/A20 returned complete but
+syntactically invalid JSON. This supersedes the 27 August Gemma run as the
+latest real evidence without changing the submission decision.
+
 ### Anna installation diagnosis
 
 - Developer Console shows the working draft as `v0.0.0`, `WORKING`, and `Unpublished`;
