@@ -16,13 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+      - name: Materialize exact PR commit without git submodule cleanup
+        env:
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            "https://codeload.github.com/${REPOSITORY}/tar.gz/${SHA}" \
+            | tar -xz --strip-components=1
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-          cache: pip
       - name: Install targeted test dependency
         run: python -m pip install --disable-pip-version-check pytest
       - name: Compile targeted module
