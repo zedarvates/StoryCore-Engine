@@ -14,9 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
+      - name: Materialize exact commit without git submodule cleanup
+        env:
+          REPOSITORY: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            "https://codeload.github.com/${REPOSITORY}/tar.gz/${SHA}" \
+            | tar -xz --strip-components=1
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
