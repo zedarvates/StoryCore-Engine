@@ -1,0 +1,28 @@
+name: Semantic Prevalidator Proof
+
+on:
+  push:
+    branches: [codex/semantic-video-prevalidator]
+    paths:
+      - '.github/workflows/semantic-prevalidator-proof.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  proof:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pytest
+        run: python -m pip install --disable-pip-version-check pytest
+      - name: Compile targeted module
+        run: python -m compileall -q src/video_validation tests/test_semantic_prevalidator.py
+      - name: Run targeted semantic gate
+        run: python -m pytest -q tests/test_semantic_prevalidator.py
