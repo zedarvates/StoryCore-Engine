@@ -244,3 +244,32 @@ footer {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
+@media (forced-colors: active) {
+  button:focus, input:focus, select:focus, textarea:focus {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline-color: Highlight;
+  }
+  .step.active {
+    color: HighlightText;
+    background: Highlight;
+    outline: 2px solid Highlight;
+    outline-offset: -3px;
+  }
+  button:disabled {
+    opacity: 1;
+    color: GrayText;
+    border-color: GrayText;
+    border-style: dashed;
+  }
+  .message.error, .error-panel, .deletion-status.error {
+    color: CanvasText;
+    border: 2px solid CanvasText;
+  }
+  .deletion-status.warning { border-style: dashed; }
+  .deletion-status.success { border-style: double; }
+  button.danger-outline.armed { outline: 3px double CanvasText; }
+  .score { border-color: CanvasText; }
+}
