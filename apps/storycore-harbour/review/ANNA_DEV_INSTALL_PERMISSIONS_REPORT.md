@@ -1,6 +1,8 @@
 # Anna working-draft installation permissions report
 
-Prepared on 2026-08-29. This report is local and has not been sent.
+Prepared on 2026-08-29. An owner-approved combined support email was sent to
+`hi@anna.partners` on 2026-09-05 with this installation question and the direct
+structured-output question. No attachment or generated private result was sent.
 
 ## Observed state
 
@@ -62,6 +64,9 @@ cutting `0.1.0` while StoryCore's measured reliability gate remains below
   or storage quota was consumed.
 
 ## Ready-to-send support question
+
+Sent in the combined 2026-09-05 support email. Do not send a duplicate while a
+reply is pending.
 
 ```text
 Hi Anna team — StoryCore Harbour (App id 214) has a ready working draft at r12

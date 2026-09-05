@@ -1,7 +1,9 @@
 # Anna direct Host LLM structured-output request
 
-Prepared on 2026-09-01. This is a support-question and bounded-probe plan; it
-has not been sent and no model call was made for this investigation.
+Prepared on 2026-09-01. An owner-approved combined support email was sent to
+`hi@anna.partners` on 2026-09-05 with this question and the working-draft
+permission issue. No attachment or generated private result was sent, and no
+model call was made for this investigation.
 
 ## StoryCore evidence
 
@@ -55,6 +57,9 @@ Sources checked:
 - <https://forum.anna.partners/>
 
 ## Ready-to-send question
+
+Sent in the combined 2026-09-05 support email. Do not send a duplicate while a
+reply is pending.
 
 ```text
 Hi Anna team — StoryCore Harbour is a Schema 2 Host-API-only App using direct
