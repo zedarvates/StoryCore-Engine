@@ -83,3 +83,17 @@ working-draft Install & test record?
 We have not reinstalled, uninstalled, changed grants, cut a version, submitted
 review, or published anything.
 ```
+
+## 2026-09-05 CLI 0.1.51 read-only check
+
+Anna CLI 0.1.51 adds a richer `apps grants` reader that first queries the App
+permissions endpoint and normally reports `satisfied`, `missing`, and bundled
+Executa grants. Running that command ephemerally against StoryCore Harbour still
+returned only `grants: null`, with none of those permissions fields. This is
+consistent with the Console's `App version not found` result: the improved CLI
+cannot resolve permissions for the existing `v0.0.0-dev` record either.
+
+The CLI was not added to the project, no grant was changed, and the temporary
+package inspection directory was removed. Version 0.1.51 does not provide a
+grant mutation command; the dashboard remains the documented permission-change
+surface.

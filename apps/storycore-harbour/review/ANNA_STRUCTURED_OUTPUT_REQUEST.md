@@ -87,3 +87,13 @@ Do not add an undocumented field to production or consume quota until Anna
 confirms the direct Host API contract. If confirmed, implement the smallest
 adapter-only opt-in and run one previously failing prompt first. A complete
 corpus requires separate owner quota approval after that pilot succeeds.
+
+## 2026-09-05 refresh
+
+No newer public Anna reference or forum answer was found that adds
+`responseFormat` to direct iframe `anna.llm.complete`. Anna CLI 0.1.51 was
+inspected without installation into the project. Its real sampling bridge
+negotiates `responseFormat` and forwards `response_format`, but its direct App
+LLM bridge still exposes no structured-output contract. Do not upgrade the
+pinned CLI merely for this issue and do not send an undocumented field to the
+production endpoint.
