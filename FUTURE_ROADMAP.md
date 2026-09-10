@@ -91,3 +91,31 @@ A dynamic-residency optimization graduates only if it improves at least one usef
 ---
 **Maintained by:** StoryCore-Engine Team  
 **Last Updated:** August 22, 2026
+
+## 6. Scientific transfer: structural drawing and physical consistency (2026-09-10)
+
+**Planned.** This work follows existing resource admission and render stability
+gates; it does not enable a new generation workflow.
+
+- [ ] Define a versioned storyboard input carrying strokes, contours, junctions, perspective constraints, coordinate frames, stable identities and provenance.
+- [ ] Reuse Human Skills practice outputs and CogniARC structural critique; distinguish practiced trajectories from fitted reference curves.
+- [ ] Compare unchanged, random-correction and targeted-correction storyboards on held-out compositions with equal action/render budgets.
+- [ ] Measure junction/outline preservation, proportions, camera consistency and identity drift separately from visual style.
+- [ ] Test bounded brush-style controls after structural quality passes, using [Procedural Brush Synthesis](https://users.cg.tuwien.ac.at/zsolnai/gfx/procedural-brush-synthesis-paper/) and [DiffVG](https://people.csail.mit.edu/tzumao/diffvg/) as individually sourced methods.
+- [ ] Add offline physical-consistency fixtures for motion and contact only after numerical reference validation; compare persistent/constant-velocity predictions before introducing a learned predictor.
+
+**First implementation:** a tiny synthetic storyboard fixture and validator for
+strokes, frames and identities, reusing existing project schemas where possible.
+No external assets, model weights or generation services are required for that
+contract experiment.
+
+**Acceptance:** reproducible improvement on reserved compositions, intact
+identities and camera/geometry constraints, recorded failures and measured
+resource use on stated hardware. Reference curve fitting alone is not evidence
+of learned drawing skill; a physically plausible-looking clip is not a physics
+validation.
+
+Physical prerequisite:
+[CogniARC's initial particle-neighbour reference and limits](https://github.com/zedarvates/cogniarc/blob/a4aac4a5f42e546c4a4ad777c508e4a1b0f0f136/experiments/particle_graph/README.md).
+That implementation is separate from StoryCore and is not a calibrated water
+simulator or a generation integration.
