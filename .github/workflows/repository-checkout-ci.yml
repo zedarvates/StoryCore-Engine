@@ -1,0 +1,19 @@
+name: Repository Checkout CI
+
+on:
+  pull_request:
+    paths:
+      - 'GemReward-Service-Repo'
+      - '.gitmodules'
+      - '.github/workflows/repository-checkout-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
