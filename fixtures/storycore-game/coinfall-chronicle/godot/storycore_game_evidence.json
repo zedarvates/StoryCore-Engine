@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "strict-schema",
+    "localized-text-complete",
+    "unique-identifiers",
+    "references-resolved",
+    "public-private-boundary",
+    "deterministic-content-hash"
+  ],
+  "content_sha256": "a75e7e506f27cee8e6bec9bcb65054ad264808c3c01508ee4de3e8645196c43a",
+  "contract_version": "0.1",
+  "input_sha256": "6d20fa71aa0ad3d6c722e03bb38c29435acd3815f69cbb5e6701daa37b7d3a81",
+  "manifest_sha256": "21359cddd04a857dcee60c8ba9f320e3edc7d389a22dd61867318898201e1614",
+  "status": "pass"
+}
