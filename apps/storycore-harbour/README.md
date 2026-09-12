@@ -67,6 +67,12 @@ npm run dev:mock
 
 `npm install` also generates the bundle copy of the canonical acceptance corpus. `npm run check` runs the tests, contract, mock response, acceptance corpus/synchronization, and strict Anna validator.
 
+With the mock Anna harness already running, set `BROWSER_EXECUTABLE` to Edge or
+another compatible Chromium binary and run `npm run browser:check`. This runs
+the complete generation/export smoke and the storage-deletion smoke
+sequentially. Do not run them in parallel against one mock harness because the
+fixture stream is shared.
+
 For the real-model protocol, follow `acceptance/README.md`. Do not run the collector without an authenticated Anna test account, an enabled model, sufficient quota, and explicit confirmation in its UI.
 
 ## Release identity
