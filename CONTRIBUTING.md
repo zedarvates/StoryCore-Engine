@@ -8,7 +8,7 @@ Thank you for your interest in contributing to StoryCore Engine! This document p
 
 ### Prerequisites
 
-- Node.js 18+ and npm
+- Node.js compatible with the component's package and lockfile (22+ for Harbour), and npm
 - Python 3.11+
 - Git
 - Docker (optional, for containerized development)
@@ -17,32 +17,32 @@ Thank you for your interest in contributing to StoryCore Engine! This document p
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-org/storycore-engine.git
-   cd storycore-engine
+   git clone https://github.com/zedarvates/StoryCore-Engine.git
+   cd StoryCore-Engine
    ```
 
 2. **Install Python dependencies**
    ```bash
    pip install -r requirements.txt
-   pip install -r requirements-dev.txt
    ```
+
+   Test dependencies are declared in `requirements.txt`; there is no separate
+   `requirements-dev.txt` in this revision.
 
 3. **Install Node.js dependencies**
    ```bash
-   cd creative-studio-ui
-   npm install
+   npm --prefix creative-studio-ui ci
    ```
 
 4. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
+   Configure the services you use from the settings declared in
+   [`backend/config.py`](backend/config.py). There is no committed
+   `.env.example` to copy. Keep local credentials out of Git.
 
 5. **Run the application**
    ```bash
-   # Start backend
-   python src/main_api.py
+   # Start backend from the repository root (default port 8080)
+   python -m backend.main_api
    
    # Start frontend (in another terminal)
    cd creative-studio-ui
@@ -61,11 +61,9 @@ storycore-engine/
 │   │   ├── hooks/               # Custom hooks
 │   │   └── utils/               # Utility functions
 │   └── public/                  # Static assets
-├── src/                          # Backend (Python/FastAPI)
-│   ├── api/                     # API routes
-│   ├── services/                # Business logic
-│   ├── models/                  # Data models
-│   └── utils/                   # Utilities
+├── backend/                     # FastAPI entry point and API modules
+├── src/                         # Engine packages, API framework, and services
+├── apps/storycore-harbour/       # Anna App; follow its own AGENTS.md and package scripts
 ├── electron/                    # Electron desktop app
 ├── tests/                       # Test files
 └── docs/                        # Documentation
@@ -76,7 +74,6 @@ storycore-engine/
 ### Branching Strategy
 
 - `main` - Production-ready code
-- `develop` - Integration branch for features
 - `feature/*` - Feature branches
 - `fix/*` - Bug fix branches
 - `hotfix/*` - Critical bug fixes
@@ -106,7 +103,7 @@ storycore-engine/
    ```
 
 5. **Create a Pull Request**
-   - Target: `develop` branch
+   - Target: `main` branch (or the explicit base of a stacked PR)
    - Include description of changes
    - Link to related issues
    - Request review from maintainers
@@ -169,9 +166,11 @@ git commit -m "docs: update API documentation"
 ```bash
 cd creative-studio-ui
 npm test              # Run all tests
-npm test -- --watch  # Run in watch mode
-npm run coverage      # Generate coverage report
+npm run test:watch    # Run in watch mode
+npm run lint          # Run the declared ESLint command
 ```
+
+No `coverage` script is currently declared in `creative-studio-ui/package.json`.
 
 ### Backend Tests
 
@@ -274,10 +273,9 @@ When suggesting features:
 ## 🔗 Additional Resources
 
 - [Architecture Documentation](ARCHITECTURE.md)
-- [API Documentation](docs/API.md)
+- [API Usage Guide](src/api/API_USAGE_GUIDE.md)
 - [Development Setup Guide](docs/DEVELOPMENT.md)
-- [Style Guide](docs/STYLE.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Harbour Instructions](apps/storycore-harbour/AGENTS.md)
 
 ## 🙏 Thank You!
 
@@ -285,4 +283,4 @@ Thank you for contributing to StoryCore Engine! Your contributions help make thi
 
 ---
 
-*Last updated: 2026-05-05*
+*Last updated: 2026-09-09*

@@ -1,0 +1,119 @@
+{
+  "schema": "botte.rules-manifest/v1",
+  "rules": [
+    {
+      "id": "harbour.repair-source-only",
+      "action": "repair-context",
+      "effect": "REQUIRE",
+      "scope": [
+        "harbour-repair-request"
+      ],
+      "statement": "repair validation errors contain only the fixed categories\n`json_invalid` and `contract_invalid`; the exact normalized user input remains\nthe reconstruction source.",
+      "source_ref": "apps/storycore-harbour/DECISIONS.md#ADR-023",
+      "owner_only": false,
+      "enforced": true,
+      "enforcement_refs": [
+        "apps/storycore-harbour/bundle/repair-prompt.js#const validationErrors = [...new Set(errors.map(error => (",
+        "apps/storycore-harbour/bundle/app.js#createRepairPrompt(input, errors)"
+      ],
+      "probes": [
+        {
+          "id": "harbour.repair-source-only.allow",
+          "polarity": "allow",
+          "evidence_ref": "apps/storycore-harbour/tests/repair-prompt.test.mjs#repair rebuilds from the exact user input without carrying truncated model output"
+        },
+        {
+          "id": "harbour.repair-source-only.deny",
+          "polarity": "deny",
+          "evidence_ref": "apps/storycore-harbour/tests/repair-prompt.test.mjs#repair excludes model-derived text in parser and reference diagnostics"
+        }
+      ],
+      "supersedes": [],
+      "last_verified": {
+        "at": "2026-09-09T05:21:49+00:00",
+        "content_sha256": "ee1a2f6819fc9282355b5e97900c261e671d8c62863c722531cb20d98ebb3166",
+        "evidence_ref": ".botte/engine.md#Verification boundary"
+      }
+    },
+    {
+      "id": "harbour.project-references",
+      "action": "project-validation",
+      "effect": "REQUIRE",
+      "scope": [
+        "harbour-project-contract"
+      ],
+      "statement": "all referenced character and location IDs must exist;",
+      "source_ref": "apps/storycore-harbour/ARCHITECTURE.md#all referenced character and location IDs must exist;",
+      "owner_only": false,
+      "enforced": true,
+      "enforcement_refs": [
+        "apps/storycore-harbour/bundle/project-contract.js#if (isText(id) && !knownIds.has(id)) {",
+        "apps/storycore-harbour/bundle/project-contract.js#if (isText(id) && !characterIds.has(id)) {",
+        "apps/storycore-harbour/bundle/project-contract.js#if (isText(scene.locationId) && !context.locationIds.has(scene.locationId)) {"
+      ],
+      "probes": [
+        {
+          "id": "harbour.project-references.allow",
+          "polarity": "allow",
+          "evidence_ref": "apps/storycore-harbour/tests/contracts.test.mjs#sample project passes the contract"
+        },
+        {
+          "id": "harbour.project-references.deny",
+          "polarity": "deny",
+          "evidence_ref": "apps/storycore-harbour/tests/contracts.test.mjs#unknown scene location is rejected"
+        },
+        {
+          "id": "harbour.project-references.deny-scene-character",
+          "polarity": "deny",
+          "evidence_ref": "apps/storycore-harbour/tests/contracts.test.mjs#unknown scene character is rejected"
+        },
+        {
+          "id": "harbour.project-references.deny-shot-character",
+          "polarity": "deny",
+          "evidence_ref": "apps/storycore-harbour/tests/contracts.test.mjs#unknown shot character is rejected"
+        }
+      ],
+      "supersedes": [],
+      "last_verified": {
+        "at": "2026-09-09T05:21:49+00:00",
+        "content_sha256": "aaed2b94d47a6089dac53d1df74223fb52eea8e4c80e89dab9c68322ec94b414",
+        "evidence_ref": ".botte/engine.md#Verification boundary"
+      }
+    },
+    {
+      "id": "harbour.public-acceptance-redaction",
+      "action": "acceptance-summary",
+      "effect": "REQUIRE",
+      "scope": [
+        "harbour-evaluator-public-output"
+      ],
+      "statement": "Redact model-derived validation text and unknown identifiers from evaluator output.",
+      "source_ref": "apps/storycore-harbour/CODEX_TASKS.md#Redact model-derived validation text and unknown identifiers from evaluator output.",
+      "owner_only": false,
+      "enforced": true,
+      "enforcement_refs": [
+        "apps/storycore-harbour/scripts/evaluate-acceptance.mjs#function publicPromptId(value) {",
+        "apps/storycore-harbour/scripts/evaluate-acceptance.mjs#return PUBLIC_CATEGORIES.has(value) ? value : \"unknown\";",
+        "apps/storycore-harbour/scripts/evaluate-acceptance.mjs#reasonCount: Array.isArray(failure.reasons) ? failure.reasons.length : 0,"
+      ],
+      "probes": [
+        {
+          "id": "harbour.public-acceptance-redaction.allow",
+          "polarity": "allow",
+          "evidence_ref": "apps/storycore-harbour/tests/acceptance-public-output.test.mjs#public acceptance output strips model-derived validation text"
+        },
+        {
+          "id": "harbour.public-acceptance-redaction.deny",
+          "polarity": "deny",
+          "evidence_ref": "apps/storycore-harbour/tests/acceptance-public-output.test.mjs#public acceptance output replaces unknown identifiers and categories"
+        }
+      ],
+      "supersedes": [],
+      "last_verified": {
+        "at": "2026-09-09T05:21:49+00:00",
+        "content_sha256": "455c248ffa202f2b885f33ebe4f4decc71ea6808da63fb07dbaa46e2731276a8",
+        "evidence_ref": ".botte/engine.md#Verification boundary"
+      }
+    }
+  ]
+}
