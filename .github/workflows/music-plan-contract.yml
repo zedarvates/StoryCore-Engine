@@ -9,6 +9,7 @@ on:
       - "src/music_provider.py"
       - "tests/test_music_plan.py"
       - "tests/fixtures/music_plan/**"
+      - "docs/music-planning-layer-v1.md"
       - ".github/workflows/music-plan-contract.yml"
 
 permissions:
