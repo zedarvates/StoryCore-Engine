@@ -1,6 +1,6 @@
 # StoryCore Music Planning Layer v1
 
-Status: **draft contract; provider-agnostic; non-generating by itself**.
+Status: **experimental contract; provider-neutral; no provider activated**.
 
 ## Goal
 
@@ -15,7 +15,7 @@ story / scene / shot intent
 music brief
         |
         v
-MusicPlan v1  <---- human/agent edits and validation
+MusicPlan v1  <---- human/agent edits and deterministic validation
         |
         +----> provider adapter A
         +----> provider adapter B
@@ -72,7 +72,19 @@ Only the narrative music brief is binding. This keeps a direct-generation
 baseline available for comparison. It must not be labelled equivalent to a
 `full` render.
 
-## Provider boundary
+## Deterministic validation before inference
+
+The model-free validator checks the invariants that JSON Schema alone cannot
+express: positive bounded duration, ordered non-overlapping sections, unique
+IDs, resolved motif references, cues inside duration, and the commercial
+licence boundary. No LLM, music model, network request, or weight download is
+needed for this gate.
+
+The reference fixtures cover the `full`, `guided`, and `free` modes so future
+providers are compared against the same small contracts rather than ad-hoc
+prompts.
+
+## Provider boundary and explicit degradation
 
 Provider adapters translate `MusicPlan` into provider-specific inputs and return
 an execution report containing at least:
@@ -80,6 +92,7 @@ an execution report containing at least:
 - requested mode;
 - executed mode;
 - unsupported/dropped fields;
+- an explicit reason when requested state cannot be preserved;
 - model/provider identifier and version when available;
 - model-weights licence and code licence separately;
 - deterministic parameters or seed when supported;
@@ -87,8 +100,17 @@ an execution report containing at least:
 - runtime/hardware observations when measured;
 - validation evidence references.
 
-The provider adapter cannot promote its own output to last-known-good. Promotion
-belongs to a separate validation/harness step.
+The deterministic `MockMusicProvider` proves this contract without performing
+inference. A fully capable mock keeps the requested state unchanged. A limited
+mock may fall back, for example from `full` to `guided`, but the delta and
+unsupported fields are exposed and a non-empty degradation reason is mandatory.
+A changed execution state without that reason fails closed.
+
+The provider result remains a **candidate**. The mock contract explicitly keeps
+`activation_allowed=false`, `promoted=false`, and
+`executed_external_model=false`. The provider adapter cannot promote its own
+output to last-known-good; promotion belongs to a separate validation/harness
+step.
 
 ## Commercial-use boundary
 
@@ -112,11 +134,11 @@ adapted without making its restricted weights a production dependency.
 2. Licence/provenance gate.
 3. Plan-level checks: duration, section ordering, cue references and bounded
    values.
-4. Adapter execution with explicit requested/executed delta.
-5. Technical audio checks.
+4. Adapter preparation with explicit requested/executed delta.
+5. Technical audio checks after a real provider exists.
 6. Narrative checks: cue timing, dialogue masking, motif/scene consistency.
 7. Optional human review.
-8. Promotion to last-known-good only with evidence.
+8. Promotion to last-known-good only with independent evidence.
 
 A failure keeps the candidate and diagnostics for comparison but leaves the
 previous verified artefact intact.
@@ -140,15 +162,16 @@ Minimum measures should include:
 A cheaper or smaller generator can therefore win when its harness better obeys
 the plan.
 
-## First implementation slice
+## Current proof boundary
 
-1. Land the provider-neutral JSON schema.
-2. Create three tiny synthetic fixtures: `full`, `guided`, `free`.
-3. Add a validator that never invokes a music model.
-4. Add one adapter interface with a mock provider first.
-5. Only then evaluate external music backends.
-6. Keep all external-model activation opt-in until real comparison evidence
-   exists.
+The isolated `MusicPlan Contract` workflow compiles `src/music_plan.py` and
+`src/music_provider.py`, runs the focused contract tests, and parses the schema
+and fixtures on Python 3.10 and 3.12. Claims about this slice must remain bound
+to an exact-head successful run.
+
+This slice does **not** generate music, benchmark audio quality, choose a
+production provider, download weights, call a remote service, authorize a
+release, or authorize a merge.
 
 ## Relationship to the Botte Secrète Execution Harness
 
@@ -165,3 +188,10 @@ When StoryCore runs under Botte Secrète, map:
 
 StoryCore must remain usable without Botte; the interchange should stay a small
 JSON/data contract rather than importing Botte as a hard runtime dependency.
+
+## Next bounded slice
+
+Define a provider-neutral handoff/evidence envelope carrying the execution delta,
+provider/harness/hardware identity, candidate artifact reference, verification
+state, and explicit non-activation/non-promotion flags. Only after that envelope
+is proven should a real local or external music backend be measured.
