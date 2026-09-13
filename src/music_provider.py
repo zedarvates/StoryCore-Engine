@@ -8,7 +8,7 @@ plan. It never promotes artifacts, downloads weights, or performs network I/O.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterable
 
 from src.music_plan import execution_delta, validate_music_plan
 
@@ -49,6 +49,70 @@ class ProviderResult:
             "promoted": self.promoted,
             "executed_external_model": self.executed_external_model,
         }
+
+
+def build_provider_handoff(
+    result: ProviderResult,
+    *,
+    provider_version: str = "",
+    model: str = "",
+    harness: str = "music-plan-v1",
+    hardware: str = "",
+    input_digest: str = "",
+    candidate_digest: str = "",
+    evidence_refs: Iterable[str] = (),
+    verification_state: str = "unverified",
+) -> dict[str, Any]:
+    """Build a data-only interchange envelope for a later validation harness.
+
+    This function does not import Botte Secrète, execute a provider, promote an
+    artifact, or write memory. It merely carries the bounded provider outcome
+    and provenance dimensions that another harness may verify independently.
+    """
+    allowed_states = {"unverified", "partially_verified", "verified", "failed"}
+    if verification_state not in allowed_states:
+        raise MusicProviderContractError("unsupported verification_state")
+    refs = tuple(str(ref) for ref in evidence_refs if str(ref).strip())
+    if verification_state == "verified" and not refs:
+        raise MusicProviderContractError("verified handoff requires evidence references")
+    if result.artifact_status != "candidate":
+        raise MusicProviderContractError("provider handoff accepts candidate artifacts only")
+    if result.activation_allowed or result.promoted:
+        raise MusicProviderContractError("provider result cannot carry activation or promotion authority")
+
+    return {
+        "schema_version": "storycore.music-provider-handoff/v1",
+        "plan_id": result.requested_plan_id,
+        "provider": {
+            "id": result.provider_id,
+            "version": provider_version,
+            "model": model,
+            "harness": harness,
+            "hardware": hardware,
+        },
+        "execution": {
+            "requested_mode": result.requested_mode,
+            "executed_mode": result.executed_mode,
+            "unsupported_fields": list(result.unsupported_fields),
+            "deltas": list(result.deltas),
+            "reason": result.reason,
+            "acknowledged": result.acknowledged,
+            "executed_external_model": result.executed_external_model,
+        },
+        "artifact": {
+            "id": result.artifact_id,
+            "status": result.artifact_status,
+            "input_digest": input_digest,
+            "candidate_digest": candidate_digest,
+        },
+        "verification": {
+            "state": verification_state,
+            "evidence_refs": list(refs),
+        },
+        "activation_allowed": False,
+        "promoted": False,
+        "memory_write_performed": False,
+    }
 
 
 class MockMusicProvider:
@@ -115,4 +179,5 @@ __all__ = [
     "MockMusicProvider",
     "MusicProviderContractError",
     "ProviderResult",
+    "build_provider_handoff",
 ]
