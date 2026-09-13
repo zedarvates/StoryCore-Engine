@@ -8,6 +8,7 @@ on:
       - "src/music_plan.py"
       - "src/music_provider.py"
       - "scripts/music_plan_mutation_probe.py"
+      - "scripts/music_plan_holdout_evaluator.py"
       - "tests/test_music_plan.py"
       - "tests/fixtures/music_plan/**"
       - "docs/music-planning-layer-v1.md"
@@ -30,11 +31,29 @@ jobs:
       - name: Install focused validation dependencies
         run: python -m pip install 'pytest>=8,<10' 'jsonschema>=4.23,<5'
       - name: Compile model-free contracts
-        run: python -m py_compile src/music_plan.py src/music_provider.py scripts/music_plan_mutation_probe.py
+        run: python -m py_compile src/music_plan.py src/music_provider.py scripts/music_plan_mutation_probe.py scripts/music_plan_holdout_evaluator.py
       - name: Run MusicPlan contract tests
         run: python -m pytest -q tests/test_music_plan.py
       - name: Run controlled negative mutation probe
         run: python -m scripts.music_plan_mutation_probe
+      - name: Verify private holdout evaluator protocol
+        run: |
+          python - <<'PY'
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+
+          plan = json.loads(Path('tests/fixtures/music_plan/full.json').read_text(encoding='utf-8'))
+          request = {"id": "public-protocol-smoke", "input": {"plan": plan, "expected_valid": True}}
+          r = subprocess.run(
+              [sys.executable, '-m', 'scripts.music_plan_holdout_evaluator'],
+              input=json.dumps(request), text=True, capture_output=True, check=True,
+          )
+          response = json.loads(r.stdout)
+          assert response == {"passed": True}, response
+          print('holdout evaluator protocol OK')
+          PY
       - name: Verify Draft 2020-12 schema and reference fixtures
         run: |
           python - <<'PY'
