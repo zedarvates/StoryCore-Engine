@@ -3,7 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from src.music_plan import execution_delta, validate_music_plan
+from src.music_provider import MockMusicProvider, MusicProviderContractError
 
 FIXTURES = Path(__file__).parent / "fixtures" / "music_plan"
 
@@ -65,3 +68,57 @@ def test_provider_degradation_is_explicit() -> None:
     delta = execution_delta(requested, executed)
     assert "mode:full->free" in delta
     assert "dropped:motifs" in delta
+
+
+def test_full_capability_mock_keeps_requested_state() -> None:
+    result = MockMusicProvider().prepare(_load("full.json"))
+    assert result.requested_mode == "full"
+    assert result.executed_mode == "full"
+    assert result.deltas == ()
+    assert result.unsupported_fields == ()
+    assert result.acknowledged is False
+    assert result.reason == ""
+    assert result.artifact_status == "candidate"
+    assert result.activation_allowed is False
+    assert result.promoted is False
+    assert result.executed_external_model is False
+
+
+def test_limited_mock_reports_mode_and_field_degradation() -> None:
+    provider = MockMusicProvider(
+        provider_id="mock-limited",
+        supported_modes=("guided", "free"),
+        fallback_mode="guided",
+        unsupported_fields=("motifs",),
+        degradation_reason="mock provider lacks full symbolic motif control",
+    )
+    result = provider.prepare(_load("full.json"))
+    assert result.executed_mode == "guided"
+    assert "mode:full->guided" in result.deltas
+    assert "dropped:motifs" in result.deltas
+    assert result.unsupported_fields == ("motifs",)
+    assert result.acknowledged is True
+    assert result.reason
+    assert result.artifact_status == "candidate"
+    assert result.activation_allowed is False
+    assert result.promoted is False
+    assert result.executed_external_model is False
+
+
+def test_silent_provider_degradation_is_rejected() -> None:
+    provider = MockMusicProvider(
+        provider_id="mock-bad",
+        supported_modes=("guided",),
+        fallback_mode="guided",
+    )
+    with pytest.raises(MusicProviderContractError, match="explicit degradation reason"):
+        provider.prepare(_load("full.json"))
+
+
+def test_provider_without_valid_fallback_fails_closed() -> None:
+    provider = MockMusicProvider(
+        provider_id="mock-no-fallback",
+        supported_modes=("guided",),
+    )
+    with pytest.raises(MusicProviderContractError, match="no valid fallback"):
+        provider.prepare(_load("full.json"))
