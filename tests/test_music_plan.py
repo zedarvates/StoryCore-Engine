@@ -7,7 +7,11 @@ from pathlib import Path
 import pytest
 
 from src.music_plan import execution_delta, validate_music_plan
-from src.music_provider import MockMusicProvider, MusicProviderContractError
+from src.music_provider import (
+    MockMusicProvider,
+    MusicProviderContractError,
+    build_provider_handoff,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures" / "music_plan"
 
@@ -166,6 +170,42 @@ def test_limited_mock_reports_mode_and_field_degradation() -> None:
     assert result.activation_allowed is False
     assert result.promoted is False
     assert result.executed_external_model is False
+
+
+def test_provider_handoff_is_data_only_and_non_activating() -> None:
+    provider = MockMusicProvider(
+        provider_id="mock-limited",
+        supported_modes=("guided",),
+        fallback_mode="guided",
+        unsupported_fields=("motifs",),
+        degradation_reason="fixture capability boundary",
+    )
+    result = provider.prepare(_load("full.json"))
+    handoff = build_provider_handoff(
+        result,
+        provider_version="test-v1",
+        model="none",
+        harness="music-plan-contract-tests",
+        hardware="github-hosted-cpu",
+        input_digest="sha256:input",
+        candidate_digest="sha256:candidate",
+        evidence_refs=("ci:fixture",),
+        verification_state="partially_verified",
+    )
+    assert handoff["provider"]["id"] == "mock-limited"
+    assert handoff["provider"]["harness"] == "music-plan-contract-tests"
+    assert handoff["execution"]["deltas"] == list(result.deltas)
+    assert handoff["artifact"]["status"] == "candidate"
+    assert handoff["verification"]["evidence_refs"] == ["ci:fixture"]
+    assert handoff["activation_allowed"] is False
+    assert handoff["promoted"] is False
+    assert handoff["memory_write_performed"] is False
+
+
+def test_verified_handoff_requires_evidence() -> None:
+    result = MockMusicProvider().prepare(_load("full.json"))
+    with pytest.raises(MusicProviderContractError, match="requires evidence"):
+        build_provider_handoff(result, verification_state="verified")
 
 
 def test_silent_provider_degradation_is_rejected() -> None:
