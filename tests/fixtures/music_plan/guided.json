@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "plan_id": "fixture-guided-v1",
+  "mode": "guided",
+  "title": "Chase transition",
+  "duration_seconds": 24,
+  "sections": [
+    {"id": "setup", "start_seconds": 0, "end_seconds": 8, "purpose": "establish momentum", "energy": 0.45, "tension": 0.5, "dialogue_safe": true, "motif_refs": [], "instrument_roles": ["percussion"]},
+    {"id": "chase", "start_seconds": 8, "end_seconds": 24, "purpose": "accelerate chase", "energy": 0.9, "tension": 0.85, "dialogue_safe": false, "motif_refs": [], "instrument_roles": ["percussion", "bass"]}
+  ],
+  "motifs": [],
+  "sync_cues": [
+    {"id": "cut-chase", "time_seconds": 8, "intent": "mark transition to chase", "story_ref": "scene-02/shot-01"}
+  ],
+  "lyrics": null,
+  "provenance": {"commercial_target": true, "dependencies": []}
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "plan_id": "fixture-full-v1",
+  "mode": "full",
+  "title": "Arrival and reveal",
+  "narrative_intent": "Build restrained anticipation, then reveal the destination without masking dialogue.",
+  "duration_seconds": 30,
+  "tempo_bpm": 92,
+  "meter": "4/4",
+  "tonal_center": "D minor",
+  "sections": [
+    {"id": "arrival", "start_seconds": 0, "end_seconds": 18, "purpose": "quiet approach", "energy": 0.35, "tension": 0.55, "dialogue_safe": true, "motif_refs": ["arrival-motif"], "instrument_roles": ["soft strings", "pulse"]},
+    {"id": "reveal", "start_seconds": 18, "end_seconds": 30, "purpose": "visual reveal", "energy": 0.72, "tension": 0.3, "dialogue_safe": false, "motif_refs": ["arrival-motif"], "instrument_roles": ["strings", "low brass"]}
+  ],
+  "motifs": [
+    {"id": "arrival-motif", "intent": "recognizable four-note identity", "symbolic_hint": "short rising phrase, sparse rhythm"}
+  ],
+  "sync_cues": [
+    {"id": "door-open", "time_seconds": 18, "intent": "accent the reveal", "story_ref": "scene-01/shot-04"}
+  ],
+  "lyrics": null,
+  "provenance": {"commercial_target": true, "dependencies": []}
+}
