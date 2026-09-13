@@ -1,16 +1,22 @@
 """Provider-neutral MusicPlan v1 validation helpers.
 
-This module is deliberately model-free and standard-library only.  It validates
-cross-field invariants that JSON Schema alone cannot express and enforces the
-commercial licence boundary before a provider adapter is selected.
+Validation is model-free but uses the repository's existing ``jsonschema``
+dependency for Draft 2020-12 structural checks, then applies StoryCore-specific
+cross-field and commercial-use invariants.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+from jsonschema import Draft202012Validator
+
 NON_COMMERCIAL_MARKERS = ("CC BY-NC", "BY-NC", "NON-COMMERCIAL", "NONCOMMERCIAL")
+UNKNOWN_LICENSE_MARKERS = frozenset({"unknown", "unspecified", "unqualified", "tbd", "n/a", "none"})
+DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schemas" / "music-plan-v1.schema.json"
 
 
 @dataclass(frozen=True)
@@ -25,9 +31,24 @@ def _is_non_commercial(license_name: str) -> bool:
     return any(marker in upper for marker in NON_COMMERCIAL_MARKERS)
 
 
-def validate_music_plan(plan: dict[str, Any]) -> MusicPlanValidation:
-    """Validate deterministic MusicPlan invariants without invoking a model."""
+def _is_unknown_license(license_name: str) -> bool:
+    return license_name.strip().lower() in UNKNOWN_LICENSE_MARKERS
+
+
+def _schema_errors(plan: dict[str, Any], schema_path: Path = DEFAULT_SCHEMA_PATH) -> list[str]:
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    validator = Draft202012Validator(schema)
     errors: list[str] = []
+    for issue in sorted(validator.iter_errors(plan), key=lambda item: list(item.absolute_path)):
+        path = ".".join(str(part) for part in issue.absolute_path) or "$"
+        errors.append(f"schema:{path}: {issue.message}")
+    return errors
+
+
+def validate_music_plan(plan: dict[str, Any]) -> MusicPlanValidation:
+    """Validate MusicPlan structure and deterministic invariants without a model."""
+    errors: list[str] = _schema_errors(plan)
     warnings: list[str] = []
 
     if plan.get("schema_version") != 1:
@@ -137,10 +158,16 @@ def validate_music_plan(plan: dict[str, Any]) -> MusicPlanValidation:
                 if not isinstance(license_name, str) or not license_name.strip():
                     errors.append(f"provenance.dependencies[{index}].license is required")
                     continue
-                if commercial and dep.get("kind") == "model-weights" and _is_non_commercial(license_name):
-                    errors.append(
-                        f"commercial target cannot use non-commercial model weights: {dep.get('name', index)}"
-                    )
+                if commercial and dep.get("kind") == "model-weights":
+                    name = dep.get("name", index)
+                    if _is_unknown_license(license_name):
+                        errors.append(
+                            f"commercial target cannot use model weights with unknown licence: {name}"
+                        )
+                    elif _is_non_commercial(license_name):
+                        errors.append(
+                            f"commercial target cannot use non-commercial model weights: {name}"
+                        )
 
     mode = plan.get("mode")
     if mode == "full" and not motifs:
@@ -151,14 +178,39 @@ def validate_music_plan(plan: dict[str, Any]) -> MusicPlanValidation:
     return MusicPlanValidation(not errors, tuple(errors), tuple(warnings))
 
 
+def _diff_values(requested: Any, executed: Any, path: str, deltas: list[str]) -> None:
+    if isinstance(requested, dict) and isinstance(executed, dict):
+        requested_keys = set(requested)
+        executed_keys = set(executed)
+        for key in sorted(requested_keys - executed_keys):
+            child = f"{path}.{key}" if path else key
+            if child not in {"schema_version", "plan_id", "provenance"}:
+                deltas.append(f"dropped:{child}")
+        for key in sorted(executed_keys - requested_keys):
+            child = f"{path}.{key}" if path else key
+            deltas.append(f"added:{child}")
+        for key in sorted(requested_keys & executed_keys):
+            child = f"{path}.{key}" if path else key
+            if child == "mode":
+                continue
+            _diff_values(requested[key], executed[key], child, deltas)
+        return
+
+    if isinstance(requested, list) and isinstance(executed, list):
+        if len(requested) != len(executed):
+            deltas.append(f"changed:{path}.length")
+        for index, (left, right) in enumerate(zip(requested, executed)):
+            _diff_values(left, right, f"{path}[{index}]", deltas)
+        return
+
+    if requested != executed:
+        deltas.append(f"changed:{path}")
+
+
 def execution_delta(requested: dict[str, Any], executed: dict[str, Any]) -> tuple[str, ...]:
-    """Return material provider degradation that must be acknowledged explicitly."""
+    """Return material provider changes, including nested and value-level deltas."""
     deltas: list[str] = []
     if requested.get("mode") != executed.get("mode"):
         deltas.append(f"mode:{requested.get('mode')}->{executed.get('mode')}")
-    requested_fields = {key for key, value in requested.items() if value not in (None, [], "")}
-    executed_fields = set(executed)
-    for field in sorted(requested_fields - executed_fields):
-        if field not in {"schema_version", "plan_id", "provenance"}:
-            deltas.append(f"dropped:{field}")
-    return tuple(deltas)
+    _diff_values(requested, executed, "", deltas)
+    return tuple(dict.fromkeys(deltas))
