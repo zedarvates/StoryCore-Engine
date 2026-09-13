@@ -34,7 +34,7 @@ jobs:
       - name: Run MusicPlan contract tests
         run: python -m pytest -q tests/test_music_plan.py
       - name: Run controlled negative mutation probe
-        run: python scripts/music_plan_mutation_probe.py
+        run: python -m scripts.music_plan_mutation_probe
       - name: Verify Draft 2020-12 schema and reference fixtures
         run: |
           python - <<'PY'
