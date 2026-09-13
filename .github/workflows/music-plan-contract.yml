@@ -1,0 +1,42 @@
+name: MusicPlan Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "schemas/music-plan-v1.schema.json"
+      - "src/music_plan.py"
+      - "tests/test_music_plan.py"
+      - "tests/fixtures/music_plan/**"
+      - ".github/workflows/music-plan-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install test runner only
+        run: python -m pip install pytest
+      - name: Compile model-free validator
+        run: python -m py_compile src/music_plan.py
+      - name: Run MusicPlan contract tests
+        run: python -m pytest -q tests/test_music_plan.py
+      - name: Verify schema and fixtures parse as JSON
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          paths = [Path('schemas/music-plan-v1.schema.json'), *sorted(Path('tests/fixtures/music_plan').glob('*.json'))]
+          for path in paths:
+              json.loads(path.read_text(encoding='utf-8'))
+              print(f'OK {path}')
+          PY
