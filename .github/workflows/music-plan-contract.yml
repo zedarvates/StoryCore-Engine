@@ -26,19 +26,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install test runner only
-        run: python -m pip install pytest
+      - name: Install focused validation dependencies
+        run: python -m pip install 'pytest>=8,<10' 'jsonschema>=4.23,<5'
       - name: Compile model-free contracts
         run: python -m py_compile src/music_plan.py src/music_provider.py
       - name: Run MusicPlan contract tests
         run: python -m pytest -q tests/test_music_plan.py
-      - name: Verify schema and fixtures parse as JSON
+      - name: Verify Draft 2020-12 schema and reference fixtures
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          paths = [Path('schemas/music-plan-v1.schema.json'), *sorted(Path('tests/fixtures/music_plan').glob('*.json'))]
-          for path in paths:
-              json.loads(path.read_text(encoding='utf-8'))
+          from jsonschema import Draft202012Validator
+
+          schema_path = Path('schemas/music-plan-v1.schema.json')
+          schema = json.loads(schema_path.read_text(encoding='utf-8'))
+          Draft202012Validator.check_schema(schema)
+          validator = Draft202012Validator(schema)
+          for path in sorted(Path('tests/fixtures/music_plan').glob('*.json')):
+              data = json.loads(path.read_text(encoding='utf-8'))
+              validator.validate(data)
               print(f'OK {path}')
           PY
