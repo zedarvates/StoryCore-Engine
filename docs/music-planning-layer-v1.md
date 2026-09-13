@@ -5,193 +5,146 @@ Status: **experimental contract; provider-neutral; no provider activated**.
 ## Goal
 
 Insert an editable symbolic planning layer between narrative intent and any music
-generator. StoryCore should be able to reason about, compare, revise and version
-a score plan without coupling the project to one model or one licence regime.
+generator. StoryCore should be able to inspect, compare, revise and version a
+score plan without coupling the project to one model or one licence regime.
 
 ```text
 story / scene / shot intent
         |
         v
-music brief
+MusicPlan v1
         |
         v
-MusicPlan v1  <---- human/agent edits and deterministic validation
-        |
-        +----> provider adapter A
-        +----> provider adapter B
-        +----> DAW / MIDI-oriented export later
+Draft 2020-12 schema + deterministic invariants
         |
         v
-rendered audio candidate
+provider capability / licence check
         |
         v
-technical + narrative + licence validation
+requested vs executed delta
         |
         v
-last-known-good audio artefact
+candidate artifact + portable handoff
+        |
+        v
+independent validation later
+        |
+        v
+last-known-good promotion outside provider adapter
 ```
 
-The design is inspired by open-source music workflows that expose an editable
-intermediate representation, but this contract is StoryCore-owned and must not
+The design is inspired by open-source workflows that expose an editable
+intermediate representation, but this contract is StoryCore-owned and does not
 require or redistribute third-party model weights.
-
-## Why the intermediate plan matters
-
-A direct `prompt -> wav` path throws away useful structure. `MusicPlan` keeps the
-intent that can be inspected before expensive generation:
-
-- sections and their narrative purpose;
-- tempo and metre;
-- tonal centre / mode when known;
-- motifs and motif reuse;
-- instrumentation roles rather than provider-specific tokens;
-- energy and tension curves;
-- dialogue-safe density constraints;
-- scene/shot synchronization cues;
-- optional lyric blocks;
-- provenance and licence information for every external dependency.
-
-A renderer may ignore unsupported optional fields, but it must report that as an
-execution delta rather than silently pretending the full plan was honoured.
 
 ## Three execution modes
 
-### `full`
+- `full`: strongest symbolic plan; use where continuity, motifs, timing or
+  reproducibility matter.
+- `guided`: StoryCore fixes high-level structure and synchronization while the
+  provider may elaborate details.
+- `free`: narrative/time brief remains binding, but detailed symbolic planning
+  is optional. It must not be represented as equivalent to a `full` render.
 
-The symbolic plan is authoritative enough to be edited and compared before
-rendering. Use when continuity, leitmotifs, timing or reproducibility matter.
+## Validation before inference
 
-### `guided`
+The model-free gate composes the repository's existing `jsonschema` dependency
+with StoryCore-specific checks. It:
 
-StoryCore fixes high-level structure and synchronization while the selected
-provider is free to elaborate harmony, accompaniment or sound design.
+- validates the Draft 2020-12 schema itself;
+- validates required fields and bounded values in a requested plan;
+- rejects invalid section timing and overlaps;
+- checks unique IDs and motif references;
+- checks cue bounds;
+- rejects declared non-commercial model weights on commercial targets;
+- treats known unknown/unqualified model-weight licence markers as ineligible
+  for commercial use.
 
-### `free`
+The reference fixtures cover `full`, `guided`, and `free`. No LLM, music model,
+network request or weight download is needed for this gate.
 
-Only the narrative music brief is binding. This keeps a direct-generation
-baseline available for comparison. It must not be labelled equivalent to a
-`full` render.
+## Explicit degradation
 
-## Deterministic validation before inference
+`execution_delta(requested, executed)` is recursive. It records mode changes,
+removed or added fields, changed scalar values, list-length changes and nested
+changes. Examples include:
 
-The model-free validator checks the invariants that JSON Schema alone cannot
-express: positive bounded duration, ordered non-overlapping sections, unique
-IDs, resolved motif references, cues inside duration, and the commercial
-licence boundary. No LLM, music model, network request, or weight download is
-needed for this gate.
+```text
+mode:full->guided
+dropped:motifs
+changed:duration_seconds
+changed:sync_cues.length
+changed:sync_cues[0].time_seconds
+```
 
-The reference fixtures cover the `full`, `guided`, and `free` modes so future
-providers are compared against the same small contracts rather than ad-hoc
-prompts.
+A provider must never silently change requested state.
 
-## Provider boundary and explicit degradation
+`MockMusicProvider` is deterministic and performs no inference. A fully capable
+mock keeps the requested state unchanged. A limited mock may use an explicit
+fallback and list unsupported fields, but any material delta requires a
+non-empty degradation reason or the preparation fails closed.
 
-Provider adapters translate `MusicPlan` into provider-specific inputs and return
-an execution report containing at least:
+## Portable provider handoff
 
-- requested mode;
-- executed mode;
-- unsupported/dropped fields;
-- an explicit reason when requested state cannot be preserved;
-- model/provider identifier and version when available;
-- model-weights licence and code licence separately;
-- deterministic parameters or seed when supported;
-- input and output artefact digests;
-- runtime/hardware observations when measured;
-- validation evidence references.
+`build_provider_handoff()` creates a data-only interchange envelope containing:
 
-The deterministic `MockMusicProvider` proves this contract without performing
-inference. A fully capable mock keeps the requested state unchanged. A limited
-mock may fall back, for example from `full` to `guided`, but the delta and
-unsupported fields are exposed and a non-empty degradation reason is mandatory.
-A changed execution state without that reason fails closed.
+- plan ID;
+- provider/version/model;
+- adapter/harness and hardware identity;
+- requested/executed modes;
+- unsupported fields, deltas, reason and acknowledgement;
+- candidate artifact identity and optional digests;
+- verification state and evidence references.
 
-The provider result remains a **candidate**. The mock contract explicitly keeps
-`activation_allowed=false`, `promoted=false`, and
-`executed_external_model=false`. The provider adapter cannot promote its own
-output to last-known-good; promotion belongs to a separate validation/harness
-step.
+It does not import Botte Secrète, execute a provider or write memory. Provider
+results remain candidates. The envelope always carries
+`activation_allowed=false`, `promoted=false` and
+`memory_write_performed=false`. A `verified` handoff requires evidence.
 
-## Commercial-use boundary
+## Commercial boundary
 
-Permissively licensed code does not make separately licensed model weights
-commercially usable. An adapter may exist for research/evaluation while its
-weights remain forbidden in a commercial path.
+Code, model weights, datasets and assets retain separate provenance/licences.
+Permissive adapter code cannot make restricted model weights commercially
+usable. Non-commercial or unknown/unqualified weights remain outside the
+StoryCore/Obolune commercial path until independently qualified.
 
-For StoryCore/Obolune-facing production, fail closed when:
+## Benchmark identity
 
-- the weights licence is unknown;
-- the licence is non-commercial and the requested path is commercial;
-- output terms prevent the intended distribution;
-- attribution/provenance requirements cannot be satisfied.
-
-This specifically means that a useful open-source architecture may be studied or
-adapted without making its restricted weights a production dependency.
-
-## Validation order
-
-1. JSON/schema and reference integrity.
-2. Licence/provenance gate.
-3. Plan-level checks: duration, section ordering, cue references and bounded
-   values.
-4. Adapter preparation with explicit requested/executed delta.
-5. Technical audio checks after a real provider exists.
-6. Narrative checks: cue timing, dialogue masking, motif/scene consistency.
-7. Optional human review.
-8. Promotion to last-known-good only with independent evidence.
-
-A failure keeps the candidate and diagnostics for comparison but leaves the
-previous verified artefact intact.
-
-## Benchmark contract
-
-Do not compare only `model A` versus `model B`. Record the complete path:
+Future measurements must retain the complete path:
 
 `story fixture x model/provider x adapter/harness x hardware x parameters`
 
-Minimum measures should include:
-
-- successful render rate;
-- plan fields honoured / dropped;
-- latency and peak resource use when observable;
-- duration/cue alignment error;
-- narrative evaluator result;
-- licence eligibility for the target use;
-- human preference only when the comparison protocol records it explicitly.
-
-A cheaper or smaller generator can therefore win when its harness better obeys
-the plan.
+A model-only score is insufficient because the harness can materially change
+plan preservation, failures, quality, latency and resource use.
 
 ## Current proof boundary
 
-The isolated `MusicPlan Contract` workflow compiles `src/music_plan.py` and
-`src/music_provider.py`, runs the focused contract tests, and parses the schema
-and fixtures on Python 3.10 and 3.12. Claims about this slice must remain bound
-to an exact-head successful run.
+The isolated `MusicPlan Contract` workflow runs on Python 3.10 and 3.12. It
+installs only focused test/schema dependencies, compiles the MusicPlan/provider
+contracts, executes the focused regression suite, checks the Draft 2020-12
+schema, and validates all three reference fixtures against it.
 
-This slice does **not** generate music, benchmark audio quality, choose a
-production provider, download weights, call a remote service, authorize a
-release, or authorize a merge.
+Exact-head CI remains the authority for PR claims. This contract does **not**
+prove real audio quality, a production provider, output rights beyond the
+explicit licence policy, hardware performance, end-to-end StoryCore integration,
+or last-known-good audio recovery.
 
-## Relationship to the Botte Secrète Execution Harness
+## Relationship to Botte Secrète
 
-When StoryCore runs under Botte Secrète, map:
+StoryCore remains standalone. A future Botte integration should consume the
+portable handoff as data rather than importing Botte as a hard runtime
+dependency. Conceptually:
 
-- `MusicPlan` + narrative references -> context snapshot;
-- provider capabilities -> capabilities;
-- licence, VRAM, duration and budget -> constraints;
-- provider execution report -> requested/executed delta;
-- generated stems/mix -> candidate artefacts;
-- validators -> evidence;
-- previous accepted soundtrack -> recovery point;
-- benchmark observations -> Capability Atlas.
-
-StoryCore must remain usable without Botte; the interchange should stay a small
-JSON/data contract rather than importing Botte as a hard runtime dependency.
+- MusicPlan + narrative refs -> context snapshot;
+- provider capabilities/licence/hardware -> constraints;
+- provider handoff -> execution delta + candidate artifact;
+- independent validators -> evidence;
+- accepted soundtrack -> recovery point;
+- measured provider runs -> Capability Atlas observations.
 
 ## Next bounded slice
 
-Define a provider-neutral handoff/evidence envelope carrying the execution delta,
-provider/harness/hardware identity, candidate artifact reference, verification
-state, and explicit non-activation/non-promotion flags. Only after that envelope
-is proven should a real local or external music backend be measured.
+Before any real provider is connected, add deterministic artifact-digest and
+independent-verification fixtures around the portable handoff. Real local or
+external music inference waits for explicit licence/hardware qualification and
+must remain non-promoting by default.
