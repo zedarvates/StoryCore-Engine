@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 from pathlib import Path
 
@@ -19,6 +20,22 @@ def test_three_reference_modes_validate_without_model() -> None:
     for name in ("full.json", "guided.json", "free.json"):
         result = validate_music_plan(_load(name))
         assert result.valid, (name, result.errors)
+
+
+def test_required_plan_id_is_enforced_by_schema() -> None:
+    plan = _load("full.json")
+    plan.pop("plan_id")
+    result = validate_music_plan(plan)
+    assert not result.valid
+    assert any("schema:$" in error and "plan_id" in error for error in result.errors)
+
+
+def test_energy_range_is_enforced_by_schema() -> None:
+    plan = _load("full.json")
+    plan["sections"][0]["energy"] = 2
+    result = validate_music_plan(plan)
+    assert not result.valid
+    assert any("energy" in error and "greater than the maximum" in error for error in result.errors)
 
 
 def test_overlapping_sections_fail_closed() -> None:
@@ -49,6 +66,18 @@ def test_commercial_target_blocks_noncommercial_model_weights() -> None:
     assert any("non-commercial model weights" in error for error in result.errors)
 
 
+def test_commercial_target_blocks_unknown_model_weight_licence() -> None:
+    plan = _load("full.json")
+    plan["provenance"]["dependencies"].append({
+        "name": "unqualified-weights",
+        "kind": "model-weights",
+        "license": "unknown",
+    })
+    result = validate_music_plan(plan)
+    assert not result.valid
+    assert any("unknown licence" in error for error in result.errors)
+
+
 def test_noncommercial_research_fixture_can_remain_noncommercial() -> None:
     plan = _load("free.json")
     plan["provenance"]["dependencies"].append({
@@ -62,12 +91,46 @@ def test_noncommercial_research_fixture_can_remain_noncommercial() -> None:
 
 def test_provider_degradation_is_explicit() -> None:
     requested = _load("full.json")
-    executed = dict(requested)
+    executed = copy.deepcopy(requested)
     executed["mode"] = "free"
     executed.pop("motifs")
     delta = execution_delta(requested, executed)
     assert "mode:full->free" in delta
     assert "dropped:motifs" in delta
+
+
+def test_duration_shortening_is_reported() -> None:
+    requested = _load("full.json")
+    executed = copy.deepcopy(requested)
+    executed["duration_seconds"] = requested["duration_seconds"] / 2
+    for section in executed["sections"]:
+        section["start_seconds"] /= 2
+        section["end_seconds"] /= 2
+    for cue in executed["sync_cues"]:
+        cue["time_seconds"] /= 2
+    assert validate_music_plan(executed).valid
+    delta = execution_delta(requested, executed)
+    assert "changed:duration_seconds" in delta
+    assert "changed:sections[0].end_seconds" in delta
+    assert any(item.startswith("changed:sync_cues[0].time_seconds") for item in delta)
+
+
+def test_emptied_sync_cues_are_reported() -> None:
+    requested = _load("full.json")
+    executed = copy.deepcopy(requested)
+    executed["sync_cues"] = []
+    assert validate_music_plan(executed).valid
+    delta = execution_delta(requested, executed)
+    assert "changed:sync_cues.length" in delta
+
+
+def test_nested_cue_change_is_reported() -> None:
+    requested = _load("full.json")
+    executed = copy.deepcopy(requested)
+    executed["sync_cues"][0]["time_seconds"] += 1
+    assert validate_music_plan(executed).valid
+    delta = execution_delta(requested, executed)
+    assert "changed:sync_cues[0].time_seconds" in delta
 
 
 def test_full_capability_mock_keeps_requested_state() -> None:
