@@ -51,6 +51,12 @@ Le port ComfyUI **n'est jamais supposé** — il varie selon l'édition install�
 3. Variables d'environnement       ← STORYCORE_COMFYUI_HOST / STORYCORE_COMFYUI_PORT
 ```
 
+### Délais et reprise du suivi
+
+Le client distingue le délai HTTP du budget d'attente de la génération.
+Une expiration du suivi conserve l'identifiant du prompt ; elle ne l'annule
+pas. Voir [le contrat du client et les tests](COMFYUI_CLIENT.md).
+
 ### Override via variables d'environnement
 
 ```bash
