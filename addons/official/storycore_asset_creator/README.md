@@ -122,6 +122,16 @@ python -m unittest discover -s tests/asset_creator -v
 Ils ne nécessitent ni Blender, ni serveur ComfyUI, ni GPU. Voir leur
 [portée précise](../../../tests/asset_creator/README.md).
 
+Un [diagnostic local de workflows](WORKFLOW_INSPECTION.md) inventorie désormais
+les fichiers, leur empreinte, le format et les nœuds déclarés. Depuis la racine :
+
+```bash
+python -m addons.official.storycore_asset_creator.src.workflow_inspection
+```
+
+Il signale aussi les presets absents. Son résultat JSON n'atteste aucune
+compatibilité d'exécution ; il ne télécharge aucun modèle et ne lance aucun job.
+
 ### 3. Installation de l'addon
 
 ```
