@@ -59,7 +59,7 @@ The App does not import the Electron renderer or Python backend. Shared StoryCor
 5. remove only an optional surrounding Markdown code fence;
 6. parse JSON;
 7. validate required structure and invariants;
-8. if invalid, make exactly one repair call containing validation errors and the previous output;
+8. if invalid, make exactly one repair call containing the exact normalized user input and fixed validation error categories, without quoting the previous output;
 9. reject if still invalid;
 10. add local metadata not delegated to the model;
 11. save only validated data;

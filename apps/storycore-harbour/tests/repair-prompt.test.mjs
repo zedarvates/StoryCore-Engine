@@ -20,7 +20,7 @@ test("repair rebuilds from the exact user input without carrying truncated model
   const request = JSON.parse(prompt);
 
   assert.deepEqual(request.input, input);
-  assert.deepEqual(request.validationErrors, ["JSON parse failed: truncated object"]);
+  assert.deepEqual(request.validationErrors, ["json_invalid"]);
   assert.match(request.task, /Rebuild the complete StoryCore Harbour project/);
   assert.equal(Object.hasOwn(request, "previousResponse"), false);
   assert.equal(prompt.includes("PREVIOUS RESPONSE"), false);
@@ -49,4 +49,20 @@ test("repair prompt carries a complete structural checklist without weakening th
   assert.ok(request.hardRules.some((rule) => /warning severity is only info, warning, or error/i.test(rule)));
   assert.equal(request.discardPreviousResponse, true);
   assert.equal(request.sizeBudget.maxCharacters, 12_000);
+});
+
+test("repair excludes model-derived text in parser and reference diagnostics", async () => {
+  const { createRepairPrompt } = await import("../bundle/repair-prompt.js");
+  const input = { idea: "Keep the user's original concept", language: "en" };
+  const sentinel = "UNTRUSTED_PREVIOUS_MODEL_RESPONSE";
+  const prompt = createRepairPrompt(input, [
+    `JSON parse failed: Unexpected token '${sentinel}'`,
+    `scenes[0] references unknown character ${sentinel}.`,
+    `scenes[0].locationId references unknown location ${sentinel}.`,
+  ]);
+  const request = JSON.parse(prompt);
+
+  assert.equal(prompt.includes(sentinel), false);
+  assert.deepEqual(request.input, input);
+  assert.deepEqual(request.validationErrors, ["json_invalid", "contract_invalid"]);
 });
