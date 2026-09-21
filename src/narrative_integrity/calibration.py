@@ -51,6 +51,8 @@ class Document:
     text: str
     words: int
     text_sha256: str
+    paired_with: Optional[str] = None
+    contamination_rate: Optional[float] = None
 
 
 @dataclass
@@ -77,9 +79,17 @@ class Corpus:
     arms: List[Arm]
     path: Optional[Path] = None
     sha256: str = ""
+    sources: List[Dict[str, Any]] = field(default_factory=list)
 
     def documents(self) -> List[Document]:
         return [document for arm in self.arms for document in arm.documents]
+
+    def label_of(self, document_id: str) -> Optional[str]:
+        for arm in self.arms:
+            for document in arm.documents:
+                if document.document_id == document_id:
+                    return arm.label
+        return None
 
     def ref(self) -> Dict[str, Any]:
         return {
@@ -129,6 +139,12 @@ def load_corpus(path, verify: bool = True) -> Corpus:
                     text=text,
                     words=int(raw_document.get("words", 0)),
                     text_sha256=declared_hash,
+                    paired_with=raw_document.get("paired_with"),
+                    contamination_rate=(
+                        float(raw_document["contamination_rate"])
+                        if raw_document.get("contamination_rate") is not None
+                        else None
+                    ),
                 )
             )
         arms.append(
@@ -152,6 +168,77 @@ def load_corpus(path, verify: bool = True) -> Corpus:
         path=target,
         sha256=hashlib.sha256(raw).hexdigest(),
     )
+
+
+def load_corpora(paths: Sequence) -> Corpus:
+    """Merge several corpora into one measurement set.
+
+    Pairing is validated across the merged set: a machine document that points at a human
+    document which is not present is refused, because the paired bootstrap would then be
+    computed on an incomplete pair.
+    """
+
+    loaded = [load_corpus(path) for path in paths]
+    if not loaded:
+        raise CorpusIntegrityError("no corpus supplied")
+    arms = [arm for corpus in loaded for arm in corpus.arms]
+    merged = Corpus(
+        name="+".join(corpus.name for corpus in loaded),
+        schema_version=loaded[0].schema_version,
+        language=loaded[0].language,
+        purpose=" ".join(corpus.purpose for corpus in loaded if corpus.purpose),
+        provenance=" ".join(corpus.provenance for corpus in loaded if corpus.provenance),
+        limitations=sorted(
+            {item for corpus in loaded for item in corpus.limitations}
+        ),
+        expectations=dict(loaded[0].expectations),
+        arms=arms,
+        path=None,
+        sha256=hashlib.sha256(
+            "".join(corpus.sha256 for corpus in loaded).encode("utf-8")
+        ).hexdigest(),
+        sources=[corpus.ref() for corpus in loaded],
+    )
+
+    identifiers = {document.document_id for document in merged.documents()}
+    for arm in merged.arms:
+        for document in arm.documents:
+            if document.paired_with and document.paired_with not in identifiers:
+                raise CorpusIntegrityError(
+                    "document %s is paired with %s, which is absent from the merged set"
+                    % (document.document_id, document.paired_with)
+                )
+    return merged
+
+
+def pairing(corpus: Corpus, arm_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """One entry per machine document and the human document it answers."""
+
+    by_id = {document.document_id: document for document in corpus.documents()}
+    pairs: List[Dict[str, Any]] = []
+    for arm in corpus.arms:
+        if arm.label != "machine":
+            continue
+        if arm_id is not None and arm.arm_id != arm_id:
+            continue
+        for document in arm.documents:
+            if not document.paired_with:
+                continue
+            human = by_id.get(document.paired_with)
+            if human is None:
+                raise CorpusIntegrityError(
+                    "machine document %s has no human pair" % document.document_id
+                )
+            pairs.append(
+                {
+                    "arm_id": arm.arm_id,
+                    "work": human.work,
+                    "human": human.document_id,
+                    "machine": document.document_id,
+                    "contamination_rate": document.contamination_rate,
+                }
+            )
+    return pairs
 
 
 def score_document(document: Document, engine: NarrativeIntegrityEngine) -> Dict[str, Any]:
@@ -333,6 +420,113 @@ def detector_histogram(results: Sequence[Dict[str, Any]]) -> Dict[str, int]:
     return dict(sorted(histogram.items(), key=lambda item: (-item[1], item[0])))
 
 
+def detection_metrics(
+    results: Sequence[Dict[str, Any]],
+    pairs: Sequence[Dict[str, Any]],
+    threshold: float,
+    resamples: int = DEFAULT_RESAMPLES,
+    seed: int = DEFAULT_SEED,
+) -> Dict[str, Any]:
+    """Detection rate and ranking, pooled and on the paired subset.
+
+    Two readings are reported on purpose. The pooled reading answers the practical
+    question; the paired reading is the one whose interval means something, because the
+    two arms are matched document by document.
+    """
+
+    by_id = {result["document_id"]: result for result in results}
+    human_ids = [pair["human"] for pair in pairs]
+    machine_ids = [pair["machine"] for pair in pairs]
+
+    pooled_auc = roc_auc(
+        [result["score"] for result in results],
+        [1 if result["label"] == "machine" else 0 for result in results],
+    )
+
+    paired_scores: List[float] = []
+    paired_labels: List[int] = []
+    for human_id, machine_id in zip(human_ids, machine_ids):
+        paired_scores.extend([by_id[human_id]["score"], by_id[machine_id]["score"]])
+        paired_labels.extend([0, 1])
+    paired_auc = roc_auc(paired_scores, paired_labels)
+
+    detected = sum(1 for i in machine_ids if by_id[i]["score"] > threshold)
+    false_alarms = sum(1 for i in human_ids if by_id[i]["score"] > threshold)
+    true_positive_rate = detected / max(1, len(machine_ids))
+    false_positive_rate_paired = false_alarms / max(1, len(human_ids))
+
+    generator = random.Random(seed)
+    auc_samples: List[float] = []
+    tpr_samples: List[float] = []
+    fpr_samples: List[float] = []
+    for _ in range(resamples):
+        sample = [pairs[generator.randrange(len(pairs))] for _ in range(len(pairs))]
+        scores: List[float] = []
+        labels: List[int] = []
+        hits = 0
+        alarms = 0
+        for pair in sample:
+            human = by_id[pair["human"]]
+            machine = by_id[pair["machine"]]
+            scores.extend([human["score"], machine["score"]])
+            labels.extend([0, 1])
+            hits += 1 if machine["score"] > threshold else 0
+            alarms += 1 if human["score"] > threshold else 0
+        value = roc_auc(scores, labels)
+        if value is not None:
+            auc_samples.append(value)
+        tpr_samples.append(hits / len(sample))
+        fpr_samples.append(alarms / len(sample))
+
+    auc_samples.sort()
+    tpr_samples.sort()
+    fpr_samples.sort()
+    contaminations = [
+        pair["contamination_rate"]
+        for pair in pairs
+        if pair.get("contamination_rate") is not None
+    ]
+    return {
+        "threshold": threshold,
+        "pairs": len(pairs),
+        "machine_documents": len(machine_ids),
+        "pooled_auc": None if pooled_auc is None else round(pooled_auc, 4),
+        "paired_auc": None if paired_auc is None else round(paired_auc, 4),
+        "paired_auc_interval": {
+            "low": round(_percentile(auc_samples, 0.025), 4),
+            "high": round(_percentile(auc_samples, 0.975), 4),
+            "resamples": resamples,
+            "seed": seed,
+        },
+        "true_positive_rate": round(true_positive_rate, 4),
+        "true_positive_rate_interval": {
+            "low": round(_percentile(tpr_samples, 0.025), 4),
+            "high": round(_percentile(tpr_samples, 0.975), 4),
+        },
+        "false_positive_rate_on_pairs": round(false_positive_rate_paired, 4),
+        "per_pair": [
+            {
+                "work": pair["work"],
+                "human_score": by_id[pair["human"]]["score"],
+                "machine_score": by_id[pair["machine"]]["score"],
+                "detected": by_id[pair["machine"]]["score"] > threshold,
+                "contamination_rate": pair.get("contamination_rate"),
+            }
+            for pair in pairs
+        ],
+        "contamination": {
+            "mean": round(sum(contaminations) / len(contaminations), 4)
+            if contaminations
+            else None,
+            "max": max(contaminations) if contaminations else None,
+            "note": (
+                "Share of generated word n-grams that already appeared in the prompt. "
+                "High contamination would make machine text look human."
+            ),
+        },
+    }
+
+
 def run_calibration(
     corpus: Corpus,
     engine: Optional[NarrativeIntegrityEngine] = None,
@@ -372,6 +566,32 @@ def run_calibration(
     flagged = sum(1 for r in considered if r["score"] > threshold)
     works = {str(r["work"]) for r in considered}
 
+    detections: List[Dict[str, Any]] = []
+    for arm in corpus.arms:
+        if arm.label != "machine":
+            continue
+        arm_pairs = pairing(corpus, arm.arm_id)
+        if not arm_pairs:
+            continue
+        block = detection_metrics(
+            every_result, arm_pairs, threshold, resamples=resamples, seed=seed
+        )
+        block["arm_id"] = arm.arm_id
+        detections.append(block)
+
+    if not detections:
+        not_measured = [
+            "Detection rate and ROC-AUC: the corpus ships no machine arm.",
+            "Accuracy at any threshold: a rank measure is not a per-document answer.",
+            "Modern narrative French and spoken French: not represented here.",
+        ]
+    else:
+        not_measured = [
+            "Generalisation beyond one model: a single local model wrote the machine arm.",
+            "Accuracy at any threshold: a rank measure is not a per-document answer.",
+            "Detection of unassisted modern French: the machine arm continues 18th to 20th century excerpts, so it imitates an older register than the model would use unprompted.",
+        ]
+
     return {
         "schema_version": SCHEMA_VERSION,
         "corpus_ref": corpus.ref(),
@@ -384,6 +604,7 @@ def run_calibration(
         "threshold": threshold,
         "resamples": resamples,
         "seed": seed,
+        "corpus_sources": corpus.sources,
         "summary": {
             "documents": len(every_result),
             "words": sum(int(r["words"]) for r in every_result),
@@ -418,24 +639,23 @@ def run_calibration(
         },
         "per_arm": per_arm,
         "per_document": sorted(every_result, key=lambda r: r["document_id"]),
-        "not_measured": [
-            "Detection rate and ROC-AUC: the corpus ships no machine arm.",
-            "Accuracy at any threshold: a rate of rank is not a per-document answer.",
-            "Modern narrative French and spoken French: not represented here.",
-        ],
+        "detection": detections or None,
+        "not_measured": not_measured,
     }
 
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="narrative-integrity-calibration")
-    parser.add_argument("corpus", help="path to a calibration corpus JSON file")
+    parser.add_argument(
+        "corpus", nargs="+", help="one or more calibration corpus JSON files"
+    )
     parser.add_argument("--out", help="write the results document here")
     parser.add_argument("--resamples", type=int, default=DEFAULT_RESAMPLES)
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     args = parser.parse_args(argv)
 
     try:
-        corpus = load_corpus(args.corpus)
+        corpus = load_corpora(args.corpus)
     except CorpusIntegrityError as error:
         print("corpus refused: " + str(error), file=sys.stderr)
         return 2

@@ -1,16 +1,19 @@
 {
   "schema_version": "1.0",
   "corpus_ref": {
-    "name": "corpus_fr_v1",
+    "name": "corpus_fr_v1+corpus_fr_machine_v1+corpus_fr_machine_modern_v1+corpus_fr_machine_promo_v1",
     "schema_version": "1.0",
     "language": "fr",
-    "path": "tests\\data\\narrative_integrity\\calibration\\corpus_fr_v1.json",
-    "sha256": "a3a21a923cbedd76127fbe1386801ededd8c87d7bea29b3ab959e5af1bd33d1c"
+    "path": "<memory>",
+    "sha256": "bdcfc262f4b8c3a8899d425c92dffeac426552cc82e9f0c132731ad359231688"
   },
   "corpus_limitations": [
+    "A continuation shares its prompt with the paired human excerpt, so contamination is measured per document and reported rather than assumed away.",
+    "Five works means few clusters: any bootstrap interval will be wide.",
+    "Six documents from one model: the interval will be wide and the result says nothing about other models.",
+    "The human arm is 18th to 20th century prose: the model imitates an older register than it would use unprompted.",
     "The literary arm is 18th and 19th century prose and contains none of the modern tells, so a low rate there is weak evidence about modern writing.",
-    "The project arm is technical documentation, not narrative prose.",
-    "Five works means few clusters: any bootstrap interval will be wide."
+    "The project arm is technical documentation, not narrative prose."
   ],
   "corpus_expectations": {
     "max_false_positive_rate": 0.25
@@ -33,11 +36,42 @@
   "threshold": 40.0,
   "resamples": 2000,
   "seed": 20260921,
+  "corpus_sources": [
+    {
+      "name": "corpus_fr_v1",
+      "schema_version": "1.0",
+      "language": "fr",
+      "path": "tests\\data\\narrative_integrity\\calibration\\corpus_fr_v1.json",
+      "sha256": "a3a21a923cbedd76127fbe1386801ededd8c87d7bea29b3ab959e5af1bd33d1c"
+    },
+    {
+      "name": "corpus_fr_machine_v1",
+      "schema_version": "1.0",
+      "language": "fr",
+      "path": "tests\\data\\narrative_integrity\\calibration\\corpus_fr_machine_v1.json",
+      "sha256": "732e546582b2fd499c8fa698a11b7c294c6d44baab9ac1189dc5393393679d86"
+    },
+    {
+      "name": "corpus_fr_machine_modern_v1",
+      "schema_version": "1.0",
+      "language": "fr",
+      "path": "tests\\data\\narrative_integrity\\calibration\\corpus_fr_machine_modern_v1.json",
+      "sha256": "77fe3eabac93ea8ab48c911d8a1919503e6007082cc44c306cdf009def82ec9c"
+    },
+    {
+      "name": "corpus_fr_machine_promo_v1",
+      "schema_version": "1.0",
+      "language": "fr",
+      "path": "tests\\data\\narrative_integrity\\calibration\\corpus_fr_machine_promo_v1.json",
+      "sha256": "bc6a2083d265d3e288084e1c9b0d17670a45803b93dfa72b42eace7eafcf67f2"
+    }
+  ],
   "summary": {
-    "documents": 22,
-    "words": 23396,
+    "documents": 36,
+    "words": 26382,
     "labels": [
-      "human"
+      "human",
+      "machine"
     ],
     "false_positive_rate": 0.0,
     "false_positive_rate_interval": {
@@ -49,9 +83,10 @@
       "collapsed_at_boundary": true
     },
     "band_distribution": {
-      "clean": 22
+      "clean": 35,
+      "mixed": 1
     },
-    "findings_per_1000_words": 0.94,
+    "findings_per_1000_words": 1.706,
     "flagged_documents": 0,
     "upper_bound": {
       "confidence": 0.95,
@@ -61,14 +96,15 @@
       "note": "The bootstrap interval collapses to a point when no resample is flagged. The exact upper bound is what the corpora can support; it is driven by how few works are represented, not by the engine."
     },
     "detector_histogram": {
-      "slop.fr_tiret_cadratin": 6,
-      "prose.opener_repetition": 5,
-      "prose.passive_density": 2,
+      "slop.fr_espace_insecable_manquant": 9,
+      "prose.sentence_monotony": 8,
+      "slop.fr_tiret_cadratin": 8,
+      "prose.opener_repetition": 6,
+      "prose.passive_density": 5,
       "slop.fr_adv_gonflant": 2,
+      "slop.fr_pivot_pas_seulement": 2,
       "slop.fr_cliche_humain": 1,
-      "slop.fr_espace_insecable_manquant": 1,
       "slop.fr_guillemets_droits": 1,
-      "slop.fr_pivot_pas_seulement": 1,
       "slop.fr_q_rhetorique": 1
     },
     "max_false_positive_rate_allowed": 0.25,
@@ -103,6 +139,52 @@
         "clean": 4
       },
       "findings_per_1000_words": 3.488,
+      "false_positive_rate": 0.0
+    },
+    {
+      "arm_id": "machine_local",
+      "label": "machine",
+      "register": "model continuation of a literary excerpt",
+      "licence": "generated locally, no third-party rights",
+      "documents": 6,
+      "words": 1250,
+      "score_mean": 0.0,
+      "score_max": 0.0,
+      "band_distribution": {
+        "clean": 6
+      },
+      "findings_per_1000_words": 5.6,
+      "false_positive_rate": 0.0
+    },
+    {
+      "arm_id": "machine_modern",
+      "label": "machine",
+      "register": "model design note, register matched to the project documents",
+      "licence": "generated locally, no third-party rights",
+      "documents": 4,
+      "words": 868,
+      "score_mean": 0.0,
+      "score_max": 0.0,
+      "band_distribution": {
+        "clean": 4
+      },
+      "findings_per_1000_words": 9.217,
+      "false_positive_rate": 0.0
+    },
+    {
+      "arm_id": "machine_promo",
+      "label": "machine",
+      "register": "promotional article, subject matched, register elicited",
+      "licence": "generated locally, no third-party rights",
+      "documents": 4,
+      "words": 868,
+      "score_mean": 11.143,
+      "score_max": 44.57,
+      "band_distribution": {
+        "clean": 3,
+        "mixed": 1
+      },
+      "findings_per_1000_words": 9.217,
       "false_positive_rate": 0.0
     }
   ],
@@ -163,6 +245,224 @@
       ],
       "arm_id": "human_modern_project",
       "label": "human"
+    },
+    {
+      "document_id": "machine-AMELIORATION_EDITEUR_CONSEQUENCES-1",
+      "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+      "author": "gemma4:26b",
+      "words": 216,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.passive_density",
+        "prose.sentence_monotony"
+      ],
+      "arm_id": "machine_modern",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-AMELIORATION_EDITEUR_CONSEQUENCES-1",
+      "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+      "author": "gemma4:26b",
+      "words": 213,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.sentence_monotony",
+        "slop.fr_espace_insecable_manquant"
+      ],
+      "arm_id": "machine_promo",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-PLAN_AMELIORATION-1",
+      "work": "PLAN_AMELIORATION.md",
+      "author": "gemma4:26b",
+      "words": 226,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 3,
+      "detectors": [
+        "prose.passive_density",
+        "prose.sentence_monotony",
+        "slop.fr_espace_insecable_manquant"
+      ],
+      "arm_id": "machine_modern",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-PLAN_AMELIORATION-1",
+      "work": "PLAN_AMELIORATION.md",
+      "author": "gemma4:26b",
+      "words": 215,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.sentence_monotony",
+        "slop.fr_espace_insecable_manquant"
+      ],
+      "arm_id": "machine_promo",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-RD_PLAN_SEQUENCE_EDITOR-1",
+      "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+      "author": "gemma4:26b",
+      "words": 211,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.sentence_monotony",
+        "slop.fr_espace_insecable_manquant"
+      ],
+      "arm_id": "machine_modern",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-RD_PLAN_SEQUENCE_EDITOR-1",
+      "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+      "author": "gemma4:26b",
+      "words": 214,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "machine_promo",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-TOP5_TACHES-1",
+      "work": "TOP5_TACHES.md",
+      "author": "gemma4:26b",
+      "words": 215,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "prose.sentence_monotony"
+      ],
+      "arm_id": "machine_modern",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-TOP5_TACHES-1",
+      "work": "TOP5_TACHES.md",
+      "author": "gemma4:26b",
+      "words": 226,
+      "score": 44.57,
+      "band": "mixed",
+      "guard_triggered": true,
+      "findings": 3,
+      "detectors": [
+        "prose.sentence_monotony",
+        "slop.fr_espace_insecable_manquant",
+        "slop.fr_pivot_pas_seulement"
+      ],
+      "arm_id": "machine_promo",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-pg14155-1",
+      "work": "Madame Bovary",
+      "author": "gemma4:26b",
+      "words": 218,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "slop.fr_espace_insecable_manquant",
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "machine_local",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-pg17489-1",
+      "work": "Les Miserables, Tome I",
+      "author": "gemma4:26b",
+      "words": 179,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "machine_local",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-pg2650-1",
+      "work": "Du cote de chez Swann",
+      "author": "gemma4:26b",
+      "words": 216,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "slop.fr_espace_insecable_manquant"
+      ],
+      "arm_id": "machine_local",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-pg2998-1",
+      "work": "A l'ombre des jeunes filles en fleurs, I",
+      "author": "gemma4:26b",
+      "words": 215,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.passive_density",
+        "prose.sentence_monotony"
+      ],
+      "arm_id": "machine_local",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-pg4650-1",
+      "work": "Candide, ou l'optimisme",
+      "author": "gemma4:26b",
+      "words": 215,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "prose.opener_repetition"
+      ],
+      "arm_id": "machine_local",
+      "label": "machine"
+    },
+    {
+      "document_id": "machine-pg798-1",
+      "work": "Le Rouge et le Noir",
+      "author": "gemma4:26b",
+      "words": 207,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "slop.fr_espace_insecable_manquant"
+      ],
+      "arm_id": "machine_local",
+      "label": "machine"
     },
     {
       "document_id": "pg14155-1",
@@ -424,9 +724,190 @@
       "label": "human"
     }
   ],
+  "detection": [
+    {
+      "threshold": 40.0,
+      "pairs": 6,
+      "machine_documents": 6,
+      "pooled_auc": 0.4935,
+      "paired_auc": 0.4167,
+      "paired_auc_interval": {
+        "low": 0.25,
+        "high": 0.5,
+        "resamples": 2000,
+        "seed": 20260921
+      },
+      "true_positive_rate": 0.0,
+      "true_positive_rate_interval": {
+        "low": 0.0,
+        "high": 0.0
+      },
+      "false_positive_rate_on_pairs": 0.0,
+      "per_pair": [
+        {
+          "work": "A l'ombre des jeunes filles en fleurs, I",
+          "human_score": 10.19,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "Candide, ou l'optimisme",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "Du cote de chez Swann",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "Le Rouge et le Noir",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "Les Miserables, Tome I",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "Madame Bovary",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        }
+      ],
+      "contamination": {
+        "mean": 0.0,
+        "max": 0.0,
+        "note": "Share of generated word n-grams that already appeared in the prompt. High contamination would make machine text look human."
+      },
+      "arm_id": "machine_local"
+    },
+    {
+      "threshold": 40.0,
+      "pairs": 4,
+      "machine_documents": 4,
+      "pooled_auc": 0.4935,
+      "paired_auc": 0.625,
+      "paired_auc_interval": {
+        "low": 0.5,
+        "high": 0.875,
+        "resamples": 2000,
+        "seed": 20260921
+      },
+      "true_positive_rate": 0.25,
+      "true_positive_rate_interval": {
+        "low": 0.0,
+        "high": 0.75
+      },
+      "false_positive_rate_on_pairs": 0.0,
+      "per_pair": [
+        {
+          "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "PLAN_AMELIORATION.md",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "TOP5_TACHES.md",
+          "human_score": 0.0,
+          "machine_score": 44.57,
+          "detected": true,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        }
+      ],
+      "contamination": {
+        "mean": 0.0,
+        "max": 0.0,
+        "note": "Share of generated word n-grams that already appeared in the prompt. High contamination would make machine text look human."
+      },
+      "arm_id": "machine_modern"
+    },
+    {
+      "threshold": 40.0,
+      "pairs": 4,
+      "machine_documents": 4,
+      "pooled_auc": 0.4935,
+      "paired_auc": 0.625,
+      "paired_auc_interval": {
+        "low": 0.5,
+        "high": 0.875,
+        "resamples": 2000,
+        "seed": 20260921
+      },
+      "true_positive_rate": 0.25,
+      "true_positive_rate_interval": {
+        "low": 0.0,
+        "high": 0.75
+      },
+      "false_positive_rate_on_pairs": 0.0,
+      "per_pair": [
+        {
+          "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "PLAN_AMELIORATION.md",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "TOP5_TACHES.md",
+          "human_score": 0.0,
+          "machine_score": 44.57,
+          "detected": true,
+          "contamination_rate": 0.0
+        },
+        {
+          "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+          "human_score": 0.0,
+          "machine_score": 0.0,
+          "detected": false,
+          "contamination_rate": 0.0
+        }
+      ],
+      "contamination": {
+        "mean": 0.0,
+        "max": 0.0,
+        "note": "Share of generated word n-grams that already appeared in the prompt. High contamination would make machine text look human."
+      },
+      "arm_id": "machine_promo"
+    }
+  ],
   "not_measured": [
-    "Detection rate and ROC-AUC: the corpus ships no machine arm.",
-    "Accuracy at any threshold: a rate of rank is not a per-document answer.",
-    "Modern narrative French and spoken French: not represented here."
+    "Generalisation beyond one model: a single local model wrote the machine arm.",
+    "Accuracy at any threshold: a rank measure is not a per-document answer.",
+    "Detection of unassisted modern French: the machine arm continues 18th to 20th century excerpts, so it imitates an older register than the model would use unprompted."
   ]
 }

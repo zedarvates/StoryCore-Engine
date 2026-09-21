@@ -330,17 +330,29 @@ Les sections 1 à 16 restent la conception de référence. Cette annexe décrit 
 | Paquet | `src/narrative_integrity/` : 15 modules (taxonomie, constats, seuils, entrée, texte, slop, détecteurs, canon, style, immunité, provenance, juge, moteur, interface, pont de prompts) |
 | Données versionnées | `data/narrative_integrity_v1.json` (seuils, bandes, politique) et `data/slop_signatures_fr_v1.json` (26 signatures originales, dont 2 rétrogradées à poids nul) |
 | Schémas | 4 JSON Schema : rapport, constat, signature, profil de référence |
-| Tests | 15 fichiers, 175 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif, vecteur du graphe |
+| Tests | 15 fichiers, 171 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif, vecteur du graphe |
 | Réutilisation | Adaptateur du graphe narratif vers le canon, et pont de prompts qui substitue la guidance dérivée du catalogue aux listes de mots interdits |
 | Arbitrage | Registre de décisions humaines, en ajout seul, indexé sur une identité indépendante de la position dans le texte |
-| Mesure | Corpus de contrôle français versionné (22 documents, 23 396 mots, dix œuvres), harnais de calibration, et rapport [RD_NARRATIVE_INTEGRITY_CALIBRATION.md](../../rd/RD_NARRATIVE_INTEGRITY_CALIBRATION.md) |
+| Mesure | Corpus de contrôle français versionné (36 documents, 26 382 mots, dix œuvres, trois régimes machines générés localement), harnais de calibration apparié, et rapport [RD_NARRATIVE_INTEGRITY_CALIBRATION.md](../../rd/RD_NARRATIVE_INTEGRITY_CALIBRATION.md) |
 | Juge | Juge qualitatif branché sur le modèle local via Ollama, en échec fermé, avec vérification que chaque extrait cité existe mot pour mot dans le texte |
 | Vecteur | Le vecteur du graphe ne plante plus sur un nom accentué, il n'est plus présenté comme une similarité sémantique, et un modèle d'embedding réel s'injecte par set_embedder |
 | Service existant | `backend/hermes_novelist_service.py` : la liste de mots interdits en dur est remplacée par une guidance dérivée du catalogue, avec repli conservé si le catalogue est indisponible |
 
 ### Gates
 
-G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. G2 dispose désormais d'une mesure : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. Sur G5, le juge qualitatif est branché et validé contre le modèle local, la mémoire d'arbitrage est en place, et la première correction de la voie RAG est faite. Restent ouverts : une armure machine pour établir un taux de détection, l'indexation des findings arbitrés pour la récupération, et le choix d'un modèle d'embedding réel.
+G1 à G5 disposent désormais d'une mesure. G2 : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. G5 : le juge est branché et validé contre le modèle local, la mémoire d'arbitrage est en place, la première correction de la voie RAG est faite, et une armure machine générée localement a permis de mesurer la détection. Restent ouverts : l'indexation des constats arbitrés pour la récupération, le choix d'un modèle d'embedding réel, et un corpus de détection plus large, parce que la mesure obtenue est négative et repose sur quatorze paires.
+
+### Le résultat de détection, et il est négatif
+
+Chaque document machine est la réponse du modèle local au document humain qui lui est apparié : les bras sont appariés par construction. Trois régimes ont été produits, avec une contamination mesurée à zéro partout.
+
+| Régime machine | Paires | AUC appariée | Intervalle | Détection |
+|---|---:|---:|---|---:|
+| continuation d'un classique | 6 | 0,417 | 0,25 à 0,50 | 0,00 |
+| note de conception moderne | 4 | 0,625 | 0,50 à 0,875 | 0,25 |
+| article promotionnel provoqué | 4 | 0,625 | 0,50 à 0,875 | 0,25 |
+
+AUC groupée : 0,49. Sur 36 documents et 26 382 mots, un seul texte machine franchit le seuil d'avertissement. Autrement dit, le moteur ne reconnaît pas l'origine machine d'un texte — ce qu'il n'a jamais prétendu faire, mais qui n'avait pas été mesuré. Ce qu'il mesure, ce sont des motifs de prose documentés, et un modèle compétent n'en produit presque pas, même quand on lui demande le registre qui les porte.
 
 ### Note : le vecteur du graphe, corrigé
 
@@ -375,7 +387,7 @@ Le modèle local disponible, `gemma4:26b`, est un modèle à raisonnement : il �
 
 - Les seuils, les poids et la courbe de score ne sont pas calibrés. Ils sont déclarés comme tels dans les données et rapportés comme estimation. Le taux de faux positifs, lui, est mesuré : 0 sur 22 documents humains, avec une borne supérieure exacte de 12,7 % par document et 25,9 % par œuvre, dix œuvres étant trop peu pour serrer davantage.
 - Le plancher de dérive de style vaut provisoirement 0,62 et n'est pas le 0,80 annoncé par la présentation publique, qui n'était pas mesuré.
-- Aucun taux de détection n'a été établi : le corpus ne contient pas d'armure machine, et en fabriquer une sans autorisation serait une invention. Le harnais calcule l'AUC et les intervalles appariés dès qu'une armure existe.
+- Le taux de détection est mesuré, et il est négatif : AUC groupée de 0,49, un seul texte machine signalé sur quatorze. Ce chiffre repose sur quatorze paires issues d'un seul modèle et sur des textes d'environ deux cents mots ; il ne se généralise ni à un autre modèle, ni à un autre registre, ni à une autre longueur. Un corpus de détection sérieux reste à constituer.
 - Le juge qualitatif est branché et validé contre le modèle local, mais sa sortie reste probabiliste : elle ne certifie aucune mesure, ne remplace jamais un constat déterministe, et n'est jamais interrogée sur l'auteur ni sur l'origine humaine ou machine du texte. Un extrait cité qui ne figure pas mot pour mot dans le texte est rejeté et le rejet est consigné.
 - Aucune écriture sur un artefact canonique : le moteur observe et propose, et un test vérifie qu'aucun constat ne peut être marqué comme appliqué.
 - Les couches sans matière déclarent leur portée partielle ou leur absence plutôt que de conclure.

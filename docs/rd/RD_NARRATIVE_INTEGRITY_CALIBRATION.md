@@ -8,21 +8,28 @@
 
 ## 1. Ce qui est mesure, et ce qui ne l'est pas
 
-**Mesure :** le taux de faux positifs sur de la prose humaine francaise, la repartition par bande, la densite de constats pour 1000 mots, et l'exactitude des bornes statistiques.
+**Mesure :** le taux de faux positifs sur de la prose humaine francaise, la repartition par bande, la densite de constats pour 1000 mots, l'exactitude des bornes statistiques, et depuis qu'une armure machine existe, le taux de detection et l'AUC sur trois regimes.
 
-**Non mesure :** le taux de detection, l'AUC, et toute precision par document. Ces mesures exigent une armure de textes machines. Le corpus n'en contient aucune et le harnais n'en fabrique pas : il faudrait soit un corpus externe, soit un appel de modele autorise. C'est precisement ce que la gate suivante rendra possible.
+**Non mesure :** toute precision par document. Une AUC est une mesure de rang : elle ne dit pas si un texte donne sera classe correctement.
+
+**Le resultat de detection est negatif.** Il est detaille en section 9, et il est important : le moteur ne reconnait pas l'origine machine d'un texte.
 
 ---
 
 ## 2. Corpus
 
-Fichier : `tests/data/narrative_integrity/calibration/corpus_fr_v1.json`, empreinte `a3a21a92...`, construit par `scripts/build_narrative_integrity_corpus.py`.
+Fichiers : `corpus_fr_v1.json` pour les deux armures humaines, puis `corpus_fr_machine_v1.json`, `corpus_fr_machine_modern_v1.json` et `corpus_fr_machine_promo_v1.json` pour les trois regimes machines. Construits par `scripts/build_narrative_integrity_corpus.py` et `scripts/build_narrative_integrity_machine_arm.py`.
 
 | Armure | Registre | Documents | Mots |
 |---|---|---:|---:|
 | humaine, domaine public | recit litteraire, XVIIIe a XXe siecle | 18 | 22 536 |
 | humaine, projet | documentation technique moderne | 4 | 860 |
-| **total** | | **22** | **23 396** |
+| machine, continuation | suite d'un extrait litteraire | 6 | 1 250 |
+| machine, moderne | note de conception appariee par sujet | 4 | 868 |
+| machine, promotionnel | article provoque, sujet apparie | 4 | 868 |
+| **total** | | **36** | **26 382** |
+
+Les trois regimes machines sont produits localement, sans aucun envoi externe, et la contamination est mesuree pour chacun : la part des n-grammes de huit mots de la reponse qui figuraient deja dans le prompt. Elle vaut zero partout, donc l'armure machine n'est pas un echo du texte humain.
 
 Six oeuvres : Voltaire, Stendhal, Flaubert, Hugo, Proust (deux volumes). Les extraits sont pris a positions regulieres apres retrait des pages de titre et des mentions du distributeur. Textes du domaine public ; source et empreinte amont enregistrees par document ; seuls des extraits sont conserves, jamais une oeuvre entiere, et aucune mention du distributeur n'est reproduite.
 
@@ -97,4 +104,26 @@ python -m src.narrative_integrity.calibration tests/data/narrative_integrity/cal
 
 ## 8. Ce que cette mesure ne dit pas
 
-Elle ne dit rien sur la capacite du moteur a reconnaitre un texte machine : cette capacite n'a pas ete mesuree, et le harnais est pret a la mesurer le jour ou une armure machine existe. Elle ne dit rien sur la prose francaise moderne narrative ou parlee. Elle ne dit rien sur la qualite editoriale d'un texte, ni sur l'auteur.
+Elle ne dit rien sur la prose francaise moderne narrative ou parlee, qui n'est pas representee. Elle ne dit rien sur la qualite editoriale d'un texte, ni sur l'auteur. Et elle ne dit rien sur les autres modeles : un seul modele a ecrit l'armure machine.
+
+---
+
+## 9. Detection : le resultat est negatif
+
+Chaque document machine est la reponse du modele local au document humain qui lui est apparie. Les deux bras sont donc apparies par construction, ce qui autorise le bootstrap par paires plutot qu'un intervalle sur des echantillons independants.
+
+| Regime machine | Paires | AUC appariee | Intervalle | Taux de detection | Faux positifs sur paires |
+|---|---:|---:|---|---:|---:|
+| continuation d'un classique | 6 | 0,417 | 0,25 a 0,50 | 0,00 | 0,00 |
+| note de conception moderne | 4 | 0,625 | 0,50 a 0,875 | 0,25 | 0,00 |
+| article promotionnel provoque | 4 | 0,625 | 0,50 a 0,875 | 0,25 | 0,00 |
+
+AUC groupee, toutes armures confondues : 0,49. Sur 36 documents et 26 382 mots, un seul texte machine franchit le seuil d'avertissement : un article promotionnel, a 44,6 sur 100.
+
+**Lecture.** Le moteur ne reconnait pas l'origine machine d'un texte. L'AUC groupee vaut le hasard, et l'intervalle apparie descend jusqu'a 0,25 : avec quatre a six paires, la mesure ne tranche pas, mais rien dans ces donnees ne soutient une capacite de detection.
+
+C'est coherent avec ce que le moteur annonce etre. Il ne mesure pas un auteur, il mesure des motifs de prose documentes. Un modele competent qui redige une note de conception en francais ne produit pas ces motifs ; meme lorsqu'on lui demande explicitement le registre promotionnel, il n'en produit qu'episodiquement, une fois sur quatre ici.
+
+Trois causes restent indiscernables dans ces donnees : un catalogue trop etroit, des textes trop courts, ou une generation trop propre. Un texte machine long, un registre degrade, ou plusieurs modeles changeraient la mesure. En l'etat, je ne peux annoncer aucun taux de detection superieur au hasard.
+
+Et cela ne vaut que pour ce qui a ete mesure : quatorze paires, un seul modele, des textes d'environ deux cents mots. Rien ici ne se generalise a un autre modele, a un autre registre, ni a une autre longueur.

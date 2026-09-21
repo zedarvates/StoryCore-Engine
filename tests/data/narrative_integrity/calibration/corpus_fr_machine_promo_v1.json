@@ -1,0 +1,85 @@
+{
+ "schema_version": "1.0",
+ "name": "corpus_fr_machine_promo_v1",
+ "language": "fr",
+ "purpose": "Machine arm for detection measurement, regime promo. Each document answers one human document written by the local model, so the arms are paired by construction.",
+ "extraction": "The prompt carries the first 800 characters of the paired human document and asks for about 220 words. Only the model answer is stored.",
+ "provenance": "Generated locally on 2026-09-21 by gemma4:26b at http://127.0.0.1:11434, temperature 0.8, one seed per document. No text left this machine. The result measures detection of this model's French, not of machine French in general.",
+ "limitations": [
+  "Six documents from one model: the interval will be wide and the result says nothing about other models.",
+  "A continuation shares its prompt with the paired human excerpt, so contamination is measured per document and reported rather than assumed away.",
+  "The human arm is 18th to 20th century prose: the model imitates an older register than it would use unprompted."
+ ],
+ "generation": {
+  "model": "gemma4:26b",
+  "endpoint": "http://127.0.0.1:11434",
+  "temperature": 0.8,
+  "seed_base": 20260921,
+  "prompt_chars": 1200,
+  "regime": "promo",
+  "target_words": 220,
+  "deliberation": "disabled"
+ },
+ "arms": [
+  {
+   "arm_id": "machine_promo",
+   "label": "machine",
+   "register": "promotional article, subject matched, register elicited",
+   "licence": "generated locally, no third-party rights",
+   "documents": [
+    {
+     "document_id": "machine-RD_PLAN_SEQUENCE_EDITOR-1",
+     "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "e1c7812c4b6ea933a4d139928e3dbe0573ac1d55ded6aac6e72d7d1940da3b04",
+     "text_sha256": "45a99c46cf84dbb1f405d941c2281c8d62ccf5449f3b991ff78d763a2d95135f",
+     "chars": 1456,
+     "words": 214,
+     "paired_with": "RD_PLAN_SEQUENCE_EDITOR-1",
+     "contamination_rate": 0.0,
+     "text": "Une r\u00e9volution technologique est en marche au c\u0153ur de notre moteur de cr\u00e9ation, et elle va transformer radicalement votre mani\u00e8re de concevoir le son et le mouvement. Nous avons franchi une \u00e9tape d\u00e9cisive dans notre programme de Recherche et D\u00e9veloppement pour propulser l'interface de notre Sequence Editor vers des sommets de fluidit\u00e9 et de puissance in\u00e9dits.\n\nImaginez une exp\u00e9rience de production o\u00f9 chaque transition est d'une pr\u00e9cision chirurgicale, o\u00f9 la gestion de vos effets et de votre mixage audio devient une extension naturelle de votre cr\u00e9ativit\u00e9. Gr\u00e2ce \u00e0 une refonte profonde de notre architecture de donn\u00e9es et \u00e0 l'int\u00e9gration de nouveaux m\u00e9canismes de contr\u00f4le \u2014 de la gestion ultra-r\u00e9active des pistes audio \u00e0 une synchronisation parfaite des transitions \u2014 nous brisons les barri\u00e8res entre l'id\u00e9e et la r\u00e9alisation.\n\nMais nous ne nous arr\u00eatons pas l\u00e0. L'intelligence artificielle s'invite d\u00e9sormais au c\u0153ur de votre workflow avec un nouveau panneau de gestion d'\u00e9tat d\u00e9di\u00e9, offrant des possibilit\u00e9s d'automatisation et d'assistance qui red\u00e9finissent les standards de l'industrie. Chaque composant, du mixeur audio au panneau d'exportation, a \u00e9t\u00e9 interconnect\u00e9 pour cr\u00e9er un \u00e9cosyst\u00e8me coh\u00e9rent, puissant et d'une stabilit\u00e9 absolue. Nous ne construisons pas seulement un outil, nous forgeons l'instrument de demain. Pr\u00e9parez-vous \u00e0 vivre une immersion totale o\u00f9 la technologie s'efface pour laisser place \u00e0 l'\u00e9tincelle pure de votre g\u00e9nie."
+    },
+    {
+     "document_id": "machine-PLAN_AMELIORATION-1",
+     "work": "PLAN_AMELIORATION.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "d8ad69f4e74af670b8af2a643032169ccd79889170670d3b84fe38a4000e6e9a",
+     "text_sha256": "baabaf0fde4d2c52902b9e128faa1ff2f0a4260d8119249894db17c730902e7b",
+     "chars": 1504,
+     "words": 215,
+     "paired_with": "PLAN_AMELIORATION-1",
+     "contamination_rate": 0.0,
+     "text": "Imaginez un monde o\u00f9 l'\u00e9tincelle d'une id\u00e9e peut se transformer en une \u0153uvre cin\u00e9matographique magistrale en seulement quelques minutes. Ce n'est plus de la science-fiction, c'est la r\u00e9alit\u00e9 de StoryCore-Engine. Nous sommes fiers de vous pr\u00e9senter la nouvelle \u00e8re de la cr\u00e9ation multim\u00e9dia : un pipeline de production multimodal r\u00e9volutionnaire qui red\u00e9finit les fronti\u00e8res de l'imagination.\n\nStoryCore-Engine n'est pas un simple outil, c'est un moteur de cr\u00e9ation intelligent et auto-correcteur. L\u00e0 o\u00f9 les cr\u00e9ateurs luttent traditionnellement avec des heures de montage et des probl\u00e8mes de coh\u00e9rence visuelle, notre technologie prend le relais. En transformant instantan\u00e9ment vos scripts en vid\u00e9os immersives, il garantit une harmonie visuelle parfaite, du premier au dernier plan. Gr\u00e2ce \u00e0 une architecture de pointe combinant la puissance de React 18, TypeScript et Electron, nous offrons une exp\u00e9rience utilisateur d'une fluidit\u00e9 absolue, alliant la robustesse technique \u00e0 une interface intuitive et \u00e9l\u00e9gante.\n\nNous ne nous contentons pas de suivre l'\u00e9volution technologique ; nous la dictons. StoryCore-Engine lib\u00e8re les conteurs, les marketeurs et les visionnaires des contraintes techniques pour les laisser se concentrer sur l'essentiel : l'\u00e9motion et le r\u00e9cit. Rejoignez la r\u00e9volution de la production automatis\u00e9e et d\u00e9couvrez comment nous donnons vie \u00e0 vos histoires avec une rapidit\u00e9 et une pr\u00e9cision jamais vues auparavant. L'avenir du storytelling est ici, et il est plus brillant que jamais."
+    },
+    {
+     "document_id": "machine-TOP5_TACHES-1",
+     "work": "TOP5_TACHES.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "e8ac78a652f34d1362cf7ae23b5ec77f9d6e871c3cb660eb8e26ed211fd4f628",
+     "text_sha256": "9ea381662bb4f88001e1f54dda9a5b44ffa2199fdf4364cb5afe0472b2156002",
+     "chars": 1474,
+     "words": 226,
+     "paired_with": "TOP5_TACHES-1",
+     "contamination_rate": 0.0,
+     "text": "L'excellence ne s'improvise pas, elle se construit, brique par brique, avec une pr\u00e9cision chirurgicale. Nous sommes fiers de vous annoncer une \u00e9tape majeure dans l'\u00e9volution de notre plateforme de montage vid\u00e9o : une mise \u00e0 jour structurelle profonde qui red\u00e9finit les standards de fluidit\u00e9 et de fiabilit\u00e9 de notre outil.\n\nNos \u00e9quipes ont accompli un travail colossal pour transformer la complexit\u00e9 technique en une exp\u00e9rience utilisateur d'une simplicit\u00e9 d\u00e9concertante. En r\u00e9solvant les derni\u00e8res frictions d'importation et en unifiant nos architectures de donn\u00e9es, nous avons lev\u00e9 les derniers obstacles qui pouvaient ralentir votre cr\u00e9ativit\u00e9. Que ce soit l'optimisation des biblioth\u00e8ques d'effets ou la synchronisation parfaite de nos couches de texte et de s\u00e9quences, chaque ligne de code a \u00e9t\u00e9 pens\u00e9e pour une seule mission : vous laisser l'esprit libre de cr\u00e9er.\n\nGr\u00e2ce \u00e0 cette refonte rigoureuse de nos services d'assets et de nos sch\u00e9mas de donn\u00e9es, la stabilit\u00e9 de notre \u00e9diteur atteint un nouveau sommet. Vous ne manipulez plus seulement un logiciel, vous pilotez une machine de guerre cr\u00e9ative, robuste et infaillible. Ce n'est pas seulement une correction de bugs, c'est une promesse tenue : celle de vous fournir l'outil le plus performant et le plus intuitif du march\u00e9. Pr\u00e9parez-vous \u00e0 repousser les limites de votre imagination, car la technologie est d\u00e9sormais totalement \u00e0 votre service. Le futur du montage vid\u00e9o est l\u00e0, et il est plus fluide que jamais."
+    },
+    {
+     "document_id": "machine-AMELIORATION_EDITEUR_CONSEQUENCES-1",
+     "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "038bfa32a8b6f8d6a0ff36690d7a4460dad580abf0d18bfd42675f81968b8945",
+     "text_sha256": "85078a5400c68e4322ee442c4acd91ece003aa24a6c9cf7911036e27916abbe1",
+     "chars": 1453,
+     "words": 213,
+     "paired_with": "AMELIORATION_EDITEUR_CONSEQUENCES-1",
+     "contamination_rate": 0.0,
+     "text": "Imaginez un monde o\u00f9 la barri\u00e8re entre votre imagination et la r\u00e9alit\u00e9 cin\u00e9matographique s'effondre instantan\u00e9ment. Bienvenue dans la nouvelle \u00e8re de StoryCore Engine, l'outil r\u00e9volutionnaire con\u00e7u pour transformer chaque cr\u00e9ateur en v\u00e9ritable ma\u00eetre de la narration visuelle.\n\nNous avons \u00e9cout\u00e9 vos d\u00e9fis et repouss\u00e9 les limites de la technologie. Fini les contraintes rigides et les interfaces complexes qui freinent votre \u00e9lan cr\u00e9atif. Notre mise \u00e0 jour majeure r\u00e9invente totalement votre workflow gr\u00e2ce \u00e0 l'int\u00e9gration profonde de l'IA g\u00e9n\u00e9rative. D\u00e9sormais, votre plan de s\u00e9quence et la g\u00e9n\u00e9ration d'images fusionnent dans une symbiose parfaite, optimis\u00e9e par le contexte narratif de votre histoire.\n\nPlongez dans une exp\u00e9rience de montage fluide avec notre toute nouvelle timeline intuitive, inspir\u00e9e des meilleurs outils de montage vid\u00e9o actuels. Naviguez avec une agilit\u00e9 d\u00e9concertante entre vos shots, ajoutez ou supprimez des plans en temps r\u00e9el et profitez d'un aper\u00e7u instantan\u00e9 de vos modifications. Gr\u00e2ce \u00e0 une num\u00e9rotation intelligente et une interface pens\u00e9e pour la r\u00e9activit\u00e9, chaque ajustement de prompt devient un jeu d'enfant.\n\nStoryCore Engine ne se contente pas d'\u00e9diter des s\u00e9quences ; il donne vie \u00e0 vos visions les plus audacieuses avec une rapidit\u00e9 et une pr\u00e9cision in\u00e9gal\u00e9es. Ne vous contentez plus de raconter des histoires, cr\u00e9ez des chefs-d'\u0153uvre. L'avenir du storytelling commence ici, et il est plus puissant que jamais."
+    }
+   ]
+  }
+ ]
+}

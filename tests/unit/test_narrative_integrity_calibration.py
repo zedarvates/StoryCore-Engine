@@ -10,15 +10,22 @@ from src.narrative_integrity.calibration import (
     CorpusIntegrityError,
     binomial_upper_bound,
     cluster_rate_interval,
+    detection_metrics,
     false_positive_rate,
     findings_per_1000_words,
     load_corpus,
+    load_corpora,
+    pairing,
     roc_auc,
     run_calibration,
 )
 
 DATA = Path(__file__).resolve().parents[1] / "data" / "narrative_integrity" / "calibration"
 CORPUS = DATA / "corpus_fr_v1.json"
+MACHINE_CONTINUATION = DATA / "corpus_fr_machine_v1.json"
+MACHINE_MODERN = DATA / "corpus_fr_machine_modern_v1.json"
+MACHINE_PROMO = DATA / "corpus_fr_machine_promo_v1.json"
+ALL_CORPORA = [CORPUS, MACHINE_CONTINUATION, MACHINE_MODERN, MACHINE_PROMO]
 RESULTS = DATA / "results_fr_v1.json"
 SCHEMA = (
     Path(__file__).resolve().parents[2]
@@ -143,8 +150,9 @@ def test_corpus_refuses_a_document_without_a_source():
 def test_results_document_declares_what_it_did_not_measure():
     results = json.loads(RESULTS.read_text(encoding="utf-8"))
     joined = " ".join(results["not_measured"]).lower()
-    assert "detection rate" in joined
-    assert "machine arm" in joined
+    assert results["not_measured"]
+    assert "one model" in joined, "the single-model limit must stay declared"
+    assert "rank" in joined or "per-document" in joined
     Draft202012Validator(
         json.loads(SCHEMA.read_text(encoding="utf-8"))
     ).validate(results)
@@ -154,16 +162,138 @@ def test_recorded_results_match_a_fresh_run():
     """A stale measurement is worse than none: the artefact must track the instrument."""
 
     recorded = json.loads(RESULTS.read_text(encoding="utf-8"))
-    fresh = run_calibration(load_corpus(CORPUS), resamples=2000, seed=20260921)
+    fresh = run_calibration(load_corpora(ALL_CORPORA), resamples=2000, seed=20260921)
     assert fresh["summary"] == recorded["summary"], (
         "thresholds or detectors changed since the recorded run: "
         "re-run python -m src.narrative_integrity.calibration"
     )
     assert fresh["per_document"] == recorded["per_document"]
+    assert fresh["detection"] == recorded["detection"]
 
 
-def test_human_prose_stays_inside_the_declared_false_positive_budget():
+def test_human_arms_stay_inside_the_declared_false_positive_budget():
     results = json.loads(RESULTS.read_text(encoding="utf-8"))
     summary = results["summary"]
     assert summary["within_declared_budget"] is True
-    assert summary["band_distribution"] == {"clean": summary["documents"]}
+    human_arms = [arm for arm in results["per_arm"] if arm["label"] == "human"]
+    assert human_arms
+    for arm in human_arms:
+        assert arm["band_distribution"] == {"clean": arm["documents"]}, arm["arm_id"]
+        assert arm["false_positive_rate"] == 0.0
+
+
+def test_merging_corpora_keeps_every_arm_and_validates_pairing():
+    merged = load_corpora(ALL_CORPORA)
+    assert {arm.label for arm in merged.arms} == {"human", "machine"}
+    assert len(merged.documents()) == 36
+    assert len(merged.sources) == 4
+    pairs = pairing(merged)
+    assert len(pairs) == 14
+    assert {item["arm_id"] for item in pairs} == {
+        "machine_local",
+        "machine_modern",
+        "machine_promo",
+    }
+    for item in pairs:
+        assert merged.label_of(item["human"]) == "human"
+        assert merged.label_of(item["machine"]) == "machine"
+
+
+def test_a_machine_document_missing_its_human_pair_is_refused(tmp_path):
+    data = json.loads(MACHINE_PROMO.read_text(encoding="utf-8"))
+    data["arms"][0]["documents"][0]["paired_with"] = "document-qui-nexiste-pas"
+    broken = tmp_path / "broken.json"
+    broken.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    with pytest.raises(CorpusIntegrityError):
+        load_corpora([CORPUS, broken])
+
+
+def synthetic_pair(human_score, machine_score, work="w", arm="a"):
+    results = [
+        {
+            "document_id": "h-" + work,
+            "work": work,
+            "label": "human",
+            "words": 200,
+            "score": human_score,
+            "band": "clean",
+            "findings": 0,
+            "detectors": [],
+        },
+        {
+            "document_id": "m-" + work,
+            "work": work,
+            "label": "machine",
+            "words": 200,
+            "score": machine_score,
+            "band": "clean",
+            "findings": 0,
+            "detectors": [],
+        },
+    ]
+    pairs = [
+        {
+            "arm_id": arm,
+            "work": work,
+            "human": "h-" + work,
+            "machine": "m-" + work,
+            "contamination_rate": 0.0,
+        }
+    ]
+    return results, pairs
+
+
+def test_detection_metrics_on_a_clean_separation():
+    results, pairs = synthetic_pair(0.0, 90.0)
+    block = detection_metrics(results, pairs, 40.0, resamples=50, seed=3)
+    assert block["paired_auc"] == 1.0
+    assert block["true_positive_rate"] == 1.0
+    assert block["false_positive_rate_on_pairs"] == 0.0
+    assert block["paired_auc_interval"]["low"] <= block["paired_auc_interval"]["high"]
+    assert block["per_pair"][0]["detected"] is True
+    assert block["contamination"]["mean"] == 0.0
+
+
+def test_detection_metrics_when_nothing_is_detected():
+    results, pairs = synthetic_pair(0.0, 0.0)
+    block = detection_metrics(results, pairs, 40.0, resamples=50, seed=3)
+    assert block["paired_auc"] == 0.5, "everything tied: the answer is chance"
+    assert block["true_positive_rate"] == 0.0
+    assert block["false_positive_rate_on_pairs"] == 0.0
+    assert block["per_pair"][0]["detected"] is False
+
+
+def test_detection_metrics_are_reproducible():
+    results, pairs = synthetic_pair(1.0, 50.0)
+    first = detection_metrics(results, pairs, 40.0, resamples=100, seed=11)
+    second = detection_metrics(results, pairs, 40.0, resamples=100, seed=11)
+    assert first == second
+
+
+def test_shipped_results_carry_one_detection_block_per_machine_arm():
+    results = json.loads(RESULTS.read_text(encoding="utf-8"))
+    assert results["detection"] is not None
+    assert {block["arm_id"] for block in results["detection"]} == {
+        "machine_local",
+        "machine_modern",
+        "machine_promo",
+    }
+    for block in results["detection"]:
+        assert block["contamination"]["mean"] is not None
+        assert all(
+            item["contamination_rate"] is not None for item in block["per_pair"]
+        )
+        assert 0.0 <= block["true_positive_rate"] <= 1.0
+
+
+def test_the_recorded_measurement_concludes_that_authorship_is_not_detected():
+    """The result is negative, and the artefact must keep saying so."""
+
+    results = json.loads(RESULTS.read_text(encoding="utf-8"))
+    for block in results["detection"]:
+        assert block["pooled_auc"] is not None
+        assert block["pooled_auc"] < 0.7, (
+            "if this ever rises above chance, the recorded conclusion must be rewritten"
+        )
+    joined = " ".join(results["not_measured"]).lower()
+    assert "one model" in joined or "machine arm" in joined
