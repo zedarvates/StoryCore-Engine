@@ -16,6 +16,7 @@ from .taxonomy import (
     NarrativeLayer,
     Severity,
 )
+from .ledger import arbitration_key
 
 SCHEMA_VERSION = "1.0"
 
@@ -54,6 +55,7 @@ class Finding:
     input_hash: str = ""
     applied: bool = False
     finding_id: str = ""
+    arbitration: Optional[Dict[str, Any]] = None
 
     def __post_init__(self) -> None:
         if self.applied:
@@ -70,12 +72,20 @@ class Finding:
         parts.extend(sorted(e.excerpt for e in self.evidence))
         return _sha256_16("|".join(parts))
 
+    def arbitrated(self) -> bool:
+        """True when a human already rejected or acknowledged this finding."""
+
+        if not self.arbitration:
+            return False
+        return str(self.arbitration.get("decision")) in ("accepted", "rejected")
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "finding_id": self.finding_id,
             "layer": self.layer.value,
             "control_family": self.control_family.value,
             "detector_id": self.detector_id,
+            "arbitration_key": arbitration_key(self.detector_id, self.locus),
             "severity": self.severity.value,
             "determinism": self.determinism.value,
             "confidence": round(self.confidence, 4),
@@ -85,6 +95,8 @@ class Finding:
             "canon_conflict": self.canon_conflict,
             "remediation": self.remediation,
             "applied": False,
+            "arbitration": self.arbitration,
+            "arbitrated": self.arbitrated(),
         }
 
 
@@ -140,6 +152,11 @@ class IntegrityReport:
             if entry.layer is layer:
                 return entry.findings
         return []
+
+    def active_findings(self) -> List[Finding]:
+        """Findings that no human decision has already settled."""
+
+        return [finding for finding in self.findings if not finding.arbitrated()]
 
     def highest_severity(self) -> Optional[Severity]:
         from .taxonomy import max_severity

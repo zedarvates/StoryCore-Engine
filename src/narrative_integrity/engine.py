@@ -93,6 +93,7 @@ class NarrativeIntegrityEngine:
         now: Optional[str] = None,
         strict: bool = False,
         profile: Optional[Dict[str, Any]] = None,
+        ledger: Any = None,
     ) -> IntegrityReport:
         hidden_settings = self.thresholds.section("hidden_channels")
         cap = int(self.thresholds.get("scan.cap_chars", 262144))
@@ -298,6 +299,16 @@ class NarrativeIntegrityEngine:
         layers.sort(key=lambda entry: order[entry.layer])
 
         everything = [f for layer in layers for f in layer.findings]
+        if ledger is not None:
+            for finding in everything:
+                entry = ledger.decision_for(finding.detector_id, finding.locus)
+                if entry is not None:
+                    finding.arbitration = entry.to_dict()
+        arbitrated = [finding for finding in everything if finding.arbitrated()]
+        by_decision: Dict[str, int] = {}
+        for finding in arbitrated:
+            key = str((finding.arbitration or {}).get("decision", "unknown"))
+            by_decision[key] = by_decision.get(key, 0) + 1
         by_layer: Dict[str, int] = {}
         by_severity: Dict[str, int] = {}
         by_family: Dict[str, int] = {}
@@ -344,6 +355,12 @@ class NarrativeIntegrityEngine:
                     "calibrated": prose_metrics.get("calibrated"),
                 },
                 "blocked": any(f.severity is Severity.BLOCKING for f in everything),
+                "arbitrated": {
+                    "total": len(arbitrated),
+                    "by_decision": by_decision,
+                    "active_findings": len(everything) - len(arbitrated),
+                    "ledger_entries": len(ledger) if ledger is not None else 0,
+                },
             },
             confidence=confidence,
             confidence_reason=reason,

@@ -8,13 +8,15 @@
     "layer",
     "control_family",
     "detector_id",
+    "arbitration_key",
     "severity",
     "determinism",
     "confidence",
     "confidence_basis",
     "locus",
     "evidence",
-    "applied"
+    "applied",
+    "arbitrated"
   ],
   "properties": {
     "finding_id": {
@@ -39,6 +41,10 @@
       ]
     },
     "detector_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "arbitration_key": {
       "type": "string",
       "minLength": 3
     },
@@ -107,6 +113,45 @@
     },
     "applied": {
       "const": false
+    },
+    "arbitration": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "decision",
+            "decided_by",
+            "decided_at"
+          ],
+          "properties": {
+            "decision": {
+              "enum": [
+                "rejected",
+                "accepted",
+                "deferred"
+              ]
+            },
+            "decided_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decided_at": {
+              "type": "string",
+              "minLength": 8
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "arbitrated": {
+      "type": "boolean"
     }
   },
   "additionalProperties": true

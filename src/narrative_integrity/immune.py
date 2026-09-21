@@ -17,7 +17,8 @@ SILENT_WRITE_FORBIDDEN = True
 def response_for(finding: Finding, thresholds) -> Dict[str, Any]:
     policy = thresholds.section("immune_policy").get(finding.severity.value, {})
     action = str(policy.get("action", "observe"))
-    requires = bool(policy.get("requires_confirmation", False))
+    arbitrated = finding.arbitrated()
+    requires = bool(policy.get("requires_confirmation", False)) and not arbitrated
     return {
         "finding_id": finding.finding_id,
         "layer": finding.layer.value,
@@ -25,8 +26,18 @@ def response_for(finding: Finding, thresholds) -> Dict[str, Any]:
         "action": action,
         "requires_confirmation": requires,
         "applied": False,
-        "proposal": finding.remediation if action in ("propose", "block_promotion") else None,
-        "note": "Proposal only. Promotion to canon stays a human decision.",
+        "proposal": (
+            None
+            if arbitrated
+            else (finding.remediation if action in ("propose", "block_promotion") else None)
+        ),
+        "arbitrated": arbitrated,
+        "arbitration": finding.arbitration,
+        "note": (
+            "Already decided by a human: not raised again."
+            if arbitrated
+            else "Proposal only. Promotion to canon stays a human decision."
+        ),
     }
 
 
@@ -42,14 +53,21 @@ def summarize(report: IntegrityReport, thresholds) -> Dict[str, Any]:
     responses = remediations(report, thresholds)
     by_action: Dict[str, int] = {}
     by_severity: Dict[str, int] = {}
+    by_decision: Dict[str, int] = {}
     for response in responses:
         by_action[response["action"]] = by_action.get(response["action"], 0) + 1
         by_severity[response["severity"]] = by_severity.get(response["severity"], 0) + 1
+        if response["arbitrated"]:
+            decision = str((response["arbitration"] or {}).get("decision", "unknown"))
+            by_decision[decision] = by_decision.get(decision, 0) + 1
     pending = [r["finding_id"] for r in responses if r["requires_confirmation"]]
     return {
         "findings": len(responses),
         "by_action": by_action,
         "by_severity": by_severity,
+        "arbitrated": sum(by_decision.values()),
+        "arbitrated_by_decision": by_decision,
+        "active": len(responses) - sum(by_decision.values()),
         "promotion_blocked": any(
             r["action"] == Action.BLOCK_PROMOTION.value for r in responses
         ),

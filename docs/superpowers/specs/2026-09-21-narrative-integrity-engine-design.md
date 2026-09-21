@@ -330,13 +330,14 @@ Les sections 1 à 16 restent la conception de référence. Cette annexe décrit 
 | Paquet | `src/narrative_integrity/` : 15 modules (taxonomie, constats, seuils, entrée, texte, slop, détecteurs, canon, style, immunité, provenance, juge, moteur, interface, pont de prompts) |
 | Données versionnées | `data/narrative_integrity_v1.json` (seuils, bandes, politique) et `data/slop_signatures_fr_v1.json` (26 signatures originales, dont 2 rétrogradées à poids nul) |
 | Schémas | 4 JSON Schema : rapport, constat, signature, profil de référence |
-| Tests | 11 fichiers, 104 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style |
+| Tests | 12 fichiers, 126 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage |
 | Réutilisation | Adaptateur du graphe narratif vers le canon, et pont de prompts qui substitue la guidance dérivée du catalogue aux listes de mots interdits |
+| Arbitrage | Registre de décisions humaines, en ajout seul, indexé sur une identité indépendante de la position dans le texte |
 | Service existant | `backend/hermes_novelist_service.py` : la liste de mots interdits en dur est remplacée par une guidance dérivée du catalogue, avec repli conservé si le catalogue est indisponible |
 
 ### Gates
 
-G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. G5 reste partielle : le seam du juge existe et échoue en mode fermé, aucun juge réel n'est branché, et la voie RAG n'est pas encore alimentée par le canon. Les détecteurs déterministes et statistiques fonctionnent sans juge.
+G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. Sur G5, la moitié hors ligne est en place : une observation déjà tranchée par un humain n'est plus présentée comme nouvelle. Restent ouverts le juge qualitatif réel, qui demande un appel de modèle, et l'alimentation de la voie RAG par le canon. Les détecteurs déterministes et statistiques fonctionnent sans juge.
 
 ### Mesures réalisées
 
@@ -363,6 +364,7 @@ G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de styl
 - Le juge qualitatif n'est pas branché ; il ne peut ni certifier une mesure ni écraser un constat déterministe.
 - Aucune écriture sur un artefact canonique : le moteur observe et propose, et un test vérifie qu'aucun constat ne peut être marqué comme appliqué.
 - Les couches sans matière déclarent leur portée partielle ou leur absence plutôt que de conclure.
+- La mémoire d'arbitrage enregistre des décisions humaines ; elle ne les valide pas. Une décision erronée reste une décision, et le score continue de mesurer le texte plutôt que le jugement porté sur lui.
 
 ### Utilisation
 
@@ -370,4 +372,6 @@ G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de styl
 python -m src.narrative_integrity.cli chemin/vers/prose.md --with-provenance
 python -m src.narrative_integrity.cli chemin/vers/prose.md --reference chemin/vers/corpus-reference.md
 python -m src.narrative_integrity.cli chemin/vers/prose.md --reference corpus.md --lock-profile profils/style-v1.json
+python -m src.narrative_integrity.cli chemin/vers/prose.md --ledger arbitrages.json
+python -m src.narrative_integrity.cli chemin/vers/prose.md --ledger arbitrages.json --decide "slop.fr_cliche_danse|signature:fr_cliche_danse=rejected" --decided-by editeur
 ```

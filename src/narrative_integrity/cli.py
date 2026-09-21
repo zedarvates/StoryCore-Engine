@@ -3,6 +3,9 @@
 Style drift is only measured against an explicit reference. The subject is never used
 as its own reference: that would be a self-referential measurement presented as a
 style lock.
+
+A findings ledger can be supplied so that observations a human already rejected or
+acknowledged are not raised again as if they were new.
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ from pathlib import Path
 
 from .engine import NarrativeIntegrityEngine
 from .input_model import IntegrityInput
+from .ledger import Decision, FindingsLedger
 from .provenance import build_provenance
 from .style_profile import lock_profile, save_profile
 
@@ -34,6 +38,16 @@ def _build_parser() -> argparse.ArgumentParser:
         "--lock-profile", help="write the built reference profile to this path"
     )
     parser.add_argument("--project-id", default="unknown")
+    parser.add_argument("--ledger", help="findings ledger to load and honour")
+    parser.add_argument(
+        "--decide",
+        action="append",
+        metavar="KEY=DECISION",
+        help="record a decision for an arbitration key; repeatable",
+    )
+    parser.add_argument(
+        "--decided-by", default="human", help="author of the --decide entries"
+    )
     return parser
 
 
@@ -91,7 +105,33 @@ def main(argv=None) -> int:
         written = save_profile(profile, args.lock_profile)
         print("profile written: " + str(written), file=sys.stderr)
 
-    report = engine.run(integrity_input, strict=args.strict, profile=profile)
+    ledger = None
+    if args.ledger:
+        ledger = FindingsLedger.from_file(args.ledger)
+    if args.decide:
+        if ledger is None:
+            print(
+                "--decide needs --ledger, so the decision has somewhere to live",
+                file=sys.stderr,
+            )
+            return 2
+        for item in args.decide:
+            if "=" not in item:
+                print("expected KEY=DECISION, got: " + item, file=sys.stderr)
+                return 2
+            key, _, raw_decision = item.partition("=")
+            try:
+                decision = Decision(raw_decision.strip().lower())
+            except ValueError:
+                print("unknown decision: " + raw_decision, file=sys.stderr)
+                return 2
+            ledger.record_key(key.strip(), decision, decided_by=args.decided_by)
+        written = ledger.save()
+        print("ledger written: " + str(written), file=sys.stderr)
+
+    report = engine.run(
+        integrity_input, strict=args.strict, profile=profile, ledger=ledger
+    )
     document = report.to_dict()
     if args.with_provenance:
         document["provenance"] = build_provenance(integrity_input, report)
