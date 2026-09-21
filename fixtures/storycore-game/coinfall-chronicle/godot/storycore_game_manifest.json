@@ -1,0 +1,112 @@
+{
+  "actors": [
+    {
+      "dialogue": {
+        "en": [
+          "Guide the moon runes through the orchard's old wards.",
+          "Five recovered runes will relight the chronicle."
+        ],
+        "fr": [
+          "Guide les runes lunaires à travers les anciennes protections du verger.",
+          "Cinq runes retrouvées rallumeront la chronique."
+        ]
+      },
+      "id": "lyra",
+      "name": {
+        "en": "Lyra, Keeper of Embers",
+        "fr": "Lyra, gardienne des braises"
+      },
+      "role": "quest_giver"
+    }
+  ],
+  "boundary": {
+    "authoritative_backend": "none-fixture",
+    "private_components_included": false,
+    "public_contract_only": true
+  },
+  "compiled_by": "storycore-game-bridge/0.1",
+  "content_sha256": "a75e7e506f27cee8e6bec9bcb65054ad264808c3c01508ee4de3e8645196c43a",
+  "contract_version": "0.1",
+  "gameplay": {
+    "board_seed": 240821,
+    "drop_limit": 12,
+    "score_bins": [
+      10,
+      20,
+      50,
+      20,
+      10
+    ],
+    "score_target": 100
+  },
+  "items": [
+    {
+      "id": "moon_rune",
+      "name": {
+        "en": "Moon Rune",
+        "fr": "Rune lunaire"
+      },
+      "score": 10
+    },
+    {
+      "id": "ember_seal",
+      "name": {
+        "en": "Ember Seal",
+        "fr": "Sceau de braise"
+      },
+      "score": 0
+    }
+  ],
+  "locales": [
+    "en",
+    "fr"
+  ],
+  "project": {
+    "id": "coinfall_chronicle",
+    "license": "MIT",
+    "summary": {
+      "en": "A tiny deterministic rune-drop quest proving the public StoryCore-to-game contract.",
+      "fr": "Une courte quête déterministe de runes démontrant le contrat public StoryCore-vers-jeu."
+    },
+    "title": {
+      "en": "Coinfall Chronicle",
+      "fr": "La Chronique des runes"
+    }
+  },
+  "quest": {
+    "id": "relight_the_chronicle",
+    "objectives": [
+      {
+        "id": "recover_moon_runes",
+        "kind": "collect",
+        "required_count": 5,
+        "target_id": "moon_rune"
+      }
+    ],
+    "rewards": [
+      {
+        "count": 1,
+        "item_id": "ember_seal"
+      }
+    ],
+    "title": {
+      "en": "Relight the Chronicle",
+      "fr": "Rallumer la chronique"
+    }
+  },
+  "runtime": {
+    "authority": "local-fixture",
+    "engine": "godot",
+    "entry_scene": "res://Main.tscn",
+    "minimum_version": "4.2"
+  },
+  "schema_version": "0.1",
+  "world": {
+    "biome": "arcane_orchard",
+    "id": "ember_orchard",
+    "title": {
+      "en": "The Ember Orchard",
+      "fr": "Le Verger des braises"
+    }
+  }
+}
