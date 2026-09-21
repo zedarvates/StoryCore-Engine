@@ -173,9 +173,17 @@ Only after checking the dry-run output:
 npx --no-install anna-app apps push --json
 npx --no-install anna-app apps status storycore-harbour --json
 npx --no-install anna-app apps list --json
+npx --no-install anna-app apps grants storycore-harbour --json
 ```
 
 `apps push` creates or updates a mutable **working draft**. It is not a public release and should not make the App visible in the public Store.
+
+The grants endpoint is informational only. With the currently pinned CLI, a
+JSON result containing `"grants": null` means the server returned 404 for the
+public grants endpoint and the CLI has no endpoint data available. It does not
+prove that the App was denied the Host APIs declared in the manifest. Confirm
+actual LLM, storage, and window capabilities through the authenticated harness
+and recorded Host calls; do not infer permission state from `null`.
 
 After the first successful push:
 
@@ -183,6 +191,38 @@ After the first successful push:
 - do not commit credentials or machine-specific secrets;
 - open the Developer Console and confirm the App is shown as a working/draft App;
 - confirm the locked slug is exactly `storycore-harbour`.
+
+### Working-draft installation path
+
+The authenticated Developer Console inspected on 2026-08-29 exposes an
+**Install & test** action inside the **Versions** tab for the mutable working
+draft, even while the App has zero immutable versions. This is distinct from
+the App-list **Install** action that previously failed with “no available
+published version”. Do not cut `0.1.0` merely to discover whether the current
+working-draft installation path is usable.
+
+Installing changes the owner's Installed Apps state and may open Host API
+permission controls. Use **Install & test** only after explicit owner approval
+at action time, then verify the exact App id, working revision, requested
+capabilities, and absence of unexpected Executas before confirming anything.
+
+During the same inspection, **View manifest** returned `Could not validate
+credentials` although the Console displayed working revision 12 and the CLI
+independently confirmed the draft. Treat that as a web-session/platform
+credential condition, not as evidence that the uploaded manifest or bundle is
+invalid. Reauthenticate or ask Anna support rather than recreating the App.
+
+A fresh owner sign-in subsequently restored **View manifest**. The normalized
+remote r12 manifest matched the committed Schema 2 Host-API-only boundaries.
+Keep `review/ANNA_VIEW_MANIFEST_CREDENTIAL_REPORT.md` as the recurrence report;
+do not send it while the read path remains healthy.
+
+Installed Apps inspection then showed StoryCore Harbour already present as
+`v0.0.0-dev`. Do not click **Install & test** again merely because the
+Developer card remains at `v0.0.0`. The existing installation's Permissions
+panel currently returns `App version not found`; stop there and use
+`review/ANNA_DEV_INSTALL_PERMISSIONS_REPORT.md` rather than reinstalling,
+uninstalling, cutting a version, or changing grants speculatively.
 
 If the CLI or Console creates an unexpected second App, stop before cutting a version. Preserve the outputs needed for diagnosis, but redact tokens.
 

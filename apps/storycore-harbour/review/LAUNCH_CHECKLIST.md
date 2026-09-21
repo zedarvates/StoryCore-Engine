@@ -31,12 +31,17 @@ This checklist is a release gate. A checked implementation item does not overrid
 - [x] Manifest declares only LLM, App storage, and window-title Host APIs.
 - [x] Undeclared tool invocation is denied in the official test harness.
 - [x] Mock Anna harness starts in CI.
+- [x] Authenticated Console View manifest matches the committed Schema 2 Host-API-only boundaries at r12.
 - [x] Browser flow runs inside the Anna harness at 520 × 680.
 - [ ] Production Host API handshake verified in the target Anna account.
 - [ ] Production App storage write/read/reload verified.
 - [ ] Production ETag conflict induced and safely rejected.
 - [ ] Qualified App MAU definition and dashboard visibility confirmed.
 - [ ] Host-API-only completion confirmed as eligible without local runtime installation.
+- [ ] Owner-approved working-draft **Install & test** completes from revision 12 without cutting a version.
+- [ ] Installed Apps exposes only the expected LLM, App storage, and window capabilities with no Executa.
+- [x] Existing Installed Apps record identified as StoryCore Harbour `v0.0.0-dev`.
+- [ ] Resolve `App version not found` when opening permissions for the existing dev installation.
 
 ## Reliability and CI
 

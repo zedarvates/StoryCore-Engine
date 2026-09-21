@@ -23,6 +23,17 @@ StoryCore Harbour turns a concept, synopsis, or short script into a coherent vis
 
 The deterministic browser demo produces draft versions as `01-concept.png` through `04-continuity.png`. Confirm Anna's exact dimensions and file limits before treating them as final Marketplace assets.
 
+The current revision 11 drafts are 900 x 820 PNG files, each below 106 KB.
+Public Anna documentation reviewed on 2026-08-29 did not expose numeric listing
+media limits. Use `ANNA_MEDIA_REQUIREMENTS_REQUEST.md` for the prepared support
+question; do not upload or submit the drafts until those requirements are
+confirmed.
+
+The authenticated Listing subsequently confirmed PNG/JPG/WebP/GIF logos up to
+2MB, cropped to 256 x 256. The validated 5,302-byte candidate is
+`marketplace-media/storycore-harbour-logo-256.png`. Screenshot requirements remain the
+unconfirmed part of the media gate.
+
 ## Demonstration procedure
 
 Follow `../demo/README.md`. The expected reviewer-visible flow takes less than five minutes after dependencies are installed:
