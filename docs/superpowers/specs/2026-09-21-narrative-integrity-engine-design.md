@@ -330,15 +330,20 @@ Les sections 1 à 16 restent la conception de référence. Cette annexe décrit 
 | Paquet | `src/narrative_integrity/` : 15 modules (taxonomie, constats, seuils, entrée, texte, slop, détecteurs, canon, style, immunité, provenance, juge, moteur, interface, pont de prompts) |
 | Données versionnées | `data/narrative_integrity_v1.json` (seuils, bandes, politique) et `data/slop_signatures_fr_v1.json` (26 signatures originales, dont 2 rétrogradées à poids nul) |
 | Schémas | 4 JSON Schema : rapport, constat, signature, profil de référence |
-| Tests | 13 fichiers, 147 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration |
+| Tests | 14 fichiers, 164 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif |
 | Réutilisation | Adaptateur du graphe narratif vers le canon, et pont de prompts qui substitue la guidance dérivée du catalogue aux listes de mots interdits |
 | Arbitrage | Registre de décisions humaines, en ajout seul, indexé sur une identité indépendante de la position dans le texte |
 | Mesure | Corpus de contrôle français versionné (22 documents, 23 396 mots, dix œuvres), harnais de calibration, et rapport [RD_NARRATIVE_INTEGRITY_CALIBRATION.md](../../rd/RD_NARRATIVE_INTEGRITY_CALIBRATION.md) |
+| Juge | Juge qualitatif branché sur le modèle local via Ollama, en échec fermé, avec vérification que chaque extrait cité existe mot pour mot dans le texte |
 | Service existant | `backend/hermes_novelist_service.py` : la liste de mots interdits en dur est remplacée par une guidance dérivée du catalogue, avec repli conservé si le catalogue est indisponible |
 
 ### Gates
 
-G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. G2 dispose désormais d'une mesure : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. Sur G5, la moitié hors ligne est en place : une observation déjà tranchée par un humain n'est plus présentée comme nouvelle. Restent ouverts le juge qualitatif réel, qui demande un appel de modèle, et l'alimentation de la voie RAG par le canon. Les détecteurs déterministes et statistiques fonctionnent sans juge.
+G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. G2 dispose désormais d'une mesure : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. Sur G5, le juge qualitatif est branché et validé contre le modèle local, et la mémoire d'arbitrage est en place. Restent ouverts : une armure machine pour établir un taux de détection, et l'alimentation de la voie RAG par le canon, qui touche un composant partagé.
+
+### Note d'exploitation : le modèle local raisonne
+
+Le modèle local disponible, `gemma4:26b`, est un modèle à raisonnement : il écrit sa délibération dans un champ séparé et peut renvoyer une réponse vide lorsque le budget de génération s'épuise au milieu du raisonnement. Une intégration naïve obtient donc une réponse vide à chaque appel et conclut que le juge est muet. La délibération est désactivée (`think: false`) : la réponse arrive en une fraction de seconde, et les traces de raisonnement ne se mélangent pas à la réponse analysée. Le budget de génération est explicite, et une réponse vide accompagnée d'une délibération non vide produit une erreur d'indisponibilité plutôt qu'un faux silence.
 
 ### Mesures réalisées
 
@@ -362,7 +367,7 @@ G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de styl
 - Les seuils, les poids et la courbe de score ne sont pas calibrés. Ils sont déclarés comme tels dans les données et rapportés comme estimation. Le taux de faux positifs, lui, est mesuré : 0 sur 22 documents humains, avec une borne supérieure exacte de 12,7 % par document et 25,9 % par œuvre, dix œuvres étant trop peu pour serrer davantage.
 - Le plancher de dérive de style vaut provisoirement 0,62 et n'est pas le 0,80 annoncé par la présentation publique, qui n'était pas mesuré.
 - Aucun taux de détection n'a été établi : le corpus ne contient pas d'armure machine, et en fabriquer une sans autorisation serait une invention. Le harnais calcule l'AUC et les intervalles appariés dès qu'une armure existe.
-- Le juge qualitatif n'est pas branché ; il ne peut ni certifier une mesure ni écraser un constat déterministe.
+- Le juge qualitatif est branché et validé contre le modèle local, mais sa sortie reste probabiliste : elle ne certifie aucune mesure, ne remplace jamais un constat déterministe, et n'est jamais interrogée sur l'auteur ni sur l'origine humaine ou machine du texte. Un extrait cité qui ne figure pas mot pour mot dans le texte est rejeté et le rejet est consigné.
 - Aucune écriture sur un artefact canonique : le moteur observe et propose, et un test vérifie qu'aucun constat ne peut être marqué comme appliqué.
 - Les couches sans matière déclarent leur portée partielle ou leur absence plutôt que de conclure.
 - La mémoire d'arbitrage enregistre des décisions humaines ; elle ne les valide pas. Une décision erronée reste une décision, et le score continue de mesurer le texte plutôt que le jugement porté sur lui.

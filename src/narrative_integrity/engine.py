@@ -57,35 +57,49 @@ class NarrativeIntegrityEngine:
         if not self.judge.available():
             return [], {"status": "unavailable", "name": getattr(self.judge, "name", "null")}
         try:
-            raw = self.judge.assess({"text": text})
+            if hasattr(self.judge, "assess_detailed"):
+                raw, metadata = self.judge.assess_detailed({"text": text})
+            else:
+                raw = self.judge.assess({"text": text})
+                metadata = {
+                    "status": "ran",
+                    "name": getattr(self.judge, "name", "judge"),
+                }
         except JudgeUnavailable as exc:
             return [], {"status": "unavailable", "reason": str(exc)}
         out: List[Finding] = []
+        invalid = 0
         for item in raw if isinstance(raw, list) else []:
             if not isinstance(item, dict):
+                invalid += 1
                 continue
-            out.append(
-                Finding(
-                    layer=NarrativeLayer(item.get("layer", "L3")),
-                    control_family=ControlFamily.LLM_JUDGE,
-                    detector_id="judge." + str(item.get("detector_id", "assessment")),
-                    severity=Severity(item.get("severity", "low")),
-                    locus=str(item.get("locus", "judge")),
-                    determinism=Determinism.PROBABILISTIC,
-                    confidence=float(item.get("confidence", 0.5)),
-                    confidence_basis="qualitative judge output, non deterministic",
-                    evidence=[
-                        Evidence(
-                            excerpt=str(item.get("excerpt", ""))[:200],
-                            locus=str(item.get("locus", "judge")),
-                            detail=str(item.get("detail", "")),
-                        )
-                    ],
-                    remediation=item.get("remediation"),
-                    input_hash=input_hash,
+            try:
+                out.append(
+                    Finding(
+                        layer=NarrativeLayer(str(item.get("layer", "L3"))),
+                        control_family=ControlFamily.LLM_JUDGE,
+                        detector_id="judge." + str(item.get("detector_id", "assessment")),
+                        severity=Severity(str(item.get("severity", "low"))),
+                        locus=str(item.get("locus", "judge")),
+                        determinism=Determinism.PROBABILISTIC,
+                        confidence=float(item.get("confidence", 0.5)),
+                        confidence_basis="qualitative judge output, non deterministic",
+                        evidence=[
+                            Evidence(
+                                excerpt=str(item.get("excerpt", ""))[:200],
+                                locus=str(item.get("locus", "judge")),
+                                detail=str(item.get("detail", "")),
+                            )
+                        ],
+                        remediation=item.get("remediation"),
+                        input_hash=input_hash,
+                    )
                 )
-            )
-        return out, {"status": "ran", "name": getattr(self.judge, "name", "judge")}
+            except (ValueError, TypeError):
+                invalid += 1
+        if invalid:
+            metadata = {**metadata, "invalid_items_dropped": invalid}
+        return out, metadata
 
     def run(
         self,

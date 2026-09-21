@@ -17,6 +17,7 @@ from pathlib import Path
 
 from .engine import NarrativeIntegrityEngine
 from .input_model import IntegrityInput
+from .llm_judge import DEFAULT_BASE_URL, DEFAULT_MODEL, LLMJudge, OllamaTransport
 from .ledger import Decision, FindingsLedger
 from .provenance import build_provenance
 from .style_profile import lock_profile, save_profile
@@ -38,6 +39,13 @@ def _build_parser() -> argparse.ArgumentParser:
         "--lock-profile", help="write the built reference profile to this path"
     )
     parser.add_argument("--project-id", default="unknown")
+    parser.add_argument(
+        "--judge",
+        action="store_true",
+        help="enable the qualitative judge against the local model",
+    )
+    parser.add_argument("--judge-model", default=DEFAULT_MODEL)
+    parser.add_argument("--judge-base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--ledger", help="findings ledger to load and honour")
     parser.add_argument(
         "--decide",
@@ -75,7 +83,20 @@ def main(argv=None) -> int:
         return 2
 
     integrity_input = load_input(path, args.project_id)
-    engine = NarrativeIntegrityEngine()
+    judge = None
+    if args.judge:
+        judge = LLMJudge(
+            OllamaTransport(model=args.judge_model, base_url=args.judge_base_url)
+        )
+        print(
+            "note: the judge sends the inspected prose to "
+            + args.judge_base_url
+            + " with "
+            + args.judge_model
+            + "; nothing leaves this machine while that endpoint is local.",
+            file=sys.stderr,
+        )
+    engine = NarrativeIntegrityEngine(judge=judge)
     profile = None
     if args.profile:
         profile = json.loads(Path(args.profile).read_text(encoding="utf-8"))
