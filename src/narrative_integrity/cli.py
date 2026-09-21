@@ -1,4 +1,9 @@
-"""Command line entry point: inspect a file or a project payload, print JSON."""
+"""Command line entry point: inspect a file or a project payload, print JSON.
+
+Style drift is only measured against an explicit reference. The subject is never used
+as its own reference: that would be a self-referential measurement presented as a
+style lock.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +15,7 @@ from pathlib import Path
 from .engine import NarrativeIntegrityEngine
 from .input_model import IntegrityInput
 from .provenance import build_provenance
-from .style_profile import build_profile
+from .style_profile import lock_profile, save_profile
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -20,6 +25,14 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fold-homoglyphs", action="store_true", help="report folding only")
     parser.add_argument("--with-provenance", action="store_true")
     parser.add_argument("--profile", help="path to a JSON reference profile")
+    parser.add_argument(
+        "--reference",
+        action="append",
+        help="file used to build the reference profile; repeatable",
+    )
+    parser.add_argument(
+        "--lock-profile", help="write the built reference profile to this path"
+    )
     parser.add_argument("--project-id", default="unknown")
     return parser
 
@@ -52,8 +65,31 @@ def main(argv=None) -> int:
     profile = None
     if args.profile:
         profile = json.loads(Path(args.profile).read_text(encoding="utf-8"))
-    elif integrity_input.text:
-        profile = build_profile([integrity_input.text], engine.thresholds)
+    elif args.reference:
+        reference_texts = []
+        reference_sources = []
+        for candidate in args.reference:
+            reference_path = Path(candidate)
+            if not reference_path.exists():
+                print("reference not found: " + str(reference_path), file=sys.stderr)
+                return 2
+            reference_texts.append(
+                reference_path.read_text(encoding="utf-8", errors="replace")
+            )
+            reference_sources.append(str(reference_path))
+        profile = lock_profile(
+            reference_texts, engine.thresholds, sources=reference_sources
+        )
+    else:
+        print(
+            "note: no reference supplied, so style drift is not measured. "
+            "Pass --reference FILE or --profile FILE to enable layer S.",
+            file=sys.stderr,
+        )
+
+    if args.lock_profile and profile is not None:
+        written = save_profile(profile, args.lock_profile)
+        print("profile written: " + str(written), file=sys.stderr)
 
     report = engine.run(integrity_input, strict=args.strict, profile=profile)
     document = report.to_dict()

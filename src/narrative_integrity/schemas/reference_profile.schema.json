@@ -25,6 +25,36 @@
         "type": "string"
       }
     },
+    "derived_from_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sha256",
+          "words"
+        ],
+        "properties": {
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 64
+          },
+          "words": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "locked": {
+      "type": "boolean"
+    },
     "metrics": {
       "type": "object",
       "required": [

@@ -11,7 +11,8 @@ import hashlib
 import json
 import math
 import re
-from typing import Any, Dict, List, Sequence, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .findings import Evidence, Finding
 from .taxonomy import ControlFamily, Determinism, NarrativeLayer, Severity
@@ -173,3 +174,45 @@ def drift(
     metrics["similarities"] = similarities
     metrics["min_similarity"] = min(similarities) if similarities else None
     return findings, metrics
+
+
+def lock_profile(
+    texts: Sequence[str],
+    thresholds,
+    name: str = "reference",
+    sources: Optional[Sequence[str]] = None,
+) -> Dict[str, Any]:
+    """Build a profile and record exactly what it was derived from.
+
+    A reference profile is a claim about a corpus. Recording each source, its content
+    hash and its size keeps that claim checkable later. Only the measurements feed the
+    identifier, so locking the same material twice yields the same profile_id.
+    """
+
+    records: List[Dict[str, Any]] = []
+    labels: List[str] = []
+    for index, text in enumerate(texts):
+        source = sources[index] if sources and index < len(sources) else None
+        labels.append(source or "")
+        records.append(
+            {
+                "source": source,
+                "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+                "words": count_words(text),
+            }
+        )
+    profile = build_profile(texts, thresholds, name=name, derived_from=labels)
+    profile["derived_from_records"] = records
+    profile["locked"] = True
+    return profile
+
+
+def save_profile(profile: Dict[str, Any], path) -> Path:
+    """Write a profile to disk so it can be versioned and reviewed."""
+
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(profile, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    return target

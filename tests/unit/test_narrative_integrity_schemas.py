@@ -13,7 +13,7 @@ from src.narrative_integrity import (
     SceneInput,
 )
 from src.narrative_integrity.slop import SlopRegistry
-from src.narrative_integrity.style_profile import build_profile
+from src.narrative_integrity.style_profile import build_profile, lock_profile
 
 SCHEMA_DIR = (
     Path(__file__).resolve().parents[2]
@@ -93,3 +93,19 @@ def test_uncalibrated_claims_are_declared_not_hidden():
     settings = NarrativeIntegrityEngine().thresholds
     assert settings.get("style.calibrated") is False
     assert settings.get("score_model.calibrated") is False
+
+
+def test_locked_profile_validates_and_records_its_sources():
+    engine = NarrativeIntegrityEngine()
+    profile = lock_profile(
+        ["Un texte de reference suffisamment long pour mesurer quelque chose."],
+        engine.thresholds,
+        sources=["reference.md"],
+    )
+    validate("reference_profile.schema.json", profile)
+    assert profile["locked"] is True
+    assert profile["derived_from"] == ["reference.md"]
+    record = profile["derived_from_records"][0]
+    assert record["source"] == "reference.md"
+    assert len(record["sha256"]) == 64
+    assert record["words"] > 0
