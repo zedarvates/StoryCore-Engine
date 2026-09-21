@@ -2,10 +2,14 @@
 StoryCore Knowledge Graph — GraphRAG Engine.
 
 A lightweight, in-process Knowledge Graph that tracks narrative entities
-(characters, locations, objects, events) and their semantic relationships.
+(characters, locations, objects, events) and their labelled relationships.
 
 This allows the RLM Reflection Loop to validate continuity and detect
 plot holes without any external database dependency.
+
+The node vector is a lexical fingerprint, not a semantic embedding: it counts folded
+letters. It is deterministic and dependency free, and a real embedding model can be
+injected with set_embedder() without touching the graph.
 
 Architecture:
   - GraphNode  : A named entity with typed attributes and a vector fingerprint
@@ -19,10 +23,11 @@ from __future__ import annotations
 import json
 import math
 import re
+import unicodedata
 import uuid
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 # ---------------------------------------------------------------------------
@@ -44,7 +49,7 @@ class GraphNode:
 
     def __post_init__(self):
         if not self.vector:
-            self.vector = _text_vector(self.name + " " + self.entity_type)
+            self.vector = get_embedder()(self.name + " " + self.entity_type)
 
 
 @dataclass
@@ -67,28 +72,79 @@ class GraphEdge:
 # ---------------------------------------------------------------------------
 
 
+LIGATURES = {"œ": "oe", "æ": "ae", "ß": "ss"}
+
+
+def _fold_latin(text: str) -> str:
+    """Lower case, expand ligatures, and strip accents from Latin letters.
+
+    Folding is not cosmetic. Before it, an accented letter produced an index outside the
+    twenty-six slots and the vector raised IndexError, so any French name broke the
+    graph. Unaccented input is untouched, so previously stored vectors stay valid.
+    """
+
+    lowered = "".join(LIGATURES.get(ch, ch) for ch in text.lower())
+    decomposed = unicodedata.normalize("NFKD", lowered)
+    return "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+
+
 def _text_vector(text: str, dim: int = 26) -> List[float]:
     """
-    Produces a normalised character-frequency vector.
-    Fast, dependency-free, and good enough for fuzzy entity matching.
-    For production, swap with a real sentence-embedding model.
+    Produce a normalised letter-frequency fingerprint.
+
+    This is a lexical measure, not a semantic embedding. It is deterministic and
+    dependency free, and it is unchanged for unaccented input. Callers must not present
+    it as a semantic similarity. Inject a real model with set_embedder() to replace it.
     """
-    text = text.lower()
+
     counts = [0.0] * dim
-    for ch in text:
-        if ch.isalpha():
-            counts[ord(ch) - ord("a")] += 1.0
+    for ch in _fold_latin(text):
+        index = ord(ch) - ord("a")
+        if 0 <= index < dim:
+            counts[index] += 1.0
     norm = math.sqrt(sum(v * v for v in counts)) or 1.0
     return [v / norm for v in counts]
 
 
 def _cosine_similarity(a: List[float], b: List[float]) -> float:
+    if len(a) != len(b):
+        # Comparing vectors of different lengths through zip would return a plausible
+        # number computed from truncated data. Refusing is the honest answer.
+        return 0.0
     dot = sum(x * y for x, y in zip(a, b))
     mag_a = math.sqrt(sum(x * x for x in a))
     mag_b = math.sqrt(sum(y * y for y in b))
     if mag_a == 0 or mag_b == 0:
         return 0.0
     return dot / (mag_a * mag_b)
+
+
+# ---------------------------------------------------------------------------
+# Pluggable embedding
+# ---------------------------------------------------------------------------
+
+VECTOR_REPRESENTATION = "char-frequency-folded-v1"
+
+_embedder: Optional[Callable[[str], List[float]]] = None
+
+
+def set_embedder(embedder: Optional[Callable[[str], List[float]]]) -> None:
+    """Inject a real embedding model. Pass None to restore the default fingerprint."""
+
+    global _embedder
+    _embedder = embedder
+
+
+def get_embedder() -> Callable[[str], List[float]]:
+    return _embedder or _text_vector
+
+
+def vector_representation() -> str:
+    """Which representation the node vectors were produced with."""
+
+    if _embedder is None:
+        return VECTOR_REPRESENTATION
+    return str(getattr(_embedder, "representation", "custom-embedder"))
 
 
 # ---------------------------------------------------------------------------
@@ -267,7 +323,9 @@ class StoryGraph:
         """
         Return the top-k nodes most similar to the query string by cosine similarity.
         """
-        query_vec = _text_vector(query)
+        # The query must go through the same representation as the stored nodes, or an
+        # injected embedder would compare vectors of different lengths.
+        query_vec = get_embedder()(query)
         scored = [
             (node.name, _cosine_similarity(query_vec, node.vector))
             for node in self._nodes.values()
@@ -433,6 +491,7 @@ class StoryGraph:
             "edges": len(self._edges),
             "types": type_counts,
             "unique_relations": len(relation_types),
+            "vector_representation": vector_representation(),
         }
 
     # ------------------------------------------------------------------

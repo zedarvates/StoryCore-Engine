@@ -228,7 +228,7 @@ Toute correction suit le modèle des propositions du Synopsis Studio : identifia
 
 Le socle existe : `StoryGraph`, `GraphRAG`, ingestion de projet, timeline et arcs. Trois corrections sont nécessaires avant de s'appuyer dessus :
 
-1. remplacer le vecteur de hachage à 26 dimensions par une représentation sémantique réelle, ou cesser d'appeler la mesure « similarité cosinus » ;
+1. ~~remplacer le vecteur de hachage à 26 dimensions par une représentation sémantique réelle, ou cesser d'appeler la mesure « similarité cosinus »~~ — traité : la mesure n'est plus présentée comme sémantique, elle est sûre en Unicode, et un vrai modèle s'injecte désormais sans toucher au graphe (voir annexe B) ;
 2. indexer non seulement le canon mais aussi les findings acceptés et rejetés, pour que le moteur ne ressignale pas ce qui a déjà été arbitré ;
 3. alimenter le juge LLM par récupération sur le canon plutôt que par le texte complet, pour réduire les contradictions inventées.
 
@@ -330,16 +330,25 @@ Les sections 1 à 16 restent la conception de référence. Cette annexe décrit 
 | Paquet | `src/narrative_integrity/` : 15 modules (taxonomie, constats, seuils, entrée, texte, slop, détecteurs, canon, style, immunité, provenance, juge, moteur, interface, pont de prompts) |
 | Données versionnées | `data/narrative_integrity_v1.json` (seuils, bandes, politique) et `data/slop_signatures_fr_v1.json` (26 signatures originales, dont 2 rétrogradées à poids nul) |
 | Schémas | 4 JSON Schema : rapport, constat, signature, profil de référence |
-| Tests | 14 fichiers, 164 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif |
+| Tests | 15 fichiers, 175 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif, vecteur du graphe |
 | Réutilisation | Adaptateur du graphe narratif vers le canon, et pont de prompts qui substitue la guidance dérivée du catalogue aux listes de mots interdits |
 | Arbitrage | Registre de décisions humaines, en ajout seul, indexé sur une identité indépendante de la position dans le texte |
 | Mesure | Corpus de contrôle français versionné (22 documents, 23 396 mots, dix œuvres), harnais de calibration, et rapport [RD_NARRATIVE_INTEGRITY_CALIBRATION.md](../../rd/RD_NARRATIVE_INTEGRITY_CALIBRATION.md) |
 | Juge | Juge qualitatif branché sur le modèle local via Ollama, en échec fermé, avec vérification que chaque extrait cité existe mot pour mot dans le texte |
+| Vecteur | Le vecteur du graphe ne plante plus sur un nom accentué, il n'est plus présenté comme une similarité sémantique, et un modèle d'embedding réel s'injecte par set_embedder |
 | Service existant | `backend/hermes_novelist_service.py` : la liste de mots interdits en dur est remplacée par une guidance dérivée du catalogue, avec repli conservé si le catalogue est indisponible |
 
 ### Gates
 
-G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. G2 dispose désormais d'une mesure : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. Sur G5, le juge qualitatif est branché et validé contre le modèle local, et la mémoire d'arbitrage est en place. Restent ouverts : une armure machine pour établir un taux de détection, et l'alimentation de la voie RAG par le canon, qui touche un composant partagé.
+G1 à G4 sont couvertes, G3 comprise au sens strict depuis que le profil de style est verrouillé sur un corpus de référence explicite au lieu d'être dérivé du texte inspecté. G2 dispose désormais d'une mesure : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. Sur G5, le juge qualitatif est branché et validé contre le modèle local, la mémoire d'arbitrage est en place, et la première correction de la voie RAG est faite. Restent ouverts : une armure machine pour établir un taux de détection, l'indexation des findings arbitrés pour la récupération, et le choix d'un modèle d'embedding réel.
+
+### Note : le vecteur du graphe, corrigé
+
+Trois défauts ont été trouvés dans `src/assistant/knowledge_graph.py`, un composant partagé par l'assistant et le scoreur d'alignement :
+
+1. Le vecteur indexait vingt-six emplacements avec `ord(caractere) - ord("a")`. Une lettre accentuée tombait hors bornes : `_text_vector("Thérèse")` levait un `IndexError`. Comme `GraphNode` construit son vecteur à partir du nom, créer un personnage au nom accentué faisait planter le graphe, dans un projet francophone. Les accents sont désormais repliés sur leur lettre de base, et les ligatures développées ; le résultat pour une entrée sans accent est identique, donc les vecteurs déjà enregistrés restent valides.
+2. `_cosine_similarity` comparait deux listes de longueurs différentes par `zip`, ce qui tronquait silencieusement et rendait un nombre plausible calculé sur des données partielles. Elle refuse désormais la comparaison et renvoie zéro.
+3. La mesure était présentée comme une similarité sémantique. C'est une empreinte lexicale de lettres, et elle est maintenant nommée comme telle. Un modèle d'embedding réel s'injecte par `set_embedder`, et `vector_representation()` indique quelle représentation a produit les vecteurs stockés, y compris dans `stats()`.
 
 ### Note d'exploitation : le modèle local raisonne
 
