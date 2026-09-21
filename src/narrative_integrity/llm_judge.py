@@ -43,6 +43,9 @@ SYSTEM_PROMPT = (
     "rattacher a un extrait exact. "
     "Interdictions absolues : tu ne te prononces jamais sur l'auteur, ni sur l'origine "
     "humaine ou machine du texte, et tu ne reecris pas le texte. "
+    "Lorsque des faits de canon te sont fournis, ils font reference : tu ne signales une "
+    "contradiction que si tu peux citer l'extrait exact qui la porte, et tu n'inventes "
+    "aucun fait absent de cette liste. "
     "Tu reponds uniquement par un objet JSON, sans texte autour."
 )
 
@@ -106,13 +109,22 @@ class OllamaTransport:
         return content
 
 
-def build_prompt(text: str, max_items: int) -> str:
+def build_prompt(text: str, max_items: int, canon_context: str = "") -> str:
+    context_block = ""
+    if canon_context.strip():
+        context_block = (
+            "Faits de canon fournis, qui font reference :\n"
+            + canon_context.strip()
+            + "\nNe signale une contradiction avec ces faits que si tu peux citer "
+            "l'extrait exact qui la porte. N'invente aucun fait absent de cette liste.\n\n"
+        )
     return (
         "Extrait a relire :\n"
         "<<<\n"
         + text
         + "\n>>>\n\n"
-        "Reponds par un objet JSON de la forme :\n"
+        + context_block
+        + "Reponds par un objet JSON de la forme :\n"
         '{"findings": [{"layer": "L3", "severity": "low", "confidence": 0.4, '
         '"excerpt": "passage exact recopie du texte", "detail": "ce qui pose probleme"}]}\n\n'
         "Regles de forme :\n"
@@ -249,9 +261,10 @@ class LLMJudge:
         self, payload: Dict[str, Any]
     ) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
         text = str(payload.get("text", ""))
+        canon_context = str(payload.get("canon_context") or "")
         truncated = len(text) > self.max_chars
         inspected = text[: self.max_chars]
-        prompt = build_prompt(inspected, self.max_items)
+        prompt = build_prompt(inspected, self.max_items, canon_context)
         try:
             raw = self.transport.complete(prompt, SYSTEM_PROMPT)
         except JudgeUnavailable:
@@ -270,6 +283,7 @@ class LLMJudge:
             "truncated": truncated,
             "accepted_items": len(accepted),
             "rejected_items": rejected,
+            "canon_context_chars": len(canon_context),
         }
         self.last_report = report
         return accepted, report

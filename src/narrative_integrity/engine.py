@@ -16,6 +16,7 @@ from .findings import Evidence, Finding, IntegrityReport, LayerReport, content_h
 from .immune import summarize
 from .input_model import IntegrityInput
 from .judge import JudgeUnavailable, NullJudge
+from .retrieval import canon_context
 from .slop import SlopRegistry
 from .style_profile import drift
 from .taxonomy import (
@@ -51,16 +52,23 @@ class NarrativeIntegrityEngine:
             ),
         )
 
-    def _judge_findings(self, text: str, input_hash: str) -> tuple:
+    def _judge_findings(
+        self, text: str, input_hash: str, canon_context_text: str = ""
+    ) -> tuple:
         """Qualitative findings, only when a judge is actually available."""
 
         if not self.judge.available():
             return [], {"status": "unavailable", "name": getattr(self.judge, "name", "null")}
+        payload = {"text": text}
+        if canon_context_text.strip():
+            # Retrieval on the canon rather than the whole text, so the judge reasons on
+            # facts it can check instead of inventing contradictions.
+            payload["canon_context"] = canon_context_text
         try:
             if hasattr(self.judge, "assess_detailed"):
-                raw, metadata = self.judge.assess_detailed({"text": text})
+                raw, metadata = self.judge.assess_detailed(payload)
             else:
-                raw = self.judge.assess({"text": text})
+                raw = self.judge.assess(payload)
                 metadata = {
                     "status": "ran",
                     "name": getattr(self.judge, "name", "judge"),
@@ -220,7 +228,14 @@ class NarrativeIntegrityEngine:
             prose_only, prose_stats = inspect_prose(scanned, self.thresholds, input_hash)
             score = self.registry.score(scanned, self.thresholds)
             slop_findings = self.registry.findings(scanned, self.thresholds, input_hash)
-            judge_findings, judge_state = self._judge_findings(scanned, input_hash)
+            canon_context_text = (
+                canon_context(integrity_input.canon, scanned)
+                if integrity_input.canon is not None
+                else ""
+            )
+            judge_findings, judge_state = self._judge_findings(
+                scanned, input_hash, canon_context_text
+            )
             prose_findings = hygiene + prose_only + slop_findings + judge_findings
             prose_metrics = {
                 "slop_score": score["score"],

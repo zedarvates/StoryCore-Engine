@@ -330,17 +330,20 @@ Les sections 1 à 16 restent la conception de référence. Cette annexe décrit 
 | Paquet | `src/narrative_integrity/` : 15 modules (taxonomie, constats, seuils, entrée, texte, slop, détecteurs, canon, style, immunité, provenance, juge, moteur, interface, pont de prompts) |
 | Données versionnées | `data/narrative_integrity_v1.json` (seuils, bandes, politique) et `data/slop_signatures_fr_v1.json` (26 signatures originales, dont 2 rétrogradées à poids nul) |
 | Schémas | 4 JSON Schema : rapport, constat, signature, profil de référence |
-| Tests | 15 fichiers, 171 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif, vecteur du graphe |
+| Tests | 16 fichiers, 186 tests : déterminisme, stabilité d'identité, schémas, typographie française, canaux cachés, signatures, détecteurs, moteur, pont de prompts, adaptateur du graphe, corpus de contrôle, verrou de style, mémoire d'arbitrage, mesures de calibration, juge qualitatif, vecteur du graphe, récupération sur le canon |
 | Réutilisation | Adaptateur du graphe narratif vers le canon, et pont de prompts qui substitue la guidance dérivée du catalogue aux listes de mots interdits |
 | Arbitrage | Registre de décisions humaines, en ajout seul, indexé sur une identité indépendante de la position dans le texte |
 | Mesure | Corpus de contrôle français versionné (36 documents, 26 382 mots, dix œuvres, trois régimes machines générés localement), harnais de calibration apparié, et rapport [RD_NARRATIVE_INTEGRITY_CALIBRATION.md](../../rd/RD_NARRATIVE_INTEGRITY_CALIBRATION.md) |
 | Juge | Juge qualitatif branché sur le modèle local via Ollama, en échec fermé, avec vérification que chaque extrait cité existe mot pour mot dans le texte |
 | Vecteur | Le vecteur du graphe ne plante plus sur un nom accentué, il n'est plus présenté comme une similarité sémantique, et un modèle d'embedding réel s'injecte par set_embedder |
+| Récupération | Index lexical sur le canon, déterministe, qui alimente le juge en faits pertinents au lieu du texte entier ; rien n'est inventé quand rien ne correspond |
 | Service existant | `backend/hermes_novelist_service.py` : la liste de mots interdits en dur est remplacée par une guidance dérivée du catalogue, avec repli conservé si le catalogue est indisponible |
 
 ### Gates
 
-G1 à G5 disposent désormais d'une mesure. G2 : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. G5 : le juge est branché et validé contre le modèle local, la mémoire d'arbitrage est en place, la première correction de la voie RAG est faite, et une armure machine générée localement a permis de mesurer la détection. Restent ouverts : l'indexation des constats arbitrés pour la récupération, le choix d'un modèle d'embedding réel, et un corpus de détection plus large, parce que la mesure obtenue est négative et repose sur quatorze paires.
+G1 à G5 disposent désormais d'une mesure. G2 : zéro faux positif sur dix œuvres humaines, borne supérieure exacte de 25,9 % au niveau des œuvres. G5 : le juge est branché et validé contre le modèle local, la mémoire d'arbitrage est en place, la voie RAG est traitée sur ses trois points, et une armure machine générée localement a permis de mesurer la détection. Restent ouverts : un corpus de détection plus large, parce que la mesure obtenue est négative et repose sur quatorze paires, et le choix d'un modèle d'embedding réel.
+
+Sur les trois points de la voie RAG, deux leçons de cadrage valent d'être notées. Le premier — remplacer le vecteur ou cesser de l'appeler sémantique — est traité pour moitié, la seconde moitié attendant un modèle d'embedding. Le deuxième — indexer les constats arbitrés pour ne pas resignaler — est déjà servi par les clés normalisées du registre d'arbitrage : une recherche par similarité y ajouterait des suggestions bruitées sans rien régler. Le troisième — alimenter le juge par récupération sur le canon — est fait, et c'est précisément le cas où la recherche lexicale convient, parce que les faits de canon sont courts et nommés.
 
 ### Le résultat de détection, et il est négatif
 
@@ -369,6 +372,8 @@ En revanche, **le chemin réel n'est pas prouvé**, et le module le dit lui-mêm
 ### Note d'exploitation : le modèle local raisonne
 
 Le modèle local disponible, `gemma4:26b`, est un modèle à raisonnement : il écrit sa délibération dans un champ séparé et peut renvoyer une réponse vide lorsque le budget de génération s'épuise au milieu du raisonnement. Une intégration naïve obtient donc une réponse vide à chaque appel et conclut que le juge est muet. La délibération est désactivée (`think: false`) : la réponse arrive en une fraction de seconde, et les traces de raisonnement ne se mélangent pas à la réponse analysée. Le budget de génération est explicite, et une réponse vide accompagnée d'une délibération non vide produit une erreur d'indisponibilité plutôt qu'un faux silence.
+
+Second fait d'exploitation, observé en fin de session : après une dizaine de générations, l'endpoint se met à répondre **500** avec `llama-server process has terminated` et `failed to initialize the context`, autrement dit le modèle ne parvient plus à charger son contexte. C'est une contrainte de mémoire de la machine, pas un défaut du code : le modèle pèse 17 Go et cohabite avec le reste de l'atelier. Deux conséquences pratiques. D'abord, la validation réelle du juge ancré sur le canon n'a pas pu être menée à son terme ; elle reste donc annoncée comme non vérifiée. Ensuite, et c'est le point utile, l'échec a exercé le mode fermé en conditions réelles : le moteur a rendu ses sept constats déterministes, marqué le juge indisponible, et n'a rien inventé. Un juge indisponible ne dégrade pas l'analyse, il disparaît de la mesure.
 
 ### Mesures réalisées
 
