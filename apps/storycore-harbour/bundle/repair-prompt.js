@@ -64,10 +64,17 @@ const REQUIRED_SHAPE = Object.freeze({
 });
 
 export function createRepairPrompt(input, errors) {
+  // Parser diagnostics and reference ids can quote untrusted model output.
+  // Rebuild from fixed, deduplicated categories instead of forwarding the text.
+  const validationErrors = [...new Set(errors.map(error => (
+    typeof error === "string" && error.startsWith("JSON parse failed:")
+      ? "json_invalid"
+      : "contract_invalid"
+  )))];
   return JSON.stringify({
     task: "Rebuild the complete StoryCore Harbour project from the source input. The previous answer failed validation, so return a fresh self-contained project rather than a patch.",
     input,
-    validationErrors: errors,
+    validationErrors,
     requiredShape: REQUIRED_SHAPE,
     hardRules: [
       "Return exactly one JSON object and nothing else.",

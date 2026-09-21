@@ -258,6 +258,43 @@ response also shortens and decontaminates the repair context. The one-repair
 limit, 4,096-token request cap, canonical validator, and provider-neutral model
 selection remain unchanged.
 
+### ADR-023 — Keep model-derived diagnostics out of repair requests
+
+**Decision:** repair validation errors contain only the fixed categories
+`json_invalid` and `contract_invalid`; the exact normalized user input remains
+the reconstruction source.
+
+**Reason:** JSON parser errors and unknown character/location identifiers can
+quote the preceding model response. Forwarding those diagnostics verbatim
+violated ADR-022 even after the explicit previous-response field was removed.
+
+**Evidence:** the regression test `repair excludes model-derived text in parser
+and reference diagnostics` fails before the category mapping and passes after
+it. Repeated diagnostics collapse to at most two categories. No raw error text
+is included in the repair request.
+
+**Consequences:** detailed model-derived diagnostics are not repair instructions.
+The single repair call, token limit, timeout, provider selection, and source
+input are unchanged. Local tests do not establish real Anna model acceptance.
+
+### ADR-024 — Track reviewed Harbour invariants in the repository audit
+
+**Decision:** add the pinned Botte audit engine and a three-rule manifest at the
+repository root in a separate governance commit. Extend the existing Harbour
+CI to audit those references at the exact pull-request head, and correct stale
+commands and paths in the root contributor guide in that same separate commit.
+
+**Reason:** the owner's rule-drift correction request spans repositories. Root
+placement supports the standard audit command without coupling the engine to
+the App bundle or duplicating its runtime validators.
+
+**Consequences:** the first contract covers repair diagnostics, project ID
+references, and public acceptance summaries only. It does not certify the
+whole Engine, real model reliability, paid account access, publication, or
+owner-only decisions. App changes stay in their own commit; core code,
+dependency locks, the stale gitlink repair, and other feature PRs are outside
+this correction.
+
 ```text
 ### ADR-NNN — Title
 Decision:
