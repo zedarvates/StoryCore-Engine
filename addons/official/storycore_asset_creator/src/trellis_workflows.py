@@ -44,12 +44,21 @@ def load_workflow(preset: str = "lowvram") -> Dict[str, Any]:
 
     Returns: dict workflow (deepcopy pour eviter mutations)
     """
-    filename = PRESETS.get(preset, WORKFLOW_LOWVRAM)
+    if not isinstance(preset, str) or preset not in PRESETS:
+        raise ValueError(f"Preset Trellis2 inconnu: {preset!r}")
+    filename = PRESETS[preset]
     path = _WORKFLOWS_DIR / filename
     if not path.exists():
         raise FileNotFoundError(f"Workflow introuvable: {path}")
     with open(path, encoding="utf-8") as f:
-        return copy.deepcopy(json.load(f))
+        workflow = json.load(f)
+    if (
+        not isinstance(workflow, dict)
+        or not isinstance(workflow.get("nodes"), list)
+        or not all(isinstance(node, dict) for node in workflow["nodes"])
+    ):
+        raise ValueError("Workflow Trellis2: liste de nodes d'editeur attendue")
+    return copy.deepcopy(workflow)
 
 
 def patch_input_image(workflow: Dict[str, Any], image_filename: str) -> Dict[str, Any]:
@@ -59,10 +68,18 @@ def patch_input_image(workflow: Dict[str, Any], image_filename: str) -> Dict[str
     Le node d'entree image a type 'Trellis2LoadImageWithTransparency'.
     widgets_values[0] = nom du fichier image.
     """
-    for node in workflow.get("nodes", []):
-        if node.get("type") == "Trellis2LoadImageWithTransparency":
-            if "widgets_values" in node and len(node["widgets_values"]) > 0:
-                node["widgets_values"][0] = image_filename
+    image_nodes = [
+        node
+        for node in workflow.get("nodes", [])
+        if node.get("type") == "Trellis2LoadImageWithTransparency"
+    ]
+    if not image_nodes or any(
+        not isinstance(node.get("widgets_values"), list) or not node["widgets_values"]
+        for node in image_nodes
+    ):
+        raise ValueError("Workflow Trellis2: noeud d'image absent ou non modifiable")
+    for node in image_nodes:
+        node["widgets_values"][0] = image_filename
     return workflow
 
 
@@ -140,9 +157,10 @@ def build_workflow(
     resolution: int = 512,
 ) -> Dict[str, Any]:
     """
-    Construit un workflow pret a envoyer a ComfyUI.
+    Prepare les champs du template d'editeur Trellis2.
 
     Applique tous les patches dans l'ordre correct.
+    Ne valide ni le format de soumission API ni les dependances installees.
 
     Args:
         image_filename   : nom du fichier upload dans ComfyUI (ex: "hero.png")
@@ -152,7 +170,7 @@ def build_workflow(
         remove_background: True si l'image n'a pas de fond transparent
         resolution       : 512 (lowvram) ou 1024 (qualite)
 
-    Returns: workflow dict pret pour ComfyUIClient.queue_workflow()
+    Returns: template dict prepare (compatibilite API a verifier separement).
     """
     wf = load_workflow(preset)
     wf = patch_input_image(wf, image_filename)

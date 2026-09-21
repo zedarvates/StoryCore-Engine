@@ -20,7 +20,11 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional
 
 from .comfyui_client import ComfyUIClient
-from .trellis_workflows import build_workflow, get_expected_output_names
+from .trellis_workflows import (
+    build_workflow,
+    get_expected_output_names,
+    patch_input_image,
+)
 
 
 class ImageTo3DPipeline:
@@ -94,7 +98,19 @@ class ImageTo3DPipeline:
         start = time.time()
         img_path = Path(image_path)
         output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
+
+        # Preparer une seule fois avant tout appel client ou creation de sortie.
+        if not img_path.is_file():
+            raise FileNotFoundError(f"Image source introuvable: {img_path}")
+        self._log(f"Preparation workflow Trellis2 ({preset})...", progress_callback)
+        workflow = build_workflow(
+            image_filename=img_path.name,
+            asset_name=asset_name,
+            preset=preset,
+            seed=seed,
+            remove_background=remove_background,
+            resolution=512 if preset == "lowvram" else 1024,
+        )
 
         # 1. Verifier ComfyUI
         self._log("Verification ComfyUI...", progress_callback)
@@ -104,21 +120,15 @@ class ImageTo3DPipeline:
             )
 
         # 2. Upload image
+        output_path.mkdir(parents=True, exist_ok=True)
         self._log(f"Upload image: {img_path.name}", progress_callback)
         upload_info = self.client.upload_image(str(img_path))
         uploaded_filename = upload_info.get("name", img_path.name)
         self._log(f"Image uploadee: {uploaded_filename}", progress_callback)
 
-        # 3. Construire et envoyer le workflow
+        # 3. Reutiliser le template prepare avec le nom retourne par l'upload.
         self._log(f"Lancement Trellis2 ({preset})...", progress_callback)
-        workflow = build_workflow(
-            image_filename=uploaded_filename,
-            asset_name=asset_name,
-            preset=preset,
-            seed=seed,
-            remove_background=remove_background,
-            resolution=512 if preset == "lowvram" else 1024,
-        )
+        workflow = patch_input_image(workflow, uploaded_filename)
         prompt_id = self.client.queue_workflow(workflow)
         self._log(f"Workflow en queue: {prompt_id}", progress_callback)
 

@@ -97,11 +97,36 @@ workflows/
   trellis2_lowvram.json    ← workflow Low VRAM (recommandé)
   trellis2_standard.json   ← workflow qualité standard
   trellis2_lowpoly.json    ← workflow low poly
-  trellis2_trunk_only.json ← workflow tronc seul (inclus)
+  trellis2_trunk_only.json ← workflow tronc seul (à fournir)
 ```
 
 > Les workflows `PixelArtistry_Trellis2_*.json` de votre dossier `Downloads/3s/`  
 > doivent être copiés ici et renommés selon la convention ci-dessus.
+
+Ces quatre fichiers ne sont pas inclus dans l'arbre du dépôt examiné pour cette
+correction. Un nom de preset déclaré ne garantit pas qu'une recette est installée.
+
+Le pipeline prépare désormais la recette **avant tout appel client et tout upload**.
+Une image source absente, un preset inconnu, un fichier JSON absent ou illisible,
+une structure d'éditeur incompatible ou un nœud d'image non modifiable provoquent
+une erreur locale. Un preset inconnu ne sélectionne plus silencieusement `lowvram`.
+Le template préparé est conservé en mémoire ; après upload, seul son nom d'image
+est remplacé par celui renvoyé par ComfyUI, sans relecture de la recette sur disque.
+
+**Portée de cette validation :** le chargeur manipule encore les champs d'éditeur
+`nodes` / `widgets_values`. Cette correction ne convertit pas le template au format
+API de `/prompt` et ne prouve pas que le graphe est exécutable. La conversion, la
+disponibilité des nœuds/modèles, les délais HTTP et un essai réel restent à vérifier
+à partir des workflows effectivement utilisés dans Asset Factory / ComfyUI.
+
+Tests locaux sur recettes synthétiques, depuis la racine du dépôt :
+
+```bash
+python -m unittest discover -s tests/asset_creator -v
+```
+
+Ils ne nécessitent ni Blender, ni serveur ComfyUI, ni GPU. Voir leur
+[portée précise](../../../tests/asset_creator/README.md).
 
 ### 3. Installation de l'addon
 
@@ -187,7 +212,7 @@ storycore_asset_creator/
     ├── trellis2_lowvram.json      ← Workflow ComfyUI (à copier)
     ├── trellis2_standard.json     ← Workflow ComfyUI (à copier)
     ├── trellis2_lowpoly.json      ← Workflow ComfyUI (à copier)
-    └── trellis2_trunk_only.json   ← Workflow tronc seul (placeholder inclus)
+    └── trellis2_trunk_only.json   ← Workflow tronc seul (à copier)
 ```
 
 ---
