@@ -41,6 +41,46 @@ EXIT_MARKERS = (
     "est absent",
 )
 
+# Sentence openings led by a pronoun are anaphora, a legitimate device in narrative
+# prose: "Il y", "Elle ne", "Ce qui". Repetition of a pronoun link is not monotony.
+# Openings led by an article or a preposition stay reportable, because "Dans le",
+# repeated three times, is a formulaic opener.
+PRONOUN_LEAD = frozenset(
+    {
+        "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles",
+        "ce", "cet", "cette", "ces", "cela", "ça", "ca", "celui", "celle",
+        "ceux", "celles", "qui", "que", "qu", "quoi", "dont", "où", "ou",
+        "y", "en", "se", "me", "te", "moi", "toi", "soi", "lui", "leur", "leurs",
+    }
+)
+
+FUNCTION_WORD_SET = frozenset(
+    {
+        "le", "la", "les", "l", "un", "une", "des", "du", "de", "d",
+        "à", "a", "au", "aux", "dans", "sur", "sous", "par", "pour", "avec",
+        "sans", "vers", "chez", "entre", "contre", "depuis", "pendant",
+        "après", "apres", "avant",
+        "et", "ou", "ni", "mais", "car", "donc", "or", "ne", "n", "pas", "plus",
+        "moins", "que", "qu", "quand", "comme", "si", "lorsque", "puisque",
+        "est", "sont", "était", "etait", "étaient", "etaient",
+        "été", "ete", "être", "etre", "sera", "seront", "serait",
+        "fut", "furent", "avait", "avaient", "ont", "ai", "as", "avons", "avez",
+        "y", "en", "se", "me", "te", "lui", "leur", "leurs",
+    }
+)
+
+# Pronoun links count as function words: the rule is about the whole opening.
+FUNCTION_WORD_SET = frozenset(set(FUNCTION_WORD_SET) | set(PRONOUN_LEAD))
+
+
+def is_anaphoric_opener(opener: str) -> bool:
+    """True when a repeated opener is a pronoun link rather than a content phrase."""
+
+    tokens = [token for token in str(opener).split() if token]
+    if not tokens or tokens[0] not in PRONOUN_LEAD:
+        return False
+    return all(token in FUNCTION_WORD_SET for token in tokens)
+
 
 def _finding(**kwargs: Any) -> Finding:
     return Finding(**kwargs)
@@ -178,8 +218,11 @@ def inspect_prose(
         )
 
     openers = opener_repetition(sentences, int(settings.get("opener_min_repeats", 3)))
-    metrics["opener_repetition"] = openers
-    for opener in openers:
+    reportable = [item for item in openers if not is_anaphoric_opener(item["opener"])]
+    anaphoric = [item for item in openers if is_anaphoric_opener(item["opener"])]
+    metrics["opener_repetition"] = reportable
+    metrics["anaphoric_openers"] = anaphoric
+    for opener in reportable:
         findings.append(
             _finding(
                 layer=NarrativeLayer.PROSE,

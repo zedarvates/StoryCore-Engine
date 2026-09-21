@@ -6,6 +6,7 @@ from src.narrative_integrity.detectors import (
     inspect_scenes,
     inspect_structure,
     inspect_text_hygiene,
+    is_anaphoric_opener,
 )
 from src.narrative_integrity.input_model import (
     ActInput,
@@ -170,3 +171,36 @@ def test_canon_reports_an_ambiguous_timeline():
     canon = CanonInput(timeline=[{"label": "a", "order": 1}, {"label": "b", "order": 1}])
     findings, _ = inspect_canon(canon, [], THRESHOLDS, HASH)
     assert "canon.timeline_collision" in detectors_of(findings)
+
+
+def test_anaphora_rule_needs_a_pronoun_and_no_content_word():
+    assert is_anaphoric_opener("il y")
+    assert is_anaphoric_opener("elle ne")
+    assert is_anaphoric_opener("il était")
+    assert is_anaphoric_opener("ce qui")
+    assert not is_anaphoric_opener("il court")
+    assert not is_anaphoric_opener("le vieux")
+    assert not is_anaphoric_opener("dans le")
+    assert not is_anaphoric_opener("personne ne")
+
+
+def test_anaphoric_openers_are_reported_but_not_scored():
+    text = "Il y a un pont ancien. " * 4 + "Personne ne le traverse plus. " * 2
+    findings, metrics = inspect_prose(text, THRESHOLDS, HASH)
+    assert metrics["anaphoric_openers"], "the repetition must stay visible in metrics"
+    assert "prose.opener_repetition" not in detectors_of(findings)
+
+
+def test_content_openers_are_still_reported_as_monotony():
+    text = "Le vieux pont traverse la riviere tranquille. " * 12
+    findings, _ = inspect_prose(text, THRESHOLDS, HASH)
+    assert "prose.opener_repetition" in detectors_of(findings)
+
+
+def test_preposition_led_openers_remain_reportable():
+    text = (
+        "Dans le village, la route s'arrete. Dans le vallon, la route reprend. "
+        "Dans le bois, elle disparait. "
+    ) * 3
+    findings, _ = inspect_prose(text, THRESHOLDS, HASH)
+    assert "prose.opener_repetition" in detectors_of(findings)

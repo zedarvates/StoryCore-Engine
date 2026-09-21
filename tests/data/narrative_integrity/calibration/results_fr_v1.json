@@ -1,0 +1,432 @@
+{
+  "schema_version": "1.0",
+  "corpus_ref": {
+    "name": "corpus_fr_v1",
+    "schema_version": "1.0",
+    "language": "fr",
+    "path": "tests\\data\\narrative_integrity\\calibration\\corpus_fr_v1.json",
+    "sha256": "a3a21a923cbedd76127fbe1386801ededd8c87d7bea29b3ab959e5af1bd33d1c"
+  },
+  "corpus_limitations": [
+    "The literary arm is 18th and 19th century prose and contains none of the modern tells, so a low rate there is weak evidence about modern writing.",
+    "The project arm is technical documentation, not narrative prose.",
+    "Five works means few clusters: any bootstrap interval will be wide."
+  ],
+  "corpus_expectations": {
+    "max_false_positive_rate": 0.25
+  },
+  "settings_ref": {
+    "name": "narrative_integrity_v1",
+    "schema_version": "1.0",
+    "path": "C:\\storycore-engine\\src\\narrative_integrity\\data\\narrative_integrity_v1.json",
+    "sha256": "9bf3d28111fa02a89bba22072786e1bee225081af8691cf61fcd75f40a06400f",
+    "signatures_ref": {
+      "name": "slop_signatures_fr_v1",
+      "schema_version": "1.0",
+      "language": "fr",
+      "path": "C:\\storycore-engine\\src\\narrative_integrity\\data\\slop_signatures_fr_v1.json",
+      "sha256": "8ed31a54b29afb9845c2bfa08c36f07f4e15a5cc1c6044b758a3d240c3f6ecdb",
+      "signatures": 26,
+      "calibrated": false
+    }
+  },
+  "threshold": 40.0,
+  "resamples": 2000,
+  "seed": 20260921,
+  "summary": {
+    "documents": 22,
+    "words": 23396,
+    "labels": [
+      "human"
+    ],
+    "false_positive_rate": 0.0,
+    "false_positive_rate_interval": {
+      "clusters": 10,
+      "resamples": 2000,
+      "seed": 20260921,
+      "low": 0.0,
+      "high": 0.0,
+      "collapsed_at_boundary": true
+    },
+    "band_distribution": {
+      "clean": 22
+    },
+    "findings_per_1000_words": 0.94,
+    "flagged_documents": 0,
+    "upper_bound": {
+      "confidence": 0.95,
+      "over_documents": 0.1273,
+      "over_works": 0.2589,
+      "works": 10,
+      "note": "The bootstrap interval collapses to a point when no resample is flagged. The exact upper bound is what the corpora can support; it is driven by how few works are represented, not by the engine."
+    },
+    "detector_histogram": {
+      "slop.fr_tiret_cadratin": 6,
+      "prose.opener_repetition": 5,
+      "prose.passive_density": 2,
+      "slop.fr_adv_gonflant": 2,
+      "slop.fr_cliche_humain": 1,
+      "slop.fr_espace_insecable_manquant": 1,
+      "slop.fr_guillemets_droits": 1,
+      "slop.fr_pivot_pas_seulement": 1,
+      "slop.fr_q_rhetorique": 1
+    },
+    "max_false_positive_rate_allowed": 0.25,
+    "within_declared_budget": true
+  },
+  "per_arm": [
+    {
+      "arm_id": "human_literary_pd",
+      "label": "human",
+      "register": "literary narrative, 18th and 19th century",
+      "licence": "public domain",
+      "documents": 18,
+      "words": 22536,
+      "score_mean": 0.732,
+      "score_max": 10.19,
+      "band_distribution": {
+        "clean": 18
+      },
+      "findings_per_1000_words": 0.843,
+      "false_positive_rate": 0.0
+    },
+    {
+      "arm_id": "human_modern_project",
+      "label": "human",
+      "register": "modern technical and design prose",
+      "licence": "MIT (this repository)",
+      "documents": 4,
+      "words": 860,
+      "score_mean": 0.0,
+      "score_max": 0.0,
+      "band_distribution": {
+        "clean": 4
+      },
+      "findings_per_1000_words": 3.488,
+      "false_positive_rate": 0.0
+    }
+  ],
+  "per_document": [
+    {
+      "document_id": "AMELIORATION_EDITEUR_CONSEQUENCES-1",
+      "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+      "author": "StoryCore project",
+      "words": 259,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_modern_project",
+      "label": "human"
+    },
+    {
+      "document_id": "PLAN_AMELIORATION-1",
+      "work": "PLAN_AMELIORATION.md",
+      "author": "StoryCore project",
+      "words": 228,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_modern_project",
+      "label": "human"
+    },
+    {
+      "document_id": "RD_PLAN_SEQUENCE_EDITOR-1",
+      "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+      "author": "StoryCore project",
+      "words": 238,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "slop.fr_guillemets_droits"
+      ],
+      "arm_id": "human_modern_project",
+      "label": "human"
+    },
+    {
+      "document_id": "TOP5_TACHES-1",
+      "work": "TOP5_TACHES.md",
+      "author": "StoryCore project",
+      "words": 135,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "slop.fr_espace_insecable_manquant",
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "human_modern_project",
+      "label": "human"
+    },
+    {
+      "document_id": "pg14155-1",
+      "work": "Madame Bovary",
+      "author": "Gustave Flaubert",
+      "words": 1371,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 1,
+      "detectors": [
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg14155-2",
+      "work": "Madame Bovary",
+      "author": "Gustave Flaubert",
+      "words": 1289,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.opener_repetition",
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg14155-3",
+      "work": "Madame Bovary",
+      "author": "Gustave Flaubert",
+      "words": 1394,
+      "score": 2.98,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "slop.fr_q_rhetorique",
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg17489-1",
+      "work": "Les Miserables, Tome I",
+      "author": "Victor Hugo",
+      "words": 1198,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.opener_repetition",
+        "prose.passive_density"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg17489-2",
+      "work": "Les Miserables, Tome I",
+      "author": "Victor Hugo",
+      "words": 1336,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg17489-3",
+      "work": "Les Miserables, Tome I",
+      "author": "Victor Hugo",
+      "words": 1338,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.opener_repetition",
+        "slop.fr_adv_gonflant"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg2650-1",
+      "work": "Du cote de chez Swann",
+      "author": "Marcel Proust",
+      "words": 1200,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg2650-2",
+      "work": "Du cote de chez Swann",
+      "author": "Marcel Proust",
+      "words": 1406,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg2650-3",
+      "work": "Du cote de chez Swann",
+      "author": "Marcel Proust",
+      "words": 1111,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg2998-1",
+      "work": "A l'ombre des jeunes filles en fleurs, I",
+      "author": "Marcel Proust",
+      "words": 1241,
+      "score": 10.19,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 3,
+      "detectors": [
+        "prose.passive_density",
+        "slop.fr_cliche_humain",
+        "slop.fr_pivot_pas_seulement"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg2998-2",
+      "work": "A l'ombre des jeunes filles en fleurs, I",
+      "author": "Marcel Proust",
+      "words": 808,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg2998-3",
+      "work": "A l'ombre des jeunes filles en fleurs, I",
+      "author": "Marcel Proust",
+      "words": 867,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg4650-1",
+      "work": "Candide, ou l'optimisme",
+      "author": "Voltaire",
+      "words": 1297,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 2,
+      "detectors": [
+        "prose.opener_repetition",
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg4650-2",
+      "work": "Candide, ou l'optimisme",
+      "author": "Voltaire",
+      "words": 1318,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg4650-3",
+      "work": "Candide, ou l'optimisme",
+      "author": "Voltaire",
+      "words": 1347,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 5,
+      "detectors": [
+        "prose.opener_repetition",
+        "slop.fr_adv_gonflant",
+        "slop.fr_tiret_cadratin"
+      ],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg798-1",
+      "work": "Le Rouge et le Noir",
+      "author": "Stendhal",
+      "words": 1352,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg798-2",
+      "work": "Le Rouge et le Noir",
+      "author": "Stendhal",
+      "words": 1311,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    },
+    {
+      "document_id": "pg798-3",
+      "work": "Le Rouge et le Noir",
+      "author": "Stendhal",
+      "words": 1352,
+      "score": 0.0,
+      "band": "clean",
+      "guard_triggered": false,
+      "findings": 0,
+      "detectors": [],
+      "arm_id": "human_literary_pd",
+      "label": "human"
+    }
+  ],
+  "not_measured": [
+    "Detection rate and ROC-AUC: the corpus ships no machine arm.",
+    "Accuracy at any threshold: a rate of rank is not a per-document answer.",
+    "Modern narrative French and spoken French: not represented here."
+  ]
+}
