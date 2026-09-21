@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "plan_id": "fixture-free-v1",
+  "mode": "free",
+  "title": "Ambient interlude",
+  "duration_seconds": 20,
+  "sections": [
+    {"id": "interlude", "start_seconds": 0, "end_seconds": 20, "purpose": "open ambience", "energy": 0.25, "tension": 0.2, "dialogue_safe": true, "motif_refs": [], "instrument_roles": []}
+  ],
+  "motifs": [],
+  "sync_cues": [],
+  "lyrics": null,
+  "provenance": {"commercial_target": false, "dependencies": []}
+}
