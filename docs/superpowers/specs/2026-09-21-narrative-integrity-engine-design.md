@@ -416,3 +416,6 @@ Tout chemin fourni en argument est résolu dans une racine déclarée — le ré
 courant par défaut, `--root` ou `NARRATIVE_INTEGRITY_ROOT` sinon — et refusé dès qu'il
 en sort. Une écriture passe par la même garde, revérifiée juste avant l'ouverture : le
 moteur n'écrit que dans un fichier que l'opérateur a nommé et que la racine contient.
+L'analyse statique de flux signale malgré tout cette écriture, parce qu'elle ne suit pas
+la validation à travers l'appel de résolution. Ce point est revu et accepté dans l'outil
+d'analyse, justification comprise, plutôt que neutralisé par une annotation dans le code.
