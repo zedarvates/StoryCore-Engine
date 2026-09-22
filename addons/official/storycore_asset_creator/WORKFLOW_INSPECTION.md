@@ -22,7 +22,9 @@ Le diagnostic ne recherche pas récursivement d'autres fichiers. `--presets-dir`
 cherche les quatre noms de `PRESETS` ; un fichier absent reste signalé comme
 absent, sans choix d'une autre recette. Sans argument, le dossier de l'addon est
 utilisé. `--help` affiche une aide textuelle ; les autres résultats et erreurs
-d'arguments sont rendus en JSON sur stdout.
+d'arguments sont rendus en JSON sur stdout. Le chemin lu est une suite de noms
+simples : une remontée `..`, un chemin relatif à un lecteur, un joker ou un caractère
+de contrôle est refusé avant toute ouverture, et le rapport porte alors `path_refused`.
 
 | Champ | Sens |
 |---|---|
