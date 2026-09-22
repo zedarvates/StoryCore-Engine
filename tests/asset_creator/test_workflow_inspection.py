@@ -123,6 +123,29 @@ class WorkflowInspectionTests(unittest.TestCase):
                 self.assertEqual(report["errors"], ["invalid_json"])
                 self.assertEqual(report["sha256"], hashlib.sha256(raw).hexdigest())
 
+    def test_a_path_that_is_not_a_plain_name_chain_is_refused(self):
+        for name in (
+            "../outside.json",
+            "folder/../../outside.json",
+            "*.json",
+            "recipe.json:stream",
+            "a|b.json",
+        ):
+            with self.subTest(name=name):
+                report = inspection.inspect_workflow_file(name)
+                self.assertEqual(report["status"], "invalid")
+                self.assertEqual(report["errors"], ["path_refused"])
+                self.assertIsNone(report["sha256"])
+
+    def test_a_refused_path_is_reported_by_the_cli_rather_than_read(self):
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = inspection.main(["../outside.json"])
+        result = json.loads(output.getvalue())
+        self.assertEqual(code, 2)
+        self.assertEqual(result["reports"][0]["errors"], ["path_refused"])
+        self.assertFalse(result["execution_verified"])
+
     def test_invalid_editor_shapes_and_duplicate_ids_are_rejected(self):
         for nodes in (
             [],
