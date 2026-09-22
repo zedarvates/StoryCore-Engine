@@ -112,7 +112,7 @@ def test_cluster_interval_is_reproducible_and_counts_clusters():
 
 
 def test_shipped_corpus_loads_and_declares_only_human_arms():
-    corpus = load_corpus(CORPUS)
+    corpus = load_corpus(CORPUS, root=DATA)
     assert corpus.language == "fr"
     labels = {arm.label for arm in corpus.arms}
     assert labels == {"human"}, "no machine arm is available, and none is invented"
@@ -128,7 +128,7 @@ def test_corpus_refuses_text_that_does_not_match_its_hash(tmp_path):
     target = tmp_path / "tampered.json"
     target.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(CorpusIntegrityError):
-        load_corpus(target)
+        load_corpus(target, root=tmp_path)
 
 
 def test_corpus_refuses_a_word_count_that_disagrees(tmp_path):
@@ -137,7 +137,7 @@ def test_corpus_refuses_a_word_count_that_disagrees(tmp_path):
     target = tmp_path / "words.json"
     target.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     with pytest.raises(CorpusIntegrityError):
-        load_corpus(target)
+        load_corpus(target, root=tmp_path)
 
 
 def test_corpus_refuses_a_document_without_a_source():
@@ -162,7 +162,9 @@ def test_recorded_results_match_a_fresh_run():
     """A stale measurement is worse than none: the artefact must track the instrument."""
 
     recorded = json.loads(RESULTS.read_text(encoding="utf-8"))
-    fresh = run_calibration(load_corpora(ALL_CORPORA), resamples=2000, seed=20260921)
+    fresh = run_calibration(
+        load_corpora(ALL_CORPORA, root=DATA), resamples=2000, seed=20260921
+    )
     assert fresh["summary"] == recorded["summary"], (
         "thresholds or detectors changed since the recorded run: "
         "re-run python -m src.narrative_integrity.calibration"
@@ -183,7 +185,7 @@ def test_human_arms_stay_inside_the_declared_false_positive_budget():
 
 
 def test_merging_corpora_keeps_every_arm_and_validates_pairing():
-    merged = load_corpora(ALL_CORPORA)
+    merged = load_corpora(ALL_CORPORA, root=DATA)
     assert {arm.label for arm in merged.arms} == {"human", "machine"}
     assert len(merged.documents()) == 36
     assert len(merged.sources) == 4
@@ -204,8 +206,10 @@ def test_a_machine_document_missing_its_human_pair_is_refused(tmp_path):
     data["arms"][0]["documents"][0]["paired_with"] = "document-qui-nexiste-pas"
     broken = tmp_path / "broken.json"
     broken.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    human = tmp_path / "corpus_fr_v1.json"
+    human.write_text(CORPUS.read_text(encoding="utf-8"), encoding="utf-8")
     with pytest.raises(CorpusIntegrityError):
-        load_corpora([CORPUS, broken])
+        load_corpora([human, broken], root=tmp_path)
 
 
 def synthetic_pair(human_score, machine_score, work="w", arm="a"):

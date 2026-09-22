@@ -56,7 +56,9 @@ def test_ordinary_word_separator_space_is_normalised():
 
 def test_zero_width_characters_are_removed():
     cleaned, report = clean_text("pum" + ZWSP + "p" + ZWNJ + " " + ZWJ + "moves")
-    assert ZWSP not in cleaned and ZWNJ not in cleaned and ZWJ not in cleaned
+    assert ZWSP not in cleaned
+    assert ZWNJ not in cleaned
+    assert ZWJ not in cleaned
     assert report["removed"]["zero_width"] == 3
 
 

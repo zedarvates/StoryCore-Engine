@@ -48,4 +48,6 @@ def test_guidance_states_why_demoted_patterns_are_kept():
 
 
 def test_guidance_is_deterministic_for_a_given_registry():
-    assert render_guidance(REGISTRY, limit=5) == render_guidance(REGISTRY, limit=5)
+    first = render_guidance(REGISTRY, limit=5)
+    second = render_guidance(REGISTRY, limit=5)
+    assert first == second

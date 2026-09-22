@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from pathlib import Path
 
 from src.narrative_integrity import IntegrityInput, NarrativeIntegrityEngine
 from src.narrative_integrity.cli import main
@@ -61,7 +62,7 @@ def test_recorded_hash_matches_the_reference_text():
 
 def test_saved_profile_round_trips_through_disk(tmp_path):
     profile = lock_profile([FACTUAL], ENGINE.thresholds, sources=["ref.md"])
-    path = save_profile(profile, tmp_path / "nested" / "profile.json")
+    path = save_profile(profile, Path("nested") / "profile.json", root=tmp_path)
     assert path.exists()
     reloaded = json.loads(path.read_text(encoding="utf-8"))
     assert reloaded["profile_id"] == profile["profile_id"]
@@ -108,7 +109,7 @@ def test_engine_reports_style_findings_as_estimates():
 def test_cli_refuses_to_measure_style_without_a_reference(tmp_path, capsys):
     subject = tmp_path / "subject.md"
     subject.write_text(FACTUAL, encoding="utf-8")
-    assert main([str(subject)]) == 0
+    assert main([str(subject), "--root", str(tmp_path)]) == 0
     captured = capsys.readouterr()
     assert "no reference supplied" in captured.err
     report = json.loads(captured.out)
@@ -122,7 +123,10 @@ def test_cli_uses_an_explicit_reference(tmp_path, capsys):
     subject.write_text(FACTUAL_MORE, encoding="utf-8")
     reference = tmp_path / "reference.md"
     reference.write_text(FACTUAL, encoding="utf-8")
-    assert main([str(subject), "--reference", str(reference)]) == 0
+    assert (
+        main([str(subject), "--reference", str(reference), "--root", str(tmp_path)])
+        == 0
+    )
     report = json.loads(capsys.readouterr().out)
     expected = lock_profile(
         [FACTUAL], ENGINE.thresholds, sources=[str(reference)]
@@ -135,7 +139,18 @@ def test_cli_uses_an_explicit_reference(tmp_path, capsys):
 def test_cli_reports_a_missing_reference(tmp_path, capsys):
     subject = tmp_path / "subject.md"
     subject.write_text(FACTUAL, encoding="utf-8")
-    assert main([str(subject), "--reference", str(tmp_path / "absent.md")]) == 2
+    assert (
+        main(
+            [
+                str(subject),
+                "--reference",
+                str(tmp_path / "absent.md"),
+                "--root",
+                str(tmp_path),
+            ]
+        )
+        == 2
+    )
     assert "reference not found" in capsys.readouterr().err
 
 
@@ -153,6 +168,8 @@ def test_cli_can_lock_the_reference_profile(tmp_path, capsys):
                 str(reference),
                 "--lock-profile",
                 str(target),
+                "--root",
+                str(tmp_path),
             ]
         )
         == 0

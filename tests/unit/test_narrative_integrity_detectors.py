@@ -146,7 +146,7 @@ def test_canon_reports_entity_missing_from_the_canon():
         SceneInput(index=0, characters=["Ida"], function="goal"),
         SceneInput(index=1, characters=["Sylvain"], function="turn"),
     ]
-    findings, metrics = inspect_canon(canon, scenes, THRESHOLDS, HASH, "v1")
+    findings, metrics = inspect_canon(canon, scenes, THRESHOLDS, HASH)
     assert metrics["unknown_entities"] == 1
     finding = [f for f in findings if f.detector_id == "canon.unknown_entity"][0]
     assert finding.canon_conflict == "entity missing from canon"

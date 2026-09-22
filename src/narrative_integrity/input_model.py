@@ -140,55 +140,73 @@ class IntegrityInput:
         Unrecognised shapes are left empty rather than guessed.
         """
 
-        scenes: List[SceneInput] = []
-        raw_scenes = data.get("scenes") or data.get("scene_breakdown") or []
-        if isinstance(raw_scenes, dict):
-            raw_scenes = raw_scenes.get("scenes", [])
-        for position, raw in enumerate(raw_scenes if isinstance(raw_scenes, list) else []):
-            if not isinstance(raw, dict):
-                continue
-            scenes.append(
-                SceneInput(
-                    index=int(raw.get("index", position)),
-                    scene_id=str(raw.get("id") or raw.get("scene_id") or ""),
-                    pov=raw.get("pov") or raw.get("point_of_view"),
-                    location=raw.get("location"),
-                    time_label=raw.get("time") or raw.get("time_label"),
-                    characters=list(raw.get("characters") or []),
-                    summary=str(
-                        raw.get("summary")
-                        or raw.get("description")
-                        or raw.get("action")
-                        or ""
-                    ),
-                    function=raw.get("function") or raw.get("purpose"),
-                    text=str(raw.get("text") or raw.get("prose") or ""),
-                )
-            )
+        canon_payload = _canon_payload(data)
 
-        canon_payload = data.get("canon") or {}
-        if not isinstance(canon_payload, dict):
-            canon_payload = {}
-        entities = canon_payload.get("entities")
-        if entities is None:
-            entities = data.get("characters") or []
-        canon = CanonInput(
-            entities=[e for e in entities if isinstance(e, dict)] if isinstance(entities, list) else [],
-            relations=[r for r in canon_payload.get("relations", []) if isinstance(r, dict)],
-            timeline=[t for t in canon_payload.get("timeline", []) if isinstance(t, dict)],
-            version=canon_payload.get("version"),
-        )
-
-        text = str(data.get("text") or data.get("prose") or "")
         return cls(
             project_id=str(data.get("project_id") or data.get("id") or "unknown"),
             artifact=str(data.get("artifact") or ""),
-            text=text,
-            scenes=scenes,
-            canon=canon,
+            text=str(data.get("text") or data.get("prose") or ""),
+            scenes=_scenes_from_payload(data),
+            canon=_canon_from_payload(canon_payload, data),
             canon_ref=canon_payload.get("version") or data.get("canonical_version_id"),
             editorial_status=str(data.get("editorial_status") or "proposed"),
             generator=data.get("generator"),
             model=data.get("model"),
             profile_ref=data.get("profile_ref"),
         )
+
+
+def _scene_from_payload(raw: Dict[str, Any], position: int) -> SceneInput:
+    """One declared scene, read from whichever field names the payload uses."""
+
+    return SceneInput(
+        index=int(raw.get("index", position)),
+        scene_id=str(raw.get("id") or raw.get("scene_id") or ""),
+        pov=raw.get("pov") or raw.get("point_of_view"),
+        location=raw.get("location"),
+        time_label=raw.get("time") or raw.get("time_label"),
+        characters=list(raw.get("characters") or []),
+        summary=str(
+            raw.get("summary") or raw.get("description") or raw.get("action") or ""
+        ),
+        function=raw.get("function") or raw.get("purpose"),
+        text=str(raw.get("text") or raw.get("prose") or ""),
+    )
+
+
+def _scenes_from_payload(data: Dict[str, Any]) -> List[SceneInput]:
+    """The declared scenes, under either of the two keys the projects use."""
+
+    raw_scenes = data.get("scenes") or data.get("scene_breakdown") or []
+    if isinstance(raw_scenes, dict):
+        raw_scenes = raw_scenes.get("scenes", [])
+    if not isinstance(raw_scenes, list):
+        return []
+    return [
+        _scene_from_payload(raw, position)
+        for position, raw in enumerate(raw_scenes)
+        if isinstance(raw, dict)
+    ]
+
+
+def _canon_payload(data: Dict[str, Any]) -> Dict[str, Any]:
+    payload = data.get("canon") or {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _canon_from_payload(
+    canon_payload: Dict[str, Any], data: Dict[str, Any]
+) -> CanonInput:
+    """The canon block, falling back to the payload's own character list."""
+
+    entities = canon_payload.get("entities")
+    if entities is None:
+        entities = data.get("characters") or []
+    return CanonInput(
+        entities=[e for e in entities if isinstance(e, dict)]
+        if isinstance(entities, list)
+        else [],
+        relations=[r for r in canon_payload.get("relations", []) if isinstance(r, dict)],
+        timeline=[t for t in canon_payload.get("timeline", []) if isinstance(t, dict)],
+        version=canon_payload.get("version"),
+    )

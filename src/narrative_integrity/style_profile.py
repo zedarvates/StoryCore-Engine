@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .findings import Evidence, Finding
+from .paths import resolve_output
 from .taxonomy import ControlFamily, Determinism, NarrativeLayer, Severity
 from .text_scan import (
     adverb_rate,
@@ -207,10 +208,14 @@ def lock_profile(
     return profile
 
 
-def save_profile(profile: Dict[str, Any], path) -> Path:
-    """Write a profile to disk so it can be versioned and reviewed."""
+def save_profile(profile: Dict[str, Any], path, root=None) -> Path:
+    """Write a profile to disk so it can be versioned and reviewed.
 
-    target = Path(path)
+    The destination is an operator-supplied path: it is confined to the declared
+    root before being created, so a mistyped argument cannot write elsewhere.
+    """
+
+    target = resolve_output(path, root=root, label="profile")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         json.dumps(profile, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

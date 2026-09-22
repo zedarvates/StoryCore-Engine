@@ -46,7 +46,9 @@ def make_finding(**overrides):
 
 
 def test_finding_id_is_stable_across_instances():
-    assert make_finding().finding_id == make_finding().finding_id
+    first = make_finding()
+    second = make_finding()
+    assert first.finding_id == second.finding_id
 
 
 def test_finding_id_changes_with_locus():

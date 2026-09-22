@@ -19,6 +19,7 @@ def response_for(finding: Finding, thresholds) -> Dict[str, Any]:
     action = str(policy.get("action", "observe"))
     arbitrated = finding.arbitrated()
     requires = bool(policy.get("requires_confirmation", False)) and not arbitrated
+    proposes = action in ("propose", "block_promotion")
     return {
         "finding_id": finding.finding_id,
         "layer": finding.layer.value,
@@ -26,11 +27,7 @@ def response_for(finding: Finding, thresholds) -> Dict[str, Any]:
         "action": action,
         "requires_confirmation": requires,
         "applied": False,
-        "proposal": (
-            None
-            if arbitrated
-            else (finding.remediation if action in ("propose", "block_promotion") else None)
-        ),
+        "proposal": finding.remediation if proposes and not arbitrated else None,
         "arbitrated": arbitrated,
         "arbitration": finding.arbitration,
         "note": (

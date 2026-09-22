@@ -105,7 +105,8 @@ def test_the_index_covers_every_canon_document():
 def test_the_context_block_lists_the_relevant_facts():
     context = canon_context(sample_canon(), "Ida quitte Lyon au matin.")
     assert context.startswith("Faits de canon pertinents :")
-    assert "Ida" in context and "Lyon" in context
+    assert "Ida" in context
+    assert "Lyon" in context
 
 
 def test_nothing_is_invented_when_nothing_matches():
@@ -116,7 +117,9 @@ def test_nothing_is_invented_when_nothing_matches():
 
 def test_the_context_is_reproducible():
     canon = sample_canon()
-    assert canon_context(canon, "Ida et Lyon") == canon_context(canon, "Ida et Lyon")
+    first = canon_context(canon, "Ida et Lyon")
+    second = canon_context(canon, "Ida et Lyon")
+    assert first == second
 
 
 def test_the_engine_feeds_the_retrieved_canon_to_the_judge():

@@ -41,6 +41,10 @@ EXIT_MARKERS = (
     "est absent",
 )
 
+# One prefix for every scene-level locus, so the shape of a locus stays a constant
+# rather than a literal repeated in each detector.
+SCENE_LOCUS_PREFIX = "scene:"
+
 # Sentence openings led by a pronoun are anaphora, a legitimate device in narrative
 # prose: "Il y", "Elle ne", "Ce qui". Repetition of a pronoun link is not monotony.
 # Openings led by an article or a preposition stay reportable, because "Dans le",
@@ -401,8 +405,8 @@ def inspect_structure(
                     confidence_basis="Declared field absent on the scene record",
                     evidence=[
                         Evidence(
-                            excerpt=(s.summary or s.scene_id or "")[:120],
-                            locus="scene:" + str(s.index),
+                        excerpt=(s.summary or s.scene_id or "")[:120],
+                            locus=SCENE_LOCUS_PREFIX + str(s.index),
                             detail="no declared function",
                         )
                         for s in without[:5]
@@ -448,6 +452,49 @@ def inspect_structure(
     return findings, metrics
 
 
+def _pov_jumps(ordered: Sequence[SceneInput]) -> List[Tuple[SceneInput, SceneInput]]:
+    """Point-of-view changes that the previous scene does not announce."""
+
+    jumps: List[Tuple[SceneInput, SceneInput]] = []
+    for previous, current in zip(ordered, ordered[1:]):
+        if not (previous.pov and current.pov and previous.pov != current.pov):
+            continue
+        if not _has_marker(previous.summary, POV_CHANGE_MARKERS):
+            jumps.append((previous, current))
+    return jumps
+
+
+def _presence_gaps(ordered: Sequence[SceneInput]) -> List[Tuple[int, str, int]]:
+    """A character present, then absent, then present again without an exit marker."""
+
+    gaps: List[Tuple[int, str, int]] = []
+    for i in range(len(ordered) - 2):
+        first, middle, last = ordered[i], ordered[i + 1], ordered[i + 2]
+        first_set = {c.lower() for c in first.characters}
+        middle_set = {c.lower() for c in middle.characters}
+        last_set = {c.lower() for c in last.characters}
+        for name in first_set & last_set - middle_set:
+            if not _has_marker(middle.summary, EXIT_MARKERS):
+                gaps.append((first.index, name, middle.index))
+    return gaps
+
+
+def _time_reversals(
+    ordered: Sequence[SceneInput],
+) -> List[Tuple[SceneInput, SceneInput]]:
+    """Consecutive scenes whose declared time labels go backwards."""
+
+    reversals: List[Tuple[SceneInput, SceneInput]] = []
+    for previous, current in zip(ordered, ordered[1:]):
+        if not (previous.time_label and current.time_label):
+            continue
+        before = _first_int(previous.time_label)
+        after = _first_int(current.time_label)
+        if before is not None and after is not None and after < before:
+            reversals.append((previous, current))
+    return reversals
+
+
 def inspect_scenes(
     scenes: Sequence[SceneInput], thresholds, input_hash: str
 ) -> Tuple[List[Finding], Dict[str, Any]]:
@@ -460,11 +507,7 @@ def inspect_scenes(
     if len(ordered) < 2:
         return findings, metrics
 
-    pov_jumps: List[Tuple[SceneInput, SceneInput]] = []
-    for previous, current in zip(ordered, ordered[1:]):
-        if previous.pov and current.pov and previous.pov != current.pov:
-            if not _has_marker(previous.summary, POV_CHANGE_MARKERS):
-                pov_jumps.append((previous, current))
+    pov_jumps = _pov_jumps(ordered)
     metrics["pov_jumps_unmarked"] = len(pov_jumps)
     if pov_jumps:
         findings.append(
@@ -480,25 +523,17 @@ def inspect_scenes(
                 evidence=[
                     Evidence(
                         excerpt=(current.summary or current.scene_id or "")[:120],
-                        locus="scene:" + str(current.index),
+                        locus=SCENE_LOCUS_PREFIX + str(current.index),
                         detail="POV " + str(previous.pov) + " to " + str(current.pov),
                     )
-                    for _, current in pov_jumps[:5]
+                    for previous, current in pov_jumps[:5]
                 ],
                 remediation="Marquer le changement de point de vue.",
                 input_hash=input_hash,
             )
         )
 
-    gaps: List[Tuple[int, str, int]] = []
-    for i in range(len(ordered) - 2):
-        first, middle, last = ordered[i], ordered[i + 1], ordered[i + 2]
-        first_set = {c.lower() for c in first.characters}
-        middle_set = {c.lower() for c in middle.characters}
-        last_set = {c.lower() for c in last.characters}
-        for name in first_set & last_set - middle_set:
-            if not _has_marker(middle.summary, EXIT_MARKERS):
-                gaps.append((first.index, name, middle.index))
+    gaps = _presence_gaps(ordered)
     metrics["presence_gaps"] = len(gaps)
     if gaps:
         findings.append(
@@ -514,7 +549,7 @@ def inspect_scenes(
                 evidence=[
                     Evidence(
                         excerpt=name,
-                        locus="scene:" + str(middle),
+                        locus=SCENE_LOCUS_PREFIX + str(middle),
                         detail="present in scene " + str(first) + " and " + str(middle + 1),
                     )
                     for first, name, middle in gaps[:5]
@@ -524,13 +559,7 @@ def inspect_scenes(
             )
         )
 
-    reversals: List[Tuple[SceneInput, SceneInput]] = []
-    for previous, current in zip(ordered, ordered[1:]):
-        if previous.time_label and current.time_label:
-            before = _first_int(previous.time_label)
-            after = _first_int(current.time_label)
-            if before is not None and after is not None and after < before:
-                reversals.append((previous, current))
+    reversals = _time_reversals(ordered)
     metrics["time_reversals"] = len(reversals)
     tolerance = int(settings.get("time_reversal_tolerance", 0))
     if len(reversals) > tolerance:
@@ -547,7 +576,7 @@ def inspect_scenes(
                 evidence=[
                     Evidence(
                         excerpt=str(current.time_label),
-                        locus="scene:" + str(current.index),
+                        locus=SCENE_LOCUS_PREFIX + str(current.index),
                         detail="after " + str(previous.time_label),
                     )
                     for previous, current in reversals[:5]

@@ -84,13 +84,15 @@ def test_a_fabricated_excerpt_is_rejected():
 
 
 def test_malformed_answer_fails_closed():
+    judge = LLMJudge(FakeTransport("je ne sais pas repondre"))
     with pytest.raises(JudgeUnavailable):
-        LLMJudge(FakeTransport("je ne sais pas repondre")).assess_detailed({"text": TEXT})
+        judge.assess_detailed({"text": TEXT})
 
 
 def test_empty_answer_fails_closed():
+    judge = LLMJudge(FakeTransport("   "))
     with pytest.raises(JudgeUnavailable):
-        LLMJudge(FakeTransport("   ")).assess_detailed({"text": TEXT})
+        judge.assess_detailed({"text": TEXT})
 
 
 def test_an_unreachable_endpoint_fails_closed():

@@ -76,8 +76,9 @@ def test_deferred_keeps_raising_and_the_latest_decision_wins():
 
 
 def test_record_key_requires_a_well_formed_key():
+    ledger = FindingsLedger.empty()
     with pytest.raises(ValueError):
-        FindingsLedger.empty().record_key("no-separator", Decision.REJECTED)
+        ledger.record_key("no-separator", Decision.REJECTED)
 
 
 def test_engine_marks_arbitrated_findings_without_dropping_them():
@@ -153,8 +154,8 @@ def test_ledger_round_trips_and_its_entries_validate(tmp_path):
         note="figure voulue par l'auteur",
         now=FIXED_NOW,
     )
-    path = ledger.save(tmp_path / "nested" / "ledger.json")
-    reloaded = FindingsLedger.from_file(path)
+    path = ledger.save(Path("nested") / "ledger.json", root=tmp_path)
+    reloaded = FindingsLedger.from_file(path, root=tmp_path)
     assert len(reloaded) == 1
     assert reloaded.suppresses("slop.fr_cliche_danse", "signature:fr_cliche_danse")
     validator = Draft202012Validator(json.loads(SCHEMA.read_text(encoding="utf-8")))
@@ -163,7 +164,7 @@ def test_ledger_round_trips_and_its_entries_validate(tmp_path):
 
 
 def test_missing_ledger_file_starts_empty(tmp_path):
-    ledger = FindingsLedger.from_file(tmp_path / "absent.json")
+    ledger = FindingsLedger.from_file(tmp_path / "absent.json", root=tmp_path)
     assert len(ledger) == 0
     assert not ledger.suppresses("x.y", "z")
 
@@ -183,6 +184,8 @@ def test_cli_records_a_decision_and_honours_it_on_the_next_run(tmp_path, capsys)
                 CONCL_KEY + "=rejected",
                 "--decided-by",
                 "editor",
+                "--root",
+                str(tmp_path),
             ]
         )
         == 0
@@ -191,7 +194,7 @@ def test_cli_records_a_decision_and_honours_it_on_the_next_run(tmp_path, capsys)
     assert first["aggregates"]["arbitrated"]["total"] == 1
     assert ledger_path.exists()
 
-    assert main([str(subject), "--ledger", str(ledger_path)]) == 0
+    assert main([str(subject), "--ledger", str(ledger_path), "--root", str(tmp_path)]) == 0
     second = json.loads(capsys.readouterr().out)
     assert second["aggregates"]["arbitrated"]["total"] == 1
     assert second["aggregates"]["arbitrated"]["by_decision"] == {"rejected": 1}
@@ -200,7 +203,10 @@ def test_cli_records_a_decision_and_honours_it_on_the_next_run(tmp_path, capsys)
 def test_cli_refuses_a_decision_that_has_nowhere_to_live(tmp_path, capsys):
     subject = tmp_path / "subject.md"
     subject.write_text(SUBJECT, encoding="utf-8")
-    assert main([str(subject), "--decide", CONCL_KEY + "=rejected"]) == 2
+    assert (
+        main([str(subject), "--decide", CONCL_KEY + "=rejected", "--root", str(tmp_path)])
+        == 2
+    )
     assert "needs --ledger" in capsys.readouterr().err
 
 
@@ -214,6 +220,8 @@ def test_cli_reports_an_unknown_decision(tmp_path, capsys):
             str(tmp_path / "ledger.json"),
             "--decide",
             CONCL_KEY + "=maybe",
+            "--root",
+            str(tmp_path),
         ]
     )
     assert code == 2

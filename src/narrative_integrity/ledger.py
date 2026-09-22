@@ -20,6 +20,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .paths import resolve_output
+
 SCHEMA_VERSION = "1.0"
 
 POSITIONAL_RE = re.compile(r"\d+(?:-\d+)?")
@@ -113,8 +115,14 @@ class FindingsLedger:
         return cls()
 
     @classmethod
-    def from_file(cls, path) -> "FindingsLedger":
-        target = Path(path)
+    def from_file(cls, path, root=None) -> "FindingsLedger":
+        """Load a ledger from an operator-supplied path, or start an empty one.
+
+        The path is confined before it is touched. A ledger that does not exist yet
+        is not an error: it is a ledger that has not recorded anything so far.
+        """
+
+        target = resolve_output(path, root=root, label="ledger")
         if not target.exists():
             return cls([], target)
         data = json.loads(target.read_text(encoding="utf-8"))
@@ -185,8 +193,8 @@ class FindingsLedger:
             "entries": [entry.to_dict() for entry in self._entries],
         }
 
-    def save(self, path=None) -> Path:
-        target = Path(path) if path else self._path
+    def save(self, path=None, root=None) -> Path:
+        target = resolve_output(path, root=root, label="ledger") if path else self._path
         if target is None:
             raise ValueError("no path given and no path was attached to this ledger")
         target.parent.mkdir(parents=True, exist_ok=True)

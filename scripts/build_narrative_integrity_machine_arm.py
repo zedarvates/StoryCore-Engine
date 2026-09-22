@@ -26,6 +26,12 @@ from datetime import datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+
+# Imported after the repository root is on the path: this script is run directly.
+from src.narrative_integrity.paths import PathRefused, resolve_output
+
 HUMAN_CORPUS = (
     REPO / "tests" / "data" / "narrative_integrity" / "calibration" / "corpus_fr_v1.json"
 )
@@ -183,7 +189,7 @@ def main(argv=None) -> int:
         started = time.time()
         try:
             produced = generate(prompt, seed)
-        except Exception as error:  # noqa: BLE001 - reported, never guessed
+        except Exception as error:  # a failed generation is reported, never guessed
             print(
                 "  %s: generation failed: %s" % (source["work"], type(error).__name__),
                 file=sys.stderr,
@@ -272,7 +278,13 @@ def main(argv=None) -> int:
             }
         ],
     }
-    target = Path(args.out)
+    try:
+        # The arm document stays inside the repository that produced it: --out is
+        # an operator-supplied path, and a mistyped one must not write elsewhere.
+        target = resolve_output(args.out, root=REPO, label="output")
+    except PathRefused as refusal:
+        print("refused: " + str(refusal), file=sys.stderr)
+        return 2
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         json.dumps(output, ensure_ascii=True, indent=1) + "\n", encoding="utf-8"

@@ -22,7 +22,6 @@ def inspect_canon(
     scenes: Sequence[SceneInput],
     thresholds,
     input_hash: str,
-    canon_ref: str = "",
 ) -> Tuple[List[Finding], Dict[str, Any]]:
     findings: List[Finding] = []
     settings = thresholds.section("canon")

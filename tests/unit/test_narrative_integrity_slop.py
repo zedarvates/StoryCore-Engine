@@ -71,7 +71,8 @@ def test_tolerance_absorbs_a_single_occurrence():
     text = filler + "Cela change véritablement le rapport."
     score = REGISTRY.score(text, THRESHOLDS)
     item = entry(score, "fr_adv_gonflant")
-    assert item is not None and item["count"] == 1
+    assert item is not None
+    assert item["count"] == 1
     assert item["above_tolerance"] is False
     assert score["content_load"] < 1.0
 
@@ -81,7 +82,8 @@ def test_tolerance_reacts_once_the_rate_exceeds_it():
     text = filler + "Cela change véritablement le rapport. " * 6
     score = REGISTRY.score(text, THRESHOLDS)
     item = entry(score, "fr_adv_gonflant")
-    assert item is not None and item["count"] == 6
+    assert item is not None
+    assert item["count"] == 6
     assert item["above_tolerance"] is True
     assert score["content_load"] > 0
 

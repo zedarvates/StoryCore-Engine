@@ -68,7 +68,9 @@ def test_nodes_become_entities_with_their_aliases():
     canon = canon_from_story_graph(build_real_graph(), version="graph-v1")
     assert canon.version == "graph-v1"
     names = canon.entity_names()
-    assert "Ida" in names and "Ida Voss" in names and "Lyon" in names
+    assert "Ida" in names
+    assert "Ida Voss" in names
+    assert "Lyon" in names
 
 
 def test_edges_become_relations():

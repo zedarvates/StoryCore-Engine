@@ -68,7 +68,8 @@ class OllamaEmbedder:
             return []
         try:
             body = self._post({"model": self.model, "input": inputs})
-        except (urllib.error.URLError, OSError, ValueError) as error:
+        # URLError is an OSError, so it is already covered by the first class.
+        except (OSError, ValueError) as error:
             raise EmbeddingUnavailable(
                 "embedding endpoint failed: " + type(error).__name__ + ": " + str(error)[:160]
             ) from error

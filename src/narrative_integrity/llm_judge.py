@@ -175,16 +175,49 @@ def _coerce_confidence(value: Any) -> Optional[float]:
     return max(0.0, min(1.0, number))
 
 
+def _accepted_item(
+    item: Any, position: int, inspected_text: str
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """One judge item as a finding, or the reason it cannot be used as one."""
+
+    if not isinstance(item, dict):
+        return None, "item %d: not an object" % position
+    severity = _coerce_severity(item.get("severity"))
+    if severity is None:
+        return None, "item %d: unknown severity %r" % (position, item.get("severity"))
+    confidence = _coerce_confidence(item.get("confidence"))
+    if confidence is None:
+        return None, "item %d: confidence is not a number" % position
+    excerpt = str(item.get("excerpt", "")).strip()
+    if not excerpt:
+        return None, "item %d: no excerpt" % position
+    if excerpt not in inspected_text:
+        return None, "item %d: excerpt does not appear in the text" % position
+    layer = str(item.get("layer", "L3")).strip().upper()
+    if layer not in ALLOWED_LAYERS:
+        layer = "L3"
+    return (
+        {
+            "layer": layer,
+            "severity": severity,
+            "confidence": confidence,
+            "excerpt": excerpt[:200],
+            "detail": str(item.get("detail", ""))[:300],
+            "remediation": (
+                str(item["remediation"])[:300] if item.get("remediation") else None
+            ),
+        },
+        None,
+    )
+
+
 def parse_findings(
     raw: str, inspected_text: str, max_items: int
 ) -> Tuple[List[Dict[str, Any]], List[str]]:
     """Turn a judge answer into findings, rejecting anything unverifiable."""
 
     payload = _load_json(raw)
-    if isinstance(payload, dict):
-        items = payload.get("findings", [])
-    else:
-        items = payload
+    items = payload.get("findings", []) if isinstance(payload, dict) else payload
     if not isinstance(items, list):
         raise JudgeUnavailable("judge JSON does not carry a findings list")
 
@@ -194,39 +227,11 @@ def parse_findings(
         if len(accepted) >= max_items:
             rejected.append("item %d: beyond the declared cap of %d" % (position, max_items))
             continue
-        if not isinstance(item, dict):
-            rejected.append("item %d: not an object" % position)
-            continue
-        severity = _coerce_severity(item.get("severity"))
-        if severity is None:
-            rejected.append("item %d: unknown severity %r" % (position, item.get("severity")))
-            continue
-        confidence = _coerce_confidence(item.get("confidence"))
-        if confidence is None:
-            rejected.append("item %d: confidence is not a number" % position)
-            continue
-        excerpt = str(item.get("excerpt", "")).strip()
-        if not excerpt:
-            rejected.append("item %d: no excerpt" % position)
-            continue
-        if excerpt not in inspected_text:
-            rejected.append("item %d: excerpt does not appear in the text" % position)
-            continue
-        layer = str(item.get("layer", "L3")).strip().upper()
-        if layer not in ALLOWED_LAYERS:
-            layer = "L3"
-        accepted.append(
-            {
-                "layer": layer,
-                "severity": severity,
-                "confidence": confidence,
-                "excerpt": excerpt[:200],
-                "detail": str(item.get("detail", ""))[:300],
-                "remediation": (
-                    str(item["remediation"])[:300] if item.get("remediation") else None
-                ),
-            }
-        )
+        finding, reason = _accepted_item(item, position, inspected_text)
+        if finding is None:
+            rejected.append(str(reason))
+        else:
+            accepted.append(finding)
     return accepted, rejected
 
 
@@ -269,7 +274,8 @@ class LLMJudge:
             raw = self.transport.complete(prompt, SYSTEM_PROMPT)
         except JudgeUnavailable:
             raise
-        except (urllib.error.URLError, OSError, ValueError) as error:
+        # URLError is an OSError, so it is already covered by the first class.
+        except (OSError, ValueError) as error:
             raise JudgeUnavailable(
                 "judge endpoint failed: " + type(error).__name__ + ": " + str(error)[:160]
             ) from error
