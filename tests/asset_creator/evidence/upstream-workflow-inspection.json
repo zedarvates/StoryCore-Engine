@@ -1,0 +1,177 @@
+{
+  "schema": "storycore.workflow-inspection/v1",
+  "execution_verified": false,
+  "reports": [
+    {
+      "path": "MeshWithTexturing.json",
+      "status": "inspected",
+      "format": "editor",
+      "sha256": "bfff47044231697bd720ef57e3192bb4f5f2c3f4277236ea827c237eb90d9a36",
+      "bytes": 30420,
+      "node_count": 24,
+      "node_types": [
+        "Preview3D",
+        "PrimitiveInt",
+        "PrimitiveString",
+        "StringConcatenate",
+        "Trellis2Continue",
+        "Trellis2DecodeLatents",
+        "Trellis2ExportMesh",
+        "Trellis2FillHolesNicelyWithMeshlib",
+        "Trellis2FillHolesWithCuMesh",
+        "Trellis2ImageCondGenerator",
+        "Trellis2LoadImageWithTransparency",
+        "Trellis2LoadModel",
+        "Trellis2MeshTexturing",
+        "Trellis2MeshWithVoxelToTrimesh",
+        "Trellis2PreProcessImage",
+        "Trellis2ReconstructMeshWithQuad",
+        "Trellis2ShapeCascadeGenerator",
+        "Trellis2ShapeGenerator",
+        "Trellis2SimplifyMesh",
+        "Trellis2SparseGenerator"
+      ],
+      "declared_extensions": [
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "7ce26deae425d114f3deb78e802d6196e5987a4a"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "9d1f80ec9b4d5c4b966e7595ee99e01a1d0c9f19"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "c5d66aa46bf1bbf903fd4fe9ff086ac774bb7e03"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "d4d66cfc9f1ce5b1c3b9a2e504ee4b24ffad48a5"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "dc66f263e832b103a81a021bf6cd53eec8ff28af"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "e7f9b30df7a09bcedf1c955e176754c73f983254"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "ef2286b47ce0ef0e681dffe0209aadd96de50f72"
+        },
+        {
+          "id_source": "cnr_id",
+          "id": "comfy-core",
+          "version": "0.16.4"
+        },
+        {
+          "id_source": "cnr_id",
+          "id": "comfy-core",
+          "version": "0.19.3"
+        }
+      ],
+      "api_export_required": true,
+      "execution_verified": false,
+      "errors": []
+    },
+    {
+      "path": "MeshWithTexturing_LowPoly.json",
+      "status": "inspected",
+      "format": "editor",
+      "sha256": "02d285b238668420acb6851d1819ab1c309ef567e7b01626e3aeb09c766d100b",
+      "bytes": 31727,
+      "node_count": 27,
+      "node_types": [
+        "Preview3D",
+        "PrimitiveInt",
+        "PrimitiveString",
+        "StringConcatenate",
+        "Trellis2DecodeLatents",
+        "Trellis2ExportMesh",
+        "Trellis2FillHolesNicelyWithMeshlib",
+        "Trellis2FillHolesWithCuMesh",
+        "Trellis2ImageCondGenerator",
+        "Trellis2LoadImageWithTransparency",
+        "Trellis2LoadModel",
+        "Trellis2MeshTexturing",
+        "Trellis2MeshWithVoxelToTrimesh",
+        "Trellis2PreProcessImage",
+        "Trellis2ReconstructMeshWithQuad",
+        "Trellis2ShapeGenerator",
+        "Trellis2SimplifyMesh",
+        "Trellis2SparseGenerator"
+      ],
+      "declared_extensions": [
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "7ce26deae425d114f3deb78e802d6196e5987a4a"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "9d1f80ec9b4d5c4b966e7595ee99e01a1d0c9f19"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "c5d66aa46bf1bbf903fd4fe9ff086ac774bb7e03"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "d4d66cfc9f1ce5b1c3b9a2e504ee4b24ffad48a5"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "dc66f263e832b103a81a021bf6cd53eec8ff28af"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "e7f9b30df7a09bcedf1c955e176754c73f983254"
+        },
+        {
+          "id_source": "aux_id",
+          "id": "visualbruno/ComfyUI-Trellis2",
+          "version": "ef2286b47ce0ef0e681dffe0209aadd96de50f72"
+        },
+        {
+          "id_source": "cnr_id",
+          "id": "comfy-core",
+          "version": "0.16.4"
+        },
+        {
+          "id_source": "cnr_id",
+          "id": "comfy-core",
+          "version": "0.19.3"
+        }
+      ],
+      "api_export_required": true,
+      "execution_verified": false,
+      "errors": []
+    }
+  ],
+  "errors": [],
+  "source_repository": "visualbruno/ComfyUI-Trellis2",
+  "source_commit": "14597418bbe33a440ead4667e2966408f0524a21",
+  "source_paths": [
+    "example_workflows/MeshWithTexturing.json",
+    "example_workflows/MeshWithTexturing_LowPoly.json"
+  ],
+  "validation": {
+    "kind": "offline_static_inspection",
+    "python": "3.12.14",
+    "network": "socket creation forbidden",
+    "gpu_execution": false
+  }
+}

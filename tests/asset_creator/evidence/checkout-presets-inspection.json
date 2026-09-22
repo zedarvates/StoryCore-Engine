@@ -1,0 +1,77 @@
+{
+  "schema": "storycore.workflow-inspection/v1",
+  "execution_verified": false,
+  "reports": [
+    {
+      "preset": "standard",
+      "path": "addons/official/storycore_asset_creator/workflows/trellis2_standard.json",
+      "status": "missing",
+      "format": "unknown",
+      "sha256": null,
+      "bytes": null,
+      "node_count": 0,
+      "node_types": [],
+      "declared_extensions": [],
+      "api_export_required": null,
+      "execution_verified": false,
+      "errors": [
+        "file_missing"
+      ]
+    },
+    {
+      "preset": "lowvram",
+      "path": "addons/official/storycore_asset_creator/workflows/trellis2_lowvram.json",
+      "status": "missing",
+      "format": "unknown",
+      "sha256": null,
+      "bytes": null,
+      "node_count": 0,
+      "node_types": [],
+      "declared_extensions": [],
+      "api_export_required": null,
+      "execution_verified": false,
+      "errors": [
+        "file_missing"
+      ]
+    },
+    {
+      "preset": "lowpoly",
+      "path": "addons/official/storycore_asset_creator/workflows/trellis2_lowpoly.json",
+      "status": "missing",
+      "format": "unknown",
+      "sha256": null,
+      "bytes": null,
+      "node_count": 0,
+      "node_types": [],
+      "declared_extensions": [],
+      "api_export_required": null,
+      "execution_verified": false,
+      "errors": [
+        "file_missing"
+      ]
+    },
+    {
+      "preset": "trunk_only",
+      "path": "addons/official/storycore_asset_creator/workflows/trellis2_trunk_only.json",
+      "status": "missing",
+      "format": "unknown",
+      "sha256": null,
+      "bytes": null,
+      "node_count": 0,
+      "node_types": [],
+      "declared_extensions": [],
+      "api_export_required": null,
+      "execution_verified": false,
+      "errors": [
+        "file_missing"
+      ]
+    }
+  ],
+  "errors": [],
+  "checkout_source_commit": "552a39febeb8ec47e7cc28bf492cc4f39b008bae",
+  "validation": {
+    "kind": "local_checkout_inventory",
+    "network": "socket creation forbidden",
+    "user_machines_scanned": false
+  }
+}
