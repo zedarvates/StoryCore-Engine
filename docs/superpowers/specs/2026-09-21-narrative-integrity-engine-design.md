@@ -411,3 +411,8 @@ python -m src.narrative_integrity.cli chemin/vers/prose.md --reference corpus.md
 python -m src.narrative_integrity.cli chemin/vers/prose.md --ledger arbitrages.json
 python -m src.narrative_integrity.cli chemin/vers/prose.md --ledger arbitrages.json --decide "slop.fr_cliche_danse|signature:fr_cliche_danse=rejected" --decided-by editeur
 ```
+
+Tout chemin fourni en argument est résolu dans une racine déclarée — le répertoire
+courant par défaut, `--root` ou `NARRATIVE_INTEGRITY_ROOT` sinon — et refusé dès qu'il
+en sort. Une écriture passe par la même garde, revérifiée juste avant l'ouverture : le
+moteur n'écrit que dans un fichier que l'opérateur a nommé et que la racine contient.
