@@ -12,7 +12,6 @@ import argparse
 import hashlib
 import json
 import math
-import random
 import re
 import sys
 from dataclasses import dataclass, field
@@ -403,12 +402,14 @@ def cluster_rate_interval(
     if not clusters:
         return {"clusters": 0, "low": 0.0, "high": 0.0, "resamples": 0}
 
-    generator = random.Random(seed)
     rates: List[float] = []
+    draws = 0
     for _ in range(resamples):
         sample: List[Dict[str, Any]] = []
         for _ in range(len(clusters)):
-            sample.extend(by_cluster[clusters[generator.randrange(len(clusters))]])
+            drawn = clusters[_resample_index(seed, draws, len(clusters))]
+            draws += 1
+            sample.extend(by_cluster[drawn])
         rates.append(
             sum(1 for r in sample if r["score"] > threshold) / max(1, len(sample))
         )
@@ -429,6 +430,19 @@ def detector_histogram(results: Sequence[Dict[str, Any]]) -> Dict[str, int]:
         for detector_id in result.get("detectors", []):
             histogram[detector_id] = histogram.get(detector_id, 0) + 1
     return dict(sorted(histogram.items(), key=lambda item: (-item[1], item[0])))
+
+
+def _resample_index(seed: int, draw: int, size: int) -> int:
+    """A reproducible index in [0, size).
+
+    The bootstrap has to replay exactly, so the sequence is derived from a hash of the
+    seed and the draw number instead of a general-purpose generator. Nothing here is
+    security-sensitive: it resamples an already measured set, and the result must be
+    identical on every run and every machine.
+    """
+
+    material = ("%d:%d" % (seed, draw)).encode("utf-8")
+    return int.from_bytes(hashlib.sha256(material).digest()[:8], "big") % size
 
 
 def _resample_stats(
@@ -457,11 +471,14 @@ def _paired_bootstrap(
 ) -> Tuple[List[float], List[float]]:
     """Cluster bootstrap over the pairs, resampling pairs rather than documents."""
 
-    generator = random.Random(seed)
     auc_samples: List[float] = []
     tpr_samples: List[float] = []
+    draws = 0
     for _ in range(resamples):
-        sample = [pairs[generator.randrange(len(pairs))] for _ in range(len(pairs))]
+        sample = []
+        for _ in range(len(pairs)):
+            sample.append(pairs[_resample_index(seed, draws, len(pairs))])
+            draws += 1
         value, hits = _resample_stats(sample, by_id, threshold)
         if value is not None:
             auc_samples.append(value)
