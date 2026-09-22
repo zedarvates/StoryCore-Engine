@@ -128,6 +128,7 @@ def write_text_in_root(
     # The destination is operator-supplied by design: this is a local CLI whose caller
     # names the file it wants written, and the name chain was just checked against
     # PLAIN_PATH_RE and confined to the root. Static taint analysis cannot see that
-    # check across the call into _resolve, so the flow is declared reviewed here.
-    target.write_text(payload, encoding="utf-8")  # NOSONAR
+    # check across the call into _resolve, so the flow is reviewed in SonarCloud, not
+    # annotated in the code.
+    target.write_text(payload, encoding="utf-8")
     return target
