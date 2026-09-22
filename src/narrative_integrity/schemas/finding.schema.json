@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.local/schemas/narrative_integrity/finding.schema.json",
+  "title": "NarrativeIntegrityFinding",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "layer",
+    "control_family",
+    "detector_id",
+    "arbitration_key",
+    "severity",
+    "determinism",
+    "confidence",
+    "confidence_basis",
+    "locus",
+    "evidence",
+    "applied",
+    "arbitrated"
+  ],
+  "properties": {
+    "finding_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "layer": {
+      "enum": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "S"
+      ]
+    },
+    "control_family": {
+      "enum": [
+        "deterministic",
+        "statistical",
+        "relational",
+        "llm_judge"
+      ]
+    },
+    "detector_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "arbitration_key": {
+      "type": "string",
+      "minLength": 3
+    },
+    "severity": {
+      "enum": [
+        "info",
+        "low",
+        "medium",
+        "high",
+        "blocking"
+      ]
+    },
+    "determinism": {
+      "enum": [
+        "deterministic",
+        "statistical",
+        "probabilistic"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "confidence_basis": {
+      "type": "string"
+    },
+    "locus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "excerpt",
+          "locus",
+          "detail"
+        ],
+        "properties": {
+          "excerpt": {
+            "type": "string"
+          },
+          "locus": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "canon_conflict": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "remediation": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "applied": {
+      "const": false
+    },
+    "arbitration": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "decision",
+            "decided_by",
+            "decided_at"
+          ],
+          "properties": {
+            "decision": {
+              "enum": [
+                "rejected",
+                "accepted",
+                "deferred"
+              ]
+            },
+            "decided_by": {
+              "type": "string",
+              "minLength": 1
+            },
+            "decided_at": {
+              "type": "string",
+              "minLength": 8
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "arbitrated": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

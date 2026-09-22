@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.local/schemas/narrative_integrity/slop_signature.schema.json",
+  "title": "SlopSignature",
+  "type": "object",
+  "required": [
+    "signature_id",
+    "family",
+    "label",
+    "pattern",
+    "weight_class",
+    "max_per_1000_words",
+    "languages",
+    "source",
+    "note"
+  ],
+  "properties": {
+    "signature_id": {
+      "type": "string",
+      "pattern": "^[a-z]{2}_[a-z0-9_]+$"
+    },
+    "family": {
+      "enum": [
+        "connector",
+        "significance_inflation",
+        "empty_pivot",
+        "compulsive_conclusion",
+        "meta_discourse",
+        "cliche",
+        "rhetorical_question",
+        "lexical_treasure",
+        "typographic_habit",
+        "chat_residue",
+        "rhythm"
+      ]
+    },
+    "label": {
+      "type": "string",
+      "minLength": 2
+    },
+    "pattern": {
+      "type": "string",
+      "minLength": 1
+    },
+    "weight_class": {
+      "enum": [
+        "decisive",
+        "strong",
+        "soft",
+        "report_only",
+        "style_only"
+      ]
+    },
+    "max_per_1000_words": {
+      "type": "number",
+      "minimum": 0
+    },
+    "languages": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counter_examples": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

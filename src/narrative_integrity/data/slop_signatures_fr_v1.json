@@ -1,0 +1,464 @@
+{
+  "schema_version": "1.0",
+  "name": "slop_signatures_fr_v1",
+  "language": "fr",
+  "provenance": "Original French catalogue authored for StoryCore on 2026-09-21. Not copied from any external project. The external reference study informed the architecture only: weight classes, per-1000 tolerance, and the decision to demote rather than delete weak patterns. Credited in the design annexe.",
+  "calibration": {
+    "calibrated": false,
+    "note": "Weights, tolerances and the score curve are provisional. They have not been validated against a francophone corpus of human and machine writing. Do not present this score as authorship evidence."
+  },
+  "signatures": [
+    {
+      "signature_id": "fr_conn_importance",
+      "family": "connector",
+      "label": "Annonce d'importance",
+      "pattern": "\\bil (?:est|serait|semble) (?:important|essentiel|crucial|primordial|fondamental) de (?:noter|souligner|rappeler|mentionner|pr[ée]ciser)\\b",
+      "weight_class": "decisive",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Annonce un propos au lieu de le tenir. Densite elevee, signale une prose qui se decrit.",
+      "examples": [
+        "Il est important de noter que la communication joue un role crucial."
+      ],
+      "counter_examples": [
+        "Une note de service peut legitimement ouvrir sur une consigne essentielle sans formule d'annonce."
+      ]
+    },
+    {
+      "signature_id": "fr_conn_convient",
+      "family": "connector",
+      "label": "Formule impersonnelle de rappel",
+      "pattern": "\\bil convient de (?:noter|souligner|rappeler|mentionner|pr[ée]ciser|le rappeler)\\b",
+      "weight_class": "decisive",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Meme famille que fr_conn_importance, variante impersonnelle.",
+      "examples": [
+        "Il convient de souligner la complexite du sujet."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_conn_force",
+      "family": "connector",
+      "label": "Constat force",
+      "pattern": "\\bforce (?:est|serait) de (?:constater|reconna[îi]tre)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Formule de constat impose.",
+      "examples": [
+        "Force est de constater que les resultats divergent."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_conn_monde",
+      "family": "connector",
+      "label": "Ouverture sur un monde",
+      "pattern": "\\bdans un monde (?:o[ùu]|en (?:perp[ée]tuel|constant) (?:mouvement|changement))\\b",
+      "weight_class": "decisive",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Ouverture generique tres frequente en prose generee.",
+      "examples": [
+        "Dans un monde ou la technologie evolue a une vitesse sans precedent..."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_conn_ere",
+      "family": "connector",
+      "label": "Ouverture par une ere",
+      "pattern": "\\b[àa] l['’][ée]re (?:du|de la|des|o[ùu])\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Cadrage temporel generique.",
+      "examples": [
+        "A l'ere du numerique, tout change."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_conn_nos_jours",
+      "family": "connector",
+      "label": "Cadrage present generique",
+      "pattern": "\\b(?:de nos jours|[àa] notre [ée]poque|aujourd['’]hui plus que jamais)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Pose un present vague sans ancrage.",
+      "examples": [
+        "De nos jours, l'information circule vite."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_infla_role",
+      "family": "significance_inflation",
+      "label": "Inflation de role",
+      "pattern": "\\b(?:joue(?:nt)?|occupe(?:nt)?) un r[ôo]le (?:crucial|essentiel|cl[ée]|d[ée]terminant|fondamental|central|primordial)\\b",
+      "weight_class": "decisive",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Le role est declare important sans que le texte le demontre.",
+      "examples": [
+        "La communication joue un role crucial dans nos societes."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_infla_temoignage",
+      "family": "significance_inflation",
+      "label": "Temoignage de",
+      "pattern": "\\b(?:est|sont|reste|restent) (?:un|le|la|une) (?:v[ée]ritable|authentique|parfait[e]?|puissant[e]?) ?t[ée]moignage\\b",
+      "weight_class": "decisive",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Formule de valorisation d'un objet par sa portee supposee.",
+      "examples": [
+        "C'est un veritable temoignage de l'ingeniosite humaine."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_infla_voie",
+      "family": "significance_inflation",
+      "label": "Ouverture de perspectives",
+      "pattern": "\\bouve(?:nt)? (?:la voie|de nouvelles perspectives|un champ des possibles|des horizons)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Promesse de portee sans contenu verifiable.",
+      "examples": [
+        "Cette dynamique ouvre la voie a d'innombrables possibilites."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_infla_avenir",
+      "family": "significance_inflation",
+      "label": "Avenir prometteur",
+      "pattern": "\\b(?:vers|pour|construire) un avenir (?:plus )?(?:prometteur|radieux|meilleur|durable)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Cloture par projection positive generique.",
+      "examples": [
+        "Chaque avancee est une etape vers un avenir plus prometteur."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_infla_paysage",
+      "family": "significance_inflation",
+      "label": "Paysage en mutation",
+      "pattern": "\\bdans (?:ce|un) (?:paysage|contexte|monde|environnement) (?:en (?:constante|perp[ée]tuelle) (?:mutation|[ée]volution)|complexe|mouvant|changeant)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Metaphore de decor sans referent precis.",
+      "examples": [
+        "Dans ce paysage en constante mutation, il faut s'adapter."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_pivot_non_seulement",
+      "family": "empty_pivot",
+      "label": "Pivot non seulement mais",
+      "pattern": "\\bnon seulement\\b[^.!?]{0,140}?\\bmais (?:aussi|[ée]galement)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Structure binaire qui simule un developpement. Tolerance non nulle : l'usage unique et justifie reste tolere.",
+      "examples": [
+        "Non seulement elle faconne nos interactions, mais elle transforme aussi notre perception."
+      ],
+      "counter_examples": [
+        "Un raisonnement peut opposer deux termes reels : non seulement le cout baisse, mais la qualite progresse."
+      ]
+    },
+    {
+      "signature_id": "fr_pivot_pas_seulement",
+      "family": "empty_pivot",
+      "label": "Pivot ce n'est pas seulement",
+      "pattern": "\\b(?:ce n['’]est|il ne s['’]agit) pas (?:seulement|simplement|juste|uniquement)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Redefinition sans apport factuel.",
+      "examples": [
+        "La communication n'est pas seulement un outil : c'est un fondement."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_concl_compulsive",
+      "family": "compulsive_conclusion",
+      "label": "Conclusion compulsive",
+      "pattern": "\\b(?:en conclusion|pour conclure|en d[ée]finitive|en somme|au final|en r[ée]sum[ée]|pour r[ée]sumer)\\b",
+      "weight_class": "report_only",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Retrograde sans poids : la mesure a montre que ces marqueurs signalent un registre formel plutot qu'une origine machine. Rapporte, jamais note.",
+      "examples": [
+        "En conclusion, la communication nous transforme."
+      ],
+      "counter_examples": [
+        "Un rapport technique conclut legitimement par une section de synthese annoncee."
+      ]
+    },
+    {
+      "signature_id": "fr_meta_discourse",
+      "family": "meta_discourse",
+      "label": "Meta-discours",
+      "pattern": "\\b(?:notons que|pr[ée]cisons que|rappelons que|signalons que|retenons que|soulignons que)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Le texte commente son propre enonce.",
+      "examples": [
+        "Precisons que ce point reste discute."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_cliche_pierre",
+      "family": "cliche",
+      "label": "Metaphore architecturale figee",
+      "pattern": "\\b(?:pierre angulaire|cl[ée] de vo[ûu]te|toile de fond|catalyseur de|moteur de (?:notre|cette|ce)|pivot central)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Metaphores de structure tres usitees en prose generee.",
+      "examples": [
+        "Elle est la pierre angulaire du dispositif."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_cliche_danse",
+      "family": "cliche",
+      "label": "Danse subtile",
+      "pattern": "\\bune (?:danse|valse|tango) (?:subtile|d[ée]licate|complexe|harmonieuse)\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Metaphore ornamentale.",
+      "examples": [
+        "Une danse subtile entre innovation et tradition."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_cliche_riche",
+      "family": "cliche",
+      "label": "Riche et complexe",
+      "pattern": "\\briche(?:s)? et complexe(?:s)?\\b",
+      "weight_class": "strong",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Adjectivation jumelle non informative.",
+      "examples": [
+        "Cette dynamique, riche et complexe, ouvre des possibles."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_cliche_humain",
+      "family": "cliche",
+      "label": "Grande abstraction humaniste",
+      "pattern": "\\b(?:l['’][êe]tre humain|la condition humaine|notre humanit[ée]|l['’]humanit[ée])\\b",
+      "weight_class": "soft",
+      "max_per_1000_words": 1.5,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Poids faible et tolerance haute : l'expression peut etre necessaire dans un essai. Exemple a ne pas sursignaler.",
+      "examples": [
+        "L'etre humain a toujours raconte des histoires."
+      ],
+      "counter_examples": [
+        "Un essai d'anthropologie emploie l'expression comme terme technique."
+      ]
+    },
+    {
+      "signature_id": "fr_adv_gonflant",
+      "family": "lexical_treasure",
+      "label": "Adverbe gonflant",
+      "pattern": "\\b(?:v[ée]ritablement|incontestablement|ind[ée]niablement|profond[ée]ment|intimement|subtilement|remarquablement)\\b",
+      "weight_class": "soft",
+      "max_per_1000_words": 1,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Intensifieur qui remplace une preuve.",
+      "examples": [
+        "Cela change veritablement notre rapport au monde."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_q_rhetorique",
+      "family": "rhetorical_question",
+      "label": "Question rhetorique ouvrante",
+      "pattern": "\\bEt si\\b[^?]{0,100}\\?",
+      "weight_class": "soft",
+      "max_per_1000_words": 0.4,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Ouvre sur une question a laquelle le texte ne repond pas.",
+      "examples": [
+        "Et si tout cela n'etait qu'un debut ?"
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_q_negative",
+      "family": "rhetorical_question",
+      "label": "Interrogation negative",
+      "pattern": "\\bn['’]est-ce pas (?:l[àa]|\\?)\\b",
+      "weight_class": "soft",
+      "max_per_1000_words": 0.4,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Cherche l'adhesion plutot qu'une reponse.",
+      "examples": [
+        "N'est-ce pas la le coeur du probleme ?"
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_chat_residue",
+      "family": "chat_residue",
+      "label": "Residu de conversation",
+      "pattern": "\\b(?:en tant qu['’](?:assistant|IA|mod[èe]le)|je ne peux pas|voici (?:une|un) (?:liste|r[ée]sum[ée])|j['’]esp[èe]re que cela (?:vous )?aide)\\b",
+      "weight_class": "decisive",
+      "max_per_1000_words": 0,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Le texte garde la trace de l'echange avec un agent.",
+      "examples": [
+        "J'espere que cela vous aide."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_espace_insecable_manquant",
+      "family": "typographic_habit",
+      "label": "Espace ordinaire avant ponctuation francaise",
+      "pattern": "[ \\t][;:!?]",
+      "weight_class": "style_only",
+      "max_per_1000_words": 3,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Habitude typographique, rapportee sans poids. Le texte correct utilise une espace insecable, qui n'est jamais signalee ni nettoyee par ce moteur.",
+      "examples": [
+        "Vraiment ?"
+      ],
+      "counter_examples": [
+        "Vraiment ? avec espace insecable, forme correcte"
+      ]
+    },
+    {
+      "signature_id": "fr_tiret_cadratin",
+      "family": "rhythm",
+      "label": "Densite de tirets cadratins",
+      "pattern": "—",
+      "weight_class": "style_only",
+      "max_per_1000_words": 2,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Signal rythmique compte statistiquement. La tolerance ignore l'usage normal et isole l'abus.",
+      "examples": [
+        "L'outil — puissant — change la donne."
+      ],
+      "counter_examples": []
+    },
+    {
+      "signature_id": "fr_guillemets_droits",
+      "family": "typographic_habit",
+      "label": "Guillemets droits",
+      "pattern": "[\"][^\"\\n]{3,80}[\"]",
+      "weight_class": "style_only",
+      "max_per_1000_words": 2,
+      "languages": [
+        "fr"
+      ],
+      "source": "original",
+      "note": "Typographie francaise attend des guillemets doubles. Rapporte sans poids.",
+      "examples": [
+        "Le mot \"strategie\" revient souvent."
+      ],
+      "counter_examples": []
+    }
+  ]
+}

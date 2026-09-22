@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "name": "control_corpora_fr_v1",
+  "provenance": "Original French samples written for StoryCore on 2026-09-21 to control the narrative integrity engine. Not copied from any external corpus or benchmark. The human sample is written in a factual, dated register; the machine sample stacks documented French tells.",
+  "role_note": "human_control must never be flagged as seriously defective; machine_control must be caught. Expectations are declared here and verified by tests.",
+  "samples": [
+    {
+      "id": "human_control",
+      "role": "human_control",
+      "language": "fr",
+      "text": "Le pont a porté du charbon jusqu'en 1958. Ses six arches ont été montées en pierre. Deux fois, le mortier a été repris\u00a0: après l'inondation de 1911, puis en 1963. Le parapet ouest garde la trace d'un camion. La circulation a été déviée en 1981, et depuis, seuls les piétons passent, avec l'occasionnel véhicule agricole autorisé sous trois tonnes. Une inspection récente a jugé la culée saine. Elle recommande cependant un rejointoiement dans les dix ans. La pierre venait d'Ashby, fermée depuis 1936. Le conseil a déposé deux demandes de subvention\u00a0: la première a échoué sur un dossier incomplet. Des bénévoles curent les caniveaux chaque printemps, ce qui ralentit l'écaillage de la face nord.",
+      "expected": {
+        "band": "clean",
+        "score_max": 0,
+        "max_severity": "low"
+      }
+    },
+    {
+      "id": "machine_control",
+      "role": "machine_control",
+      "language": "fr",
+      "text": "Dans un monde où la technologie évolue, il est important de noter que la communication joue un rôle crucial. Non seulement elle façonne nos interactions, mais elle transforme également notre perception. En conclusion, c'est un véritable témoignage de l'ingéniosité humaine, riche et complexe. Dans un monde où la technologie évolue, il est important de noter que la communication joue un rôle crucial. Non seulement elle façonne nos interactions, mais elle transforme également notre perception. En conclusion, c'est un véritable témoignage de l'ingéniosité humaine, riche et complexe. Dans un monde où la technologie évolue, il est important de noter que la communication joue un rôle crucial. Non seulement elle façonne nos interactions, mais elle transforme également notre perception. En conclusion, c'est un véritable témoignage de l'ingéniosité humaine, riche et complexe. ",
+      "expected": {
+        "band_any_of": [
+          "heavy_tells",
+          "pervasive_tells"
+        ],
+        "score_min": 60,
+        "min_signature_findings": 3
+      }
+    }
+  ]
+}

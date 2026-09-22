@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.local/schemas/narrative_integrity/calibration_results.schema.json",
+  "title": "CalibrationResults",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "corpus_ref",
+    "settings_ref",
+    "threshold",
+    "resamples",
+    "seed",
+    "summary",
+    "per_arm",
+    "per_document",
+    "not_measured"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "corpus_ref": {
+      "type": "object",
+      "required": [
+        "name",
+        "schema_version",
+        "language",
+        "sha256"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "minLength": 64
+        }
+      },
+      "additionalProperties": true
+    },
+    "corpus_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "sha256"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "corpus_limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "corpus_expectations": {
+      "type": "object"
+    },
+    "settings_ref": {
+      "type": "object",
+      "required": [
+        "name",
+        "schema_version",
+        "sha256"
+      ]
+    },
+    "threshold": {
+      "type": "number"
+    },
+    "resamples": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "documents",
+        "words",
+        "false_positive_rate",
+        "false_positive_rate_interval",
+        "band_distribution",
+        "upper_bound",
+        "within_declared_budget"
+      ],
+      "properties": {
+        "documents": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "words": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "false_positive_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "false_positive_rate_interval": {
+          "type": "object",
+          "required": [
+            "low",
+            "high",
+            "clusters"
+          ],
+          "properties": {
+            "low": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "high": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "clusters": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "collapsed_at_boundary": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": true
+        },
+        "upper_bound": {
+          "type": "object",
+          "required": [
+            "confidence",
+            "over_documents",
+            "over_works",
+            "works"
+          ],
+          "properties": {
+            "confidence": {
+              "type": "number"
+            },
+            "over_documents": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "over_works": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "works": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "note": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": true
+        },
+        "band_distribution": {
+          "type": "object"
+        },
+        "detector_histogram": {
+          "type": "object"
+        },
+        "findings_per_1000_words": {
+          "type": "number",
+          "minimum": 0
+        },
+        "flagged_documents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "within_declared_budget": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "per_arm": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "arm_id",
+          "label",
+          "documents",
+          "words",
+          "band_distribution",
+          "false_positive_rate"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "per_document": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "document_id",
+          "work",
+          "words",
+          "score",
+          "band",
+          "findings"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "detection": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "arm_id",
+              "pairs",
+              "threshold",
+              "true_positive_rate",
+              "false_positive_rate_on_pairs",
+              "per_pair",
+              "contamination",
+              "paired_auc_interval"
+            ],
+            "properties": {
+              "arm_id": {
+                "type": "string"
+              },
+              "pairs": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "machine_documents": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "threshold": {
+                "type": "number"
+              },
+              "pooled_auc": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "paired_auc": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1
+              },
+              "paired_auc_interval": {
+                "type": "object",
+                "required": [
+                  "low",
+                  "high",
+                  "resamples",
+                  "seed"
+                ],
+                "additionalProperties": true
+              },
+              "true_positive_rate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "true_positive_rate_interval": {
+                "type": "object"
+              },
+              "false_positive_rate_on_pairs": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "contamination": {
+                "type": "object",
+                "required": [
+                  "note"
+                ],
+                "additionalProperties": true
+              },
+              "per_pair": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      ]
+    },
+    "not_measured": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    }
+  },
+  "additionalProperties": true
+}

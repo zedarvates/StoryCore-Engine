@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.local/schemas/narrative_integrity/ledger_entry.schema.json",
+  "title": "LedgerEntry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "arbitration_key",
+    "detector_id",
+    "locus",
+    "normalised_locus",
+    "decision",
+    "decided_by",
+    "decided_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "arbitration_key": {
+      "type": "string",
+      "minLength": 3
+    },
+    "detector_id": {
+      "type": "string",
+      "minLength": 3
+    },
+    "locus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normalised_locus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decision": {
+      "enum": [
+        "rejected",
+        "accepted",
+        "deferred"
+      ]
+    },
+    "decided_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "decided_at": {
+      "type": "string",
+      "minLength": 8
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

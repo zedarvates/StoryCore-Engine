@@ -16,6 +16,25 @@ from backend.cine_production_service import CineProductionService, CineProductio
 
 logger = logging.getLogger(__name__)
 
+
+def _anti_slop_guidance(fallback: str) -> str:
+    """Guidance from the narrative integrity catalogue, or the embedded fallback.
+
+    The catalogue lives in src/narrative_integrity/data, so changing a weight in data
+    changes the instruction. If it cannot be loaded, the service keeps working with
+    the historical text instead of failing.
+    """
+    try:
+        from src.narrative_integrity.prompt_bridge import render_guidance
+
+        return render_guidance()
+    except (ImportError, OSError, ValueError):
+        logger.warning(
+            "narrative integrity catalogue unavailable; using embedded anti-slop guidance"
+        )
+        return fallback
+
+
 @dataclass
 class NovelProject:
     id: str
@@ -45,7 +64,7 @@ class HermesNovelistService:
     def _load_prompts(self):
         # In a real scenario, this would load from a file.
         # Here we embed the core guidelines from AutoNovel.
-        return {
+        prompts = {
             "foundation": {
                 "world": "Generate a structured World Bible. Sections: [Lore], [Geography], [Political Landscape], [Magic/Tech Rules], [Locations]. For each Location, include: name, description, atmosphere, and significance.",
                 "characters": "Generate a Character Registry. For each character, include: [Name], [Visual Identity] (hair, eyes, build, clothing), [Personality] (traits, fears, desires), [Background], and [Narrative Role] (archetype, goal, arc).",
@@ -58,6 +77,8 @@ class HermesNovelistService:
             "anti_slop": "Avoid banned words: 'tapestry', 'testament', 'shiver', 'unbeknownst', 'dance of', etc. Avoid over-explaining scenes.",
             "anti_patterns": "Avoid sequential 'Then he did X, then he did Y'. Avoid perfect characters. Avoid resolution without cost."
         }
+        prompts["anti_slop"] = _anti_slop_guidance(prompts["anti_slop"])
+        return prompts
 
     async def _call_llm(self, prompt: str, system_prompt: str = "") -> str:
         if call_llm_real:

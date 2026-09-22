@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.local/schemas/narrative_integrity/reference_profile.schema.json",
+  "title": "ReferenceProfile",
+  "type": "object",
+  "required": [
+    "profile_id",
+    "name",
+    "derived_from",
+    "metrics",
+    "calibrated",
+    "thresholds_ref"
+  ],
+  "properties": {
+    "profile_id": {
+      "type": "string",
+      "minLength": 8
+    },
+    "name": {
+      "type": "string"
+    },
+    "derived_from": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "derived_from_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "sha256",
+          "words"
+        ],
+        "properties": {
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 64
+          },
+          "words": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "locked": {
+      "type": "boolean"
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "words",
+        "mean_sentence_length",
+        "function_word_rates"
+      ],
+      "properties": {
+        "words": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mean_sentence_length": {
+          "type": "number",
+          "minimum": 0
+        },
+        "function_word_rates": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "calibrated": {
+      "const": false
+    },
+    "thresholds_ref": {
+      "type": "object"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": true
+}

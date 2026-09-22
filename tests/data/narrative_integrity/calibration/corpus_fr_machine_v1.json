@@ -1,0 +1,110 @@
+{
+ "schema_version": "1.0",
+ "name": "corpus_fr_machine_v1",
+ "language": "fr",
+ "purpose": "Machine arm for detection measurement. Each document is a continuation of one human excerpt, written by the local model, so the arms are paired by construction.",
+ "extraction": "The prompt carries the first 1200 characters of the paired human excerpt and asks for a continuation of about 220 words. Only the model answer is stored.",
+ "provenance": "Generated locally on 2026-09-21 by gemma4:26b at http://127.0.0.1:11434, temperature 0.8, one seed per document. No text left this machine. The result measures detection of this model's French, not of machine French in general.",
+ "limitations": [
+  "Six documents from one model: the interval will be wide and the result says nothing about other models.",
+  "A continuation shares its prompt with the paired human excerpt, so contamination is measured per document and reported rather than assumed away.",
+  "The human arm is 18th to 20th century prose: the model imitates an older register than it would use unprompted."
+ ],
+ "generation": {
+  "model": "gemma4:26b",
+  "endpoint": "http://127.0.0.1:11434",
+  "temperature": 0.8,
+  "seed_base": 20260921,
+  "prompt_chars": 1200,
+  "target_words": 220,
+  "deliberation": "disabled"
+ },
+ "arms": [
+  {
+   "arm_id": "machine_local",
+   "label": "machine",
+   "register": "model continuation of a literary excerpt",
+   "licence": "generated locally, no third-party rights",
+   "documents": [
+    {
+     "document_id": "machine-pg2998-1",
+     "work": "A l'ombre des jeunes filles en fleurs, I",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "2c0cca70438e27ed414793e1ac24b015b1c3c254b588ae328af1cde024d3703e",
+     "text_sha256": "ede85ce4022fe33e543ab8ce51c14fa7dc48548889a93e125a207f533fa45efc",
+     "chars": 1323,
+     "words": 215,
+     "paired_with": "pg2998-1",
+     "contamination_rate": 0.0,
+     "text": "\u00e9tait tourn\u00e9 vers l'acquisition d'une sorte de possession sociale, une sorte de troph\u00e9e de la vie mondaine, qui e\u00fbt pu sembler, \u00e0 premi\u00e8re vue, \u00eatre l'antith\u00e8se m\u00eame de sa distinction pass\u00e9e. Or, ce qui paraissait n'\u00eatre qu'une d\u00e9ch\u00e9ance, une sorte de glissement vers une vulgarit\u00e9 de sentiment, \u00e9tait en r\u00e9alit\u00e9 l'expression d'une passion si absolue qu'elle en bouleversait les principes m\u00eames de son \u00eatre. Cette Odette, dont l'influence allait peu \u00e0 peu remodeler les contours de son existence, agissait sur lui comme un nouveau courant, une mar\u00e9e montante qui, par sa simple pr\u00e9sence, red\u00e9finissait les limites de son \u00e9l\u00e9gance et de sa r\u00e9serve. Ce n'\u00e9tait plus le Swann de la haute soci\u00e9t\u00e9, celui dont le nom seul suffisait \u00e0 asseoir une autorit\u00e9 naturelle, mais un homme qui, cherchant \u00e0 s'unir \u00e0 cette femme dont la gr\u00e2ce n'avait d'\u00e9gale que l'ambigu\u00eft\u00e9, s'\u00e9tait laiss\u00e9 impr\u00e9gner par les codes d'un monde plus \u00e9troit, plus bruyant, et pourtant plus obs\u00e9dant. Cette m\u00e9tamorphose, que le p\u00e8re de l'auteur percevait comme une d\u00e9gradation, n'\u00e9tait que le reflet de cette alchimie complexe o\u00f9 l'amour, en d\u00e9pit de toutes les convenances et de toutes les hi\u00e9rarchies de l'esprit, finit toujours par imposer sa propre et inexplicable loi, transformant le savant en amant et le dandy en un homme traqu\u00e9 par ses propres d\u00e9sirs."
+    },
+    {
+     "document_id": "machine-pg4650-1",
+     "work": "Candide, ou l'optimisme",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "811c9d9c9ed4a12d6347e37ae7331c747c1572e072d9b31209b74bca44293325",
+     "text_sha256": "0338415df6bafdbe60e76fa8c69002fc6aaae9308cce87f3ce3e986527f15232",
+     "chars": 1321,
+     "words": 215,
+     "paired_with": "pg4650-1",
+     "contamination_rate": 0.0,
+     "text": "chez les Surinams, et comment ils furent escort\u00e9s par des sauvages.\nCHAPITRE XV. Comment Candide, de peur de perdre Cun\u00e9gonde, s'en alla chercher de l'or, et ce qui lui arriva.\nCHAPITRE XVI. Comment Candide fut saisi par des pirates, et ce qu'il devint de lui et de Cacambo.\nCHAPITRE XVII. Comment Candide se retrouva dans une \u00eele de l'Am\u00e9rique, et ce qu'il y apprit de la fortune.\nCHAPITRE XVIII. Comment Candide rencontra un groupe d'Indiens, et comment il fut conduit aupr\u00e8s d'un nouveau ma\u00eetre.\nCHAPITRE XIX. Histoire de l'opulence de l'Eldorado, et de la sagesse de ses habitants.\nCHAPITRE XX. Comment Candide et ses compagnons s'enfuirent de ce paradis, et ce qu'ils emport\u00e8rent avec eux.\nCHAPITRE XXI. Comment Candide et Cacambo parcoururent les terres de l'Am\u00e9rique, et les richesses qu'ils amass\u00e8rent.\nCHAPITRE XXII. Comment Candide, fatigu\u00e9 de tant de voyages, chercha \u00e0 retrouver le repos et l'amour.\nCHAPITRE XXIII. Comment Candide d\u00e9couvrit que la fortune n'est pas le seul moteur des hommes, et ce qu'il comprit de la nature humaine.\nCHAPITRE XXIV. Comment Candide, apr\u00e8s de multiples p\u00e9rip\u00e9ties, parvint enfin \u00e0 retrouver les traces de Cun\u00e9gonde.\nCHAPITRE XXV. Comment Candide, par un coup de th\u00e9\u00e2tre, vit la beaut\u00e9 de sa bien-aim\u00e9e s'effacer devant le temps, et comment il apprit enfin la le\u00e7on de la vie."
+    },
+    {
+     "document_id": "machine-pg2650-1",
+     "work": "Du cote de chez Swann",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "bae944530bb1e6265d748ec8b7e51dbefb64fe6885a47524585857d1a2e3005c",
+     "text_sha256": "299c9376b4e2aa065f091089c41cbffb919d90bb17f2de2faf16061333448c3a",
+     "chars": 1262,
+     "words": 216,
+     "paired_with": "pg2650-1",
+     "contamination_rate": 0.0,
+     "text": "mon esprit. Je restais ainsi un moment, immobile dans le lit, \u00e0 attendre que le monde ne reprenne sa forme habituelle, celle des meubles familiers et des parois silencieuses. Il m\u2019arrivait de ressentir une m\u00e9lancolie \u00e9trange, le regret de cette fusion \u00e9ph\u00e9m\u00e8re avec l\u2019objet de mon \u00e9tude, comme si l\u2019on m\u2019arrachait \u00e0 une vie plus vaste, plus dense, pour me rejeter dans la solitude de ma propre chair. Le silence de la chambre me paraissait alors d'une lourdeur presque tactile, et je m'\u00e9tonnais de la rapidit\u00e9 avec laquelle l'esprit, ce voyageur infatigable, revenait s'enfermer dans les limites \u00e9troites de la conscience individuelle. Je cherchais alors, par de petits mouvements de la main, \u00e0 retrouver la texture du drap ou la froideur du bois de la table de chevet, afin de m'assurer que je n'\u00e9tais pas rest\u00e9 prisonnier de ces chim\u00e8res nocturnes. Mais la transition \u00e9tait toujours la m\u00eame : un glissement imperceptible de l'imaginaire vers le r\u00e9el, une d\u00e9rive lente o\u00f9 les grandes fresques de l'Histoire s'effa\u00e7aient pour laisser place \u00e0 la vacuit\u00e9 de la nuit. Je finissais par m'endormir de nouveau, non plus dans la passion de la lecture, mais dans la lassitude d'un homme qui a trop vu, ou trop cru voir, ce qui n'\u00e9tait que l'ombre de ses propres pens\u00e9es."
+    },
+    {
+     "document_id": "machine-pg798-1",
+     "work": "Le Rouge et le Noir",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "42a837fdeaf4ed5c52a59390624ff97ac0b2654d47e412db0a1bc2579d7e3b32",
+     "text_sha256": "47373fd2beb5254fea06df97e94e5a713bbcf7c4f1baf58fca3b1b3b8a52106c",
+     "chars": 1277,
+     "words": 207,
+     "paired_with": "pg798-1",
+     "contamination_rate": 0.0,
+     "text": "frisson de la nouveaut\u00e9 et de la couleur. Les rues, d'une propret\u00e9 singuli\u00e8re, s'\u00e9largissent en de larges art\u00e8res pav\u00e9es o\u00f9 les boutiques de luxe c\u00f4toient les \u00e9choppes plus modestes. On y voit d\u00e9filer des personnages d'un genre vari\u00e9 : des ouvriers de la toile, le visage marqu\u00e9 par la rigueur du travail, et des notables \u00e0 l'allure fi\u00e8re, dont les redingotes sombres tranchent avec l'\u00e9clat des fa\u00e7ades fra\u00eechement blanchies.\n\nL'air m\u00eame de la ville semble impr\u00e9gn\u00e9 de cette activit\u00e9 incessante. Un bourdonnement sourd, m\u00ealant le clapotis de l'eau et le bruit lointain des m\u00e9tiers \u00e0 tisser, compose la musique de ce bourg prosp\u00e8re. On s'arr\u00eate volontiers \u00e0 la terrasse d'un caf\u00e9 pour observer le passage, tandis que l'odeur de la terre humide et du bois coup\u00e9 s'\u00e9l\u00e8ve des pentes environnantes. \n\nMalgr\u00e9 cette animation, une certaine tranquillit\u00e9 de province demeure, une sorte de calme suspendu qui semble prot\u00e9ger Verri\u00e8res du tumulte du monde. Les habitants, bien que tourn\u00e9s vers le commerce, conservent cette retenue propre aux gens de montagne, une dignit\u00e9 tranquille qui ne se laisse pas \u00e9blouir par l'aisance nouvelle. On sent que sous le vernis de la modernit\u00e9, les racines anciennes de la terre et de la pierre continuent de battre, immuables, au c\u0153ur de cette vall\u00e9e."
+    },
+    {
+     "document_id": "machine-pg17489-1",
+     "work": "Les Miserables, Tome I",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "e150be700c5ac082292918dd11a45dbcc2dbf14bf765e2e33bfbfc5b61819ac1",
+     "text_sha256": "86cff9c7beb469def5a2026e27aa06f64b504156e02060f7a822cddf9b7e910d",
+     "chars": 1115,
+     "words": 179,
+     "paired_with": "pg17489-1",
+     "contamination_rate": 0.0,
+     "text": "Chapitre V Fantine\nChapitre VI La d\u00e9ch\u00e9ance\nChapitre VII Le destin de la m\u00e8re\nChapitre VIII L'ombre de la mis\u00e8re\nChapitre IX Les souffrances de l'\u00e2me\nChapitre X Une rencontre fortuite\nChapitre XI Le poids des regrets\nChapitre XII Les larmes de l'innocence\n\nLivre quatri\u00e8me--Fantine\n\nChapitre I L'enfance de Fantine\nChapitre II Les premi\u00e8res tentations\nChapitre III Le tourbillon de la passion\nChapitre IV La chute brutale\nChapitre V L'abandon de l'enfant\nChapitre VI La vie de privations\nChapitre VII Le sacrifice ultime\nChapitre VIII La d\u00e9ch\u00e9ance sociale\nChapitre IX Le regard du monde\nChapitre X La solitude de la femme\nChapitre XI L'agonie d'une m\u00e8re\nChapitre XII Le dernier souffle\n\nLivre cinqui\u00e8me--Cosette\n\nChapitre I Les Th\u00e9nardier\nChapitre II L'enfance de l'ombre\nChapitre III Une vie de labeur\nChapitre IV Le seau d'eau\nChapitre V La cruaut\u00e9 des hommes\nChapitre VI L'espoir dans l'obscurit\u00e9\nChapitre VII Une rencontre providentielle\nChapitre VIII Le salut par l'\u00e9v\u00eaque\nChapitre IX La fuite vers la lumi\u00e8re\nChapitre X Le nouveau foyer\nChapitre XI La vie \u00e0 Montreuil-sur-Mer\nChapitre XII Le secret de l'ombre"
+    },
+    {
+     "document_id": "machine-pg14155-1",
+     "work": "Madame Bovary",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "7b97993bce084b5ec5fe4738b53744bf7897721b732d2bf1fd0fcfd060c5274f",
+     "text_sha256": "c7d3889dcbdd9e5f40b0af3d0494baaeb1d092124159d35cf098e97865a8c3ed",
+     "chars": 1280,
+     "words": 218,
+     "paired_with": "pg14155-1",
+     "contamination_rate": 0.0,
+     "text": "Son visage, encore marqu\u00e9 par les rudesses du grand air, contrastait avec la p\u00e2leur de nos traits de citadins, accoutum\u00e9s \u00e0 la lueur mate des lampes et \u00e0 l\u2019air confin\u00e9 des chambres de bonne. Il se tenait l\u00e0, immobile, les mains jointes sur son pupitre, avec cette sorte de gravit\u00e9 maladroite qui caract\u00e9rise ceux qui arrivent dans un monde dont ils ne poss\u00e8dent pas encore les codes. Un silence pesant s'\u00e9tait install\u00e9 dans l'\u00c9tude ; m\u00eame les plus agit\u00e9s, d'ordinaire si prompts \u00e0 chuchoter ou \u00e0 lancer des regards de d\u00e9fi, semblaient retenus par la pr\u00e9sence de cet \u00e9tranger.\n\nMonsieur Roger, un homme sec dont la discipline n'avait d'\u00e9gale que la rigidit\u00e9 de la posture, s'approcha de l'intrus. Il le toisa d'un \u0153il scrutateur, pesant sa stature et la propret\u00e9 de sa mise, comme on examine un outil avant de l'introduire dans une machine.\n\n\u2014 Bien, reprit le ma\u00eetre d'\u00e9tudes d'une voix monocorde, installez-vous au fond, pr\u00e8s de la fen\u00eatre. Nous reprenons la le\u00e7on de latin.\n\nL\u2019\u00e9l\u00e8ve s\u2019avan\u00e7a alors, et le bruit de ses pas, lourds et assur\u00e9s, r\u00e9sonna contre le plancher de bois comme un pr\u00e9sage. Tandis qu'il cherchait une place, je sentis, parmi mes camarades, une agitation sourde, le pressentiment que ce gar\u00e7on n'\u00e9tait pas un simple \u00e9l\u00e9ment de plus dans notre rang\u00e9e de desks."
+    }
+   ]
+  }
+ ]
+}

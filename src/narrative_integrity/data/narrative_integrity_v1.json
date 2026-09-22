@@ -1,0 +1,83 @@
+{
+  "schema_version": "1.0",
+  "name": "narrative_integrity_v1",
+  "scan": {
+    "cap_chars": 262144,
+    "min_words_for_score": 120
+  },
+  "score_model": {
+    "k": 12.0,
+    "cap": 100.0,
+    "calibrated": false,
+    "note": "Provisional monotone saturating curve. Not calibrated on a francophone corpus."
+  },
+  "weight_classes": {
+    "decisive": {"weight": 3.0, "points": 16.0},
+    "strong": {"weight": 1.6, "points": 10.0},
+    "soft": {"weight": 1.0, "points": 2.5},
+    "report_only": {"weight": 0.0, "points": 0.0},
+    "style_only": {"weight": 0.0, "points": 0.0}
+  },
+  "bands": [
+    {"name": "clean", "min": 0},
+    {"name": "light_tells", "min": 20},
+    {"name": "mixed", "min": 40},
+    {"name": "heavy_tells", "min": 60},
+    {"name": "pervasive_tells", "min": 80}
+  ],
+  "guard": {
+    "default_threshold": 40,
+    "strict_threshold": 20
+  },
+  "prose": {
+    "ngram_n": 6,
+    "ngram_min_words": 18,
+    "ngram_repeat_rate": 0.2,
+    "opener_min_repeats": 3,
+    "sentence_length_cv_min": 0.35,
+    "adverb_rate_per_1000": 25.0,
+    "passive_ratio_max": 0.15,
+    "min_sentences": 5
+  },
+  "structure": {
+    "min_payoff_ratio": 0.5,
+    "require_scene_function": true
+  },
+  "scenes": {
+    "time_reversal_tolerance": 0
+  },
+  "canon": {
+    "require_entity_known": true
+  },
+  "style": {
+    "window_words": 250,
+    "min_windows": 2,
+    "drift_min_cosine": 0.62,
+    "calibrated": false,
+    "note": "Provisional reference floor, deliberately not the unmeasured 0.80 claim from the public presentation. Reported as an estimate."
+  },
+  "confidence": {
+    "low_below_words": 120,
+    "medium_below_words": 400
+  },
+  "immune_policy": {
+    "info": {"action": "observe", "requires_confirmation": false},
+    "low": {"action": "flag", "requires_confirmation": false},
+    "medium": {"action": "suggest", "requires_confirmation": false},
+    "high": {"action": "propose", "requires_confirmation": true},
+    "blocking": {"action": "block_promotion", "requires_confirmation": true}
+  },
+  "hidden_channels": {
+    "note": "Detected and removable. Never inserted by this engine.",
+    "zero_width": ["\u200b", "\u200c", "\u200d", "\u2060", "\ufeff", "\u180e"],
+    "tag_block_ranges": [[917504, 917631]],
+    "variation_selector_ranges": [[65024, 65039], [917760, 917999]],
+    "interlinear_ranges": [[65529, 65531]],
+    "nonstandard_spaces": ["\u00a0", "\u202f", "\u2009", "\u2007", "\u3000"]
+  },
+  "french_typography": {
+    "note": "Kept, never normalised. A character is removed only where it has no job.",
+    "space_before": [":", ";", "!", "?", "\u00bb", "\u203a", "%", "\u20ac", "\u00b0"],
+    "space_after": ["\u00ab", "\u2039"]
+  }
+}

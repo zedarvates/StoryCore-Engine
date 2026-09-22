@@ -1,0 +1,85 @@
+{
+ "schema_version": "1.0",
+ "name": "corpus_fr_machine_modern_v1",
+ "language": "fr",
+ "purpose": "Machine arm for detection measurement, regime modern. Each document answers one human document written by the local model, so the arms are paired by construction.",
+ "extraction": "The prompt carries the first 800 characters of the paired human document and asks for about 220 words. Only the model answer is stored.",
+ "provenance": "Generated locally on 2026-09-21 by gemma4:26b at http://127.0.0.1:11434, temperature 0.8, one seed per document. No text left this machine. The result measures detection of this model's French, not of machine French in general.",
+ "limitations": [
+  "Six documents from one model: the interval will be wide and the result says nothing about other models.",
+  "A continuation shares its prompt with the paired human excerpt, so contamination is measured per document and reported rather than assumed away.",
+  "The human arm is 18th to 20th century prose: the model imitates an older register than it would use unprompted."
+ ],
+ "generation": {
+  "model": "gemma4:26b",
+  "endpoint": "http://127.0.0.1:11434",
+  "temperature": 0.8,
+  "seed_base": 20260921,
+  "prompt_chars": 1200,
+  "regime": "modern",
+  "target_words": 220,
+  "deliberation": "disabled"
+ },
+ "arms": [
+  {
+   "arm_id": "machine_modern",
+   "label": "machine",
+   "register": "model design note, register matched to the project documents",
+   "licence": "generated locally, no third-party rights",
+   "documents": [
+    {
+     "document_id": "machine-RD_PLAN_SEQUENCE_EDITOR-1",
+     "work": "RD_PLAN_SEQUENCE_EDITOR.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "c96b87aad8d3c547194a6e5c8330e8ae7ef297c6e3ef3734e52534aa42df4c80",
+     "text_sha256": "9ecf47afc6a3a1f170eaafc5a6500fc4c1712eab9e4f403500f8127a3e4310e7",
+     "chars": 1473,
+     "words": 211,
+     "paired_with": "RD_PLAN_SEQUENCE_EDITOR-1",
+     "contamination_rate": 0.0,
+     "text": "Cette note de conception d\u00e9taille la strat\u00e9gie de Recherche et D\u00e9veloppement visant \u00e0 optimiser l'interface de l'\u00e9diteur de s\u00e9quences et \u00e0 renforcer l'interop\u00e9rabilit\u00e9 entre ses composants modulaires. L'objectif principal est de passer d'une gestion d'\u00e9tat fragment\u00e9e \u00e0 une architecture centralis\u00e9e et robuste, garantissant une fluidit\u00e9 d'utilisation et une coh\u00e9rence des donn\u00e9es en temps r\u00e9el.\n\nLe c\u0153ur de cette \u00e9volution repose sur une refonte de la gestion d'\u00e9tat via Redux. Nous avons \u00e9tendu l'interface `TimelineState` pour int\u00e9grer les \u00e9tats de transition, tout en impl\u00e9mentant des r\u00e9ducteurs sp\u00e9cifiques pour la gestion granulaire des effets (ajout, suppression, mise \u00e0 jour). Parall\u00e8lement, une couche d\u00e9di\u00e9e au mixage audio a \u00e9t\u00e9 d\u00e9ploy\u00e9e, incluant la gestion du volume, du panoramique et des modes mute/solo pour chaque piste, ainsi qu'une configuration globale du Master.\n\nPour am\u00e9liorer l'exp\u00e9rience utilisateur, un syst\u00e8me d'actions annulables (undo/redo) est d\u00e9sormais op\u00e9rationnel pour les transitions, les effets et les param\u00e8tres audio. L'int\u00e9gration de la boutique Redux a \u00e9t\u00e9 finalis\u00e9e pour l'ensemble des panneaux critiques : Transitions, Effets, Mixage Audio, Fonctionnalit\u00e9s IA et Exportation. Enfin, la structure de communication avec le backend a \u00e9t\u00e9 normalis\u00e9e par la cr\u00e9ation de modules API d\u00e9di\u00e9s aux s\u00e9quences et \u00e0 l'audio, assurant une persistance des donn\u00e9es fiable et une s\u00e9paration stricte entre la logique m\u00e9tier et l'interface utilisateur."
+    },
+    {
+     "document_id": "machine-PLAN_AMELIORATION-1",
+     "work": "PLAN_AMELIORATION.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "9e144abc945f880ef7f47b6bdf3ac9ed710133cb66e19ca539517af2855c7524",
+     "text_sha256": "cf6112a60284fabf09aab4d3853ea7ec11cd375652b562726ea60581404aeeaf",
+     "chars": 1643,
+     "words": 226,
+     "paired_with": "PLAN_AMELIORATION-1",
+     "contamination_rate": 0.0,
+     "text": "La pr\u00e9sente note de conception expose les orientations strat\u00e9giques pour l'optimisation du pipeline StoryCore-Engine, un syst\u00e8me multimodal de production vid\u00e9o automatis\u00e9. L'objectif principal est de renforcer l'architecture actuelle afin de garantir une transition fluide du script vers le rendu final, tout en pr\u00e9servant la coh\u00e9rence visuelle et l'efficacit\u00e9 du processus d'auto-correction.\n\nL'infrastructure technique repose sur une stack moderne int\u00e9grant React 18, TypeScript et Electron, pilot\u00e9e par Vite pour une r\u00e9activit\u00e9 optimale de l'interface utilisateur. La conception logicielle privil\u00e9gie une modularit\u00e9 stricte : chaque composant et module est con\u00e7u pour remplir une fonction unique et isol\u00e9e, \u00e9vitant ainsi les r\u00e9gressions lors des phases d'\u00e9volution. Cette s\u00e9paration des pr\u00e9occupations facilite la maintenance et permet une scalabilit\u00e9 accrue du moteur de g\u00e9n\u00e9ration.\n\nLes axes d'am\u00e9lioration se concentrent sur la robustesse du pipeline de traitement multimodal. Une attention particuli\u00e8re est port\u00e9e \u00e0 la gestion des donn\u00e9es de sortie, notamment via l'impl\u00e9mentation de m\u00e9thodes d'exportation standardis\u00e9es telles que `exportJSON()` et `exportPDF()`. L'architecture doit assurer une synchronisation parfaite entre le traitement logique du script et la g\u00e9n\u00e9ration des assets multim\u00e9dias. Bien que l'\u00e9tat actuel du code soit jug\u00e9 sain et structur\u00e9, les futurs d\u00e9veloppements devront valider la pertinence de toute consolidation de fichiers afin de ne pas compromettre la clart\u00e9 fonctionnelle du syst\u00e8me. L'accent est mis sur la stabilit\u00e9 du moteur de coh\u00e9rence visuelle, pilier central de la proposition de valeur du projet."
+    },
+    {
+     "document_id": "machine-TOP5_TACHES-1",
+     "work": "TOP5_TACHES.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "84363ca7cf5b530fa72efd8661aa26d171f4cd278ae114c68f68586e5d34cb70",
+     "text_sha256": "6898a69b0ca2bcd744ccb32d425a5adca7c92937873b93dd507e49907a2c9ac9",
+     "chars": 1545,
+     "words": 215,
+     "paired_with": "TOP5_TACHES-1",
+     "contamination_rate": 0.0,
+     "text": "La pr\u00e9sente note de conception d\u00e9taille les interventions r\u00e9alis\u00e9es pour stabiliser l'architecture logicielle et garantir l'int\u00e9grit\u00e9 des donn\u00e9es au sein de l'\u00e9diteur vid\u00e9o. L'objectif principal \u00e9tait de r\u00e9soudre des ruptures critiques de d\u00e9pendances et d'harmoniser les structures de donn\u00e9es transversales.\n\nDans un premier temps, une refonte des exports de la biblioth\u00e8que d'effets a \u00e9t\u00e9 op\u00e9r\u00e9e, permettant une utilisation coh\u00e9rente des classes `Effect`, `EffectParameter` et `EffectKeyframe` \u00e0 travers le projet. Parall\u00e8lement, une phase de rem\u00e9diation urgente a permis de restaurer les modules manquants dans les composants critiques tels que `StatusBar` et `Toolbar`, en corrigeant les d\u00e9pendances vers le `VideoEditorContext`. Les erreurs de r\u00e9solution de chemins, notamment concernant le service d'assets, ont \u00e9galement \u00e9t\u00e9 r\u00e9solues pour assurer la continuit\u00e9 de l'importation des ressources.\n\nSur le plan de la coh\u00e9rence structurelle, un effort majeur de synchronisation a \u00e9t\u00e9 men\u00e9 sur les sch\u00e9mas de donn\u00e9es. L'unification de l'identifiant `Shot.sequenceId` entre les diff\u00e9rents modules de types pr\u00e9vient d\u00e9sormais les erreurs de validation lors des \u00e9changes entre le tableau de bord et le moteur de rendu. Enfin, la couche textuelle (`TextLayer`) a \u00e9t\u00e9 renforc\u00e9e par l'impl\u00e9mentation de sch\u00e9mas Zod rigoureux, int\u00e9grant les propri\u00e9t\u00e9s essentielles (contenu, police, taille, couleur). Ces mesures garantissent une robustesse accrue du typage et une r\u00e9duction significative des r\u00e9gressions lors de la manipulation des couches de montage."
+    },
+    {
+     "document_id": "machine-AMELIORATION_EDITEUR_CONSEQUENCES-1",
+     "work": "AMELIORATION_EDITEUR_CONSEQUENCES.md",
+     "author": "gemma4:26b",
+     "source": "local generation",
+     "source_sha256": "27d70205f836aa01006c64cf796f5fbf1622b51167f2b124e00e403f752b1ddc",
+     "text_sha256": "ab19767cc4e8b30ead24ef4b6e77dec4280c1223998dddacddf8a99db9884c09",
+     "chars": 1557,
+     "words": 216,
+     "paired_with": "AMELIORATION_EDITEUR_CONSEQUENCES-1",
+     "contamination_rate": 0.0,
+     "text": "La pr\u00e9sente note de conception d\u00e9finit les axes d'\u00e9volution de l'\u00e9diteur de s\u00e9quences StoryCore Engine, visant \u00e0 transformer l'outil actuel en un environnement de production fluide et intelligent. L'objectif principal est de lever les verrous ergonomiques li\u00e9s \u00e0 la gestion rigide des plans et d'int\u00e9grer l'IA g\u00e9n\u00e9rative au c\u0153ur du workflow narratif.\n\nL'architecture logicielle sera refondue autour d'une interface dynamique capable de s'adapter \u00e0 la complexit\u00e9 r\u00e9elle des s\u00e9quences. Contrairement au syst\u00e8me actuel limit\u00e9 \u00e0 six plans fixes, le nouvel \u00e9diteur permettra l'ajout et la suppression de shots en temps r\u00e9el, offrant une flexibilit\u00e9 structurelle totale. L'introduction d'une timeline intuitive, inspir\u00e9e des standards de montage actuels, facilitera la navigation et la visualisation de la structure narrative.\n\nLe volet intelligent reposera sur une int\u00e9gration profonde entre le plan de s\u00e9quence et le moteur d'IA. L'optimisation du contexte narratif permettra de g\u00e9n\u00e9rer des prompts contextuels, r\u00e9duisant ainsi les it\u00e9rations manuelles. Pour garantir une productivit\u00e9 maximale, un syst\u00e8me de navigation par num\u00e9rotation ainsi qu'un aper\u00e7u en temps r\u00e9el des modifications seront d\u00e9ploy\u00e9s. Cette approche permettra aux utilisateurs de modifier instantan\u00e9ment les param\u00e8tres de chaque shot, assurant une coh\u00e9rence visuelle imm\u00e9diate. En combinant contr\u00f4le granulaire et assistance g\u00e9n\u00e9rative, StoryCore Engine deviendra un outil de cr\u00e9ation agile, capable de transformer une intention narrative en une s\u00e9quence visuelle complexe de mani\u00e8re fluide."
+    }
+   ]
+  }
+ ]
+}
