@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .engine import NarrativeIntegrityEngine
 from .input_model import IntegrityInput
-from .paths import PathRefused, resolve_output, resolve_read
+from .paths import PathRefused, resolve_read, write_text_in_root
 
 SCHEMA_VERSION = "1.0"
 DEFAULT_SEED = 20260921
@@ -433,21 +433,19 @@ def detector_histogram(results: Sequence[Dict[str, Any]]) -> Dict[str, int]:
 
 def _resample_stats(
     sample: Sequence[Dict[str, Any]], by_id: Dict[str, Dict[str, Any]], threshold: float
-) -> Tuple[Optional[float], int, int]:
-    """AUC, detections and false alarms over one resampled set of pairs."""
+) -> Tuple[Optional[float], int]:
+    """AUC and detections over one resampled set of pairs."""
 
     scores: List[float] = []
     labels: List[int] = []
     hits = 0
-    alarms = 0
     for pair in sample:
         human = by_id[pair["human"]]
         machine = by_id[pair["machine"]]
         scores.extend([human["score"], machine["score"]])
         labels.extend([0, 1])
         hits += 1 if machine["score"] > threshold else 0
-        alarms += 1 if human["score"] > threshold else 0
-    return roc_auc(scores, labels), hits, alarms
+    return roc_auc(scores, labels), hits
 
 
 def _paired_bootstrap(
@@ -456,25 +454,22 @@ def _paired_bootstrap(
     threshold: float,
     resamples: int,
     seed: int,
-) -> Tuple[List[float], List[float], List[float]]:
+) -> Tuple[List[float], List[float]]:
     """Cluster bootstrap over the pairs, resampling pairs rather than documents."""
 
     generator = random.Random(seed)
     auc_samples: List[float] = []
     tpr_samples: List[float] = []
-    fpr_samples: List[float] = []
     for _ in range(resamples):
         sample = [pairs[generator.randrange(len(pairs))] for _ in range(len(pairs))]
-        value, hits, alarms = _resample_stats(sample, by_id, threshold)
+        value, hits = _resample_stats(sample, by_id, threshold)
         if value is not None:
             auc_samples.append(value)
         tpr_samples.append(hits / len(sample))
-        fpr_samples.append(alarms / len(sample))
 
     auc_samples.sort()
     tpr_samples.sort()
-    fpr_samples.sort()
-    return auc_samples, tpr_samples, fpr_samples
+    return auc_samples, tpr_samples
 
 
 def detection_metrics(
@@ -512,9 +507,7 @@ def detection_metrics(
     true_positive_rate = detected / max(1, len(machine_ids))
     false_positive_rate_paired = false_alarms / max(1, len(human_ids))
 
-    auc_samples, tpr_samples, fpr_samples = _paired_bootstrap(
-        pairs, by_id, threshold, resamples, seed
-    )
+    auc_samples, tpr_samples = _paired_bootstrap(pairs, by_id, threshold, resamples, seed)
     contaminations = [
         pair["contamination_rate"]
         for pair in pairs
@@ -682,14 +675,13 @@ def _calibrate(args) -> int:
     corpus = load_corpora(args.corpus, root=args.root)
     results = run_calibration(corpus, resamples=args.resamples, seed=args.seed)
     document = json.dumps(results, ensure_ascii=False, indent=2)
-    if not args.out:
+    if args.out:
+        target = write_text_in_root(
+            args.out, document + "\n", root=args.root, label="results"
+        )
+        print("results written: " + str(target), file=sys.stderr)
+    else:
         print(document)
-        return 0
-
-    target = resolve_output(args.out, root=args.root, label="results")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(document + "\n", encoding="utf-8")
-    print("results written: " + str(target), file=sys.stderr)
     return 0
 
 

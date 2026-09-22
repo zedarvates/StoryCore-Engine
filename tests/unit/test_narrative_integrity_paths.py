@@ -4,7 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from src.narrative_integrity.paths import PathRefused, resolve_output, resolve_read
+from src.narrative_integrity.paths import (
+    PathRefused,
+    resolve_output,
+    resolve_read,
+    write_text_in_root,
+)
 
 
 def test_a_plain_name_inside_the_root_is_accepted(tmp_path):
@@ -69,3 +74,27 @@ def test_an_output_outside_the_root_is_refused(tmp_path):
 def test_an_empty_path_is_refused(tmp_path):
     with pytest.raises(PathRefused):
         resolve_read("   ", root=tmp_path)
+
+
+def test_an_accented_name_is_accepted(tmp_path):
+    subject = tmp_path / "chapitre-é.md"
+    subject.write_text("Un texte.", encoding="utf-8")
+
+    assert resolve_read("chapitre-é.md", root=tmp_path) == subject.resolve()
+
+
+def test_a_write_creates_its_directory_inside_the_root(tmp_path):
+    target = write_text_in_root("profiles/locked.json", "{}", root=tmp_path)
+
+    assert target.read_text(encoding="utf-8") == "{}"
+    assert target == (tmp_path / "profiles" / "locked.json").resolve()
+
+
+def test_a_write_that_asks_to_escape_the_root_is_refused(tmp_path):
+    with pytest.raises(PathRefused):
+        write_text_in_root("../outside.json", "{}", root=tmp_path)
+
+
+def test_a_write_re_checks_the_name_chain(tmp_path):
+    with pytest.raises(PathRefused):
+        write_text_in_root("profiles/*.json", "{}", root=tmp_path)

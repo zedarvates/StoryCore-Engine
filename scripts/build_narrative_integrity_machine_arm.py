@@ -30,7 +30,7 @@ if str(REPO) not in sys.path:
     sys.path.insert(0, str(REPO))
 
 # Imported after the repository root is on the path: this script is run directly.
-from src.narrative_integrity.paths import PathRefused, resolve_output
+from src.narrative_integrity.paths import PathRefused, write_text_in_root
 
 HUMAN_CORPUS = (
     REPO / "tests" / "data" / "narrative_integrity" / "calibration" / "corpus_fr_v1.json"
@@ -281,14 +281,15 @@ def main(argv=None) -> int:
     try:
         # The arm document stays inside the repository that produced it: --out is
         # an operator-supplied path, and a mistyped one must not write elsewhere.
-        target = resolve_output(args.out, root=REPO, label="output")
+        target = write_text_in_root(
+            args.out,
+            json.dumps(output, ensure_ascii=True, indent=1) + "\n",
+            root=REPO,
+            label="output",
+        )
     except PathRefused as refusal:
         print("refused: " + str(refusal), file=sys.stderr)
         return 2
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        json.dumps(output, ensure_ascii=True, indent=1) + "\n", encoding="utf-8"
-    )
     total = sum(document["words"] for document in documents)
     print("wrote %s: %d documents, %d words" % (target, len(documents), total))
     return 0

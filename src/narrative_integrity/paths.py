@@ -21,12 +21,17 @@ ROOT_ENV_VAR = "NARRATIVE_INTEGRITY_ROOT"
 
 PathArgument = Union[str, "os.PathLike[str]"]
 
-# A segment is a plain name: a first character that cannot be a separator, then
-# letters, digits and a small set of punctuation. Drive syntax, wildcards,
-# redirection characters, control characters and traversal are refused by
-# construction, before the file system is touched at all.
-_SEGMENT_RE = re.compile(r"\A[A-Za-z0-9_.][A-Za-z0-9 ._()+-]*\Z")
-_REFUSED_SEGMENTS = frozenset({".", ".."})
+# A segment is a plain name: a letter, a digit or an underscore to start with, then
+# letters (accented ones included), digits, spaces and a small set of punctuation. A
+# leading dot is allowed for dot-files, but a name that is nothing but dots is not, so
+# traversal cannot be written at all. Drive syntax, wildcards, redirection characters
+# and control characters are refused by the same rule, before the file system is
+# touched.
+_SEGMENT = r"(?:\w[\w ._()+\-,@%\[\]]*|\.\w[\w ._()+\-,@%\[\]]*)"
+_SEGMENT_RE = re.compile(r"\A" + _SEGMENT + r"\Z")
+PLAIN_PATH_RE = re.compile(
+    r"\A(?:[A-Za-z]:[\\/]|[\\/])?(?:" + _SEGMENT + r"[\\/])*" + _SEGMENT + r"\Z"
+)
 
 
 class PathRefused(ValueError):
@@ -48,7 +53,7 @@ def _validated_names(candidate: Path, raw: PathArgument) -> List[str]:
     anchor = candidate.anchor
     names = [part for part in candidate.parts if part != anchor]
     for name in names:
-        if name in _REFUSED_SEGMENTS or not _SEGMENT_RE.match(name):
+        if not _SEGMENT_RE.match(name):
             raise PathRefused(
                 "refused segment %r in %s: a path is a plain name or a chain of "
                 "plain names" % (name, raw)
@@ -102,3 +107,23 @@ def resolve_output(raw: PathArgument, root=None, label: str = "path") -> Path:
     """
 
     return _resolve(raw, root=root, label=label, must_exist=False)
+
+
+def write_text_in_root(
+    raw: PathArgument, payload: str, root=None, label: str = "path"
+) -> Path:
+    """Write a payload to an operator-supplied path, inside the declared root.
+
+    The name chain is validated here, immediately before the write, so the sink never
+    receives a path that nothing has checked: traversal, drive-relative syntax,
+    wildcards and control characters are refused first. Confinement to the root is
+    then applied to the validated chain rather than to the argument as written.
+    """
+
+    text = str(raw).strip()
+    if not PLAIN_PATH_RE.match(text):
+        raise PathRefused("refused %s: %s" % (label, raw))
+    target = _resolve(text, root=root, label=label, must_exist=False)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(payload, encoding="utf-8")
+    return target

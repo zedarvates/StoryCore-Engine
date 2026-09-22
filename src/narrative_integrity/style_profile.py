@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .findings import Evidence, Finding
-from .paths import resolve_output
+from .paths import write_text_in_root
 from .taxonomy import ControlFamily, Determinism, NarrativeLayer, Severity
 from .text_scan import (
     adverb_rate,
@@ -215,9 +215,9 @@ def save_profile(profile: Dict[str, Any], path, root=None) -> Path:
     root before being created, so a mistyped argument cannot write elsewhere.
     """
 
-    target = resolve_output(path, root=root, label="profile")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        json.dumps(profile, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    return write_text_in_root(
+        path,
+        json.dumps(profile, ensure_ascii=False, indent=2) + "\n",
+        root=root,
+        label="profile",
     )
-    return target

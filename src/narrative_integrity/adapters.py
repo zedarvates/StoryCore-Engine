@@ -47,15 +47,35 @@ def canon_from_story_graph(graph: Any, version: Optional[str] = None) -> CanonIn
 
     for node in nodes.values():
         name_by_id[node.id] = node.name
-        aliases: List[str] = []
-        attributes = getattr(node, "attributes", None)
-        if isinstance(attributes, dict):
-            raw = attributes.get("aliases") or []
-            if isinstance(raw, (list, tuple)):
-                aliases = [str(alias) for alias in raw]
         entities.append(
-            {"name": node.name, "kind": node.entity_type, "aliases": aliases}
+            {"name": node.name, "kind": node.entity_type, "aliases": _aliases_of(node)}
         )
+
+    relations, contexts_by_order = _relations_and_contexts(edges, name_by_id)
+    return CanonInput(
+        entities=entities,
+        relations=relations,
+        timeline=_timeline_from(contexts_by_order),
+        version=version,
+    )
+
+
+def _aliases_of(node: Any) -> List[str]:
+    """The aliases a node declares, or nothing when it declares none."""
+
+    attributes = getattr(node, "attributes", None)
+    if not isinstance(attributes, dict):
+        return []
+    raw = attributes.get("aliases") or []
+    if not isinstance(raw, (list, tuple)):
+        return []
+    return [str(alias) for alias in raw]
+
+
+def _relations_and_contexts(
+    edges: Dict[str, Any], name_by_id: Dict[str, str]
+) -> Tuple[List[Dict[str, Any]], Dict[int, List[str]]]:
+    """Relations from resolvable edges, and the scene contexts per timestamp."""
 
     relations: List[Dict[str, Any]] = []
     contexts_by_order: Dict[int, List[str]] = {}
@@ -72,22 +92,24 @@ def canon_from_story_graph(graph: Any, version: Optional[str] = None) -> CanonIn
                 "scene": edge.scene_context,
             }
         )
-        if edge.timestamp is not None:
-            order = int(edge.timestamp)
-            contexts = contexts_by_order.setdefault(order, [])
-            if edge.scene_context and edge.scene_context not in contexts:
-                contexts.append(edge.scene_context)
+        if edge.timestamp is None:
+            continue
+        order = int(edge.timestamp)
+        contexts = contexts_by_order.setdefault(order, [])
+        if edge.scene_context and edge.scene_context not in contexts:
+            contexts.append(edge.scene_context)
+    return relations, contexts_by_order
 
-    timeline: List[Dict[str, Any]] = []
-    if len(contexts_by_order) >= 2:
-        timeline = [
-            {
-                "label": ", ".join(contexts_by_order[order]) or ("order " + str(order)),
-                "order": order,
-            }
-            for order in sorted(contexts_by_order)
-        ]
 
-    return CanonInput(
-        entities=entities, relations=relations, timeline=timeline, version=version
-    )
+def _timeline_from(contexts_by_order: Dict[int, List[str]]) -> List[Dict[str, Any]]:
+    """A timeline only when at least two distinct instants were declared."""
+
+    if len(contexts_by_order) < 2:
+        return []
+    return [
+        {
+            "label": ", ".join(contexts_by_order[order]) or ("order " + str(order)),
+            "order": order,
+        }
+        for order in sorted(contexts_by_order)
+    ]

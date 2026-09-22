@@ -20,7 +20,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .paths import resolve_output
+from .paths import resolve_output, write_text_in_root
 
 SCHEMA_VERSION = "1.0"
 
@@ -197,10 +197,11 @@ class FindingsLedger:
         target = resolve_output(path, root=root, label="ledger") if path else self._path
         if target is None:
             raise ValueError("no path given and no path was attached to this ledger")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(
+        target = write_text_in_root(
+            target,
             json.dumps(self.to_dict(), ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
+            root=root,
+            label="ledger",
         )
         self._path = target
         return target
