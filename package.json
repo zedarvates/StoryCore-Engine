@@ -79,7 +79,7 @@
     "jsdom": "^29.0.0",
     "ts-jest": "^29.1.1",
     "wait-on": "^8.0.5",
-    "electron": "^41.10.3"
+    "electron": "^41.10.6"
   },
   "overrides": {
     "tough-cookie": ">=4.1.3",
