@@ -11,7 +11,7 @@ import { ComfyUIControlPanel } from '@/components/ComfyUIControlPanel';
 import {
   Settings,
   Loader2,
-  _Zap,
+  Zap,
 } from 'lucide-react';
 
 interface PropertiesPanelProps {

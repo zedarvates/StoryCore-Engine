@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { _motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import './FrameComparisonView.css';
 
 export interface FrameComparisonViewProps {

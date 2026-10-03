@@ -5,7 +5,7 @@ import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { _Badge } from '@/co_mponents/u_i/bad_ge';
+import { Badge } from '@/components/ui/badge';
 import { Sparkles, X, Zap, Scissors, Eye, User, Palette, Microscope, Activity } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
@@ -25,7 +25,7 @@ import {
   BODY_BUILDS,
   HEIGHT_CATEGORIES,
   POSTURE_OPTIONS,
-} from '@_/constants/characterOptions';
+} from '@/constants/characterOptions';
 import { cn } from '@/lib/utils';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';

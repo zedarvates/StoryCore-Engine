@@ -17,7 +17,7 @@ import {
   detectConflicts,
   resolveConflicts,
   type GridEditorConfiguration,
-  type _GridEditorTemplate,
+  type GridEditorTemplate,
   type ExportFormat,
   type ImportResult,
   type ConfigurationConflict

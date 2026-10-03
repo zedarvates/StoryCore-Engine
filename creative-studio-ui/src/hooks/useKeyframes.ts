@@ -30,7 +30,7 @@ import {
   useState 
 } from 'react';
 import { 
-  _Keyframe, 
+  Keyframe,
   KeyframeAnimationConfig, 
   AnimationInstance,
   EasingFunction,

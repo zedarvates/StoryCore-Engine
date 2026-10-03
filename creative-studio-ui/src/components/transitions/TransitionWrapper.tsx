@@ -3,10 +3,10 @@
  * Main wrapper component for applying transitions to any content
  */
 
-import React, { CSSProperties, _useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   TransitionConfig,
-  _TransitionState,
+  TransitionState,
   TransitionPreset,
   TransitionCategory,
   FadeTransitionConfig,
@@ -14,7 +14,7 @@ import {
   ZoomTransitionConfig,
   WipeTransitionConfig,
   GlitchTransitionConfig,
-  _GPUMode,
+  GPUMode,
 } from '../../services/transitions';
 import { useTransition, useCSSTransition, TRANSITION_CSS_CLASSES } from '../../hooks/useTransition';
 

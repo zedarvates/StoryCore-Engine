@@ -10,12 +10,12 @@ import {
   getModelRecommendation,
   checkOllamaStatus,
   getInstalledModels,
-  _isModelInstalled,
+  isModelInstalled,
   GEMMA3_MODELS,
   DEFAULT_OLLAMA_CONFIG,
   type ModelRecommendation,
   type SystemCapabilities,
-  type _OllamaModelConfig,
+  type OllamaModelConfig,
 } from '@/services/ollamaConfig';
 
 export interface OllamaSettingsProps {

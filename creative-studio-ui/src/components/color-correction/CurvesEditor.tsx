@@ -1,6 +1,6 @@
-import React, { useState, _useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
-import { _ColorCurves, CurvePoint } from '../../types/color-correction';
+import { ColorCurves, CurvePoint } from '../../types/color-correction';
 import styles from './ColorCorrectionPanel.module.css';
 
 interface CurvesEditorProps {}

@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
   Copy,
-  _Settings,
+  Settings,
   Move,
   Layers
 } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { LegacyAny } from '@/types/legacy';
-import React from 'rea_ct';
+import React from 'react';
 import { X, Settings, Palette, Move, RotateCw, Scale, Volume2, Speaker, Radio } from 'lucide-react';
 import { CanvasElement, AudioProperties, calculateAudioProperties } from './types';
 

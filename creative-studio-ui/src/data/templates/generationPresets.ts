@@ -3,7 +3,7 @@
  * Pre-configured parameter sets for different quality and style requirements
  */
 
-import { GenerationPreset, _ComfyUIParameters } from '../../types';
+import { GenerationPreset, ComfyUIParameters } from '../../types';
 
 // ============================================================================
 // Quality Presets

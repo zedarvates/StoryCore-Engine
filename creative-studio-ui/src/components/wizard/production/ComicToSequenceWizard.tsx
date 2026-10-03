@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProductionWizardContainer } from '../production-wizards/ProductionWizardContainer';
 import { WizardStep } from '@/types/wizard';
-import { _Image, List, ArrowRight, Music, Clock, Play, _Save, Upload, Settings } from 'lucide-react';
+import { Image, List, ArrowRight, Music, Clock, Play, Save, Upload, Settings } from 'lucide-react';
 
 // ============================================================================
 // Wizard Steps Configuration

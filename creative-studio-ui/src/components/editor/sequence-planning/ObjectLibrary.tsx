@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, Search, _Plus, Box } from 'lucide-react';
+import { Package, Search, Plus, Box } from 'lucide-react';
 import { useStore } from '../../../store';
 import { StoryObject } from '@/types/object';
 import './Library.css';

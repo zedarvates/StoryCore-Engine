@@ -7,7 +7,7 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import React, { useState, us_eCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTextTypography, useAnimatedText } from '../../hooks/useTextTypography';
 import { TextAnimationType, TextPreset } from '../../services/text-typography/TextTypographyTypes';
 

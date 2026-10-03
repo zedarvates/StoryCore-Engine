@@ -17,18 +17,18 @@ import {
   Edit,
   Zap,
   Film,
-  _Layers,
+  Layers,
   Settings,
   Trash2,
   Copy,
   Clock,
-  _Music,
-  _Volume2,
+  Music,
+  Volume2,
   VolumeX,
   Play,
   MoreVertical,
-  _CheckCircle,
-  _AlertCircle,
+  CheckCircle,
+  AlertCircle,
   Timer,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -154,7 +154,7 @@ interface CanvasAreaProps {
   className?: string;
 }
 
-export function Can_vasArea({ onBackToDashboard, className }: CanvasAreaProps) {
+export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   const { project, characters } = useAppStore();
   const {
     shots,
@@ -724,5 +724,4 @@ export function Can_vasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     </div>
   );
 }
-
 

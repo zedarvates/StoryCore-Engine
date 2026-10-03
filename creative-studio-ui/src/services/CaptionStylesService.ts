@@ -6,8 +6,8 @@
 import {
   CaptionStyle,
   CaptionStylePreset,
-  _CaptionAnimation,
-  _CaptionEffect,
+  CaptionAnimation,
+  CaptionEffect,
 } from '../types/caption-style';
 
 class CaptionStylesService {

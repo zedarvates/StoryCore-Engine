@@ -13,11 +13,11 @@ import type {
   MasterReferenceSheet,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
-  _GlobalStyleSheet,
-  _SequenceReferenceSheet,
+  GlobalStyleSheet,
+  SequenceReferenceSheet,
   PreviousEpisodeReference,
 } from '../types/reference';
-import { _referenceSheetService, ReferenceSheetService } from './referenceSheetService';
+import { referenceSheetService, ReferenceSheetService } from './referenceSheetService';
 import { consistencyEngine } from './consistencyEngine';
 import type { ContinuityIssue } from './consistencyEngine';
 

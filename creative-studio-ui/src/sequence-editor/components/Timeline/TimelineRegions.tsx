@@ -12,7 +12,7 @@ import {
   TimelineRegion,
   RegionType,
   getRegionColor,
-  _isPositionInRegion,
+  isPositionInRegion,
 } from './markerTypes';
 
 interface TimelineRegionsProps {

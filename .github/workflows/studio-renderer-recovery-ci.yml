@@ -30,6 +30,8 @@ jobs:
           cache: npm
           cache-dependency-path: creative-studio-ui/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - name: Check shared UI library exports (not the full application)
+        run: node scripts/check-ui-library-imports.mjs
       - name: Check renderer type contracts (not the full application)
         run: |
           ./node_modules/.bin/tsc --project tsconfig.renderer-contract.json --pretty false
@@ -48,4 +50,44 @@ jobs:
         with:
           name: studio-bundle-startup-failure
           path: creative-studio-ui/studio-bundle-test-results/
+          if-no-files-found: ignore
+
+  full-types:
+    name: Full application types (unfinished)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: creative-studio-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+          cache-dependency-path: creative-studio-ui/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - name: Check the complete existing TypeScript build
+        run: ./node_modules/.bin/tsc -b --pretty false 2>&1 | tee studio-typecheck-diagnostics.log
+      - name: Summarize full compiler status
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          log = Path('studio-typecheck-diagnostics.log')
+          if log.exists():
+              count = len(re.findall(r'error TS\d+:', log.read_text()))
+              status = f'Full application compiler: {count} diagnostic(s). See the compiler step conclusion and artifact; focused contracts do not replace this check.'
+          else:
+              status = 'Full application compiler unavailable: installation or setup did not complete.'
+          print(status)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(status + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: studio-full-types-diagnostics
+          path: creative-studio-ui/studio-typecheck-diagnostics.log
           if-no-files-found: ignore

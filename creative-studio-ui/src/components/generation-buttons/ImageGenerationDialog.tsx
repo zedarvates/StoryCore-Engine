@@ -38,7 +38,7 @@ import type { ImagePreset } from '../../services/PresetManagementService';
 import {
   categorizeError,
   preserveStateOnError,
-  _restorePreservedState,
+  restorePreservedState,
   suggestParameterAdjustments,
   type CategorizedError,
   type PreservedState,

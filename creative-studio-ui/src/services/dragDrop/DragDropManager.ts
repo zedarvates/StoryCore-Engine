@@ -11,7 +11,7 @@
  * Validates: Requirements 2.1, 2.2, 2.3, 2.7
  */
 
-import type { _Shot, ProductionShot } from '../../types/shot';
+import type { Shot, ProductionShot } from '../../types/shot';
 import type {
   DragDropConfig,
   Position,

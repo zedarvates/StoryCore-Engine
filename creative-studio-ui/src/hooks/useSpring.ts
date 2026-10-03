@@ -29,7 +29,7 @@ import {
 } from 'react';
 import { 
   SpringConfig, 
-  _SpringAnimationConfig, 
+  SpringAnimationConfig,
   AnimationInstance,
   EasingFunction,
   Spring 

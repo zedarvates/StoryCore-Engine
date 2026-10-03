@@ -7,7 +7,7 @@
 
 import type { Meta, StoryObj } from '@storybook/react';
 import { ProjectBranchingDialog } from './ProjectBranchingDialog';
-import type { BranchInfo, _ContextScope } from '../../services/projectBranchingService';
+import type { BranchInfo, ContextScope } from '../../services/projectBranchingService';
 
 // ============================================================================
 // Mock Data

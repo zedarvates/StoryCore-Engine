@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
-import { Effect, _EffectParameter } from './EffectsLibrary';
+import { Effect, EffectParameter } from './EffectsLibrary';
 import { gpuResourceManager } from './GPUResourceManager';
 import './EffectPreviewRenderer.css';
 

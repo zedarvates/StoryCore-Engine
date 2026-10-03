@@ -1,5 +1,5 @@
 import React from 'react';
-import { _Settings, Wand2, Save, X } from 'lucide-react';
+import { Settings, Wand2, Save, X } from 'lucide-react';
 import { Scene } from '@/types/sequencePlan';
 
 export interface AIPromptGeneratorProps {

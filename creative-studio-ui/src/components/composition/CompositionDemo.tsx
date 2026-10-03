@@ -15,10 +15,10 @@ import {
   Composition,
   Track,
   Clip,
-  _CompositionId,
+  CompositionId,
   ClipId,
   ClipboardState,
-  _SelectionState,
+  SelectionState,
 } from '../../services/animation/CompositionTypes';
 import compositionStore from '../../stores/compositionStore';
 

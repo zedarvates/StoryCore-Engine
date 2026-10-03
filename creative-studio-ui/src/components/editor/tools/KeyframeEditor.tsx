@@ -1,5 +1,5 @@
 import { LegacyAny } from '@/types/legacy';
-import React, { useSta_te, useRef, useCallback, useEffect, useMem_o } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Play, Pause, RotateCcw, ZoomIn, ZoomOut, Plus, Trash2, Move, Square, Circle, Triangle } from 'lucide-react';
 
 interface Keyframe {
