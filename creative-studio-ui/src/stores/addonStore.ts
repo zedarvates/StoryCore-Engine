@@ -504,10 +504,9 @@ export const useAddonStore = create<AddonStore>()(
     }),
     { 
       name: 'AddonStore',
-      stateSanitizer: (state: any) => {
-        const { redactState } = require('../utils/redact');
-        return redactState(state);
-      }
+      // No redaction utility is shipped. Keep debugger export off until a
+      // reviewed redaction policy exists; never fall back to exporting raw state.
+      enabled: false,
     }
   )
 );
@@ -547,4 +546,3 @@ export const selectDisabledAddons = (state: AddonStore) => {
 export const selectErrorAddons = (state: AddonStore) => {
   return state.addons.filter(addon => addon.status === 'error');
 };
-

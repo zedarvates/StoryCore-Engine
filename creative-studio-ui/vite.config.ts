@@ -90,7 +90,10 @@ export default defineConfig({
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
         // Manual chunks for code splitting - optimized for smaller chunks
-        manualChunks: (id) => {
+        manualChunks: (resolvedId) => {
+          // Classify module paths, not the checkout directory: a parent such as
+          // "studio-repair" must not turn unrelated modules into AI chunks.
+          const id = path.relative(__dirname, resolvedId).split(path.sep).join('/');
           // Vendor chunks - React core (separate chunk)
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
             return 'react-vendor';

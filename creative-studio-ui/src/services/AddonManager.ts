@@ -556,8 +556,9 @@ export class AddonManager {
             await import('@/addons/mcp-server');
             break;
           case 'demo-addon':
-            await import('@/addons/demo-addon');
-            break;
+            // The descriptor is retained for saved configurations, but no module
+            // is shipped. Report the missing capability instead of activating it.
+            throw new Error('Demo addon implementation is unavailable in this checkout');
           case 'example-workflow':
             await import('@/addons/example-workflow');
             break;
@@ -1845,5 +1846,4 @@ export class AddonManager {
 
 // Export singleton instance
 export const addonManager = AddonManager.getInstance();
-
 

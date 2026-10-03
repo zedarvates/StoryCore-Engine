@@ -1,0 +1,51 @@
+name: Studio Renderer Recovery CI
+
+on:
+  pull_request:
+    paths:
+      - 'creative-studio-ui/**'
+      - 'electron/electronAPI.d.ts'
+      - '.github/workflows/studio-renderer-recovery-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  renderer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.12.0', '24.19.0']
+    defaults:
+      run:
+        working-directory: creative-studio-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: creative-studio-ui/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - name: Check renderer type contracts (not the full application)
+        run: |
+          ./node_modules/.bin/tsc --project tsconfig.renderer-contract.json --pretty false
+          ./node_modules/.bin/tsc --project tsconfig.preload-renderer-contract.json --pretty false
+      - name: Check shared controls, unavailable addons and debugger boundary
+        run: npm test -- src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx src/services/__tests__/AddonManager.availability.test.ts src/stores/__tests__/storeDebuggerBoundary.test.ts
+      - run: npm run build
+      - name: Install browser for bounded startup check
+        if: matrix.node == '24.19.0'
+        run: ./node_modules/.bin/playwright install --with-deps chromium --only-shell
+      - name: Open the production bundle without live providers
+        if: matrix.node == '24.19.0'
+        run: ./node_modules/.bin/playwright test --config playwright.bundle-smoke.config.ts
+      - uses: actions/upload-artifact@v4
+        if: failure() && matrix.node == '24.19.0'
+        with:
+          name: studio-bundle-startup-failure
+          path: creative-studio-ui/studio-bundle-test-results/
+          if-no-files-found: ignore
