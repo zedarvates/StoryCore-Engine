@@ -20,7 +20,7 @@ test('production bundle opens the browser launcher without an Electron preload o
 
   await page.goto('/', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'Welcome to StoryCore', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Create New Project/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /^Create New Project Start fresh/ })).toBeEnabled();
   expect(await page.evaluate(() => window.electronAPI)).toBeUndefined();
   expect(pageErrors).toEqual([]);
 });
