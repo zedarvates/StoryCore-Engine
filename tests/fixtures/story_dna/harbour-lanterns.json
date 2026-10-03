@@ -1,0 +1,55 @@
+{
+  "schema_version": "0.1-experimental",
+  "story_id": "mock-harbour-project",
+  "title": "Lanterns Across the Water",
+  "entities": [
+    {
+      "id": "char-mei",
+      "type": "character",
+      "name": "Mei",
+      "traits": {
+        "role": "protagonist",
+        "goal": "launch the lantern before the harbour closes",
+        "conflict": "the wind repeatedly extinguishes the flame"
+      }
+    },
+    {
+      "id": "loc-pier",
+      "type": "place",
+      "name": "Old Ferry Pier",
+      "traits": {
+        "purpose": "launch point and emotional threshold"
+      }
+    }
+  ],
+  "events": [
+    {
+      "id": "shot-1-1",
+      "summary": "Mei shields the lantern from the rain.",
+      "order": 1,
+      "location_id": "loc-pier",
+      "participants": [
+        "char-mei"
+      ],
+      "causes": [],
+      "consequences": []
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel-mei-pier",
+      "source_id": "char-mei",
+      "target_id": "loc-pier",
+      "type": "present_at"
+    }
+  ],
+  "arcs": [],
+  "open_questions": [],
+  "provenance": {
+    "source_path": "apps/storycore-harbour/fixtures/happy-path.jsonl",
+    "source_git_blob_sha": "0af5d36905bb60d5777c397f91828e9eb82831bb",
+    "source_contract": "storycore-harbour.project.v1",
+    "mock": true,
+    "scope": "partial narrative projection; no runtime adapter"
+  }
+}

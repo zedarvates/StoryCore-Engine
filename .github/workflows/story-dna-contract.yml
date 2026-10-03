@@ -1,0 +1,32 @@
+name: Story DNA Contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "schemas/story-dna-v0.schema.json"
+      - "src/story_dna.py"
+      - "tests/test_story_dna.py"
+      - "tests/fixtures/story_dna/**"
+      - "apps/storycore-harbour/fixtures/happy-path.jsonl"
+      - "docs/experiments/story-dna-v0.md"
+      - ".github/workflows/story-dna-contract.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install focused validation dependencies
+        run: python -m pip install 'pytest>=8,<10' 'jsonschema>=4.23,<5'
+      - name: Validate fixture, graph references and deterministic round-trip
+        run: python -m pytest -q tests/test_story_dna.py
