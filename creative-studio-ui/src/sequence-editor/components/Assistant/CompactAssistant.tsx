@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Send, X, Shrink, Maximize2 } from 'lucide-react';
 
-import { useChatStore } from '@/stores/editor/chatStore';
+import { useChatControls } from '../../store/hooks/useEditorControls';
 
 export const CompactAssistant: React.FC = () => {
   const { 
@@ -13,7 +13,7 @@ export const CompactAssistant: React.FC = () => {
     setIsOpen,
     setIsMinimized,
     setIsThinking
-  } = useChatStore();
+  } = useChatControls();
   const [input, setInput] = useState('');
 
   const handleSend = () => {

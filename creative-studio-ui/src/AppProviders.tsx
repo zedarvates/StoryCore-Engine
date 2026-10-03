@@ -7,7 +7,6 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { NavigationProvider } from '@/contexts/NavigationContext';
 import { SecretModeProvider } from '@/contexts/SecretModeContext';
 import { LLMProvider } from '@/providers/LLMProvider';
-import { ComfyUIProvider } from '@/providers/ComfyUIProvider';
 import { ScreenReaderAnnouncerProvider } from '@/components/menuBar/ScreenReaderAnnouncer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { StoreSynchronizer } from '@/stores/StoreSynchronizer';
@@ -36,13 +35,11 @@ export function AppProviders({ children }: AppProvidersProps) {
               <NavigationProvider>
                 <SecretModeProvider>
                   <LLMProvider>
-                    <ComfyUIProvider>
-                      <ScreenReaderAnnouncerProvider>
-                        <div className="relative min-h-screen">
-                          {children}
-                        </div>
-                      </ScreenReaderAnnouncerProvider>
-                    </ComfyUIProvider>
+                    <ScreenReaderAnnouncerProvider>
+                      <div className="relative min-h-screen">
+                        {children}
+                      </div>
+                    </ScreenReaderAnnouncerProvider>
                   </LLMProvider>
                 </SecretModeProvider>
               </NavigationProvider>

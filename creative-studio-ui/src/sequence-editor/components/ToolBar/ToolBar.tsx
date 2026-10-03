@@ -7,9 +7,8 @@
 
 import React, { useCallback } from 'react';
 import { useAppDispatch, useAppSelector, store, useUndoRedo } from '../../store';
-import { useToolsStore } from '@stores/editor/toolsStore';
+import { useToolsControls, usePanelsControls } from '../../store/hooks/useEditorControls';
 import { markSaved, setSaveStatus } from '../../store/slices/projectSlice';
-import { usePanelsStore } from '@stores/editor/panelsStore';
 import { saveProjectToFile, generateProjectFilename } from '../../services/projectPersistence';
 import type { ToolType } from '../../types';
 
@@ -91,7 +90,7 @@ interface ToolBarProps {
 export const ToolBar: React.FC<ToolBarProps> = ({ 
   onBack, onAction, onExportToggle, onSettingsToggle 
 }) => {
-  const { activeTool, setActiveTool } = useToolsStore();
+  const { activeTool, setActiveTool } = useToolsControls();
   const dispatch = useAppDispatch();
   const { saveStatus } = useAppSelector((state) => state.project);
   const { 
@@ -99,7 +98,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({
     compactMode, productionStudioMode, gridVisible, markersVisible, promptsVisible,
     toggleLayerManager, setAssetCategory, setActivePanel, setLibraryVisible,
     toggleCompactMode, toggleProductionStudioMode, toggleGrid, toggleMarkers, togglePrompts
-  } = usePanelsStore();
+  } = usePanelsControls();
   const { undo, redo, canUndo, canRedo } = useUndoRedo();
 
   // Handlers

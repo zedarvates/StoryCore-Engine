@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from './store';
-import { usePanelsStore } from '@/stores/editor/panelsStore';
+import { usePanelsControls, useChatControls } from './store/hooks/useEditorControls';
 import { useProjectStore } from '@/stores/useProjectStore';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -18,7 +18,6 @@ import { AlignmentDashboard } from './components/Alignment/AlignmentDashboard';
 import { StatusBar } from './components/StatusBar/StatusBar';
 import { BottomBar } from './components/BottomBar/BottomBar';
 import { LayerManager } from './components/LayerManager/LayerManager';
-import { useChatStore } from '@/stores/editor/chatStore';
 import { AudioMixerPanel } from './components/AudioMixerPanel/AudioMixerPanel';
 import { ExportDialog } from './components/Dialogs/ExportDialog';
 import { SettingsDialog } from './components/Dialogs/SettingsDialog';
@@ -40,7 +39,7 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
   const sequenceId = propSequenceId || routeSequenceId;
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { addMessage, setIsOpen: setChatOpen } = useChatStore();
+  const { addMessage, setIsOpen: setChatOpen } = useChatControls();
 
   // Redux & Global State
   // Panels State from Zustand
@@ -48,7 +47,7 @@ export const SequenceEditor: React.FC<SequenceEditorProps> = ({
     libraryVisible, inspectorVisible, mixerVisible,
     showLayerManager, compactMode, showAlignmentDashboard, productionStudioMode,
     toggleLibrary, toggleInspector, toggleMixer, toggleMetadata, toggleAlignmentDashboard
-  } = usePanelsStore();
+  } = usePanelsControls();
   
   // Alignment State from Unified Project Store
   const { 
