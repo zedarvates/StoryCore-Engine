@@ -2,7 +2,10 @@ import { expect, test } from '@playwright/test';
 
 test('production bundle opens the browser launcher without an Electron preload or live providers', async ({ page }) => {
   const pageErrors: string[] = [];
-  page.on('pageerror', error => pageErrors.push(error.message));
+  page.on('pageerror', error => {
+    pageErrors.push(error.message);
+    console.error('Renderer startup error:', error.stack || error.message);
+  });
 
   // This is an offline startup check, not a provider or generation acceptance
   // test. Only serve the production assets; no account or live backend is used.

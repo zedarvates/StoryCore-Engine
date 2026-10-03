@@ -31,9 +31,11 @@ establish generation, live-provider integration or full application acceptance.
 - AppContent uses the store's actual `Project` type and the optional Window
   declaration instead of asserting the bridge is always present. Unknown IPC
   payloads remain unknown; domain validation is still required.
-- Vite chunk classification uses paths relative to the studio rather than the
-  absolute checkout name, so a parent directory containing `ai` does not change
-  unrelated module classifications.
+- Vite leaves module grouping to Rollup rather than forcing feature/vendor
+  chunks. The manual groups created cross-chunk initialization cycles, including
+  a reference-before-initialization error in the Zustand chunk and a blank
+  launcher. Removing the classifier also removes its dependence on the checkout
+  directory name. Dynamic import boundaries remain in the source.
 
 ## Verification on 2026-10-03
 
@@ -48,8 +50,7 @@ Local Node 24.19.0 / npm 11.9.0, unchanged dependency lockfile:
    rejection of unvalidated IPC data. The other requires the desktop API to be
    assignable to the renderer's whole core shape. They do not load both conflicting
    legacy/browser Window declarations into the same TypeScript program.
-3. `npm run build` succeeds and produces the production bundle. Vite still reports
-   circular chunk warnings and large chunks. Compilation alone does not prove
+3. `npm run build` succeeds and produces the production bundle. Compilation alone does not prove
    that the renderer starts or that runtime behavior is correct.
 4. Full `tsc -b --pretty false` still fails: 1,623 diagnostics, compared with
    2,147 on main at `ab9f613665cfd7d19b37b360fdff68c8541667d0`.
@@ -67,6 +68,12 @@ exposed the undeclared studio `antd` import. The earlier local build had resolve
 it from the root installation. Both CI builds failed, and browser installation/
 startup were skipped. The direct dependencies above repair this clean-install
 gap; the subsequent current-head CI result is the evidence for recovery.
+
+The next run at `5baa8cf6bf4f58595c404c781653beb61460df93` built successfully on
+both Node versions, but Chromium found a blank launcher. Its trace records
+`Cannot access 'P' before initialization` in `zustand-store-Dkb3FN2X.js`.
+That result motivates removing the forced chunk groups. The startup assertion
+is retained, and uncaught page-error stacks are also printed for diagnosis.
 
 A separate isolated studio installation combines the renderer changes plus the
 direct-dependency repair with exact #70
