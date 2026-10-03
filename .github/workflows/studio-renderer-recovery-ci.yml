@@ -68,6 +68,7 @@ jobs:
           cache-dependency-path: creative-studio-ui/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
       - name: Check the complete existing TypeScript build
+        shell: bash
         run: ./node_modules/.bin/tsc -b --pretty false 2>&1 | tee studio-typecheck-diagnostics.log
       - name: Summarize full compiler status
         if: always()
