@@ -3,7 +3,7 @@
  * Video preview with playback controls
  */
 
-import React, { useRef, useEffect, _useCallback, forwardRef } from 'react';
+import React, { useRef, useEffect, useCallback, forwardRef } from 'react';
 import './PreviewPlayer.css';
 
 interface PreviewPlayerProps {

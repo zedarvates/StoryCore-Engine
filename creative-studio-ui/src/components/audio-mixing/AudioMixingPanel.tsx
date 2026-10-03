@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { useAudioMixing, _useAudioTrack } from '../../hooks/useAudioMixing';
-import { AudioTrack, _AudioEffect } from '../../services/audio-mixing/AudioMixingTypes';
+import { useAudioMixing, useAudioTrack } from '../../hooks/useAudioMixing';
+import { AudioTrack, AudioEffect } from '../../services/audio-mixing/AudioMixingTypes';
 
 // ============================================================================
 // Styles

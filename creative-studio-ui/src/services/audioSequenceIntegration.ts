@@ -3,10 +3,10 @@
  */
 
 import type {
-  _MusicProfile,
-  _SFXProfile,
-  _VoiceProfile,
-  _MixConfiguration
+  MusicProfile,
+  SFXProfile,
+  VoiceProfile,
+  MixConfiguration
 } from '../types/audioMultitrack';
 import { _audioMultitrackService } from './audioMultitrack';
 

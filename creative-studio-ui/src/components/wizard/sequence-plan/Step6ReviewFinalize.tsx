@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronDownIco_n, Ch_evronUpIcon, EditIcon, DownloadIcon, CheckCircleIcon, AlertTriangleIcon, EyeIcon, Film } from 'lucide-react';
-import { _SequencePlan, Act, Scene } from '@/types/sequencePlan';
+import { ChevronDownIcon, ChevronUpIcon, EditIcon, DownloadIcon, CheckCircleIcon, AlertTriangleIcon, EyeIcon, Film } from 'lucide-react';
+import { SequencePlan, Act, Scene } from '@/types/sequencePlan';
 import { ProductionShot } from '@/types/shot';
 import { SequenceTemplate } from '@/types/template';
 

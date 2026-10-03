@@ -8,7 +8,7 @@ import { Plus, Edit2, Trash2, GripVertical, Clock, MapPin, Users, AlertTriangle,
 import { WizardFormLayout, FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { _Textarea } from '@/components/ui/textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import {
   Select,

@@ -14,7 +14,7 @@
  * - linkPhraseToShot(phraseId, shotId): Link phrase to a shot via shotId
  */
 
-import React, { createContext, useContext, useCallback, useMemo, _useState } from 'react';
+import React, { createContext, useContext, useCallback, useMemo, useState } from 'react';
 import type { DialoguePhrase } from '../types';
 
 // Generate unique ID for phrases

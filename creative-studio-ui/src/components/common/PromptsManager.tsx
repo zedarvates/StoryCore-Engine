@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, X, Edit2, Check, Copy, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { _Input } from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { notificationService } from '@/services/NotificationService';

@@ -2,7 +2,7 @@ import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import { ChevronDown, ChevronUp, UserPlus, MapPin, Sparkles, ArrowRight, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { _Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 export interface WizardChainOption {

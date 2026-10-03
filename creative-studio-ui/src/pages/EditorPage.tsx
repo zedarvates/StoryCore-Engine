@@ -7,17 +7,17 @@
  * - Properties/Chat/Assets/Plans (right panel)
  */
 
-import React, { _useState } from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { useEditorStore } from '@/stores/editorStore';
 import { EditorLayout } from '@/components/EditorLayout';
 import { AssetPanel } from '@/components/AssetPanel';
 import { CanvasArea } from '@/components/CanvasArea';
 import { PropertiesPanel } from '@/components/PropertiesPanel';
-import { _CentralConfigurationUI } from '@/components';
-import { _WizardLauncher } from '@/components/wizard/WizardLauncher';
-import { _ConfigurationProvider } from '@/contexts/ConfigurationContext';
-import { _WIZARD_DEFINITIONS } from '@/data/wizardDefinitions';
+import { CentralConfigurationUI } from '@/components';
+import { WizardLauncher } from '@/components/wizard/WizardLauncher';
+import { ConfigurationProvider } from '@/contexts/ConfigurationContext';
+import { WIZARD_DEFINITIONS } from '@/data/wizardDefinitions';
 
 interface EditorPageProps {
   sequenceId?: string;
@@ -43,4 +43,3 @@ export function EditorPage({ _sequenceId, onBackToDashboard }: EditorPageProps) 
     </EditorLayout>
   );
 }
-

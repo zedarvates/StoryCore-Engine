@@ -11,7 +11,7 @@ import {
   ChevronUp,
   Sliders,
 } from 'lucide-react';
-import { _Effect, EffectParameter, AppliedEffect } from '@/types/effect';
+import { Effect, EffectParameter, AppliedEffect } from '@/types/effect';
 import { EffectKeyframes } from './EffectKeyframes';
 import './EffectControls.css';
 

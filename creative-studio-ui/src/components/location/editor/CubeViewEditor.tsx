@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { RefreshCw, Eye, _EyeOff, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Grid } from 'lucide-react';
+import { RefreshCw, Eye, EyeOff, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Grid } from 'lucide-react';
 import type { Location, CubeFace, CubeFaceTexture } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
 import { CubeFaceGenerator } from './CubeFaceGenerator';

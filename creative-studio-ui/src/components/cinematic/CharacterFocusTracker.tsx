@@ -8,26 +8,26 @@ import {
   Users,
   User,
   Focus,
-  _Eye,
+  Eye,
   Video,
-  _Clock,
+  Clock,
   BarChart3,
-  _TrendingUp,
-  _TrendingDown,
+  TrendingUp,
+  TrendingDown,
   Activity,
-  _Crown,
-  _Shield,
-  _UserPlus,
+  Crown,
+  Shield,
+  UserPlus,
   Settings,
   ChevronDown,
   ChevronRight,
-  _Maximize2,
-  _Minimize2
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import type { Character } from '@/types/character';
 import type {
   CharacterFocus,
-  _CharacterPresence
+  CharacterPresence
 } from '@/types/cinematicTypes';
 import type {
   EnhancedShot,

@@ -5,22 +5,22 @@
  * Provides automatic scene initialization, model loading, and animation support.
  */
 
-import React, { useEffect, _useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { Camera } from 'lucide-react';
 import { useThreeJs } from '../../hooks/useThreeJs';
 import {
   ThreeJsViewerProps,
   ThreeJsSceneConfig,
   ModelConfig,
-  _AnimationConfig,
+  AnimationConfig,
   CameraAnimationConfig,
   EffectComposerConfig,
-  _ThreeJsState
+  ThreeJsState
 } from '../../services/threejs/ThreeJsTypes';
 import {
   threeJsService,
   defaultSceneConfig,
-  _defaultCameraAnimationConfig
+  defaultCameraAnimationConfig
 } from '../../services/threejs/ThreeJsService';
 import { ShotRenderer } from '../../services/threejs/ShotRenderer';
 

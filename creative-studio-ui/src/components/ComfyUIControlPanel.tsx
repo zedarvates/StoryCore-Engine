@@ -10,7 +10,7 @@ import { ComfyUIParameterPanel } from '@/components/ComfyUIParameterPanel';
 import {
   Server,
   Play,
-  _Square,
+  Square,
   Settings,
   RefreshCw,
   Zap,

@@ -36,15 +36,15 @@ import {
 import {
   History,
   Link,
-  _LinkOff,
+  LinkOff,
   Add,
   Delete,
   Search,
-  _Visibility,
-  _VisibilityOff,
+  Visibility,
+  VisibilityOff,
   Check,
   Close,
-  _PlaylistAdd,
+  PlaylistAdd,
 } from '@mui/icons-material';
 import type { PreviousEpisodeReference } from '../../types/reference';
 

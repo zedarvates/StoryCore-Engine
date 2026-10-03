@@ -1,11 +1,11 @@
 import { useWizard } from '@/contexts/WizardContext';
 import { WizardFormLayout } from '../WizardFormLayout';
 import { Button } from '@/components/ui/button';
-import { _Card, _CardContent, _CardHeader, _CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { _Separator } from '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator';
 import { Edit, HardDrive, Binary, Cpu, Activity, Share2, Terminal, ShieldCheck, Zap } from 'lucide-react';
-import { _cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { Character } from '@/types/character';
 import type { StoryContext } from './CharacterWizard';
 

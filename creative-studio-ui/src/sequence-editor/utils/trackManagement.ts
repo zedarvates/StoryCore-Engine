@@ -7,7 +7,7 @@
  * Requirements: 1.1, 1.3, 1.4, 9.1
  */
 
-import type { Track, _Layer } from '../types';
+import type { Track, Layer } from '../types';
 
 // ============================================================================
 // Types

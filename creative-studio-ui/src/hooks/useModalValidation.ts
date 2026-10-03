@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from 'react';
-import type { ModalSchema, _ValidationRule, ValidationResult, ValidationContext } from '@/types/modal';
+import type { ModalSchema, ValidationRule, ValidationResult, ValidationContext } from '@/types/modal';
 
 /**
  * Built-in validation functions

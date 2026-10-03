@@ -22,7 +22,7 @@ import {
   Save,
   Trash2,
   Eye,
-  _Sliders,
+  Sliders,
   Image,
   Layers,
   Sparkles,
@@ -33,10 +33,10 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
-  _Dialog,
-  _DialogContent,
-  _DialogHeader,
-  _DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

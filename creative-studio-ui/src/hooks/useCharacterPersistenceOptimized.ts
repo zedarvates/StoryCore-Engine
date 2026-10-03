@@ -20,7 +20,7 @@ import {
   PersistenceError,
   PersistenceErrorType,
   PersistedCharacter,
-  Retry_Config,
+  RetryConfig,
   type ConflictResolution,
 } from './useCharacterPersistence';
 

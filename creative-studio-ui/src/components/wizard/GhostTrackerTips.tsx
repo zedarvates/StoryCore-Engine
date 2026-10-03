@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Lightbulb, RefreshCw, ChevronRight, _X } from 'lucide-react';
+import { Lightbulb, RefreshCw, ChevronRight, X } from 'lucide-react';
 import './GhostTrackerTips.css';
 
 interface GhostTrackerTipsProps {

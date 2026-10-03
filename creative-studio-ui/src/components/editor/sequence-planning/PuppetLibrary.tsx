@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Search, _Plus, UserCircle } from 'lucide-react';
+import { Users, Search, Plus, UserCircle } from 'lucide-react';
 import { useStore } from '../../../store';
 import './Library.css';
 

@@ -16,7 +16,7 @@ import type {
   PacingEnergy,
   EnhancedShot,
   CompleteSequence,
-  _PacingConfig 
+  PacingConfig
 } from '@/types/cinematicTypes';
 import { PACING_CONFIGS } from '@/types/cinematicTypes';
 import './PacingAnalyzer.css';

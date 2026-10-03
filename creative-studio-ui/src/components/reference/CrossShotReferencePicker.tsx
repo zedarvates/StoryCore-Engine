@@ -54,7 +54,7 @@ import { referenceInheritanceService } from '@/services/referenceInheritanceServ
 import { referenceSheetService } from '@/services/referenceSheetService';
 import type {
   ReferenceImage,
-  _ShotReference,
+  ShotReference,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
 } from '@/types/reference';
