@@ -1,0 +1,48 @@
+name: Electron Launcher CI
+
+on:
+  pull_request:
+    paths:
+      - 'electron/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/test-electron-splash.cjs'
+      - '.github/workflows/electron-build-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22.12.0', '24.19.0']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run test:electron:splash
+      - run: npm run electron:build
+
+  splash-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run electron:build
+      - run: npm rebuild electron
+      # Xvfb/--no-sandbox apply only to this bounded CI harness, not the launcher.
+      # This check does not establish runtime sandbox enforcement or full-app startup.
+      - run: xvfb-run -a ./node_modules/.bin/electron --no-sandbox scripts/test-electron-splash.cjs
