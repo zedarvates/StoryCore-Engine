@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { useProjectStore } from '@/stores/useProjectStore';
 import { useShallow } from 'zustand/react/shallow';
 import { executeGenerationPipeline, validateProjectForGeneration, type ProjectData } from '../../services/storycoreService';
-import './GenerateButton.css';
+import './generateButton.css';
 
 export const GenerateButton: React.FC = () => {
   const { 
