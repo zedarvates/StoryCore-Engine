@@ -12,6 +12,10 @@ establish generation, live-provider integration or full application acceptance.
   success. A fresh activation does not persist an enabled configuration.
 - The sequence generation button imports the existing `generateButton.css`
   with its exact filename, including on case-sensitive filesystems.
+- The studio directly declares `antd` 6.3.4 (already locked at repository root)
+  and `dnd-core` 16.0.1 (already locked transitively in the studio). An isolated
+  install can resolve the components' dependencies without a parent installation.
+  Existing locked package versions and platform/optional entries are retained.
 - NexRealm and AddonStore no longer import/require a missing redaction helper.
   Their Zustand debugger connections are explicitly disabled, including in
   development, while ordinary store updates still work. This trades debugger
@@ -57,6 +61,23 @@ Local Node 24.19.0 / npm 11.9.0, unchanged dependency lockfile:
    and 24.19.0 and runs a bounded Chromium production-bundle startup check on
    Node 24.19.0. Only that check's result on the actual PR head establishes its
    limited browser-startup evidence.
+
+The first renderer CI run at `a6b82f9fe3c40b275064fc8a91ebf72dc3d30da6`
+exposed the undeclared studio `antd` import. The earlier local build had resolved
+it from the root installation. Both CI builds failed, and browser installation/
+startup were skipped. The direct dependencies above repair this clean-install
+gap; the subsequent current-head CI result is the evidence for recovery.
+
+A separate isolated studio installation combines the renderer changes plus the
+direct-dependency repair with exact #70
+`99feb3319e35a896bbdb4505a02a9fa452380329`, #63
+`ca5b890a4fe010065a76294506abbde0b293ec3c` and #73
+`3a8cac25a11ed207192d443562f899cecb54aede`. Axios 1.20.0, Undici 7.30.0 and
+Electron 41.10.6 are resolved inside that studio. Installation, both strict
+contract programs, ten focused tests and the Vite bundle pass locally. The full
+strict check still fails (1,618 diagnostics in this isolated combination).
+This is a local source-patch integration check, not a merged revision or a
+Chromium/Electron runtime result for the combination.
 
 Commands:
 
