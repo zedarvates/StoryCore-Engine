@@ -9,13 +9,13 @@
  * Creates a debounced function that delays invoking func until after wait milliseconds
  * have elapsed since the last time the debounced function was invoked.
  */
-export function debounce<T extends (...args: unknown[]) => unknown>(
-  func: T,
+export function debounce<Args extends unknown[], Result>(
+  func: (...args: Args) => Result,
   wait: number
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
   
-  return (...args: Parameters<T>) => {
+  return (...args: Args) => {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId);
     }
@@ -33,14 +33,14 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
  * @param immediate - Whether to execute the function immediately on the leading edge
  * @returns A debounced version of the function
  */
-export function debounceWithImmediate<T extends (...args: unknown[]) => unknown>(
-  func: T,
+export function debounceWithImmediate<Args extends unknown[], Result>(
+  func: (...args: Args) => Result,
   wait: number,
   immediate: boolean = false
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout | null = null;
+): (...args: Args) => void {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(...args: Args) {
     const later = () => {
       timeout = null;
       if (!immediate) {
@@ -62,14 +62,15 @@ export function debounceWithImmediate<T extends (...args: unknown[]) => unknown>
 
 /**
  * Creates a throttled function that only invokes func at most once per every wait milliseconds.
+ * Calls run on the leading edge; suppressed calls are not queued for a trailing invocation.
  */
-export function throttle<T extends (...args: unknown[]) => unknown>(
-  func: T,
+export function throttle<Args extends unknown[], Result>(
+  func: (...args: Args) => Result,
   limit: number
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
   let inThrottle = false;
   
-  return (...args: Parameters<T>) => {
+  return (...args: Args) => {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
@@ -77,4 +78,3 @@ export function throttle<T extends (...args: unknown[]) => unknown>(
     }
   };
 }
-

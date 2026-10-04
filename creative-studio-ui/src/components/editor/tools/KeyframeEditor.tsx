@@ -42,18 +42,18 @@ export function KeyframeEditor({
   onKeyframeAdd,
   onKeyframeUpdate,
   onKeyframeRemove,
-  _onPlayPause,
+  onPlayPause,
   onSeek
 }: KeyframeEditorProps) {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [_zoom, setZoom] = u_seState(1);
+  const [zoom, setZoom] = useState(1);
   const [showBezierEditor, setShowBezierEditor] = useState(false);
   const [selectedKeyframe, setSelectedKeyframe] = useState<{ propertyId: string; keyframeId: string } | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   // Default properties for video editing
   const defaultProperties: Omit<AnimatableProperty, 'keyframes'>[] = [
@@ -329,6 +329,7 @@ export function KeyframeEditor({
         <div className="header-controls">
           <button
             className={`play-btn ${isPlaying ? 'playing' : ''}`}
+            aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
             onClick={() => {
               setIsPlaying(!isPlaying);
               onPlayPause();
@@ -338,9 +339,9 @@ export function KeyframeEditor({
           </button>
 
           <div className="zoom-controls">
-            <button onClick={handleZoomOut}><ZoomOut size={14} /></button>
+            <button onClick={handleZoomOut} aria-label="Zoom out"><ZoomOut size={14} /></button>
             <span>{Math.round(zoom * 100)}%</span>
-            <button onClick={handleZoomIn}><ZoomIn size={14} /></button>
+            <button onClick={handleZoomIn} aria-label="Zoom in"><ZoomIn size={14} /></button>
           </div>
         </div>
       </div>
@@ -391,7 +392,7 @@ export function KeyframeEditor({
                     </button>
 
                     <div className="keyframes-list">
-                      {property.keyframes
+                      {[...property.keyframes]
                         .sort((a, b) => a.time - b.time)
                         .map(keyframe => (
                         <div

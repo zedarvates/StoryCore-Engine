@@ -55,7 +55,7 @@ const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: unknown) => 
 );
 
 const EffectStack = ({
-  _effects,
+  effects,
   onEffectsChange,
   onEffectSelect,
   selectedEffectId
@@ -160,11 +160,9 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     shots,
     selectedShotId,
     selectShot,
-    _createShot,
-    _activeWizard,
+    createShot,
     closeWizard,
-  } = useE_ditorStore();
-  const { _updateShot } = useAppStore();
+  } = useEditorStore();
   const { toast } = useToast();
 
   // Canvas state
@@ -724,4 +722,3 @@ export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     </div>
   );
 }
-
