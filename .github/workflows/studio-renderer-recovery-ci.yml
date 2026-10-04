@@ -32,13 +32,16 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
       - name: Check shared UI library exports (not the full application)
         run: node scripts/check-ui-library-imports.mjs
-      - name: Check renderer and editor control type contracts (not the full application)
+      - name: Check renderer, editor control and grid type contracts (not the full application)
         run: |
           ./node_modules/.bin/tsc --project tsconfig.renderer-contract.json --pretty false
           ./node_modules/.bin/tsc --project tsconfig.preload-renderer-contract.json --pretty false
           ./node_modules/.bin/tsc --project tsconfig.editor-controls-contract.json --pretty false
-      - name: Check shared controls, editor interactions, scheduling and runtime boundaries
-        run: npm test -- src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx src/services/__tests__/AddonManager.availability.test.ts src/stores/__tests__/storeDebuggerBoundary.test.ts src/components/__tests__/editorBindings.test.tsx src/utils/__tests__/debounce.test.ts
+          ./node_modules/.bin/tsc --project tsconfig.grid-renderer-contract.json --pretty false
+      - name: Lint repaired grid renderers and their contracts
+        run: ./node_modules/.bin/eslint src/components/gridEditor/GridRenderer.tsx src/components/gridEditor/PanelRenderer.tsx src/components/gridEditor/__tests__/rendererContracts.test.tsx tests/contracts/grid-renderer.contract.ts
+      - name: Check shared controls, grid and editor interactions, scheduling and runtime boundaries
+        run: npm test -- src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx src/services/__tests__/AddonManager.availability.test.ts src/stores/__tests__/storeDebuggerBoundary.test.ts src/components/__tests__/editorBindings.test.tsx src/utils/__tests__/debounce.test.ts src/components/gridEditor/__tests__/rendererContracts.test.tsx src/components/gridEditor/__tests__/PanelRenderer.test.tsx
       - run: npm run build
       - name: Install browser for bounded startup check
         if: matrix.node == '24.19.0'
