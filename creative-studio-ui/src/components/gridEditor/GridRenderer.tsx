@@ -1,5 +1,17 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import type { Layer, Panel, ViewportState } from '../../types/gridEditor';
+import type { Layer, Panel, Rectangle, ViewportState } from '../../types/gridEditor';
+
+function getImageSourceRectangle(image: HTMLImageElement, crop: Panel['crop']): Rectangle {
+  if (!crop) {
+    return { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
+  }
+  return {
+    x: crop.x * image.naturalWidth,
+    y: crop.y * image.naturalHeight,
+    width: crop.width * image.naturalWidth,
+    height: crop.height * image.naturalHeight,
+  };
+}
 
 interface GridRendererProps {
   panels: Panel[];
@@ -149,11 +161,8 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       }
 
       // Fit the same normalized source crop used by the individual panel.
-      const srcX = crop ? crop.x * img.naturalWidth : 0;
-      const srcY = crop ? crop.y * img.naturalHeight : 0;
-      const srcWidth = crop ? crop.width * img.naturalWidth : img.naturalWidth;
-      const srcHeight = crop ? crop.height * img.naturalHeight : img.naturalHeight;
-      const imgAspect = srcWidth / srcHeight;
+      const source = getImageSourceRectangle(img, crop);
+      const imgAspect = source.width / source.height;
       const boundsAspect = bounds.width / bounds.height;
 
       let drawWidth = bounds.width;
@@ -182,7 +191,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       }
 
       // Draw the image
-      ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, drawX, drawY, drawWidth, drawHeight);
+      ctx.drawImage(img, source.x, source.y, source.width, source.height, drawX, drawY, drawWidth, drawHeight);
     } else if (layer.type === 'annotation' && layer.content.type === 'annotation') {
       // Render annotation layer (drawings and text)
       const annotationContent = layer.content;
@@ -414,6 +423,9 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       .then(() => {
         if (cancelled) return;
         renderGrid(ctx, width, height);
+      })
+      .catch((error: unknown) => {
+        console.error('Grid rendering failed', error);
       });
     return () => { cancelled = true; };
   }, [panels, viewport, setupCanvas, loadImage, renderGrid]);
@@ -514,4 +526,3 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     </div>
   );
 };
-

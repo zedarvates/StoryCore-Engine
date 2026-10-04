@@ -144,6 +144,19 @@ describe.each(rendererNames)('%s renderer layer contract', (name) => {
     expect(graphics.context.drawImage).not.toHaveBeenCalled();
     expect(onLoad).toHaveBeenCalledTimes(notifications);
   });
+
+  it('reports a native draw failure after loading without notifying panel load', async () => {
+    const panel = createEmptyPanel(0, 0);
+    panel.layers = [createImageLayer('/fixture.png', 400, 200)];
+    const onLoad = vi.fn();
+    const error = new Error('Canvas fixture failure');
+    const report = vi.spyOn(console, 'error').mockImplementation(() => {});
+    graphics.context.drawImage.mockImplementation(() => { throw error; });
+    render(subject(name, panel, onLoad));
+    await act(async () => { images[0].dispatchEvent(new Event('load')); });
+    expect(report).toHaveBeenCalledWith(name === 'grid' ? 'Grid rendering failed' : 'Panel rendering failed', error);
+    expect(onLoad).not.toHaveBeenCalled();
+  });
 });
 
 describe('grid interactions', () => {

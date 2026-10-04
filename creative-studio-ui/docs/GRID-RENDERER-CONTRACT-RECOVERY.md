@@ -45,9 +45,11 @@ disabling a lint rule.
 
 On Node 24.19.0 / npm 11.9.0 in the same Studio-only installation as the #78 base:
 
-- The 13 old PanelRenderer tests pass before repair, while 11 of 14 new tests fail
-  (including one unhandled incomplete-shape error). After repair, all **51 focused
-  tests in seven files** pass: the previous 24, the old 13 and the new 14.
+- The 13 old PanelRenderer tests pass before repair, while 11 of the first 14 new
+  tests fail (including one unhandled incomplete-shape error). Two additional
+  tests reproduce an unhandled native draw failure after image loading. The final
+  set contains **53 focused tests in seven files**: the previous 24, the old 13
+  and the new 16.
 - Both bridge programs, the editor control program and the new grid program pass.
   The library-name audit passes for **5,712 bindings in 966 files**; the one-binding
   change is removal of the redundant React useState import.
@@ -75,6 +77,23 @@ The renderer matrix adds the strict grid program, targeted lint and grid tests.
 The separate full-compiler job keeps its real failure and diagnostic artifact.
 The offline Chromium launcher check remains limited to Node 24; Node 22 browser
 steps are skipped by matrix design. Read hosted results from the exact PR head.
+
+## Sonar follow-up
+
+The first published head, `91e9854f5833eb0654e8d2009ce0d632cc930afc`, received a
+[failed SonarCloud check](https://github.com/zedarvates/StoryCore-Engine/runs/111380409938)
+with Reliability Rating C on New Code (A required). Its ten GitHub annotations
+identify seven unnecessary void discard expressions in the compile-only fixture,
+two unhandled render promise chains and one complexity finding in GridRenderer.
+
+Export the compile-only fixtures without those discard expressions; retain all
+three negative numeric-geometry cases. Both asynchronous render completions now
+report native draw failures through console.error, with two regression tests
+asserting that a failed draw does not notify panel load. The unchanged normalized
+crop arithmetic is isolated in a small typed source-rectangle helper. No scanner
+suppression, excluded source, altered threshold or disabled lint rule is added.
+The final head's hosted checks and Sonar gate still need their own evidence;
+the earlier failure is not proof of the follow-up result.
 
 ## Remaining limits
 

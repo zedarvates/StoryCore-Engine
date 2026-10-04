@@ -383,6 +383,9 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
         if (cancelled) return;
         render();
         onLoad?.();
+      })
+      .catch((error: unknown) => {
+        console.error('Panel rendering failed', error);
       });
     return () => { cancelled = true; };
   }, [panel, loadImage, render, onLoad]);
