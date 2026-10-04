@@ -1,6 +1,5 @@
-import { LegacyAny } from '@/types/legacy';
-import React, { useRef, useEffect, useCallback, useState } from 'react';
-import { Panel, Layer, AnnotationContent, EffectContent } from '../../types/gridEditor';
+import React, { useRef, useEffect, useCallback } from 'react';
+import type { Panel, Layer, AnnotationContent, EffectContent } from '../../types/gridEditor';
 
 interface PanelRendererProps {
   panel: Panel;
@@ -30,7 +29,6 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   onLoad,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [imagesLoaded, setImagesLoaded] = useState(false);
   const imageCache = useRef<Map<string, HTMLImageElement>>(new Map());
 
   // Style constants
@@ -64,55 +62,14 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   }, []);
 
   /**
-   * Render a single layer with proper blending and opacity
-   */
-  const renderLayer = useCallback((
-    ctx: CanvasRenderingContext2D,
-    layer: Layer,
-    bounds: { x: number; y: number; width: number; height: number }
-  ) => {
-    if (!layer.visible) return;
-
-    ctx.save();
-
-    // Apply layer opacity
-    ctx.globalAlpha = layer.opacity;
-
-    // Apply blend mode
-    const blendModeMap: Record<string, GlobalCompositeOperation> = {
-      normal: 'source-over',
-      multiply: 'multiply',
-      screen: 'screen',
-      overlay: 'overlay',
-      darken: 'darken',
-      lighten: 'lighten',
-    };
-    ctx.globalCompositeOperation = blendModeMap[layer.blendMode] || 'source-over';
-
-    // Render based on layer type
-    if (layer.type === 'image' && layer.content.type === 'image') {
-      const img = imageCache.current.get(layer.content.url);
-      if (img) {
-        renderImageLayer(ctx, img, bounds, panel.transform, panel.crop);
-      }
-    } else if (layer.type === 'annotation' && layer.content.type === 'annotation') {
-      renderAnnotationLayer(ctx, layer.content, bounds);
-    } else if (layer.type === 'effect' && layer.content.type === 'effect') {
-      renderEffectLayer(ctx, layer.content, bounds);
-    }
-
-    ctx.restore();
-  }, [panel.transform, panel.crop]);
-
-  /**
    * Render an image layer with aspect ratio preservation
    */
   const renderImageLayer = useCallback((
     ctx: CanvasRenderingContext2D,
     img: HTMLImageElement,
     bounds: { x: number; y: number; width: number; height: number },
-    transform: unknown,
-    crop: unknown
+    transform: Panel['transform'],
+    crop: Panel['crop']
   ) => {
     // Calculate source rectangle (crop region)
     let srcX = 0;
@@ -177,11 +134,11 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   ) => {
     // Render drawings
     if (content.drawings) {
-      content.drawings.forEach((drawing: unknown) => {
+      content.drawings.forEach((drawing) => {
         ctx.save();
         ctx.strokeStyle = drawing.style.strokeColor || '#000000';
         ctx.lineWidth = drawing.style.strokeWidth || 2;
-        ctx.globalAlpha = drawing.style.opacity || 1;
+        ctx.globalAlpha *= drawing.style.opacity;
 
         if (drawing.style.fillColor) {
           ctx.fillStyle = drawing.style.fillColor;
@@ -200,7 +157,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
             );
           }
           ctx.stroke();
-        } else if (drawing.type === 'rectangle') {
+        } else if (drawing.type === 'rectangle' && drawing.points.length >= 2) {
           const rect = {
             x: bounds.x + drawing.points[0].x * bounds.width,
             y: bounds.y + drawing.points[0].y * bounds.height,
@@ -211,7 +168,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
             ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
           }
           ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
-        } else if (drawing.type === 'ellipse') {
+        } else if (drawing.type === 'ellipse' && drawing.points.length >= 2) {
           const centerX = bounds.x + drawing.points[0].x * bounds.width;
           const centerY = bounds.y + drawing.points[0].y * bounds.height;
           const radiusX = Math.abs(drawing.points[1].x - drawing.points[0].x) * bounds.width / 2;
@@ -223,6 +180,11 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
             ctx.fill();
           }
           ctx.stroke();
+        } else if (drawing.type === 'line' && drawing.points.length >= 2) {
+          ctx.beginPath();
+          ctx.moveTo(bounds.x + drawing.points[0].x * bounds.width, bounds.y + drawing.points[0].y * bounds.height);
+          ctx.lineTo(bounds.x + drawing.points[1].x * bounds.width, bounds.y + drawing.points[1].y * bounds.height);
+          ctx.stroke();
         }
 
         ctx.restore();
@@ -231,7 +193,7 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
 
     // Render text annotations
     if (content.textAnnotations) {
-      content.textAnnotations.forEach((text: unknown) => {
+      content.textAnnotations.forEach((text) => {
         ctx.save();
         ctx.font = `${text.style.fontSize || 16}px ${text.style.fontFamily || 'sans-serif'}`;
         ctx.fillStyle = text.style.color || '#000000';
@@ -267,13 +229,41 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
   const renderEffectLayer = useCallback((
     _ctx: CanvasRenderingContext2D,
     _content: EffectContent,
-    bounds: { x: number; y: number; width: number; height: number }
+    _bounds: { x: number; y: number; width: number; height: number }
   ) => {
     // Placeholder for effect rendering
     // Effects could include filters, adjustments, etc.
     // For now, this is a no-op
     ;
   }, []);
+
+  /**
+   * Render a single layer with proper blending and opacity.
+   * Helpers precede this callback so its dependencies stay explicit.
+   */
+  const renderLayer = useCallback((
+    ctx: CanvasRenderingContext2D,
+    layer: Layer,
+    bounds: { x: number; y: number; width: number; height: number }
+  ) => {
+    if (!layer.visible) return;
+    ctx.save();
+    ctx.globalAlpha = layer.opacity;
+    const blendModeMap: Record<string, GlobalCompositeOperation> = {
+      normal: 'source-over', multiply: 'multiply', screen: 'screen',
+      overlay: 'overlay', darken: 'darken', lighten: 'lighten',
+    };
+    ctx.globalCompositeOperation = blendModeMap[layer.blendMode] || 'source-over';
+    if (layer.type === 'image' && layer.content.type === 'image') {
+      const img = imageCache.current.get(layer.content.url);
+      if (img) renderImageLayer(ctx, img, bounds, panel.transform, panel.crop);
+    } else if (layer.type === 'annotation' && layer.content.type === 'annotation') {
+      renderAnnotationLayer(ctx, layer.content, bounds);
+    } else if (layer.type === 'effect' && layer.content.type === 'effect') {
+      renderEffectLayer(ctx, layer.content, bounds);
+    }
+    ctx.restore();
+  }, [panel.transform, panel.crop, renderImageLayer, renderAnnotationLayer, renderEffectLayer]);
 
   /**
    * Render empty panel placeholder
@@ -333,7 +323,8 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
     const bounds = { x: 0, y: 0, width, height };
 
     // Check if panel has visible layers
-    const visibleLayers = panel.layers.filter(layer => layer.visible && !layer.locked);
+    // Locking prevents edits; it does not hide the layer.
+    const visibleLayers = panel.layers.filter(layer => layer.visible);
 
     if (visibleLayers.length === 0) {
       // Render placeholder for empty panel
@@ -374,33 +365,30 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
    * Load all images and render
    */
   useEffect(() => {
-    const imageUrls = panel.layers
-      .filter(layer => layer.type === 'image' && layer.content.type === 'image')
-      .map(layer => (layer.content as LegacyAny).url);
+    const imageUrls = panel.layers.flatMap(layer =>
+      layer.type === 'image' && layer.content.type === 'image' ? [layer.content.url] : []
+    );
 
+    // Show current annotations/borders and any cached image immediately.
+    // Loading redraws the native canvas directly; no React state is needed.
+    render();
     if (imageUrls.length === 0) {
-      setImagesLoaded(true);
-      render();
       onLoad?.();
       return;
     }
 
+    let cancelled = false;
     Promise.all(imageUrls.map(url => loadImage(url).catch(() => null)))
       .then(() => {
-        setImagesLoaded(true);
+        if (cancelled) return;
         render();
         onLoad?.();
+      })
+      .catch((error: unknown) => {
+        console.error('Panel rendering failed', error);
       });
+    return () => { cancelled = true; };
   }, [panel, loadImage, render, onLoad]);
-
-  /**
-   * Re-render when state changes
-   */
-  useEffect(() => {
-    if (imagesLoaded) {
-      render();
-    }
-  }, [imagesLoaded, isSelected, isHovered, render]);
 
   return (
     <canvas
@@ -413,5 +401,3 @@ export const PanelRenderer: React.FC<PanelRendererProps> = ({
     />
   );
 };
-
-

@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "incremental": false,
+    "skipLibCheck": false
+  },
+  "files": [
+    "src/components/gridEditor/GridRenderer.tsx",
+    "src/components/gridEditor/PanelRenderer.tsx",
+    "tests/contracts/grid-renderer.contract.ts"
+  ],
+  "include": [],
+  "exclude": []
+}
