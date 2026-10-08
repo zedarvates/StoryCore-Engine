@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "clean": "node scripts/clean-build-artifacts.cjs",
-    "clean:dist": "node -e \"const fs = require('fs'); const path = require('path'); const distPath = path.join(process.cwd(), 'dist'); if (fs.existsSync(distPath)) { fs.rmSync(distPath, { recursive: true, force: true }); console.log('✓ Removed dist/ directory'); } else { console.log('✓ dist/ directory does not exist'); }\"",
+    "clean:dist": "node -e \"const fs = require('fs'); const path = require('path'); const distPath = path.join(process.cwd(), 'dist'); if (fs.existsSync(distPath)) { fs.rmSync(distPath, { recursive: true, force: true }); console.log('\u2713 Removed dist/ directory'); } else { console.log('\u2713 dist/ directory does not exist'); }\"",
     "validate": "node scripts/validate-build-config.cjs",
     "predev": "npm run clean",
     "dev": "vite",
@@ -112,5 +112,8 @@
     "typescript-eslint": "^8.69.0",
     "vite": "^7.3.6",
     "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "postcss-selector-parser": "^7.1.6"
   }
 }
