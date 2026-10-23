@@ -6,7 +6,7 @@ Tests JWT token generation, validation, expiration, and user authentication.
 
 import pytest
 import time
-from jose import jwt
+import jwt
 from datetime import datetime
 
 from ..auth import AuthenticationMiddleware, UserService, User

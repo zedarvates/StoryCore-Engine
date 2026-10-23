@@ -30,7 +30,7 @@ setup(
     # Include all Python packages in src/
     # This ensures cli/, cli/handlers/, cli/utils/, engines/, etc. are all included
     include_package_data=True,
-    python_requires=">=3.8",
+    python_requires=">=3.9",
     # Core dependencies
     install_requires=[
         # Image processing
@@ -42,13 +42,10 @@ setup(
         # Security
         "cryptography>=43.0.0",
         "certifi>=2024.8.30",
-        # Explicitly require ecdsa>=0.18.0 to fix Minerva timing attack vulnerability
-        # (CVE-2024-23342) - transitive dependency from python-jose
-        "ecdsa>=0.18.0",
         # API server (optional)
         "fastapi>=0.104.0",
         "uvicorn[standard]>=0.24.0",
-        "python-jose[cryptography]>=3.3.0",
+        "PyJWT[crypto]>=2.10.1,<3",
         "passlib[bcrypt]>=1.7.4",
         "python-multipart>=0.0.6",
         "redis>=5.0.0",
@@ -92,7 +89,6 @@ setup(
         "Topic :: Multimedia :: Video",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
