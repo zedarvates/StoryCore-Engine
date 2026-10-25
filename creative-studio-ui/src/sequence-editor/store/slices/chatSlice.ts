@@ -43,5 +43,6 @@ const chatSlice = createSlice({
   }
 });
 
+export const chatActions = chatSlice.actions;
 export const { addMessage, setIsOpen, setIsMinimized, setIsThinking, clearMessages } = chatSlice.actions;
 export default chatSlice.reducer;

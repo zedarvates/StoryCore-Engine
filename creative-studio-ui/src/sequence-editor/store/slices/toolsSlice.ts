@@ -27,6 +27,8 @@ const toolsSlice = createSlice({
   },
 });
 
+export const toolsActions = toolsSlice.actions;
+
 export const {
   setActiveTool,
   setToolSettings,
@@ -34,4 +36,3 @@ export const {
 } = toolsSlice.actions;
 
 export default toolsSlice.reducer;
-

@@ -110,6 +110,8 @@ const panelsSlice = createSlice({
   },
 });
 
+export const panelsActions = panelsSlice.actions;
+
 export const {
   setPanelLayout,
   resetPanelLayout,
