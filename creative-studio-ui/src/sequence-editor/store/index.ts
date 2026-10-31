@@ -16,6 +16,7 @@ import timelineReducer from './slices/timelineSlice';
 import assetsReducer from './slices/assetsSlice';
 import panelsReducer from './slices/panelsSlice';
 import toolsReducer from './slices/toolsSlice';
+import chatReducer from './slices/chatSlice';
 import previewReducer from './slices/previewSlice';
 import historyReducer from './slices/historySlice';
 import effectsReducer from './slices/effectsSlice'; // Phase 1 - R&D
@@ -35,6 +36,7 @@ export type RootReducerState = {
   assets: ReturnType<typeof assetsReducer>;
   panels: ReturnType<typeof panelsReducer>;
   tools: ReturnType<typeof toolsReducer>;
+  chat: ReturnType<typeof chatReducer>;
   preview: ReturnType<typeof previewReducer>;
   history: ReturnType<typeof historyReducer>;
   effects: ReturnType<typeof effectsReducer>;
@@ -51,6 +53,7 @@ const rootReducer = {
   assets: assetsReducer,
   panels: panelsReducer,
   tools: toolsReducer,
+  chat: chatReducer,
   preview: previewReducer,
   history: historyReducer,
   effects: effectsReducer,
