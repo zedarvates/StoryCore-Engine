@@ -16,7 +16,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from fastapi_limiter.depends import RateLimiter
 from passlib.context import CryptContext
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 import secrets
 import hashlib
 import os
@@ -132,7 +133,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
             token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
         )
         return payload
-    except JWTError:
+    except InvalidTokenError:
         return None
 
 
