@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://storycore.local/schemas/story-dna-v0.schema.json",
+  "title": "Story DNA v0 experimental",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "story_id",
+    "entities",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1-experimental"
+    },
+    "story_id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "type": "string"
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entity"
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "arcs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/arc"
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      },
+      "uniqueItems": true
+    },
+    "entity": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "character",
+            "place",
+            "faction",
+            "object",
+            "concept"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "traits": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "location_id": {
+          "$ref": "#/$defs/id"
+        },
+        "participants": {
+          "$ref": "#/$defs/references"
+        },
+        "causes": {
+          "$ref": "#/$defs/references"
+        },
+        "consequences": {
+          "$ref": "#/$defs/references"
+        }
+      },
+      "additionalProperties": true
+    },
+    "relationship": {
+      "type": "object",
+      "required": [
+        "id",
+        "source_id",
+        "target_id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "source_id": {
+          "$ref": "#/$defs/id"
+        },
+        "target_id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "additionalProperties": true
+    },
+    "arc": {
+      "type": "object",
+      "required": [
+        "id",
+        "event_ids"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "event_ids": {
+          "$ref": "#/$defs/references"
+        },
+        "entity_ids": {
+          "$ref": "#/$defs/references"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
