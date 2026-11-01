@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-29",
+  "repository": "https://github.com/zedarvates/StoryCore-Engine",
+  "existing_pr": 70,
+  "base_pr_head": "8c2a1eb6a140558de7db47fbd861b357a79529f1",
+  "main_observed": "7e0b7875515ab8c1e9ee107961b407f95f3de9b2",
+  "isolated_branch": "fix/dompurify-ghsa-cg2g-20261029",
+  "outcome": "blocked",
+  "targeted_remediation_verified": true,
+  "full_integration_verified": false,
+  "runtime": {
+    "node": "v24.22.1",
+    "npm": "11.9.0",
+    "vitest": "4.1.11",
+    "jsdom": "27.4.0",
+    "vite": "7.3.6"
+  },
+  "dependency": {
+    "path": "jspdf@4.2.1 -> optional dompurify",
+    "before": "3.4.16",
+    "after": "3.4.17",
+    "override": "3.4.17",
+    "lock_entries_changed": [
+      "node_modules/dompurify"
+    ]
+  },
+  "advisories_removed_from_dompurify_audit": [
+    "GHSA-cg2g-xh64-v4q7",
+    "GHSA-mrv2-3pqr-j5jr",
+    "GHSA-c6gr-qvv4-5v3f"
+  ],
+  "exposure": {
+    "vulnerable_library_demonstrated": true,
+    "complete_application_exploit_demonstrated": false,
+    "app_direct_dompurify_calls": 0,
+    "app_jspdf_html_calls": 0,
+    "app_shadow_dom_or_vulnerable_flags": 0,
+    "synthetic_probe_executed_as_code": false
+  },
+  "validation": {
+    "clean_install_with_scripts": "pass --legacy-peer-deps required by existing tree",
+    "baseline_dependency_regressions": {
+      "failed_expected": 4,
+      "passed_control": 1
+    },
+    "candidate_focused_tests": {
+      "passed": 24,
+      "failed": 0
+    },
+    "eslint": "pass",
+    "focused_vite_pdf_services_build": "pass",
+    "full_vite_build": "fail before and after: missing src/providers/ComfyUIProvider",
+    "menu_integration": {
+      "baseline_passed": 12,
+      "baseline_failed": 8,
+      "candidate_passed": 12,
+      "candidate_failed": 8,
+      "identical_failure_names": [
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should save project using persistence service",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should add project to recent projects on successful save",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should show error notification on save failure",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should load project using persistence service",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should update recent projects on successful load",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should show error and remove project if validation fails",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should remove project from recent list on load failure",
+        "src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProjectAs > should open save-as modal"
+      ]
+    },
+    "fresh_readonly_review": "no concrete bypass or regression reported"
+  },
+  "audit_before": {
+    "info": 0,
+    "low": 0,
+    "moderate": 4,
+    "high": 5,
+    "critical": 2,
+    "total": 11
+  },
+  "audit_after": {
+    "info": 0,
+    "low": 0,
+    "moderate": 4,
+    "high": 5,
+    "critical": 1,
+    "total": 10
+  },
+  "code_sha256": {
+    "creative-studio-ui/package.json": "2c7c22ea7458383e269c2a13f8257df725b46a5be63b586c387e77bbb7809019",
+    "creative-studio-ui/package-lock.json": "6f65f0136c01bd66c45b9d588a328e660d95150ca611c7eec4827a3b7eab7428",
+    "creative-studio-ui/src/services/__tests__/dompurify.security.test.ts": "b295065a056272a08c66c737b6588c8257569bb85227b7cf7d4367c55696821a",
+    "creative-studio-ui/src/services/__tests__/pdfExport.security.test.ts": "3f4185f2e65df6e6983ba712e5eb286b1aa37cdf4bd0785e1c8d67e5188b91ee"
+  },
+  "logs_sha256": {
+    "baseline-ci.log": "284d564229d1ce85e0b5dce782bc9b29fd4db510df63f37c0be5523670715431",
+    "baseline-dompurify-tests.log": "d3cd26ad1ce221342f37a6df221891a5df14e60565c831ad0aa84210493842f0",
+    "baseline-build.log": "83144b0b9dfed2b504157c3c003aa90f6c252a91f2aefff212d5d71d0b40b176",
+    "candidate-ci.log": "3553dcad4badf4a65aab25e686d38abe524676cfa93aedaa5f96e0f29fcb8974",
+    "candidate-resolution.log": "0228f0dc78ee4bcbae66265608de77de4b556cc69d5a3215b5f73a68b25caa7e",
+    "candidate-lint.log": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f",
+    "candidate-focused-tests.log": "bf95a57a20240db10d973547f973aca72d85b105a29984001e2ab9fdacec2706",
+    "candidate-build.log": "478ef89e23ea260c75a9b499cda1853281af540e49a2530b7005a3b968757388",
+    "candidate-tests.log": "0e2f44f4fa3e38766fffaf27e89ddbb61fee55c88aadfe5fa50ad52e84c24b96",
+    "pr70-baseline-ci.log": "6c07c6d7ce3107e7a60c63c4027c0e78616dc69605580f21356bddbcac3fc34b",
+    "pr70-baseline-menu-tests.log": "5bff960291b58c9d361dd54b057dbfda9bd51c4d39ff354316fad4ba7909e10b",
+    "baseline-audit.json": "55e1d6c02cd3178e255b7c50f9de5f8c6c22bc93a3e64b77deabb9d060f17c89",
+    "candidate-audit.json": "ec8a2a59530c5794e7bbc1b5a9fcb7c6875406a78323786a7b73fd4f75c76058",
+    "candidate-pdf-bundle.log": "9d99aa27dae6064f5877a721bf0df1c8e7cef3878442a8109941ad1df56dec7f",
+    "final-focused-tests.log": "9fac30050eeddb3afeb1c94fa6dc04d82fa07f4a7c613a4a8339ebcac3b71c5f",
+    "final-lint.log": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+  },
+  "limitations": [
+    "No full application CI success",
+    "No native Electron or actual browser acceptance",
+    "JSDOM attached-root proof uses IN_PLACE; RETURN_DOM / RETURN_DOM_FRAGMENT / declarative Shadow DOM not browser-validated",
+    "No authenticated closure check of Dependabot alert #621",
+    "npm audit remains nonzero outside DOMPurify; entries include lockfile peer packages",
+    "Separate docs/api Swagger vendored DOMPurify 3.0.6 not modified or assessed as fixed"
+  ],
+  "unchanged_scope": [
+    "root and config npm manifests/locks",
+    "all existing PR70 dependency corrections except DOMPurify node",
+    "application production source",
+    "Ultimate Odycer",
+    "Odin/Glyph/Thor/EurekAI services"
+  ],
+  "log_normalization": "Trailing empty lines removed from retained .log files only; substantive output unchanged."
+}
