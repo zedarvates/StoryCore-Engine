@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "jest",
+    "test:electron:splash": "jest --config electron/jest.splash.config.cjs --runInBand",
     "test:ui": "jest \"./src/ui/**/*.test.tsx\"",
     "cli:build": "tsc -p cli/tsconfig.json",
     "cli:dev": "tsc -p cli/tsconfig.json --watch",
