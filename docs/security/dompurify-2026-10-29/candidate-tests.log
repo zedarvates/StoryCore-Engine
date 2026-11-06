@@ -1,0 +1,172 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> creative-studio-ui@0.0.0 test
+> vitest --run src/services/__tests__/dompurify.security.test.ts src/services/__tests__/pdfExport.security.test.ts src/services/__tests__/projectExportService.test.ts src/components/menuBar/__tests__/menuActions.integration.test.ts --maxWorkers=2
+
+
+ RUN  v4.1.11 /workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui
+
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+stdout | src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should save project using persistence service
+[MenuAction] Save Project
+[Notification] SUCCESS: Project "Test Project" saved successfully
+
+stdout | src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should add project to recent projects on successful save
+[MenuAction] Save Project
+[Notification] SUCCESS: Project "Test Project" saved successfully
+
+stdout | src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should show error notification on save failure
+[MenuAction] Save Project
+[Notification] SUCCESS: Project "Test Project" saved successfully
+
+stdout | src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProjectAs > should open save-as modal
+[MenuAction] Save Project As
+[Notification] INFO: Save as feature coming soon
+
+stdout | src/components/menuBar/__tests__/menuActions.integration.test.ts
+Vitest setup loaded successfully
+
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts (20 tests | 8 failed) 27ms
+       × should save project using persistence service 6ms
+       × should add project to recent projects on successful save 1ms
+       × should show error notification on save failure 4ms
+       × should load project using persistence service 1ms
+       × should update recent projects on successful load 1ms
+       × should show error and remove project if validation fails 1ms
+       × should remove project from recent list on load failure 1ms
+       × should open save-as modal 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should save project using persistence service
+AssertionError: expected "saveProject" to be called with arguments: [ { schema_version: '1.0', …(5) } ]
+
+Number of calls: 0
+
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:140:23
+    138|
+    139|       // Verify persistence service was called
+    140|       expect(saveSpy).toHaveBeenCalledWith(mockProject);
+       |                       ^
+    141|     });
+    142|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should add project to recent projects on successful save
+AssertionError: expected "addProject" to be called at least once
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:151:29
+    149|
+    150|       // Verify project was added to recent projects
+    151|       expect(addProjectSpy).toHaveBeenCalled();
+       |                             ^
+    152|       const call = addProjectSpy.mock.calls[0][0];
+    153|       expect(call.name).toBe('Test Project');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProject > should show error notification on save failure
+AssertionError: expected "show" to be called with arguments: [ ObjectContaining{…} ]
+
+Received:
+
+  1st show call:
+
+  [
+-   ObjectContaining {
+-     "message": StringContaining "Failed to save",
+-     "type": "error",
++   {
++     "duration": 3000,
++     "message": "Project \"Test Project\" saved successfully",
++     "type": "success",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:187:23
+    185|
+    186|       // Verify error notification was shown
+    187|       expect(showSpy).toHaveBeenCalledWith(
+       |                       ^
+    188|         expect.objectContaining({
+    189|           type: 'error',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should load project using persistence service
+TypeError: fileActions.loadRecentProject is not a function
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:232:25
+    230|
+    231|       // Execute load action
+    232|       await fileActions.loadRecentProject(mockContext, projectId);
+       |                         ^
+    233|
+    234|       // Verify persistence service was called
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should update recent projects on successful load
+TypeError: fileActions.loadRecentProject is not a function
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:254:25
+    252|
+    253|       // Execute load action
+    254|       await fileActions.loadRecentProject(mockContext, projectId);
+       |                         ^
+    255|
+    256|       // Verify project was added to recent projects (moves to top)
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should show error and remove project if validation fails
+TypeError: fileActions.loadRecentProject is not a function
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:271:25
+    269|
+    270|       // Execute load action
+    271|       await fileActions.loadRecentProject(mockContext, projectId);
+       |                         ^
+    272|
+    273|       // Verify error notification was shown
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > loadRecentProject > should remove project from recent list on load failure
+TypeError: fileActions.loadRecentProject is not a function
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:301:25
+    299|
+    300|       // Execute load action
+    301|       await fileActions.loadRecentProject(mockContext, projectId);
+       |                         ^
+    302|
+    303|       // Verify project was removed from recent projects
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  src/components/menuBar/__tests__/menuActions.integration.test.ts > Menu Actions Integration > saveProjectAs > should open save-as modal
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'save-as', ObjectContaining{…} ]
+
+Number of calls: 0
+
+ ❯ src/components/menuBar/__tests__/menuActions.integration.test.ts:314:42
+    312|
+    313|       // Verify modal was opened
+    314|       expect(mockModalManager.openModal).toHaveBeenCalledWith(
+       |                                          ^
+    315|         'save-as',
+    316|         expect.objectContaining({
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  8 failed | 36 passed (44)
+   Start at  05:36:43
+   Duration  1.44s (transform 268ms, setup 409ms, import 318ms, tests 187ms, environment 1.38s)

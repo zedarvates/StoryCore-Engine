@@ -74,5 +74,8 @@
       "!electron/**/*.test.ts",
       "!electron/**/*.d.ts"
     ]
+  },
+  "overrides": {
+    "shell-quote": "^1.12.0"
   }
 }

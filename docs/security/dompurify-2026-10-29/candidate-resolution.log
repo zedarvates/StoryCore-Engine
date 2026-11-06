@@ -1,0 +1,13 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+creative-studio-ui@0.0.0 /workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui
+├── axios@1.20.0
+├─┬ electron@41.10.3
+│ └─┬ @electron/get@5.1.0
+│   └── undici@7.30.0
+├─┬ jspdf@4.2.1
+│ ├── dompurify@3.4.17 overridden
+│ └── html2canvas@1.4.1
+└─┬ tailwindcss@3.4.19
+  ├─┬ postcss-nested@6.2.0
+  │ └── postcss-selector-parser@7.1.6 deduped
+  └── postcss-selector-parser@7.1.6

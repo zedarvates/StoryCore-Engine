@@ -1,0 +1,65 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> creative-studio-ui@0.0.0 prebuild
+> npm run clean && npm run validate
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> creative-studio-ui@0.0.0 clean
+> node scripts/clean-build-artifacts.cjs
+
+
+============================================================
+Cleanup Complete
+============================================================
+Files removed: 0
+Errors encountered: 0
+Duration: 10ms
+============================================================
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> creative-studio-ui@0.0.0 validate
+> node scripts/validate-build-config.cjs
+
+
+============================================================
+Build Configuration Validation
+============================================================
+
+Checking for .js files in src/...
+Validating TypeScript configuration...
+Validating .gitignore patterns...
+
+============================================================
+Validation Results
+============================================================
+
+✓ No .js files found in src/
+
+✓ TypeScript configuration is correct
+
+✓ .gitignore patterns are correct
+
+============================================================
+✅ Build configuration is valid
+
+Duration: 12ms
+============================================================
+
+
+> creative-studio-ui@0.0.0 build
+> vite build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 1705 modules transformed.
+✗ Build failed in 5.88s
+error during build:
+[vite:load-fallback] Could not load /workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui/src/providers/ComfyUIProvider (imported by src/AppProviders.tsx): ENOENT: no such file or directory, open '/workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui/src/providers/ComfyUIProvider'
+    at async open (node:internal/fs/promises:1345:25)
+    at async Object.readFile (node:internal/fs/promises:2003:14)
+    at async Object.handler (file:///workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui/node_modules/vite/dist/node/chunks/config.js:33249:21)
+    at async PluginDriver.hookFirstAndGetPlugin (file:///workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:22453:28)
+    at async file:///workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:21445:33
+    at async Queue.work (file:///workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui/node_modules/rollup/dist/es/shared/node-entry.js:22681:32)
