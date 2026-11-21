@@ -574,6 +574,7 @@ describe('LLM Integration - Consistency', () => {
         character_arc: 'Growth',
       },
       visual_identity: {
+        gender: 'unspecified',
         hair_color: 'Silver',
         hair_style: 'Long',
         hair_length: 'Waist-length',

@@ -29,49 +29,50 @@ import {
   type CharacterDependenciesCheckedEventPayload,
 } from '../characterEvents';
 import { eventEmitter } from '../eventEmitter';
-import type { Character, CharacterRelationship } from '@/types/character';
+import { createEmptyCharacter, type Character, type CharacterRelationship } from '@/types/character';
 
 // ============================================================================
 // Test Fixtures
 // ============================================================================
 
+const characterDefaults = createEmptyCharacter();
 const mockCharacter: Character = {
+  ...characterDefaults,
   character_id: 'char-123',
   name: 'Test Character',
   creation_method: 'wizard',
   creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
   version: '1.0',
   visual_identity: {
+    ...characterDefaults.visual_identity,
     age_range: '25-35',
     gender: 'male',
     ethnicity: 'diverse',
     distinctive_features: ['tall', 'blue eyes'],
-    style_aesthetic: 'modern',
+    clothing_style: 'modern',
     color_palette: ['blue', 'gray'],
-    visual_references: [],
   },
   personality: {
+    ...characterDefaults.personality,
     traits: ['brave', 'intelligent'],
     values: ['justice', 'loyalty'],
     fears: ['failure'],
     desires: ['success'],
-    quirks: ['always early'],
-    speech_patterns: 'formal',
-    emotional_range: 'balanced',
+    strengths: ['punctual'],
+    communication_style: 'formal',
+    temperament: 'balanced',
   },
   background: {
-    origin_story: 'Born in a small town',
-    key_experiences: ['graduated college'],
-    relationships: [],
+    ...characterDefaults.background,
+    origin: 'Born in a small town',
+    significant_events: ['graduated college'],
     current_situation: 'working professional',
-    secrets: [],
   },
   relationships: [],
   role: {
     archetype: 'hero',
     narrative_function: 'protagonist',
     character_arc: 'growth',
-    symbolic_meaning: 'hope',
   },
 };
 
@@ -346,8 +347,7 @@ describe('createDependenciesCheckedPayload', () => {
   it('should correctly identify no dependencies', () => {
     const dependencies = {
       stories: [],
-      relationships: [],
-    };
+      };
     const payload = createDependenciesCheckedPayload('char-123', 'Test Character', dependencies);
 
     expect(payload.hasDependencies).toBe(false);
@@ -356,8 +356,7 @@ describe('createDependenciesCheckedPayload', () => {
   it('should identify dependencies from stories only', () => {
     const dependencies = {
       stories: [{ id: 'story-1', name: 'Test Story' }],
-      relationships: [],
-    };
+      };
     const payload = createDependenciesCheckedPayload('char-123', 'Test Character', dependencies);
 
     expect(payload.hasDependencies).toBe(true);
@@ -493,8 +492,7 @@ describe('Event Emitter Integration', () => {
 
     const dependencies = {
       stories: [{ id: 'story-1', name: 'Test Story' }],
-      relationships: [],
-    };
+      };
     const payload = createDependenciesCheckedPayload('char-123', 'Test Character', dependencies);
     eventEmitter.emit(CharacterEventType.CHARACTER_DEPENDENCIES_CHECKED, payload);
 

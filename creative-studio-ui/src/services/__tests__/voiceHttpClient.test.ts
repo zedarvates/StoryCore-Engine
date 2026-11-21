@@ -40,7 +40,6 @@ describe('VoiceHttpClient', () => {
   describe('Mock Client', () => {
     it('should upload voice recording successfully', async () => {
       const mockRecording: VoiceRecording = {
-        id: 'rec-1',
         userId: 'user-1',
         sessionId: 'session-1',
         filename: 'test.wav',
@@ -62,9 +61,6 @@ describe('VoiceHttpClient', () => {
         text: 'Test phrase',
         startTime: 0,
         endTime: 1000,
-        userId: 'user-1',
-        sessionId: 'session-1',
-        timestamp: new Date().toISOString(),
       };
 
       const response = await mockClient.syncPhraseData(mockPhrase);
@@ -98,7 +94,6 @@ describe('VoiceHttpClient', () => {
       vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Network error'));
 
       const mockRecording: VoiceRecording = {
-        id: 'rec-1',
         userId: 'user-1',
         sessionId: 'session-1',
         filename: 'test.wav',
@@ -121,9 +116,6 @@ describe('VoiceHttpClient', () => {
         text: 'Test phrase',
         startTime: 0,
         endTime: 1000,
-        userId: 'user-1',
-        sessionId: 'session-1',
-        timestamp: new Date().toISOString(),
       };
 
       const response = await client.syncPhraseData(mockPhrase);

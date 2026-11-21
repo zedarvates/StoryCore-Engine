@@ -53,7 +53,7 @@ describe('ComfyUI Integration Tests', () => {
     });
 
     it('should fetch real workflows from server', async () => {
-      const workflows = await getAvailableWorkflows('http://localhost:8188');
+      const workflows = await getAvailableWorkflows();
 
       expect(Array.isArray(workflows)).toBe(true);
       expect(workflows.length).toBeGreaterThan(0);

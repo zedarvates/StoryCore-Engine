@@ -162,6 +162,7 @@ describe('CharacterWizard - Simple Tests', () => {
     const onComplete = vi.fn();
     const onCancel = vi.fn();
     const worldContext = {
+      keyObjects: [],
       id: 'world-1',
       name: 'Test World',
       genre: ['Fantasy'],
