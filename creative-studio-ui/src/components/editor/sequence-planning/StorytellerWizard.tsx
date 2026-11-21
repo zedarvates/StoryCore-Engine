@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Wand2, Save, BookOpen, Users, MapPin, Clock, Target, Sparkles, Info } from 'lucide-react';
-import { LLMService } from '../../../services/llmService';
+import { getLLMService } from '../../../services/llmService';
 import { useStore } from '../../../store';
 import { StorySummary, StorytellerWizardData } from '../../../types/story';
 import { EnhancedStorytellerAssistant } from '../../wizard/storyteller/EnhancedStorytellerAssistant';
-import { ConfigManager } from '../../../services/llm/ConfigManager';
 
 export interface StorytellerWizardProps {
   isOpen: boolean;
@@ -182,8 +181,7 @@ export const StorytellerWizard: React.FC<StorytellerWizardProps> = ({
     setIsGenerating(true);
     try {
       // Get properly configured LLM service from ConfigManager
-      const llmConfig = ConfigManager.getLLMConfig();
-      const llmService = new LLMService(llmConfig);
+      const llmService = await getLLMService();
 
       const selectedChars = characters.filter(c => storyData.selectedCharacters.includes(c.character_id));
       const worldDesc = world ? `${world.name} (${world.genre.join(', ')}, ${world.timePeriod}, ${world.atmosphere})` : 'monde fantastique';
@@ -326,7 +324,7 @@ Génère au format JSON:
       musicSuggestions: storyData.musicSuggestions,
       moodPalette: storyData.moodPalette,
       cameraTechniques: storyData.cameraTechniques,
-      createdAt: new Date(),
+      createdAt: Date.now(),
       basedOnPreviousEpisode: storyData.previousEpisodeReference || undefined,
       worldContext: world ? `${world.name} - ${world.genre.join(', ')} (${world.timePeriod})` : ''
     };
@@ -719,9 +717,7 @@ Génère au format JSON:
                   <EnhancedStorytellerAssistant
                     projectContext={{
                       characters,
-                      world,
-                      locations: [],
-                      previousStories: []
+                      world
                     }}
                     storyData={storyData}
                     onStoryGenerated={(storyResult) => {

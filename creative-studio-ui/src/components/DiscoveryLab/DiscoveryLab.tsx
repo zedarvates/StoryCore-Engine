@@ -94,35 +94,34 @@ export const DiscoveryLab: React.FC = () => {
       const plan = await sequencePlanService.createSequencePlan(planName, description);
 
       // 2. Create shots for each act
-      const shots: Shot[] = [
-        {
-          id: `shot-${Date.now()}-1`,
-          title: "Act I - The Hook",
-          description: analysisResult.rough_structure.act1,
-          prompt: `Act 1: ${analysisResult.rough_structure.act1.substring(0, 100)}...`,
-          duration: 20,
-          position: 0,
-          metadata: { cameraAngle: 'Wide Shot', camera_movement: 'Cinematic Pan', lighting: 'Dusk' }
-        },
-        {
-          id: `shot-${Date.now()}-2`,
-          title: "Act II - The Conflict",
-          description: analysisResult.rough_structure.act2,
-          prompt: `Act 2: ${analysisResult.rough_structure.act2.substring(0, 100)}...`,
-          duration: 30,
-          position: 1,
-          metadata: { cameraAngle: 'Medium Close-up', camera_movement: 'Static', lighting: 'High Contrast' }
-        },
-        {
-          id: `shot-${Date.now()}-3`,
-          title: "Act III - The Resolution",
-          description: analysisResult.rough_structure.act3,
-          prompt: `Act 3: ${analysisResult.rough_structure.act3.substring(0, 100)}...`,
-          duration: 15,
-          position: 2,
-          metadata: { cameraAngle: 'Extreme Close-up', camera_movement: 'Slow Zoom', lighting: 'Soft Glow' }
-        }
+      const acts = [
+        { name: 'Act I - The Hook', text: analysisResult.rough_structure.act1, duration: 20,
+          metadata: { cameraAngle: 'Wide Shot', camera_movement: 'Cinematic Pan', lighting: 'Dusk' } },
+        { name: 'Act II - The Conflict', text: analysisResult.rough_structure.act2, duration: 30,
+          metadata: { cameraAngle: 'Medium Close-up', camera_movement: 'Static', lighting: 'High Contrast' } },
+        { name: 'Act III - The Resolution', text: analysisResult.rough_structure.act3, duration: 15,
+          metadata: { cameraAngle: 'Extreme Close-up', camera_movement: 'Slow Zoom', lighting: 'Soft Glow' } },
       ];
+      const createdAt = Date.now();
+      let nextStartTime = 0;
+      const shots: Shot[] = acts.map(({ name, text, duration, metadata }, position) => {
+        const startTime = nextStartTime;
+        nextStartTime += duration;
+        return {
+          id: `shot-${createdAt}-${position + 1}`,
+          name,
+          title: name,
+          description: text,
+          prompt: `Act ${position + 1}: ${text.substring(0, 100)}...`,
+          duration,
+          startTime,
+          position,
+          metadata,
+          parameters: { seed: -1, denoising: 0.75, steps: 20, guidance: 7.5, sampler: 'euler', scheduler: 'normal' },
+          layers: [],
+          referenceImages: [],
+        };
+      });
 
       // 3. Add shots to the plan
       const updatedPlan = await sequencePlanService.updateSequencePlan(plan.id, { shots });

@@ -13,9 +13,7 @@ import { LegacyAny } from '@/types/legacy';
 
 import React, { useState } from 'react';
 import {
-  updateLayer,
-  toggleLayerLock,
-  toggleLayerHidden,
+  updateShotLayer,
   setLayerOpacity,
   setLayerBlendMode,
   togglePropertyKeyframes,
@@ -164,16 +162,24 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
   };
 
   const handleToggleLock = () => {
-    dispatch(toggleLayerLock({ shotId: shot.id, layerId: selectedLayer.id }));
+    dispatch(updateShotLayer({
+      shotId: shot.id,
+      layerId: selectedLayer.id,
+      updates: { locked: !selectedLayer.locked },
+    }));
   };
 
   const handleToggleHidden = () => {
-    dispatch(toggleLayerHidden({ shotId: shot.id, layerId: selectedLayer.id }));
+    dispatch(updateShotLayer({
+      shotId: shot.id,
+      layerId: selectedLayer.id,
+      updates: { hidden: !selectedLayer.hidden },
+    }));
   };
 
   const handleStartTimeChange = (value: number) => {
     dispatch(
-      updateLayer({
+      updateShotLayer({
         shotId: shot.id,
         layerId: selectedLayer.id,
         updates: { startTime: Math.max(0, value) },
@@ -183,7 +189,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
 
   const handleDurationChange = (value: number) => {
     dispatch(
-      updateLayer({
+      updateShotLayer({
         shotId: shot.id,
         layerId: selectedLayer.id,
         updates: { duration: Math.max(1, value) },
@@ -212,7 +218,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
     }
 
     dispatch(
-      updateLayer({
+      updateShotLayer({
         shotId: shot.id,
         layerId: selectedLayer.id,
         updates: {
@@ -228,7 +234,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
   const handleAudioChange = (property: string, value: number) => {
     const currentData = selectedLayer.data as AudioLayerData | SpeechLayerData;
     dispatch(
-      updateLayer({
+      updateShotLayer({
         shotId: shot.id,
         layerId: selectedLayer.id,
         updates: {
@@ -572,7 +578,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                         const newStyle = { ...currentStyle, fontFamily: e.target.value };
 
                         dispatch(
-                          updateLayer({
+                          updateShotLayer({
                             shotId: shot.id,
                             layerId: selectedLayer.id,
                             updates: {
@@ -611,7 +617,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                         const newStyle = { ...currentStyle, fontWeight: e.target.value };
 
                         dispatch(
-                          updateLayer({
+                          updateShotLayer({
                             shotId: shot.id,
                             layerId: selectedLayer.id,
                             updates: { data: { ...currentData, style: newStyle } },
@@ -644,7 +650,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                         const newStyle = { ...currentStyle, fontSize: val };
 
                         dispatch(
-                          updateLayer({
+                          updateShotLayer({
                             shotId: shot.id,
                             layerId: selectedLayer.id,
                             updates: {
@@ -679,7 +685,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                         const newStyle = { ...currentStyle, fillColor: val };
 
                         dispatch(
-                          updateLayer({
+                          updateShotLayer({
                             shotId: shot.id,
                             layerId: selectedLayer.id,
                             updates: {
@@ -710,7 +716,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                         const currentData = selectedLayer.data as TextLayerData;
                         const currentStyle = currentData.style || {};
                         const newStyle = { ...currentStyle, strokeColor: val };
-                        dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
+                        dispatch(updateShotLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
                       }}
                       disabled={selectedLayer.locked}
                     />
@@ -725,7 +731,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                           const currentData = selectedLayer.data as TextLayerData;
                           const currentStyle = currentData.style || {};
                           const newStyle = { ...currentStyle, strokeWidth: val };
-                          dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
+                          dispatch(updateShotLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
                         }}
                         min={0}
                         disabled={selectedLayer.locked}
@@ -746,7 +752,7 @@ export const LayerPropertiesPanel: React.FC<LayerPropertiesPanelProps> = ({
                           const currentData = selectedLayer.data as TextLayerData;
                           const currentStyle = currentData.style || {};
                           const newStyle = { ...currentStyle, textAlign: align as 'left' | 'center' | 'right' };
-                          dispatch(updateLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
+                          dispatch(updateShotLayer({ shotId: shot.id, layerId: selectedLayer.id, updates: { data: { ...currentData, style: newStyle } } }));
                         }}
                       >
                         {align === 'left' ? 'L' : align === 'center' ? 'C' : 'R'}

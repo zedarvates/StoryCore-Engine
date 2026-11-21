@@ -98,12 +98,14 @@ function normalizeTimestamp(value: unknown): number {
 
 function parsePersistedProjectSnapshot(raw: string): RestoredSnapshot | null {
   const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed) || !hasSnapshotSlices(parsed)) return null;
+  if (!isRecord(parsed)) return null;
+  const { version, timestamp } = parsed;
+  if (!hasSnapshotSlices(parsed)) return null;
 
   return {
     ...parsed,
-    version: typeof parsed.version === 'string' ? parsed.version : '1.0',
-    timestamp: normalizeTimestamp(parsed.timestamp),
+    version: typeof version === 'string' ? version : '1.0',
+    timestamp: normalizeTimestamp(timestamp),
   };
 }
 
