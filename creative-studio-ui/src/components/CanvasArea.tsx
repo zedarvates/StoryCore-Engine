@@ -55,6 +55,7 @@ const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: unknown) => 
 );
 
 const EffectStack = ({
+  effects,
   onEffectsChange,
   onEffectSelect,
   selectedEffectId

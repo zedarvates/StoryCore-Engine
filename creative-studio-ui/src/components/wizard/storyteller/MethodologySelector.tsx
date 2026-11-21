@@ -372,6 +372,7 @@ export function MethodologySelector({
   selectedMethodology,
   onMethodologyChange,
   options,
+  onOptionsChange,
   onWritingStyleChange,
   settings,
   onSettingsChange,
