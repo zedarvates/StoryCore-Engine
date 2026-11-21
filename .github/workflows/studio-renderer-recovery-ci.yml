@@ -39,26 +39,29 @@ jobs:
           ./node_modules/.bin/tsc --project tsconfig.preload-renderer-contract.json --pretty false
           ./node_modules/.bin/tsc --project tsconfig.editor-controls-contract.json --pretty false
           ./node_modules/.bin/tsc --project tsconfig.grid-renderer-contract.json --pretty false
-      - name: Lint repaired grid renderers and their contracts
-        run: ./node_modules/.bin/eslint src/components/gridEditor/GridRenderer.tsx src/components/gridEditor/PanelRenderer.tsx src/components/gridEditor/__tests__/rendererContracts.test.tsx tests/contracts/grid-renderer.contract.ts
-      - name: Check shared controls, grid, editor, scheduling and runtime boundaries
-        run: >-
-          npm test --
-          src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx
-          src/services/__tests__/AddonManager.availability.test.ts
-          src/stores/__tests__/storeDebuggerBoundary.test.ts
-          src/components/__tests__/editorBindings.test.tsx
-          src/utils/__tests__/debounce.test.ts
-          src/components/gridEditor/__tests__/rendererContracts.test.tsx
-          src/components/gridEditor/__tests__/PanelRenderer.test.tsx
-          src/hooks/__tests__/useKeyframes.test.ts
-          src/components/LazyComponents.test.tsx
-      - name: Exercise restored world builder, media search and storage bindings
+      - name: Check shared controls, unavailable addons and debugger boundary
+        run: npm test -- src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx src/services/__tests__/AddonManager.availability.test.ts src/stores/__tests__/storeDebuggerBoundary.test.ts
+      - name: Exercise restored Studio feature contracts
         run: >-
           npm test --
           src/components/wizard/world-builder/__tests__/legacyWorldBuilder.test.tsx
           src/sequence-editor/components/MediaSearchPanel/MediaSearchPanel.test.tsx
           src/sequence-editor/utils/browserCompat.test.ts
+          src/components/color-correction/ColorWheels.test.tsx
+          src/components/shot/ShotFrameViewer.test.tsx
+          src/services/audioSequenceIntegration.test.ts
+          src/components/generation-buttons/__tests__/previewMetadata.test.tsx
+          src/components/editor/effects/effectParameterValues.test.ts
+          src/addons/mcp/MCPAddonManager.test.ts
+          src/hooks/__tests__/conditionalModalValidation.test.ts
+          src/components/__tests__/editorBindings.test.tsx
+          src/utils/__tests__/debounce.test.ts
+          src/hooks/__tests__/useKeyframes.test.ts
+          src/components/LazyComponents.test.tsx
+      - name: Lint repaired grid renderers and their contracts
+        run: ./node_modules/.bin/eslint src/components/gridEditor/GridRenderer.tsx src/components/gridEditor/PanelRenderer.tsx src/components/gridEditor/__tests__/rendererContracts.test.tsx tests/contracts/grid-renderer.contract.ts
+      - name: Exercise grid and panel contracts
+        run: npm test -- src/components/gridEditor/__tests__/rendererContracts.test.tsx src/components/gridEditor/__tests__/PanelRenderer.test.tsx
       - run: npm run build
       - name: Install browser for bounded startup check
         if: matrix.node == '24.19.0'

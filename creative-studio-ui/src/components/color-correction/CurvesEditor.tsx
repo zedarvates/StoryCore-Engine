@@ -1,20 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
-import { ColorCurves, CurvePoint } from '../../types/color-correction';
 import styles from './ColorCorrectionPanel.module.css';
 
 interface CurvesEditorProps {}
 
 export const CurvesEditor: React.FC<CurvesEditorProps> = () => {
-  const { state, setPrimaryColorGrade } = useColorCorrectionStore();
+  const curves = useColorCorrectionStore((store) => store.state.globalAdjustment.curves);
   const [activeChannel, setActiveChannel] = useState<'rgb' | 'luma'>('rgb');
   const [selectedChannel, setSelectedChannel] = useState<'r' | 'g' | 'b' | 'luma'>('r');
-
-  const _handleCurvePointChange = (channel: 'r' | 'g' | 'b' | 'luma', points: CurvePoint[]) => {
-    const newCurves = { ...state.primaryGrade.curves };
-    newCurves.rgb[channel === 'r' ? 0 : channel === 'g' ? 1 : channel === 'b' ? 2 : 3] = points;
-    setPrimaryColorGrade({ ...state.primaryGrade, curves: newCurves });
-  };
 
   const getChannelColor = (channel: 'r' | 'g' | 'b' | 'luma') => {
     switch (channel) {
@@ -103,7 +96,7 @@ export const CurvesEditor: React.FC<CurvesEditorProps> = () => {
             }
 
             // Draw curve
-            const points = state.primaryGrade.curves.rgb[selectedChannel === 'r' ? 0 : selectedChannel === 'g' ? 1 : selectedChannel === 'b' ? 2 : 3];
+            const points = curves.rgb[activeChannel === 'luma' ? 3 : selectedChannel === 'r' ? 0 : selectedChannel === 'g' ? 1 : 2];
             if (points && points.length > 0) {
               ctx.strokeStyle = getChannelColor(selectedChannel);
               ctx.lineWidth = 2;

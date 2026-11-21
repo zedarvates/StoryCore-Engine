@@ -408,25 +408,25 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = ({
         <div className="space-y-2">
           <h4 className="text-sm font-semibold">Generation Parameters</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            {generationParams.frameCount && (
+            {typeof generationParams.frameCount === 'number' && Number.isFinite(generationParams.frameCount) && (
               <div>
                 <span className="text-muted-foreground">Frame Count:</span>{' '}
                 <span className="font-medium">{generationParams.frameCount}</span>
               </div>
             )}
-            {generationParams.frameRate && (
+            {typeof generationParams.frameRate === 'number' && Number.isFinite(generationParams.frameRate) && (
               <div>
                 <span className="text-muted-foreground">Frame Rate:</span>{' '}
                 <span className="font-medium">{generationParams.frameRate} fps</span>
               </div>
             )}
-            {generationParams.motionStrength !== undefined && (
+            {typeof generationParams.motionStrength === 'number' && Number.isFinite(generationParams.motionStrength) && (
               <div>
                 <span className="text-muted-foreground">Motion Strength:</span>{' '}
                 <span className="font-medium">{generationParams.motionStrength}</span>
               </div>
             )}
-            {generationParams.seed !== undefined && (
+            {typeof generationParams.seed === 'number' && Number.isFinite(generationParams.seed) && (
               <div>
                 <span className="text-muted-foreground">Seed:</span>{' '}
                 <span className="font-medium">{generationParams.seed}</span>
@@ -435,7 +435,7 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = ({
           </div>
           
           {/* Motion Prompt */}
-          {generationParams.prompt && (
+          {typeof generationParams.prompt === 'string' && generationParams.prompt && (
             <div className="mt-2">
               <span className="text-muted-foreground text-sm">Motion Description:</span>
               <p className="text-sm mt-1 p-2 bg-muted rounded-md">
@@ -445,7 +445,7 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = ({
           )}
           
           {/* Source Image Path */}
-          {generationParams.inputImagePath && (
+          {typeof generationParams.inputImagePath === 'string' && generationParams.inputImagePath && (
             <div className="mt-2">
               <span className="text-muted-foreground text-sm">Source Image:</span>
               <p className="text-sm mt-1 p-2 bg-muted rounded-md font-mono">

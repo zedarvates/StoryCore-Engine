@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from 'react';
-import type { ModalSchema, ValidationRule, ValidationResult, ValidationContext } from '@/types/modal';
+import type { ModalSchema, ValidationResult, ValidationContext } from '@/types/modal';
 
 /**
  * Built-in validation functions
@@ -53,9 +53,6 @@ const validationRules = {
     }
   },
 
-  custom: (value: unknown, validator: (value: unknown) => boolean): boolean => {
-    return validator(value);
-  },
 };
 
 /**
@@ -64,42 +61,36 @@ const validationRules = {
 function validateField(
   field: ModalSchema['fields'][0],
   value: unknown,
-  _context: ValidationContext
+  context: ValidationContext
 ): string | null {
-  // Check required validation first
-  if (field.required && !validationRules.required(value)) {
+  const hasValue = validationRules.required(value);
+  if (field.required && !hasValue) {
     return 'Ce champ est requis';
   }
 
-  // Skip other validations if field is empty and not required
-  if (!validationRules.required(value) && !field.required) {
-    return null;
-  }
-
-  // Apply field-specific validation rules
   if (field.validation) {
     for (const rule of field.validation) {
-      const validator = validationRules[rule.type];
-
-      if (!validator) {
-        continue; // Unknown validation rule
-      }
+      if (!hasValue && rule.type !== 'required' && rule.type !== 'custom') continue;
 
       let isValid: boolean;
-
       switch (rule.type) {
         case 'custom':
-          isValid = validator(value, rule.value as (value: unknown) => boolean);
+          isValid = typeof rule.value === 'function' && rule.value(value, context);
           break;
         case 'minLength':
         case 'maxLength':
-          isValid = validator(value, rule.value as number);
+          isValid = typeof rule.value === 'number' && validationRules[rule.type](value, rule.value);
           break;
         case 'pattern':
-          isValid = validator(value, rule.value as string);
+          isValid = typeof rule.value === 'string' && validationRules.pattern(value, rule.value);
+          break;
+        case 'required':
+        case 'email':
+        case 'url':
+          isValid = validationRules[rule.type](value);
           break;
         default:
-          isValid = validator(value);
+          continue;
       }
 
       if (!isValid) {

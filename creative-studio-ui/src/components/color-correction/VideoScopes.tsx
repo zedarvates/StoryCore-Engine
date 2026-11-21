@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
-import { ColorScopeType } from '../../types/color-correction';
+import React, { useState } from 'react';
 import styles from './ColorCorrectionPanel.module.css';
 
-interface VideoScopesProps {}
+type ColorScopeType = 'waveform' | 'vectorscope' | 'histogram' | 'rgbParade';
 
-export const VideoScopes: React.FC<VideoScopesProps> = () => {
-  const { _state } = useColorCorrectionStore();
+export const VideoScopes: React.FC = () => {
   const [activeScope, setActiveScope] = useState<ColorScopeType>('waveform');
-
-  useEffect(() => {
-    // Start scope analysis if needed
-  }, []);
 
   const getScopeData = () => {
     // This would normally analyze the current frame

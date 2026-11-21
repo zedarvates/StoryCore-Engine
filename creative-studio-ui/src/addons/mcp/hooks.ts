@@ -9,7 +9,7 @@ import type {
   MCPServerConfig,
   UseMCPAddonResult,
   MCPTestResult
-} from '@/types/addons';
+} from './types';
 
 // Missing type definitions for hooks
 export interface UseMCPServersResult {
@@ -17,7 +17,7 @@ export interface UseMCPServersResult {
   selectedServer: string | null;
   isLoading: boolean;
   error: string | null;
-  addServer: (config: MCPServerConfig) => Promise<void>;
+  addServer: (config: Omit<MCPServerConfig, 'id'>) => Promise<void>;
   updateServer: (serverId: string, updates: Partial<MCPServerConfig>) => Promise<void>;
   removeServer: (serverId: string) => Promise<void>;
   testServer: (serverId: string) => Promise<void>;
@@ -84,7 +84,7 @@ export function useMCPAddon(): UseMCPAddonResult {
   // Subscribe to manager state changes
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
-    () => manager.getState()
+    manager.getSnapshot
   );
 
   const addon = state.addon;
@@ -126,10 +126,10 @@ export function useMCPServers(): UseMCPServersResult {
 
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
-    () => manager.getState()
+    manager.getSnapshot
   );
 
-  const addServer = useCallback(async (config: MCPServerConfig) => {
+  const addServer = useCallback(async (config: Omit<MCPServerConfig, 'id'>) => {
     await manager.addServer(config);
   }, [manager]);
 
@@ -170,7 +170,7 @@ export function useMCPConfig(): UseMCPConfigResult {
 
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
-    () => manager.getState()
+    manager.getSnapshot
   );
 
   const updateConfig = useCallback(async (config: Partial<MCPAddon['config']>) => {
@@ -193,7 +193,7 @@ export function useMCPTest(): UseMCPTestResult {
 
   const state = useSyncExternalStore(
     (callback) => manager.subscribe(callback),
-    () => manager.getState()
+    manager.getSnapshot
   );
 
   const testServer = useCallback(async (id: string) => {

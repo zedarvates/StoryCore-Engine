@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { Settings, Eye, EyeOff, Trash2, Plus, Sliders, Palette, Move, Zap, Sun } from 'lucide-react';
 import './EffectPanel.css';
 
-import { Effect, AppliedEffect, EffectParameter } from '@/types/effect';
+import { Effect, AppliedEffect, EffectParameter, EffectParameterValue } from '@/types/effect';
+import { readEffectNumber } from './effectParameterValues';
 
 interface EffectPanelProps {
   effects: AppliedEffect[];
@@ -17,7 +18,6 @@ export function EffectPanel({
   onEffectAdd,
   onEffectUpdate,
   onEffectRemove,
-  _onEffectReorder
 }: EffectPanelProps) {
   const [selectedEffectId, setSelectedEffectId] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['color']));
@@ -44,7 +44,8 @@ export function EffectPanel({
     });
   }, []);
 
-  const handleParameterChange = useCallback((effectId: string, paramId: string, value: unknown) => {
+  const handleParameterChange = useCallback((effectId: string, paramId: string, value: EffectParameterValue) => {
+    if (typeof value === 'number' && !Number.isFinite(value)) return;
     const effect = effects.find(e => e.id === effectId);
     if (!effect) return;
 
@@ -76,10 +77,10 @@ export function EffectPanel({
             min={param.min ?? 0}
             max={param.max ?? 100}
             step={param.step ?? 1}
-            value={param.value || 0}
+            value={readEffectNumber(param.value, param.min)}
             onChange={(e) => handleParameterChange(effectId, param.id, parseFloat(e.target.value))}
           />
-          <span>{param.value || 0}{param.unit || ''}</span>
+          <span>{readEffectNumber(param.value, param.min)}{param.unit || ''}</span>
         </div>
       );
     }
@@ -90,7 +91,7 @@ export function EffectPanel({
           <label>{param.name}</label>
           <input
             type="checkbox"
-            checked={!!param.value}
+            checked={param.value === true || param.value === 'true'}
             onChange={(e) => handleParameterChange(effectId, param.id, e.target.checked)}
           />
         </div>

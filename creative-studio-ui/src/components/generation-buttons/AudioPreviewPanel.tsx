@@ -431,25 +431,25 @@ export const AudioPreviewPanel: React.FC<AudioPreviewPanelProps> = ({
         <div className="space-y-2">
           <h4 className="text-sm font-semibold">Generation Parameters</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            {generationParams.voiceType && (
+            {typeof generationParams.voiceType === 'string' && generationParams.voiceType && (
               <div>
                 <span className="text-muted-foreground">Voice Type:</span>{' '}
                 <span className="font-medium capitalize">{generationParams.voiceType}</span>
               </div>
             )}
-            {generationParams.language && (
+            {typeof generationParams.language === 'string' && generationParams.language && (
               <div>
                 <span className="text-muted-foreground">Language:</span>{' '}
                 <span className="font-medium">{generationParams.language}</span>
               </div>
             )}
-            {generationParams.speed !== undefined && (
+            {typeof generationParams.speed === 'number' && Number.isFinite(generationParams.speed) && (
               <div>
                 <span className="text-muted-foreground">Speed:</span>{' '}
                 <span className="font-medium">{generationParams.speed}x</span>
               </div>
             )}
-            {generationParams.pitch !== undefined && (
+            {typeof generationParams.pitch === 'number' && Number.isFinite(generationParams.pitch) && (
               <div>
                 <span className="text-muted-foreground">Pitch:</span>{' '}
                 <span className="font-medium">
@@ -457,7 +457,7 @@ export const AudioPreviewPanel: React.FC<AudioPreviewPanelProps> = ({
                 </span>
               </div>
             )}
-            {generationParams.emotion && (
+            {typeof generationParams.emotion === 'string' && generationParams.emotion && (
               <div>
                 <span className="text-muted-foreground">Emotion:</span>{' '}
                 <span className="font-medium capitalize">{generationParams.emotion}</span>
@@ -466,7 +466,7 @@ export const AudioPreviewPanel: React.FC<AudioPreviewPanelProps> = ({
           </div>
           
           {/* Narration Text */}
-          {generationParams.text && (
+          {typeof generationParams.text === 'string' && generationParams.text && (
             <div className="mt-2">
               <span className="text-muted-foreground text-sm">Narration Text:</span>
               <p className="text-sm mt-1 p-2 bg-muted rounded-md">
