@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Unit tests for timeline synchronization utilities
  * Tests Requirements 4.5, 7.1, 7.2, 7.4
@@ -17,14 +18,14 @@ import { DialoguePhrase, Shot } from '../../types/projectDashboard';
 
 // Test data helpers
 function createShot(id: string, startTime: number, duration: number): Shot {
-  return {
+  return createShotFixture({
     id,
     sequenceId: 'seq1',
     startTime,
     duration,
     prompt: 'Test prompt',
     metadata: {},
-  };
+  });
 }
 
 function createPhrase(

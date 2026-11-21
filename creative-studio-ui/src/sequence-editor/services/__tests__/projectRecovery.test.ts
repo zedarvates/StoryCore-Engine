@@ -18,12 +18,13 @@ import {
   formatSnapshotTimestamp,
   RecoveryManager,
 } from '../projectRecovery';
-import type { RootState } from '../../store';
+import { store, type RootState } from '../../store';
 import timelineReducer from '../../store/slices/timelineSlice';
 import panelsReducer from '../../store/slices/panelsSlice';
 
 // Mock state
 const mockState: RootState = {
+  ...store.getState(),
   project: {
     metadata: {
       name: 'Test Project',

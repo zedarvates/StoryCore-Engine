@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Component tests for ShotCard
  * Tests shot card rendering with thumbnails, metadata, and interactions
@@ -63,7 +64,7 @@ function formatDuration(seconds: number): string {
 }
 
 describe('ShotCard', () => {
-  const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+  const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -181,7 +182,7 @@ describe('ShotCard', () => {
             name: 'vintage',
             enabled: true,
             intensity: 50,
-            parameters: {},
+            parameters: [],
           },
         ],
       });
@@ -256,7 +257,7 @@ describe('ShotCard', () => {
             name: 'vintage',
             enabled: true,
             intensity: 50,
-            parameters: {},
+            parameters: [],
           },
         ],
         textLayers: [

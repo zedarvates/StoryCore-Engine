@@ -39,7 +39,6 @@ describe('Template Service', () => {
       const template: SceneTemplate = {
         createdAt: Date.now(),
         id: 'test-template',
-        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [
@@ -78,7 +77,6 @@ describe('Template Service', () => {
       const template: SceneTemplate = {
         createdAt: Date.now(),
         id: 'test-template',
-        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [
@@ -111,7 +109,6 @@ describe('Template Service', () => {
       const preset: NarrativePreset = {
         createdAt: Date.now(),
         id: 'test-preset',
-        createdAt: 1704067200000,
         name: 'Test Preset',
         description: 'Test description',
         styleParameters: {

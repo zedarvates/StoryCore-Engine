@@ -336,7 +336,7 @@ describe('Audio Management E2E Workflow', () => {
 
       const updatedTrack = {
         ...track!,
-        effects: [...track!.effects, effect],
+        effects: [...(track!.effects ?? []), effect],
       };
 
       useStore.getState().updateAudioTrack('shot-1', 'audio-1', {
@@ -371,7 +371,7 @@ describe('Audio Management E2E Workflow', () => {
 
       const updatedTrack = {
         ...track!,
-        effects: [...track!.effects, effect],
+        effects: [...(track!.effects ?? []), effect],
       };
 
       useStore.getState().updateAudioTrack('shot-1', 'audio-1', {

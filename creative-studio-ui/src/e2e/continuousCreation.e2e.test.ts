@@ -404,7 +404,7 @@ test.describe('Cross-Shot References', () => {
     await picker.locator('[data-testid="reference-item"]').first().click();
     
     // Apply to current shot
-    await picker.click('text=Apply to Current Shot');
+    await picker.locator('text=Apply to Current Shot').click();
     
     // Verify
     await expect(picker.locator('text=Reference borrowed successfully')).toBeVisible();

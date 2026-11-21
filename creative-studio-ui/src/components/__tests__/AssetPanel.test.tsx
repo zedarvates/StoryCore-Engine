@@ -21,8 +21,9 @@ vi.mock('@/services/assetLibraryService', () => ({
         },
       ]),
       searchAssets: vi.fn().mockImplementation((params: AssetSearchOptions, sources: AssetSource[]) => {
-        if (params.query) {
-          return sources.flatMap(s => s.assets).filter(a => a.name.includes(params.query));
+        const { query } = params;
+        if (query) {
+          return sources.flatMap(s => s.assets).filter(a => a.name.includes(query));
         }
         if (params.category && params.category !== 'all') {
           return sources.flatMap(s => s.assets).filter(a => a.type === params.category);

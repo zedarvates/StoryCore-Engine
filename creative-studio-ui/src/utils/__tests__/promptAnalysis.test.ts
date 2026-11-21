@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Tests for prompt analysis utilities
  * Requirements: 6.1, 6.2
@@ -37,14 +38,14 @@ function createMockProject(shots: Shot[]): Project {
 }
 
 function createMockShot(id: string, prompt: string): Shot {
-  return {
+  return createShotFixture({
     id,
     sequenceId: 'seq-1',
     startTime: 0,
     duration: 5,
     prompt,
     metadata: {},
-  };
+  });
 }
 
 // ============================================================================

@@ -83,6 +83,10 @@ class MockStorageBackend implements StorageBackend {
 function createTestProject(id: string = 'test-project'): Project {
   return {
     id,
+    project_name: `Test Project ${id}`,
+    schema_version: '1.0',
+    assets: [],
+    generation_status: { grid: 'pending', promotion: 'pending' },
     name: `Test Project ${id}`,
     schemaVersion: '1.0',
     sequences: [],

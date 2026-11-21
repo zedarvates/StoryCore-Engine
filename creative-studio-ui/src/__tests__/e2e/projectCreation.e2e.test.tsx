@@ -331,7 +331,7 @@ describe('Project Creation E2E Workflow', () => {
         const state = useStore.getState();
         expect(state.shots.length).toBe(2);
         expect(state.assets.length).toBe(2);
-        expect(state.shots[0].audioTracks.length).toBe(1);
+        expect(state.shots[0].audioTracks?.length).toBe(1);
       });
     });
   });
@@ -374,7 +374,7 @@ describe('Project Creation E2E Workflow', () => {
       useStore.setState({ project });
 
       // Add complete shot with all features
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Complex Shot',
         description: 'Shot with everything',
@@ -433,7 +433,7 @@ describe('Project Creation E2E Workflow', () => {
           easing: 'ease-in-out',
         },
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 

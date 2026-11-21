@@ -42,7 +42,7 @@ describe('PropertiesPanel', () => {
         name: 'Vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       },
     ],
     textLayers: [

@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Unit tests for shot deletion functionality
  * 
@@ -24,14 +25,14 @@ import {
 // ============================================================================
 
 function createTestShot(id: string, startTime: number = 0, duration: number = 10): Shot {
-  return {
+  return createShotFixture({
     id,
     sequenceId: 'seq-1',
     startTime,
     duration,
     prompt: `Test prompt for ${id}`,
     metadata: {},
-  };
+  });
 }
 
 function createTestPhrase(
