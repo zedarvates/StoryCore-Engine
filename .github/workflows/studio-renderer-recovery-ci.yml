@@ -68,6 +68,26 @@ jobs:
           src/hooks/__tests__/useComfyUI.test.ts
           src/components/video/__tests__/PlaybackControls.test.tsx
           src/services/__tests__/backendApiService.comfyui.test.ts
+          src/components/LoadingStates.test.tsx
+          src/components/NotificationSystem.test.tsx
+      - name: Verify dashboard sequence actions
+        timeout-minutes: 2
+        run: >-
+          npm test --
+          src/__tests__/ProjectDashboardNew.test.tsx
+      - name: Verify world wizard navigation and provider handoffs
+        timeout-minutes: 2
+        run: >-
+          npm test --
+          src/components/wizard/world-builder/__tests__/WorldBuilderWizard.e2e.test.tsx
+          src/components/wizard/world/__tests__/LLMIntegration.test.tsx
+          src/components/wizard/world/__tests__/LLMIntegration.simple.test.tsx
+      - name: Verify character persistence and project opening
+        timeout-minutes: 2
+        run: >-
+          npm test --
+          src/components/wizard/character/__tests__/CharacterWizard.completion.test.tsx
+          src/components/menuBar/__tests__/actionErrorHandling.test.ts
       - name: Exercise wizard draft round-trip
         run: npm test -- src/services/wizard/__tests__/DraftPersistence.test.ts -t 'round-trips wizard step data'
       - name: Lint repaired grid renderers and their contracts

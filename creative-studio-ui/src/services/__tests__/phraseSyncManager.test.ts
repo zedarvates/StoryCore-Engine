@@ -47,13 +47,9 @@ describe('PhraseSyncManager', () => {
         text: 'Test phrase',
         startTime: 0,
         endTime: 1000,
-        userId: 'user-1',
-        sessionId: 'session-1',
-        timestamp: new Date().toISOString(),
       };
 
       const mockRecording: VoiceRecording = {
-        id: 'rec-1',
         userId: 'user-1',
         sessionId: 'session-1',
         filename: 'test.wav',
@@ -75,13 +71,9 @@ describe('PhraseSyncManager', () => {
         text: 'Test phrase',
         startTime: 0,
         endTime: 1000,
-        userId: 'user-1',
-        sessionId: 'session-1',
-        timestamp: new Date().toISOString(),
       };
 
       const mockRecording: VoiceRecording = {
-        id: 'rec-1',
         userId: 'user-1',
         sessionId: 'session-1',
         filename: 'test.wav',
@@ -105,13 +97,9 @@ describe('PhraseSyncManager', () => {
         text: 'Test phrase',
         startTime: 0,
         endTime: 1000,
-        userId: 'user-1',
-        sessionId: 'session-1',
-        timestamp: new Date().toISOString(),
       };
 
       const mockRecording: VoiceRecording = {
-        id: 'rec-1',
         userId: 'user-1',
         sessionId: 'session-1',
         filename: 'test.wav',
@@ -158,13 +146,9 @@ describe('PhraseSyncManager', () => {
         text: 'Test phrase',
         startTime: 0,
         endTime: 1000,
-        userId: 'user-1',
-        sessionId: 'session-1',
-        timestamp: new Date().toISOString(),
       };
 
       const mockRecording: VoiceRecording = {
-        id: 'rec-1',
         userId: 'user-1',
         sessionId: 'session-1',
         filename: 'test.wav',

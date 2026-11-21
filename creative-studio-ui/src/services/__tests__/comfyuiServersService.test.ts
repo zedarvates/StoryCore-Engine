@@ -77,11 +77,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should generate unique IDs for servers', () => {
       const input1: CreateComfyUIServerInput = {
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       };
 
       const input2: CreateComfyUIServerInput = {
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       };
@@ -96,6 +98,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should set first server as active automatically', () => {
       const input: CreateComfyUIServerInput = {
+        authentication: { type: 'none' },
         name: 'First Server',
         serverUrl: 'http://localhost:8188',
       };

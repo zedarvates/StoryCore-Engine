@@ -33,10 +33,13 @@ describe('EffectsPanel', () => {
   const createMockEffect = (overrides?: Partial<Effect>): Effect => ({
     id: 'effect-1',
     type: 'filter',
+    category: 'creative',
+    icon: null,
+    description: 'A vintage filter',
     name: 'Vintage',
     enabled: true,
     intensity: 50,
-    parameters: {},
+    parameters: [],
     ...overrides,
   });
 

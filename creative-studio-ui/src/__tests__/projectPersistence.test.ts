@@ -83,6 +83,10 @@ class MockStorageBackend implements StorageBackend {
 function createTestProject(id: string = 'test-project'): Project {
   return {
     id,
+    project_name: `Test Project ${id}`,
+    schema_version: '1.0',
+    assets: [],
+    generation_status: { grid: 'pending', promotion: 'pending' },
     name: `Test Project ${id}`,
     schemaVersion: '1.0',
     sequences: [],
@@ -99,11 +103,11 @@ function createTestProject(id: string = 'test-project'): Project {
     audioPhrases: [],
     generationHistory: [],
     capabilities: {
-      gridGeneration: true,
-      promotionEngine: true,
-      qaEngine: true,
-      autofixEngine: true,
-      voiceGeneration: true,
+      grid_generation: true,
+      promotion_engine: true,
+      qa_engine: true,
+      autofix_engine: true,
+      voice_generation: true,
     },
   };
 }

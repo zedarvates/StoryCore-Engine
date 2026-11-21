@@ -148,7 +148,8 @@ describe('ShotWizard Integration', () => {
         status: 'planned',
         notes: '',
         tags: [],
-        templates: [],
+        dialogues: [],
+      templates: [],
       };
 
       (mockDraftStorage.listDrafts as Mock).mockResolvedValue(mockDrafts);

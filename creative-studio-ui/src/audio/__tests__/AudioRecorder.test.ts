@@ -31,9 +31,10 @@ describe('AudioRecorder', () => {
       ]
     };
     
-    global.navigator.mediaDevices = {
-      getUserMedia: vi.fn().mockResolvedValue(mockStream as LegacyAny)
-    } as LegacyAny;
+    Object.defineProperty(navigator, 'mediaDevices', {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue(mockStream) },
+    });
 
     // Mock MediaRecorder
     const mockMediaRecorder = {

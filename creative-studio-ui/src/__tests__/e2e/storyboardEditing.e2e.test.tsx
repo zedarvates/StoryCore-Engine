@@ -312,7 +312,7 @@ describe('Storyboard Editing E2E Workflow', () => {
       };
 
       useStore.getState().addEffect('shot-1', effect);
-      expect(useStore.getState().shots[0].effects.length).toBe(1);
+      expect(useStore.getState().shots[0].effects?.length).toBe(1);
 
       useStore.getState().deleteEffect('shot-1', 'effect-1');
 

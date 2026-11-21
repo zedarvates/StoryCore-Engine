@@ -35,6 +35,10 @@ vi.mock('../services/backendApiService', () => ({
 const createMockProject = (): Project => ({
   id: 'test-project-1',
   name: 'Test Project',
+  project_name: 'Test Project',
+  schema_version: '1.0',
+  assets: [],
+  generation_status: { grid: 'pending', promotion: 'pending' },
   schemaVersion: '1.0',
   sequences: [],
   shots: [
@@ -70,11 +74,11 @@ const createMockProject = (): Project => ({
   audioPhrases: [],
   generationHistory: [],
   capabilities: {
-    gridGeneration: true,
-    promotionEngine: true,
-    qaEngine: true,
-    autofixEngine: true,
-    voiceGeneration: true,
+    grid_generation: true,
+    promotion_engine: true,
+    qa_engine: true,
+    autofix_engine: true,
+    voice_generation: true,
   },
 });
 

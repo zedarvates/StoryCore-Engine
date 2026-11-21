@@ -10,7 +10,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import Timeline from '../Timeline';
+import { Timeline } from '../Timeline';
 import timelineReducer from '../../../store/slices/timelineSlice';
 import previewReducer from '../../../store/slices/previewSlice';
 import projectReducer from '../../../store/slices/projectSlice';
@@ -60,6 +60,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
 function createMockStore(initialState = {}) {
   const defaultState = {
     timeline: {
+      ...timelineReducer(undefined, { type: '@@INIT' }),
       shots: [],
       tracks: [
         {
@@ -139,8 +140,8 @@ function createMockStore(initialState = {}) {
     },
     preloadedState: {
       ...defaultState,
-      preview: { playbackState: 'stopped' } as never,
-      project: { generationStatus: 'idle', metadata: {}, settings: {} } as never,
+      preview: previewReducer(undefined, { type: '@@INIT' }),
+      project: projectReducer(undefined, { type: '@@INIT' }),
     },
   });
 }
@@ -149,6 +150,7 @@ function createMockStore(initialState = {}) {
 function createSampleShot(id: string, startTime: number, duration: number): Shot {
   return {
     id,
+    position: startTime,
     name: `Shot ${id}`,
     startTime,
     duration,

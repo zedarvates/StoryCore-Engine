@@ -24,6 +24,7 @@ describe('ProjectExportService', () => {
     
     // Create mock project
     mockProject = {
+      id: 'test-project',
       schema_version: '1.0',
       project_name: 'Test Project',
       shots: [

@@ -176,7 +176,7 @@ describe('MenuBar i18n Integration', () => {
       
       // Test that the component correctly uses the t() function
       // which will automatically update when language changes
-      const { _rerender } = render(
+      render(
         <I18nProvider defaultLanguage="en" enableAutoDetect={false}>
           <MenuBar {...defaultProps} />
         </I18nProvider>

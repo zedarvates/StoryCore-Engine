@@ -182,6 +182,10 @@ describe('ProjectDashboard Type Definitions', () => {
     it('should validate Project schema', () => {
       const validProject: Project = {
         id: 'project-1',
+        project_name: 'Test Project',
+        schema_version: '1.0',
+        assets: [],
+        generation_status: { grid: 'pending', promotion: 'pending' },
         name: 'Test Project',
         schemaVersion: '1.0',
         sequences: [],
@@ -189,11 +193,11 @@ describe('ProjectDashboard Type Definitions', () => {
         audioPhrases: [],
         generationHistory: [],
         capabilities: {
-          gridGeneration: true,
-          promotionEngine: true,
-          qaEngine: true,
-          autofixEngine: true,
-          voiceGeneration: true,
+          grid_generation: true,
+          promotion_engine: true,
+          qa_engine: true,
+          autofix_engine: true,
+          voice_generation: true,
         },
       };
       expect(() => ProjectSchema.parse(validProject)).not.toThrow();

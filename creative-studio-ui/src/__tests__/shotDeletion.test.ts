@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Unit tests for shot deletion functionality
  * 
@@ -24,14 +25,14 @@ import {
 // ============================================================================
 
 function createTestShot(id: string, startTime: number = 0, duration: number = 10): Shot {
-  return {
+  return createShotFixture({
     id,
     sequenceId: 'seq-1',
     startTime,
     duration,
     prompt: `Test prompt for ${id}`,
     metadata: {},
-  };
+  });
 }
 
 function createTestPhrase(
@@ -57,6 +58,10 @@ function createTestProject(
   return {
     id: 'test-project',
     name: 'Test Project',
+    project_name: 'Test Project',
+    schema_version: '1.0',
+    assets: [],
+    generation_status: { grid: 'pending', promotion: 'pending' },
     schemaVersion: '1.0',
     sequences: [
       {
@@ -71,11 +76,11 @@ function createTestProject(
     audioPhrases: phrases,
     generationHistory: [],
     capabilities: {
-      gridGeneration: true,
-      promotionEngine: true,
-      qaEngine: true,
-      autofixEngine: true,
-      voiceGeneration: true,
+      grid_generation: true,
+      promotion_engine: true,
+      qa_engine: true,
+      autofix_engine: true,
+      voice_generation: true,
     },
   };
 }

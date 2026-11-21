@@ -426,7 +426,7 @@ describe('PreviewFrame - Playback Engine (Task 7.3)', () => {
         },
       };
       
-      const { _store } = renderWithProviders(<PreviewFrame />, initialState);
+      renderWithProviders(<PreviewFrame />, initialState);
       
       const pauseButton = screen.getByTitle(/Play\/Pause/i);
       fireEvent.click(pauseButton);
@@ -585,7 +585,7 @@ describe('PreviewFrame - Playback Controls UI (Task 7.4)', () => {
         },
       };
       
-      const { _store } = renderWithProviders(<PreviewFrame />, initialState);
+      renderWithProviders(<PreviewFrame />, initialState);
       
       // Step forward
       const forwardButton = screen.getByTitle(/Next frame/i);

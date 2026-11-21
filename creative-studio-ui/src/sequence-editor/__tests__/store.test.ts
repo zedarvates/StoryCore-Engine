@@ -138,7 +138,7 @@ describe('Assets Slice', () => {
       },
       tags: ['test'],
       source: 'user' as const,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     };
 
     store.dispatch(addAsset({ categoryId: 'characters', asset }));

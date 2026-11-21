@@ -1,5 +1,6 @@
 import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import { ChatService } from '../chatService';
 import type { ChatContext, ProjectCreationRequest } from '../chatService';
 
@@ -40,7 +41,7 @@ describe('ChatService', () => {
     });
 
     it('updates context', () => {
-      const newShot = {
+      const newShot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'Test',
@@ -50,7 +51,7 @@ describe('ChatService', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      };
+      });
 
       chatService.updateContext({ shots: [newShot] });
 
@@ -191,7 +192,7 @@ describe('ChatService', () => {
     });
 
     it('provides modification guidance when shot is selected', async () => {
-      const shot = {
+      const shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'Test',
@@ -201,7 +202,7 @@ describe('ChatService', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      };
+      });
 
       chatService.updateContext({ shots: [shot], selectedShotId: 'shot-1' });
 
@@ -221,7 +222,7 @@ describe('ChatService', () => {
 
     it('suggests appropriate transitions', async () => {
       const shots = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: 'Test',
@@ -231,8 +232,8 @@ describe('ChatService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: 'Test',
@@ -242,7 +243,7 @@ describe('ChatService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
 
       chatService.updateContext({ shots });
@@ -255,7 +256,7 @@ describe('ChatService', () => {
 
     it('recognizes different transition types', async () => {
       const shots = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: 'Test',
@@ -265,8 +266,8 @@ describe('ChatService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: 'Test',
@@ -276,7 +277,7 @@ describe('ChatService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
 
       chatService.updateContext({ shots });
@@ -326,7 +327,7 @@ describe('ChatService', () => {
     });
 
     it('provides text guidance when shot is selected', async () => {
-      const shot = {
+      const shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'Test',
@@ -336,7 +337,7 @@ describe('ChatService', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      };
+      });
 
       chatService.updateContext({ shots: [shot], selectedShotId: 'shot-1' });
 
@@ -381,7 +382,7 @@ describe('ChatService', () => {
 
     it('provides project statistics', async () => {
       const shots = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: 'Test',
@@ -391,8 +392,8 @@ describe('ChatService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: 'Test',
@@ -402,7 +403,7 @@ describe('ChatService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
 
       chatService.updateContext({ shots });

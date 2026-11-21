@@ -48,7 +48,7 @@ describe('Store Verification - Task 3 Checkpoint', () => {
     });
 
     it('should select a panel correctly', () => {
-      const { selectPanel, _selectedPanelIds } = useGridStore.getState();
+      const { selectPanel } = useGridStore.getState();
       
       selectPanel('panel-0-0', false);
       

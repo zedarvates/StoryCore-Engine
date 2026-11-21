@@ -14,13 +14,13 @@ import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 
 import React from 'react';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CharacterList } from '../CharacterList';
-import { useStore } from '@/stores/useAppStore';
+import { useAppStore } from '@/stores/useAppStore';
+import { useStore } from '@/store';
 import { useCharacterManager } from '@/hooks/useCharacterManager';
-import { eventEmitter } from '@/services/eventEmitter';
 import type { Character } from '@/types/character';
 
 // ============================================================================
@@ -29,7 +29,7 @@ import type { Character } from '@/types/character';
 
 vi.mock('@/hooks/useCharacterManager');
 vi.mock('@/stores/useAppStore', () => ({
-  useStore: vi.fn(),
+  useAppStore: vi.fn(),
   CharacterFilters: {},
 }));
 
@@ -96,6 +96,8 @@ const createMockCharacter = (overrides: Partial<Character> = {}): Character => (
 
 describe('CharacterList', () => {
   let mockCharacters: Character[];
+  const originalCharacters = useStore.getState().characters;
+  afterEach(() => useStore.setState({ characters: originalCharacters }));
   let mockStoreState: LegacyAny;
 
   beforeEach(() => {
@@ -137,8 +139,9 @@ describe('CharacterList', () => {
       }),
     };
 
-    // Mock useStore hook
-    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
+    useStore.setState({ characters: mockCharacters });
+    // Mock app filters
+    vi.mocked(useAppStore).mockImplementation((selector: LegacyAny) => {
       if (typeof selector === 'function') {
         return selector(mockStoreState);
       }
@@ -171,6 +174,8 @@ describe('CharacterList', () => {
       addRelationship: vi.fn(),
       updateRelationship: vi.fn(),
       removeRelationship: vi.fn(),
+      exportCharacter: vi.fn(),
+      importCharacter: vi.fn(),
     });
   });
 
@@ -234,6 +239,7 @@ describe('CharacterList', () => {
     it('should display empty state when no characters exist', () => {
       // Requirement: 1.5
       mockCharacters = [];
+      useStore.setState({ characters: mockCharacters });
       
       vi.mocked(useCharacterManager).mockReturnValue({
         getAllCharacters: vi.fn(() => []),
@@ -248,6 +254,8 @@ describe('CharacterList', () => {
         addRelationship: vi.fn(),
         updateRelationship: vi.fn(),
         removeRelationship: vi.fn(),
+        exportCharacter: vi.fn(),
+        importCharacter: vi.fn(),
       });
 
       render(<CharacterList />);
@@ -259,6 +267,7 @@ describe('CharacterList', () => {
     it('should display create button in empty state', () => {
       // Requirement: 1.5
       mockCharacters = [];
+      useStore.setState({ characters: mockCharacters });
       
       vi.mocked(useCharacterManager).mockReturnValue({
         getAllCharacters: vi.fn(() => []),
@@ -273,6 +282,8 @@ describe('CharacterList', () => {
         addRelationship: vi.fn(),
         updateRelationship: vi.fn(),
         removeRelationship: vi.fn(),
+        exportCharacter: vi.fn(),
+        importCharacter: vi.fn(),
       });
 
       const onCreateClick = vi.fn();
@@ -285,6 +296,7 @@ describe('CharacterList', () => {
     it('should call onCreateClick when create button is clicked', async () => {
       // Requirement: 1.5
       mockCharacters = [];
+      useStore.setState({ characters: mockCharacters });
       
       vi.mocked(useCharacterManager).mockReturnValue({
         getAllCharacters: vi.fn(() => []),
@@ -299,6 +311,8 @@ describe('CharacterList', () => {
         addRelationship: vi.fn(),
         updateRelationship: vi.fn(),
         removeRelationship: vi.fn(),
+        exportCharacter: vi.fn(),
+        importCharacter: vi.fn(),
       });
 
       const user = userEvent.setup();
@@ -327,6 +341,8 @@ describe('CharacterList', () => {
         addRelationship: vi.fn(),
         updateRelationship: vi.fn(),
         removeRelationship: vi.fn(),
+        exportCharacter: vi.fn(),
+        importCharacter: vi.fn(),
       });
 
       render(<CharacterList />);
@@ -475,8 +491,8 @@ describe('CharacterList', () => {
   // Real-Time Event Updates Tests
   // ============================================================================
 
-  describe('Real-Time Event Updates', () => {
-    it('should update list when character-created event is emitted', async () => {
+  describe('Reactive character updates', () => {
+    it('adds a new character when the store changes', async () => {
       // Requirement: 5.1
       render(<CharacterList />);
       
@@ -489,10 +505,7 @@ describe('CharacterList', () => {
         name: 'Diana Ally',
         creation_timestamp: Date.parse('2024-01-04T10:00:00Z'),
       });
-      mockCharacters.push(newCharacter);
-      
-      // Emit character-created event
-      eventEmitter.emit('character-created', { character: newCharacter });
+      act(() => useStore.setState({ characters: [...mockCharacters, newCharacter] }));
       
       // Wait for update
       await waitFor(() => {
@@ -501,9 +514,9 @@ describe('CharacterList', () => {
       });
     });
 
-    it('should update list when character-updated event is emitted', async () => {
+    it('displays an updated character name when the store changes', async () => {
       // Requirement: 5.2
-      const { rerender } = render(<CharacterList />);
+      render(<CharacterList />);
       
       // Initial state
       expect(screen.getByText('Alice Hero')).toBeInTheDocument();
@@ -513,38 +526,15 @@ describe('CharacterList', () => {
         c.character_id === 'char-1' ? { ...c, name: 'Alice Updated' } : c
       );
       
-      // Update the mock to return updated characters
-      vi.mocked(useCharacterManager).mockReturnValue({
-        getAllCharacters: vi.fn(() => updatedCharacters),
-        searchCharacters: vi.fn(() => updatedCharacters),
-        filterCharacters: vi.fn(() => updatedCharacters),
-        createCharacter: vi.fn(),
-        updateCharacter: vi.fn(),
-        deleteCharacter: vi.fn(),
-        getCharacter: vi.fn(),
-        validateCharacter: vi.fn(),
-        checkDependencies: vi.fn(),
-        addRelationship: vi.fn(),
-        updateRelationship: vi.fn(),
-        removeRelationship: vi.fn(),
-      });
-      
-      // Emit character-updated event
-      eventEmitter.emit('character-updated', {
-        characterId: 'char-1',
-        updates: { name: 'Alice Updated' },
-      });
-      
-      // Force re-render
-      rerender(<CharacterList />);
-      
+      act(() => useStore.setState({ characters: updatedCharacters }));
+
       // Wait for update
       await waitFor(() => {
         expect(screen.getByText('Alice Updated')).toBeInTheDocument();
       });
     });
 
-    it('should update list when character-deleted event is emitted', async () => {
+    it('removes a deleted character when the store changes', async () => {
       // Requirement: 5.3
       render(<CharacterList />);
       
@@ -554,28 +544,8 @@ describe('CharacterList', () => {
       // Remove character from mock data
       mockCharacters = mockCharacters.filter(c => c.character_id !== 'char-1');
       
-      // Update mock to return filtered characters
-      vi.mocked(useCharacterManager).mockReturnValue({
-        getAllCharacters: vi.fn(() => mockCharacters),
-        searchCharacters: vi.fn(() => mockCharacters),
-        filterCharacters: vi.fn(() => mockCharacters),
-        createCharacter: vi.fn(),
-        updateCharacter: vi.fn(),
-        deleteCharacter: vi.fn(),
-        getCharacter: vi.fn(),
-        validateCharacter: vi.fn(),
-        checkDependencies: vi.fn(),
-        addRelationship: vi.fn(),
-        updateRelationship: vi.fn(),
-        removeRelationship: vi.fn(),
-      });
-      
-      // Emit character-deleted event
-      eventEmitter.emit('character-deleted', {
-        characterId: 'char-1',
-        characterName: 'Alice Hero',
-      });
-      
+      act(() => useStore.setState({ characters: mockCharacters }));
+
       // Wait for update
       await waitFor(() => {
         expect(screen.getAllByRole('article')).toHaveLength(2);

@@ -172,7 +172,7 @@ describe('FrameCache', () => {
   describe('Abort Handling', () => {
     it('should cancel pending renders when requesting same frame', async () => {
       let renderCount = 0;
-      const sl_owRenderFn = vi.fn(async (frame: number, quality: string, signal: AbortSignal) => {
+      const slowRenderFn = vi.fn(async (frame: number, quality: string, signal: AbortSignal) => {
         renderCount++;
         const id = renderCount;
         

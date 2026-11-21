@@ -8,6 +8,7 @@ import { LegacyAny } from '@/types/legacy';
 
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import { editActions } from '../menuActions';
 import type { ActionContext } from '../../../types/menuConfig';
 import type { AppState, ClipboardState } from '../../../types/menuBarState';
@@ -21,7 +22,7 @@ describe('Clipboard Operations', () => {
 
   beforeEach(() => {
     // Create a mock shot
-    mockShot = {
+    mockShot = createShotFixture({
       id: 'shot-1',
       title: 'Test shot',
       description: 'Test shot',
@@ -31,7 +32,7 @@ describe('Clipboard Operations', () => {
       effects: [],
       textLayers: [],
       animations: [],
-    };
+    });
 
     // Create a mock project with a selected shot
     mockProject = {
@@ -56,11 +57,11 @@ describe('Clipboard Operations', () => {
 
     // Create mock clipboard
     mockClipboard = {
-      hasContent: _false,
+      hasContent: false,
       contentType: null,
       cut: vi.fn((content) => {
         mockClipboard.hasContent = true;
-        mockClipboa_rd.contentType = 'shot';
+        mockClipboard.contentType = 'shot';
       }),
       copy: vi.fn((content) => {
         mockClipboard.hasContent = true;
@@ -73,6 +74,7 @@ describe('Clipboard Operations', () => {
     mockContext = {
       state: {
         project: mockProject,
+        selectedShotId: mockShot.id,
         hasUnsavedChanges: false,
         viewState: {
           timelineVisible: true,
@@ -96,7 +98,7 @@ describe('Clipboard Operations', () => {
         },
         clipboard: mockClipboard,
         isProcessing: false,
-      } as AppState,
+      },
       services: {
         persistence: {},
         export: {

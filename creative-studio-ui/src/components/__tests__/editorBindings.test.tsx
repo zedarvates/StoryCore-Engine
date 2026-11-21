@@ -43,7 +43,7 @@ describe('audio effect controls', () => {
     render(<AudioEffectsPanel onApplyEffects={onApplyEffects} onPreviewEffect={onPreviewEffect} />);
 
     expect(screen.getByRole('button', { name: 'Apply Effects (0)' })).toBeDisabled();
-    await user.click(screen.getByRole('button', { name: 'Gain', exact: true }));
+    await user.click(screen.getByRole('button', { name: 'Gain' }));
     expect(screen.getByText('Gain Parameters')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Disable Gain' }));
     expect(screen.getByText('Off')).toBeInTheDocument();
@@ -162,7 +162,7 @@ describe('canvas store bindings', () => {
   it('selects, duplicates, toggles and removes an effect in the canvas stack', async () => {
     const user = userEvent.setup();
     render(<CanvasArea onBackToDashboard={vi.fn()} />);
-    await user.click(screen.getByRole('button', { name: 'Effects', exact: true }));
+    await user.click(screen.getByRole('button', { name: 'Effects' }));
     await user.click(screen.getByRole('button', { name: 'Blur Effect' }));
     await user.click(screen.getByText('Blur', { exact: true }));
     await user.click(screen.getByRole('button', { name: 'Duplicate effect' }));

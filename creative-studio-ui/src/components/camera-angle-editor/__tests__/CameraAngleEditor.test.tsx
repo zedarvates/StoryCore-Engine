@@ -102,7 +102,7 @@ const defaultMockReturn = {
   presets: mockPresets,
   selectedAngles: [] as import('@/types/cameraAngle').CameraAnglePreset[],
   sourceImage: null,
-  options: { preserveStyle: true, quality: 'standard' as const, seed: null, customPrompt: null },
+  options: { preserveStyle: true, quality: 'standard' as const, seed: null, customPrompt: null, lensType: 'standard' as const },
   error: null,
   isGenerating: false,
   hasResults: false,
