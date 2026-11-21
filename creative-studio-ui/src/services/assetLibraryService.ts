@@ -623,7 +623,7 @@ export class AssetLibraryService {
    * Load assets from a specific folder
    */
   private async loadAssetsFromFolder(
-    _folderPath: string,
+    folderPath: string,
     sourceName: string,
     description: string
   ): Promise<Asset[]> {

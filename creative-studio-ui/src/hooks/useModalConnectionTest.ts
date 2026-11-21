@@ -99,8 +99,8 @@ export function useModalConnectionTest(schema: ModalSchema) {
       return testHttpConnection(endpoint);
     } else if (typeof endpoint === 'function') {
       // Custom function test
+      const startTime = Date.now();
       try {
-        const startTime = Date.now();
         const success = await endpoint(data);
         const responseTime = Date.now() - startTime;
 
