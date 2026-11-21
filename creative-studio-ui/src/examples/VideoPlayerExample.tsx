@@ -1,5 +1,8 @@
+import { exampleShot } from './exampleShot';
 import React, { useState } from 'react';
-import { VideoPlayer, VideoSequencePlayer, VideoThumbnailPreview, useVideoThumbnailPreview } from '@/components/video';
+import { VideoPlayer } from '@/components/video/VideoPlayer';
+import { VideoSequencePlayer } from '@/components/video/VideoSequencePlayer';
+import { VideoThumbnailPreview, useVideoThumbnailPreview } from '@/components/video/VideoThumbnailPreview';
 import type { Shot } from '@/types';
 
 /**
@@ -13,7 +16,7 @@ import type { Shot } from '@/types';
 
 // Example shots data
 const exampleShots: Shot[] = [
-  {
+  exampleShot({
     id: 'shot-1',
     title: 'Opening Scene',
     description: 'Wide establishing shot',
@@ -26,8 +29,8 @@ const exampleShots: Shot[] = [
     metadata: {
       videoUrl: '/path/to/video1.mp4',
     },
-  },
-  {
+  }),
+  exampleShot({
     id: 'shot-2',
     title: 'Character Introduction',
     description: 'Medium shot of protagonist',
@@ -40,8 +43,8 @@ const exampleShots: Shot[] = [
     metadata: {
       videoUrl: '/path/to/video2.mp4',
     },
-  },
-  {
+  }),
+  exampleShot({
     id: 'shot-3',
     title: 'Action Sequence',
     description: 'Dynamic camera movement',
@@ -54,7 +57,7 @@ const exampleShots: Shot[] = [
     metadata: {
       videoUrl: '/path/to/video3.mp4',
     },
-  },
+  }),
 ];
 
 export const VideoPlayerExample: React.FC = () => {

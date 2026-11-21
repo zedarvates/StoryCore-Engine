@@ -346,16 +346,16 @@ export const BulkMetadataEditor: React.FC<BulkMetadataEditorProps> = ({
                   <strong>Durée:</strong>
                   <span>{previewShot.duration}s</span>
                 </div>
-                {previewShot.metadata?.category && (
+                {typeof previewShot.metadata?.category === 'string' && (
                   <div className="preview-item">
                     <strong>Catégorie:</strong>
-                    <span>{(previewShot.metadata as LegacyAny).category}</span>
+                    <span>{previewShot.metadata.category}</span>
                   </div>
                 )}
-                {previewShot.metadata?.tags && (
+                {Array.isArray(previewShot.metadata?.tags) && (
                   <div className="preview-item">
                     <strong>Tags:</strong>
-                    <span>{(previewShot.metadata as LegacyAny).tags.join(', ')}</span>
+                    <span>{previewShot.metadata.tags.filter((tag) => typeof tag === 'string').join(', ')}</span>
                   </div>
                 )}
               </div>
