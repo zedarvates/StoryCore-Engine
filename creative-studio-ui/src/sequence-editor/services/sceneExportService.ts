@@ -5,6 +5,21 @@
  * Requirements: 7.2
  */
 
+import { isRecord } from '@/utils/typeGuards';
+
+interface PuppetJoint {
+  id: string;
+  parent?: string | null;
+  position: { x: number; y: number };
+}
+
+function isPuppetJoint(value: unknown): value is PuppetJoint {
+  if (!isRecord(value) || !isRecord(value.position) || typeof value.id !== 'string') return false;
+  const { x, y } = value.position;
+  return typeof x === 'number' && Number.isFinite(x) && typeof y === 'number' && Number.isFinite(y) &&
+    (value.parent == null || typeof value.parent === 'string');
+}
+
 interface PuppetKeyframe {
   frame: number;
   pose: string;
@@ -319,13 +334,15 @@ function drawPuppet(
   ctx.scale(puppet.scale.x, puppet.scale.y);
   
   // Draw joints and bones
-  puppet.joints.forEach((joint: unknown) => {
+  const joints = puppet.joints.filter(isPuppetJoint);
+  const jointsById = new Map(joints.map((joint) => [joint.id, joint]));
+  joints.forEach((joint) => {
     const jointScreenX = joint.position.x * 50;
     const jointScreenY = -joint.position.y * 50;
     
     // Draw bone to parent
     if (joint.parent) {
-      const parentJoint = puppet.joints.find((j: unknown) => j.id === joint.parent);
+      const parentJoint = jointsById.get(joint.parent);
       if (parentJoint) {
         const parentScreenX = parentJoint.position.x * 50;
         const parentScreenY = -parentJoint.position.y * 50;

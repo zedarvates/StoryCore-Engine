@@ -8,6 +8,7 @@
  */
 
 import type { Shot, Layer, EffectsLayerData } from '../types';
+import { isRecord } from '@/utils/typeGuards';
 
 // ============================================================================
 // Types
@@ -159,8 +160,8 @@ export function applySpeedControl(
       effectType: 'speed',
       parameters: {
         speed: clampedSpeed,
-      } as SpeedControlData,
-    } as EffectsLayerData,
+      },
+    } satisfies EffectsLayerData,
   };
   
   return {
@@ -210,8 +211,8 @@ export function applyTimeRemapping(
       effectType: 'time-remapping',
       parameters: {
         timeRemapping: curve,
-      } as SpeedControlData,
-    } as EffectsLayerData,
+      },
+    } satisfies EffectsLayerData,
   };
   
   return {
@@ -246,8 +247,8 @@ export function applyStabilization(
     blendMode: 'normal',
     data: {
       effectType: 'stabilization',
-      parameters: stabilizationData,
-    } as EffectsLayerData,
+      parameters: { ...stabilizationData },
+    } satisfies EffectsLayerData,
   };
   
   return {
@@ -299,8 +300,8 @@ export function applyColorGrading(
     blendMode: 'normal',
     data: {
       effectType: 'color-grading',
-      parameters: colorGradingData,
-    } as EffectsLayerData,
+      parameters: { ...colorGradingData },
+    } satisfies EffectsLayerData,
   };
   
   return {
@@ -432,8 +433,8 @@ export function applyChromaKey(
     blendMode: 'normal',
     data: {
       effectType: 'chroma-key',
-      parameters: chromaKeyData,
-    } as EffectsLayerData,
+      parameters: { ...chromaKeyData },
+    } satisfies EffectsLayerData,
   };
   
   return {
@@ -583,9 +584,10 @@ export function updateEffectParameters(
   shot: Shot
 ): Layer | null {
   const layer = shot.layers.find((l) => l.id === layerId && l.type === 'effects');
-  if (!layer) return null;
-  
-  const effectData = layer.data as EffectsLayerData;
+  if (!layer || !isRecord(layer.data) || !isRecord(layer.data.parameters) || !isRecord(parameters)) {
+    return null;
+  }
+  const effectData = layer.data;
   
   return {
     ...layer,
