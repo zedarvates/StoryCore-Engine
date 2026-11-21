@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { WorldBuilderWizard } from '../WorldBuilderWizard';
@@ -166,7 +167,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
   describe('Auto-save functionality in E2E context', () => {
     it('should auto-save world data periodically during editing', async () => {
       // Mock save function
-      const mockSave = jest.fn().mockResolvedValue(undefined);
+      const mockSave = vi.fn().mockResolvedValue(undefined);
       useWorldBuilderStore.setState({
         saveWorld: mockSave,
       });
@@ -179,7 +180,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
 
       // Fast-forward 30 seconds
       act(() => {
-        jest.advanceTimersByTime(30000);
+        vi.advanceTimersByTime(30000);
       });
 
       await waitFor(() => {
@@ -189,7 +190,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
 
     it('should handle auto-save errors gracefully', async () => {
       // Mock save function that throws
-      const mockSave = jest.fn().mockRejectedValue(new Error('Save failed'));
+      const mockSave = vi.fn().mockRejectedValue(new Error('Save failed'));
       useWorldBuilderStore.setState({
         saveWorld: mockSave,
       });
@@ -202,7 +203,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
 
       // Fast-forward 30 seconds
       act(() => {
-        jest.advanceTimersByTime(30000);
+        vi.advanceTimersByTime(30000);
       });
 
       await waitFor(() => {
@@ -217,7 +218,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
   describe('Error recovery and edge cases', () => {
     it('should recover from component errors', () => {
       // Mock a component that throws
-      jest.mock('../steps/FoundationsStep', () => ({
+      vi.mock('../steps/FoundationsStep', () => ({
         FoundationsStep: () => {
           throw new Error('Component crashed');
         },
@@ -267,7 +268,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
 
   describe('Wizard lifecycle', () => {
     it('should handle wizard close properly', () => {
-      const onClose = jest.fn();
+      const onClose = vi.fn();
       render(<WorldBuilderWizard onClose={onClose} />);
 
       const closeButton = screen.getByRole('button', { name: 'Close wizard' });
@@ -303,7 +304,7 @@ describe('WorldBuilderWizard End-to-End Flow', () => {
 
       // Auto-save interval should be cleared
       act(() => {
-        jest.advanceTimersByTime(30000);
+        vi.advanceTimersByTime(30000);
       });
 
       const mockSave = useWorldBuilderStore.getState().saveWorld;

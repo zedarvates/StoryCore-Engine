@@ -34,7 +34,7 @@ describe('useProgressTracking', () => {
     type: 'grid',
     status: 'processing',
     priority: 1,
-    createdAt: new Date(),
+    createdAt: Date.now(),
   };
 
   beforeEach(() => {

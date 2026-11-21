@@ -61,8 +61,8 @@ describe('StatusBar Component', () => {
         metadata: {
           name: 'Test Project',
           path: '/projects/test-project',
-          created: new Date(),
-          modified: new Date(),
+          created: Date.now(),
+          modified: Date.now(),
           author: 'Test User',
           description: 'Test description',
         },
@@ -97,8 +97,8 @@ describe('StatusBar Component', () => {
         metadata: {
           name: 'Test Project',
           path: longPath,
-          created: new Date(),
-          modified: new Date(),
+          created: Date.now(),
+          modified: Date.now(),
           author: 'Test User',
           description: 'Test description',
         },
@@ -195,7 +195,7 @@ describe('StatusBar Component', () => {
       const store = createMockStore({
         saveStatus: {
           state: 'saved',
-          lastSaveTime: new Date(),
+          lastSaveTime: Date.now(),
         },
       });
 
@@ -213,7 +213,7 @@ describe('StatusBar Component', () => {
       const store = createMockStore({
         saveStatus: {
           state: 'saved',
-          lastSaveTime: twoMinutesAgo,
+          lastSaveTime: twoMinutesAgo.getTime(),
         },
       });
 
@@ -231,7 +231,7 @@ describe('StatusBar Component', () => {
       const store = createMockStore({
         saveStatus: {
           state: 'saved',
-          lastSaveTime: twoHoursAgo,
+          lastSaveTime: twoHoursAgo.getTime(),
         },
       });
 
@@ -305,7 +305,7 @@ describe('StatusBar Component', () => {
       const store = createMockStore({
         saveStatus: {
           state: 'saved',
-          lastSaveTime: new Date(),
+          lastSaveTime: Date.now(),
         },
       });
 
@@ -391,8 +391,8 @@ describe('StatusBar Component', () => {
         metadata: {
           name: 'Test Project',
           path: '/projects/test-project',
-          created: new Date(),
-          modified: new Date(),
+          created: Date.now(),
+          modified: Date.now(),
           author: 'Test User',
           description: 'Test description',
         },

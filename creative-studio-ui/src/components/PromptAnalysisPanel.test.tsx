@@ -1,12 +1,13 @@
+import { vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { PromptAnalysisPanel } from './PromptAnalysisPanel';
 
 // Mock heavy dependencies
-jest.mock('../contexts/ProjectContext', () => ({
+vi.mock('../contexts/ProjectContext', () => ({
   useProject: () => ({
     project: null,
-    updateShot: jest.fn(),
-    selectShot: jest.fn(),
+    updateShot: vi.fn(),
+    selectShot: vi.fn(),
   }),
 }));
 

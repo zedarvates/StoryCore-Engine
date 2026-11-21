@@ -65,7 +65,7 @@ const mockCharacter: Character = {
   character_id: 'char-1',
   name: 'Dashboard Hero',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-01T00:00:00.000Z',
+  creation_timestamp: Date.parse('2024-01-01T00:00:00.000Z'),
   version: '1.0',
   visual_identity: {
     hair_color: 'black',

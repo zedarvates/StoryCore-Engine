@@ -3,7 +3,7 @@
  */
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { type Mock, vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ComfyUIMediaUpload } from '../ComfyUIMediaUpload';
 
 // Mock services
@@ -20,11 +20,11 @@ vi.mock('@/hooks/use-toast', () => ({
 }));
 
 describe('ComfyUIMediaUpload', () => {
-  const mockOnFileUploaded = jest.fn();
+  const mockOnFileUploaded = vi.fn();
   const mockFile = new File(['test content'], 'test.jpg', { type: 'image/jpeg' });
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock backend API config
     const mockBackendApi = require('@/services/backendApiService').backendApi;
@@ -34,16 +34,16 @@ describe('ComfyUIMediaUpload', () => {
     });
 
     // Mock fetch for ComfyUI upload
-    global.fetch = jest.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ name: 'test.jpg', subfolder: 'user_uploads', type: 'input' }),
       })
-    ) as jest.Mock;
+    ) as Mock;
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('renders upload interface', () => {
@@ -186,14 +186,14 @@ describe('ComfyUIMediaUpload', () => {
 
   it('handles upload errors', async () => {
     // Mock failed upload
-    global.fetch = jest.fn(() =>
+    global.fetch = vi.fn(() =>
       Promise.resolve({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
         text: () => Promise.resolve('Server error'),
       })
-    ) as jest.Mock;
+    ) as Mock;
 
     const mockToast = require('@/hooks/use-toast').useToast().toast;
 

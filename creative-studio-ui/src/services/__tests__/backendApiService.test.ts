@@ -48,7 +48,7 @@ describe('BackendApiService', () => {
       type: 'grid',
       status: 'pending',
       priority: 1,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     };
 
     vi.clearAllMocks();

@@ -16,7 +16,7 @@ import {
   canAddRelationshipWithoutCycle,
   addRelationship,
   updateRelationship,
-  _removeRelationship,
+  removeRelationship,
   CycleDetectionResult,
 } from '../RelationshipManager';
 

@@ -3,11 +3,11 @@
  * Tests asset library to canvas, shot reordering, and timeline interactions
  */
 
-import { describe, it, expect, beforeEach, _vi } from 'vitest';
-import { _render, _screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
 import _userEvent from '@testing-library/user-event';
-import { _DndProvider } from 'react-dnd';
-import { _HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useStore } from '@/store';
 import type { Shot, Asset } from '@/types';
 

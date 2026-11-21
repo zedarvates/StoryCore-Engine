@@ -22,11 +22,11 @@ import {
   isCharacterDeletedEvent,
   type CharacterCreatedEventPayload,
   type CharacterUpdatedEventPayload,
-  type _CharacterDeletedEventPayload,
+  type CharacterDeletedEventPayload,
   type CharacterSelectedEventPayload,
-  type _RelationshipAddedEventPayload,
+  type RelationshipAddedEventPayload,
   type CharacterValidationFailedEventPayload,
-  type _CharacterDependenciesCheckedEventPayload,
+  type CharacterDependenciesCheckedEventPayload,
 } from '../characterEvents';
 import { eventEmitter } from '../eventEmitter';
 import type { Character, CharacterRelationship } from '@/types/character';
@@ -39,7 +39,7 @@ const mockCharacter: Character = {
   character_id: 'char-123',
   name: 'Test Character',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-01T00:00:00Z',
+  creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
   version: '1.0',
   visual_identity: {
     age_range: '25-35',

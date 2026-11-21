@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * ComfyUI Integration Tests
  *
@@ -16,9 +17,9 @@ import {
 import { setupComfyUIMock, teardownComfyUIMock, getComfyUIMock } from '../../__mocks__/comfyuiServerMock';
 
 // Mock AbortController for testing
-global.AbortController = jest.fn().mockImplementation(() => ({
+global.AbortController = vi.fn().mockImplementation(() => ({
   signal: {},
-  abort: jest.fn(),
+  abort: vi.fn(),
 }));
 
 describe('ComfyUI Integration Tests', () => {
@@ -159,7 +160,7 @@ describe('ComfyUI Integration Tests', () => {
   describe('Error Handling Integration', () => {
     it('should handle server not responding', async () => {
       // Mock network failure
-      global.fetch = jest.fn().mockRejectedValue(new Error('Failed to fetch'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Failed to fetch'));
 
       const config = {
         serverUrl: 'http://nonexistent:8188',
@@ -205,7 +206,7 @@ describe('ComfyUI Integration Tests', () => {
 
     it('should handle malformed JSON responses', async () => {
       // Mock fetch to return invalid JSON
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.reject(new Error('Invalid JSON')),
       });
@@ -237,7 +238,7 @@ describe('ComfyUI Integration Tests', () => {
     });
 
     it('should diagnose unreachable servers', async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const config = {
         serverUrl: 'http://unreachable:8188',
@@ -340,7 +341,7 @@ describe('ComfyUI Integration Tests', () => {
       };
 
       // Mock the prompt endpoint response
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           prompt_id: 'test-prompt-123',
@@ -365,7 +366,7 @@ describe('ComfyUI Integration Tests', () => {
 
     it('should handle workflow execution errors', async () => {
       // Mock prompt endpoint to return validation error
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 400,
         json: () => Promise.resolve({
@@ -390,7 +391,7 @@ describe('ComfyUI Integration Tests', () => {
 
     it('should query workflow execution status', async () => {
       // Mock queue endpoint response
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           queue_running: [
@@ -469,10 +470,10 @@ describe('ComfyUI Integration Tests', () => {
     beforeEach(() => {
       // Mock WebSocket for testing
       mockWebSocket = {
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        send: jest.fn(),
-        close: jest.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        send: vi.fn(),
+        close: vi.fn(),
         readyState: 1, // OPEN
         onopen: null,
         onmessage: null,
@@ -480,7 +481,7 @@ describe('ComfyUI Integration Tests', () => {
         onerror: null,
       };
 
-      global.WebSocket = jest.fn().mockImplementation(() => mockWebSocket);
+      global.WebSocket = vi.fn().mockImplementation(() => mockWebSocket);
     });
 
     it('should establish WebSocket connection for real-time updates', () => {

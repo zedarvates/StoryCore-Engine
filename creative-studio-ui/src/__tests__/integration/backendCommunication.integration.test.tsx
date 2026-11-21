@@ -3,7 +3,7 @@
  * Tests project export, task submission, and progress tracking
  */
 
-import { describe, it, expect, beforeEach, _vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import {
@@ -277,7 +277,7 @@ describe('Backend Communication Integration', () => {
       // Simulate backend processing
       useStore.getState().updateTask('task-1', {
         status: 'processing',
-        startedAt: new Date(),
+        startedAt: Date.now(),
       });
 
       await waitFor(() => {
@@ -301,7 +301,7 @@ describe('Backend Communication Integration', () => {
 
       useStore.getState().updateTask('task-1', {
         status: 'completed',
-        completedAt: new Date(),
+        completedAt: Date.now(),
       });
 
       await waitFor(() => {

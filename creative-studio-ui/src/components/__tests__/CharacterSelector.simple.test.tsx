@@ -27,7 +27,7 @@ const mockCharacters: Character[] = [
     character_id: 'uuid-1',
     name: 'Hero',
     creation_method: 'wizard',
-    creation_timestamp: '2024-01-01T00:00:00Z',
+    creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
     version: '1.0',
     role: {
       archetype: 'Protagonist',
@@ -74,7 +74,7 @@ const mockCharacters: Character[] = [
     character_id: 'uuid-2',
     name: 'Villain',
     creation_method: 'wizard',
-    creation_timestamp: '2024-01-02T00:00:00Z',
+    creation_timestamp: Date.parse('2024-01-02T00:00:00Z'),
     version: '1.0',
     role: {
       archetype: 'Antagonist',

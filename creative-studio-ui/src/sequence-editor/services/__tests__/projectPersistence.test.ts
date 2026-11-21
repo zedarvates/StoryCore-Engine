@@ -24,8 +24,8 @@ const mockState: RootState = {
     metadata: {
       name: 'Test Project',
       path: '/test/project',
-      created: new Date('2024-01-01'),
-      modified: new Date('2024-01-02'),
+      created: new Date('2024-01-01').getTime(),
+      modified: new Date('2024-01-02').getTime(),
       author: 'Test Author',
       description: 'Test Description',
     },
@@ -37,7 +37,7 @@ const mockState: RootState = {
     },
     saveStatus: {
       state: 'saved' as const,
-      lastSaveTime: new Date('2024-01-02'),
+      lastSaveTime: new Date('2024-01-02').getTime(),
     },
     generationStatus: {
       state: 'idle' as const,

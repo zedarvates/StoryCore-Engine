@@ -1,15 +1,16 @@
+import { type Mock, vi } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ShotEditModal } from '../ShotEditModal';
 import { useStore } from '@/store';
 
 // Mock the useStore hook
-jest.mock('@/store', () => ({
-  useStore: jest.fn(),
+vi.mock('@/store', () => ({
+  useStore: vi.fn(),
 }));
 
 describe('ShotEditModal', () => {
-  const mockUpdateShot = jest.fn();
+  const mockUpdateShot = vi.fn();
   const mockShot = {
     id: 'shot1',
     title: 'Test Shot',
@@ -20,8 +21,8 @@ describe('ShotEditModal', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useStore as jest.Mock).mockReturnValue(mockUpdateShot);
+    vi.clearAllMocks();
+    (useStore as Mock).mockReturnValue(mockUpdateShot);
   });
 
   it('should not render when isOpen is false', () => {
@@ -65,7 +66,7 @@ describe('ShotEditModal', () => {
   });
 
   it('should call onClose when cancel button is clicked', () => {
-    const mockOnClose = jest.fn();
+    const mockOnClose = vi.fn();
     
     render(
       <ShotEditModal shot={mockShot} isOpen={true} onClose={mockOnClose} />
@@ -78,7 +79,7 @@ describe('ShotEditModal', () => {
   });
 
   it('should call updateShot and onClose when save button is clicked', () => {
-    const mockOnClose = jest.fn();
+    const mockOnClose = vi.fn();
     
     render(
       <ShotEditModal shot={mockShot} isOpen={true} onClose={mockOnClose} />

@@ -227,7 +227,7 @@ describe('StatusBar Real-time Updates', () => {
       const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
       store.dispatch(setSaveStatus({
         state: 'saved',
-        lastSaveTime: thirtySecondsAgo,
+        lastSaveTime: thirtySecondsAgo.getTime(),
       }));
 
       render(
@@ -243,7 +243,7 @@ describe('StatusBar Real-time Updates', () => {
       const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
       store.dispatch(setSaveStatus({
         state: 'saved',
-        lastSaveTime: twoMinutesAgo,
+        lastSaveTime: twoMinutesAgo.getTime(),
       }));
 
       // Should update to show minutes

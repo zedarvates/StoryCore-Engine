@@ -9,6 +9,8 @@ import { captionStylesService } from '../../services/CaptionStylesService';
 import { CaptionStyle } from '../../types/caption-style';
 import styles from './CaptionStylesPanel.module.css';
 
+type DisplayCaptionStyle = Omit<CaptionStyle, 'id'> & { id: string };
+
 type StyleCategory = 'modern' | 'classic' | 'dynamic' | 'all';
 
 export const CaptionStylesPanel: React.FC = () => {
@@ -30,7 +32,7 @@ export const CaptionStylesPanel: React.FC = () => {
 
   const [activeCategory, setActiveCategory] = useState<StyleCategory>('all');
   const [previewText, setPreviewText] = useState('Hello, World!');
-  const [selectedStyle, setSelectedStyle] = useState<CaptionStyle | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<DisplayCaptionStyle | null>(null);
 
   // Load built-in styles on mount
   useEffect(() => {
@@ -40,21 +42,24 @@ export const CaptionStylesPanel: React.FC = () => {
   }, []);
 
   // Combine built-in and user presets
-  const allStyles = [...builtInStyles, ...userPresets.map((p) => ({
-    ...p,
-    id: p.styleId,
-  } as CaptionStyle))];
+  const allStyles: DisplayCaptionStyle[] = [...builtInStyles];
+  for (const preset of userPresets) {
+    const baseStyle = builtInStyles.find((style) => style.id === preset.styleId);
+    if (baseStyle) {
+      allStyles.push({ ...baseStyle, ...preset.customizations, id: preset.id, name: preset.name, description: preset.description });
+    }
+  }
 
   const filteredStyles = activeCategory === 'all'
     ? allStyles
     : allStyles.filter((s) => s.category === activeCategory);
 
-  const handleStyleClick = (style: CaptionStyle) => {
+  const handleStyleClick = (style: DisplayCaptionStyle) => {
     setSelectedStyle(style);
     selectStyle(style.id);
   };
 
-  const handleApplyStyle = (style: CaptionStyle) => {
+  const handleApplyStyle = (style: DisplayCaptionStyle) => {
     if (activeTrack) {
       applyStyleToTrack(style.id, activeTrack.id);
     }
@@ -240,7 +245,7 @@ export const CaptionStylesPanel: React.FC = () => {
 };
 
 // Helper function to generate preview style for cards
-function getStylePreviewStyle(style: CaptionStyle): React.CSSProperties {
+function getStylePreviewStyle(style: DisplayCaptionStyle): React.CSSProperties {
   return {
     background: style.background.enabled
       ? `rgba(0, 0, 0, ${style.background.opacity / 100})`
@@ -251,7 +256,7 @@ function getStylePreviewStyle(style: CaptionStyle): React.CSSProperties {
 }
 
 // Helper function to generate text style
-function getStyleTextStyle(style: CaptionStyle): React.CSSProperties {
+function getStyleTextStyle(style: DisplayCaptionStyle): React.CSSProperties {
   return {
     fontFamily: style.font.family,
     fontSize: `${style.font.size}px`,

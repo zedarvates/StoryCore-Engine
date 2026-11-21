@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * VideoPlayerService Unit Tests
  */
@@ -7,12 +8,12 @@ import { VideoPlayerService } from '../VideoPlayerService';
 // Mock HTMLVideoElement
 const createMockVideoElement = () => {
   const video = {
-    play: jest.fn().mockResolvedValue(undefined),
-    pause: jest.fn(),
-    stop: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    load: jest.fn(),
+    play: vi.fn().mockResolvedValue(undefined),
+    pause: vi.fn(),
+    stop: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    load: vi.fn(),
     duration: 120,
     currentTime: 0,
     videoWidth: 1920,
@@ -34,7 +35,7 @@ describe('VideoPlayerService', () => {
   beforeEach(() => {
     service = new VideoPlayerService();
     mockVideo = createMockVideoElement();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -183,7 +184,7 @@ describe('VideoPlayerService', () => {
     });
 
     it('registers event listeners', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       service.on('play', callback);
       
       // Trigger play event
@@ -196,7 +197,7 @@ describe('VideoPlayerService', () => {
     });
 
     it('removes event listeners', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       service.on('play', callback);
       service.off('play', callback);
       
@@ -209,7 +210,7 @@ describe('VideoPlayerService', () => {
     });
 
     it('registers one-time event listeners', () => {
-      const callback = jest.fn();
+      const callback = vi.fn();
       service.once('play', callback);
       
       const playHandler = mockVideo.addEventListener.mock.calls.find(

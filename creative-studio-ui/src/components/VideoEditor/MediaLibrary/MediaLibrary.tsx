@@ -142,8 +142,8 @@ export const MediaLibrary: React.FC = () => {
             onDragStart={(e) => handleDragStart(e, media.id)}
           >
             <div className="media-thumbnail">
-              {media.thumbnail ? (
-                <img src={media.thumbnail} alt={media.name} />
+              {media.metadata.thumbnail ? (
+                <img src={media.metadata.thumbnail} alt={media.name} />
               ) : (
                 <div className="media-icon">
                   {media.type === 'video' && '🎬'}

@@ -1,28 +1,29 @@
+import { vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { Toolbar } from './Toolbar';
 
 // Mock stores and heavy dependencies
-jest.mock('../../stores/gridEditorStore', () => ({
+vi.mock('../../stores/gridEditorStore', () => ({
   useGridStore: () => ({
     activeTool: 'select',
-    setActiveTool: jest.fn(),
+    setActiveTool: vi.fn(),
   }),
 }));
-jest.mock('../../stores/undoRedoStore', () => ({
+vi.mock('../../stores/undoRedoStore', () => ({
   useUndoRedoStore: () => ({
     canUndo: () => false,
     canRedo: () => false,
-    undo: jest.fn(),
-    redo: jest.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
   }),
 }));
-jest.mock('../../stores/viewportStore', () => ({
+vi.mock('../../stores/viewportStore', () => ({
   useViewportStore: () => ({
     zoom: 1,
-    zoomIn: jest.fn(),
-    zoomOut: jest.fn(),
-    fitToView: jest.fn(),
-    zoomToActual: jest.fn(),
+    zoomIn: vi.fn(),
+    zoomOut: vi.fn(),
+    fitToView: vi.fn(),
+    zoomToActual: vi.fn(),
   }),
 }));
 

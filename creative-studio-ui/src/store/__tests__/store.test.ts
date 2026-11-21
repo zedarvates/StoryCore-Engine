@@ -234,7 +234,7 @@ describe('Zustand Store', () => {
         type: 'grid',
         status: 'pending',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -249,7 +249,7 @@ describe('Zustand Store', () => {
         type: 'grid',
         status: 'pending',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       const task2: GenerationTask = {
@@ -258,7 +258,7 @@ describe('Zustand Store', () => {
         type: 'promotion',
         status: 'pending',
         priority: 2,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task1);
@@ -275,7 +275,7 @@ describe('Zustand Store', () => {
         type: 'grid',
         status: 'pending',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       const task2: GenerationTask = {
@@ -284,7 +284,7 @@ describe('Zustand Store', () => {
         type: 'promotion',
         status: 'pending',
         priority: 2,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task1);
@@ -302,7 +302,7 @@ describe('Zustand Store', () => {
         type: 'grid',
         status: 'pending',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       const task2: GenerationTask = {
@@ -311,7 +311,7 @@ describe('Zustand Store', () => {
         type: 'promotion',
         status: 'pending',
         priority: 2,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task1);
@@ -329,7 +329,7 @@ describe('Zustand Store', () => {
         type: 'grid',
         status: 'pending',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);

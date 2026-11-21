@@ -1,13 +1,14 @@
+import { vi } from 'vitest';
 /**
  * PlaybackControls Component Unit Tests
  */
 
 import React from 'react';
-import { render, screen, fireEvent, _waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PlaybackControls } from '../PlaybackControls';
 
 // Mock icons
-jest.mock('../Icons', () => ({
+vi.mock('../Icons', () => ({
   PlayIcon: () => <svg data-testid="play-icon">Play</svg>,
   PauseIcon: () => <svg data-testid="pause-icon">Pause</svg>,
   SkipBackIcon: () => <svg data-testid="skip-back-icon">SkipBack</svg>,
@@ -33,22 +34,22 @@ describe('PlaybackControls', () => {
     totalFrames: 3600,
     formattedTime: '00:00:00:00',
     playbackRate: 1,
-    onPlay: jest.fn(),
-    onPause: jest.fn(),
-    onStop: jest.fn(),
-    onSeek: jest.fn(),
-    onSeekToFrame: jest.fn(),
-    onStepForward: jest.fn(),
-    onStepBackward: jest.fn(),
-    onVolumeChange: jest.fn(),
-    onMuteToggle: jest.fn(),
-    onLoopToggle: jest.fn(),
-    onFullscreen: jest.fn(),
-    onPlaybackRateChange: jest.fn(),
+    onPlay: vi.fn(),
+    onPause: vi.fn(),
+    onStop: vi.fn(),
+    onSeek: vi.fn(),
+    onSeekToFrame: vi.fn(),
+    onStepForward: vi.fn(),
+    onStepBackward: vi.fn(),
+    onVolumeChange: vi.fn(),
+    onMuteToggle: vi.fn(),
+    onLoopToggle: vi.fn(),
+    onFullscreen: vi.fn(),
+    onPlaybackRateChange: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Basic Rendering', () => {
@@ -91,7 +92,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onPlay when clicked and not playing', () => {
-      const onPlay = jest.fn();
+      const onPlay = vi.fn();
       render(<PlaybackControls {...defaultProps} isPlaying={false} onPlay={onPlay} />);
 
       const playButton = screen.getByRole('button', { name: /play/i });
@@ -101,7 +102,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onPause when clicked and playing', () => {
-      const onPause = jest.fn();
+      const onPause = vi.fn();
       render(<PlaybackControls {...defaultProps} isPlaying={true} onPause={onPause} />);
 
       const pauseButton = screen.getByRole('button', { name: /pause/i });
@@ -113,7 +114,7 @@ describe('PlaybackControls', () => {
 
   describe('Frame Navigation', () => {
     it('calls onStepBackward when step backward button clicked', () => {
-      const onStepBackward = jest.fn();
+      const onStepBackward = vi.fn();
       render(<PlaybackControls {...defaultProps} onStepBackward={onStepBackward} />);
 
       const stepBackButton = screen.getByRole('button', { name: /step backward/i });
@@ -124,7 +125,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onStepForward when step forward button clicked', () => {
-      const onStepForward = jest.fn();
+      const onStepForward = vi.fn();
       render(<PlaybackControls {...defaultProps} onStepForward={onStepForward} />);
 
       const stepForwardButton = screen.getByRole('button', { name: /step forward/i });
@@ -135,7 +136,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onSeekToFrame when skip buttons clicked', () => {
-      const onSeekToFrame = jest.fn();
+      const onSeekToFrame = vi.fn();
       render(<PlaybackControls {...defaultProps} onSeekToFrame={onSeekToFrame} />);
 
       const skipBackButton = screen.getByRole('button', { name: /skip back/i });
@@ -164,7 +165,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onMuteToggle when mute button clicked', () => {
-      const onMuteToggle = jest.fn();
+      const onMuteToggle = vi.fn();
       render(<PlaybackControls {...defaultProps} isMuted={false} onMuteToggle={onMuteToggle} />);
 
       const muteButton = screen.getByRole('button', { name: /mute/i });
@@ -183,7 +184,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onLoopToggle when loop button clicked', () => {
-      const onLoopToggle = jest.fn();
+      const onLoopToggle = vi.fn();
       render(<PlaybackControls {...defaultProps} isLooping={false} onLoopToggle={onLoopToggle} />);
 
       const loopButton = screen.getByRole('button', { name: /loop/i });
@@ -210,7 +211,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onPlaybackRateChange when rate option selected', () => {
-      const onPlaybackRateChange = jest.fn();
+      const onPlaybackRateChange = vi.fn();
       render(
         <PlaybackControls
           {...defaultProps}
@@ -231,7 +232,7 @@ describe('PlaybackControls', () => {
 
   describe('Fullscreen', () => {
     it('calls onFullscreen when fullscreen button clicked', () => {
-      const onFullscreen = jest.fn();
+      const onFullscreen = vi.fn();
       render(<PlaybackControls {...defaultProps} onFullscreen={onFullscreen} />);
 
       const fullscreenButton = screen.getByRole('button', { name: /fullscreen/i });
@@ -258,7 +259,7 @@ describe('PlaybackControls', () => {
 
   describe('Keyboard Shortcuts', () => {
     it('calls onPlay on space key when not playing', () => {
-      const onPlay = jest.fn();
+      const onPlay = vi.fn();
       render(<PlaybackControls {...defaultProps} isPlaying={false} onPlay={onPlay} />);
 
       const container = screen.getByRole('region');
@@ -268,7 +269,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onPause on space key when playing', () => {
-      const onPause = jest.fn();
+      const onPause = vi.fn();
       render(<PlaybackControls {...defaultProps} isPlaying={true} onPause={onPause} />);
 
       const container = screen.getByRole('region');
@@ -278,7 +279,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onStepForward on right arrow key', () => {
-      const onStepForward = jest.fn();
+      const onStepForward = vi.fn();
       render(<PlaybackControls {...defaultProps} onStepForward={onStepForward} />);
 
       const container = screen.getByRole('region');
@@ -288,7 +289,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onStepBackward on left arrow key', () => {
-      const onStepBackward = jest.fn();
+      const onStepBackward = vi.fn();
       render(<PlaybackControls {...defaultProps} onStepBackward={onStepBackward} />);
 
       const container = screen.getByRole('region');
@@ -298,7 +299,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onMuteToggle on m key', () => {
-      const onMuteToggle = jest.fn();
+      const onMuteToggle = vi.fn();
       render(<PlaybackControls {...defaultProps} onMuteToggle={onMuteToggle} />);
 
       const container = screen.getByRole('region');
@@ -308,7 +309,7 @@ describe('PlaybackControls', () => {
     });
 
     it('calls onLoopToggle on l key', () => {
-      const onLoopToggle = jest.fn();
+      const onLoopToggle = vi.fn();
       render(<PlaybackControls {...defaultProps} onLoopToggle={onLoopToggle} />);
 
       const container = screen.getByRole('region');
@@ -372,18 +373,18 @@ describe('PlaybackControls Compact Mode', () => {
       totalFrames: 3600,
       formattedTime: '00:00:00:00',
       playbackRate: 1,
-      onPlay: jest.fn(),
-      onPause: jest.fn(),
-      onStop: jest.fn(),
-      onSeek: jest.fn(),
-      onSeekToFrame: jest.fn(),
-      onStepForward: jest.fn(),
-      onStepBackward: jest.fn(),
-      onVolumeChange: jest.fn(),
-      onMuteToggle: jest.fn(),
-      onLoopToggle: jest.fn(),
-      onFullscreen: jest.fn(),
-      onPlaybackRateChange: jest.fn(),
+      onPlay: vi.fn(),
+      onPause: vi.fn(),
+      onStop: vi.fn(),
+      onSeek: vi.fn(),
+      onSeekToFrame: vi.fn(),
+      onStepForward: vi.fn(),
+      onStepBackward: vi.fn(),
+      onVolumeChange: vi.fn(),
+      onMuteToggle: vi.fn(),
+      onLoopToggle: vi.fn(),
+      onFullscreen: vi.fn(),
+      onPlaybackRateChange: vi.fn(),
     }} variant="compact" />);
 
     // Compact mode should only show essential controls

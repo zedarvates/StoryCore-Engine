@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * Comic to Sequence Wizard Tests
  */
@@ -10,19 +11,19 @@ import { ComicToSequenceWizard } from '../ComicToSequenceWizard';
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 global.localStorage = localStorageMock as LegacyAny;
 
 describe('ComicToSequenceWizard', () => {
-  const mockOnClose = jest.fn();
-  const mockOnComplete = jest.fn();
+  const mockOnClose = vi.fn();
+  const mockOnComplete = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
   });
 

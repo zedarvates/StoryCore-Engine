@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import * as fc from 'fast-check';
-import { useViewportStore, type _Point } from '../viewportStore';
+import { useViewportStore, type Point } from '../viewportStore';
 
 describe('ViewportStore Transformations - Property-Based Tests', () => {
   beforeEach(() => {

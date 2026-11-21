@@ -30,6 +30,7 @@ import {
   Check,
   X,
   Target,
+  type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -53,13 +54,7 @@ import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAppStore } from '@/stores/useAppStore';
-import { styleTransferService } from '@/services/styleTransferService';
-import type {
-  StyleFeatures,
-  StyleTransferOptions,
-  StylePreset,
-  StyleDifference,
-} from '@/services/styleTransferService';
+import type { StyleFeatures, StylePreset } from '@/types/styleTransfer';
 import { cn } from '@/lib/utils';
 import './StyleTransferPanel.css';
 
@@ -67,12 +62,41 @@ import './StyleTransferPanel.css';
 // Types
 // ============================================================================
 
-/**
- * Props for StyleTransferPanel component
- */
+interface StyleTransferOptions {
+  preserveContent: boolean;
+  intensity: number;
+  blendWithOriginal: boolean;
+}
+
+interface StyleDifference {
+  overallSimilarity: number;
+  colorDifference: number;
+  lightingDifference: number;
+  compositionDifference: number;
+}
+
+export interface ReferenceStylePreset extends StylePreset {
+  style?: StyleFeatures;
+  createdAt?: Date | string;
+}
+
+// Shot operations depend on project state. The media transfer service accepts files.
+export interface ReferenceStyleOperations {
+  getStylePresets(): ReferenceStylePreset[];
+  extractStyleFeatures(shotId: string): StyleFeatures;
+  applyStyleToShot(sourceId: string, targetId: string, options: StyleTransferOptions): void | Promise<void>;
+  applyStyleToSequence(sourceId: string, sequenceId: string, options: StyleTransferOptions): void | Promise<void>;
+  applyPreset(presetId: string, shotId: string): void | Promise<void>;
+  createStylePreset(name: string, features: StyleFeatures): ReferenceStylePreset;
+  deletePreset(presetId: string): void;
+  compareStyles(source: StyleFeatures, target: StyleFeatures): StyleDifference;
+}
+
+/** Props for StyleTransferPanel component */
 export interface StyleTransferPanelProps {
   currentSequenceId: string;
   selectedShotId?: string;
+  styleTransfer: ReferenceStyleOperations;
   onStyleApplied: () => void;
   onClose: () => void;
 }
@@ -136,7 +160,7 @@ function StyleFeatureBadge({
   value,
   color 
 }: { 
-  icon: React.ElementType; 
+  icon: LucideIcon;
   label: string; 
   value: string;
   color?: string;
@@ -178,6 +202,7 @@ export function StyleTransferPanel({
   selectedShotId,
   onStyleApplied,
   onClose,
+  styleTransfer,
 }: StyleTransferPanelProps) {
   // Store state
   const _project = useAppStore((state) => state.project);
@@ -213,7 +238,7 @@ export function StyleTransferPanel({
   // Local State - Presets
   // =========================================================================
   
-  const [presets, setPresets] = useState<StylePreset[]>([]);
+  const [presets, setPresets] = useState<ReferenceStylePreset[]>([]);
   const [presetManagement, setPresetManagement] = useState<PresetManagementState>({
     isCreating: false,
     newPresetName: '',
@@ -237,9 +262,9 @@ export function StyleTransferPanel({
    * Load presets from service
    */
   const loadPresets = useCallback(() => {
-    const allPresets = styleTransferService.getStylePresets();
+    const allPresets = styleTransfer.getStylePresets();
     setPresets(allPresets);
-  }, []);
+  }, [styleTransfer]);
   
   useEffect(() => {
     loadPresets();
@@ -254,7 +279,7 @@ export function StyleTransferPanel({
     setExtractedStyle(prev => ({ ...prev, isLoading: true }));
     
     try {
-      const features = styleTransferService.extractStyleFeatures(shotId);
+      const features = styleTransfer.extractStyleFeatures(shotId);
       setExtractedStyle({
         shotId,
         features,
@@ -264,7 +289,7 @@ export function StyleTransferPanel({
       console.error('[StyleTransferPanel] Error extracting style:', error);
       setExtractedStyle(prev => ({ ...prev, isLoading: false }));
     }
-  }, []);
+  }, [styleTransfer]);
   
   /**
    * Handle source shot selection change
@@ -292,10 +317,10 @@ export function StyleTransferPanel({
       if (styleSource === 'shot' && sourceShotId) {
         if (targetType === 'single') {
           for (const shotId of targetShotIds) {
-            styleTransferService.applyStyleToShot(sourceShotId, shotId, transferOptions);
+            await styleTransfer.applyStyleToShot(sourceShotId, shotId, transferOptions);
           }
         } else {
-          styleTransferService.applyStyleToSequence(
+          await styleTransfer.applyStyleToSequence(
             sourceShotId,
             currentSequenceId,
             transferOptions
@@ -304,13 +329,13 @@ export function StyleTransferPanel({
       } else if (styleSource === 'preset' && sourcePresetId) {
         if (targetType === 'single') {
           for (const shotId of targetShotIds) {
-            styleTransferService.applyPreset(sourcePresetId, shotId);
+            await styleTransfer.applyPreset(sourcePresetId, shotId);
           }
         } else {
           // Apply preset to first available shot
           const firstShot = shots.find(s => s.id === targetShotIds[0]);
           if (firstShot) {
-            styleTransferService.applyPreset(sourcePresetId, firstShot.id);
+            await styleTransfer.applyPreset(sourcePresetId, firstShot.id);
           }
         }
       }
@@ -323,7 +348,7 @@ export function StyleTransferPanel({
     }
   }, [
     styleSource, sourceShotId, sourcePresetId, targetType, targetShotIds,
-    transferOptions, currentSequenceId, shots, onStyleApplied,
+    transferOptions, currentSequenceId, shots, onStyleApplied, styleTransfer,
   ]);
   
   /**
@@ -352,33 +377,37 @@ export function StyleTransferPanel({
   const saveAsPreset = useCallback(() => {
     if (!extractedStyle.features || !presetManagement.newPresetName) return;
     
-    const preset = styleTransferService.createStylePreset(
+    const preset = styleTransfer.createStylePreset(
       presetManagement.newPresetName,
       extractedStyle.features
     );
     
     setPresets(prev => [...prev, preset]);
     setPresetManagement({ isCreating: false, newPresetName: '', deletingPresetId: null });
-  }, [extractedStyle.features, presetManagement.newPresetName]);
+  }, [extractedStyle.features, presetManagement.newPresetName, styleTransfer]);
   
   /**
    * Delete a preset
    */
   const deletePreset = useCallback((presetId: string) => {
-    styleTransferService.deletePreset(presetId);
+    styleTransfer.deletePreset(presetId);
     setPresets(prev => prev.filter(p => p.id !== presetId));
     setPresetManagement(prev => ({ ...prev, deletingPresetId: null }));
-  }, []);
+  }, [styleTransfer]);
   
   /**
    * Apply preset to current shot
    */
-  const applyPresetToShot = useCallback((preset: StylePreset) => {
+  const applyPresetToShot = useCallback(async (preset: ReferenceStylePreset) => {
     if (!selectedShotId) return;
     
-    styleTransferService.applyPreset(preset.id, selectedShotId);
-    onStyleApplied();
-  }, [selectedShotId, onStyleApplied]);
+    try {
+      await styleTransfer.applyPreset(preset.id, selectedShotId);
+      onStyleApplied();
+    } catch (error) {
+      console.error('[StyleTransferPanel] Failed to apply preset:', error);
+    }
+  }, [selectedShotId, onStyleApplied, styleTransfer]);
   
   // =========================================================================
   // Style Comparison
@@ -390,8 +419,8 @@ export function StyleTransferPanel({
   const compareStyles = useCallback(() => {
     if (!extractedStyle.features || !compareShotId) return;
     
-    const targetFeatures = styleTransferService.extractStyleFeatures(compareShotId);
-    const comparison = styleTransferService.compareStyles(
+    const targetFeatures = styleTransfer.extractStyleFeatures(compareShotId);
+    const comparison = styleTransfer.compareStyles(
       extractedStyle.features,
       targetFeatures
     );
@@ -399,7 +428,7 @@ export function StyleTransferPanel({
     setTargetStyleFeatures(targetFeatures);
     setComparisonResult(comparison);
     setShowComparison(true);
-  }, [extractedStyle.features, compareShotId]);
+  }, [extractedStyle.features, compareShotId, styleTransfer]);
   
   // =========================================================================
   // Render Helpers
@@ -842,7 +871,7 @@ export function StyleTransferPanel({
                         style={{
                           background: preset.thumbnail 
                             ? `url(${preset.thumbnail})` 
-                            : `linear-gradient(135deg, ${preset.style.colorPalette[0] || '#6366f1'}, ${preset.style.colorPalette[1] || '#8b5cf6'})`
+                            : `linear-gradient(135deg, ${preset.style?.colorPalette[0] || '#6366f1'}, ${preset.style?.colorPalette[1] || '#8b5cf6'})`
                         }}
                       >
                         <div className="preset-overlay">
@@ -862,14 +891,16 @@ export function StyleTransferPanel({
                         <h4 className="preset-name">{preset.name}</h4>
                         <div className="preset-meta">
                           <span className="preset-date">
-                            {new Date(preset.createdAt).toLocaleDateString()}
+                            {preset.createdAt ? new Date(preset.createdAt).toLocaleDateString() : preset.category}
                           </span>
                         </div>
                         
                         {/* Style Preview */}
-                        <div className="preset-style-preview">
-                          <ColorPaletteDisplay colors={preset.style.colorPalette.slice(0, 5)} />
-                        </div>
+                        {preset.style && (
+                          <div className="preset-style-preview">
+                            <ColorPaletteDisplay colors={preset.style.colorPalette.slice(0, 5)} />
+                          </div>
+                        )}
                         
                         {/* Preset Actions */}
                         <div className="preset-card-actions">
