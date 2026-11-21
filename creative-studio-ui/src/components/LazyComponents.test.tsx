@@ -1,13 +1,12 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import LazyComponents from './LazyComponents';
+import { expect, it, vi } from 'vitest';
+import { LazyAnimationPanel } from './LazyComponents';
 
-// Mock any heavy child components if needed
-jest.mock('@/components/SomeHeavyComponent', () => () => <div data-testid="SomeHeavyComponent" />);
+vi.mock('./AnimationPanel', () => ({
+  AnimationPanel: ({ shotId }: { shotId: string }) => <p>Animation for {shotId}</p>,
+}));
 
-it('renders LazyComponents without crashing', () => {
-  render(<LazyComponents />);
-  // Expect the container to be in the document
-  const container = screen.getByTestId('lazy-components-container');
-  expect(container).toBeInTheDocument();
+it('loads the named component and forwards its props', async () => {
+  render(<LazyAnimationPanel shotId="shot-42" />);
+  expect(await screen.findByText('Animation for shot-42')).toBeInTheDocument();
 });

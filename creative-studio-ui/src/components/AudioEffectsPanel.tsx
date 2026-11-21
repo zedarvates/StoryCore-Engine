@@ -126,7 +126,7 @@ export function AudioEffectsPanel({
 }: AudioEffectsPanelProps) {
   const [activeCategory, setActiveCategory] = useState('basic');
   const [effectChain, setEffectChain] = useState<AudioEffect[]>([]);
-  const [_selectedEf_f_ect, setSelectedEffect] = useState<AudioEffect | null>(null);
+  const [selectedEffect, setSelectedEffect] = useState<AudioEffect | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const addEffectToChain = useCallback((effectType: string, name: string, params: Record<string, unknown>) => {
@@ -453,6 +453,7 @@ export function AudioEffectsPanel({
                         e.stopPropagation();
                         toggleEffect(effect.id);
                       }}
+                      aria-label={`${effect.enabled ? 'Disable' : 'Enable'} ${effect.name}`}
                       className="w-8 h-8 p-0"
                     >
                       {effect.enabled ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -464,6 +465,7 @@ export function AudioEffectsPanel({
                         e.stopPropagation();
                         onPreviewEffect?.(effect);
                       }}
+                      aria-label={`Preview ${effect.name}`}
                       className="w-8 h-8 p-0"
                     >
                       <Play className="w-4 h-4" />
@@ -475,6 +477,7 @@ export function AudioEffectsPanel({
                         e.stopPropagation();
                         removeEffectFromChain(effect.id);
                       }}
+                      aria-label={`Remove ${effect.name}`}
                       className="w-8 h-8 p-0 text-destructive hover:text-destructive"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -540,5 +543,4 @@ export function AudioEffectsPanel({
     </div>
   );
 }
-
 

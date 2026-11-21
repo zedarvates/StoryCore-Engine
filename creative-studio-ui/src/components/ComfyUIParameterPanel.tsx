@@ -39,7 +39,7 @@ interface ComfyUIParameterPanelProps {
 const AVAILABLE_SAMPLERS = [
   'euler', 'euler_ancestral', 'heun', 'dpm_2', 'dpm_2_ancestral',
   'lms', 'dpm_fast', 'dpm_adaptive', 'dpmpp_2s_ancestral', 'dpmpp_sde',
-  'dpmpp_sde_gpu', 'dpmpp_2m', 'dpmpp_2m_sde', 'dpmpp_2m_sde_gpu',
+  'dpmpp_sde_gpu', 'dpmpp_2m', 'dpmpp_2m_sde', 'dpmpp_2m_sde_gpu', 'dpmpp_3m_sde',
   'ddim', 'plms', 'uni_pc', 'uni_pc_bh2'
 ];
 

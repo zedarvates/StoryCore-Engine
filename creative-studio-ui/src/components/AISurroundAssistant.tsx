@@ -25,7 +25,6 @@ interface AISurroundAssistantProps {
  */
 export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
   shot,
-  _currentConfig,
   onApplyPreset,
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -290,7 +289,6 @@ export const AISurroundAssistant: React.FC<AISurroundAssistantProps> = ({
  */
 export const AISurroundAssistantCompact: React.FC<AISurroundAssistantProps> = ({
   shot,
-  _currentConfig,
   onApplyPreset,
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
