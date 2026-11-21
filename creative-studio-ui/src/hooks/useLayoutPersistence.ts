@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import type { PanelSizes } from '@/types';
+import { isRecord } from '@/utils/typeGuards';
 
 const LAYOUT_STORAGE_KEY = 'creative-studio-layout';
 
@@ -91,7 +92,7 @@ export function useLayoutPersistence() {
  * Validate panel sizes object
  */
 function isValidPanelSizes(sizes: unknown): sizes is PanelSizes {
-  if (!sizes || typeof sizes !== 'object') return false;
+  if (!isRecord(sizes)) return false;
 
   const { assetLibrary, canvas, propertiesOrChat } = sizes;
 

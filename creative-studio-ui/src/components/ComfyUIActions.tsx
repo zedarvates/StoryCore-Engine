@@ -102,35 +102,32 @@ export const ComfyUIActions: React.FC<ComfyUIActionsProps> = ({
   };
 
   const handleUploadMedia = async () => {
-    // Create file input for media upload
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*,video/*';
-    input.multiple = false;
-
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      try {
-        if (onMediaUpload) {
-          await onMediaUpload(file.path);
-        }
-
-        toast({
-          title: 'Media Uploaded',
-          description: `${file.name} uploaded successfully`,
-        });
-      } catch (_error) {
-        toast({
-          title: 'Upload Failed',
-          description: 'Failed to upload media file',
-          variant: 'destructive',
-        });
+    try {
+      const dialog = window.electronAPI?.dialog;
+      if (!dialog || !onMediaUpload) {
+        throw new Error('File upload requires desktop media integration');
       }
-    };
 
-    input.click();
+      const result = await dialog.showOpenDialog({
+        title: 'Upload media to ComfyUI',
+        properties: ['openFile'],
+        filters: [{ name: 'Images and videos', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mov'] }],
+      });
+      const path = result.filePaths[0];
+      if (result.canceled || !path) return;
+
+      await onMediaUpload(path);
+      toast({
+        title: 'Media Uploaded',
+        description: 'Media file uploaded successfully',
+      });
+    } catch (error) {
+      toast({
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'Failed to upload media file',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleQuickWorkflow = async (workflowType: string) => {

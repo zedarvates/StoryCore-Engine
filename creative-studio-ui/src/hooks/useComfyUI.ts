@@ -60,7 +60,7 @@ export function useComfyUI(): UseComfyUIResult {
       }
 
       // Simple real integration with ComfyUI /prompt endpoint
-      const response = await fetch(`${activeServer.url}/prompt`, {
+      const response = await fetch(`${activeServer.serverUrl}/prompt`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

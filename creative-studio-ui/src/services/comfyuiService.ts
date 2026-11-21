@@ -483,12 +483,15 @@ export class ComfyUIService {
 
         logger.debug(`🛠️ [ComfyUIService] Calling MCP tool: ${toolName} for task: ${type}`);
 
-        const result = await window.electronAPI.comfyui.callTool(activeServer.id, toolName, {
+        const callTool = window.electronAPI?.comfyui?.callTool;
+        if (!callTool) throw new Error('ComfyUI MCP requires the Electron bridge');
+
+        const result = await callTool(activeServer.id, toolName, {
           workflow,
           client_id: `${type}_gen_${Date.now()}`
         });
         
-        if (result && result.prompt_id) {
+        if (typeof result === 'object' && result !== null && 'prompt_id' in result && typeof result.prompt_id === 'string' && result.prompt_id) {
           return this.waitForImage(endpoint, result.prompt_id, 600000, onProgress, imageSize);
         } else {
           throw new Error('MCP execution returned no prompt_id');
