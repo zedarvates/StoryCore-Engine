@@ -40,8 +40,8 @@ describe('World Data Integration', () => {
       technology: 'Medieval with some magical enhancements',
       magic: 'Elemental magic system',
       conflicts: ['War of the Five Kingdoms'],
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-01-01'),
+      createdAt: new Date('2024-01-01').getTime(),
+      updatedAt: new Date('2024-01-01').getTime(),
     };
   });
 

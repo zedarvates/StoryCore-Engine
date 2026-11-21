@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { LegacyAny } from '@/types/legacy';
 import { AudioRecorder } from '../AudioRecorder';
 import { AudioFileManager } from '../AudioFileManager';
@@ -25,24 +26,24 @@ describe('AudioRecorder', () => {
     const mockStream = {
       getTracks: () => [
         {
-          stop: jest.fn()
+          stop: vi.fn()
         }
       ]
     };
     
     global.navigator.mediaDevices = {
-      getUserMedia: jest.fn().mockResolvedValue(mockStream as LegacyAny)
+      getUserMedia: vi.fn().mockResolvedValue(mockStream as LegacyAny)
     } as LegacyAny;
 
     // Mock MediaRecorder
     const mockMediaRecorder = {
-      start: jest.fn(),
-      stop: jest.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
       ondataavailable: null as LegacyAny,
       onstop: null as LegacyAny
     };
 
-    global.MediaRecorder = jest.fn().mockImplementation(() => {
+    global.MediaRecorder = vi.fn().mockImplementation(() => {
       const instance = mockMediaRecorder as LegacyAny;
       instance.ondataavailable = null;
       instance.onstop = null;
@@ -50,7 +51,7 @@ describe('AudioRecorder', () => {
     }) as LegacyAny;
 
     // Mock saveAudioFile
-    jest.spyOn(audioFileManager, 'saveAudioFile').mockResolvedValue('mock-url');
+    vi.spyOn(audioFileManager, 'saveAudioFile').mockResolvedValue('mock-url');
 
     // Start recording
     await audioRecorder.startRecording();

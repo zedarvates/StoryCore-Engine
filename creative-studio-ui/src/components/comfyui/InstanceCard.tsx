@@ -98,9 +98,8 @@ export function InstanceCard({
   };
 
   // Format last used time
-  const formatLastUsed = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+  const formatLastUsed = (timestamp: number) => {
+    const diffMs = Date.now() - timestamp;
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
     if (diffMinutes < 1) return 'Just now';
@@ -286,7 +285,7 @@ export function InstanceCard({
 
       {/* Last Used */}
       <div className="card-last-used">
-        <span title={`Last workflow execution: ${instance.lastUsedAt.toLocaleString()}`}>
+        <span title={`Last workflow execution: ${new Date(instance.lastUsedAt).toLocaleString()}`}>
           Last used: {formatLastUsed(instance.lastUsedAt)}
         </span>
       </div>

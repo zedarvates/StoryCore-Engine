@@ -6,7 +6,7 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import { describe, it, expect, vi, _beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { WizardService } from '../WizardService';
 import { getComfyUIServersService, resetComfyUIServersService } from '../../comfyuiServersService';
 import { testComfyUIConnection } from '../../comfyuiService';

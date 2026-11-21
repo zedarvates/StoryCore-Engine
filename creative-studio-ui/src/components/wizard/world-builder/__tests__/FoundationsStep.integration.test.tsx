@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, _waitFor, _cleanup } from '@testing-library/react';
-import { vi, describe, it, expect, beforeEach, _afterEach } from 'vitest';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
+import { type Mock, vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FoundationsStep } from '../steps/FoundationsStep';
 import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
 
@@ -25,19 +25,19 @@ describe('FoundationsStep Integration', () => {
     isLoading: false,
     error: null,
     lastSaved: null,
-    isStepCompleted: jest.fn(),
-    canNavigateToStep: jest.fn(),
+    isStepCompleted: vi.fn(),
+    canNavigateToStep: vi.fn(),
   };
 
   const mockActions = {
-    updateStep: jest.fn(),
-    markStepComplete: jest.fn(),
+    updateStep: vi.fn(),
+    markStepComplete: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (useWorldBuilderSelectors as jest.Mock).mockReturnValue(mockSelectors);
-    (useWorldBuilderActions as jest.Mock).mockReturnValue(mockActions);
+    vi.clearAllMocks();
+    (useWorldBuilderSelectors as Mock).mockReturnValue(mockSelectors);
+    (useWorldBuilderActions as Mock).mockReturnValue(mockActions);
   });
 
   describe('Initial rendering', () => {
@@ -76,7 +76,7 @@ describe('FoundationsStep Integration', () => {
       const { rerender } = render(<FoundationsStep />);
 
       // Update mock data
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
+      (useWorldBuilderSelectors as Mock).mockReturnValue({
         ...mockSelectors,
         worldData: {
           id: 'test',
@@ -106,7 +106,7 @@ describe('FoundationsStep Integration', () => {
     });
 
     it('should handle partial worldData gracefully', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
+      (useWorldBuilderSelectors as Mock).mockReturnValue({
         ...mockSelectors,
         worldData: {
           id: 'test',
@@ -206,7 +206,7 @@ describe('FoundationsStep Integration', () => {
 
   describe('Form submission', () => {
     it('should mark step complete when all required fields are filled', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
+      (useWorldBuilderSelectors as Mock).mockReturnValue({
         ...mockSelectors,
         worldData: {
           id: 'test',
@@ -341,7 +341,7 @@ describe('FoundationsStep Integration', () => {
 
   describe('Error handling', () => {
     it('should handle invalid step data gracefully', () => {
-      (useWorldBuilderSelectors as jest.Mock).mockReturnValue({
+      (useWorldBuilderSelectors as Mock).mockReturnValue({
         ...mockSelectors,
         worldData: {
           id: 'test',

@@ -1,14 +1,14 @@
 import { LegacyAny } from '@/types/legacy';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useWorldBuilderStore } from '../worldBuilderStore';
 import { act } from '@testing-library/react';
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
@@ -16,7 +16,7 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('worldBuilderStore Integration', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     useWorldBuilderStore.getState().resetWorld();
     // Clear localStorage mock
     localStorageMock.clear();

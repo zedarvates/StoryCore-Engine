@@ -35,7 +35,7 @@ describe('useCharacterRestoration', () => {
         character_id: 'char-1',
         name: 'Test Character 1',
         creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         visual_identity: {
           age_range: 'adult',
@@ -82,7 +82,7 @@ describe('useCharacterRestoration', () => {
         character_id: 'char-2',
         name: 'Test Character 2',
         creation_method: 'manual',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         visual_identity: {
           age_range: 'young adult',

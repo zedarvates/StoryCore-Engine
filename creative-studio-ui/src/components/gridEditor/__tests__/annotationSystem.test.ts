@@ -42,8 +42,8 @@ describe('Annotation System', () => {
         ],
         presets: [],
         metadata: {
-          createdAt: new Date().toISOString(),
-          modifiedAt: new Date().toISOString(),
+          createdAt: Date.now(),
+          modifiedAt: Date.now(),
         },
       });
     });

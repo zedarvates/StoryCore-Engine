@@ -69,7 +69,7 @@ describe('BackendApiService - ComfyUI Integration', () => {
       type: 'image',
       status: 'pending',
       priority: 1,
-      createdAt: new Date(),
+      createdAt: Date.now(),
       prompt: 'A beautiful landscape',
       negativePrompt: 'blurry, low quality',
       width: 512,
@@ -590,7 +590,7 @@ describe('MockBackendApiService - ComfyUI Integration', () => {
       type: 'image',
       status: 'pending',
       priority: 1,
-      createdAt: new Date(),
+      createdAt: Date.now(),
       prompt: 'A beautiful landscape',
     };
   });

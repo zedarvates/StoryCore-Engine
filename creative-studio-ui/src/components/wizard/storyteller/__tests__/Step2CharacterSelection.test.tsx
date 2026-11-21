@@ -64,7 +64,7 @@ const mockCharacter1: Character = {
   character_id: 'char-1',
   name: 'Alice',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-01T00:00:00Z',
+  creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
   version: '1.0',
   visual_identity: {
     age_range: '25-30',
@@ -101,7 +101,7 @@ const mockCharacter2: Character = {
   character_id: 'char-2',
   name: 'Bob',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-02T00:00:00Z',
+  creation_timestamp: Date.parse('2024-01-02T00:00:00Z'),
   version: '1.0',
   visual_identity: {
     age_range: '40-45',

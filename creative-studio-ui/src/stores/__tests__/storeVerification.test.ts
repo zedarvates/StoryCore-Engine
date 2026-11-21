@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useGridStore, _createDefaultGridConfiguration } from '../gridEditorStore';
+import { useGridStore, createDefaultGridConfiguration } from '../gridEditorStore';
 import { useViewportStore } from '../viewportStore';
 import { useUndoRedoStore, createOperation } from '../undoRedoStore';
 

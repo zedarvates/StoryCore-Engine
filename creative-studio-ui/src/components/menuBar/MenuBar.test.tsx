@@ -1,11 +1,12 @@
+import { vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { MenuBar } from './MenuBar';
 
 // Mock heavy dependencies
-jest.mock('../../config/menuBarConfig', () => ({
+vi.mock('../../config/menuBarConfig', () => ({
   menuBarConfig: [],
 }));
-jest.mock('../../utils/i18n', () => ({
+vi.mock('../../utils/i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
 }));
 

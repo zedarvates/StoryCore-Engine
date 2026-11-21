@@ -186,15 +186,10 @@ export const GenerationCancellationDialog: React.FC<GenerationCancellationDialog
   // ============================================================================
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
-      <AlertDialogContent
-        onInteractOutside={(e: Event) => {
-          // Prevent closing while processing
-          if (isProcessing) {
-            e.preventDefault();
-          }
-        }}
-      >
+    <AlertDialog open={isOpen} onOpenChange={(open) => {
+      if (!open && !isProcessing) onCancel();
+    }}>
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
             {isConfirming && <AlertTriangle className="h-5 w-5 text-yellow-500" />}

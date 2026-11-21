@@ -53,7 +53,7 @@ const createTestCharacter = (overrides?: Partial<Character>): Character => ({
   character_id: `char-${Date.now()}-${Math.random()}`,
   name: 'Test Character',
   creation_method: 'wizard',
-  creation_timestamp: new Date().toISOString(),
+  creation_timestamp: Date.now(),
   version: '1.0',
   visual_identity: {
     hair_color: 'brown',

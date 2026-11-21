@@ -1,11 +1,12 @@
+import { vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { StoryboardCanvas } from './StoryboardCanvas';
 
 // Mock heavy dependencies
-jest.mock('../../stores/shotStore', () => ({
+vi.mock('../../stores/shotStore', () => ({
   useShotStore: () => ({
     shots: [],
-    selectShot: jest.fn(),
+    selectShot: vi.fn(),
   }),
 }));
 

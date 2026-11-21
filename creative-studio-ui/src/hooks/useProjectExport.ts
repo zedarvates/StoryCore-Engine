@@ -65,7 +65,7 @@ export function useProjectExport(): UseProjectExportReturn {
       return null;
     }
 
-    return exportProject(project.project_name, shots, assets);
+    return exportProject({ ...project, shots, assets });
   }, [project, shots, assets]);
 
   /**
@@ -83,7 +83,7 @@ export function useProjectExport(): UseProjectExportReturn {
       return null;
     }
 
-    return exportProjectToJSON(project.project_name, shots, assets, pretty);
+    return exportProjectToJSON({ ...project, shots, assets }, pretty);
   }, [project, shots, assets]);
 
   /**
@@ -102,7 +102,7 @@ export function useProjectExport(): UseProjectExportReturn {
       return;
     }
 
-    downloadProjectJSON(project.project_name, shots, assets);
+    downloadProjectJSON({ ...project, shots, assets });
   }, [project, shots, assets]);
 
   /**

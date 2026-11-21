@@ -1,3 +1,4 @@
+import { type MockedFunction, vi } from 'vitest';
 import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // MCP Hooks Tests
@@ -8,9 +9,9 @@ import { useMCPAddon, useMCPServers, useMCPConfig } from '../hooks';
 import { useAddonStore } from '@/stores/addonStore';
 
 // Mock the store
-jest.mock('@/stores/addonStore');
+vi.mock('@/stores/addonStore');
 
-const mockUseAddonStore = useAddonStore as jest.MockedFunction<typeof useAddonStore>;
+const mockUseAddonStore = useAddonStore as MockedFunction<typeof useAddonStore>;
 
 describe('MCP Hooks', () => {
   beforeEach(() => {
@@ -45,27 +46,27 @@ describe('MCP Hooks', () => {
         testResults: [],
       },
       mcpManager: {
-        getState: jest.fn(),
-        subscribe: jest.fn(),
+        getState: vi.fn(),
+        subscribe: vi.fn(),
       } as LegacyAny,
-      toggleMCPAddon: jest.fn(),
-      addMCPServer: jest.fn(),
-      updateMCPServer: jest.fn(),
-      removeMCPServer: jest.fn(),
-      testMCPServer: jest.fn(),
-      setSelectedMCPServer: jest.fn(),
-      updateMCPConfig: jest.fn(),
-      clearError: jest.fn(),
+      toggleMCPAddon: vi.fn(),
+      addMCPServer: vi.fn(),
+      updateMCPServer: vi.fn(),
+      removeMCPServer: vi.fn(),
+      testMCPServer: vi.fn(),
+      setSelectedMCPServer: vi.fn(),
+      updateMCPConfig: vi.fn(),
+      clearError: vi.fn(),
       addons: new Map(),
-      registerAddon: jest.fn(),
-      unregisterAddon: jest.fn(),
-      enableAddon: jest.fn(),
-      disableAddon: jest.fn(),
-      updateAddonConfig: jest.fn(),
+      registerAddon: vi.fn(),
+      unregisterAddon: vi.fn(),
+      enableAddon: vi.fn(),
+      disableAddon: vi.fn(),
+      updateAddonConfig: vi.fn(),
       isLoading: false,
       globalError: null,
-      clearError: jest.fn(),
-      reset: jest.fn(),
+      clearError: vi.fn(),
+      reset: vi.fn(),
     });
   });
 

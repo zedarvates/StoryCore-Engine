@@ -1,3 +1,4 @@
+import { type MockedFunction, vi } from 'vitest';
 /**
  * ComfyUI React Hook Tests
  *
@@ -13,36 +14,36 @@ import { getComfyUIServersService, resetComfyUIServersService } from '../../serv
 import { setupComfyUIMock, teardownComfyUIMock } from '../../__mocks__/comfyuiServerMock';
 
 // Mock the ComfyUI services
-jest.mock('../../services/comfyuiServersService');
-jest.mock('../../services/comfyuiService');
+vi.mock('../../services/comfyuiServersService');
+vi.mock('../../services/comfyuiService');
 
-const mockGetComfyUIServersService = getComfyUIServersService as jest.MockedFunction<typeof getComfyUIServersService>;
-const mockResetComfyUIServersService = resetComfyUIServersService as jest.MockedFunction<typeof resetComfyUIServersService>;
+const mockGetComfyUIServersService = getComfyUIServersService as MockedFunction<typeof getComfyUIServersService>;
+const mockResetComfyUIServersService = resetComfyUIServersService as MockedFunction<typeof resetComfyUIServersService>;
 
 describe('useComfyUI Hook', () => {
   let mockService: LegacyAny;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Setup mock service
     mockService = {
-      addServer: jest.fn(),
-      updateServer: jest.fn(),
-      deleteServer: jest.fn(),
-      getServer: jest.fn(),
-      getAllServers: jest.fn(),
-      getActiveServer: jest.fn(),
-      setActiveServer: jest.fn(),
-      testServer: jest.fn(),
-      testAllServers: jest.fn(),
-      getAvailableServer: jest.fn(),
-      getAutoSwitchOnFailure: jest.fn(),
-      setAutoSwitchOnFailure: jest.fn(),
-      getConfig: jest.fn(),
-      exportConfig: jest.fn(),
-      importConfig: jest.fn(),
-      clearAll: jest.fn(),
+      addServer: vi.fn(),
+      updateServer: vi.fn(),
+      deleteServer: vi.fn(),
+      getServer: vi.fn(),
+      getAllServers: vi.fn(),
+      getActiveServer: vi.fn(),
+      setActiveServer: vi.fn(),
+      testServer: vi.fn(),
+      testAllServers: vi.fn(),
+      getAvailableServer: vi.fn(),
+      getAutoSwitchOnFailure: vi.fn(),
+      setAutoSwitchOnFailure: vi.fn(),
+      getConfig: vi.fn(),
+      exportConfig: vi.fn(),
+      importConfig: vi.fn(),
+      clearAll: vi.fn(),
     };
 
     mockGetComfyUIServersService.mockReturnValue(mockService);

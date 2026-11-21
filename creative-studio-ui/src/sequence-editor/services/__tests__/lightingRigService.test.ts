@@ -5,8 +5,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   lightingRigService,
-  _LightingRig,
-  _LightingRigParameters
+  LightingRig,
+  LightingRigParameters
 } from '../lightingRigService';
 
 describe('LightingRigService', () => {

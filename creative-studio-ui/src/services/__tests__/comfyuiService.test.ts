@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * ComfyUI Service Unit Tests
  *
@@ -22,10 +23,10 @@ import { setupComfyUIMock, teardownComfyUIMock } from '../../__mocks__/comfyuiSe
 
 // Mock localStorage for testing
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 global.localStorage = localStorageMock as LegacyAny;
 
@@ -33,7 +34,7 @@ describe('ComfyUI Service', () => {
   let service: ComfyUIService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     service = ComfyUIService.getInstance();
   });
 
@@ -131,7 +132,7 @@ describe('ComfyUI Service', () => {
 
     it('should handle server not found', async () => {
       // Override fetch to simulate network error
-      global.fetch = jest.fn().mockRejectedValue(new Error('NetworkError'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('NetworkError'));
 
       const config: Partial<ComfyUIConfig> = {
         serverUrl: 'http://nonexistent:8188',
@@ -180,7 +181,7 @@ describe('ComfyUI Service', () => {
 
     it('should handle workflow fetch errors gracefully', async () => {
       // Mock fetch to fail
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const workflows = await getAvailableWorkflows('http://localhost:8188');
 
@@ -215,7 +216,7 @@ describe('ComfyUI Service', () => {
     });
 
     it('should handle model fetch errors gracefully', async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const models = await getAvailableModels('http://localhost:8188');
 
@@ -262,7 +263,7 @@ describe('ComfyUI Service', () => {
 
     it('should detect unreachable servers', async () => {
       // Mock network failure
-      global.fetch = jest.fn().mockRejectedValue(new Error('Failed to fetch'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Failed to fetch'));
 
       const config: Partial<ComfyUIConfig> = {
         serverUrl: 'http://unreachable:8188',
@@ -358,7 +359,7 @@ describe('ComfyUI Service', () => {
 
   describe('Error Handling', () => {
     it('should handle fetch errors gracefully', async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const config: Partial<ComfyUIConfig> = {
         serverUrl: 'http://localhost:8188',
@@ -372,7 +373,7 @@ describe('ComfyUI Service', () => {
 
     it('should handle JSON parse errors', async () => {
       // Mock fetch to return invalid JSON
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.reject(new Error('Invalid JSON')),
       });
@@ -387,7 +388,7 @@ describe('ComfyUI Service', () => {
     });
 
     it('should handle server errors', async () => {
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 500,
         statusText: 'Internal Server Error',
