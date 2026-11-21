@@ -239,7 +239,7 @@ describe('useCharacterPersistence', () => {
         character_id: 'test-uuid',
         name: 'Test Hero',
         creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         role: {
           archetype: 'Protagonist',
@@ -304,7 +304,7 @@ describe('useCharacterPersistence', () => {
         character_id: 'test-uuid',
         name: 'Test Hero',
         creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         role: {
           archetype: 'Protagonist',

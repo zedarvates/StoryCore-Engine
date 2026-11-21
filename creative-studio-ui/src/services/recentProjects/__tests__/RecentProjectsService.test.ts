@@ -50,19 +50,19 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
         {
           id: '3',
           name: 'Project 3',
           path: '/path/to/project3',
-          lastModified: new Date('2024-01-03'),
+          lastModified: new Date('2024-01-03').getTime(),
         },
       ];
 
@@ -92,13 +92,13 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
       ];
 
@@ -124,13 +124,13 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
       ];
 
@@ -165,13 +165,13 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
       ];
 
@@ -198,7 +198,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
       ];
 
@@ -229,13 +229,13 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
       ];
 
@@ -268,7 +268,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
       ];
 
@@ -295,13 +295,13 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
       ];
 
@@ -321,7 +321,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
       ];
 
@@ -356,19 +356,19 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '3',
           name: 'Project 3',
           path: '/path/to/project3',
-          lastModified: new Date('2024-01-03'),
+          lastModified: new Date('2024-01-03').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
         {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
       ];
 
@@ -396,13 +396,13 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
         {
           id: '2',
           name: 'Project 2',
           path: '/path/to/project2',
-          lastModified: new Date('2024-01-02'),
+          lastModified: new Date('2024-01-02').getTime(),
         },
       ];
 
@@ -422,7 +422,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
           id: '1',
           name: 'Project 1',
           path: '/path/to/project1',
-          lastModified: new Date('2024-01-01'),
+          lastModified: new Date('2024-01-01').getTime(),
         },
       ];
 
@@ -437,7 +437,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
         id: '999',
         name: 'Fake Project',
         path: '/fake/path',
-        lastModified: new Date(),
+        lastModified: Date.now(),
       });
 
       expect(service.getRecentProjects().length).toBe(1);

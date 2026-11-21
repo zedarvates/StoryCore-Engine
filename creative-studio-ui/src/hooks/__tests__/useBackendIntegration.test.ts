@@ -60,7 +60,7 @@ describe('useBackendIntegration', () => {
         type: 'grid',
         status: 'pending',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       },
     ];
 
@@ -197,7 +197,7 @@ describe('useBackendIntegration', () => {
           type: 'grid',
           status: 'pending',
           priority: 1,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
         {
           id: 'task-2',
@@ -205,7 +205,7 @@ describe('useBackendIntegration', () => {
           type: 'promotion',
           status: 'pending',
           priority: 2,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
       ];
 
@@ -236,7 +236,7 @@ describe('useBackendIntegration', () => {
           type: 'grid',
           status: 'completed',
           priority: 1,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
         {
           id: 'task-2',
@@ -244,7 +244,7 @@ describe('useBackendIntegration', () => {
           type: 'promotion',
           status: 'pending',
           priority: 2,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
       ];
 
@@ -435,7 +435,7 @@ describe('useBackendIntegration', () => {
         type: 'grid',
         status: 'processing',
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       (useAppStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({

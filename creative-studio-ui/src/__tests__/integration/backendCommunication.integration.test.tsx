@@ -277,7 +277,7 @@ describe('Backend Communication Integration', () => {
       // Simulate backend processing
       useStore.getState().updateTask('task-1', {
         status: 'processing',
-        startedAt: new Date(),
+        startedAt: Date.now(),
       });
 
       await waitFor(() => {
@@ -301,7 +301,7 @@ describe('Backend Communication Integration', () => {
 
       useStore.getState().updateTask('task-1', {
         status: 'completed',
-        completedAt: new Date(),
+        completedAt: Date.now(),
       });
 
       await waitFor(() => {

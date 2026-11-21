@@ -78,8 +78,8 @@ describe('World Store Integration', () => {
         technology: 'Medieval',
         magic: 'Elemental magic system',
         conflicts: ['War of the Five Kingdoms'],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -112,8 +112,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -148,8 +148,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -181,8 +181,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       const world2: World = {
@@ -223,8 +223,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -261,8 +261,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -297,8 +297,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -331,8 +331,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       const world2: World = {
@@ -373,8 +373,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -409,8 +409,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -448,8 +448,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -481,8 +481,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {

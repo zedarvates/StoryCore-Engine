@@ -41,7 +41,7 @@ const createMockCharacter = (overrides: Partial<Character> = {}): Character => (
   character_id: `char-${Math.random()}`,
   name: 'Test Character',
   creation_method: 'wizard',
-  creation_timestamp: new Date().toISOString(),
+  creation_timestamp: Date.now(),
   version: '1.0',
   visual_identity: {
     hair_color: 'Brown',
@@ -100,19 +100,19 @@ describe('CharacterList', () => {
       createMockCharacter({
         character_id: 'char-1',
         name: 'Alice Hero',
-        creation_timestamp: '2024-01-01T10:00:00Z',
+        creation_timestamp: Date.parse('2024-01-01T10:00:00Z'),
         role: { archetype: 'Hero', narrative_function: 'Protagonist', character_arc: 'Growth' },
       }),
       createMockCharacter({
         character_id: 'char-2',
         name: 'Bob Mentor',
-        creation_timestamp: '2024-01-02T10:00:00Z',
+        creation_timestamp: Date.parse('2024-01-02T10:00:00Z'),
         role: { archetype: 'Mentor', narrative_function: 'Guide', character_arc: 'Flat' },
       }),
       createMockCharacter({
         character_id: 'char-3',
         name: 'Charlie Villain',
-        creation_timestamp: '2024-01-03T10:00:00Z',
+        creation_timestamp: Date.parse('2024-01-03T10:00:00Z'),
         role: { archetype: 'Shadow', narrative_function: 'Antagonist', character_arc: 'Corruption' },
       }),
     ];
@@ -483,7 +483,7 @@ describe('CharacterList', () => {
       const newCharacter = createMockCharacter({
         character_id: 'char-4',
         name: 'Diana Ally',
-        creation_timestamp: '2024-01-04T10:00:00Z',
+        creation_timestamp: Date.parse('2024-01-04T10:00:00Z'),
       });
       mockCharacters.push(newCharacter);
       

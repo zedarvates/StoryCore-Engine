@@ -28,7 +28,7 @@ describe('ProgressPanel', () => {
       type: 'grid',
       status: 'processing',
       priority: 1,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     },
     {
       id: 'task-2',
@@ -36,7 +36,7 @@ describe('ProgressPanel', () => {
       type: 'promotion',
       status: 'pending',
       priority: 2,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     },
     {
       id: 'task-3',
@@ -44,7 +44,7 @@ describe('ProgressPanel', () => {
       type: 'refine',
       status: 'completed',
       priority: 3,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     },
   ];
 
@@ -154,7 +154,7 @@ describe('ProgressPanel', () => {
           type: 'grid',
           status: 'pending',
           priority: 3,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
         {
           id: 'task-2',
@@ -162,7 +162,7 @@ describe('ProgressPanel', () => {
           type: 'promotion',
           status: 'pending',
           priority: 1,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
       ];
 

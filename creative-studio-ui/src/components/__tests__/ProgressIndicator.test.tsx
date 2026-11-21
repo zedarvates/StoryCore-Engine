@@ -15,7 +15,7 @@ describe('ProgressIndicator', () => {
     type: 'grid',
     status: 'pending',
     priority: 1,
-    createdAt: new Date('2026-01-15T10:00:00Z'),
+    createdAt: new Date('2026-01-15T10:00:00Z').getTime(),
   };
 
   describe('rendering', () => {
