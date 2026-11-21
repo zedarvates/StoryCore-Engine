@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout, FormField } from '../WizardFormLayout';
+import { WizardFormLayout, FormField } from '../../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, X, History, Calendar, Briefcase, GraduationCap, Users, Flag, Terminal, Microscope, Activity } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
-import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { LLMErrorDisplay, LLMLoadingState } from '../../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 4: Chronological Data (Background)
@@ -19,7 +18,7 @@ import type { StoryContext } from './CharacterWizard';
 
 interface Step4BackgroundProps {
   worldContext?: World;
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
 export function Step4Background({ worldContext }: Step4BackgroundProps) {

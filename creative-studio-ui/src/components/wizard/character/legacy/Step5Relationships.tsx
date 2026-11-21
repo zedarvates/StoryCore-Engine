@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout, FormField } from '../WizardFormLayout';
+import { WizardFormLayout, FormField } from '../../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,14 +17,13 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useCharacters } from '@/store';
 import { cn } from '@/lib/utils';
 import type { Character, CharacterRelationship } from '@/types/character';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 5: Social Linkages (Relationships)
 // ============================================================================
 
 interface Step5RelationshipsProps {
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
 const RELATIONSHIP_TYPES = [
@@ -54,8 +53,8 @@ const RELATIONSHIP_DYNAMICS = [
   'Autonomous',
 ];
 
-export function Step5Relationships({ _storyContext }: Step5RelationshipsProps = {}) {
-  const { formData, updateFormData, _validationErrors } = useWizard<Character>();
+export function Step5Relationships(_props: Step5RelationshipsProps = {}) {
+  const { formData, updateFormData } = useWizard<Character>();
   const existingCharacters = useCharacters();
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);

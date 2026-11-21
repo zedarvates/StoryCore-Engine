@@ -1,5 +1,5 @@
 import React from 'react';
-import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../stores/worldBuilderStore';
+import { useWorldBuilderSelectors, useWorldBuilderActions } from '@/stores/worldBuilderStore';
 
 const STEPS = [
   { id: 'foundations', label: 'Foundations', description: 'Basic world setup' },

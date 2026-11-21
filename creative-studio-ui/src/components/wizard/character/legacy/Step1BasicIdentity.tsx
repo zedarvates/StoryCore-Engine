@@ -1,8 +1,8 @@
 import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout, FormField } from '../WizardFormLayout';
-import { ValidationErrorSummary } from '../ValidationErrorSummary';
+import { WizardFormLayout, FormField } from '../../WizardFormLayout';
+import { ValidationErrorSummary } from '../../ValidationErrorSummary';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,12 +18,11 @@ import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warnin
 import { useAppStore } from '@/stores/useAppStore';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { cn } from '@/lib/utils';
-import { LLMLoadingState, LLMErrorDisplay } from '../LLMErrorDisplay';
+import { LLMLoadingState, LLMErrorDisplay } from '../../LLMErrorDisplay';
 import { useMemoryStore } from '@/stores/memoryStore';
 import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS } from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 1: Neural Signature (Basic Identity)
@@ -31,7 +30,7 @@ import type { StoryContext } from './CharacterWizard';
 
 interface Step1BasicIdentityProps {
   worldContext?: World;
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
 export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {

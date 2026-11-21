@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
-import { StepValidator } from '../StepValidator';
-import { saveLocationToProject, createLocationFromWizardData } from '../../../../utils/locationStorage';
+import { useWorldBuilderSelectors, useWorldBuilderActions } from '@/stores/worldBuilderStore';
+import { StepValidator } from './StepValidator';
+import { saveLocationToProject, createLocationFromWizardData } from '@/utils/locationStorage';
 import { useStore } from '@/store';
 import { useLocationStore } from '@/stores/locationStore';
 import type { LocationReference, LocationType } from '@/types/location';
