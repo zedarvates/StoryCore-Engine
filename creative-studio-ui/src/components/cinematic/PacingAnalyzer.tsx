@@ -57,7 +57,7 @@ export function PacingAnalyzer({
       const config = PACING_CONFIGS[shot.pacing || 'medium'];
       const segment: PacingSegment = {
         shotId: shot.id,
-        title: shot.title,
+        title: shot.title ?? shot.name,
         startTime: currentTime,
         endTime: currentTime + duration,
         duration,
