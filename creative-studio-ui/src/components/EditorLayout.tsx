@@ -33,8 +33,8 @@ export function EditorLayout({
         <div className="border-b border-border bg-card">
           <GenerationButtonToolbar
             context="editor"
-            currentShot={currentShot}
-            currentSequence={currentSequence}
+            currentShot={currentShot ?? undefined}
+            currentSequence={currentSequence ?? undefined}
             onGenerationComplete={onGenerationComplete}
           />
         </div>
