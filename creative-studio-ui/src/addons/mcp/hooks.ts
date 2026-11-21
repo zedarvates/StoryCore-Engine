@@ -129,7 +129,7 @@ export function useMCPServers(): UseMCPServersResult {
     manager.getSnapshot
   );
 
-  const addServer = useCallback(async (config: MCPServerConfig) => {
+  const addServer = useCallback(async (config: Omit<MCPServerConfig, 'id'>) => {
     await manager.addServer(config);
   }, [manager]);
 

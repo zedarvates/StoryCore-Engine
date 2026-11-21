@@ -14,6 +14,7 @@ import {
   Select,
   SelectContent,
   SelectItemWithDescription,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select-rich';
