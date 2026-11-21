@@ -11,6 +11,8 @@ import { Plus, Sparkles, Users, Bookmark } from 'lucide-react';
 import { useStore } from '@/store';
 import type { CharacterSelectionData, CharacterCreationRequest, WorldContext } from '@/types/story';
 import { createCharacter } from '@/services/storyGenerationService';
+import { createEmptyCharacter } from '@/types/character';
+import { mapWizardDataToCharacter } from '@/utils/characterStorage';
 import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
@@ -138,7 +140,29 @@ export function Step2CharacterSelection() {
       } : undefined;
 
       // Call LLM service to create character (worldContext is optional)
-      const createdCharacter = await createCharacter(newCharacter, worldContext);
+      const generated = await createCharacter(newCharacter, worldContext);
+      const defaults = createEmptyCharacter();
+      const createdCharacter = mapWizardDataToCharacter({
+        character_id: generated.character_id,
+        name: generated.name,
+        creation_method: 'auto_generated',
+        visual_identity: { ...defaults.visual_identity, ...generated.visual_identity },
+        personality: {
+          ...defaults.personality,
+          ...generated.personality,
+          traits: generated.personality?.traits ?? generated.personality_traits ?? [],
+        },
+        background: {
+          ...defaults.background,
+          ...generated.background,
+          backstory: generated.background?.backstory ?? generated.backstory ?? '',
+        },
+        role: {
+          ...defaults.role,
+          ...generated.role,
+          archetype: generated.role?.archetype ?? generated.archetype ?? newCharacter.role,
+        },
+      });
 
       // Add to store
       addCharacter(createdCharacter);

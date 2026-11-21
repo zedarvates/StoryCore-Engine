@@ -75,6 +75,7 @@ export function applySceneTemplate(
     const shot: Shot = {
       id: `shot-${Date.now()}-${index}`,
       name: templateShot.name || `Shot ${index + 1}`,
+      position: index,
       startTime: currentTime,
       duration: templateShot.duration,
       layers: [

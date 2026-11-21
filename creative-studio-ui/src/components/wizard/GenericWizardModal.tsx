@@ -413,9 +413,8 @@ export function GenericWizardModal({
   }
 
   if (!isWizardTypeSupported(effectiveWizardType)) {
-    const unsupportedMessage = effectiveWizardType === 'world' ||
-      effectiveWizardType === 'character' ||
-      effectiveWizardType === 'storyteller' ? (
+    const dedicatedWizards: readonly string[] = ['world', 'character', 'storyteller'];
+    const unsupportedMessage = dedicatedWizards.includes(effectiveWizardType) ? (
       <div className="flex flex-col items-center justify-center py-8 px-4 text-white">
         <Info className="h-12 w-12 mb-4 text-blue-500" />
         <p className="text-base font-semibold text-center mb-2">

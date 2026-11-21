@@ -6,6 +6,7 @@
  */
 
 import type { OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from 'electron';
+import type { Asset } from './index';
 import type { FeedbackConfigurationAPI } from './feedbackConfiguration';
 
 export interface ProjectData {
@@ -285,6 +286,7 @@ export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
   };
 
   feedback?: { collectLogs?: (limit: number) => Promise<string[]> };
+  assets?: { scanFolder?: (folderPath: string) => Promise<Asset[]> };
 
   // Dialogs
   showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;

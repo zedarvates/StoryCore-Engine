@@ -142,7 +142,7 @@ export function WorldBuilderWizard({
         description: l.description || '',
         significance: l.significance || '',
         atmosphere: l.atmosphere || '',
-        location_type: 'exterior',
+        location_type: 'exterior' as const,
       })),
       rules: (preset.rules || []).map(r => ({
         id: crypto.randomUUID(),
