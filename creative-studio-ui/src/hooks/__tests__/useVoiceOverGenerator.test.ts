@@ -4,6 +4,7 @@ import { useVoiceOverGenerator } from '../useVoiceOverGenerator';
 import { ttsService } from '../../services/ttsService';
 import { useStore } from '../../store';
 import type { VoiceOver } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the TTS service
 vi.mock('../../services/ttsService', () => ({
@@ -17,7 +18,7 @@ describe('useVoiceOverGenerator', () => {
     vi.clearAllMocks();
     useStore.setState({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Test Shot',
           description: 'Test',
@@ -27,7 +28,7 @@ describe('useVoiceOverGenerator', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ],
     });
   });

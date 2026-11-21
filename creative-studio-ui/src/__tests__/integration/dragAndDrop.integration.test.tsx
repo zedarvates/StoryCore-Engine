@@ -10,6 +10,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useStore } from '@/store';
 import type { Shot, Asset } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Drag and Drop Integration', () => {
   beforeEach(() => {
@@ -36,7 +37,7 @@ describe('Drag and Drop Integration', () => {
       const initialShotsCount = useStore.getState().shots.length;
 
       // Add shot manually (simulating drop)
-      const newShot: Shot = {
+      const newShot: Shot = createShotFixture({
         id: `shot-${Date.now()}`,
         title: asset.name,
         description: '',
@@ -47,7 +48,7 @@ describe('Drag and Drop Integration', () => {
         textLayers: [],
         animations: [],
         position: initialShotsCount,
-      };
+      });
 
       useStore.getState().addShot(newShot);
 
@@ -72,7 +73,7 @@ describe('Drag and Drop Integration', () => {
 
       useStore.setState({ assets: [asset] });
 
-      const newShot: Shot = {
+      const newShot: Shot = createShotFixture({
         id: `shot-${Date.now()}`,
         title: 'Shot with Audio',
         description: '',
@@ -99,7 +100,7 @@ describe('Drag and Drop Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(newShot);
 
@@ -115,7 +116,7 @@ describe('Drag and Drop Integration', () => {
   describe('Shot Reordering Workflow', () => {
     beforeEach(() => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: 'First shot',
@@ -125,8 +126,8 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: 'Second shot',
@@ -136,8 +137,8 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-3',
           title: 'Shot 3',
           description: 'Third shot',
@@ -147,7 +148,7 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 2,
-        },
+        }),
       ];
 
       useStore.setState({ shots });
@@ -205,7 +206,7 @@ describe('Drag and Drop Integration', () => {
   describe('Timeline Drag Interactions', () => {
     beforeEach(() => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: 'First shot',
@@ -215,8 +216,8 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: 'Second shot',
@@ -226,7 +227,7 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       useStore.setState({ shots });
@@ -256,7 +257,7 @@ describe('Drag and Drop Integration', () => {
         .getState()
         .shots.reduce((sum, shot) => sum + shot.duration, 0);
 
-      const newShot: Shot = {
+      const newShot: Shot = createShotFixture({
         id: 'shot-3',
         title: 'Shot 3',
         description: 'Third shot',
@@ -266,7 +267,7 @@ describe('Drag and Drop Integration', () => {
         textLayers: [],
         animations: [],
         position: 2,
-      };
+      });
 
       useStore.getState().addShot(newShot);
 
@@ -299,7 +300,7 @@ describe('Drag and Drop Integration', () => {
   describe('Multi-Component Drag Workflow', () => {
     it('should synchronize canvas and timeline when shot is reordered', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: '',
@@ -309,8 +310,8 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: '',
@@ -320,7 +321,7 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       useStore.setState({ shots });
@@ -339,7 +340,7 @@ describe('Drag and Drop Integration', () => {
 
     it('should update properties panel when shot is selected via drag', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: '',
@@ -349,7 +350,7 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
+        }),
       ];
 
       useStore.setState({ shots, selectedShotId: null });
@@ -394,7 +395,7 @@ describe('Drag and Drop Integration', () => {
 
     it('should handle rapid drag operations', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: '',
@@ -404,8 +405,8 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: '',
@@ -415,7 +416,7 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       useStore.setState({ shots });

@@ -13,6 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import { SequenceGenerationService } from '../services/sequenceGenerationService';
 import { GenerationErrorHandler } from '../utils/generationErrorHandling';
 import type { Project, GenerationStatus } from '../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // ============================================================================
 // Mock Setup
@@ -37,7 +38,7 @@ const createMockProject = (): Project => ({
   schemaVersion: '1.0',
   sequences: [],
   shots: [
-    {
+    createShotFixture({
        id: 'shot-1',
        sequenceId: 'seq-1',
        startTime: 0,
@@ -50,8 +51,8 @@ const createMockProject = (): Project => ({
          suggestions: [],
        },
        metadata: {},
-     },
-     {
+     }),
+     createShotFixture({
        id: 'shot-2',
        sequenceId: 'seq-1',
        startTime: 5,
@@ -64,7 +65,7 @@ const createMockProject = (): Project => ({
          suggestions: [],
        },
        metadata: {},
-     },
+     }),
   ],
   audioPhrases: [],
   generationHistory: [],

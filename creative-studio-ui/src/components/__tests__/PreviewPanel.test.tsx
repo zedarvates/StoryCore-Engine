@@ -3,10 +3,11 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { PreviewPanel } from '../PreviewPanel';
 import { useStore } from '../../store';
 import type { Shot } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('PreviewPanel', () => {
   const mockShots: Shot[] = [
-    {
+    createShotFixture({
       id: 'shot-1',
       title: 'Shot 1',
       description: 'First shot',
@@ -16,8 +17,8 @@ describe('PreviewPanel', () => {
       effects: [],
       textLayers: [],
       animations: [],
-    },
-    {
+    }),
+    createShotFixture({
       id: 'shot-2',
       title: 'Shot 2',
       description: 'Second shot',
@@ -33,7 +34,7 @@ describe('PreviewPanel', () => {
         duration: 1,
         easing: 'ease-in-out',
       },
-    },
+    }),
   ];
 
   beforeEach(() => {

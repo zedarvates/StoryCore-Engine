@@ -4,6 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AudioPanel } from '../AudioPanel';
 import { useStore } from '../../store';
 import type { Shot, AudioTrack } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('../../store', () => ({
@@ -14,7 +15,7 @@ vi.mock('../../store', () => ({
 global.confirm = vi.fn(() => true);
 
 describe('AudioPanel', () => {
-  const mockShot: Shot = {
+  const mockShot: Shot = createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -24,7 +25,7 @@ describe('AudioPanel', () => {
     effects: [],
     textLayers: [],
     animations: [],
-  };
+  });
 
   const mockAudioTrack: AudioTrack = {
     id: 'track-1',

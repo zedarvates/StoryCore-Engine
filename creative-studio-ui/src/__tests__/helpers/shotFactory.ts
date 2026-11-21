@@ -17,11 +17,36 @@ export interface CreateShotOptions {
 }
 
 /**
+ * Fill the required fields while preserving the optional fields supplied by a test.
+ */
+export function createShotFixture(overrides: Partial<Shot>): Shot {
+  return {
+    ...overrides,
+    id: overrides.id ?? `shot-${Math.random().toString(36).slice(2, 11)}`,
+    name: overrides.name ?? overrides.title ?? 'Test shot',
+    duration: overrides.duration ?? 5,
+    position: overrides.position ?? 0,
+    startTime: overrides.startTime ?? 0,
+    prompt: overrides.prompt ?? '',
+    layers: overrides.layers ?? [],
+    referenceImages: overrides.referenceImages ?? [],
+    parameters: overrides.parameters ?? {
+      seed: -1,
+      denoising: 0.7,
+      steps: 20,
+      guidance: 7.5,
+      sampler: 'dpmpp_2m',
+      scheduler: 'karras',
+    },
+  };
+}
+
+/**
  * Create a Shot object with all required properties for testing
  */
 export function createTestShot(options: CreateShotOptions = {}): Shot {
-  return {
-    id: options.id || `shot-${Math.random().toString(36).substr(2, 9)}`,
+  return createShotFixture({
+    id: options.id || undefined,
     sequenceId: options.sequenceId || 'test-sequence',
     startTime: options.startTime ?? 0,
     duration: options.duration ?? 5,
@@ -40,7 +65,7 @@ export function createTestShot(options: CreateShotOptions = {}): Shot {
     effects: [],
     textLayers: [],
     animations: [],
-  };
+  });
 }
 
 /**

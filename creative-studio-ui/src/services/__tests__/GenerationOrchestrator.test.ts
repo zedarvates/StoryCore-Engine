@@ -11,8 +11,8 @@
  * Requirements: 12.1, 12.2, 12.3
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GenerationOrchestrator } from '../GenerationOrchestrator';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { GenerationOrchestrator, type ErrorCallback, type ProgressCallback } from '../GenerationOrchestrator';
 import type {
   GenerationProgress,
   PromptCategories,
@@ -23,13 +23,13 @@ import type {
 
 describe('GenerationOrchestrator', () => {
   let orchestrator: GenerationOrchestrator;
-  let progressCallback: ReturnType<typeof vi.fn>;
-  let errorCallback: ReturnType<typeof vi.fn>;
+  let progressCallback: Mock<ProgressCallback>;
+  let errorCallback: Mock<ErrorCallback>;
 
   beforeEach(() => {
     orchestrator = GenerationOrchestrator.getInstance();
-    progressCallback = vi.fn();
-    errorCallback = vi.fn();
+    progressCallback = vi.fn<ProgressCallback>();
+    errorCallback = vi.fn<ErrorCallback>();
   });
 
   afterEach(() => {

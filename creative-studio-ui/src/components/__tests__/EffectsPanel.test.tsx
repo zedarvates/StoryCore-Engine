@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { EffectsPanel } from '../EffectsPanel';
 import { useStore, useSelectedShot } from '../../store';
 import type { Shot, Effect } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('../../store', () => ({
@@ -17,7 +18,7 @@ describe('EffectsPanel', () => {
   const mockDeleteEffect = vi.fn();
   const mockReorderEffects = vi.fn();
 
-  const createMockShot = (effects: Effect[] = []): Shot => ({
+  const createMockShot = (effects: Effect[] = []): Shot => (createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -27,7 +28,7 @@ describe('EffectsPanel', () => {
     effects,
     textLayers: [],
     animations: [],
-  });
+  }));
 
   const createMockEffect = (overrides?: Partial<Effect>): Effect => ({
     id: 'effect-1',

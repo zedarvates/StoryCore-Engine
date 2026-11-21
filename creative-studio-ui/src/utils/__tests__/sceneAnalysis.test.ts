@@ -12,9 +12,10 @@ import {
   type SceneType,
 } from '../sceneAnalysis';
 import type { Shot } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('sceneAnalysis', () => {
-  const createShot = (title: string, description: string): Shot => ({
+  const createShot = (title: string, description: string): Shot => (createShotFixture({
     id: `shot-${Date.now()}`,
     title,
     description,
@@ -24,7 +25,7 @@ describe('sceneAnalysis', () => {
     textLayers: [],
     animations: [],
     position: 0,
-  });
+  }));
 
   describe('analyzeScene', () => {
     it('should detect dialogue scene', () => {

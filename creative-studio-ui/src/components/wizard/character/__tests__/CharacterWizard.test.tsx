@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { render, screen, waitFor, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CharacterWizard } from '../CharacterWizard';
+import { CharacterWizard, type CharacterWizardProps } from '../CharacterWizard';
 import type { Character } from '@/types/character';
 
 // ============================================================================
@@ -9,12 +9,12 @@ import type { Character } from '@/types/character';
 // ============================================================================
 
 describe('CharacterWizard - Comprehensive Tests', () => {
-  let onComplete: ReturnType<typeof vi.fn>;
-  let onCancel: ReturnType<typeof vi.fn>;
+  let onComplete: Mock<CharacterWizardProps['onComplete']>;
+  let onCancel: Mock<CharacterWizardProps['onCancel']>;
 
   beforeEach(() => {
-    onComplete = vi.fn();
-    onCancel = vi.fn();
+    onComplete = vi.fn<CharacterWizardProps['onComplete']>();
+    onCancel = vi.fn<CharacterWizardProps['onCancel']>();
     localStorage.clear();
   });
 

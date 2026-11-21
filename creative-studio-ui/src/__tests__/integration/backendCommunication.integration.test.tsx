@@ -12,6 +12,7 @@ import {
   validateProject,
 } from '@/utils/projectManager';
 import type { Project, Shot } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Backend Communication Integration', () => {
   beforeEach(() => {
@@ -33,7 +34,7 @@ describe('Backend Communication Integration', () => {
         schema_version: '1.0',
         project_name: 'Test Project',
         shots: [
-          {
+          createShotFixture({
             id: 'shot-1',
             title: 'Opening Scene',
             description: 'First shot',
@@ -43,7 +44,7 @@ describe('Backend Communication Integration', () => {
             textLayers: [],
             animations: [],
             position: 0,
-          },
+          }),
         ],
         assets: [
           {

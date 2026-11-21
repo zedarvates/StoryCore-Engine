@@ -13,6 +13,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProjectExportService } from '../projectExportService';
 import type { Project } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('ProjectExportService', () => {
   let exportService: ProjectExportService;
@@ -26,7 +27,7 @@ describe('ProjectExportService', () => {
       schema_version: '1.0',
       project_name: 'Test Project',
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Opening Scene',
           description: 'The story begins',
@@ -36,8 +37,8 @@ describe('ProjectExportService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Middle Scene',
           description: 'The plot thickens',
@@ -47,7 +48,7 @@ describe('ProjectExportService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ],
       assets: [
         {

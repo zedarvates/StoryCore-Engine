@@ -10,6 +10,7 @@ import { useBackendIntegration } from '../useBackendIntegration';
 import { useAppStore } from '@/stores/useAppStore';
 import { MockBackendApiService } from '@/services/backendApiService';
 import type { Project, Shot, GenerationTask } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('@/stores/useAppStore');
@@ -23,7 +24,7 @@ describe('useBackendIntegration', () => {
 
   beforeEach(() => {
     mockShots = [
-      {
+      createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'Test',
@@ -33,7 +34,7 @@ describe('useBackendIntegration', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      },
+      }),
     ];
 
     mockProject = {

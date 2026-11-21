@@ -7,6 +7,7 @@ import { LegacyAny } from '@/types/legacy';
 
 import { useStore } from '../index';
 import type { Shot, Asset, GenerationTask } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Zustand Store', () => {
   beforeEach(() => {
@@ -89,7 +90,7 @@ describe('Zustand Store', () => {
 
   describe('Shot Actions', () => {
     it('should add a shot', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'A test shot',
@@ -99,7 +100,7 @@ describe('Zustand Store', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
       expect(useStore.getState().shots).toHaveLength(1);
@@ -107,7 +108,7 @@ describe('Zustand Store', () => {
     });
 
     it('should update a shot', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'A test shot',
@@ -117,7 +118,7 @@ describe('Zustand Store', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
       useStore.getState().updateShot('shot-1', { title: 'Updated Shot' });
@@ -126,7 +127,7 @@ describe('Zustand Store', () => {
     });
 
     it('should delete a shot', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'A test shot',
@@ -136,7 +137,7 @@ describe('Zustand Store', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
       useStore.getState().deleteShot('shot-1');
@@ -150,7 +151,7 @@ describe('Zustand Store', () => {
     });
 
     it('should reorder shots', () => {
-      const shot1: Shot = {
+      const shot1: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot 1',
         description: 'First shot',
@@ -160,9 +161,9 @@ describe('Zustand Store', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
-      const shot2: Shot = {
+      const shot2: Shot = createShotFixture({
         id: 'shot-2',
         title: 'Shot 2',
         description: 'Second shot',
@@ -172,7 +173,7 @@ describe('Zustand Store', () => {
         textLayers: [],
         animations: [],
         position: 1,
-      };
+      });
 
       useStore.getState().addShot(shot1);
       useStore.getState().addShot(shot2);
@@ -409,7 +410,7 @@ describe('Zustand Store', () => {
     });
 
     it('should track history', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'A test shot',
@@ -419,7 +420,7 @@ describe('Zustand Store', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       // Push initial state to history
       useStore.getState().pushHistory({

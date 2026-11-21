@@ -30,6 +30,7 @@ vi.mock('../../../services/projectExportService', () => ({
 
 // Import the mocked module
 import { projectExportService } from '../../../services/projectExportService';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Menu Actions Integration', () => {
   let mockPersistenceService: ProjectPersistenceService;
@@ -54,7 +55,7 @@ describe('Menu Actions Integration', () => {
       schema_version: '1.0',
       project_name: 'Test Project',
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Test Shot',
           description: 'Test description',
@@ -65,7 +66,7 @@ describe('Menu Actions Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
+        }),
       ],
       assets: [],
       capabilities: {
