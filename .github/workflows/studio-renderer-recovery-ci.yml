@@ -50,6 +50,9 @@ jobs:
           src/components/shot/ShotFrameViewer.test.tsx
           src/services/audioSequenceIntegration.test.ts
           src/components/generation-buttons/__tests__/previewMetadata.test.tsx
+          src/components/editor/effects/effectParameterValues.test.ts
+          src/addons/mcp/MCPAddonManager.test.ts
+          src/hooks/__tests__/conditionalModalValidation.test.ts
       - name: Lint repaired grid renderers and their contracts
         run: ./node_modules/.bin/eslint src/components/gridEditor/GridRenderer.tsx src/components/gridEditor/PanelRenderer.tsx src/components/gridEditor/__tests__/rendererContracts.test.tsx tests/contracts/grid-renderer.contract.ts
       - name: Exercise grid and panel contracts
