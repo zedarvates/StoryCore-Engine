@@ -5,7 +5,7 @@
  * Simulates real ComfyUI server responses including system stats, workflows, and models.
  */
 
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 // Mock server configuration
 export interface MockComfyUIServerConfig {
@@ -290,29 +290,27 @@ export class ComfyUIServerMock {
 
 // Global mock server instance for testing
 let globalMockServer: ComfyUIServerMock | null = null;
+let restoreFetch: (() => void) | undefined;
 
 /**
  * Setup global ComfyUI server mock for testing
  */
 export function setupComfyUIMock(config: MockComfyUIServerConfig = { port: 8188 }): void {
-  globalMockServer = new ComfyUIServerMock(config);
-  globalMockServer.start();
+  teardownComfyUIMock();
+  const mockServer = new ComfyUIServerMock(config);
+  globalMockServer = mockServer;
+  mockServer.start();
 
-  // Mock the global fetch function
-  // Mock the global fetch function with proper Promise<Response> return type
-  global.fetch = jest.fn().mockImplementation((...args: unknown[]): Promise<Response> => {
-    const url = args[0] as RequestInfo | URL | string;
-    const options = (args[1] || {}) as RequestInit;
-    const urlString = typeof url === 'string' ? url : url.toString();
-    if (globalMockServer && urlString.includes(`localhost:${config.port}`)) {
-      // Ensure the mockFetch returns a Promise<Response>
-      const result = globalMockServer.mockFetch(urlString, options);
-      return Promise.resolve(result);
+  const originalFetch = globalThis.fetch.bind(globalThis);
+  const origin = `http://localhost:${config.port}`;
+  const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, options) => {
+    const url = input instanceof Request ? input.url : String(input);
+    if (url === origin || url.startsWith(`${origin}/`)) {
+      return mockServer.mockFetch(url, input instanceof Request ? { method: input.method, headers: input.headers, ...options } : options);
     }
-    // Fallback to real fetch for non-ComfyUI URLs
-    const fetchFunc = jest.requireActual('node-fetch') as typeof fetch;
-    return fetchFunc(url, options);
-  }) as unknown as typeof fetch;
+    return originalFetch(input, options);
+  });
+  restoreFetch = () => fetchMock.mockRestore();
 }
 
 /**
@@ -323,7 +321,8 @@ export function teardownComfyUIMock(): void {
     globalMockServer.stop();
     globalMockServer = null;
   }
-  jest.restoreAllMocks();
+  restoreFetch?.();
+  restoreFetch = undefined;
 }
 
 /**

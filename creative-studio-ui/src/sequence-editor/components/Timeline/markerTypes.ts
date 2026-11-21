@@ -194,17 +194,3 @@ export function getMarkersInRegion(
 ): TimelineMarker[] {
   return markers.filter(m => isPositionInRegion(m.position, region));
 }
-
-// ============================================================================
-// Export all types
-// ============================================================================
-
-export type {
-  TimelineMarker,
-  TimelineRegion,
-  ChapterPoint,
-  Annotation,
-  AnnotationReply,
-  AnnotationTargetType,
-};
-

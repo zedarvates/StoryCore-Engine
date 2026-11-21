@@ -105,7 +105,7 @@ export const VISUAL_STYLES: { value: VisualStyle; label: string; description: st
   { value: 'dramatic', label: 'Dramatique', description: 'Eclairage cinematographique, tensions visuelles' },
   { value: 'humorous', label: 'Humoristique', description: 'Couleurs vives, timing comique' },
   { value: 'elegant', label: 'Elegant', description: 'Mouvements fluides, sobriete visuelle' },
-  { value: 'minimaliste', label: 'Minimaliste', description: 'Design epure, espaces negatifs' },
+  { value: 'minimalist', label: 'Minimaliste', description: 'Design epure, espaces negatifs' },
   { value: 'energetic', label: 'Energetique', description: 'Rythme soutenu, effets percutants' }
 ];
 
@@ -148,24 +148,26 @@ export const RESOLUTION_OPTIONS = [
 // COMPOSANTS DE SELECTION
 // ============================================================================
 
-interface CardSelectionProps<T> {
+interface CardSelectionProps<T extends { value: string }> {
   options: readonly T[];
-  selectedValue: T;
-  onSelect: (value: T) => void;
+  selectedValue?: T['value'];
+  onSelect: (value: T['value']) => void;
   renderOption: (option: T) => React.ReactNode;
   className?: string;
 }
 
-function CardSelection<T>({ options, selectedValue, onSelect, renderOption, className = '' }: CardSelectionProps<T>) {
+function CardSelection<T extends { value: string }>({
+  options, selectedValue, onSelect, renderOption, className = '',
+}: CardSelectionProps<T>) {
   return (
     <div className={`grid grid-cols-2 md:grid-cols-3 gap-4 ${className}`}>
       {options.map((option) => (
         <button
-          key={String(option.value || option)}
-          onClick={() => onSelect(option.value || option)}
+          key={option.value}
+          onClick={() => onSelect(option.value)}
           className={`
             p-4 rounded-lg border-2 transition-all duration-200 text-left
-            ${selectedValue === (option.value || option)
+            ${selectedValue === option.value
               ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
               : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
             }
@@ -195,8 +197,8 @@ function Step1ContentType({ data, onUpdate }: Step1ContentTypeProps) {
       </h3>
       <CardSelection
         options={CONTENT_TYPES}
-        selectedValue={data.type || ''}
-        onSelect={(type) => onUpdate({ type: type as MarketingContentType })}
+        selectedValue={data.type}
+        onSelect={(type) => onUpdate({ type })}
         renderOption={(option) => (
           <div className="flex items-start gap-3">
             <div className="text-blue-500">{option.icon}</div>
@@ -246,8 +248,8 @@ function Step2Parameters({ data, onUpdate }: Step2ParametersProps) {
         </label>
         <CardSelection
           options={VISUAL_STYLES}
-          selectedValue={data.style || ''}
-          onSelect={(style) => onUpdate({ style: style as VisualStyle })}
+          selectedValue={data.style}
+          onSelect={(style) => onUpdate({ style })}
           renderOption={(option) => (
             <div>
               <div className="font-medium text-gray-900 dark:text-white">{option.label}</div>
@@ -267,8 +269,11 @@ function Step2Parameters({ data, onUpdate }: Step2ParametersProps) {
             <button
               key={platform.value}
               onClick={() => onUpdate({ 
-                platform: platform.value as TargetPlatform,
+                platform: platform.value,
                 exportSettings: {
+                  resolution: '1080p',
+                  format: 'mp4',
+                  quality: 'high',
                   ...data.exportSettings,
                   aspectRatio: platform.aspectRatio
                 }

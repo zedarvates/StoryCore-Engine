@@ -233,7 +233,7 @@ export function useShotCalculations(shots: Shot[]) {
       averageDuration: Math.round(totalDuration / shots.length),
       minDuration: Math.min(...durations),
       maxDuration: Math.max(...durations),
-      totalScenes: new Set(shots.map((shot) => shot.sceneId).filter(Boolean)).size,
+      totalScenes: shots.filter((shot) => 'scenes' in shot && Array.isArray(shot.scenes) && shot.scenes.length > 0).length,
     };
   }, [shots]);
 }

@@ -37,7 +37,7 @@ export function ErrorNotification({
   autoDismiss = 5000,
   onDismiss,
   position = 'top-right',
-}: ErrorNotificationProps): JSX.Element {
+}: ErrorNotificationProps): React.JSX.Element {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -221,7 +221,7 @@ export function ErrorNotificationContainer({
   autoDismiss = 5000,
   position = 'top-right',
   maxNotifications = 3,
-}: ErrorNotificationContainerProps): JSX.Element {
+}: ErrorNotificationContainerProps): React.JSX.Element {
   // Show only the most recent errors
   const visibleErrors = errors.slice(0, maxNotifications);
 
