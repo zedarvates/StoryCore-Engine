@@ -8,6 +8,7 @@ import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import { createEmptyProject } from '@/utils/projectManager';
 import type { Shot, AudioTrack, AudioEffect } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Audio Management E2E Workflow', () => {
   beforeEach(() => {
@@ -21,7 +22,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Adding Audio Tracks', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Audio',
         description: '',
@@ -31,7 +32,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -154,7 +155,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Editing Audio Properties', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Audio',
         description: '',
@@ -181,7 +182,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -277,7 +278,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Audio Effects', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Audio',
         description: '',
@@ -304,7 +305,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -414,7 +415,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Surround Sound Configuration', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Surround',
         description: '',
@@ -441,7 +442,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -529,7 +530,7 @@ describe('Audio Management E2E Workflow', () => {
   describe('Complete Audio Workflow', () => {
     it('should complete full audio management workflow', async () => {
       // Step 1: Create shot
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Professional Audio Shot',
         description: 'Shot with complete audio setup',
@@ -539,7 +540,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 

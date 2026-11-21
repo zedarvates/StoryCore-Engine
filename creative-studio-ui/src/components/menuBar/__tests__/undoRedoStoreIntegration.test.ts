@@ -26,6 +26,7 @@ describe('Undo/Redo Store Integration', () => {
     const store = useUndoRedoStore.getState();
     
     const mockState: AppState = {
+      selectedShotId: null,
       project: null,
       hasUnsavedChanges: false,
       viewState: DEFAULT_VIEW_STATE,

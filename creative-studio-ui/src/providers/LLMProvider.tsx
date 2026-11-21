@@ -59,7 +59,7 @@ export function LLMProvider({ children }: LLMProviderProps) {
         const config = llmConfigService.getConfig();
         
         // If config exists and provider is local/ollama, verify Ollama is running
-        if (config && (config.provider === 'local' || config.provider === 'ollama')) {
+        if (config && config.provider === 'local') {
           try {
             const isAvailable = await checkOllamaStatus();
             if (!isAvailable) {

@@ -66,7 +66,9 @@ const SORT_OPTIONS = [
   { value: 'dateCreated', label: 'Date Created' },
   { value: 'size', label: 'Size' },
   { value: 'type', label: 'Type' }
-];
+] as const;
+
+type SortField = typeof SORT_OPTIONS[number]['value'];
 
 export function MediaLibrary({
   assets,
@@ -82,7 +84,7 @@ export function MediaLibrary({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('root');
-  const [sortBy, setSortBy] = useState('dateModified');
+  const [sortBy, setSortBy] = useState<SortField>('dateModified');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<string>('all');
   const [showUpload, setShowUpload] = useState(false);
@@ -104,20 +106,12 @@ export function MediaLibrary({
       return matchesSearch && matchesType;
     })
     .sort((a, b) => {
-      let aValue: unknown = a[sortBy as keyof MediaAsset];
-      let bValue: unknown = b[sortBy as keyof MediaAsset];
-
-      if (sortBy === 'size') {
-        aValue = a.size;
-        bValue = b.size;
-      } else if (sortBy.startsWith('date')) {
-        aValue = a[sortBy as keyof MediaAsset] as Date;
-        bValue = b[sortBy as keyof MediaAsset] as Date;
-      }
-
-      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
-      return 0;
+      const comparison = sortBy === 'name' || sortBy === 'type'
+        ? a[sortBy].localeCompare(b[sortBy])
+        : sortBy === 'size'
+          ? a.size - b.size
+          : a[sortBy].getTime() - b[sortBy].getTime();
+      return sortOrder === 'asc' ? comparison : -comparison;
     });
 
   // Build folder tree
@@ -444,8 +438,11 @@ export function MediaLibrary({
             value={`${sortBy}-${sortOrder}`}
             onChange={(e) => {
               const [field, order] = e.target.value.split('-');
-              setSortBy(field);
-              setSortOrder(order as 'asc' | 'desc');
+              const option = SORT_OPTIONS.find(({ value }) => value === field);
+              if (option && (order === 'asc' || order === 'desc')) {
+                setSortBy(option.value);
+                setSortOrder(order);
+              }
             }}
           >
             {SORT_OPTIONS.map(option => (

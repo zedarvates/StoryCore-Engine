@@ -9,10 +9,10 @@
  * Requirements: 3.2, 3.3, 3.4, 3.5, 12.1
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { CharacterWizard, type StoryContext } from '../CharacterWizard';
+import { CharacterWizard, type CharacterWizardProps, type StoryContext } from '../CharacterWizard';
 import { eventEmitter, CharacterEventType } from '@/services/eventEmitter';
 import type { Character } from '@/types/character';
 import type { CharacterCreatedEventPayload } from '@/services/characterEvents';
@@ -148,13 +148,13 @@ async function completeWizard(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('CharacterWizard - Completion Handler (Task 13)', () => {
-  let onComplete: ReturnType<typeof vi.fn>;
-  let onCancel: ReturnType<typeof vi.fn>;
+  let onComplete: Mock<CharacterWizardProps['onComplete']>;
+  let onCancel: Mock<CharacterWizardProps['onCancel']>;
   let eventListener: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    onComplete = vi.fn();
-    onCancel = vi.fn();
+    onComplete = vi.fn<CharacterWizardProps['onComplete']>();
+    onCancel = vi.fn<CharacterWizardProps['onCancel']>();
     eventListener = vi.fn();
     
     // Subscribe to character-created events

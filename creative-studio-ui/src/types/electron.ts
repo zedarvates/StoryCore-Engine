@@ -285,6 +285,7 @@ export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
   };
 
   // Dialogs
+  showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
   dialog: {
     showSaveDialog: (options: SaveDialogOptions) => Promise<SaveDialogReturnValue>;
     showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue>;

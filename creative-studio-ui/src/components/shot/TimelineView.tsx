@@ -134,6 +134,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         ) : (
           <div className="space-y-2">
             {shots.map((shot, index) => {
+              const status = typeof shot.metadata?.status === 'string' ? shot.metadata.status : undefined;
               const isSelected = shot.id === selectedShotId;
               const isDragging = dragState.draggedIndex === index;
               const isDragOver = dragState.dragOverIndex === index;
@@ -204,14 +205,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                             🔊 {shot.audioTracks.length} track{shot.audioTracks.length > 1 ? 's' : ''}
                           </span>
                         )}
-                        {shot.metadata?.status && (
+                        {status && (
                           <span className={`text-xs px-2 py-0.5 rounded ${
-                            shot.metadata.status === 'ready' ? 'bg-green-900 text-green-300' :
-                            shot.metadata.status === 'generating' ? 'bg-yellow-900 text-yellow-300' :
-                            shot.metadata.status === 'failed' ? 'bg-red-900 text-red-300' :
+                            status === 'ready' ? 'bg-green-900 text-green-300' :
+                            status === 'generating' ? 'bg-yellow-900 text-yellow-300' :
+                            status === 'failed' ? 'bg-red-900 text-red-300' :
                             'bg-gray-700 text-gray-400'
                           }`}>
-                            {shot.metadata.status}
+                            {status}
                           </span>
                         )}
                       </div>

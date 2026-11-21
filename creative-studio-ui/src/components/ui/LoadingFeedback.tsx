@@ -452,9 +452,9 @@ export function ProgressBar({
           sizeClasses[size]
         )}
         role="progressbar"
-        aria-valuenow={value.toString()}
-        aria-valuemin="0"
-        aria-valuemax={max.toString()}
+        aria-valuenow={value}
+        aria-valuemin={0}
+        aria-valuemax={max}
         aria-label={label}
       >
         <div

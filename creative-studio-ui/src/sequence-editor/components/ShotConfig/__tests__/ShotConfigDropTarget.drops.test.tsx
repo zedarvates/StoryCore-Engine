@@ -25,6 +25,7 @@ import type { Shot, Asset } from '../../../types';
 // ============================================================================
 
 const mockShot: Shot = {
+  position: 0,
   id: 'shot-1',
   name: 'Test Shot',
   startTime: 0,

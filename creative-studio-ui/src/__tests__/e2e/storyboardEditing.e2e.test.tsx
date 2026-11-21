@@ -8,6 +8,7 @@ import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import { createEmptyProject } from '@/utils/projectManager';
 import type { Shot, Effect, TextLayer, Transition } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Storyboard Editing E2E Workflow', () => {
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
   describe('Shot Editing', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Original Title',
         description: 'Original description',
@@ -33,7 +34,7 @@ describe('Storyboard Editing E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -75,7 +76,7 @@ describe('Storyboard Editing E2E Workflow', () => {
   describe('Shot Reordering', () => {
     beforeEach(() => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: '',
@@ -85,8 +86,8 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: '',
@@ -96,8 +97,8 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-3',
           title: 'Shot 3',
           description: '',
@@ -107,7 +108,7 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 2,
-        },
+        }),
       ];
 
       shots.forEach((shot) => useStore.getState().addShot(shot));
@@ -145,7 +146,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
   describe('Adding Effects', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Effects',
         description: '',
@@ -155,7 +156,7 @@ describe('Storyboard Editing E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -296,7 +297,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
   describe('Adding Text Layers', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Text',
         description: '',
@@ -306,7 +307,7 @@ describe('Storyboard Editing E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -407,7 +408,7 @@ describe('Storyboard Editing E2E Workflow', () => {
   describe('Adding Transitions', () => {
     beforeEach(() => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: '',
@@ -417,8 +418,8 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: '',
@@ -428,7 +429,7 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       shots.forEach((shot) => useStore.getState().addShot(shot));
@@ -501,7 +502,7 @@ describe('Storyboard Editing E2E Workflow', () => {
     it('should complete full storyboard editing workflow', async () => {
       // Step 1: Add initial shots
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Opening',
           description: 'Opening scene',
@@ -511,8 +512,8 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Middle',
           description: 'Middle scene',
@@ -522,8 +523,8 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-3',
           title: 'Closing',
           description: 'Closing scene',
@@ -533,7 +534,7 @@ describe('Storyboard Editing E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 2,
-        },
+        }),
       ];
 
       shots.forEach((shot) => useStore.getState().addShot(shot));

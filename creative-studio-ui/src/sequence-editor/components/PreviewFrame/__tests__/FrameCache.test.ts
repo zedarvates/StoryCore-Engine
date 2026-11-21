@@ -6,7 +6,7 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
 import { FrameCache, createCanvasRenderFunction, formatTimecode } from '../FrameCache';
 
 // Mock performance.now
@@ -14,7 +14,7 @@ const mockPerformanceNow = vi.spyOn(performance, 'now');
 
 describe('FrameCache', () => {
   let frameCache: FrameCache;
-  let mockRenderFn: ReturnType<typeof vi.fn>;
+  let mockRenderFn: Mock<Parameters<FrameCache['getFrame']>[2]>;
   
   beforeEach(() => {
     frameCache = new FrameCache({
@@ -25,7 +25,7 @@ describe('FrameCache', () => {
       renderTimeout: 200,
     });
     
-    mockRenderFn = vi.fn(async (frame: number, quality: 'low' | 'high') => {
+    mockRenderFn = vi.fn<Parameters<FrameCache['getFrame']>[2]>(async (frame: number, quality: 'low' | 'high') => {
       // Simulate render time
       await new Promise((resolve) => setTimeout(resolve, 10));
       

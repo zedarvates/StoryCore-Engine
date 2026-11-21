@@ -8,6 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ProjectService } from '../ProjectService';
 import type { ProjectData, ShotInput } from '../../../types/project';
 import type { Shot } from '../../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock window.electronAPI
 const mockElectronAPI = {
@@ -146,7 +147,7 @@ describe('ProjectService', () => {
 
   describe('updateShot', () => {
     it('should update an existing shot', async () => {
-      const existingShot: Shot = {
+      const existingShot: Shot = createShotFixture({
         id: 'shot_1000_0',
         title: 'Original Title',
         description: 'Original description',
@@ -156,7 +157,7 @@ describe('ProjectService', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      };
+      });
       mockProjectData.storyboard = [existingShot];
       mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
       mockElectronAPI.fs.writeFile.mockResolvedValue(undefined);
@@ -179,7 +180,7 @@ describe('ProjectService', () => {
   describe('deleteShot', () => {
     it('should delete a shot and update positions', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot_1000_0',
           title: 'Shot 1',
           description: '',
@@ -189,8 +190,8 @@ describe('ProjectService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot_1001_1',
           title: 'Shot 2',
           description: '',
@@ -200,7 +201,7 @@ describe('ProjectService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
       mockProjectData.storyboard = shots;
       mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
@@ -214,7 +215,7 @@ describe('ProjectService', () => {
 
   describe('addShotsToStoryboard', () => {
     it('should add shots with correct positions', async () => {
-      const existingShot: Shot = {
+      const existingShot: Shot = createShotFixture({
         id: 'shot_1000_0',
         title: 'Existing Shot',
         description: '',
@@ -224,13 +225,13 @@ describe('ProjectService', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      };
+      });
       mockProjectData.storyboard = [existingShot];
       mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
       mockElectronAPI.fs.writeFile.mockResolvedValue(undefined);
 
       const newShots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot_2000_0',
           title: 'New Shot 1',
           description: '',
@@ -240,7 +241,7 @@ describe('ProjectService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
 
       await service.addShotsToStoryboard('/test/project', newShots);
@@ -252,7 +253,7 @@ describe('ProjectService', () => {
   describe('reorderShots', () => {
     it('should reorder shots correctly', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot_1000_0',
           title: 'Shot 1',
           description: '',
@@ -262,8 +263,8 @@ describe('ProjectService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot_1001_1',
           title: 'Shot 2',
           description: '',
@@ -273,7 +274,7 @@ describe('ProjectService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
       mockProjectData.storyboard = shots;
       mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));
@@ -286,7 +287,7 @@ describe('ProjectService', () => {
 
     it('should throw error if shot IDs are missing', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot_1000_0',
           title: 'Shot 1',
           description: '',
@@ -296,7 +297,7 @@ describe('ProjectService', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ];
       mockProjectData.storyboard = shots;
       mockElectronAPI.fs.readFile.mockResolvedValue(createBufferMock(mockProjectData));

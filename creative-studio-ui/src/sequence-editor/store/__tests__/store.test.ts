@@ -14,21 +14,23 @@ import toolsReducer from '../slices/toolsSlice';
 import previewReducer from '../slices/previewSlice';
 import historyReducer from '../slices/historySlice';
 
+const createTestStore = () => configureStore({
+    reducer: {
+      project: projectReducer,
+      timeline: timelineReducer,
+      assets: assetsReducer,
+      panels: panelsReducer,
+      tools: toolsReducer,
+      preview: previewReducer,
+      history: historyReducer,
+    },
+  });
+
 describe('Redux Store Configuration', () => {
-  let store: ReturnType<typeof configureStore>;
+  let store: ReturnType<typeof createTestStore>;
 
   beforeEach(() => {
-    store = configureStore({
-      reducer: {
-        project: projectReducer,
-        timeline: timelineReducer,
-        assets: assetsReducer,
-        panels: panelsReducer,
-        tools: toolsReducer,
-        preview: previewReducer,
-        history: historyReducer,
-      },
-    });
+    store = createTestStore();
   });
 
   it('should initialize with default state', () => {

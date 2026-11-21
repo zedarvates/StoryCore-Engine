@@ -12,6 +12,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PromptManagementPanel } from '../PromptManagementPanel';
 import type { Shot } from '../../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the ProjectContext
 const mockUseProject = vi.fn();
@@ -30,7 +31,7 @@ vi.mock('../ShotPromptEditor', () => ({
 }));
 
 describe('PromptManagementPanel', () => {
-  const createMockShot = (id: string, prompt: string = '', isValid: boolean = false): Shot => ({
+  const createMockShot = (id: string, prompt: string = '', isValid: boolean = false): Shot => (createShotFixture({
     id,
     sequenceId: 'seq-1',
     startTime: 0,
@@ -40,7 +41,7 @@ describe('PromptManagementPanel', () => {
       ? { isValid: true, errors: [], warnings: [], suggestions: [] }
       : { isValid: false, errors: [{ type: 'too_short', message: 'Prompt is too short', field: 'prompt' }], warnings: [], suggestions: [] },
     metadata: {},
-  });
+  }));
 
   const createMockContext = (shots: Shot[] = [], selectedShot: Shot | null = null) => {
     const complete = shots.filter(s => s.promptValidation?.isValid).length;

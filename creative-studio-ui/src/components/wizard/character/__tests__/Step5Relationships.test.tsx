@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Step5Relationships } from '../Step5Relationships';
+import { Step5Relationships } from '../legacy/Step5Relationships';
 import { WizardProvider } from '@/contexts/WizardContext';
 import type { Character } from '@/types/character';
 import { createEmptyCharacter } from '@/types/character';

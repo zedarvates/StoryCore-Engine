@@ -171,7 +171,6 @@ function lerpVector3(
 
 export function CameraPresetControl({
   currentPosition = [5, 5, 5],
-  _currentTarget = [0, 0, 0],
   onCameraChange,
   onAutoRotateChange,
   onReset,

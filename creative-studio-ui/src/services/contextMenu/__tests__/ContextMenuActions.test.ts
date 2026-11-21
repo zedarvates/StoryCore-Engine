@@ -10,9 +10,10 @@ import {
   exportShots
 } from '../ContextMenuActions';
 import { Shot } from '../../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('ContextMenuActions', () => {
-  const mockShot: Shot = {
+  const mockShot: Shot = createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -22,7 +23,7 @@ describe('ContextMenuActions', () => {
     effects: [],
     textLayers: [],
     animations: []
-  };
+  });
 
   describe('generateDuplicateName', () => {
     it('generates name with (2) suffix for first duplicate', () => {

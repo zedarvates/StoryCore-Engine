@@ -51,7 +51,6 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
 export const LanguageSelector = memo(function LanguageSelector({
   currentLanguage,
   onLanguageChange,
-  _position = 'bottom',
 }: LanguageSelectorProps) {
   const currentLanguageOption = SUPPORTED_LANGUAGES.find(
     (lang) => lang.code === currentLanguage

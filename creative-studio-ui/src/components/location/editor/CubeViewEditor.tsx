@@ -192,6 +192,7 @@ export function CubeViewEditor({
         <div className="cube-view-editor__modal-overlay" onClick={handleCloseGenerator}>
           <div className="cube-view-editor__modal" onClick={(e) => e.stopPropagation()}>
             <CubeFaceGenerator
+              locationId={location.location_id}
               face={editingFace}
               existingTexture={location.cube_textures[editingFace]}
               onGenerate={(texture) => handleTextureUpdate(editingFace, texture)}

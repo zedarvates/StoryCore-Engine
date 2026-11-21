@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { TransitionPanel } from '../TransitionPanel';
 import { useStore, useSelectedShot } from '../../store';
 import type { Shot, Transition } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('../../store', () => ({
@@ -14,7 +15,7 @@ vi.mock('../../store', () => ({
 describe('TransitionPanel', () => {
   const mockSetTransition = vi.fn();
   
-  const createMockShot = (id: string, title: string, position: number, transitionOut?: Transition): Shot => ({
+  const createMockShot = (id: string, title: string, position: number, transitionOut?: Transition): Shot => (createShotFixture({
     id,
     title,
     description: `Description for ${title}`,
@@ -25,7 +26,7 @@ describe('TransitionPanel', () => {
     textLayers: [],
     animations: [],
     transitionOut,
-  });
+  }));
 
   const createMockTransition = (overrides?: Partial<Transition>): Transition => ({
     id: 'transition-1',

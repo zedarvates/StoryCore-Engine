@@ -12,9 +12,9 @@
  * Requirements: 8.1-8.12
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useKeyboardShortcuts } from '../useKeyboardShortcuts';
+import { useKeyboardShortcuts, type KeyboardShortcutsConfig } from '../useKeyboardShortcuts';
 import { useGridStore } from '../../../stores/gridEditorStore';
 import { useUndoRedoStore } from '../../../stores/undoRedoStore';
 import { useViewportStore } from '../../../stores/viewportStore';
@@ -62,9 +62,9 @@ const createMockInput = (tagName: string = 'input'): HTMLElement => {
 // ============================================================================
 
 describe('useKeyboardShortcuts', () => {
-  let onShortcut: ReturnType<typeof vi.fn>;
-  let onDelete: ReturnType<typeof vi.fn>;
-  let onDuplicate: ReturnType<typeof vi.fn>;
+  let onShortcut: Mock<NonNullable<KeyboardShortcutsConfig['onShortcut']>>;
+  let onDelete: Mock<NonNullable<KeyboardShortcutsConfig['onDelete']>>;
+  let onDuplicate: Mock<NonNullable<KeyboardShortcutsConfig['onDuplicate']>>;
 
   beforeEach(() => {
     // Reset all stores
@@ -73,9 +73,9 @@ describe('useKeyboardShortcuts', () => {
     useViewportStore.getState().resetViewport();
 
     // Create mock callbacks
-    onShortcut = vi.fn();
-    onDelete = vi.fn();
-    onDuplicate = vi.fn();
+    onShortcut = vi.fn<NonNullable<KeyboardShortcutsConfig['onShortcut']>>();
+    onDelete = vi.fn<NonNullable<KeyboardShortcutsConfig['onDelete']>>();
+    onDuplicate = vi.fn<NonNullable<KeyboardShortcutsConfig['onDuplicate']>>();
   });
 
   afterEach(() => {

@@ -8,21 +8,8 @@
  */
 
 import { contextBridge, ipcRenderer } from 'electron';
-
-/**
- * API exposed to the renderer process
- */
-export interface TOSElectronAPI {
-  /**
-   * Send acceptance message to main process
-   */
-  sendAcceptance: () => void;
-  
-  /**
-   * Send exit message to main process
-   */
-  sendExit: () => void;
-}
+import type { TOSElectronAPI } from '../creative-studio-ui/src/types/tos';
+export type { TOSElectronAPI } from '../creative-studio-ui/src/types/tos';
 
 /**
  * Expose TOS-specific API to renderer process via contextBridge
@@ -48,13 +35,4 @@ contextBridge.exposeInMainWorld('tosAPI', {
   sendExit: (): void => {
     ipcRenderer.send('tos:exit');
   },
-} as TOSElectronAPI);
-
-/**
- * Type declaration for window object with TOS API
- */
-declare global {
-  interface Window {
-    tosAPI: TOSElectronAPI;
-  }
-}
+} satisfies TOSElectronAPI);

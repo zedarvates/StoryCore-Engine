@@ -28,7 +28,7 @@ export const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
         ref={ref}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, cubicBezier: [0.4, 0, 0.2, 1] }}
+        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
         className={cn(
           'relative overflow-hidden rounded-2xl transition-all duration-300',
           intensityMap[intensity],

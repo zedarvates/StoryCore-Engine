@@ -13,6 +13,7 @@ import type { Shot, Layer } from '../../../types';
 
 // Mock shot data
 const mockShot: Shot = {
+  position: 0,
   id: 'shot-1',
   name: 'Test Shot',
   startTime: 0,

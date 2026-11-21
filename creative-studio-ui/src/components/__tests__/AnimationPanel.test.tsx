@@ -4,6 +4,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { AnimationPanel } from '../AnimationPanel';
 import { useStore } from '../../store';
 import type { Shot, Animation, Keyframe } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('../../store', () => ({
@@ -11,7 +12,7 @@ vi.mock('../../store', () => ({
 }));
 
 describe('AnimationPanel', () => {
-  const mockShot: Shot = {
+  const mockShot: Shot = createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -21,7 +22,7 @@ describe('AnimationPanel', () => {
     effects: [],
     textLayers: [],
     animations: [],
-  };
+  });
 
   const mockAddAnimation = vi.fn();
   const mockUpdateAnimation = vi.fn();

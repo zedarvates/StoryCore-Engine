@@ -12,7 +12,7 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
 // Colors for console output
-const _colors = {
+const colors = {
   reset: '\x1b[0m',
   red: '\x1b[31m',
   green: '\x1b[32m',
@@ -20,7 +20,8 @@ const _colors = {
   blue: '\x1b[34m',
 };
 
-function log(_color: keyof typeof colors, _message: string) {
+function log(color: keyof typeof colors, message: string) {
+  console.log(colors[color] + message + colors.reset);
 }
 
 async function runCommand(command: string): Promise<boolean> {

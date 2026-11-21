@@ -44,7 +44,7 @@ interface Tool {
 // Tool Definitions (Professional Icons)
 // ============================================================================
 
-const TOOLS: Tool[] = [
+export const TOOLS: Tool[] = [
   // Primary Tools
   { id: 'select', name: 'Select', icon: <MousePointer2 className="w-4 h-4" />, shortcut: 'V', category: 'primary', description: 'Select and move shots' },
   { id: 'cut', name: 'Cut', icon: <Scissors className="w-4 h-4" />, shortcut: 'C', category: 'primary', description: 'Split shots at playhead' },

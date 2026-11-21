@@ -115,8 +115,8 @@ export function useProgressTracking(
               ...task,
               status,
               error,
-              startedAt: status === 'processing' && !task.startedAt ? new Date() : task.startedAt,
-              completedAt: status === 'completed' || status === 'failed' ? new Date() : task.completedAt,
+              startedAt: status === 'processing' && !task.startedAt ? Date.now() : task.startedAt,
+              completedAt: status === 'completed' || status === 'failed' ? Date.now() : task.completedAt,
             }
           : task
       );

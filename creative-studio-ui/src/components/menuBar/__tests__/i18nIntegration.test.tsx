@@ -33,6 +33,7 @@ vi.mock('../../../services/recentProjects', () => ({
 
 describe('MenuBar i18n Integration', () => {
   const mockViewState: ViewState = {
+    zoomStep: 25,
     timelineVisible: true,
     gridVisible: false,
     zoomLevel: 100,
@@ -63,6 +64,7 @@ describe('MenuBar i18n Integration', () => {
 
   const defaultProps = {
     project: null,
+    selectedShotId: null,
     hasUnsavedChanges: false,
     onProjectChange: vi.fn(),
     onViewStateChange: vi.fn(),

@@ -10,7 +10,7 @@ import { AlertCircle, Download, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { emergencyExportWizardState, type WizardType } from '@/utils/wizardStorage';
 
-interface Props {
+export interface WizardErrorBoundaryProps {
   children: ReactNode;
   wizardType: WizardType;
   onReset?: () => void;
@@ -23,8 +23,8 @@ interface State {
   dataExported: boolean;
 }
 
-export class WizardErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
+export class WizardErrorBoundary extends Component<WizardErrorBoundaryProps, State> {
+  constructor(props: WizardErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,

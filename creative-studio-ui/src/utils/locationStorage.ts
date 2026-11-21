@@ -274,7 +274,8 @@ export async function loadAllLocationsInProject(
   projectId: string
 ): Promise<Location[]> {
   try {
-    if (!window.electronAPI?.fs) {
+    const fs = window.electronAPI?.fs;
+    if (!fs) {
       // Fallback to localStorage
       const key = `project-${projectId}-locations`;
       const existingLocationsObj = JSON.parse(localStorage.getItem(key) || '{}');
@@ -282,19 +283,19 @@ export async function loadAllLocationsInProject(
     }
 
     const locationsBaseDir = getLocationsDir(projectId);
-    const exists = await window.electronAPI.fs.exists(locationsBaseDir);
+    const exists = await fs.exists(locationsBaseDir);
     if (!exists) return [];
 
-    const folders = await window.electronAPI.fs.readdir(locationsBaseDir);
+    const folders = await fs.readdir(locationsBaseDir);
     
     // Process all folders in parallel
     const locationPromises = folders.map(async (folder) => {
       const filePath = `${locationsBaseDir}/${folder}/location.json`;
       try {
-        const fileExists = await window.electronAPI.fs.exists(filePath);
+        const fileExists = await fs.exists(filePath);
         if (!fileExists) return null;
 
-        const fileContent = await window.electronAPI.fs.readFile(filePath);
+        const fileContent = await fs.readFile(filePath);
         return JSON.parse(new TextDecoder().decode(fileContent)) as Location;
       } catch (err) {
         console.warn(`[locationStorage] Failed to read location in folder ${folder}:`, err);

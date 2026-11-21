@@ -25,6 +25,7 @@ const createTestStore = (initialState = {}) => {
 
 // Helper to create mock shots
 const createMockShot = (id: string): Shot => ({
+  position: 0,
   id,
   name: `Shot ${id}`,
   startTime: 0,

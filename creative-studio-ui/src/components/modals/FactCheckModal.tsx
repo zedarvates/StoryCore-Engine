@@ -84,7 +84,7 @@ export function FactCheckModal({ isOpen, onClose }: FactCheckModalProps) {
     const resultId = `fact-${Date.now()}`;
 
     try {
-      const llmService = getLLMService();
+      const llmService = await getLLMService();
 
       const response = await llmService.generateCompletion({
         prompt: `Please fact-check the following statement:\n\n"${query}"`,

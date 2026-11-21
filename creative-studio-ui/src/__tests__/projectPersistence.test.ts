@@ -15,6 +15,7 @@ import {
   type LoadResult,
 } from '../services/persistence/projectPersistence';
 import type { Project } from '../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // ============================================================================
 // Mock Storage Backend
@@ -86,14 +87,14 @@ function createTestProject(id: string = 'test-project'): Project {
     schemaVersion: '1.0',
     sequences: [],
     shots: [
-      {
+      createShotFixture({
         id: 'shot-1',
         sequenceId: 'seq-1',
         startTime: 0,
         duration: 5,
         prompt: 'A beautiful sunset over the ocean',
         metadata: {},
-      },
+      }),
     ],
     audioPhrases: [],
     generationHistory: [],

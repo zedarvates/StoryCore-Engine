@@ -6,6 +6,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { StoryboardCanvas } from '../StoryboardCanvas';
 import type { Shot } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 const mockSelectShot = vi.fn();
@@ -341,7 +342,7 @@ describe('StoryboardCanvas', () => {
   describe('Responsive Layout', () => {
     it('should apply responsive grid classes', () => {
       mockShots = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Test Shot',
           description: 'Test',
@@ -351,7 +352,7 @@ describe('StoryboardCanvas', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
+        }),
       ];
 
       const { container } = render(<StoryboardCanvas />);
@@ -368,7 +369,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Duration Formatting', () => {
-    const createMockShot = (duration: number): Shot => ({
+    const createMockShot = (duration: number): Shot => (createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test',
@@ -378,7 +379,7 @@ describe('StoryboardCanvas', () => {
       textLayers: [],
       animations: [],
       position: 0,
-    });
+    }));
 
     it('should format duration correctly for seconds only', () => {
       mockShots = [createMockShot(45)];

@@ -290,7 +290,7 @@ function DiagnosticCheckItem({ name, check }: DiagnosticCheckItemProps) {
         </div>
       </div>
 
-      {expanded && check.details && (
+      {expanded && check.details != null && (
         <div className="mt-2 pl-6 border-l-2 border-border">
           <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
             {JSON.stringify(check.details, null, 2)}
