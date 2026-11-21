@@ -39,7 +39,11 @@ export function useProjectPersistence() {
       // Restore project metadata and settings
       if (savedProject.project) {
         if (savedProject.project.metadata) {
-          dispatch(setProject(savedProject.project.metadata));
+          dispatch(setProject({
+            ...savedProject.project.metadata,
+            metadata: savedProject.project.metadata,
+            sequences: savedProject.project.sequences,
+          }));
         }
         if (savedProject.project.settings) {
           dispatch(updateSettings(savedProject.project.settings));
@@ -74,7 +78,7 @@ export function useProjectPersistence() {
       // Set save status to saved
       dispatch(setSaveStatus({
         state: 'saved',
-        lastSaveTime: savedProject.timestamp || Date.now(), // Use timestamp directly
+        lastSaveTime: savedProject.timestamp,
       }));
       
       return true;

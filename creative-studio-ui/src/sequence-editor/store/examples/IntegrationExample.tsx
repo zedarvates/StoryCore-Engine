@@ -30,6 +30,7 @@ export function TimelineExample() {
     const newShot: Shot = {
       id: `shot-${Date.now()}`,
       name: 'New Shot',
+      position: shots.length,
       startTime: playheadPosition,
       duration: 100,
       layers: [],

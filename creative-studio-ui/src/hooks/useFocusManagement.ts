@@ -17,9 +17,9 @@ export interface UseFocusManagementOptions {
   /** Whether focus management is active */
   enabled?: boolean;
   /** Element to focus when enabled */
-  initialFocusRef?: React.RefObject<HTMLElement>;
+  initialFocusRef?: React.RefObject<HTMLElement | null>;
   /** Element to restore focus to when disabled */
-  restoreFocusRef?: React.RefObject<HTMLElement>;
+  restoreFocusRef?: React.RefObject<HTMLElement | null>;
   /** Whether to trap focus within container */
   trapFocus?: boolean;
 }
@@ -35,7 +35,7 @@ export interface UseFocusManagementOptions {
  * Provides focus trapping and restoration capabilities.
  */
 export const useFocusManagement = (
-  containerRef: React.RefObject<HTMLElement>,
+  containerRef: React.RefObject<HTMLElement | null>,
   options: UseFocusManagementOptions = {}
 ): void => {
   const {

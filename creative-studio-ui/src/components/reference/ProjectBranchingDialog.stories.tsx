@@ -6,8 +6,9 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ComponentType } from 'react';
 import { ProjectBranchingDialog } from './ProjectBranchingDialog';
-import type { BranchInfo, ContextScope } from '../../services/projectBranchingService';
+import type { BranchInfo, ContextScope, ContextExport } from '../../services/projectBranchingService';
 
 // ============================================================================
 // Mock Data
@@ -87,8 +88,8 @@ const meta = {
     currentProjectId: 'project_1',
     currentShotId: 'shot_5',
     onClose: () => console.log('Dialog closed'),
-    onBranchCreated: (branchInfo) => console.log('Branch created:', branchInfo),
-    onContextImported: (context) => console.log('Context imported:', context),
+    onBranchCreated: (branchInfo: BranchInfo) => console.log('Branch created:', branchInfo),
+    onContextImported: (context: ContextExport) => console.log('Context imported:', context),
   },
 } satisfies Meta<typeof ProjectBranchingDialog>;
 
@@ -110,7 +111,7 @@ export const Default: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -129,7 +130,7 @@ export const ImportContextTab: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -148,7 +149,7 @@ export const BranchHistoryTab: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -167,7 +168,7 @@ export const ProjectLevelBranching: Story = {
     currentShotId: undefined,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -186,7 +187,7 @@ export const WithBranchName: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -205,7 +206,7 @@ export const WithDescription: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -224,7 +225,7 @@ export const AllOptionsSelected: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -243,7 +244,7 @@ export const MultipleBranches: Story = {
     currentShotId: 'shot_10',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -262,7 +263,7 @@ export const ShotLevelScope: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -281,7 +282,7 @@ export const ProjectLevelScope: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -300,7 +301,7 @@ export const ArchivedBranches: Story = {
     currentShotId: 'shot_5',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -319,7 +320,7 @@ export const NoBranches: Story = {
     currentShotId: undefined,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
