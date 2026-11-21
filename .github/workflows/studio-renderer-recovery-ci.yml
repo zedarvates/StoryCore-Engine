@@ -13,7 +13,8 @@ permissions:
 
 jobs:
   renderer:
-    runs-on: ubuntu-latest
+    # The locked Playwright release ships its Chromium shell for Ubuntu 24.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
