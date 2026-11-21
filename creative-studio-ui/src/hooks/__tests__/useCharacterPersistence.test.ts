@@ -45,6 +45,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -119,6 +122,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -145,6 +151,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',
@@ -180,6 +187,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -206,6 +216,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',
@@ -248,6 +259,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -274,6 +288,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',
@@ -313,6 +328,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -339,6 +357,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',

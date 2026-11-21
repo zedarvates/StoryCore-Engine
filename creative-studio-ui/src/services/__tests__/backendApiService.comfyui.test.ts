@@ -23,7 +23,7 @@ describe('Backend API ComfyUI requests', () => {
   });
 
   it('stores the selected ComfyUI configuration', () => {
-    expect(api.getComfyUIConfig()).toBeUndefined();
+    expect(api.getComfyUIConfig()).toBeNull();
     const config = { ...getDefaultComfyUIConfig(), serverUrl: 'http://localhost:8188' };
 
     api.updateComfyUIConfig(config);
