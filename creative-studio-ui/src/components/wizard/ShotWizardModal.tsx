@@ -83,6 +83,22 @@ interface ShotWizardModalProps {
   mode: 'create' | 'edit';
 }
 
+function getReferenceImage(shot: Partial<DashboardShot> | undefined): string {
+  if (!shot) return '';
+  return shot.referenceImages?.[0]?.url ??
+    ('referenceImage' in shot && typeof shot.referenceImage === 'string' ? shot.referenceImage : '');
+}
+
+function getVideoOutputPath(output: unknown): string | undefined {
+  if (!output || typeof output !== 'object') return undefined;
+  if ('video_path' in output && typeof output.video_path === 'string' && output.video_path) {
+    return output.video_path;
+  }
+  if ('filename' in output && typeof output.filename === 'string' && output.filename) {
+    return output.filename;
+  }
+}
+
 export function ShotWizardModal({
   isOpen,
   onClose,
@@ -115,7 +131,7 @@ export function ShotWizardModal({
     visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style as string || 'cinematic',
     transition: (initialShot as DashboardShot)?.metadata?.transition as string || 'Cut',
     characters: (initialShot as DashboardShot)?.metadata?.characters as string || '',
-    referenceImage: (initialShot as DashboardShot)?.referenceImage || '',
+    referenceImage: getReferenceImage(initialShot),
     lens: (initialShot as DashboardShot)?.metadata?.lens as string || '50mm',
     sensor: (initialShot as DashboardShot)?.metadata?.sensor as string || '35mm',
     emotion: (initialShot as DashboardShot)?.metadata?.emotion as string || 'neutral',
@@ -167,7 +183,7 @@ export function ShotWizardModal({
             visualStyle: (initialShot as DashboardShot)?.metadata?.visual_style as string || 'cinematic',
             transition: (initialShot as DashboardShot)?.metadata?.transition as string || 'Cut',
             characters: (initialShot as DashboardShot)?.metadata?.characters as string || '',
-            referenceImage: (initialShot as DashboardShot)?.referenceImage || '',
+            referenceImage: getReferenceImage(initialShot),
             lens: (initialShot as DashboardShot)?.metadata?.lens as string || '50mm',
             sensor: (initialShot as DashboardShot)?.metadata?.sensor as string || '35mm',
             emotion: (initialShot as DashboardShot)?.metadata?.emotion as string || 'neutral',
@@ -440,8 +456,8 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
                 r.step === 'music_pro'
               );
 
-              if (videoResult && (videoResult.output.video_path || videoResult.output.filename)) {
-                const path = videoResult.output.video_path || videoResult.output.filename;
+              const path = getVideoOutputPath(videoResult?.output);
+              if (path) {
                 if (autoAddToTimeline) {
                   handleAddToTimeline(path);
                 }
@@ -506,9 +522,17 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
       return;
     }
 
+    const id = initialShot?.id || `shot_${Date.now()}`;
+    const [primaryReference, ...otherReferences] = initialShot?.referenceImages ?? [];
+    const referenceUrl = formData.referenceImage.trim();
+
     const shot: DashboardShot = {
-      id: initialShot?.id || `shot_${Date.now()}`,
+      ...initialShot,
+      id,
       title: formData.title,
+      name: formData.title,
+      prompt: initialShot?.prompt ?? formData.description,
+      startTime: initialShot?.startTime ?? 0,
       description: formData.description,
       duration: formData.duration,
       position: formData.position,
@@ -529,7 +553,15 @@ Réponds uniquement avec la description, sans préambule. Utilise un langage tec
         emotionIntensity: formData.emotionIntensity,
         updatedAt: new Date().toISOString(),
       },
-      referenceImage: formData.referenceImage,
+      layers: initialShot?.layers ?? [],
+      parameters: initialShot?.parameters ?? {
+        seed: -1, denoising: 0.75, steps: 20, guidance: 7.5, sampler: 'euler', scheduler: 'normal',
+      },
+      referenceImages: referenceUrl ? [
+        primaryReference?.url === referenceUrl ? primaryReference :
+          { id: `${id}-reference`, url: referenceUrl, weight: 1, source: 'upload' },
+        ...otherReferences,
+      ] : otherReferences,
     };
 
     onComplete(shot);

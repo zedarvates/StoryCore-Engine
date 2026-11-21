@@ -492,7 +492,7 @@ export function handleAddKeyframe(
   shots: Shot[]
 ): { shotId: string; layer: Layer } | null {
   const shot = shots.find((s) => s.id === shotId);
-  if (!shot) return null;
+  if (!shot || typeof value !== 'number' || !Number.isFinite(value)) return null;
   
   // Calculate relative position within shot
   const relativePosition = playheadPosition - shot.startTime;
@@ -516,18 +516,17 @@ export function handleAddKeyframe(
       easing: 'ease-in-out',
     };
     
+    const keyframes = [...keyframeData.keyframes];
     if (existingIndex !== -1) {
-      // Update existing keyframe
-      keyframeData.keyframes[existingIndex] = newKeyframe;
+      keyframes[existingIndex] = newKeyframe;
     } else {
-      // Add new keyframe
-      keyframeData.keyframes.push(newKeyframe);
-      keyframeData.keyframes.sort((a, b) => a.time - b.time);
+      keyframes.push(newKeyframe);
+      keyframes.sort((a, b) => a.time - b.time);
     }
-    
+
     return {
       shotId,
-      layer: existingKeyframeLayer,
+      layer: { ...existingKeyframeLayer, data: { ...keyframeData, keyframes } },
     };
   } else {
     // Create new keyframe layer
@@ -551,7 +550,7 @@ export function handleAddKeyframe(
           },
         ],
         interpolation: 'ease-in-out',
-      } as KeyframeLayerData,
+      } satisfies KeyframeLayerData,
     };
     
     return {

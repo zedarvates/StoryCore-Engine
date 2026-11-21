@@ -172,7 +172,7 @@ export const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
         </ul>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .advanced-search {
           background: white;
           border: 1px solid var(--border-color, #e0e0e0);

@@ -5,7 +5,7 @@
  * Integrates with Ollama for model management
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Download, Check, AlertCircle, Loader2, Trash2, Info, HardDrive, Cpu, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -60,36 +60,10 @@ export function LocalModelSelector({
   const [selectedFamily, setSelectedFamily] = useState<LocalModel['family'] | 'all'>('all');
   const [showOnlyInstalled, setShowOnlyInstalled] = useState(false);
 
-  const modelService = getLocalModelService(endpoint);
+  const requestVersion = useRef(0);
+  const modelService = useMemo(() => getLocalModelService(endpoint), [endpoint]);
 
-  // ============================================================================
-  // Effects
-  // ============================================================================
-
-  useEffect(() => {
-    checkOllamaStatus();
-  }, [endpoint, checkOllamaStatus]);
-
-  useEffect(() => {
-    if (isOllamaRunning) {
-      loadInstalledModels();
-      loadRecommendedModels();
-    }
-  }, [isOllamaRunning, loadInstalledModels, loadRecommendedModels]);
-
-  // ============================================================================
-  // Handlers
-  // ============================================================================
-
-  const checkOllamaStatus = async () => {
-    setIsLoading(true);
-    const ollamaRunning = await modelService.isOllamaRunning();
-    const lmStudioRunning = await modelService.isLMStudioRunning();
-    setIsOllamaRunning(ollamaRunning || lmStudioRunning);
-    setIsLoading(false);
-  };
-
-  const loadInstalledModels = async () => {
+  const loadInstalledModels = useCallback(async () => {
     const installed = await modelService.getInstalledModels();
     const newStates = new Map<string, ModelState>();
     const discovered: LocalModel[] = [];
@@ -119,14 +93,43 @@ export function LocalModelSelector({
       }
     });
 
-    setDiscoveredModels(discovered);
-    setModelStates(newStates);
-  };
+    return { discovered, installedStates: newStates };
+  }, [modelService]);
 
-  const loadRecommendedModels = async () => {
-    const recommended = await modelService.getRecommendedModels();
-    setRecommendedModels(recommended);
-  };
+  const checkOllamaStatus = useCallback(async () => {
+    const request = ++requestVersion.current;
+    setIsLoading(true);
+    try {
+      const [ollamaRunning, lmStudioRunning] = await Promise.all([
+        modelService.isOllamaRunning(),
+        modelService.isLMStudioRunning(),
+      ]);
+      if (request !== requestVersion.current) return;
+      const available = ollamaRunning || lmStudioRunning;
+      setIsOllamaRunning(available);
+      if (available) {
+        const [{ discovered, installedStates }, recommended] = await Promise.all([
+          loadInstalledModels(),
+          modelService.getRecommendedModels(),
+        ]);
+        if (request !== requestVersion.current) return;
+        setDiscoveredModels(discovered);
+        setModelStates(installedStates);
+        setRecommendedModels(recommended);
+      }
+    } catch (error) {
+      if (request !== requestVersion.current) return;
+      console.error('Failed to check model availability:', error);
+      setIsOllamaRunning(false);
+    } finally {
+      if (request === requestVersion.current) setIsLoading(false);
+    }
+  }, [loadInstalledModels, modelService]);
+
+  useEffect(() => {
+    void checkOllamaStatus();
+    return () => { requestVersion.current += 1; };
+  }, [checkOllamaStatus]);
 
   const handleDownloadModel = async (modelId: string) => {
     try {

@@ -42,9 +42,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const query = debouncedQuery.toLowerCase().trim();
     
     return shots.filter(shot => {
+      const title = shot.title ?? shot.name;
       switch (searchField) {
         case 'title':
-          return shot.title.toLowerCase().includes(query);
+          return title.toLowerCase().includes(query);
         
         case 'tags':
           // Search in metadata tags if they exist
@@ -68,7 +69,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         case 'all':
         default:
           // Search across all fields
-          const titleMatch = shot.title.toLowerCase().includes(query);
+          const titleMatch = title.toLowerCase().includes(query);
           const descMatch = shot.description?.toLowerCase().includes(query) ?? false;
           const tagsMatch = (shot.metadata?.tags as string[] | undefined)?.some(
             tag => tag.toLowerCase().includes(query)
@@ -175,7 +176,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </AnimatePresence>
 
-      <style jsx>{`
+      <style>{`
         .search-bar-container {
           width: 100%;
           margin-bottom: 1rem;
