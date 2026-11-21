@@ -7,18 +7,8 @@
  * Requirements: 7.3
  */
 
-/**
- * Feedback configuration interface
- */
-export interface FeedbackConfiguration {
-  backend_proxy_url: string;
-  default_mode: 'manual' | 'automatic';
-  auto_collect_logs: boolean;
-  max_log_lines: number;
-  screenshot_max_size_mb: number;
-  enable_crash_reports: boolean;
-  privacy_consent_given: boolean;
-}
+import type { FeedbackConfiguration } from '../../../types/feedbackConfiguration';
+export type { FeedbackConfiguration } from '../../../types/feedbackConfiguration';
 
 /**
  * Default configuration values
