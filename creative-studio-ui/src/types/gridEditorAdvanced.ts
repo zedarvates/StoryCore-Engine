@@ -355,6 +355,7 @@ export interface SearchFilter {
   name: string;
   criteria: SearchCriteria[];
   saved: boolean;
+  createdAt?: number;
 }
 
 export type PredefinedFilter = 'favorites' | 'recent' | 'unused' | 'errors';

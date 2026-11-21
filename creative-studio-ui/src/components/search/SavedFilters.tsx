@@ -57,6 +57,7 @@ export const SavedFilters: React.FC<SavedFiltersProps> = ({
         id: `filter-${Date.now()}`,
         name: newFilterName.trim(),
         criteria: currentCriteria,
+        saved: true,
         createdAt: Date.now()
       };
       onSaveFilter(newFilter);
@@ -209,7 +210,7 @@ export const SavedFilters: React.FC<SavedFiltersProps> = ({
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .saved-filters {
           background: white;
           border: 1px solid var(--border-color, #e0e0e0);

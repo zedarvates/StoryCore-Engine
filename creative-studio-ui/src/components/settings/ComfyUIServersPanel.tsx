@@ -56,7 +56,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       loadServers();
       toast({
         title: 'Server Added',
-        descr_iption: `${input.name} has been added successfully.`,
+        description: `${input.name} has been added successfully.`,
       });
     } catch (error) {
       toast({
@@ -75,7 +75,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       loadServers();
       toast({
         title: 'Server Updated',
-        descr_iption: `${input.name} has been updated successfully.`,
+        description: `${input.name} has been updated successfully.`,
       });
     } catch (error) {
       toast({
@@ -144,7 +144,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
         loadServers();
         toast({
           title: 'Server Deleted',
-          descr_iption: `${server.name} has been deleted.`,
+          description: `${server.name} has been deleted.`,
         });
       } catch (error) {
         toast({
@@ -163,7 +163,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       const server = service.getServer(id);
       toast({
         title: 'Active Server Changed',
-        descr_iption: `${server?.name} is now the active server.`,
+        description: `${server?.name} is now the active server.`,
       });
     } catch (error) {
       toast({
@@ -210,7 +210,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       const successCount = Array.from(results.values()).filter(Boolean).length;
       toast({
         title: 'Connection Tests Complete',
-        descr_iption: `${successCount} of ${results.size} servers connected successfully.`,
+        description: `${successCount} of ${results.size} servers connected successfully.`,
       });
     } catch (error) {
       toast({
@@ -245,7 +245,7 @@ export function ComfyUIServersPanel({ className }: ComfyUIServersPanelProps) {
       
       toast({
         title: 'Configuration Exported',
-        descr_iption: 'Server configuration has been exported successfully.',
+        description: 'Server configuration has been exported successfully.',
       });
     } catch (error) {
       toast({

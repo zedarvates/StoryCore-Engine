@@ -8,10 +8,7 @@ export interface NoResultsProps {
   onSuggestionClick?: (suggestion: string) => void;
 }
 
-export const NoResults: React.FC<NoResultsProps> = ({
-  query,
-  _onSuggestionClick
-}) => {
+export const NoResults: React.FC<NoResultsProps> = ({ query }) => {
   const suggestions = useMemo(() => {
     const searchService = getSearchService();
     return searchService.getAlternativeSuggestions(query);
@@ -51,11 +48,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                {suggestion.includes('"') ? (
-                  <span dangerouslySetInnerHTML={{ __html: suggestion }} />
-                ) : (
-                  <span>{suggestion}</span>
-                )}
+                <span>{suggestion}</span>
               </motion.li>
             ))}
           </ul>
@@ -73,7 +66,7 @@ export const NoResults: React.FC<NoResultsProps> = ({
         </ul>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .no-results {
           display: flex;
           flex-direction: column;

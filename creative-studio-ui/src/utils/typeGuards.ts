@@ -1,3 +1,5 @@
+import type { MCPTool } from '@/types/comfyuiServers';
+
 /**
  * Type Guard Utilities
  */
@@ -35,4 +37,10 @@ export function isBoolean(value: unknown): value is boolean {
  */
 export function isDefined<T>(value: T | null | undefined): value is T {
     return value !== null && value !== undefined;
+}
+
+export function isMCPTool(value: unknown): value is MCPTool {
+    return isRecord(value) && typeof value.name === 'string' &&
+        (value.description === undefined || typeof value.description === 'string') &&
+        (value.inputSchema === undefined || isRecord(value.inputSchema));
 }

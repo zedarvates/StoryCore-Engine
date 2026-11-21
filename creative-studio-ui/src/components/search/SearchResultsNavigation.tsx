@@ -147,7 +147,7 @@ export const SearchResultsNavigation: React.FC<SearchResultsNavigationProps> = (
         </button>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .search-results-navigation {
           display: flex;
           align-items: center;
