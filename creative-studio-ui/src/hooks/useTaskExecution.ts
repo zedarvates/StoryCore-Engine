@@ -7,7 +7,7 @@ import type { GenerationTask } from '@/types';
  * Processes pending tasks sequentially
  */
 export function useTaskExecution() {
-  const { taskQueue, _updateTask } = useAppStore();
+  const { taskQueue } = useAppStore();
   const isProcessingRef = useRef(false);
 
   useEffect(() => {

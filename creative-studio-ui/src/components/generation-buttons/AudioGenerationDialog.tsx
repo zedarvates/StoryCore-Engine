@@ -102,7 +102,7 @@ export const AudioGenerationDialog: React.FC<AudioGenerationDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { _currentPipeline, completeStage, failStage, updateStageProgress } = useGenerationStore();
+  const { completeStage, failStage, updateStageProgress } = useGenerationStore();
   
   // Parameters state
   const [params, setParams] = useState<AudioGenerationParams>(DEFAULT_PARAMS);

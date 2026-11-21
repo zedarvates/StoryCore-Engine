@@ -15,7 +15,6 @@ interface AudioWaveformEditorProps {
 }
 
 export const AudioWaveformEditor: React.FC<AudioWaveformEditorProps> = ({
-  _audioUrl,
   duration,
   onCurveChange
 }) => {

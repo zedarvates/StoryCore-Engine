@@ -9,7 +9,6 @@ export interface SceneLibraryProps {
 }
 
 export const SceneLibrary: React.FC<SceneLibraryProps> = ({
-  _onElementSelect,
   className = ''
 }) => {
   // Load locations from store

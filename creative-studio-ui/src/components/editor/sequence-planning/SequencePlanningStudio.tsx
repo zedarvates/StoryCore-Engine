@@ -198,13 +198,9 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
 
   // Dialogue management hook
   const {
-    _dialogueState,
-    _generateDialoguesForShot,
     addManualDialogue,
     updateDialogue,
     updateDialogueSpatialization,
-    _deleteDialogue,
-    _selectDialogue,
     clearDialogues
   } = useDialogueManagement();
 

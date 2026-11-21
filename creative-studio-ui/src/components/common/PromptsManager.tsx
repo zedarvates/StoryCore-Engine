@@ -12,7 +12,7 @@ interface PromptsManagerProps {
     entityName?: string;
 }
 
-export function PromptsManager({ prompts = [], onUpdate, _entityName }: PromptsManagerProps) {
+export function PromptsManager({ prompts = [], onUpdate }: PromptsManagerProps) {
     const [newPrompt, setNewPrompt] = useState('');
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [editingValue, setEditingValue] = useState('');

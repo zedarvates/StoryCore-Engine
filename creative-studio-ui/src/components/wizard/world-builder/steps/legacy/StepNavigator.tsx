@@ -14,7 +14,7 @@ interface StepNavigatorProps {
 }
 
 export const StepNavigator: React.FC<StepNavigatorProps> = ({ onStepChange }) => {
-  const { currentStep, _completedSteps, isStepCompleted, canNavigateToStep } =
+  const { currentStep, isStepCompleted, canNavigateToStep } =
     useWorldBuilderSelectors();
   const { navigateToStep, validateStep } = useWorldBuilderActions();
 

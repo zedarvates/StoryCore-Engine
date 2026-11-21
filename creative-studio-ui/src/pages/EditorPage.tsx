@@ -24,7 +24,7 @@ interface EditorPageProps {
   onBackToDashboard: () => void;
 }
 
-export function EditorPage({ _sequenceId, onBackToDashboard }: EditorPageProps) {
+export function EditorPage({ onBackToDashboard }: EditorPageProps) {
   const { _project } = useAppStore();
   const { projectPath } = useEditorStore();
 

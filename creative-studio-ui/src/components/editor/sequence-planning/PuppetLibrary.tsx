@@ -10,8 +10,6 @@ export interface PuppetLibraryProps {
 }
 
 export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
-  _worldId,
-  _onElementSelect,
   className = ''
 }) => {
   const characters = useStore((state) => state.characters);

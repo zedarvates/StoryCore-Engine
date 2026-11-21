@@ -42,7 +42,7 @@ export function CubeViewEditor({
   textureDirection,
   onTextureDirectionChange,
 }: CubeViewEditorProps) {
-  const { updateCubeTexture, _updateLocation, selectCubeFace, _selectedCubeFace } = useLocationStore();
+  const { updateCubeTexture, selectCubeFace } = useLocationStore();
   
   const [editingFace, setEditingFace] = useState<CubeFace | null>(null);
   

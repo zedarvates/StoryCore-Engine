@@ -39,8 +39,11 @@ jobs:
           ./node_modules/.bin/tsc --project tsconfig.preload-renderer-contract.json --pretty false
       - name: Check shared controls, unavailable addons and debugger boundary
         run: npm test -- src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx src/services/__tests__/AddonManager.availability.test.ts src/stores/__tests__/storeDebuggerBoundary.test.ts
-      - name: Exercise legacy world builder imports and store bindings
-        run: npm test -- src/components/wizard/world-builder/__tests__/legacyWorldBuilder.test.tsx
+      - name: Exercise legacy world builder bindings and media search
+        run: >-
+          npm test --
+          src/components/wizard/world-builder/__tests__/legacyWorldBuilder.test.tsx
+          src/sequence-editor/components/MediaSearchPanel/MediaSearchPanel.test.tsx
       - run: npm run build
       - name: Install browser for bounded startup check
         if: matrix.node == '24.19.0'

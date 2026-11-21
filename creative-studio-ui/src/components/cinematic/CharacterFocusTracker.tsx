@@ -57,7 +57,6 @@ interface CharacterTimelineEntry {
 type ViewMode = 'timeline' | 'heatmap' | 'stats' | 'grid';
 
 export function CharacterFocusTracker({
-  _sequence,
   shots,
   characters,
   onUpdateFocus,
@@ -534,7 +533,6 @@ interface StatsViewProps {
 function StatsView({
   characterStats,
   summaryStats,
-  _characters,
   _getFocusColor,
   getFocusLabel
 }: StatsViewProps) {
@@ -640,7 +638,6 @@ interface GridViewProps {
 function GridView({
   shots,
   characters,
-  _characterTimeline,
   onFocusChange,
   _getFocusColor,
   _getFocusLabel

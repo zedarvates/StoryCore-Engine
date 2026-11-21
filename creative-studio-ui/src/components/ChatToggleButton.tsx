@@ -9,7 +9,7 @@ interface ChatToggleButtonProps {
 }
 
 export const ChatToggleButton: React.FC<ChatToggleButtonProps> = ({ className = '', dashboardContext, position }) => {
-  const { showChat, setShowChat, _chatMessages } = useAppStore();
+  const { showChat, setShowChat } = useAppStore();
   const [_isHovered, setIsHovered] = React.useState(false);
 
   // Count unread messages (messages since last time chat was opened)

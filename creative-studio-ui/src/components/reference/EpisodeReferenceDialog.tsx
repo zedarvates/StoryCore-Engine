@@ -86,9 +86,6 @@ interface ShotOption {
 export const EpisodeReferenceDialog: React.FC<EpisodeReferenceDialogProps> = ({
   open,
   onClose,
-  _currentProjectId,
-  _currentEpisodeId,
-  _currentSequenceId,
   onReferenceAdded,
   onReferenceRemoved,
 }: EpisodeReferenceDialogProps) => {

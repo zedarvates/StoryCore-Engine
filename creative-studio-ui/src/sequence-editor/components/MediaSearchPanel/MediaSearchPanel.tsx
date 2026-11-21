@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { mediaSearchService, SearchResult, SearchRequest, AssetType } from '../../services/mediaSearchService';
+import { mediaSearchService, type SearchResult, type SearchRequest, type AssetType } from '../../../services/mediaSearchService';
 import styles from './MediaSearchPanel.module.css';
 
 interface MediaSearchPanelProps {
@@ -40,7 +40,7 @@ export const MediaSearchPanel: React.FC<MediaSearchPanelProps> = ({
       };
 
       const searchResults = await mediaSearchService.search(request);
-      setResults(searchResults.results || []);
+      setResults(Array.isArray(searchResults) ? searchResults : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Search failed');
       setResults([]);
@@ -168,13 +168,12 @@ export const MediaSearchPanel: React.FC<MediaSearchPanelProps> = ({
                   {Math.round(result.similarityScore * 100)}% match
                 </span>
               </div>
-              {result.highlightedText && (
-                <div
-                  className={styles.resultHighlight}
-                  dangerouslySetInnerHTML={{
-                    __html: result.highlightedText.replace(/\*\*(.*?)\*\*/g, '<mark>$1</mark>')
-                  }}
-                />
+              {typeof result.highlightedText === 'string' && result.highlightedText && (
+                <div className={styles.resultHighlight}>
+                  {result.highlightedText.split(/\*\*(.*?)\*\*/g).map((part, index) =>
+                    index % 2 ? <mark key={`${index}:${part}`}>{part}</mark> : part
+                  )}
+                </div>
               )}
             </div>
             <div className={styles.resultMatch}>

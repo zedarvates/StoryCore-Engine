@@ -63,9 +63,7 @@ export const ProgressPanel: React.FC<ProgressPanelProps> = ({
   const taskQueue = useAppStore((state) => state.taskQueue);
 
   const {
-    _progressUpdates,
     getProgress,
-    _startTrackingAll,
     stopTrackingAll,
   } = useProgressTracking({
     autoStart,
