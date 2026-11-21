@@ -15,11 +15,12 @@ function LoadingFallback() {
 }
 
 // Wrapper for lazy components with suspense
-function withLazy<P extends object>(
-  importFn: () => Promise<{ default: ComponentType<P> }>,
+function withLazy<M, P extends object>(
+  loadModule: () => Promise<M>,
+  selectComponent: (module: M) => ComponentType<P>,
   fallback: React.ReactNode = <LoadingFallback />
 ) {
-  const LazyComponent = lazy(importFn);
+  const LazyComponent = lazy(async () => ({ default: selectComponent(await loadModule()) }));
 
   return (props: P) => (
     <Suspense fallback={fallback}>
@@ -30,53 +31,54 @@ function withLazy<P extends object>(
 
 // Lazy-loaded heavy components
 export const LazyAnimationPanel = withLazy(
-  () => import('./AnimationPanel').then(m => ({ default: m.AnimationPanel }))
+  () => import('./AnimationPanel'), module => module.AnimationPanel
 );
 
 export const LazyAudioEffectsPanel = withLazy(
-  () => import('./AudioEffectsPanel').then(m => ({ default: m.AudioEffectsPanel }))
+  () => import('./AudioEffectsPanel'), module => module.AudioEffectsPanel
 );
 
 export const LazyAudioCurveEditor = withLazy(
-  () => import('./AudioCurveEditor').then(m => ({ default: m.AudioCurveEditor }))
+  () => import('./AudioCurveEditor'), module => module.AudioCurveEditor
 );
 
 export const LazySurroundSoundPanel = withLazy(
-  () => import('./SurroundSoundPanel').then(m => ({ default: m.SurroundSoundPanel }))
+  () => import('./SurroundSoundPanel'), module => module.SurroundSoundPanel
 );
 
 export const LazyBezierCurveEditor = withLazy(
-  () => import('./BezierCurveEditor').then(m => ({ default: m.BezierCurveEditor }))
+  () => import('./BezierCurveEditor'), module => module.BezierCurveEditor
 );
 
 export const LazyPreviewPanel = withLazy(
-  () => import('./PreviewPanel').then(m => ({ default: m.PreviewPanel }))
+  () => import('./PreviewPanel'), module => module.PreviewPanel
 );
 
 export const LazyVoiceOverGenerator = withLazy(
-  () => import('./VoiceOverGenerator').then(m => ({ default: m.VoiceOverGenerator }))
+  () => import('./VoiceOverGenerator'), module => module.VoiceOverGenerator
 );
 
 export const LazyTaskQueueModal = withLazy(
-  () => import('./TaskQueueModal').then(m => ({ default: m.TaskQueueModal }))
+  () => import('./TaskQueueModal'), module => module.TaskQueueModal
 );
 
 export const LazyResultsGallery = withLazy(
-  () => import('./ResultsGallery').then(m => ({ default: m.ResultsGallery }))
+  () => import('./ResultsGallery'), module => module.ResultsGallery
 );
 
 // Custom fallback for specific components
 export const LazyWaveformDisplay = withLazy(
-  () => import('./WaveformDisplay').then(module => ({ default: module.WaveformDisplay })),
+  () => import('./WaveformDisplay'),
+  module => module.WaveformDisplay,
   <div className="flex items-center justify-center h-16 bg-muted rounded">
     <span className="text-sm text-muted-foreground">Loading waveform...</span>
   </div>
 );
 
 export const LazyAudioEffectPresetsPanel = withLazy(
-  () => import('./AudioEffectPresetsPanel').then(m => ({ default: m.AudioEffectPresetsPanel }))
+  () => import('./AudioEffectPresetsPanel'), module => module.AudioEffectPresetsPanel
 );
 
 export const LazyAISurroundAssistant = withLazy(
-  () => import('./AISurroundAssistant').then(m => ({ default: m.AISurroundAssistant }))
+  () => import('./AISurroundAssistant'), module => module.AISurroundAssistant
 );
