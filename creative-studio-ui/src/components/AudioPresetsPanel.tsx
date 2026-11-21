@@ -12,7 +12,7 @@ export const AudioPresetsPanel: React.FC<AudioPresetsPanelProps> = ({ shotId, tr
   const shot = useStore((state) => state.shots.find((s) => s.id === shotId));
   const updateAudioTrack = useStore((state) => state.updateAudioTrack);
 
-  const track = shot?.audioTracks.find((t) => t.id === trackId);
+  const track = shot?.audioTracks?.find((t) => t.id === trackId);
 
   if (!track) {
     return null;

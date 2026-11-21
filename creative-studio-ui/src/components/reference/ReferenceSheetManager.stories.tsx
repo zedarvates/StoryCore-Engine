@@ -6,6 +6,7 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ComponentType } from 'react';
 import { ReferenceSheetManager } from './ReferenceSheetManager';
 import type { 
   MasterReferenceSheet, 
@@ -88,6 +89,7 @@ const _mockMasterSheet: MasterReferenceSheet = {
   projectId: 'project_1',
   characterSheets: [mockCharacter1, mockCharacter2],
   locationSheets: [mockLocation1, mockLocation2],
+  objectSheets: [],
   styleSheet: mockGlobalStyle,
   createdAt: new Date('2024-01-15'),
   updatedAt: new Date('2024-03-20'),
@@ -156,7 +158,7 @@ export const Default: Story = {
     projectPath: '/path/to/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -175,7 +177,7 @@ export const Empty: Story = {
     projectPath: '/path/to/empty/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -194,7 +196,7 @@ export const Loading: Story = {
     projectPath: '/path/to/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -213,7 +215,7 @@ export const Error: Story = {
     projectPath: '/path/to/error/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -232,7 +234,7 @@ export const StyleTab: Story = {
     projectPath: '/path/to/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -251,7 +253,7 @@ export const OverviewTab: Story = {
     projectPath: '/path/to/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -270,7 +272,7 @@ export const ComplexProject: Story = {
     projectPath: '/path/to/complex/project',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>

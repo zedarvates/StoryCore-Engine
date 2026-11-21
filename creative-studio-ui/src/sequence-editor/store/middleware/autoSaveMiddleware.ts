@@ -1,13 +1,13 @@
 /**
  * Auto-Save Middleware - Automatically saves project state to localStorage
- * 
+ *
  * This middleware monitors state changes and triggers auto-save every 60 seconds
  * when modifications are detected. It uses debouncing to prevent excessive saves.
- * 
+ *
  * Requirements: 19.2, 19.3, 19.4, 19.6
  */
 
-import { Middleware } from '@reduxjs/toolkit';
+import { Middleware, isAction } from '@reduxjs/toolkit';
 import type { RootState } from '../index';
 import { setSaveStatus, markSaved } from '../slices/projectSlice';
 
@@ -16,6 +16,9 @@ const AUTO_SAVE_INTERVAL = 60000;
 
 // Debounce delay for save operations: 500ms
 const SAVE_DEBOUNCE_DELAY = 500;
+
+// Local storage key for the persisted project snapshot
+const PROJECT_STORAGE_KEY = 'sequence-editor-project';
 
 // Actions that should trigger auto-save
 const SAVE_TRIGGERING_ACTIONS = [
@@ -28,19 +31,85 @@ const SAVE_TRIGGERING_ACTIONS = [
   'timeline/updateTrack',
   'timeline/deleteTrack',
   'timeline/reorderTracks',
-  
+
   // Asset actions
   'assets/addAsset',
   'assets/updateAsset',
   'assets/deleteAsset',
-  
+
   // Panel actions
   'panels/setPanelLayout',
-  
+
   // Project actions
   'project/updateMetadata',
   'project/updateSettings',
 ];
+
+/**
+ * Snapshot persisted to localStorage by the auto-save middleware.
+ *
+ * `timestamp` is an epoch-millisecond number matching the `SaveStatus`
+ * contract. Legacy snapshots stored an ISO-8601 string, which is normalized
+ * on load so existing drafts keep loading.
+ */
+export interface PersistedProjectSnapshot {
+  version: string;
+  timestamp: number;
+  project: RootState['project'];
+  timeline: RootState['timeline'];
+  assets: RootState['assets'];
+  panels: RootState['panels'];
+  tools: RootState['tools'];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function normalizeTimestamp(value: unknown): number {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Date.parse(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return Date.now();
+}
+
+function parsePersistedProjectSnapshot(raw: string): PersistedProjectSnapshot | null {
+  const parsed: unknown = JSON.parse(raw);
+
+  if (!isRecord(parsed)) {
+    return null;
+  }
+
+  const { project, timeline, assets, panels, tools } = parsed;
+
+  if (
+    !isRecord(project) ||
+    !isRecord(timeline) ||
+    !isRecord(assets) ||
+    !isRecord(panels) ||
+    !isRecord(tools)
+  ) {
+    return null;
+  }
+
+  return {
+    version: typeof parsed.version === 'string' ? parsed.version : '1.0',
+    timestamp: normalizeTimestamp(parsed.timestamp),
+    project: project as RootState['project'],
+    timeline: timeline as RootState['timeline'],
+    assets: assets as RootState['assets'],
+    panels: panels as RootState['panels'],
+    tools: tools as RootState['tools'],
+  };
+}
 
 /**
  * Save project state to localStorage
@@ -48,17 +117,20 @@ const SAVE_TRIGGERING_ACTIONS = [
  */
 function saveToLocalStorage(state: RootState): void {
   try {
-    const projectState = {
+    const snapshot: PersistedProjectSnapshot = {
       version: '1.0',
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       project: state.project,
       timeline: state.timeline,
       assets: state.assets,
       panels: state.panels,
       tools: state.tools,
     };
-    
-    localStorage.setItem('sequence-editor-project', JSON.stringify(projectState));
+
+    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify({
+      ...snapshot,
+      timestamp: new Date(snapshot.timestamp).toISOString(),
+    }));
   } catch (error) {
     console.error('Failed to save project to localStorage:', error);
     throw error;
@@ -68,16 +140,18 @@ function saveToLocalStorage(state: RootState): void {
 /**
  * Load project state from localStorage
  */
-export function loadFromLocalStorage(): unknown | null {
+export function loadFromLocalStorage(): PersistedProjectSnapshot | null {
   try {
-    const saved = localStorage.getItem('sequence-editor-project');
-    if (saved) {
-      return JSON.parse(saved);
+    const saved = localStorage.getItem(PROJECT_STORAGE_KEY);
+    if (!saved) {
+      return null;
     }
+
+    return parsePersistedProjectSnapshot(saved);
   } catch (error) {
     console.error('Failed to load project from localStorage:', error);
+    return null;
   }
-  return null;
 }
 
 /**
@@ -87,31 +161,31 @@ export const autoSaveMiddleware: Middleware<{}, RootState> = (store) => {
   let autoSaveTimer: NodeJS.Timeout | null = null;
   let debounceTimer: NodeJS.Timeout | null = null;
   let hasModifications = false;
-  
+
   /**
    * Perform the actual save operation
    * Requirement 19.3: Update save timestamp on completion
    */
   const performSave = () => {
     const state = store.getState();
-    
+
     // Only save if there are modifications
     if (!hasModifications || state.project.saveStatus.state !== 'modified') {
       return;
     }
-    
+
     // Set saving status
     store.dispatch(setSaveStatus({
       state: 'saving',
     }));
-    
+
     try {
       // Save to localStorage
       saveToLocalStorage(state);
-      
+
       // Mark as saved with timestamp (Requirement 19.3)
       store.dispatch(markSaved());
-      
+
       hasModifications = false;
     } catch (error) {
       // Set error status
@@ -121,7 +195,7 @@ export const autoSaveMiddleware: Middleware<{}, RootState> = (store) => {
       }));
     }
   };
-  
+
   /**
    * Debounced save function
    */
@@ -129,12 +203,12 @@ export const autoSaveMiddleware: Middleware<{}, RootState> = (store) => {
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
-    
+
     debounceTimer = setTimeout(() => {
       performSave();
     }, SAVE_DEBOUNCE_DELAY);
   };
-  
+
   /**
    * Start auto-save timer
    * Requirement 19.2: Auto-save every 60 seconds when modifications exist
@@ -143,38 +217,40 @@ export const autoSaveMiddleware: Middleware<{}, RootState> = (store) => {
     if (autoSaveTimer) {
       clearInterval(autoSaveTimer);
     }
-    
+
     autoSaveTimer = setInterval(() => {
       if (hasModifications) {
         performSave();
       }
     }, AUTO_SAVE_INTERVAL);
   };
-  
+
   // Start the auto-save timer
   startAutoSaveTimer();
-  
+
   return (next) => (action: unknown) => {
+    const actionType = isAction(action) ? action.type : undefined;
+
     // Skip save-related actions to prevent loops
     if (
-      action.type === 'project/setSaveStatus' ||
-      action.type === 'project/markSaved' ||
-      action.type === 'project/markModified'
+      actionType === 'project/setSaveStatus' ||
+      actionType === 'project/markSaved' ||
+      actionType === 'project/markModified'
     ) {
       return next(action);
     }
-    
+
     // Execute the action
     const result = next(action);
-    
+
     // Check if this action should trigger save
-    if (SAVE_TRIGGERING_ACTIONS.includes(action.type)) {
+    if (actionType && SAVE_TRIGGERING_ACTIONS.includes(actionType)) {
       hasModifications = true;
-      
+
       // Trigger debounced save
       debouncedSave();
     }
-    
+
     return result;
   };
 };
@@ -184,10 +260,8 @@ export const autoSaveMiddleware: Middleware<{}, RootState> = (store) => {
  */
 export function clearAutoSave(): void {
   try {
-    localStorage.removeItem('sequence-editor-project');
+    localStorage.removeItem(PROJECT_STORAGE_KEY);
   } catch (error) {
     console.error('Failed to clear auto-save data:', error);
   }
 }
-
-

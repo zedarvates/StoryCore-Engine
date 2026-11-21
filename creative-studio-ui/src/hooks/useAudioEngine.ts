@@ -59,7 +59,7 @@ export function useAudioEngine() {
     engineRef.current.setPan(trackId, pan);
   };
 
-  const applyFades = (trackId: string, fadeIn: number, fadeOut: number, duration: number) => {
+  const applyFades = (trackId: string, fadeIn: number, fadeOut: number, duration?: number) => {
     if (!engineRef.current) return;
     engineRef.current.applyFades(trackId, fadeIn, fadeOut, duration);
   };
@@ -136,19 +136,19 @@ export function useAudioTrack(track: AudioTrack) {
   // Update volume when it changes
   useEffect(() => {
     if (!isLoaded) return;
-    audioEngine.setVolume(track.id, track.volume);
+    audioEngine.setVolume(track.id, track.volume ?? 100);
   }, [track.volume, isLoaded, track.id]);
 
   // Update pan when it changes
   useEffect(() => {
     if (!isLoaded) return;
-    audioEngine.setPan(track.id, track.pan);
+    audioEngine.setPan(track.id, track.pan ?? 0);
   }, [track.pan, isLoaded, track.id]);
 
   // Apply fades when they change
   useEffect(() => {
     if (!isLoaded || !isPlaying) return;
-    audioEngine.applyFades(track.id, track.fadeIn, track.fadeOut, track.duration);
+    audioEngine.applyFades(track.id, track.fadeIn ?? 0, track.fadeOut ?? 0, track.duration);
   }, [track.fadeIn, track.fadeOut, track.duration, isLoaded, isPlaying, track.id]);
 
   const play = () => {

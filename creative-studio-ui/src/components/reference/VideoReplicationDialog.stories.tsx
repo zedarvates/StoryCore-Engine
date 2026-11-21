@@ -6,6 +6,7 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ComponentType } from 'react';
 import { VideoReplicationDialog } from './VideoReplicationDialog';
 import type { ReferenceVideo, ShotInfo, DigitalHumanAnalysis, VideoStructureAnalysis } from '../../services/videoReplicationService';
 
@@ -257,7 +258,7 @@ export const Default: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -274,7 +275,7 @@ export const UploadProgress: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -291,7 +292,7 @@ export const ReviewWithDigitalHuman: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -308,7 +309,7 @@ export const ReviewNoDigitalHuman: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -325,7 +326,7 @@ export const Settings: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -342,7 +343,7 @@ export const Error: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -359,7 +360,7 @@ export const AllShotsSelected: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -376,7 +377,7 @@ export const PartialShotsSelected: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -393,7 +394,7 @@ export const HighResolution: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -410,7 +411,7 @@ export const CustomStyleIntensity: Story = {
     open: true,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>

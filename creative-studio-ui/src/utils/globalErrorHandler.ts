@@ -210,7 +210,7 @@ class GlobalErrorHandler {
    * @param error Error object
    * @param errorInfo Error info with component stack
    */
-  handleReactError(error: Error, errorInfo: { componentStack: string }): void {
+  handleReactError(error: Error, errorInfo: { componentStack?: string | null }): void {
     console.error('React error:', error, errorInfo);
 
     const errorContext: ErrorContext = {
@@ -219,7 +219,7 @@ class GlobalErrorHandler {
       activeModule: this.detectActiveModule(),
       timestamp: new Date().toISOString(),
       errorType: 'react',
-      componentStack: errorInfo.componentStack,
+      componentStack: errorInfo.componentStack ?? undefined,
     };
 
     this.captureError(errorContext);

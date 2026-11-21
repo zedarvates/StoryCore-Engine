@@ -74,7 +74,7 @@ export function useProjectPersistence() {
       // Set save status to saved
       dispatch(setSaveStatus({
         state: 'saved',
-        lastSaveTime: savedProject.timestamp || Date.now(), // Use timestamp directly
+        lastSaveTime: savedProject.timestamp,
       }));
       
       return true;

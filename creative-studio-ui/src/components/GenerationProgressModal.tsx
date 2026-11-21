@@ -96,7 +96,7 @@ export function GenerationProgressModal({
   onRetry,
 }: GenerationProgressModalProps) {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
-  const modalRef = useRef<HTMLElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   // Focus management for modal

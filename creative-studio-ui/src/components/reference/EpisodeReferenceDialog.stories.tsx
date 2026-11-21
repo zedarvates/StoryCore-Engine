@@ -6,6 +6,7 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ComponentType } from 'react';
 import { EpisodeReferenceDialog } from './EpisodeReferenceDialog';
 import type { PreviousEpisodeReference } from '../../types/reference';
 
@@ -86,8 +87,8 @@ const meta = {
     currentEpisodeId: 'ep_4',
     currentSequenceId: 'seq_1',
     onClose: () => console.log('Dialog closed'),
-    onReferenceAdded: (reference) => console.log('Reference added:', reference),
-    onReferenceRemoved: (episodeId) => console.log('Reference removed:', episodeId),
+    onReferenceAdded: (reference: PreviousEpisodeReference) => console.log('Reference added:', reference),
+    onReferenceRemoved: (episodeId: string) => console.log('Reference removed:', episodeId),
   },
 } satisfies Meta<typeof EpisodeReferenceDialog>;
 
@@ -110,7 +111,7 @@ export const Default: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -130,7 +131,7 @@ export const ExistingReferencesTab: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -150,7 +151,7 @@ export const ContinuityCheckTab: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -170,7 +171,7 @@ export const WithEpisodeSelected: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -190,7 +191,7 @@ export const WithShotsSelected: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -210,7 +211,7 @@ export const WithContinuityNotes: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -230,7 +231,7 @@ export const AllAutoLinkOptions: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -250,7 +251,7 @@ export const MultipleReferences: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -270,7 +271,7 @@ export const NoReferences: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -290,7 +291,7 @@ export const WithSearchQuery: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -310,7 +311,7 @@ export const ManyShots: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -330,7 +331,7 @@ export const ReadyToAdd: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>
@@ -350,7 +351,7 @@ export const AllChecksPassing: Story = {
     currentSequenceId: 'seq_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh' }}>
         <Story />
       </div>

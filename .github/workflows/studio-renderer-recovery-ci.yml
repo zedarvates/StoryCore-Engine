@@ -56,6 +56,7 @@ jobs:
           src/components/__tests__/editorBindings.test.tsx
           src/utils/__tests__/debounce.test.ts
           src/hooks/__tests__/useKeyframes.test.ts
+          src/sequence-editor/store/middleware/autoSaveMiddleware.test.ts
           src/components/LazyComponents.test.tsx
       - name: Lint repaired grid renderers and their contracts
         run: ./node_modules/.bin/eslint src/components/gridEditor/GridRenderer.tsx src/components/gridEditor/PanelRenderer.tsx src/components/gridEditor/__tests__/rendererContracts.test.tsx tests/contracts/grid-renderer.contract.ts
