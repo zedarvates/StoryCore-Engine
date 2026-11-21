@@ -1,3 +1,4 @@
+import { exampleShot } from './exampleShot';
 /**
  * BatchOperationsExample - Exemple d'utilisation des opérations par lots
  * 
@@ -161,7 +162,7 @@ export const BatchOperationsExample: React.FC = () => {
                 <img src={shot.image} alt={shot.title} />
               ) : (
                 <div className="shot-placeholder">
-                  {shot.title.charAt(0)}
+                  {(shot.title ?? shot.name).charAt(0)}
                 </div>
               )}
             </div>
@@ -170,12 +171,12 @@ export const BatchOperationsExample: React.FC = () => {
               <p>{shot.description}</p>
               <div className="shot-meta">
                 <span>{shot.duration}s</span>
-                {shot.metadata?.category && (
+                {typeof shot.metadata?.category === 'string' && (
                   <span className="category">{shot.metadata.category}</span>
                 )}
-                {shot.metadata?.tags && shot.metadata.tags.length > 0 && (
+                {Array.isArray(shot.metadata?.tags) && shot.metadata.tags.length > 0 && (
                   <span className="tags">
-                    {shot.metadata.tags.join(', ')}
+                    {shot.metadata.tags.filter((tag) => typeof tag === 'string').join(', ')}
                   </span>
                 )}
               </div>
@@ -393,7 +394,7 @@ function generateMockShots(count: number): Shot[] {
   const categories = ['Action', 'Dialogue', 'Transition', 'Establishing', 'Close-up'];
   const tags = ['important', 'review', 'final', 'draft', 'approved'];
   
-  return Array.from({ length: count }, (_, i) => ({
+  return Array.from({ length: count }, (_, i) => exampleShot({
     id: `shot-${i + 1}`,
     title: `Plan ${i + 1}`,
     description: `Description du plan ${i + 1}`,

@@ -62,9 +62,9 @@ export function AssetLibraryPanel({
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (asset) =>
-          asset.filename.toLowerCase().includes(query) ||
-          asset.type.toLowerCase().includes(query) ||
-          asset.id.toLowerCase().includes(query)
+          asset.filename?.toLowerCase().includes(query) ||
+          asset.type?.toLowerCase().includes(query) ||
+          asset.id?.toLowerCase().includes(query)
       );
     }
 
@@ -125,7 +125,7 @@ export function AssetLibraryPanel({
   /**
    * Get asset type icon
    */
-  const getAssetIcon = (type: AssetType) => {
+  const getAssetIcon = (type?: AssetType) => {
     switch (type) {
       case 'image':
         return ImageIcon;
@@ -222,17 +222,19 @@ export function AssetLibraryPanel({
               ) : (
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {paginatedItems.map((asset) => {
+                    {paginatedItems.map((asset, index) => {
                       const Icon = getAssetIcon(asset.type);
-                      const isSelected = selectedAssetId === asset.id;
+                      const assetId = asset.id;
+                      const filename = asset.filename || asset.path?.split(/[\\/]/).at(-1) || 'Untitled asset';
+                      const isSelected = Boolean(assetId && selectedAssetId === assetId);
 
                       return (
                         <Card
-                          key={asset.id}
+                          key={assetId ?? asset.path ?? `placeholder-${index}`}
                           className={`cursor-pointer transition-all hover:shadow-md ${
                             isSelected ? 'ring-2 ring-primary' : ''
                           }`}
-                          onClick={() => handleAssetSelect(asset.id)}
+                          onClick={assetId ? () => handleAssetSelect(assetId) : undefined}
                         >
                           <CardContent className="p-4">
                             {/* Thumbnail or Icon */}
@@ -240,7 +242,7 @@ export function AssetLibraryPanel({
                               {asset.thumbnail ? (
                                 <img
                                   src={asset.thumbnail}
-                                  alt={asset.filename}
+                                  alt={filename}
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -250,15 +252,15 @@ export function AssetLibraryPanel({
 
                             {/* Asset Info */}
                             <div className="space-y-1">
-                              <p className="font-medium text-sm truncate" title={asset.filename}>
-                                {asset.filename}
+                              <p className="font-medium text-sm truncate" title={filename}>
+                                {filename}
                               </p>
                               <div className="flex items-center justify-between text-xs text-muted-foreground">
                                 <span className="capitalize">{asset.type}</span>
-                                <span>{formatFileSize(asset.size)}</span>
+                                <span>{asset.size === undefined ? null : formatFileSize(asset.size)}</span>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                {new Date(asset.imported_at).toLocaleDateString()}
+                                {asset.imported_at && new Date(asset.imported_at).toLocaleDateString()}
                               </p>
                             </div>
                           </CardContent>

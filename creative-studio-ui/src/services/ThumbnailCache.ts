@@ -9,8 +9,6 @@
  * 
  * Validates: Requirements 5.1, 5.2, 5.3, 5.8
  */
-import { electronFFmpegBridge } from './ffmpeg/ElectronFFmpegBridge';
-
 export interface ThumbnailCacheConfig {
   maxMemorySize: number; // in MB
   maxDiskSize: number; // in MB
@@ -536,47 +534,8 @@ export class ThumbnailCache {
     return blob;
   }
 
-  /**
-   * Generate thumbnail from video at specific time
-   * Prioritizes background generation via Electron/FFmpeg if available
-   */
+  /** Generate a thumbnail via the video element in the renderer. */
   private async generateThumbnail(
-    videoUrl: string,
-    time: number,
-    quality?: string
-  ): Promise<Blob> {
-    // Try background generation via Electron/FFmpeg first
-    if (electronFFmpegBridge.isElectron) {
-      try {
-        const qualitySettings = {
-          low: { width: 160, height: 90 },
-          medium: { width: 320, height: 180 },
-          high: { width: 640, height: 360 }
-        };
-        const settings = qualitySettings[quality as keyof typeof qualitySettings] || qualitySettings.medium;
-        
-        // Clean URL to path if it's a file URL
-        const filePath = videoUrl.startsWith('file://') 
-          ? decodeURI(videoUrl.replace('file://', '').replace(/^\/([A-Z]:)/, '$1'))
-          : videoUrl;
-
-        const base64 = await electronFFmpegBridge.generateThumbnail(filePath, time, settings.width, settings.height);
-        if (base64) {
-          return this.base64ToBlob(base64);
-        }
-      } catch (error) {
-        console.warn('[ThumbnailCache] Background generation failed, falling back to DOM:', error);
-      }
-    }
-
-    // Fallback to DOM-based generation (Standard browser mode)
-    return this.generateThumbnailDOM(videoUrl, time, quality);
-  }
-
-  /**
-   * Original DOM-based thumbnail generation (Fallback)
-   */
-  private async generateThumbnailDOM(
     videoUrl: string,
     time: number,
     quality?: string
@@ -625,23 +584,6 @@ export class ThumbnailCache {
         reject(new Error(`Failed to load video: ${videoUrl}`));
       });
     });
-  }
-
-  /**
-   * Helper to convert base64 data URL to Blob
-   */
-  private base64ToBlob(base64Data: string): Blob {
-    const parts = base64Data.split(';base64,');
-    const contentType = parts[0].split(':')[1];
-    const raw = window.atob(parts[1]);
-    const rawLength = raw.length;
-    const uInt8Array = new Uint8Array(rawLength);
-
-    for (let i = 0; i < rawLength; ++i) {
-      uInt8Array[i] = raw.charCodeAt(i);
-    }
-
-    return new Blob([uInt8Array], { type: contentType });
   }
 
   /**

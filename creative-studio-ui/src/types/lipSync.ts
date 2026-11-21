@@ -41,6 +41,13 @@ export const LipSyncStatus = {
 
 export type LipSyncStatus = typeof LipSyncStatus[keyof typeof LipSyncStatus];
 
+export interface LipSyncWizardContext {
+  characterId?: string;
+  characterImage?: string;
+  audioFile?: string | File;
+  shotId?: string;
+}
+
 export interface LipSyncRequest {
   projectId: string;
   characterFaceImage: string;

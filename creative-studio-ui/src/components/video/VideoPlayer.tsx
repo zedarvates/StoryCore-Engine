@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Maximize, Minimize } from 'lucide-react';
 import { PlaybackSpeedControl } from './PlaybackSpeedControl';
 import type { Shot } from '@/types';
+import { getShotVideoUrl } from './getShotVideoUrl';
 
 export interface VideoPlayerProps {
   shot: Shot;
@@ -325,7 +326,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }
 
   // Render placeholder if no video
-  if (!shot.image && !shot.metadata?.videoUrl) {
+  const videoUrl = getShotVideoUrl(shot);
+  if (!videoUrl) {
     return (
       <div className={`relative bg-gray-900 flex items-center justify-center ${className}`}>
         <div className="text-center p-8">
@@ -341,7 +343,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
-  const videoUrl = shot.metadata?.videoUrl || shot.image;
 
   return (
     <div ref={containerRef} className={`relative bg-black ${className}`}>

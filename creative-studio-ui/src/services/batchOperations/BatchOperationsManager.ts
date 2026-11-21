@@ -219,7 +219,8 @@ export class BatchOperationsManager {
     return {
       ...shot,
       id: newId,
-      title: `${shot.title} (${suffix})`,
+      title: `${shot.title ?? shot.name} (${suffix})`,
+      name: `${shot.name} (${suffix})`,
       position: shot.position + 1
     };
   }
@@ -289,7 +290,8 @@ export class BatchOperationsManager {
     }
     
     const addTags = options.addTags !== false;
-    const existingTags = shot.metadata?.tags || [];
+    const tags = shot.metadata?.tags;
+    const existingTags = Array.isArray(tags) ? tags.filter((tag): tag is string => typeof tag === 'string') : [];
     
     const newTags = addTags
       ? [...new Set([...existingTags, ...options.tags])]
