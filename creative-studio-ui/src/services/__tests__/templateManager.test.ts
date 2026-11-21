@@ -262,7 +262,7 @@ describe('TemplateManager', () => {
           height: 1080,
           steps: 20,
           cfgScale: 8,
-          sampler: 'Euler a' as const,
+          sampler: 'euler_ancestral' as const,
           scheduler: 'normal' as const,
         },
         estimatedTime: 60,

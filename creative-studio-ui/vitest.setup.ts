@@ -15,7 +15,7 @@ vi.mock('@/hooks/useServiceStatus', () => ({
 }));
 
 // Mock hasPointerCapture for Radix UI compatibility with jsdom
-Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'hasPointerCapture', {
+Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
   writable: true,
   value: vi.fn(() => false),
 });
@@ -32,13 +32,13 @@ if (!HTMLFormElement.prototype.requestSubmit) {
 }
 
 // Mock scrollIntoView for Radix UI Select
-Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'scrollIntoView', {
+Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
   writable: true,
   value: vi.fn(),
 });
 
 // Mock ResizeObserver for virtualized and responsive components
-(globalThis as unknown).ResizeObserver = class ResizeObserver {
+class TestResizeObserver {
   constructor(callback: ResizeObserverCallback) {
     this.callback = callback;
   }
@@ -75,10 +75,11 @@ Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'scrollInto
   }
   unobserve() { }
   disconnect() { }
-};
+}
+Object.defineProperty(globalThis, 'ResizeObserver', { configurable: true, writable: true, value: TestResizeObserver });
 
 // Mock IntersectionObserver for lazy loading components
-(globalThis as unknown).IntersectionObserver = class IntersectionObserver {
+class TestIntersectionObserver {
   constructor(callback: IntersectionObserverCallback) {
     this.callback = callback;
   };
@@ -92,7 +93,8 @@ Object.defineProperty((globalThis as unknown).HTMLElement.prototype, 'scrollInto
   root = null;
   rootMargin = '';
   thresholds = [];
-};
+}
+Object.defineProperty(globalThis, 'IntersectionObserver', { configurable: true, writable: true, value: TestIntersectionObserver });
 
 // Mock HTMLCanvasElement.getContext for canvas-based components
 HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
@@ -131,7 +133,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
     width: 800,
     height: 600,
   },
-})) as RenderingContext2D;
+}));
 
 console.log('Vitest setup loaded successfully');
 
@@ -150,30 +152,17 @@ vi.mock('lucide-react', async (importOriginal) => {
   return mockedIcons as Record<string, unknown>;
 });
 
-// Mock document.createElement for file input tests
-const originalCreateElement = document.createElement.bind(document);
-vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
-  if (tagName === 'input') {
-    const input = originalCreateElement('input') as HTMLInputElement;
-    // Preserve the type that will be set by React - don't override to file
-    // The mock should only set default properties for testing, not change the type
-    return input;
-  }
-  return originalCreateElement(tagName);
+// Record element creation without changing browser behavior.
+vi.spyOn(document, 'createElement');
+
+// Export services use object URLs, which JSDOM does not implement.
+Object.defineProperties(URL, {
+  createObjectURL: { configurable: true, writable: true, value: vi.fn(() => 'blob:mock-url') },
+  revokeObjectURL: { configurable: true, writable: true, value: vi.fn() },
 });
 
-// Mock URL.createObjectURL and URL.revokeObjectURL for export service tests
-const OriginalURL = (globalThis as unknown).URL;
-(globalThis as unknown).URL = class URL extends (OriginalURL as typeof URL) {
-  static createObjectURL = vi.fn(() => 'blob:mock-url');
-  static revokeObjectURL = vi.fn();
-  constructor(url: string | URL, base?: string | URL) {
-    super(url, base);
-  }
-};
-
 // Mock Worker for web worker tests
-(globalThis as unknown).Worker = class Worker {
+class TestWorker {
   constructor(_url: string | URL, _options?: WorkerOptions) {
     this.onmessage = vi.fn();
     this.onerror = vi.fn();
@@ -185,4 +174,5 @@ const OriginalURL = (globalThis as unknown).URL;
   addEventListener(_type: string, _listener: EventListenerOrEventListenerObject) { }
   removeEventListener(_type: string, _listener: EventListenerOrEventListenerObject) { }
   dispatchEvent(_event: Event): boolean { return true; }
-};
+}
+Object.defineProperty(globalThis, 'Worker', { configurable: true, writable: true, value: TestWorker });

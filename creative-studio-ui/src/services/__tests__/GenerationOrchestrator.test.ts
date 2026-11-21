@@ -11,7 +11,7 @@
  * Requirements: 12.1, 12.2, 12.3
  */
 
-import { assert, describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { GenerationOrchestrator, type ErrorCallback, type ProgressCallback } from '../GenerationOrchestrator';
 import type {
   GenerationProgress,
@@ -333,8 +333,9 @@ describe('GenerationOrchestrator', () => {
       const shortResult = await orchestrator.generateAudio(shortParams);
       const longResult = await orchestrator.generateAudio(longParams);
 
-      assert.isNumber(shortResult.metadata.duration);
-      expect(longResult.metadata.duration).toBeGreaterThan(shortResult.metadata.duration);
+      const shortDuration = shortResult.metadata.duration;
+      if (shortDuration === undefined) throw new Error('Short audio result omitted its duration');
+      expect(longResult.metadata.duration).toBeGreaterThan(shortDuration);
     });
 
     it.skip('should adjust duration estimate based on speed', async () => {
@@ -363,8 +364,9 @@ describe('GenerationOrchestrator', () => {
       const fastResult = await orchestrator.generateAudio(fastSpeedParams);
 
       // Faster speed should result in shorter duration
-      assert.isNumber(normalResult.metadata.duration);
-      expect(fastResult.metadata.duration).toBeLessThan(normalResult.metadata.duration);
+      const normalDuration = normalResult.metadata.duration;
+      if (normalDuration === undefined) throw new Error('Normal-speed audio result omitted its duration');
+      expect(fastResult.metadata.duration).toBeLessThan(normalDuration);
     });
 
     it.skip('should report progress during audio generation', async () => {

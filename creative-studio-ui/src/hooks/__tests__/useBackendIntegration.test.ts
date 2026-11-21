@@ -27,7 +27,7 @@ function createBackendFixture(): BackendApiService {
     success: true, data: { taskId: id, status: 'processing', progress: 50 },
   }));
   vi.spyOn(api, 'cancelTask').mockResolvedValue({ success: true });
-  vi.spyOn(api, 'invokeCliCommand').mockImplementation(async (command, args = []) => ({
+  vi.spyOn(api, 'invokeCliCommand').mockImplementation(async (command, args) => ({
     success: true, data: { command, args, success: true, output: 'test result' },
   }));
   return api;

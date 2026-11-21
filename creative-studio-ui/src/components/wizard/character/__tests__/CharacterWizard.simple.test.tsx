@@ -166,9 +166,9 @@ describe('CharacterWizard - Simple Tests', () => {
       keyObjects: [],
       id: 'world-1',
       name: 'Test World',
-      genre: ['Fantasy'],
+      genre: ['fantasy'],
       timePeriod: 'Medieval',
-      tone: ['Dark'],
+      tone: ['dark'],
       locations: [],
       rules: [],
       atmosphere: '',
@@ -182,8 +182,8 @@ describe('CharacterWizard - Simple Tests', () => {
       technology: '',
       magic: '',
       conflicts: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
     };
 
     render(
