@@ -1,6 +1,17 @@
-import { LegacyAny } from '@/types/legacy';
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Panel, ViewportState } from '../../types/gridEditor';
+import type { Layer, Panel, Rectangle, ViewportState } from '../../types/gridEditor';
+
+function getImageSourceRectangle(image: HTMLImageElement, crop: Panel['crop']): Rectangle {
+  if (!crop) {
+    return { x: 0, y: 0, width: image.naturalWidth, height: image.naturalHeight };
+  }
+  return {
+    x: crop.x * image.naturalWidth,
+    y: crop.y * image.naturalHeight,
+    width: crop.width * image.naturalWidth,
+    height: crop.height * image.naturalHeight,
+  };
+}
 
 interface GridRendererProps {
   panels: Panel[];
@@ -117,9 +128,10 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
    */
   const renderLayer = useCallback((
     ctx: CanvasRenderingContext2D,
-    layer: unknown,
+    layer: Layer,
     bounds: { x: number; y: number; width: number; height: number },
-    transform: unknown
+    transform: Panel['transform'],
+    crop: Panel['crop']
   ) => {
     // Skip invisible layers
     if (!layer.visible) return;
@@ -148,8 +160,9 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
         return;
       }
 
-      // Calculate image dimensions preserving aspect ratio
-      const imgAspect = img.naturalWidth / img.naturalHeight;
+      // Fit the same normalized source crop used by the individual panel.
+      const source = getImageSourceRectangle(img, crop);
+      const imgAspect = source.width / source.height;
       const boundsAspect = bounds.width / bounds.height;
 
       let drawWidth = bounds.width;
@@ -178,17 +191,17 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       }
 
       // Draw the image
-      ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+      ctx.drawImage(img, source.x, source.y, source.width, source.height, drawX, drawY, drawWidth, drawHeight);
     } else if (layer.type === 'annotation' && layer.content.type === 'annotation') {
       // Render annotation layer (drawings and text)
       const annotationContent = layer.content;
 
       // Render drawings
-      annotationContent.drawings?.forEach((drawing: unknown) => {
+      annotationContent.drawings?.forEach((drawing) => {
         ctx.save();
         ctx.strokeStyle = drawing.style.strokeColor || '#000000';
         ctx.lineWidth = drawing.style.strokeWidth || 2;
-        ctx.globalAlpha = drawing.style.opacity || 1;
+        ctx.globalAlpha *= drawing.style.opacity;
 
         if (drawing.style.fillColor) {
           ctx.fillStyle = drawing.style.fillColor;
@@ -201,7 +214,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
             ctx.lineTo(bounds.x + drawing.points[i].x * bounds.width, bounds.y + drawing.points[i].y * bounds.height);
           }
           ctx.stroke();
-        } else if (drawing.type === 'rectangle') {
+        } else if (drawing.type === 'rectangle' && drawing.points.length >= 2) {
           const rect = {
             x: bounds.x + drawing.points[0].x * bounds.width,
             y: bounds.y + drawing.points[0].y * bounds.height,
@@ -235,7 +248,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       });
 
       // Render text annotations
-      annotationContent.textAnnotations?.forEach((textAnnotation: unknown) => {
+      annotationContent.textAnnotations?.forEach((textAnnotation) => {
         ctx.save();
         ctx.font = `${textAnnotation.style.fontSize}px ${textAnnotation.style.fontFamily}`;
         ctx.fillStyle = textAnnotation.style.color || '#000000';
@@ -320,7 +333,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
       // Render each visible layer in z-order (bottom to top)
       // Index 0 = bottom layer, last index = top layer
       visibleLayers.forEach(layer => {
-        renderLayer(ctx, layer, bounds, panel.transform);
+        renderLayer(ctx, layer, bounds, panel.transform, panel.crop);
       });
     }
 
@@ -401,18 +414,21 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     const { ctx, width, height } = result;
 
     // Load all images first
-    const imageUrls = panels.flatMap(panel =>
-      panel.layers
-        .filter(layer => layer.type === 'image' && layer.content.type === 'image')
-        .map(layer => (layer.content as LegacyAny).url)
-    );
+    const imageUrls = panels.flatMap(panel => panel.layers.flatMap(layer =>
+      layer.type === 'image' && layer.content.type === 'image' ? [layer.content.url] : []
+    ));
 
+    let cancelled = false;
     Promise.all(imageUrls.map(url => loadImage(url).catch(() => null)))
       .then(() => {
+        if (cancelled) return;
         renderGrid(ctx, width, height);
+      })
+      .catch((error: unknown) => {
+        console.error('Grid rendering failed', error);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [panels, selectedPanelIds, viewport]);
+    return () => { cancelled = true; };
+  }, [panels, viewport, setupCanvas, loadImage, renderGrid]);
 
   /**
    * Handle canvas click to detect panel selection
@@ -486,8 +502,7 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setupCanvas, renderGrid]);
 
   return (
     <div
@@ -511,5 +526,3 @@ export const GridRenderer: React.FC<GridRendererProps> = ({
     </div>
   );
 };
-
-

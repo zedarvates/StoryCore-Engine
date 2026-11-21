@@ -272,7 +272,7 @@ export const AssetPreviewPanel: React.FC<AssetPreviewPanelProps> = ({
         
         <CardContent className="space-y-4">
           {/* Asset Display */}
-          {asset.type === 'prompt' && metadata.generationParams.text && (
+          {asset.type === 'prompt' && typeof metadata.generationParams.text === 'string' && metadata.generationParams.text && (
             <div className="p-4 bg-muted rounded-lg">
               <p className="text-sm whitespace-pre-wrap">
                 {metadata.generationParams.text}
