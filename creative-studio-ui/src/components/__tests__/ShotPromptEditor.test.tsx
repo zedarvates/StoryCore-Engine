@@ -6,12 +6,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { ShotPromptEditor } from '../ShotPromptEditor';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import type { Shot } from '../../types/projectDashboard';
 
 describe('ShotPromptEditor', () => {
   const mockOnPromptChange = vi.fn();
 
-  const createMockShot = (overrides?: Partial<Shot>): Shot => ({
+  const createMockShot = (overrides?: Partial<Shot>): Shot => createShotFixture({
     id: 'shot-1',
     sequenceId: 'seq-1',
     startTime: 0,

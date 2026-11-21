@@ -54,7 +54,6 @@ describe('Undo/Redo Integration', () => {
         notification: {
           show: vi.fn(),
           dismiss: vi.fn(),
-          dismissAll: vi.fn(),
         },
       },
     };

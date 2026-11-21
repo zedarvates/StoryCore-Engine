@@ -145,7 +145,7 @@ describe('MenuItem', () => {
     });
 
     it('should apply focused styles when focused prop is true', () => {
-      const { _container } = render(
+      render(
         <MenuItem id="test" label="Test Item" focused={true} />
       );
       

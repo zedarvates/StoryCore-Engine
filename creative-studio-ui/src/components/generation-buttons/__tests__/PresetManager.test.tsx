@@ -10,7 +10,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { PresetManager } from '../PresetManager';
-import { PresetManagementService } from '../../../services/PresetManagementService';
+import { PresetManagementService, type ImagePreset } from '../../../services/PresetManagementService';
 
 describe('PresetManager', () => {
   const mockOnLoadPreset = vi.fn();
@@ -131,7 +131,7 @@ describe('PresetManager', () => {
   
   it('should open load dialog when load button clicked', async () => {
     // Save a preset first
-    PresetManagementService.savePreset({
+    PresetManagementService.savePreset<ImagePreset>({
       name: 'Test Preset',
       type: 'image',
       params: mockImageParams,
@@ -156,7 +156,7 @@ describe('PresetManager', () => {
   
   it('should load a preset when clicked', async () => {
     // Save a preset first
-    const preset = PresetManagementService.savePreset({
+    const preset = PresetManagementService.savePreset<ImagePreset>({
       name: 'Test Preset',
       type: 'image',
       params: mockImageParams,
@@ -190,7 +190,7 @@ describe('PresetManager', () => {
     window.confirm = vi.fn(() => true);
     
     // Save a preset first
-    PresetManagementService.savePreset({
+    PresetManagementService.savePreset<ImagePreset>({
       name: 'To Delete',
       type: 'image',
       params: mockImageParams,
@@ -228,7 +228,7 @@ describe('PresetManager', () => {
   
   it('should start editing preset name when edit button clicked', async () => {
     // Save a preset first
-    PresetManagementService.savePreset({
+    PresetManagementService.savePreset<ImagePreset>({
       name: 'Original Name',
       type: 'image',
       params: mockImageParams,
@@ -263,7 +263,7 @@ describe('PresetManager', () => {
   
   it('should save edited preset name', async () => {
     // Save a preset first
-    const preset = PresetManagementService.savePreset({
+    const preset = PresetManagementService.savePreset<ImagePreset>({
       name: 'Original Name',
       type: 'image',
       params: mockImageParams,
@@ -327,7 +327,7 @@ describe('PresetManager', () => {
   
   it('should handle export presets', async () => {
     // Save a preset first
-    PresetManagementService.savePreset({
+    PresetManagementService.savePreset<ImagePreset>({
       name: 'Export Test',
       type: 'image',
       params: mockImageParams,

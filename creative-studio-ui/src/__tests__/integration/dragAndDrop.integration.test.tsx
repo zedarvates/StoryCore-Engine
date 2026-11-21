@@ -368,7 +368,7 @@ describe('Drag and Drop Integration', () => {
   describe('Drag Validation', () => {
     it('should prevent invalid drop operations', async () => {
       const initialShots = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: '',
@@ -378,7 +378,7 @@ describe('Drag and Drop Integration', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
+        }),
       ];
 
       useStore.setState({ shots: initialShots });

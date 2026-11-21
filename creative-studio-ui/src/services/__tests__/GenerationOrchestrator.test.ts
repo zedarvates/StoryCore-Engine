@@ -333,7 +333,9 @@ describe('GenerationOrchestrator', () => {
       const shortResult = await orchestrator.generateAudio(shortParams);
       const longResult = await orchestrator.generateAudio(longParams);
 
-      expect(longResult.metadata.duration).toBeGreaterThan(shortResult.metadata.duration);
+      const shortDuration = shortResult.metadata.duration;
+      if (shortDuration === undefined) throw new Error('Short audio result omitted its duration');
+      expect(longResult.metadata.duration).toBeGreaterThan(shortDuration);
     });
 
     it.skip('should adjust duration estimate based on speed', async () => {
@@ -362,7 +364,9 @@ describe('GenerationOrchestrator', () => {
       const fastResult = await orchestrator.generateAudio(fastSpeedParams);
 
       // Faster speed should result in shorter duration
-      expect(fastResult.metadata.duration).toBeLessThan(normalResult.metadata.duration);
+      const normalDuration = normalResult.metadata.duration;
+      if (normalDuration === undefined) throw new Error('Normal-speed audio result omitted its duration');
+      expect(fastResult.metadata.duration).toBeLessThan(normalDuration);
     });
 
     it.skip('should report progress during audio generation', async () => {

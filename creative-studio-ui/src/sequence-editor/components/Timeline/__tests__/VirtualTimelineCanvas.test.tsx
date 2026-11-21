@@ -55,7 +55,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn().mockReturnValue({
   })),
   createPattern: vi.fn(),
   roundRect: vi.fn(),
-} as CanvasRenderingContext2D);
+});
 
 // Helper to render with Redux provider
 function renderWithProvider(ui: React.ReactElement) {
@@ -104,6 +104,7 @@ function createSampleTracks(): Track[] {
 function createSampleShot(id: string, startTime: number, duration: number, layerType: LayerType = 'media'): Shot {
   return {
     id,
+    position: startTime,
     name: `Shot ${id}`,
     startTime,
     duration,

@@ -37,7 +37,8 @@ let images: HTMLImageElement[];
 beforeEach(() => {
   graphics = canvasRecorder();
   images = [];
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext')
+  const canvas2D: { getContext(id: '2d'): CanvasRenderingContext2D | null } = HTMLCanvasElement.prototype;
+  vi.spyOn(canvas2D, 'getContext')
     .mockReturnValue(graphics.context as unknown as CanvasRenderingContext2D);
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
     x: 10, y: 20, left: 10, top: 20, right: 310, bottom: 320,

@@ -352,7 +352,7 @@ describe('ProductionWizardProvider', () => {
     it('should clear draft on successful submission', async () => {
       const mockOnSubmit = vi.fn().mockResolvedValue(undefined);
 
-      const { _rerender } = render(
+      render(
         <ProductionWizardProvider
           wizardType="test-wizard"
           totalSteps={3}

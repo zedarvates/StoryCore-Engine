@@ -104,7 +104,7 @@ describe('Backend Communication Integration', () => {
     });
 
     it('should preserve all shot metadata in export', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Complex Shot',
         description: 'Shot with all features',
@@ -132,10 +132,13 @@ describe('Backend Communication Integration', () => {
           {
             id: 'effect-1',
             type: 'filter',
+            category: 'creative',
+            icon: null,
+            description: 'Test filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,
-            parameters: {},
+            parameters: [],
           },
         ],
         textLayers: [
@@ -160,7 +163,7 @@ describe('Backend Communication Integration', () => {
           easing: 'ease-in-out',
         },
         position: 0,
-      };
+      });
 
       const project: Project = {
         id: "project-test",
@@ -183,9 +186,9 @@ describe('Backend Communication Integration', () => {
       const json = saveProjectToJSON(project);
       const loaded = loadProjectFromJSON(json);
 
-      expect(loaded.shots[0].audioTracks.length).toBe(1);
-      expect(loaded.shots[0].effects.length).toBe(1);
-      expect(loaded.shots[0].textLayers.length).toBe(1);
+      expect(loaded.shots[0].audioTracks?.length).toBe(1);
+      expect(loaded.shots[0].effects?.length).toBe(1);
+      expect(loaded.shots[0].textLayers?.length).toBe(1);
       expect(loaded.shots[0].transitionOut).toBeDefined();
     });
   });
@@ -255,7 +258,7 @@ describe('Backend Communication Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -273,7 +276,7 @@ describe('Backend Communication Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -298,7 +301,7 @@ describe('Backend Communication Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -322,7 +325,7 @@ describe('Backend Communication Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -382,7 +385,7 @@ describe('Backend Communication Integration', () => {
           type: 'grid' as const,
           status: 'pending' as const,
           priority: 1,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
         {
           id: 'task-2',
@@ -390,7 +393,7 @@ describe('Backend Communication Integration', () => {
           type: 'promotion' as const,
           status: 'pending' as const,
           priority: 2,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
         {
           id: 'task-3',
@@ -398,7 +401,7 @@ describe('Backend Communication Integration', () => {
           type: 'qa' as const,
           status: 'pending' as const,
           priority: 3,
-          createdAt: new Date(),
+          createdAt: Date.now(),
         },
       ];
 
@@ -430,7 +433,7 @@ describe('Backend Communication Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -454,7 +457,7 @@ describe('Backend Communication Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -472,7 +475,7 @@ describe('Backend Communication Integration', () => {
         type: 'promotion' as const,
         status: 'pending' as const,
         priority: 2,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(newTask);

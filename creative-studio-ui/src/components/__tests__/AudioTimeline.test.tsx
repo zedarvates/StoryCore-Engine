@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Unit tests for AudioTimeline component
  * Requirements: 4.1
@@ -16,7 +17,7 @@ describe('AudioTimeline', () => {
   const mockOnPhraseResize = vi.fn();
   const mockOnTimelineClick = vi.fn();
 
-  const createMockShot = (overrides?: Partial<Shot>): Shot => ({
+  const createMockShot = (overrides?: Partial<Shot>): Shot => createShotFixture({
     id: 'shot-1',
     sequenceId: 'seq-1',
     startTime: 0,

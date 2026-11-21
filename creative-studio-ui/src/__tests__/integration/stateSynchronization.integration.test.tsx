@@ -196,7 +196,7 @@ describe('State Synchronization Integration', () => {
       };
 
       useStore.getState().addAudioTrack('shot-1', audioTrack);
-      expect(useStore.getState().shots[0].audioTracks.length).toBe(1);
+      expect(useStore.getState().shots[0].audioTracks?.length).toBe(1);
 
       useStore.getState().deleteAudioTrack('shot-1', 'audio-1');
 

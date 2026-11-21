@@ -12,16 +12,17 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useGridStore } from '../../../stores/gridEditorStore';
 import { useViewportStore } from '../../../stores/viewportStore';
-import { MockGridAPIService } from '../../../services/gridEditor/GridAPIService';
+import { GridAPIService } from '../../../services/gridEditor/GridAPIService';
 import { ImageLoaderService } from '../../../services/gridEditor/ImageLoaderService';
-import type { PanelGenerationConfig } from '../../../services/gridEditor/GridAPIService';
+import type { BatchGenerationRequest, BatchGenerationResponse, GeneratedImage, PanelGenerationConfig } from '../../../services/gridEditor/GridAPIService';
 
 describe('Task 15: Backend Integration and Focus Mode Verification', () => {
-  let mockGridAPI: MockGridAPIService;
+  let gridAPI: GridAPIService;
+  let failureMode: 'none' | 'all' | 'partial';
   let imageLoader: ImageLoaderService;
 
   beforeEach(() => {
@@ -29,13 +30,42 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
     useGridStore.getState().resetConfiguration('test-project');
     useViewportStore.getState().resetViewport();
 
-    // Create mock services
-    mockGridAPI = new MockGridAPIService();
-    mockGridAPI.setMockDelay(100); // Fast for testing
-    mockGridAPI.setMockFailureRate(0); // No failures by default
+    gridAPI = new GridAPIService({ baseUrl: 'http://grid.invalid', retryAttempts: 1 });
+    failureMode = 'none';
+    vi.stubGlobal('fetch', vi.fn<typeof fetch>(async (url, options) => {
+      const makeImage = (config: PanelGenerationConfig): GeneratedImage => ({
+        panelId: config.panelId,
+        imageUrl: '/generated/' + config.panelId + '.png',
+        metadata: {
+          seed: config.seed, width: config.width ?? 512, height: config.height ?? 512,
+          generationTime: 1, qualityScore: 0.9,
+        },
+      });
+      const body = JSON.parse(String(options?.body));
+      if (String(url).endsWith('/generate-panel')) {
+        return failureMode === 'all'
+          ? Response.json({ message: 'Generation failed' }, { status: 503 })
+          : Response.json(makeImage(body));
+      }
+      if (String(url).endsWith('/batch-generate')) {
+        const request: BatchGenerationRequest = body;
+        const successful = failureMode === 'partial' ? request.panels.slice(0, 2) : request.panels;
+        const failed = request.panels.slice(successful.length);
+        const response: BatchGenerationResponse = {
+          batchId: 'batch-1', status: 'completed', totalPanels: request.panels.length,
+          completedPanels: successful.length, failedPanels: failed.length,
+          results: successful.map(makeImage),
+          errors: failed.map(panel => ({ panelId: panel.panelId, error: 'Generation failed' })),
+        };
+        return Response.json(response);
+      }
+      return new Response(null, { status: 404 });
+    }));
 
     imageLoader = new ImageLoaderService();
   });
+
+  afterEach(() => vi.unstubAllGlobals());
 
   // ============================================================================
   // Backend Integration Tests
@@ -59,7 +89,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       };
 
       // Act
-      const response = await mockGridAPI.generatePanelImage(generationConfig);
+      const response = await gridAPI.generatePanelImage(generationConfig);
 
       // Assert
       expect(response.success).toBe(true);
@@ -88,7 +118,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       };
 
       // Act
-      const response = await mockGridAPI.generatePanelImage(generationConfig);
+      const response = await gridAPI.generatePanelImage(generationConfig);
 
       if (response.success && response.data) {
         act(() => {
@@ -113,7 +143,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
 
     it('should handle generation errors gracefully', async () => {
       // Arrange
-      mockGridAPI.setMockFailureRate(1.0); // Force failure
+      failureMode = 'all';
       const { result: gridStore } = renderHook(() => useGridStore());
       const panel = gridStore.current.getAllPanels()[0];
 
@@ -127,7 +157,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       };
 
       // Act
-      const response = await mockGridAPI.generatePanelImage(generationConfig);
+      const response = await gridAPI.generatePanelImage(generationConfig);
 
       // Assert - Requirements 11.4: Error should not modify panel state
       expect(response.success).toBe(false);
@@ -176,7 +206,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       };
 
       // Act
-      const response = await mockGridAPI.batchGeneratePanels(batchRequest);
+      const response = await gridAPI.batchGeneratePanels(batchRequest);
 
       // Assert
       expect(response.success).toBe(true);
@@ -189,7 +219,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
 
     it('should handle partial batch failures', async () => {
       // Arrange
-      mockGridAPI.setMockFailureRate(0.5); // 50% failure rate
+      failureMode = 'partial';
       const { result: gridStore } = renderHook(() => useGridStore());
       const panels = gridStore.current.getAllPanels().slice(0, 4);
 
@@ -206,7 +236,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       };
 
       // Act
-      const response = await mockGridAPI.batchGeneratePanels(batchRequest);
+      const response = await gridAPI.batchGeneratePanels(batchRequest);
 
       // Assert
       expect(response.success).toBe(true);
@@ -238,7 +268,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
       };
 
       // Act
-      const response = await mockGridAPI.batchGeneratePanels(batchRequest);
+      const response = await gridAPI.batchGeneratePanels(batchRequest);
 
       if (response.success && response.data) {
         act(() => {
@@ -455,7 +485,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
         gridStore.current.selectPanel(panel.id, false);
       });
 
-      const _initialSelection = [...gridStore.current.selectedPanelIds];
+      const initialSelection = [...gridStore.current.selectedPanelIds];
       const initialZoom = viewportStore.current.zoom;
       const initialPan = { ...viewportStore.current.pan };
 
@@ -500,7 +530,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
         height: 512,
       };
 
-      const response = await mockGridAPI.generatePanelImage(generationConfig);
+      const response = await gridAPI.generatePanelImage(generationConfig);
 
       if (response.success && response.data) {
         act(() => {
@@ -525,7 +555,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
 
     it('should handle generation error while in focus mode', async () => {
       // Arrange
-      mockGridAPI.setMockFailureRate(1.0); // Force failure
+      failureMode = 'all';
       const { result: gridStore } = renderHook(() => useGridStore());
       const { result: viewportStore } = renderHook(() => useViewportStore());
       
@@ -547,7 +577,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
         styleReference: 'master-coherence-sheet',
       };
 
-      const response = await mockGridAPI.generatePanelImage(generationConfig);
+      const response = await gridAPI.generatePanelImage(generationConfig);
 
       // Assert - Should remain in focus mode despite error
       expect(response.success).toBe(false);

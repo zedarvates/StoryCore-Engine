@@ -166,7 +166,7 @@ describe('ComfyUI Service', () => {
     });
 
     it('should fetch available workflows', async () => {
-      const workflows = await getAvailableWorkflows('http://localhost:8188');
+      const workflows = await getAvailableWorkflows();
 
       expect(workflows).toBeDefined();
       expect(Array.isArray(workflows)).toBe(true);
@@ -183,7 +183,7 @@ describe('ComfyUI Service', () => {
       // Mock fetch to fail
       global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
-      const workflows = await getAvailableWorkflows('http://localhost:8188');
+      const workflows = await getAvailableWorkflows();
 
       // Should return mock data on error
       expect(workflows).toBeDefined();

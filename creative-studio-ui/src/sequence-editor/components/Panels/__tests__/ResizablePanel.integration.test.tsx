@@ -26,6 +26,7 @@ const createMockStore = (initialState = {}) => {
     },
     preloadedState: {
       panels: {
+        ...panelsReducer(undefined, { type: '@@INIT' }),
         layout: {
           assetLibrary: { width: 20 },
           preview: { width: 50, height: 60 },

@@ -270,7 +270,7 @@ describe('generateWaveformData', () => {
     const audioUrl = 'https://example.com/audio.mp3';
     
     try {
-      await g_enerateWaveformData(audioUrl);
+      await generateWaveformData(audioUrl);
     } catch (error) {
       // Expected to throw
     }

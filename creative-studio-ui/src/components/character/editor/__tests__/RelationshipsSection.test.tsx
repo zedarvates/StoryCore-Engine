@@ -4,7 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { RelationshipsSection } from '../RelationshipsSection';
 import { useCharacterManager } from '@/hooks/useCharacterManager';
-import type { CharacterRelationship, Character } from '@/types/character';
+import { createEmptyCharacter, type CharacterRelationship, type Character } from '@/types/character';
 
 vi.mock('@/hooks/useCharacterManager');
 
@@ -24,19 +24,21 @@ describe('RelationshipsSection', () => {
 
   const mockCharacters: Character[] = [
     {
+      ...createEmptyCharacter(),
       character_id: 'char-2',
       name: 'Friend Character',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
       version: '1.0',
-    } as Character,
+    },
     {
+      ...createEmptyCharacter(),
       character_id: 'char-3',
       name: 'Enemy Character',
       creation_method: 'wizard',
-      creation_timestamp: '2024-01-01T00:00:00Z',
+      creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
       version: '1.0',
-    } as Character,
+    },
   ];
 
   beforeEach(() => {

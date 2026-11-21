@@ -64,7 +64,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Shot Display', () => {
-    const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+    const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test description',
@@ -166,7 +166,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Metadata Indicators', () => {
-    const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+    const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test description',
@@ -218,10 +218,13 @@ describe('StoryboardCanvas', () => {
             {
               id: 'effect-1',
               type: 'filter',
+              category: 'creative',
+              icon: null,
+              description: 'Test filter',
               name: 'vintage',
               enabled: true,
               intensity: 50,
-              parameters: {},
+              parameters: [],
             },
           ],
         }),
@@ -284,7 +287,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Selection', () => {
-    const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+    const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test description',
@@ -369,7 +372,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Duration Formatting', () => {
-    const createMockShot = (duration: number): Shot => (createShotFixture({
+    const createMockShot = (duration: number): Shot => createShotFixture(createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test',

@@ -11,6 +11,7 @@
 import React from 'react';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
+import type { CharacterEventPayload } from './characterEvents';
 import type { HistoryEntry } from '@/types/generation';
 
 // ============================================================================
@@ -281,6 +282,7 @@ export type EventPayload =
   | CharacterCreatedPayload
   | CharacterUpdatedPayload
   | CharacterDeletedPayload
+  | CharacterEventPayload
   | LLMSettingsUpdatedPayload
   | ComfyUISettingsUpdatedPayload
   | WizardStartedPayload

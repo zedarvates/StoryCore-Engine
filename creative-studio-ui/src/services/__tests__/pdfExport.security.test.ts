@@ -62,6 +62,10 @@ const options: ExportOptions = {
   author: 'Test author',
 };
 
+function hasHtmlRenderer(api: typeof jsPDF.API): api is typeof jsPDF.API & Pick<jsPDF, 'html'> {
+  return 'html' in api && typeof api.html === 'function';
+}
+
 describe('PDF exports keep user content on the text API', () => {
   let htmlSpy: ReturnType<typeof vi.spyOn>;
 
@@ -71,6 +75,9 @@ describe('PDF exports keep user content on the text API', () => {
     ProjectExportService.getInstance().clearProgressCallback();
     vi.mocked(URL.createObjectURL).mockClear();
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    if (!hasHtmlRenderer(jsPDF.API)) {
+      throw new Error('jsPDF HTML renderer is unavailable in this test');
+    }
     htmlSpy = vi.spyOn(jsPDF.API, 'html').mockImplementation(() => {
       throw new Error('PDF text exports must not enter the HTML renderer');
     });

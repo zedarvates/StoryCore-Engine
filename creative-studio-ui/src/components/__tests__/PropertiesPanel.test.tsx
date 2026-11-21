@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import { LegacyAny } from '@/types/legacy';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -12,7 +13,7 @@ vi.mock('../../store', () => ({
 }));
 
 describe('PropertiesPanel', () => {
-  const mockShot: Shot = {
+  const mockShot: Shot = createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -39,10 +40,13 @@ describe('PropertiesPanel', () => {
       {
         id: 'effect-1',
         type: 'filter',
+        category: 'creative',
+        icon: null,
+        description: 'Test filter',
         name: 'Vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       },
     ],
     textLayers: [
@@ -61,7 +65,7 @@ describe('PropertiesPanel', () => {
     ],
     animations: [],
     position: 0,
-  };
+  });
 
   const mockProject: Project = {
     id: "project-test-project",
