@@ -111,7 +111,7 @@ export class VersionControlService {
     const versions = this.listVersions(configuration.projectId);
 
     // Add new version
-    versions.push(version);
+    versions.unshift(version);
 
     // Enforce max versions limit
     const trimmedVersions = this.trimVersions(versions);
@@ -344,8 +344,12 @@ export class VersionControlService {
       return false; // Version not found
     }
 
-    this.saveVersionsToStorage(projectId, filteredVersions);
-    return true;
+    try {
+      this.saveVersionsToStorage(projectId, filteredVersions);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -382,7 +386,11 @@ export class VersionControlService {
       
       // Only save if configuration has changed
       if (this.hasConfigurationChanged(config)) {
-        this.saveVersionAuto(config, author);
+        try {
+          this.saveVersionAuto(config, author);
+        } catch (error) {
+          console.error('Auto-save failed:', error);
+        }
       }
     }, this.config.autoSaveInterval);
 
@@ -431,11 +439,14 @@ export class VersionControlService {
     } catch (error) {
       console.error('Failed to save versions to storage:', error);
       // Handle quota exceeded error
-      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-        console.warn('Storage quota exceeded, removing oldest versions');
-        const trimmedVersions = versions.slice(0, Math.floor(versions.length / 2));
-        localStorage.setItem(storageKey, JSON.stringify(trimmedVersions));
+      if (!(error instanceof DOMException) || error.name !== 'QuotaExceededError' || versions.length < 2) {
+        throw error;
       }
+      console.warn('Storage quota exceeded, removing oldest versions');
+      const newest = [...versions].sort(
+        (first, second) => second.metadata.timestamp.localeCompare(first.metadata.timestamp),
+      );
+      localStorage.setItem(storageKey, JSON.stringify(newest.slice(0, Math.ceil(newest.length / 2))));
     }
   }
 
