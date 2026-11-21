@@ -144,7 +144,7 @@ export const calculateSpeakerAssignment = (position: Vector3D, surroundMode: '5.
   return 'front-center';
 };
 
-export const calculateAudioProperties = (position: Vector3D, surroundMode: '5.1' | '7.1' = '5.1'): Partial<AudioProperties> => {
+export const calculateAudioProperties = (position: Vector3D, surroundMode: '5.1' | '7.1' = '5.1'): AudioProperties => {
   const speakerAssignment = calculateSpeakerAssignment(position, surroundMode);
   const distance = Math.sqrt(position.x * position.x + position.z * position.z);
 

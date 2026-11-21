@@ -22,7 +22,7 @@ export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
     pose: 'standing'
   }));
 
-  const handleDragStart = (puppet: unknown) => (e: React.DragEvent) => {
+  const handleDragStart = (puppet: (typeof puppets)[number]) => (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'puppet',
       assetId: puppet.id,

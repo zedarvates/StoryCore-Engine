@@ -412,6 +412,8 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
         <div className="studio-canvas">
           <SceneSelector
             scenes={sequencePlan.scenes}
+            shots={sequencePlan.shots}
+            frameRate={sequencePlan.frameRate}
             selectedSceneId={planningState.currentScene.id}
             onSceneSelect={handleSceneSelect}
             onScenesReorder={handleScenesReorder}
