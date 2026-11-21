@@ -332,7 +332,7 @@ export const PlaybackControls: React.FC<PlaybackControlsProps> = (props) => {
             aria-label="Video progress"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={String(progressValue)}
+            aria-valuenow={progressValue}
             tabIndex={0}
           >
             <div

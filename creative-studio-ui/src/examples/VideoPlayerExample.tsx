@@ -1,3 +1,4 @@
+import { getShotVideoUrl } from '@/components/video/getShotVideoUrl';
 import { exampleShot } from './exampleShot';
 import React, { useState } from 'react';
 import { VideoPlayer } from '@/components/video/VideoPlayer';
@@ -155,8 +156,10 @@ export const VideoPlayerExample: React.FC = () => {
                 const x = e.clientX - rect.left;
                 const time = (x / rect.width) * selectedShot.duration;
                 
+                const videoUrl = getShotVideoUrl(selectedShot);
+                if (!videoUrl) return;
                 showPreview(
-                  selectedShot.metadata?.videoUrl || '',
+                  videoUrl,
                   time,
                   e.clientX,
                   e.clientY
