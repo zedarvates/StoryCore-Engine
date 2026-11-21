@@ -63,6 +63,19 @@ test('ModalsContainer renders without crashing', () => {
       onOpenPendingReports={() => {}}
       showPendingReportsList={false}
       onClosePendingReportsList={() => {}}
+      showObjectWizard={false}
+      onCloseObjectWizard={() => {}}
+      onCompleteObject={() => {}}
+      showSequencePlanWizard={false}
+      onCloseSequencePlanWizard={() => {}}
+      onCompleteSequencePlan={() => {}}
+      showShotWizard={false}
+      onCloseShotWizard={() => {}}
+      onCompleteShot={() => {}}
+      showDocumentationModal={false}
+      onCloseDocumentationModal={() => {}}
+      showAboutModal={false}
+      onCloseAboutModal={() => {}}
       activeWizardType={null}
       onCloseActiveWizard={() => {}}
       onCompleteWizard={() => {}}

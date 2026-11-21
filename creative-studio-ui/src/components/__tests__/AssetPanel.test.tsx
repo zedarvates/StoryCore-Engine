@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AssetPanel } from '../AssetPanel';
-import { AssetLibraryService } from '@/services/assetLibraryService';
+import { AssetLibraryService, type AssetSearchOptions, type AssetSource } from '@/services/assetLibraryService';
 import { vi } from 'vitest';
+import type { Asset } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 // Mock the AssetLibraryService
@@ -19,7 +20,7 @@ vi.mock('@/services/assetLibraryService', () => ({
           ],
         },
       ]),
-      searchAssets: vi.fn().mockImplementation((params, sources) => {
+      searchAssets: vi.fn().mockImplementation((params: AssetSearchOptions, sources: AssetSource[]) => {
         if (params.query) {
           return sources.flatMap(s => s.assets).filter(a => a.name.includes(params.query));
         }
@@ -42,9 +43,9 @@ vi.mock('@/services/assetLibraryService', () => ({
   },
   ASSET_CATEGORIES: [
     { id: 'all', name: 'All', filter: () => true },
-    { id: 'image', name: 'Images', filter: (asset) => asset.type === 'image' },
-    { id: 'audio', name: 'Audio', filter: (asset) => asset.type === 'audio' },
-    { id: 'video', name: 'Video', filter: (asset) => asset.type === 'video' },
+    { id: 'image', name: 'Images', filter: (asset: Asset) => asset.type === 'image' },
+    { id: 'audio', name: 'Audio', filter: (asset: Asset) => asset.type === 'audio' },
+    { id: 'video', name: 'Video', filter: (asset: Asset) => asset.type === 'video' },
   ],
 }));
 

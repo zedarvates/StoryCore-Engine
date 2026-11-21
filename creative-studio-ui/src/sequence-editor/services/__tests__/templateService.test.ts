@@ -21,6 +21,7 @@ import {
   type SceneTemplate,
   type NarrativePreset,
 } from '../templateService';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import type { Shot } from '../../types';
 
 describe('Template Service', () => {
@@ -38,6 +39,7 @@ describe('Template Service', () => {
       const template: SceneTemplate = {
         createdAt: Date.now(),
         id: 'test-template',
+        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [
@@ -76,6 +78,7 @@ describe('Template Service', () => {
       const template: SceneTemplate = {
         createdAt: Date.now(),
         id: 'test-template',
+        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [
@@ -108,6 +111,7 @@ describe('Template Service', () => {
       const preset: NarrativePreset = {
         createdAt: Date.now(),
         id: 'test-preset',
+        createdAt: 1704067200000,
         name: 'Test Preset',
         description: 'Test description',
         styleParameters: {
@@ -212,7 +216,7 @@ describe('Template Service', () => {
 
     it('should determine complexity based on shot count', () => {
       const createShots = (count: number): Shot[] => {
-        return Array.from({ length: count }, (_, i) => ({
+        return Array.from({ length: count }, (_, i) => createShotFixture({
           id: `shot-${i}`,
           name: `Shot ${i}`,
           startTime: i * 72,
@@ -285,6 +289,7 @@ describe('Template Service', () => {
     it('should save and load custom templates', () => {
       const template: SceneTemplate = {
         id: 'test-template',
+        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [],
@@ -307,6 +312,7 @@ describe('Template Service', () => {
     it('should update existing template', () => {
       const template: SceneTemplate = {
         id: 'test-template',
+        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [],
@@ -332,6 +338,7 @@ describe('Template Service', () => {
     it('should delete custom template', () => {
       const template: SceneTemplate = {
         id: 'test-template',
+        createdAt: 1704067200000,
         name: 'Test Template',
         description: 'Test description',
         shots: [],
@@ -356,6 +363,7 @@ describe('Template Service', () => {
     it('should save and load narrative presets', () => {
       const preset: NarrativePreset = {
         id: 'test-preset',
+        createdAt: 1704067200000,
         name: 'Test Preset',
         description: 'Test description',
         styleParameters: {},
@@ -373,6 +381,7 @@ describe('Template Service', () => {
     it('should delete narrative preset', () => {
       const preset: NarrativePreset = {
         id: 'test-preset',
+        createdAt: 1704067200000,
         name: 'Test Preset',
         description: 'Test description',
         styleParameters: {},
