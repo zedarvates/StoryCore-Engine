@@ -314,7 +314,6 @@ function TimelineView({
   expandedShots,
   onToggleShot,
   onFocusChange,
-  _getFocusColor,
   getFocusLabel
 }: TimelineViewProps) {
   // Group entries by shot
@@ -533,7 +532,6 @@ interface StatsViewProps {
 function StatsView({
   characterStats,
   summaryStats,
-  _getFocusColor,
   getFocusLabel
 }: StatsViewProps) {
   return (
@@ -638,9 +636,7 @@ interface GridViewProps {
 function GridView({
   shots,
   characters,
-  onFocusChange,
-  _getFocusColor,
-  _getFocusLabel
+  onFocusChange
 }: GridViewProps) {
   return (
     <div className="grid-view">

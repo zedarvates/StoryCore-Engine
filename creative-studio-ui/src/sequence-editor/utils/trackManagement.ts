@@ -52,7 +52,7 @@ export interface SendReturn {
   preFader: boolean;
 }
 
-export interface MasterTrack extends Track {
+export interface MasterTrack extends Omit<Track, 'type'> {
   type: 'master';
   effectChain: EffectNode[];
   outputSettings: OutputSettings;
@@ -70,7 +70,7 @@ export interface OutputSettings {
   };
 }
 
-export interface AnnotationTrack extends Track {
+export interface AnnotationTrack extends Omit<Track, 'type'> {
   type: 'annotation';
   annotations: Annotation[];
 }
@@ -86,7 +86,7 @@ export interface Annotation {
   timestamp?: Date;
 }
 
-export interface MarkerTrack extends Track {
+export interface MarkerTrack extends Omit<Track, 'type'> {
   type: 'marker';
   markers: Marker[];
 }
@@ -100,7 +100,7 @@ export interface Marker {
   metadata?: Record<string, unknown>;
 }
 
-export interface LayerTrack extends Track {
+export interface LayerTrack extends Omit<Track, 'type'> {
   type: 'layer';
   purpose: 'organization' | 'reference' | 'backup';
   parentTrackId?: string;
@@ -481,7 +481,7 @@ export function addAnnotation(
   time: number,
   text: string,
   category: Annotation['category'] = 'note',
-  duration?: number,
+  duration: number | undefined,
   tracks: AnnotationTrack[]
 ): AnnotationTrack[] {
   return tracks.map((track) => {

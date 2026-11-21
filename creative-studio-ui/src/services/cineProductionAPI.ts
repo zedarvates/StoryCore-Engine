@@ -26,6 +26,11 @@ export interface CineProductionRequest {
     overrides?: Record<string, any>;
 }
 
+export function readCineOutputFilename(output: unknown): string | undefined {
+  return output && typeof output === 'object' && 'filename' in output &&
+    typeof output.filename === 'string' && output.filename ? output.filename : undefined;
+}
+
 export interface CineProductionJob {
     jobId: string;
     request: CineProductionRequest;

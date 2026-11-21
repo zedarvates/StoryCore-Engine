@@ -2,7 +2,7 @@ import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { Sparkles, Globe, Compass, Activity, Binary, Zap, Terminal } from 'lucide-react';
 import { useWizard } from '@/contexts/WizardContext';
-import type { World } from '@/types/world';
+import type { Genre, Tone, World } from '@/types/world';
 import { GENRE_OPTIONS, TONE_OPTIONS } from '@/types/world';
 import { WizardFormLayout, FormField } from '../WizardFormLayout';
 import { ValidationErrorSummary } from '../ValidationErrorSummary';
@@ -64,7 +64,7 @@ export function Step1RealityAnchor() {
     updateFormData({ timePeriod: e.target.value });
   };
 
-  const handleGenreToggle = (genreValue: string) => {
+  const handleGenreToggle = (genreValue: Genre) => {
     const currentGenres = formData.genre || [];
     const newGenres = currentGenres.includes(genreValue)
       ? currentGenres.filter((g) => g !== genreValue)
@@ -72,7 +72,7 @@ export function Step1RealityAnchor() {
     updateFormData({ genre: newGenres });
   };
 
-  const handleToneToggle = (toneValue: string) => {
+  const handleToneToggle = (toneValue: Tone) => {
     const currentTones = formData.tone || [];
     const newTones = currentTones.includes(toneValue)
       ? currentTones.filter((t) => t !== toneValue)
