@@ -1,4 +1,4 @@
-import { Effect, _EffectParameter } from './EffectsLibrary';
+import { Effect, EffectParameter } from './EffectsLibrary';
 
 interface AppliedEffect extends Effect {
   enabled: boolean;

@@ -1,3 +1,4 @@
+import { exampleShot } from './exampleShot';
 /**
  * SequenceGenerationControl Example
  * 
@@ -22,8 +23,10 @@ import type { GenerationResults, Project } from '../types/projectDashboard';
  */
 const _createValidProject = (): Project => ({
   id: 'valid-project',
-  name: 'Valid Project',
-  schemaVersion: '1.0',
+  project_name: 'Valid Project',
+  schema_version: '1.0',
+  assets: [],
+  generation_status: { grid: 'pending', promotion: 'pending' },
   sequences: [
     {
       id: 'seq-1',
@@ -34,8 +37,9 @@ const _createValidProject = (): Project => ({
     },
   ],
   shots: [
-    {
+    exampleShot({
       id: 'shot-1',
+      position: 0,
       sequenceId: 'seq-1',
       startTime: 0,
       duration: 10,
@@ -45,9 +49,10 @@ const _createValidProject = (): Project => ({
         lighting: 'natural',
         mood: 'peaceful',
       },
-    },
-    {
+    }),
+    exampleShot({
       id: 'shot-2',
+      position: 1,
       sequenceId: 'seq-1',
       startTime: 10,
       duration: 10,
@@ -57,9 +62,10 @@ const _createValidProject = (): Project => ({
         lighting: 'natural',
         mood: 'contemplative',
       },
-    },
-    {
+    }),
+    exampleShot({
       id: 'shot-3',
+      position: 2,
       sequenceId: 'seq-1',
       startTime: 20,
       duration: 10,
@@ -69,16 +75,16 @@ const _createValidProject = (): Project => ({
         lighting: 'natural',
         mood: 'serene',
       },
-    },
+    }),
   ],
   audioPhrases: [],
   generationHistory: [],
   capabilities: {
-    gridGeneration: true,
-    promotionEngine: true,
-    qaEngine: true,
-    autofixEngine: true,
-    voiceGeneration: true,
+    grid_generation: true,
+    promotion_engine: true,
+    qa_engine: true,
+    autofix_engine: true,
+    voice_generation: true,
   },
 });
 
@@ -87,8 +93,10 @@ const _createValidProject = (): Project => ({
  */
 const _createInvalidProject = (): Project => ({
   id: 'invalid-project',
-  name: 'Invalid Project',
-  schemaVersion: '1.0',
+  project_name: 'Invalid Project',
+  schema_version: '1.0',
+  assets: [],
+  generation_status: { grid: 'pending', promotion: 'pending' },
   sequences: [
     {
       id: 'seq-1',
@@ -99,39 +107,42 @@ const _createInvalidProject = (): Project => ({
     },
   ],
   shots: [
-    {
+    exampleShot({
       id: 'shot-1',
+      position: 0,
       sequenceId: 'seq-1',
       startTime: 0,
       duration: 10,
       prompt: 'Short', // Too short (< 10 characters)
       metadata: {},
-    },
-    {
+    }),
+    exampleShot({
       id: 'shot-2',
+      position: 1,
       sequenceId: 'seq-1',
       startTime: 10,
       duration: 10,
       prompt: '', // Empty
       metadata: {},
-    },
-    {
+    }),
+    exampleShot({
       id: 'shot-3',
+      position: 2,
       sequenceId: 'seq-1',
       startTime: 20,
       duration: 10,
       prompt: 'A valid prompt that meets the minimum character requirement',
       metadata: {},
-    },
+    }),
   ],
   audioPhrases: [],
   generationHistory: [],
   capabilities: {
-    gridGeneration: true,
-    promotionEngine: true,
-    qaEngine: true,
-    autofixEngine: true,
-    voiceGeneration: true,
+    grid_generation: true,
+    promotion_engine: true,
+    qa_engine: true,
+    autofix_engine: true,
+    voice_generation: true,
   },
 });
 
@@ -140,18 +151,20 @@ const _createInvalidProject = (): Project => ({
  */
 const _createEmptyProject = (): Project => ({
   id: 'empty-project',
-  name: 'Empty Project',
-  schemaVersion: '1.0',
+  project_name: 'Empty Project',
+  schema_version: '1.0',
+  assets: [],
+  generation_status: { grid: 'pending', promotion: 'pending' },
   sequences: [],
   shots: [],
   audioPhrases: [],
   generationHistory: [],
   capabilities: {
-    gridGeneration: true,
-    promotionEngine: true,
-    qaEngine: true,
-    autofixEngine: true,
-    voiceGeneration: true,
+    grid_generation: true,
+    promotion_engine: true,
+    qa_engine: true,
+    autofix_engine: true,
+    voice_generation: true,
   },
 });
 

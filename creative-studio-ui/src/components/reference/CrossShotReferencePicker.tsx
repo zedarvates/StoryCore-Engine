@@ -54,7 +54,7 @@ import { referenceInheritanceService } from '@/services/referenceInheritanceServ
 import { referenceSheetService } from '@/services/referenceSheetService';
 import type {
   ReferenceImage,
-  _ShotReference,
+  ShotReference,
   CharacterAppearanceSheet,
   LocationAppearanceSheet,
 } from '@/types/reference';
@@ -113,7 +113,6 @@ type ReferenceFilter = 'all' | 'character' | 'location' | 'style';
 
 export function CrossShotReferencePicker({
   currentShotId,
-  _sequenceId,
   onSelect,
   onClose,
 }: CrossShotPickerProps) {
@@ -171,7 +170,7 @@ export function CrossShotReferencePicker({
         
         summaries.push({
           shotId: shot.id,
-          shotName: shot.name || `Shot ${shot.orderIndex + 1}`,
+          shotName: shot.name || `Shot ${(shot.orderIndex ?? shot.position) + 1}`,
           thumbnailUrl: shot.thumbnailUrl || '',
           referenceCount: effectiveRefs.effective.length,
           characterRefs,
@@ -209,7 +208,9 @@ export function CrossShotReferencePicker({
       if (!shot) return items;
       
       // Get character details
-      const masterSheet = await referenceSheetService.getMasterReferenceSheetByProject(project?.id);
+      const masterSheet = project?.id
+        ? await referenceSheetService.getMasterReferenceSheet(project.id)
+        : null;
       if (masterSheet) {
         for (const ref of effectiveRefs.inherited) {
           if (ref.source === 'character') {
@@ -224,7 +225,7 @@ export function CrossShotReferencePicker({
                 sourceId: charSheet.id,
                 sourceName: charSheet.characterName,
                 shotId,
-                shotName: shot.name || `Shot ${shot.orderIndex + 1}`,
+                shotName: shot.name || `Shot ${(shot.orderIndex ?? shot.position) + 1}`,
                 type: 'character',
               });
             }
@@ -240,7 +241,7 @@ export function CrossShotReferencePicker({
                 sourceId: locSheet.id,
                 sourceName: locSheet.locationName,
                 shotId,
-                shotName: shot.name || `Shot ${shot.orderIndex + 1}`,
+                shotName: shot.name || `Shot ${(shot.orderIndex ?? shot.position) + 1}`,
                 type: 'location',
               });
             }
@@ -257,7 +258,7 @@ export function CrossShotReferencePicker({
           sourceId: ref.id,
           sourceName: 'Local Reference',
           shotId,
-          shotName: shot.name || `Shot ${shot.orderIndex + 1}`,
+          shotName: shot.name || `Shot ${(shot.orderIndex ?? shot.position) + 1}`,
           type: ref.source === 'character' ? 'character' : ref.source === 'environment' ? 'location' : 'style',
         });
       }
@@ -340,7 +341,7 @@ export function CrossShotReferencePicker({
    * Borrow from previous shot
    */
   const borrowFromPrevious = useCallback(async () => {
-    const sortedShots = [...shots].sort((a, b) => a.orderIndex - b.orderIndex);
+    const sortedShots = [...shots].sort((a, b) => (a.orderIndex ?? a.position) - (b.orderIndex ?? b.position));
     const currentIndex = sortedShots.findIndex(s => s.id === currentShotId);
     
     if (currentIndex <= 0) {
@@ -362,7 +363,7 @@ export function CrossShotReferencePicker({
    * Borrow from next shot
    */
   const borrowFromNext = useCallback(async () => {
-    const sortedShots = [...shots].sort((a, b) => a.orderIndex - b.orderIndex);
+    const sortedShots = [...shots].sort((a, b) => (a.orderIndex ?? a.position) - (b.orderIndex ?? b.position));
     const currentIndex = sortedShots.findIndex(s => s.id === currentShotId);
     
     if (currentIndex >= sortedShots.length - 1) {
@@ -668,7 +669,6 @@ function ShotCard({
   summary,
   isExpanded,
   onToggle,
-  _selectedReferences,
   onToggleReference,
   isSelected,
   onPreview,

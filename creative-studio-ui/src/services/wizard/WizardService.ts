@@ -33,6 +33,26 @@ export interface ConnectionStatus {
   error?: string;
 }
 
+export interface WizardOptions {
+  styles?: readonly string[];
+  qualities?: readonly string[];
+  tones?: readonly string[];
+  purposes?: readonly string[];
+  modes?: readonly string[];
+  models?: readonly string[];
+  stylePresets?: readonly string[];
+  defaultStyle?: string;
+  defaultQuality?: string;
+  defaultTone?: string;
+  defaultPurpose?: string;
+  defaultMode?: string;
+  defaultModel?: string;
+  defaultSteps?: number;
+  defaultCfgScale?: number;
+  defaultWidth?: number;
+  defaultHeight?: number;
+}
+
 export class WizardService {
   /**
    * Launch a wizard by executing its CLI command
@@ -373,8 +393,8 @@ export class WizardService {
   /**
    * Get available wizard options for a specific wizard
    */
-  getWizardOptions(wizardId: string): Record<string, unknown> {
-    const options: Record<string, Record<string, unknown>> = {
+  getWizardOptions(wizardId: string): WizardOptions {
+    const options: Record<string, WizardOptions> = {
       'shot-reference-wizard': {
         styles: ['cinematic', 'storyboard', 'realistic', 'concept_art', 'technical'],
         qualities: ['draft', 'standard', 'high', 'maximum'],
@@ -414,7 +434,7 @@ export class WizardService {
       }
     };
 
-    return options[wizardId] || {};
+    return Object.hasOwn(options, wizardId) ? options[wizardId] : {};
   }
 
   /**

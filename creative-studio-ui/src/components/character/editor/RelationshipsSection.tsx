@@ -15,9 +15,7 @@ interface RelationshipsSectionProps {
 export function RelationshipsSection({
   characterId,
   relationships,
-  _errors,
   onChange,
-  _id,
 }: Readonly<RelationshipsSectionProps>) {
   const characterManager = useCharacterManager();
   const [isAdding, setIsAdding] = useState(false);

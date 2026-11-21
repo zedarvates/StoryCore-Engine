@@ -17,7 +17,7 @@ import {
   detectConflicts,
   resolveConflicts,
   type GridEditorConfiguration,
-  type _GridEditorTemplate,
+  type GridEditorTemplate,
   type ExportFormat,
   type ImportResult,
   type ConfigurationConflict
@@ -311,7 +311,7 @@ interface ExportTabProps {
   };
   onFormatChange: (format: ExportFormat) => void;
   onTypeChange: (type: 'full' | 'template') => void;
-  onTemplateInfoChange: (info: unknown) => void;
+  onTemplateInfoChange: (info: ExportTabProps['templateInfo']) => void;
   onExport: () => void;
 }
 
@@ -493,7 +493,7 @@ interface ImportTabProps {
   onURLImport: () => void;
   onConflictResolution: (strategy: 'keep_current' | 'use_imported' | 'merge') => void;
   onCancelConflictResolution: () => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 const ImportTab: React.FC<ImportTabProps> = ({

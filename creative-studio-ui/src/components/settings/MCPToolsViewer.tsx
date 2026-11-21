@@ -11,11 +11,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 
-interface MCPTool {
-  name: string;
-  description?: string;
-  inputSchema?: Record<string, unknown>;
-}
+import type { MCPTool } from '@/types/comfyuiServers';
+import { isMCPTool } from '@/utils/typeGuards';
 
 interface RunResult {
   success: boolean;
@@ -45,7 +42,7 @@ export function MCPToolsViewer({ serverId, serverName, trigger }: MCPToolsViewer
     try {
       if (window.electronAPI?.comfyui?.listTools) {
         const result = await window.electronAPI.comfyui.listTools(serverId);
-        setTools(result || []);
+        setTools(Array.isArray(result) ? result.filter(isMCPTool) : []);
       }
     } catch (error) {
       console.error('Failed to load MCP tools:', error);

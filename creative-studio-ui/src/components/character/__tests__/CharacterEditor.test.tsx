@@ -13,9 +13,12 @@ const mockCharacter: Character = {
   character_id: 'char-1',
   name: 'Test Character',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-01T00:00:00Z',
+  creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
   version: '1.0',
   visual_identity: {
+    gender: 'unspecified',
+    reference_images: [],
+    reference_sheet_images: [],
     hair_color: 'Black',
     hair_style: 'Straight',
     hair_length: 'Long',
@@ -42,6 +45,7 @@ const mockCharacter: Character = {
     communication_style: 'Direct',
   },
   background: {
+    backstory: '',
     origin: 'Small village',
     occupation: 'Warrior',
     education: 'Self-taught',

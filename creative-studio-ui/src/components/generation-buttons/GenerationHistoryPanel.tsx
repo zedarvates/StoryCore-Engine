@@ -29,7 +29,7 @@ import {
   GitCompare,
   X,
 } from 'lucide-react';
-import type { HistoryEntry, _GeneratedAsset } from '../../types/generation';
+import type { HistoryEntry, GeneratedAsset } from '../../types/generation';
 import { generationHistoryService } from '../../services/GenerationHistoryService';
 
 export interface GenerationHistoryPanelProps {
@@ -473,7 +473,9 @@ const HistoryEntryCard: React.FC<HistoryEntryCardProps> = ({
           </div>
           
           <p className="text-sm font-medium truncate">
-            {entry.params.prompt || entry.params.text || `${assetLabel} Generation`}
+            {(typeof entry.params.prompt === 'string' && entry.params.prompt)
+              || (typeof entry.params.text === 'string' && entry.params.text)
+              || `${assetLabel} Generation`}
           </p>
           
           <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">

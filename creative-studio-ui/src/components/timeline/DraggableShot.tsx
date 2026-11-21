@@ -13,7 +13,7 @@
 import { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { motion, useAnimation } from 'framer-motion';
-import type { _ProductionShot } from '../../types/shot';
+import type { ProductionShot } from '../../types/shot';
 import type { DraggableShotProps, Position } from '../../types/gridEditorAdvanced';
 import { DND_ITEM_TYPES } from '../../constants/dnd';
 import { useDragCopy, CopyModeIndicator } from '../../hooks/useDragCopy';
@@ -40,8 +40,6 @@ export function DraggableShot({
     initialPosition,
     currentPosition,
     startDrag: startCancelTracking,
-    _updatePosition,
-    _cancelDrag,
     endDrag: endCancelTracking,
   } = useDragCancel({
     onCancel: () => {

@@ -138,6 +138,7 @@ export const MetadataCompletenessExample: React.FC = () => {
       transition: 'cut',
       compositionNotes: 'Establishing shot with rule of thirds',
       order: 1,
+      position: 0,
       promptMetadata: {
         shotTypePrompt: {
           promptId: 'shot-wide',
@@ -209,6 +210,7 @@ export const MetadataCompletenessExample: React.FC = () => {
       transition: 'cut',
       compositionNotes: 'Two-shot for dialogue',
       order: 2,
+      position: 1,
       promptMetadata: {
         shotTypePrompt: {
           promptId: 'shot-medium',
@@ -278,6 +280,7 @@ export const MetadataCompletenessExample: React.FC = () => {
       transition: 'cut',
       compositionNotes: 'Dramatic close-up for emotional impact',
       order: 3,
+      position: 2,
       promptMetadata: {
         shotTypePrompt: {
           promptId: 'shot-closeup',

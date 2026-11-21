@@ -65,7 +65,7 @@ export class AudioEngine {
 
       // Create audio nodes
       const gainNode = this.audioContext.createGain();
-      gainNode.gain.value = track.volume / 100;
+      gainNode.gain.value = (track.volume ?? 100) / 100;
 
       // Create surround sound nodes if configured
       let pannerNode: StereoPannerNode | null = null;
@@ -475,7 +475,7 @@ export class AudioEngine {
   /**
    * Apply fade in/out to a track
    */
-  applyFades(trackId: string, fadeIn: number, fadeOut: number, duration: number): void {
+  applyFades(trackId: string, fadeIn: number, fadeOut: number, duration?: number): void {
     const trackNode = this.tracks.get(trackId);
     if (!trackNode) return;
 
@@ -497,8 +497,9 @@ export class AudioEngine {
 
     // Fade out
     if (fadeOut > 0) {
-      trackNode.gainNode.gain.setValueAtTime(volume, now + duration - fadeOut);
-      trackNode.gainNode.gain.linearRampToValueAtTime(0, now + duration);
+      const endTime = now + (duration ?? trackNode.buffer.duration);
+      trackNode.gainNode.gain.setValueAtTime(volume, Math.max(now, endTime - fadeOut));
+      trackNode.gainNode.gain.linearRampToValueAtTime(0, endTime);
     }
   }
 

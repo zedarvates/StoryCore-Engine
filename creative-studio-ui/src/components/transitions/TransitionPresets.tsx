@@ -68,7 +68,7 @@ export const FadeTransition: React.FC<FadeTransitionProps> = ({
   onComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [_key, setKey] = useState(contentKey || 'initial');
+  const [key, setKey] = useState(contentKey || 'initial');
   const [progress, setProgress] = useState(0);
   const [metrics, setMetrics] = useState<LegacyAny>(null);
 
@@ -587,7 +587,7 @@ export interface DissolveTransitionProps {
 
 export const DissolveTransition: React.FC<DissolveTransitionProps> = ({
   children,
-  _pattern = 'random',
+  pattern = 'random',
   particleSize = 4,
   noiseScale = 2,
   duration = 600,
@@ -753,7 +753,7 @@ export const TransitionPreview: React.FC<TransitionPreviewProps> = ({
   size = { width: 320, height: 180 },
   autoPreview = true,
   loop = true,
-  onPrev_iewComplete,
+  onPreviewComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPreview);

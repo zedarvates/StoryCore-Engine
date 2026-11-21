@@ -22,6 +22,7 @@ describe('View Menu Configuration', () => {
     // Create mock app state with default view state
     mockAppState = {
       project: null,
+      selectedShotId: null,
       hasUnsavedChanges: false,
       viewState: { ...DEFAULT_VIEW_STATE },
       undoStack: {

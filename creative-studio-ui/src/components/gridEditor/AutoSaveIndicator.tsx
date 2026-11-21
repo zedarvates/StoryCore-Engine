@@ -10,8 +10,8 @@
  * Requirements: 15.7
  */
 
-import React, { useState } from 'react';
-import { useAutoSave, useAutoSaveStatus, useAutoSaveIndicator } from '../../hooks/useAutoSave';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { versionControlService } from '../../services/gridEditor/VersionControlService';
 import { useGridStore } from '../../stores/gridEditorStore';
 import './AutoSaveIndicator.css';
 
@@ -55,45 +55,85 @@ export interface AutoSaveIndicatorProps {
   compact?: boolean;
 }
 
+function useGridVersionAutoSave(projectId: string, author: string, intervalMinutes: number, defaultEnabled: boolean) {
+  const [isEnabled, setIsEnabled] = useState(defaultEnabled);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [showSaved, setShowSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const lastSavedModification = useRef<number | undefined>(undefined);
+  const savedIndicatorTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    setShowSaved(false);
+    setError(null);
+    lastSavedModification.current = undefined;
+    try {
+      const latest = versionControlService.getLatestVersion(projectId);
+      lastSavedModification.current = latest?.configuration.metadata.modifiedAt;
+      setLastSavedAt(latest?.metadata.timestamp ?? null);
+    } catch (error) {
+      setLastSavedAt(null);
+      setError(error instanceof Error ? error.message : 'Could not read the version history');
+    }
+    return () => window.clearTimeout(savedIndicatorTimer.current);
+  }, [projectId]);
+
+  const save = useCallback((automatic: boolean) => {
+    const configuration = useGridStore.getState().exportConfiguration();
+    if (configuration.projectId !== projectId) {
+      if (!automatic) setError('Open this project before saving a version');
+      return;
+    }
+    if (automatic && configuration.metadata.modifiedAt === lastSavedModification.current) return;
+    try {
+      const version = automatic
+        ? versionControlService.saveVersionAuto(configuration, author)
+        : versionControlService.saveVersion(configuration, { author });
+      lastSavedModification.current = configuration.metadata.modifiedAt;
+      setLastSavedAt(version.metadata.timestamp);
+      setShowSaved(true);
+      setError(null);
+      window.clearTimeout(savedIndicatorTimer.current);
+      savedIndicatorTimer.current = window.setTimeout(() => setShowSaved(false), 2000);
+    } catch (error) {
+      setShowSaved(false);
+      setError(error instanceof Error ? error.message : 'Could not save the version');
+    }
+  }, [author, projectId]);
+
+  useEffect(() => {
+    if (!isEnabled) return;
+    const timer = window.setInterval(() => save(true), intervalMinutes * 60_000);
+    return () => window.clearInterval(timer);
+  }, [isEnabled, intervalMinutes, save]);
+
+  return {
+    isEnabled,
+    toggle: () => setIsEnabled((enabled) => !enabled),
+    lastSavedAt,
+    lastSavedText: lastSavedAt ? `Last saved ${new Date(lastSavedAt).toLocaleString()}` : '',
+    showSaved,
+    error,
+    saveNow: () => save(false),
+  };
+}
+
 // ============================================================================
 // Auto-Save Indicator Component
 // ============================================================================
 
 export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
-  _projectId,
+  projectId,
   author = 'User',
   initialInterval = 5,
   defaultEnabled = false,
   showControls = true,
   compact = false,
 }) => {
-  const { exportConfiguration } = useGridStore();
   const [intervalMinutes, setIntervalMinutes] = useState(initialInterval);
   const [showSettings, setShowSettings] = useState(false);
-
-  const {
-    isEnabled,
-    toggle,
-    lastSavedAt,
-    setInterval,
-    saveNow,
-  } = useAutoSave(
-    () => exportConfiguration(),
-    {
-      interval: intervalMinutes * 60 * 1000,
-      enabled: defaultEnabled,
-      author,
-      onAutoSave: (_timestamp) => {
-        ;
-      },
-      onError: (error) => {
-        console.error('Auto-save error:', error);
-      },
-    }
-  );
-
-  const { lastSavedText } = useAutoSaveStatus(lastSavedAt);
-  const { isSaving, showSaved } = useAutoSaveIndicator(lastSavedAt);
+  const { isEnabled, toggle, lastSavedAt, lastSavedText, showSaved, error, saveNow } =
+    useGridVersionAutoSave(projectId, author, intervalMinutes, defaultEnabled);
 
   const handleIntervalChange = (minutes: number) => {
     if (minutes < 1 || minutes > 60) {
@@ -101,7 +141,6 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
       return;
     }
     setIntervalMinutes(minutes);
-    setInterval(minutes * 60 * 1000);
   };
 
   if (compact) {
@@ -115,7 +154,7 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
           {isEnabled ? '💾' : '💾'}
         </button>
 
-        {isSaving && <span className="saving-indicator">Saving...</span>}
+        {error && <span role="alert">{error}</span>}
         {showSaved && <span className="saved-indicator">✓</span>}
 
         {lastSavedAt && (
@@ -130,17 +169,12 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
       <div className="auto-save-status">
         {/* Status indicator */}
         <div className="status-icon">
-          {isSaving && (
-            <span className="saving-spinner" title="Saving...">
-              ⏳
-            </span>
-          )}
           {showSaved && (
             <span className="saved-checkmark" title="Saved">
               ✓
             </span>
           )}
-          {!isSaving && !showSaved && isEnabled && (
+          {!showSaved && isEnabled && (
             <span className="auto-save-active" title="Auto-save enabled">
               💾
             </span>
@@ -154,9 +188,9 @@ export const AutoSaveIndicator: React.FC<AutoSaveIndicatorProps> = ({
 
         {/* Status text */}
         <div className="status-text">
-          {isSaving && <span className="saving-text">Saving...</span>}
+          {error && <span role="alert">{error}</span>}
           {showSaved && <span className="saved-text">Saved!</span>}
-          {!isSaving && !showSaved && lastSavedAt && (
+          {!showSaved && lastSavedAt && (
             <span className="last-saved-text">{lastSavedText}</span>
           )}
           {!lastSavedAt && (
@@ -265,22 +299,12 @@ export interface SimpleAutoSaveToggleProps {
 }
 
 export const SimpleAutoSaveToggle: React.FC<SimpleAutoSaveToggleProps> = ({
-  _projectId,
+  projectId,
   author = 'User',
   intervalMinutes = 5,
 }) => {
-  const { exportConfiguration } = useGridStore();
-
-  const { isEnabled, toggle, lastSavedAt } = useAutoSave(
-    () => exportConfiguration(),
-    {
-      interval: intervalMinutes * 60 * 1000,
-      enabled: false,
-      author,
-    }
-  );
-
-  const { lastSavedText } = useAutoSaveStatus(lastSavedAt);
+  const { isEnabled, toggle, lastSavedAt, lastSavedText, error } =
+    useGridVersionAutoSave(projectId, author, intervalMinutes, false);
 
   return (
     <div className="simple-auto-save-toggle">
@@ -292,6 +316,7 @@ export const SimpleAutoSaveToggle: React.FC<SimpleAutoSaveToggleProps> = ({
         />
         <span>Auto-Save ({intervalMinutes}m)</span>
       </label>
+      {error && <span role="alert">{error}</span>}
       {lastSavedAt && (
         <span className="last-saved">{lastSavedText}</span>
       )}

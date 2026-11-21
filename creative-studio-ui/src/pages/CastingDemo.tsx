@@ -10,7 +10,7 @@ const demoCharacters: Character[] = [
     character_id: 'char-1',
     name: 'Alice Johnson',
     creation_method: 'wizard',
-    creation_timestamp: new Date().toISOString(),
+    creation_timestamp: Date.now(),
     version: '1.0',
     role: {
       archetype: 'Protagonist',
@@ -18,6 +18,9 @@ const demoCharacters: Character[] = [
       character_arc: 'From uncertain to confident leader'
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: '25-35',
       hair_color: 'Brown',
       hair_style: 'Long wavy',
@@ -49,7 +52,8 @@ const demoCharacters: Character[] = [
       education: 'Bachelor\'s in Communications',
       family: 'Supportive parents, one sibling',
       significant_events: ['Won a journalism award', 'Witnessed corporate corruption'],
-      current_situation: 'Working on a major story'
+      current_situation: 'Working on a major story',
+      backstory: '',
     },
     relationships: []
   },
@@ -57,7 +61,7 @@ const demoCharacters: Character[] = [
     character_id: 'char-2',
     name: 'Dr. Marcus Chen',
     creation_method: 'wizard',
-    creation_timestamp: new Date().toISOString(),
+    creation_timestamp: Date.now(),
     version: '1.0',
     role: {
       archetype: 'Mentor',
@@ -65,6 +69,9 @@ const demoCharacters: Character[] = [
       character_arc: 'From reclusive to engaged mentor'
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: '45-55',
       hair_color: 'Black',
       hair_style: 'Short',
@@ -96,7 +103,8 @@ const demoCharacters: Character[] = [
       education: 'PhD in Physics',
       family: 'Divorced, adult children',
       significant_events: ['Major scientific breakthrough', 'Lost funding for research'],
-      current_situation: 'Working on classified project'
+      current_situation: 'Working on classified project',
+      backstory: '',
     },
     relationships: []
   },
@@ -104,7 +112,7 @@ const demoCharacters: Character[] = [
     character_id: 'char-3',
     name: 'Sarah Williams',
     creation_method: 'wizard',
-    creation_timestamp: new Date().toISOString(),
+    creation_timestamp: Date.now(),
     version: '1.0',
     role: {
       archetype: 'Antagonist',
@@ -112,6 +120,9 @@ const demoCharacters: Character[] = [
       character_arc: 'From ambitious to redeemed'
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: '30-40',
       hair_color: 'Blonde',
       hair_style: 'Bob cut',
@@ -143,7 +154,8 @@ const demoCharacters: Character[] = [
       education: 'MBA from top business school',
       family: 'Married, no children',
       significant_events: ['Rapid career advancement', 'Ethical compromise'],
-      current_situation: 'Climbing corporate ladder'
+      current_situation: 'Climbing corporate ladder',
+      backstory: '',
     },
     relationships: []
   }

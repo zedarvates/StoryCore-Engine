@@ -66,6 +66,7 @@ describe('MenuBar Keyboard Focus Management', () => {
 
   const defaultProps = {
     project: null,
+    selectedShotId: null,
     hasUnsavedChanges: false,
     onProjectChange: vi.fn(),
     onViewStateChange: vi.fn(),

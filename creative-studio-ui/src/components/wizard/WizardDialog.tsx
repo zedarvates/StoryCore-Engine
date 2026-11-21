@@ -210,13 +210,12 @@ export function WizardDialog({
             <WizardNavigation
               currentStep={currentStep}
               totalSteps={steps.length}
-              onPrevious={onPrevious}
+              onBack={onPrevious}
               onNext={onNext}
               onCancel={onClose}
               onSubmit={handleGenerate}
-              isSubmitting={false}
               canGoNext={canGoNext}
-              canGoPrevious={canGoPrevious}
+              canGoBack={canGoPrevious}
             />
           </div>
         )}

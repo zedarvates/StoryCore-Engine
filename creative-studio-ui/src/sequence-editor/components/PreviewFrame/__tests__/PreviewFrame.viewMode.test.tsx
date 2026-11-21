@@ -74,6 +74,7 @@ function createTestStore(initialState: Partial<{
     },
     preloadedState: {
       timeline: {
+        ...timelineReducer(undefined, { type: '@@INIT' }),
         shots: [],
         tracks: [],
         playheadPosition: 0,
@@ -93,11 +94,12 @@ function createTestStore(initialState: Partial<{
         ...initialState.preview,
       },
       project: {
+        ...projectReducer(undefined, { type: '@@INIT' }),
         metadata: {
           name: 'Test Project',
           path: '/test/project',
-          created: new Date(),
-          modified: new Date(),
+          created: Date.now(),
+          modified: Date.now(),
           author: 'Test User',
           description: 'Test project',
         },

@@ -260,7 +260,7 @@ interface WizardAssistantContentProps {
   setInputText: (v: string) => void;
   showSuggestions: boolean;
   setShowSuggestions: (v: boolean | ((prev: boolean) => boolean)) => void;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   handleSubmit: () => void;
   handleKeyDown: (e: React.KeyboardEvent) => void;
   handleSuggestionClick: (s: string) => void;

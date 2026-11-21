@@ -10,7 +10,7 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import type { Shot, Layer, TransitionLayerData, TextLayerData, KeyframeLayerData, Keyframe } from '../types';
+import type { Shot, Layer, TransitionLayerData, TextLayerData, KeyframeLayerData, TimelineKeyframe } from '../types';
 
 // ============================================================================
 // Types
@@ -492,7 +492,7 @@ export function handleAddKeyframe(
   shots: Shot[]
 ): { shotId: string; layer: Layer } | null {
   const shot = shots.find((s) => s.id === shotId);
-  if (!shot) return null;
+  if (!shot || typeof value !== 'number' || !Number.isFinite(value)) return null;
   
   // Calculate relative position within shot
   const relativePosition = playheadPosition - shot.startTime;
@@ -508,26 +508,25 @@ export function handleAddKeyframe(
   if (existingKeyframeLayer) {
     // Add keyframe to existing layer
     const keyframeData = existingKeyframeLayer.data as KeyframeLayerData;
-    const newKeyframe: Keyframe = {
+    const existingIndex = keyframeData.keyframes.findIndex((k) => k.time === relativePosition);
+    const newKeyframe: TimelineKeyframe = {
+      id: keyframeData.keyframes[existingIndex]?.id ?? crypto.randomUUID(),
       time: relativePosition,
       value,
       easing: 'ease-in-out',
     };
     
-    // Check if keyframe already exists at this time
-    const existingIndex = keyframeData.keyframes.findIndex((k) => k.time === relativePosition);
+    const keyframes = [...keyframeData.keyframes];
     if (existingIndex !== -1) {
-      // Update existing keyframe
-      keyframeData.keyframes[existingIndex] = newKeyframe;
+      keyframes[existingIndex] = newKeyframe;
     } else {
-      // Add new keyframe
-      keyframeData.keyframes.push(newKeyframe);
-      keyframeData.keyframes.sort((a, b) => a.time - b.time);
+      keyframes.push(newKeyframe);
+      keyframes.sort((a, b) => a.time - b.time);
     }
-    
+
     return {
       shotId,
-      layer: existingKeyframeLayer,
+      layer: { ...existingKeyframeLayer, data: { ...keyframeData, keyframes } },
     };
   } else {
     // Create new keyframe layer
@@ -544,13 +543,14 @@ export function handleAddKeyframe(
         property,
         keyframes: [
           {
+            id: crypto.randomUUID(),
             time: relativePosition,
             value,
             easing: 'ease-in-out',
           },
         ],
         interpolation: 'ease-in-out',
-      } as KeyframeLayerData,
+      } satisfies KeyframeLayerData,
     };
     
     return {

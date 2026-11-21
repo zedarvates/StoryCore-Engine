@@ -568,6 +568,7 @@ export function useCharacterPersistence() {
           family: characterData.background?.family || '',
           significant_events: characterData.background?.significant_events || [],
           current_situation: characterData.background?.current_situation || '',
+          backstory: characterData.background?.backstory || '',
         },
         relationships: characterData.relationships || [],
         role: {

@@ -12,6 +12,7 @@ describe('debounce', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('should delay function execution', () => {
@@ -70,6 +71,7 @@ describe('throttle', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('should execute function at most once per wait period', () => {
@@ -83,6 +85,11 @@ describe('throttle', () => {
     expect(mockFn).toHaveBeenCalledTimes(1);
 
     vi.advanceTimersByTime(100);
+
+    // The existing throttle is leading-only: a new call starts the next window.
+    expect(mockFn).toHaveBeenCalledTimes(1);
+    throttledFn();
+    throttledFn();
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 

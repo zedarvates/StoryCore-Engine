@@ -3,8 +3,8 @@ import { ResultsGallery } from './ResultsGallery';
 
 describe('ResultsGallery', () => {
   it('renders without crashing', () => {
-    render(<ResultsGallery results={[]} />);
-    const container = screen.getByTestId('results-gallery');
+    render(<ResultsGallery />);
+    const container = screen.getByText('No results to display');
     expect(container).toBeInTheDocument();
   });
 });

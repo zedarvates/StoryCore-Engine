@@ -6,6 +6,7 @@ import {
   type ExportOptions,
 } from '../ConversationExportService';
 import { ProjectExportService } from '../projectExportService';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Notifications are outside the export boundary and start background timers.
 // Keep the PDF implementation real so these tests exercise its text path.
@@ -20,7 +21,7 @@ function projectFixture(): Project {
     id: 'pdf-security-project',
     schema_version: '1.0',
     project_name: 'PDF security control',
-    shots: [{
+    shots: [createShotFixture({
       id: 'shot-1',
       title: 'Ordinary scene',
       description: literalText,
@@ -29,7 +30,7 @@ function projectFixture(): Project {
       prompt: '',
       startTime: 0,
       name: 'Ordinary scene',
-    }],
+    })],
     assets: [],
     capabilities: {
       grid_generation: true,
@@ -61,6 +62,10 @@ const options: ExportOptions = {
   author: 'Test author',
 };
 
+function hasHtmlRenderer(api: typeof jsPDF.API): api is typeof jsPDF.API & Pick<jsPDF, 'html'> {
+  return 'html' in api && typeof api.html === 'function';
+}
+
 describe('PDF exports keep user content on the text API', () => {
   let htmlSpy: ReturnType<typeof vi.spyOn>;
 
@@ -70,6 +75,9 @@ describe('PDF exports keep user content on the text API', () => {
     ProjectExportService.getInstance().clearProgressCallback();
     vi.mocked(URL.createObjectURL).mockClear();
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    if (!hasHtmlRenderer(jsPDF.API)) {
+      throw new Error('jsPDF HTML renderer is unavailable in this test');
+    }
     htmlSpy = vi.spyOn(jsPDF.API, 'html').mockImplementation(() => {
       throw new Error('PDF text exports must not enter the HTML renderer');
     });

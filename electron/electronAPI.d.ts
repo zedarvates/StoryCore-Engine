@@ -1,3 +1,5 @@
+import type { FeedbackConfigurationAPI } from '../creative-studio-ui/src/types/feedbackConfiguration';
+
 /**
  * Type definitions for Electron API exposed to renderer process
  */
@@ -148,7 +150,7 @@ export interface CommandExecutionOptions {
 /**
  * Electron API interface
  */
-export interface ElectronAPI {
+export interface ElectronAPI extends FeedbackConfigurationAPI {
   // Dialog helpers
   showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
 

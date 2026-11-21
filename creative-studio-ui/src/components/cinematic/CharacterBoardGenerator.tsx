@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import {
-    _User,
+    User,
     Camera,
     Sparkles,
     Download,
     RefreshCw,
     LayoutGrid,
     Maximize2,
-    _Trash2,
+    Trash2,
     CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { cineProductionAPI } from '@/services/cineProductionAPI';
+import { cineProductionAPI, readCineOutputFilename } from '@/services/cineProductionAPI';
 import { useAppStore } from '@/stores/useAppStore';
 import './CharacterBoardGenerator.css';
 
@@ -60,16 +60,14 @@ export function CharacterBoardGenerator({ characterName = "Héro Anonyme" }) {
 
             const result = await cineProductionAPI.monitorJob(jobId);
 
-            if (result.results && result.results.length > 0) {
-                const imgRes = result.results.find(r => r.step === 'storyboard');
-                if (imgRes && imgRes.output && imgRes.output.filename) {
-                    setSlots(prev => prev.map(s => s.id === id ? {
-                        ...s,
-                        isGenerating: false,
-                        image: `/output/${imgRes.output.filename}`
-                    } : s));
-                }
-            }
+            const imageResult = result.results.find((entry) => entry.step === 'storyboard');
+            const filename = readCineOutputFilename(imageResult?.output);
+            if (!filename) throw new Error('Storyboard production did not return an image');
+            setSlots(prev => prev.map(s => s.id === id ? {
+                ...s,
+                isGenerating: false,
+                image: `/output/${filename}`
+            } : s));
         } catch (error) {
             console.error('Board generation failed:', error);
             setSlots(prev => prev.map(s => s.id === id ? { ...s, isGenerating: false } : s));

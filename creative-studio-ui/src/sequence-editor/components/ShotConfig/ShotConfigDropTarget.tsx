@@ -19,7 +19,7 @@ import './shotConfigDropTarget.css';
 // ============================================================================
 
 interface ShotConfigDropTargetProps {
-  shot: Shot;
+  shot: Shot | null;
   children: React.ReactNode;
   onAssetDrop?: (assets: ServiceAsset[], shot: Shot) => void;
 }

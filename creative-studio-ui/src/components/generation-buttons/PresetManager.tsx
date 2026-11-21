@@ -39,20 +39,18 @@ import {
 import {
   PresetManagementService,
   type Preset,
-  type PresetType,
+  type PromptPreset,
+  type ImagePreset,
+  type VideoPreset,
+  type AudioPreset,
 } from '../../services/PresetManagementService';
 
-export interface PresetManagerProps {
-  /**
-   * Type of presets to manage
-   */
-  type: PresetType;
-  
-  /**
-   * Current parameters to save as preset
-   */
-  currentParams: unknown;
-  
+export type PresetManagerProps = (
+  | { type: 'prompt'; currentParams: PromptPreset['categories'] }
+  | { type: 'image'; currentParams: ImagePreset['params'] }
+  | { type: 'video'; currentParams: VideoPreset['params'] }
+  | { type: 'audio'; currentParams: AudioPreset['params'] }
+) & {
   /**
    * Callback when preset is loaded
    */
@@ -62,7 +60,7 @@ export interface PresetManagerProps {
    * Optional className
    */
   className?: string;
-}
+};
 
 /**
  * Preset Manager Component
@@ -104,11 +102,21 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
     }
     
     try {
-      const preset = PresetManagementService.savePreset({
-        name: newPresetName.trim(),
-        type,
-        ...(type === 'prompt' ? { categories: currentParams } : { params: currentParams }),
-      } as LegacyAny);
+      const name = newPresetName.trim();
+      switch (type) {
+        case 'prompt':
+          PresetManagementService.savePreset<PromptPreset>({ name, type, categories: currentParams });
+          break;
+        case 'image':
+          PresetManagementService.savePreset<ImagePreset>({ name, type, params: currentParams });
+          break;
+        case 'video':
+          PresetManagementService.savePreset<VideoPreset>({ name, type, params: currentParams });
+          break;
+        case 'audio':
+          PresetManagementService.savePreset<AudioPreset>({ name, type, params: currentParams });
+          break;
+      }
       
       loadPresets();
       setShowSaveDialog(false);
@@ -235,11 +243,11 @@ export const PresetManager: React.FC<PresetManagerProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={handleExportPresets} disabled={presets.length === 0}>
+            <DropdownMenuItem onSelect={handleExportPresets} disabled={presets.length === 0}>
               <Download className="mr-2 h-4 w-4" />
               Export Presets
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleImportPresets}>
+            <DropdownMenuItem onSelect={handleImportPresets}>
               <Upload className="mr-2 h-4 w-4" />
               Import Presets
             </DropdownMenuItem>

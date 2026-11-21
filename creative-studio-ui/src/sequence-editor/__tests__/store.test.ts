@@ -40,6 +40,7 @@ describe('Redux Store Configuration', () => {
 describe('Timeline Slice', () => {
   it('should add a shot to the timeline', () => {
     const shot: Shot = {
+      position: 0,
       id: 'test-shot-1',
       name: 'Test Shot',
       startTime: 0,
@@ -137,7 +138,7 @@ describe('Assets Slice', () => {
       },
       tags: ['test'],
       source: 'user' as const,
-      createdAt: new Date(),
+      createdAt: Date.now(),
     };
 
     store.dispatch(addAsset({ categoryId: 'characters', asset }));

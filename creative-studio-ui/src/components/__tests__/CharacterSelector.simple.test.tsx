@@ -27,7 +27,7 @@ const mockCharacters: Character[] = [
     character_id: 'uuid-1',
     name: 'Hero',
     creation_method: 'wizard',
-    creation_timestamp: '2024-01-01T00:00:00Z',
+    creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
     version: '1.0',
     role: {
       archetype: 'Protagonist',
@@ -35,6 +35,9 @@ const mockCharacters: Character[] = [
       character_arc: 'Growth',
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: 'adult',
       hair_color: 'brown',
       hair_style: 'short',
@@ -61,6 +64,7 @@ const mockCharacters: Character[] = [
       communication_style: 'direct',
     },
     background: {
+      backstory: '',
       origin: 'City',
       occupation: 'Warrior',
       education: 'Self-taught',
@@ -74,7 +78,7 @@ const mockCharacters: Character[] = [
     character_id: 'uuid-2',
     name: 'Villain',
     creation_method: 'wizard',
-    creation_timestamp: '2024-01-02T00:00:00Z',
+    creation_timestamp: Date.parse('2024-01-02T00:00:00Z'),
     version: '1.0',
     role: {
       archetype: 'Antagonist',
@@ -82,6 +86,9 @@ const mockCharacters: Character[] = [
       character_arc: 'Corruption',
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: 'adult',
       hair_color: 'black',
       hair_style: 'long',
@@ -108,6 +115,7 @@ const mockCharacters: Character[] = [
       communication_style: 'manipulative',
     },
     background: {
+      backstory: '',
       origin: 'Unknown',
       occupation: 'Warlord',
       education: 'Elite',

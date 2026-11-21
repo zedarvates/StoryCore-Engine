@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * ComfyUI Integration Tests
  *
@@ -5,6 +6,7 @@
  * with ComfyUI server, workflow execution, and error handling.
  */
 import { LegacyAny } from '@/types/legacy';
+import { BackendApiService } from '../backendApiService';
 
 
 import {
@@ -16,9 +18,9 @@ import {
 import { setupComfyUIMock, teardownComfyUIMock, getComfyUIMock } from '../../__mocks__/comfyuiServerMock';
 
 // Mock AbortController for testing
-global.AbortController = jest.fn().mockImplementation(() => ({
+global.AbortController = vi.fn().mockImplementation(() => ({
   signal: {},
-  abort: jest.fn(),
+  abort: vi.fn(),
 }));
 
 describe('ComfyUI Integration Tests', () => {
@@ -52,7 +54,7 @@ describe('ComfyUI Integration Tests', () => {
     });
 
     it('should fetch real workflows from server', async () => {
-      const workflows = await getAvailableWorkflows('http://localhost:8188');
+      const workflows = await getAvailableWorkflows();
 
       expect(Array.isArray(workflows)).toBe(true);
       expect(workflows.length).toBeGreaterThan(0);
@@ -159,7 +161,7 @@ describe('ComfyUI Integration Tests', () => {
   describe('Error Handling Integration', () => {
     it('should handle server not responding', async () => {
       // Mock network failure
-      global.fetch = jest.fn().mockRejectedValue(new Error('Failed to fetch'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Failed to fetch'));
 
       const config = {
         serverUrl: 'http://nonexistent:8188',
@@ -205,7 +207,7 @@ describe('ComfyUI Integration Tests', () => {
 
     it('should handle malformed JSON responses', async () => {
       // Mock fetch to return invalid JSON
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.reject(new Error('Invalid JSON')),
       });
@@ -237,7 +239,7 @@ describe('ComfyUI Integration Tests', () => {
     });
 
     it('should diagnose unreachable servers', async () => {
-      global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const config = {
         serverUrl: 'http://unreachable:8188',
@@ -340,7 +342,7 @@ describe('ComfyUI Integration Tests', () => {
       };
 
       // Mock the prompt endpoint response
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           prompt_id: 'test-prompt-123',
@@ -365,7 +367,7 @@ describe('ComfyUI Integration Tests', () => {
 
     it('should handle workflow execution errors', async () => {
       // Mock prompt endpoint to return validation error
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 400,
         json: () => Promise.resolve({
@@ -390,7 +392,7 @@ describe('ComfyUI Integration Tests', () => {
 
     it('should query workflow execution status', async () => {
       // Mock queue endpoint response
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           queue_running: [
@@ -464,144 +466,60 @@ describe('ComfyUI Integration Tests', () => {
   });
 
   describe('WebSocket Integration', () => {
-    let mockWebSocket: LegacyAny;
+    class TestSocket {
+      static openSockets: TestSocket[] = [];
+      onmessage?: (event: MessageEvent<string>) => void;
+      onclose?: () => void;
+      close = vi.fn(() => this.onclose?.());
 
+      constructor(readonly url: string) {
+        TestSocket.openSockets.push(this);
+      }
+
+      receive(payload: unknown) {
+        this.onmessage?.(new MessageEvent('message', { data: JSON.stringify(payload) }));
+      }
+    }
+
+    let unsubscribe: (() => void) | undefined;
     beforeEach(() => {
-      // Mock WebSocket for testing
-      mockWebSocket = {
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-        send: jest.fn(),
-        close: jest.fn(),
-        readyState: 1, // OPEN
-        onopen: null,
-        onmessage: null,
-        onclose: null,
-        onerror: null,
-      };
-
-      global.WebSocket = jest.fn().mockImplementation(() => mockWebSocket);
+      vi.useFakeTimers();
+      TestSocket.openSockets = [];
+      vi.stubGlobal('WebSocket', TestSocket);
     });
 
-    it('should establish WebSocket connection for real-time updates', () => {
-      const ws = new WebSocket('ws://localhost:8188/ws');
-
-      expect(WebSocket).toHaveBeenCalledWith('ws://localhost:8188/ws');
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('open', expect.any(Function));
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('message', expect.any(Function));
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('close', expect.any(Function));
-      expect(mockWebSocket.addEventListener).toHaveBeenCalledWith('error', expect.any(Function));
+    afterEach(() => {
+      unsubscribe?.();
+      unsubscribe = undefined;
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
     });
 
-    it('should handle WebSocket execution updates', () => {
-      const ws = new WebSocket('ws://localhost:8188/ws');
+    it('uses the backend bridge and forwards execution events', () => {
+      const onUpdate = vi.fn();
+      const api = new BackendApiService({ baseUrl: 'http://localhost:8080' });
+      unsubscribe = api.subscribeToComfyUIUpdates(onUpdate);
+      const socket = TestSocket.openSockets[0];
+      const event = { type: 'execution_start', data: { prompt_id: 'prompt-1' } };
 
-      // Simulate execution start message
-      const executionStartMessage = {
-        type: 'execution_start',
-        data: {
-          prompt_id: 'test-prompt-123',
-        },
-      };
-
-      // Trigger message handler
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
-
-      messageHandler({
-        data: JSON.stringify(executionStartMessage),
-      });
-
-      // WebSocket should remain open for updates
-      expect(mockWebSocket.close).not.toHaveBeenCalled();
+      expect(socket.url).toMatch(/:8080\/ws\/comfyui$/);
+      socket.receive(event);
+      expect(onUpdate).toHaveBeenCalledExactlyOnceWith(event);
+      expect(socket.close).not.toHaveBeenCalled();
     });
 
-    it('should handle WebSocket execution progress', () => {
-      const ws = new WebSocket('ws://localhost:8188/ws');
+    it('reconnects after a dropped connection and stops after unsubscribe', () => {
+      const api = new BackendApiService({ baseUrl: 'http://localhost:8080' });
+      unsubscribe = api.subscribeToComfyUIUpdates(vi.fn());
+      TestSocket.openSockets[0].onclose?.();
+      vi.advanceTimersByTime(3000);
+      expect(TestSocket.openSockets).toHaveLength(2);
 
-      // Simulate progress message
-      const progressMessage = {
-        type: 'progress',
-        data: {
-          value: 50,
-          max: 100,
-          node: '4', // KSampler node
-        },
-      };
-
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
-
-      messageHandler({
-        data: JSON.stringify(progressMessage),
-      });
-
-      // Should handle progress updates without closing
-      expect(mockWebSocket.close).not.toHaveBeenCalled();
-    });
-
-    it('should handle WebSocket execution completion', () => {
-      const ws = new WebSocket('ws://localhost:8188/ws');
-
-      // Simulate execution success message
-      const executionSuccessMessage = {
-        type: 'execution_cached', // or 'execution_success'
-        data: {
-          prompt_id: 'test-prompt-123',
-          outputs: {
-            '6': { // SaveImage node
-              images: [{
-                filename: 'ComfyUI_00001_.png',
-                subfolder: '',
-                type: 'output',
-              }],
-            },
-          },
-        },
-      };
-
-      const messageHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'message'
-      )[1];
-
-      messageHandler({
-        data: JSON.stringify(executionSuccessMessage),
-      });
-
-      // Connection might close after successful execution
-      // expect(mockWebSocket.close).toHaveBeenCalled();
-    });
-
-    it('should handle WebSocket errors gracefully', () => {
-      const ws = new WebSocket('ws://localhost:8188/ws');
-
-      const errorHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'error'
-      )[1];
-
-      errorHandler(new Event('error'));
-
-      // Should handle errors without crashing
-      expect(mockWebSocket.close).toHaveBeenCalled();
-    });
-
-    it('should handle WebSocket connection close', () => {
-      const ws = new WebSocket('ws://localhost:8188/ws');
-
-      const closeHandler = mockWebSocket.addEventListener.mock.calls.find(
-        call => call[0] === 'close'
-      )[1];
-
-      closeHandler({
-        code: 1000,
-        reason: 'Normal closure',
-        wasClean: true,
-      });
-
-      // Close handler should execute without error
-      expect(closeHandler).toBeDefined();
+      unsubscribe();
+      unsubscribe = undefined;
+      vi.advanceTimersByTime(3000);
+      expect(TestSocket.openSockets[1].close).toHaveBeenCalledOnce();
+      expect(TestSocket.openSockets).toHaveLength(2);
     });
   });
 

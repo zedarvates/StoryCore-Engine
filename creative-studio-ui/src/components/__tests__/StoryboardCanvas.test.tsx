@@ -6,6 +6,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { StoryboardCanvas } from '../StoryboardCanvas';
 import type { Shot } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 const mockSelectShot = vi.fn();
@@ -63,7 +64,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Shot Display', () => {
-    const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+    const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test description',
@@ -165,7 +166,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Metadata Indicators', () => {
-    const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+    const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test description',
@@ -217,10 +218,13 @@ describe('StoryboardCanvas', () => {
             {
               id: 'effect-1',
               type: 'filter',
+              category: 'creative',
+              icon: null,
+              description: 'Test filter',
               name: 'vintage',
               enabled: true,
               intensity: 50,
-              parameters: {},
+              parameters: [],
             },
           ],
         }),
@@ -283,7 +287,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Selection', () => {
-    const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+    const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test description',
@@ -341,7 +345,7 @@ describe('StoryboardCanvas', () => {
   describe('Responsive Layout', () => {
     it('should apply responsive grid classes', () => {
       mockShots = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Test Shot',
           description: 'Test',
@@ -351,7 +355,7 @@ describe('StoryboardCanvas', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
+        }),
       ];
 
       const { container } = render(<StoryboardCanvas />);
@@ -368,7 +372,7 @@ describe('StoryboardCanvas', () => {
   });
 
   describe('Duration Formatting', () => {
-    const createMockShot = (duration: number): Shot => ({
+    const createMockShot = (duration: number): Shot => createShotFixture(createShotFixture({
       id: 'shot-1',
       title: 'Test Shot',
       description: 'Test',
@@ -378,7 +382,7 @@ describe('StoryboardCanvas', () => {
       textLayers: [],
       animations: [],
       position: 0,
-    });
+    }));
 
     it('should format duration correctly for seconds only', () => {
       mockShots = [createMockShot(45)];

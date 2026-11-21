@@ -5,15 +5,22 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { getComfyUIServersService } from '@/services/comfyuiServersService';
 import { cn } from '@/lib/utils';
+
+import { isRecord } from '@/utils/typeGuards';
 
 interface MCPResource {
   uri: string;
   name: string;
   description?: string;
   mimeType?: string;
+}
+
+function isMCPResource(value: unknown): value is MCPResource {
+  return isRecord(value) && typeof value.uri === 'string' && typeof value.name === 'string' &&
+    (value.description === undefined || typeof value.description === 'string') &&
+    (value.mimeType === undefined || typeof value.mimeType === 'string');
 }
 
 export function MCPResourceLibrary() {
@@ -39,7 +46,7 @@ export function MCPResourceLibrary() {
       try {
         if (window.electronAPI?.comfyui?.listResources) {
           const result = await window.electronAPI.comfyui.listResources(server.id);
-          newResources[server.name] = result || [];
+          newResources[server.name] = Array.isArray(result) ? result.filter(isMCPResource) : [];
         }
       } catch (error) {
         console.error(`Failed to load resources for ${server.name}:`, error);

@@ -237,7 +237,7 @@ export type BatchOperationType = 'delete' | 'duplicate' | 'export' | 'transform'
 export interface BatchOperation {
   id: string;
   type: BatchOperationType;
-  items: ProductionShot[];
+  items: Shot[];
   status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
   progress: number;
   startTime?: number;
@@ -246,13 +246,13 @@ export interface BatchOperation {
 }
 
 export interface BatchOperationResult {
-  success: ProductionShot[];
-  failed: Array<{ shot: ProductionShot; error: Error }>;
+  success: Shot[];
+  failed: Array<{ shot: Shot; error: Error }>;
   totalTime: number;
 }
 
 export interface BatchOperationsToolbarProps {
-  selectedShots: ProductionShot[];
+  selectedShots: (Shot | ProductionShot)[];
   onOperationComplete?: (result: BatchOperationResult) => void;
 }
 
@@ -355,6 +355,7 @@ export interface SearchFilter {
   name: string;
   criteria: SearchCriteria[];
   saved: boolean;
+  createdAt?: number;
 }
 
 export type PredefinedFilter = 'favorites' | 'recent' | 'unused' | 'errors';

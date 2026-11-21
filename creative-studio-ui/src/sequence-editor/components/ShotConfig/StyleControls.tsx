@@ -11,6 +11,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
+import { z } from 'zod';
 import { useAppDispatch } from '../../store';
 import {
   updateStyleIntensity,
@@ -26,6 +27,20 @@ import './styleControls.css';
 // ============================================================================
 // Props
 // ============================================================================
+
+const styleRefinementResult = z.object({
+  parameters: z.object({
+    colorPalette: z.array(z.string()),
+    artisticStyle: z.string(),
+    saturation: z.number(),
+    contrast: z.number(),
+    brightness: z.number(),
+    temperature: z.number(),
+    vignette: z.number(),
+    grain: z.number(),
+    sharpness: z.number(),
+  }).partial(),
+});
 
 interface StyleControlsProps {
   shot: Shot;
@@ -77,21 +92,23 @@ export const StyleControls: React.FC<StyleControlsProps> = ({ shot }) => {
   
   const handleRefineStyle = async () => {
     const activeServer = getComfyUIServersService().getActiveServer();
-    if (!activeServer || activeServer.authentication.type !== 'mcp') return;
+    const bridge = window.electronAPI?.comfyui;
+    if (!activeServer || activeServer.authentication.type !== 'mcp' || !bridge?.callTool) return;
 
     setIsRefining(true);
     try {
       const toolMapping = activeServer.mcpConfig?.toolMappings;
       const toolName = toolMapping?.styleRefinement || toolMapping?.characterGeneration || 'refine_style';
-      const result = await window.electronAPI.comfyui.callTool(activeServer.id, toolName, {
+      const result = await bridge.callTool(activeServer.id, toolName, {
         style_params: shot.visualStyle?.parameters,
         shot_id: shot.id
       });
       
-      if (result && result.parameters) {
+      const refinement = styleRefinementResult.safeParse(result);
+      if (refinement.success) {
         dispatch(updateStyleParameters({
           shotId: shot.id,
-          parameters: result.parameters
+          parameters: refinement.data.parameters
         }));
       }
     } catch (error) {

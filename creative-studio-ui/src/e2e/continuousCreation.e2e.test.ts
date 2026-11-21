@@ -123,14 +123,14 @@ test.describe('Three-Level Reference System', () => {
     await expect(dialog).toBeVisible();
     
     // Click on Create Master Reference button
-    await dialog.click('text=Create Master Reference');
+    await dialog.locator('text=Create Master Reference').click();
     
     // Fill in the form
     await dialog.locator('input[name="styleName"]').fill('Main Style');
     await dialog.locator('textarea[name="description"]').fill('Global style for the project');
     
     // Submit
-    await dialog.click('text=Save');
+    await dialog.locator('text=Save').click();
     
     // Verify creation
     await expect(dialog.locator('text=Master Reference Sheet created')).toBeVisible();
@@ -146,14 +146,14 @@ test.describe('Three-Level Reference System', () => {
     await expect(dialog).toBeVisible();
     
     // Click on Create Sequence Reference button
-    await dialog.click('text=Create Sequence Reference');
+    await dialog.locator('text=Create Sequence Reference').click();
     
     // Fill in the form
     await dialog.locator('input[name="sequenceName"]').fill('Opening Sequence');
     await dialog.locator('input[name="parentMaster"]').fill('Main Style');
     
     // Submit
-    await dialog.click('text=Save');
+    await dialog.locator('text=Save').click();
     
     // Verify creation
     await expect(dialog.locator('text=Sequence Reference Sheet created')).toBeVisible();
@@ -209,7 +209,7 @@ test.describe('Video Replication', () => {
     await fileInput.setInputFiles('test-assets/sample-video.mp4');
     
     // Click Start Replication
-    await dialog.click('text=Start Replication');
+    await dialog.locator('text=Start Replication').click();
     
     // Verify replication started
     await expect(dialog.locator('text=Replication in progress')).toBeVisible();
@@ -288,7 +288,7 @@ test.describe('Project Branching', () => {
     await dialog.locator('textarea[name="description"]').fill('Alternative ending version');
     
     // Create branch
-    await dialog.click('text=Create Branch');
+    await dialog.locator('text=Create Branch').click();
     
     // Verify creation
     await expect(dialog.locator('text=Branch created successfully')).toBeVisible();
@@ -342,7 +342,7 @@ test.describe('Episode References', () => {
     
     // Select character to inherit
     await dialog.locator('input[name="characterSelector"]').fill('Protagonist');
-    await dialog.click('text=Apply Character');
+    await dialog.locator('text=Apply Character').click();
     
     // Verify application
     await expect(dialog.locator('text=Character reference applied')).toBeVisible();
@@ -372,7 +372,7 @@ test.describe('Style Transfer', () => {
     await dialog.locator('input[name="targetShots"]').fill('shot-1, shot-2');
     
     // Apply style transfer
-    await dialog.click('text=Apply Style');
+    await dialog.locator('text=Apply Style').click();
     
     // Verify
     await expect(dialog.locator('text=Style transfer applied')).toBeVisible();
@@ -404,7 +404,7 @@ test.describe('Cross-Shot References', () => {
     await picker.locator('[data-testid="reference-item"]').first().click();
     
     // Apply to current shot
-    await picker.click('text=Apply to Current Shot');
+    await picker.locator('text=Apply to Current Shot').click();
     
     // Verify
     await expect(picker.locator('text=Reference borrowed successfully')).toBeVisible();

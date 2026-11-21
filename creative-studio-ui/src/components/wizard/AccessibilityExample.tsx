@@ -12,8 +12,8 @@
  */
 
 import React, { useState } from 'react';
-import { WizardContainer } from './WizardContainer';
-import { WizardFormLayout, FormField, FormSection, _FormGrid } from './WizardFormLayout';
+import { ProductionWizardContainer } from './production-wizards/ProductionWizardContainer';
+import { WizardFormLayout, FormField, FormSection, FormGrid } from './WizardFormLayout';
 import { ValidationErrorSummary } from './ValidationDisplay';
 import { LoadingOverlay, ProgressBar, IndeterminateProgress } from './LoadingStates';
 import { Input } from '@/components/ui/input';
@@ -98,7 +98,7 @@ export function AccessibilityExampleWizard() {
       onValidateStep={handleValidateStep}
       autoSave={true}
     >
-      <WizardContainer
+      <ProductionWizardContainer
         title="Accessibility Example Wizard"
         steps={steps}
         onCancel={() => console.log('Wizard cancelled')}
@@ -110,7 +110,7 @@ export function AccessibilityExampleWizard() {
           generationProgress={generationProgress}
           onGenerateBio={handleGenerateBio}
         />
-      </WizardContainer>
+      </ProductionWizardContainer>
     </WizardProvider>
   );
 }

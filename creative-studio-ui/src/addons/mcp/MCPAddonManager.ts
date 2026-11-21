@@ -8,7 +8,7 @@ import type {
   MCPAddonState,
   MCPAddonActions,
   MCPTestResult
-} from '@/types/addons';
+} from './types';
 
 export class MCPAddonManager implements MCPAddonActions {
   private state: MCPAddonState;
@@ -76,6 +76,8 @@ export class MCPAddonManager implements MCPAddonActions {
   getState(): MCPAddonState {
     return { ...this.state };
   }
+
+  getSnapshot = (): Readonly<MCPAddonState> => this.state;
 
   // MCPAddonActions implementation
   async toggleAddon(enabled: boolean): Promise<void> {

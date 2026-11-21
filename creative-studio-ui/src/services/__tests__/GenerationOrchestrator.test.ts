@@ -11,8 +11,8 @@
  * Requirements: 12.1, 12.2, 12.3
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { GenerationOrchestrator } from '../GenerationOrchestrator';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { GenerationOrchestrator, type ErrorCallback, type ProgressCallback } from '../GenerationOrchestrator';
 import type {
   GenerationProgress,
   PromptCategories,
@@ -23,13 +23,13 @@ import type {
 
 describe('GenerationOrchestrator', () => {
   let orchestrator: GenerationOrchestrator;
-  let progressCallback: ReturnType<typeof vi.fn>;
-  let errorCallback: ReturnType<typeof vi.fn>;
+  let progressCallback: Mock<ProgressCallback>;
+  let errorCallback: Mock<ErrorCallback>;
 
   beforeEach(() => {
     orchestrator = GenerationOrchestrator.getInstance();
-    progressCallback = vi.fn();
-    errorCallback = vi.fn();
+    progressCallback = vi.fn<ProgressCallback>();
+    errorCallback = vi.fn<ErrorCallback>();
   });
 
   afterEach(() => {
@@ -333,7 +333,9 @@ describe('GenerationOrchestrator', () => {
       const shortResult = await orchestrator.generateAudio(shortParams);
       const longResult = await orchestrator.generateAudio(longParams);
 
-      expect(longResult.metadata.duration).toBeGreaterThan(shortResult.metadata.duration);
+      const shortDuration = shortResult.metadata.duration;
+      if (shortDuration === undefined) throw new Error('Short audio result omitted its duration');
+      expect(longResult.metadata.duration).toBeGreaterThan(shortDuration);
     });
 
     it.skip('should adjust duration estimate based on speed', async () => {
@@ -362,7 +364,9 @@ describe('GenerationOrchestrator', () => {
       const fastResult = await orchestrator.generateAudio(fastSpeedParams);
 
       // Faster speed should result in shorter duration
-      expect(fastResult.metadata.duration).toBeLessThan(normalResult.metadata.duration);
+      const normalDuration = normalResult.metadata.duration;
+      if (normalDuration === undefined) throw new Error('Normal-speed audio result omitted its duration');
+      expect(fastResult.metadata.duration).toBeLessThan(normalDuration);
     });
 
     it.skip('should report progress during audio generation', async () => {

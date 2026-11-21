@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { RefreshCw, Eye, _EyeOff, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Grid } from 'lucide-react';
+import { RefreshCw, Eye, EyeOff, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, Grid } from 'lucide-react';
 import type { Location, CubeFace, CubeFaceTexture } from '@/types/location';
 import { useLocationStore } from '@/stores/locationStore';
 import { CubeFaceGenerator } from './CubeFaceGenerator';
@@ -42,7 +42,7 @@ export function CubeViewEditor({
   textureDirection,
   onTextureDirectionChange,
 }: CubeViewEditorProps) {
-  const { updateCubeTexture, _updateLocation, selectCubeFace, _selectedCubeFace } = useLocationStore();
+  const { updateCubeTexture, selectCubeFace } = useLocationStore();
   
   const [editingFace, setEditingFace] = useState<CubeFace | null>(null);
   
@@ -192,6 +192,7 @@ export function CubeViewEditor({
         <div className="cube-view-editor__modal-overlay" onClick={handleCloseGenerator}>
           <div className="cube-view-editor__modal" onClick={(e) => e.stopPropagation()}>
             <CubeFaceGenerator
+              locationId={location.location_id}
               face={editingFace}
               existingTexture={location.cube_textures[editingFace]}
               onGenerate={(texture) => handleTextureUpdate(editingFace, texture)}

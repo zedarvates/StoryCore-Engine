@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Search, _Plus, MapPin } from 'lucide-react';
+import { Home, Search, Plus, MapPin } from 'lucide-react';
 import { useLocationStore } from '../../../stores/locationStore';
 import './Library.css';
 
@@ -9,7 +9,6 @@ export interface SceneLibraryProps {
 }
 
 export const SceneLibrary: React.FC<SceneLibraryProps> = ({
-  _onElementSelect,
   className = ''
 }) => {
   // Load locations from store
@@ -23,7 +22,7 @@ export const SceneLibrary: React.FC<SceneLibraryProps> = ({
     description: location.metadata?.description
   }));
 
-  const handleDragStart = (scene: unknown) => (e: React.DragEvent) => {
+  const handleDragStart = (scene: (typeof scenes)[number]) => (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'decoration',
       assetId: scene.id,

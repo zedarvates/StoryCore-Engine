@@ -1,14 +1,14 @@
 import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout, FormField } from '../WizardFormLayout';
+import { WizardFormLayout, FormField } from '../../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles, X, Brain, Cpu, Database, Zap, Activity, Layers, Settings, Microscope } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
-import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { LLMErrorDisplay, LLMLoadingState } from '../../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
 import {
@@ -23,17 +23,16 @@ import {
   COMMUNICATION_STYLES,
 } from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 3: Cognitive Matrix (Personality)
 // ============================================================================
 
 interface Step3PersonalityProps {
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
-export function Step3Personality({ s_toryContext }: Step3PersonalityProps = {}) {
+export function Step3Personality(_props: Step3PersonalityProps = {}) {
   const { formData, updateFormData, validationErrors } = useWizard<Character>();
   const [newTrait, setNewTrait] = useState('');
   const [newValue, setNewValue] = useState('');

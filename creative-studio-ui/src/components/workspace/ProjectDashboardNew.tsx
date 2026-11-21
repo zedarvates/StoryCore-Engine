@@ -1789,9 +1789,10 @@ export function ProjectDashboardNew({
           return s.sequence_id === seq.id || s.sequenceId === seq.id;
         });
 
-        if (window.electronAPI?.sequence?.updateShot && sequenceShots.length > 0) {
-           await Promise.all(sequenceShots.map(shot => 
-             window.electronAPI.sequence.updateShot!(projectPath, seq.id, shot.id, {
+        const updateShot = window.electronAPI?.sequence?.updateShot;
+        if (updateShot && sequenceShots.length > 0) {
+           await Promise.all(sequenceShots.map(shot =>
+             updateShot(projectPath, seq.id, shot.id, {
                sequence_order: seq.order
              } as unknown as Partial<ShotData>)
            ));

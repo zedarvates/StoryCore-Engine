@@ -1,31 +1,31 @@
 import { LegacyAny } from '@/types/legacy';
 import React, { useState, useCallback } from 'react';
 import {
-  _Play,
-  _Pause,
-  _Square,
+  Play,
+  Pause,
+  Square,
   RotateCcw,
   Save,
-  _Download,
+  Download,
   Upload,
-  _Settings,
-  _Eye,
+  Settings,
+  Eye,
   EyeOff,
-  _Zap,
-  _Wand2,
+  Zap,
+  Wand2,
   Layers,
   Users,
-  _Home,
+  Home,
   Camera,
-  _Film,
+  Film,
   Send,
-  _CheckCircle,
+  CheckCircle,
   AlertCircle,
   Clock,
   Volume2,
   Speaker,
   Package,
-  _Image as ImageIcon,
+  Image as ImageIcon,
   Video,
   Accessibility
 } from 'lucide-react';
@@ -38,7 +38,7 @@ import { PuppetLibrary } from './PuppetLibrary';
 import { SceneLibrary } from './SceneLibrary';
 import { ObjectLibrary } from './ObjectLibrary';
 import { ElementPropertiesPanel } from './ElementPropertiesPanel';
-import { SceneSelector } from './SceneS_elector';
+import { SceneSelector } from './SceneSelector';
 import { PlanningState, CanvasElement, ViewMode } from './types';
 import { useAudioSpatialization } from './useAudioSpatialization';
 import { AudioSurroundPreview } from './AudioSurroundPreview';
@@ -198,13 +198,11 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
 
   // Dialogue management hook
   const {
-    _dialogueState,
-    _generateDialoguesForShot,
+    dialogueState,
     addManualDialogue,
     updateDialogue,
     updateDialogueSpatialization,
-    _deleteDialogue,
-    _selectDialogue,
+    deleteDialogue,
     clearDialogues
   } = useDialogueManagement();
 
@@ -414,6 +412,8 @@ export const SequencePlanningStudio: React.FC<SequencePlanningStudioProps> = ({
         <div className="studio-canvas">
           <SceneSelector
             scenes={sequencePlan.scenes}
+            shots={sequencePlan.shots}
+            frameRate={sequencePlan.frameRate}
             selectedSceneId={planningState.currentScene.id}
             onSceneSelect={handleSceneSelect}
             onScenesReorder={handleScenesReorder}

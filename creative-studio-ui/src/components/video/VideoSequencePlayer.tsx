@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { VideoPlayer } from './VideoPlayer';
 import type { Shot } from '@/types';
+import { getShotVideoUrl } from './getShotVideoUrl';
 
 export interface VideoSequencePlayerProps {
   shots: Shot[];
@@ -39,7 +40,7 @@ export const VideoSequencePlayer: React.FC<VideoSequencePlayerProps> = ({
   const preloadNextVideo = useCallback(() => {
     if (!nextShot || !seamlessTransition) return;
 
-    const videoUrl = nextShot.metadata?.videoUrl || nextShot.image;
+    const videoUrl = getShotVideoUrl(nextShot);
     if (!videoUrl) return;
 
     // Check if already preloaded

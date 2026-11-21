@@ -15,7 +15,7 @@ describe('ProgressIndicator', () => {
     type: 'grid',
     status: 'pending',
     priority: 1,
-    createdAt: new Date('2026-01-15T10:00:00Z'),
+    createdAt: new Date('2026-01-15T10:00:00Z').getTime(),
   };
 
   describe('rendering', () => {
@@ -160,7 +160,7 @@ describe('ProgressIndicator', () => {
       const task = {
         ...baseTask,
         status: 'processing' as const,
-        startedAt: new Date('2026-01-15T10:05:00Z'),
+        startedAt: new Date('2026-01-15T10:05:00Z').getTime(),
       };
 
       render(<ProgressIndicator task={task} showDetails />);
@@ -172,7 +172,7 @@ describe('ProgressIndicator', () => {
       const task = {
         ...baseTask,
         status: 'completed' as const,
-        completedAt: new Date('2026-01-15T10:10:00Z'),
+        completedAt: new Date('2026-01-15T10:10:00Z').getTime(),
       };
 
       render(<ProgressIndicator task={task} showDetails />);

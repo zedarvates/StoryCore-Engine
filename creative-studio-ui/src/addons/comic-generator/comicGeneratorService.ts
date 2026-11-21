@@ -6,7 +6,7 @@
 import type {
   ComicStyleType,
   ComicState,
-  _ComicPage,
+  ComicPage,
   ComicHistoryResponse,
   GeneratePageRequest,
   GeneratePageResponse,

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { LegacyAny } from '@/types/legacy';
 import { AudioFileManager } from '../AudioFileManager';
 import { AudioEngine } from '../AudioEngine';
@@ -26,12 +27,12 @@ describe('AudioFileManager', () => {
   it('should play audio file', async () => {
     // Mock Audio
     const mockAudio = {
-      play: jest.fn(),
+      play: vi.fn(),
       oncanplaythrough: null as LegacyAny,
       onerror: null as LegacyAny
     };
 
-    global.Audio = jest.fn().mockImplementation(() => {
+    global.Audio = vi.fn().mockImplementation(() => {
       const instance = mockAudio as LegacyAny;
       instance.oncanplaythrough = null;
       instance.onerror = null;
@@ -39,9 +40,9 @@ describe('AudioFileManager', () => {
     }) as LegacyAny;
 
     // Mock fetch
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      blob: jest.fn().mockResolvedValue(new Blob(['mock-audio-data'], { type: 'audio/wav' }))
+      blob: vi.fn().mockResolvedValue(new Blob(['mock-audio-data'], { type: 'audio/wav' }))
     }) as LegacyAny;
 
     await audioFileManager.playAudioFile('mock-url');
@@ -50,20 +51,20 @@ describe('AudioFileManager', () => {
 
   it('should get audio metadata', async () => {
     // Mock fetch
-    global.fetch = jest.fn().mockResolvedValue({
+    global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0))
+      arrayBuffer: vi.fn().mockResolvedValue(new ArrayBuffer(0))
     }) as LegacyAny;
 
     // Mock AudioContext
     const mockAudioContext = {
-      decodeAudioData: jest.fn().mockResolvedValue({
+      decodeAudioData: vi.fn().mockResolvedValue({
         duration: 120,
         sampleRate: 44100
       })
     };
 
-    global.AudioContext = jest.fn().mockImplementation(() => mockAudioContext) as LegacyAny;
+    global.AudioContext = vi.fn().mockImplementation(() => mockAudioContext) as LegacyAny;
 
     const metadata = await audioFileManager.getAudioMetadata('mock-url');
     

@@ -225,8 +225,11 @@ export class ComfyUIServersService {
             env: server.mcpConfig?.env
           };
           
-          await window.electronAPI.comfyui.connect(id, mcpOptions);
-          const tools = await window.electronAPI.comfyui.listTools(id);
+          const bridge = window.electronAPI?.comfyui;
+          if (!bridge?.connect || !bridge.listTools) throw new Error('ComfyUI MCP requires the Electron bridge');
+
+          await bridge.connect(id, mcpOptions);
+          const tools = await bridge.listTools(id);
           
           if (tools && tools.length > 0) {
             this.updateServer(id, {

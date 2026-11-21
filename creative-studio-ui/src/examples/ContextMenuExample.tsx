@@ -3,13 +3,15 @@ import { ContextMenu, useContextMenu } from '../components/contextMenu';
 import { buildContextMenu, determineMenuContext } from '../services/contextMenu';
 import { Shot } from '../types';
 
+import { exampleShot } from './exampleShot';
+
 /**
  * Example component demonstrating the ContextMenu usage
  */
 const ContextMenuExample: React.FC = () => {
   const { menuState, showContextMenu, hideContextMenu } = useContextMenu();
   const [shots, setShots] = useState<Shot[]>([
-    {
+    exampleShot({
       id: 'shot-1',
       title: 'Opening Scene',
       description: 'Wide establishing shot',
@@ -19,8 +21,8 @@ const ContextMenuExample: React.FC = () => {
       effects: [],
       textLayers: [],
       animations: []
-    },
-    {
+    }),
+    exampleShot({
       id: 'shot-2',
       title: 'Character Introduction',
       description: 'Close-up of protagonist',
@@ -30,8 +32,8 @@ const ContextMenuExample: React.FC = () => {
       effects: [],
       textLayers: [],
       animations: []
-    },
-    {
+    }),
+    exampleShot({
       id: 'shot-3',
       title: 'Action Sequence',
       description: 'Dynamic camera movement',
@@ -41,7 +43,7 @@ const ContextMenuExample: React.FC = () => {
       effects: [],
       textLayers: [],
       animations: []
-    }
+    })
   ]);
   
   const [selectedShotIds, setSelectedShotIds] = useState<string[]>([]);
@@ -78,7 +80,7 @@ const ContextMenuExample: React.FC = () => {
             ...shot,
             metadata: {
               ...shot.metadata,
-              tags: [...(shot.metadata?.tags || []), tag]
+              tags: [...(Array.isArray(shot.metadata?.tags) ? shot.metadata.tags : []), tag]
             }
           };
         }
@@ -89,7 +91,7 @@ const ContextMenuExample: React.FC = () => {
     },
     onCreate: () => {
       ;
-      const newShot: Shot = {
+      const newShot = exampleShot({
         id: `shot-${Date.now()}`,
         title: 'New Shot',
         description: 'New shot description',
@@ -99,7 +101,7 @@ const ContextMenuExample: React.FC = () => {
         effects: [],
         textLayers: [],
         animations: []
-      };
+      });
       setShots([...shots, newShot]);
       hideContextMenu();
     }
@@ -193,9 +195,9 @@ const ContextMenuExample: React.FC = () => {
                   {shot.duration}s
                 </div>
               </div>
-              {shot.metadata?.tags && shot.metadata.tags.length > 0 && (
+              {Array.isArray(shot.metadata?.tags) && shot.metadata.tags.length > 0 && (
                 <div className="mt-2 flex gap-2">
-                  {shot.metadata.tags.map((tag: string, index: number) => (
+                  {shot.metadata.tags.filter((tag) => typeof tag === 'string').map((tag, index) => (
                     <span
                       key={index}
                       className="px-2 py-1 bg-gray-600 rounded text-xs"

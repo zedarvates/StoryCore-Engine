@@ -35,9 +35,12 @@ describe('useCharacterRestoration', () => {
         character_id: 'char-1',
         name: 'Test Character 1',
         creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -64,6 +67,7 @@ describe('useCharacterRestoration', () => {
           communication_style: 'direct',
         },
         background: {
+          backstory: '',
           origin: 'City',
           occupation: 'Warrior',
           education: 'Self-taught',
@@ -82,9 +86,12 @@ describe('useCharacterRestoration', () => {
         character_id: 'char-2',
         name: 'Test Character 2',
         creation_method: 'manual',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'young adult',
           hair_color: 'black',
           hair_style: 'long',
@@ -111,6 +118,7 @@ describe('useCharacterRestoration', () => {
           communication_style: 'witty',
         },
         background: {
+          backstory: '',
           origin: 'Village',
           occupation: 'Scholar',
           education: 'University',

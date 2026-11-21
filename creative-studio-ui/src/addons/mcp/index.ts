@@ -10,7 +10,7 @@ export type {
   MCPAddonActions,
   MCPTestResult,
   UseMCPAddonResult,
-} from '@/types/addons';
+} from './types';
 
 // Import members
 import { MCPAddonManager } from './MCPAddonManager';

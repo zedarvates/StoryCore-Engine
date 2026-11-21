@@ -14,7 +14,6 @@ interface SceneImpactViewProps {
 
 export function SceneImpactView({
   affectedScenes,
-  _characterId,
   characterName,
   onConfirm,
   onCancel,

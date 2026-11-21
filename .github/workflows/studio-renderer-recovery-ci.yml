@@ -31,12 +31,68 @@ jobs:
           cache: npm
           cache-dependency-path: creative-studio-ui/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - name: Check shared UI library exports (not the full application)
+        run: node scripts/check-ui-library-imports.mjs
       - name: Check renderer type contracts (not the full application)
         run: |
           ./node_modules/.bin/tsc --project tsconfig.renderer-contract.json --pretty false
           ./node_modules/.bin/tsc --project tsconfig.preload-renderer-contract.json --pretty false
+          ./node_modules/.bin/tsc --project tsconfig.grid-renderer-contract.json --pretty false
       - name: Check shared controls, unavailable addons and debugger boundary
         run: npm test -- src/sequence-editor/store/hooks/__tests__/useEditorControls.test.tsx src/services/__tests__/AddonManager.availability.test.ts src/stores/__tests__/storeDebuggerBoundary.test.ts
+      - name: Exercise restored Studio feature contracts
+        run: >-
+          npm test --
+          src/components/wizard/world-builder/__tests__/legacyWorldBuilder.test.tsx
+          src/sequence-editor/components/MediaSearchPanel/MediaSearchPanel.test.tsx
+          src/sequence-editor/utils/browserCompat.test.ts
+          src/components/color-correction/ColorWheels.test.tsx
+          src/components/shot/ShotFrameViewer.test.tsx
+          src/services/audioSequenceIntegration.test.ts
+          src/components/generation-buttons/__tests__/previewMetadata.test.tsx
+          src/components/editor/effects/effectParameterValues.test.ts
+          src/addons/mcp/MCPAddonManager.test.ts
+          src/addons/mcp/__tests__/hooks.test.ts
+          src/hooks/__tests__/conditionalModalValidation.test.ts
+          src/components/__tests__/editorBindings.test.tsx
+          src/utils/__tests__/debounce.test.ts
+          src/hooks/__tests__/useKeyframes.test.ts
+          src/sequence-editor/store/middleware/autoSaveMiddleware.test.ts
+          src/services/clipboard/ClipboardManager.test.ts
+          src/components/gridEditor/AutoSaveIndicator.test.tsx
+          src/services/batchOperations/WorkerPool.test.ts
+          src/hooks/__tests__/parameterTunneling.test.tsx
+          src/services/ConversationExportService.test.ts
+          src/components/LazyComponents.test.tsx
+          src/hooks/__tests__/useComfyUI.test.ts
+          src/components/video/__tests__/PlaybackControls.test.tsx
+          src/services/__tests__/backendApiService.comfyui.test.ts
+          src/components/LoadingStates.test.tsx
+          src/components/NotificationSystem.test.tsx
+      - name: Verify dashboard sequence actions
+        timeout-minutes: 2
+        run: >-
+          npm test --
+          src/__tests__/ProjectDashboardNew.test.tsx
+      - name: Verify world wizard navigation and provider handoffs
+        timeout-minutes: 2
+        run: >-
+          npm test --
+          src/components/wizard/world-builder/__tests__/WorldBuilderWizard.e2e.test.tsx
+          src/components/wizard/world/__tests__/LLMIntegration.test.tsx
+          src/components/wizard/world/__tests__/LLMIntegration.simple.test.tsx
+      - name: Verify character persistence and project opening
+        timeout-minutes: 2
+        run: >-
+          npm test --
+          src/components/wizard/character/__tests__/CharacterWizard.completion.test.tsx
+          src/components/menuBar/__tests__/actionErrorHandling.test.ts
+      - name: Exercise wizard draft round-trip
+        run: npm test -- src/services/wizard/__tests__/DraftPersistence.test.ts -t 'round-trips wizard step data'
+      - name: Lint repaired grid renderers and their contracts
+        run: ./node_modules/.bin/eslint src/components/gridEditor/GridRenderer.tsx src/components/gridEditor/PanelRenderer.tsx src/components/gridEditor/__tests__/rendererContracts.test.tsx tests/contracts/grid-renderer.contract.ts
+      - name: Exercise grid and panel contracts
+        run: npm test -- src/components/gridEditor/__tests__/rendererContracts.test.tsx src/components/gridEditor/__tests__/PanelRenderer.test.tsx
       - run: npm run build
       - name: Install browser for bounded startup check
         if: matrix.node == '24.19.0'
@@ -49,4 +105,45 @@ jobs:
         with:
           name: studio-bundle-startup-failure
           path: creative-studio-ui/studio-bundle-test-results/
+          if-no-files-found: ignore
+
+  full-types:
+    name: Full application types (unfinished)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: creative-studio-ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.19.0'
+          cache: npm
+          cache-dependency-path: creative-studio-ui/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund --legacy-peer-deps
+      - name: Check the complete existing TypeScript build
+        shell: bash
+        run: ./node_modules/.bin/tsc -b --pretty false 2>&1 | tee studio-typecheck-diagnostics.log
+      - name: Summarize full compiler status
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          log = Path('studio-typecheck-diagnostics.log')
+          if log.exists():
+              count = len(re.findall(r'error TS\d+:', log.read_text()))
+              status = f'Full application compiler: {count} diagnostic(s). See the compiler step conclusion and artifact; focused contracts do not replace this check.'
+          else:
+              status = 'Full application compiler unavailable: installation or setup did not complete.'
+          print(status)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(status + '\n')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: studio-full-types-diagnostics
+          path: creative-studio-ui/studio-typecheck-diagnostics.log
           if-no-files-found: ignore

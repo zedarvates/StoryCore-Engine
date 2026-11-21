@@ -7,15 +7,15 @@ import { LegacyAny } from '@/types/legacy';
 // Requirements: 1.1, 2.1, 3.1
 // ============================================================================
 
-import { describe, it, expect, vi, b_eforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { DndProvider } from '@/components/DndProvider';
 import { ProjectDashboardNew } from '../ProjectDashboardNew';
 import type { Character } from '@/types/character';
 
 // Mock dependencies
 vi.mock('@/stores/useAppStore', () => ({
   useAppStore: vi.fn(),
-  useStore: vi.fn(),
 }));
 vi.mock('@/store', () => ({
   useStore: vi.fn(),
@@ -30,7 +30,7 @@ vi.mock('@/services/eventEmitter', () => ({
 }));
 
 // Import mocked modules after mocking
-import { useAppStore, useStore as useAppStoreStore } from '@/stores/useAppStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { useStore } from '@/store';
 import { useCharacterManager } from '@/hooks/useCharacterManager';
 
@@ -65,9 +65,12 @@ const mockCharacter: Character = {
   character_id: 'char-1',
   name: 'Dashboard Hero',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-01T00:00:00.000Z',
+  creation_timestamp: Date.parse('2024-01-01T00:00:00.000Z'),
   version: '1.0',
   visual_identity: {
+    gender: 'unspecified',
+    reference_images: [],
+    reference_sheet_images: [],
     hair_color: 'black',
     hair_style: 'short',
     hair_length: 'short',
@@ -94,6 +97,7 @@ const mockCharacter: Character = {
     communication_style: 'direct',
   },
   background: {
+    backstory: '',
     origin: 'City',
     occupation: 'Warrior',
     education: 'Military Academy',
@@ -143,9 +147,15 @@ describe('ProjectDashboardNew - Character Integration', () => {
     addRelationship: vi.fn(),
     updateRelationship: vi.fn(),
     removeRelationship: vi.fn(),
+    exportCharacter: vi.fn(),
+    importCharacter: vi.fn(),
   };
 
+  let dashboardCharacters: Character[];
+  afterEach(() => { dashboardCharacters = []; });
+
   beforeEach(() => {
+    dashboardCharacters = [];
     vi.clearAllMocks();
 
     // Setup useAppStore mock
@@ -165,6 +175,10 @@ describe('ProjectDashboardNew - Character Integration', () => {
         openCharacterEditor: mockOpenCharacterEditor,
         closeCharacterEditor: mockCloseCharacterEditor,
         showChat: false,
+        characterSearchQuery: '',
+        characterFilters: {},
+        setCharacterSearchQuery: vi.fn(),
+        setCharacterFilters: vi.fn(),
       };
       return selector(state);
     });
@@ -173,6 +187,8 @@ describe('ProjectDashboardNew - Character Integration', () => {
     vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
       const state = {
         stories: [],
+        sequencePlans: [],
+        characters: dashboardCharacters,
         getAllStories: vi.fn(() => []),
         getStoryById: vi.fn(),
         characterSearchQuery: '',
@@ -183,20 +199,9 @@ describe('ProjectDashboardNew - Character Integration', () => {
       return selector(state);
     });
 
-    // Setup useAppStoreStore mock (for CharacterList)
-    vi.mocked(useAppStoreStore).mockImplementation((selector: LegacyAny) => {
-      const state = {
-        characterSearchQuery: '',
-        characterFilters: {},
-        setCharacterSearchQuery: vi.fn(),
-        setCharacterFilters: vi.fn(),
-      };
-      return selector(state);
-    });
-
     // Setup useCharacterManager mock
     vi.mocked(useCharacterManager).mockReturnValue(mockCharacterManager);
-    mockCharacterManager.getAllCharacters.mockReturnValue([]);
+    dashboardCharacters = [];
     mockCharacterManager.searchCharacters.mockReturnValue([]);
     mockCharacterManager.filterCharacters.mockReturnValue([]);
   });
@@ -207,14 +212,14 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
   describe('Requirement 1.1: Dashboard characters section', () => {
     it('should render the characters section on the dashboard', () => {
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Check for Characters section title
       expect(screen.getByText('Characters')).toBeInTheDocument();
     });
 
     it('should display the create character button', () => {
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Should have create character buttons (header + empty state)
       const createButtons = screen.getAllByRole('button', { name: /create character/i });
@@ -222,7 +227,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
     });
 
     it('should render characters section after stories section', () => {
-      const { container } = render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      const { container } = render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       const storiesSection = container.querySelector('.stories-section');
       const charactersSection = container.querySelector('.characters-section');
@@ -245,7 +250,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
   describe('Requirement 3.1: Character creation from dashboard', () => {
     it('should open character wizard when create button is clicked', () => {
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Get all create buttons and click the first one (header button)
       const createButtons = screen.getAllByRole('button', { name: /create character/i });
@@ -256,7 +261,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
     it('should handle character wizard completion', async () => {
       // This test verifies that the wizard integration is set up correctly
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // The wizard completion is handled by the wizard component itself
       // This test just verifies the setup is correct
@@ -270,9 +275,9 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
   describe('Requirement 2.1: Character editor interface', () => {
     it('should open character editor when character is clicked', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      dashboardCharacters = [mockCharacter];
 
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Find and click the character card
       const characterCard = screen.getByText('Dashboard Hero').closest('.character-card');
@@ -302,13 +307,17 @@ describe('ProjectDashboardNew - Character Integration', () => {
           openCharacterEditor: mockOpenCharacterEditor,
           closeCharacterEditor: mockCloseCharacterEditor,
           showChat: false,
+        characterSearchQuery: '',
+        characterFilters: {},
+        setCharacterSearchQuery: vi.fn(),
+        setCharacterFilters: vi.fn(),
         };
         return selector(state);
       });
 
       mockCharacterManager.getCharacter.mockReturnValue(mockCharacter);
 
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Character editor should be rendered
       // Note: The actual editor rendering is tested in CharacterEditor tests
@@ -334,13 +343,17 @@ describe('ProjectDashboardNew - Character Integration', () => {
           openCharacterEditor: mockOpenCharacterEditor,
           closeCharacterEditor: mockCloseCharacterEditor,
           showChat: false,
+        characterSearchQuery: '',
+        characterFilters: {},
+        setCharacterSearchQuery: vi.fn(),
+        setCharacterFilters: vi.fn(),
         };
         return selector(state);
       });
 
       mockCharacterManager.getCharacter.mockReturnValue(mockCharacter);
 
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // The close handler should be available
       expect(mockCloseCharacterEditor).toBeDefined();
@@ -353,9 +366,9 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
   describe('Character integration', () => {
     it('should display characters in the characters section', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      dashboardCharacters = [mockCharacter];
 
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Character should be visible
       expect(screen.getByText('Dashboard Hero')).toBeInTheDocument();
@@ -368,9 +381,9 @@ describe('ProjectDashboardNew - Character Integration', () => {
         { ...mockCharacter, character_id: 'char-2', name: 'Second Hero' },
         { ...mockCharacter, character_id: 'char-3', name: 'Third Hero' },
       ];
-      mockCharacterManager.getAllCharacters.mockReturnValue(characters);
+      dashboardCharacters = characters;
 
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // All characters should be visible
       expect(screen.getByText('Dashboard Hero')).toBeInTheDocument();
@@ -379,9 +392,9 @@ describe('ProjectDashboardNew - Character Integration', () => {
     });
 
     it('should show empty state when no characters exist', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([]);
+      dashboardCharacters = [];
 
-      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       // Empty state message should be visible
       expect(screen.getByText(/no characters yet/i)).toBeInTheDocument();
@@ -394,7 +407,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
 
   describe('Layout and positioning', () => {
     it('should render characters section in the left column', () => {
-      const { container } = render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      const { container } = render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       const leftColumn = container.querySelector('.dashboard-left');
       const charactersSection = container.querySelector('.characters-section');
@@ -407,7 +420,7 @@ describe('ProjectDashboardNew - Character Integration', () => {
     });
 
     it('should have proper spacing between sections', () => {
-      const { container } = render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />);
+      const { container } = render(<ProjectDashboardNew onOpenEditor={mockOnOpenEditor} />, { wrapper: DndProvider });
 
       const charactersSection = container.querySelector('.characters-section');
       expect(charactersSection).toBeInTheDocument();

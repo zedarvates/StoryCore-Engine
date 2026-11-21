@@ -6,8 +6,8 @@
 import {
   CaptionStyle,
   CaptionStylePreset,
-  _CaptionAnimation,
-  _CaptionEffect,
+  CaptionAnimation,
+  CaptionEffect,
 } from '../types/caption-style';
 
 class CaptionStylesService {
@@ -401,14 +401,15 @@ class CaptionStylesService {
    * Create a preset from a style
    */
   createPreset(style: CaptionStyle, author: string): CaptionStylePreset {
+    const now = Date.now();
     return {
-      id: `preset_${Date.now()}`,
+      id: `preset_${now}`,
       name: style.name,
       description: style.description,
       styleId: style.id,
       customizations: {},
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
       author,
       isPublic: false,
       tags: [style.category],

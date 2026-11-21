@@ -1,12 +1,12 @@
 import React from 'react';
-import { WorldData } from '../../../stores/worldBuilderStore';
+import type { WorldData } from '@/stores/worldBuilderStore';
 
 interface WorldPreview3DProps {
   worldData: WorldData;
   onElementSelect: (element: unknown) => void;
 }
 
-export const WorldPreview3D: React.FC<WorldPreview3DProps> = ({ worldData, _onElementSelect }) => {
+export const WorldPreview3D: React.FC<WorldPreview3DProps> = ({ worldData }) => {
   return (
     <div className="world-preview-3d">
       <h3>World Preview (3D)</h3>

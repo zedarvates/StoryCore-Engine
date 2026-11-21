@@ -57,7 +57,7 @@ describe('projectMerger', () => {
           id: 'project-b',
           name: 'Project B',
           path: '/path/to/project-b',
-          lastModified: new Date(5000),
+          lastModified: new Date(5000).getTime(),
         },
       ];
 
@@ -91,7 +91,7 @@ describe('projectMerger', () => {
           id: 'project-a',
           name: 'Project A',
           path: '/path/to/project-a',
-          lastModified: new Date(1000),
+          lastModified: new Date(1000).getTime(),
         },
       ];
 
@@ -163,7 +163,7 @@ describe('projectMerger', () => {
           id: 'project-a',
           name: 'Project A',
           path: '/path/to/project-a',
-          lastModified: new Date(2000),
+          lastModified: new Date(2000).getTime(),
         },
       ];
 
@@ -223,13 +223,13 @@ describe('projectMerger', () => {
           id: 'project-a',
           name: 'Project A',
           path: '/path/to/project-a',
-          lastModified: new Date(5000), // Most recent access
+          lastModified: new Date(5000).getTime(), // Most recent access
         },
         {
           id: 'project-c',
           name: 'Project C',
           path: '/path/to/project-c',
-          lastModified: new Date(4000), // Second most recent access
+          lastModified: new Date(4000).getTime(), // Second most recent access
         },
       ];
 

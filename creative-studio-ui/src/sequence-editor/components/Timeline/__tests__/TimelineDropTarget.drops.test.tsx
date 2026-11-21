@@ -45,7 +45,7 @@ const mockAsset: Asset = {
   },
   tags: ['test', 'character'],
   source: 'builtin',
-  createdAt: new Date(),
+  createdAt: Date.now(),
 };
 
 function createTestStore() {

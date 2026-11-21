@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import './EffectKeyframes.css';
 import { EffectKeyframe, EffectParameter } from '@/types/effect';
+import { readEffectNumber } from './effectParameterValues';
 
 interface EffectKeyframesProps {
   parameter: EffectParameter;
@@ -29,7 +30,7 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
   const getCurrentValue = useCallback(() => {
     const keyframes = parameter.keyframes || [];
     if (keyframes.length === 0) {
-      return parameter.defaultValue ?? parameter.value;
+      return readEffectNumber(parameter.value, readEffectNumber(parameter.defaultValue, parameter.min));
     }
 
     // Find keyframes before and after current time
@@ -76,8 +77,8 @@ export const EffectKeyframes: React.FC<EffectKeyframesProps> = ({
   // Update current value when keyframes change
   useEffect(() => {
     const currentValue = getCurrentValue();
-    onValueChange(currentValue);
-  }, [getCurrentValue, onValueChange]);
+    if (currentValue !== parameter.value) onValueChange(currentValue);
+  }, [getCurrentValue, onValueChange, parameter.value]);
 
   const addKeyframe = useCallback((time: number, value: number = 0.5) => {
     const newKeyframe: EffectKeyframe = {

@@ -34,13 +34,13 @@ export function AnimationOrchestrationExample() {
 
   const animateBox = async (
     boxId: number,
-    setter: React.Dispatch<React.SetStateAction<LegacyAny>>,
+    setter: React.Dispatch<React.SetStateAction<typeof box1>>,
     distance: number
   ) => {
     return new Promise<void>((resolve) => {
-      setter((prev: unknown) => ({ ...prev, x: distance }));
+      setter((prev) => ({ ...prev, x: distance }));
       setTimeout(() => {
-        setter((prev: unknown) => ({ ...prev, x: 0 }));
+        setter((prev) => ({ ...prev, x: 0 }));
         resolve();
       }, 500);
     });

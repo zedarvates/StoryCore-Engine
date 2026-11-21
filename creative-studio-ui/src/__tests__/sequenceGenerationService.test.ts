@@ -13,6 +13,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 import { SequenceGenerationService } from '../services/sequenceGenerationService';
 import { GenerationErrorHandler } from '../utils/generationErrorHandling';
 import type { Project, GenerationStatus } from '../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // ============================================================================
 // Mock Setup
@@ -34,10 +35,14 @@ vi.mock('../services/backendApiService', () => ({
 const createMockProject = (): Project => ({
   id: 'test-project-1',
   name: 'Test Project',
+  project_name: 'Test Project',
+  schema_version: '1.0',
+  assets: [],
+  generation_status: { grid: 'pending', promotion: 'pending' },
   schemaVersion: '1.0',
   sequences: [],
   shots: [
-    {
+    createShotFixture({
        id: 'shot-1',
        sequenceId: 'seq-1',
        startTime: 0,
@@ -50,8 +55,8 @@ const createMockProject = (): Project => ({
          suggestions: [],
        },
        metadata: {},
-     },
-     {
+     }),
+     createShotFixture({
        id: 'shot-2',
        sequenceId: 'seq-1',
        startTime: 5,
@@ -64,16 +69,16 @@ const createMockProject = (): Project => ({
          suggestions: [],
        },
        metadata: {},
-     },
+     }),
   ],
   audioPhrases: [],
   generationHistory: [],
   capabilities: {
-    gridGeneration: true,
-    promotionEngine: true,
-    qaEngine: true,
-    autofixEngine: true,
-    voiceGeneration: true,
+    grid_generation: true,
+    promotion_engine: true,
+    qa_engine: true,
+    autofix_engine: true,
+    voice_generation: true,
   },
 });
 

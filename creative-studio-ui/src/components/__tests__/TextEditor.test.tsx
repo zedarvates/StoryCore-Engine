@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { TextEditor } from '../TextEditor';
 import { useStore, useSelectedShot } from '../../store';
 import type { Shot, TextLayer } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('../../store', () => ({
@@ -14,7 +15,7 @@ vi.mock('../../store', () => ({
 describe('TextEditor', () => {
   const mockUpdateTextLayer = vi.fn();
 
-  const createMockShot = (id: string, textLayers: TextLayer[] = []): Shot => ({
+  const createMockShot = (id: string, textLayers: TextLayer[] = []): Shot => (createShotFixture({
     id,
     title: 'Test Shot',
     description: 'Test Description',
@@ -24,7 +25,7 @@ describe('TextEditor', () => {
     effects: [],
     textLayers,
     animations: [],
-  });
+  }));
 
   const createMockTextLayer = (overrides?: Partial<TextLayer>): TextLayer => ({
     id: 'text-layer-1',

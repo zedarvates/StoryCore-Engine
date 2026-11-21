@@ -1,393 +1,157 @@
-/**
- * PlaybackControls Component Unit Tests
- */
-
-import React from 'react';
-import { render, screen, fireEvent, _waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { useVideoPlayer, type UseVideoPlayerReturn } from '@/hooks/useVideoPlayer';
 import { PlaybackControls } from '../PlaybackControls';
 
-// Mock icons
-jest.mock('../Icons', () => ({
-  PlayIcon: () => <svg data-testid="play-icon">Play</svg>,
-  PauseIcon: () => <svg data-testid="pause-icon">Pause</svg>,
-  SkipBackIcon: () => <svg data-testid="skip-back-icon">SkipBack</svg>,
-  SkipForwardIcon: () => <svg data-testid="skip-forward-icon">SkipForward</svg>,
-  StepBackwardIcon: () => <svg data-testid="step-backward-icon">StepBackward</svg>,
-  StepForwardIcon: () => <svg data-testid="step-forward-icon">StepForward</svg>,
-  VolumeIcon: () => <svg data-testid="volume-icon">Volume</svg>,
-  VolumeMuteIcon: () => <svg data-testid="volume-mute-icon">Mute</svg>,
-  LoopIcon: () => <svg data-testid="loop-icon">Loop</svg>,
-  FullscreenIcon: () => <svg data-testid="fullscreen-icon">Fullscreen</svg>,
-  SettingsIcon: () => <svg data-testid="settings-icon">Settings</svg>,
-}));
+vi.mock('@/hooks/useVideoPlayer', () => ({ useVideoPlayer: vi.fn() }));
 
-describe('PlaybackControls', () => {
-  const defaultProps = {
+function player(overrides: Partial<UseVideoPlayerReturn> = {}): UseVideoPlayerReturn {
+  return {
+    status: {
+      state: 'paused', currentTime: 30, currentFrame: 900, duration: 120, totalFrames: 3600,
+      playbackRate: 1, isMuted: false, isLooping: false, volume: 1, bufferProgress: 1, isBuffering: false,
+    },
+    currentTime: 30,
+    currentFrame: 900,
+    duration: 120,
+    totalFrames: 3600,
+    currentFps: 30,
+    droppedFrames: 0,
+    formattedTime: '00:30',
+    formattedTimecode: '00:00:30:00',
+    frameInfo: { frameNumber: 900, timestamp: 30, width: 1920, height: 1080 },
     isPlaying: false,
-    isBuffering: false,
     isMuted: false,
     isLooping: false,
-    currentTime: 0,
-    duration: 120,
-    currentFrame: 0,
-    totalFrames: 3600,
-    formattedTime: '00:00:00:00',
+    isReady: true,
+    isLoaded: true,
+    isBuffering: false,
+    hasError: false,
+    play: vi.fn(async () => undefined),
+    pause: vi.fn(),
+    stop: vi.fn(),
+    togglePlay: vi.fn(async () => undefined),
+    seek: vi.fn(async () => undefined),
+    seekToFrame: vi.fn(async () => undefined),
+    stepForward: vi.fn(async () => undefined),
+    stepBackward: vi.fn(async () => undefined),
+    setPlaybackRate: vi.fn(),
+    setVolume: vi.fn(),
+    toggleMute: vi.fn(),
+    toggleLoop: vi.fn(),
+    service: null,
+    videoElement: null,
+    getTotalFrames: () => 3600,
+    getCurrentFps: () => 30,
     playbackRate: 1,
-    onPlay: jest.fn(),
-    onPause: jest.fn(),
-    onStop: jest.fn(),
-    onSeek: jest.fn(),
-    onSeekToFrame: jest.fn(),
-    onStepForward: jest.fn(),
-    onStepBackward: jest.fn(),
-    onVolumeChange: jest.fn(),
-    onMuteToggle: jest.fn(),
-    onLoopToggle: jest.fn(),
-    onFullscreen: jest.fn(),
-    onPlaybackRateChange: jest.fn(),
+    ...overrides,
   };
+}
+
+describe('PlaybackControls', () => {
+  let video: UseVideoPlayerReturn;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    video = player();
+    vi.mocked(useVideoPlayer).mockReturnValue(video);
   });
 
-  describe('Basic Rendering', () => {
-    it('renders all control buttons', () => {
-      render(<PlaybackControls {...defaultProps} />);
+  it('renders accessible playback, navigation and audio controls', () => {
+    render(<PlaybackControls />);
+    const controls = within(screen.getByRole('region', { name: /video playback controls/i }));
 
-      expect(screen.getByTestId('skip-back-icon')).toBeInTheDocument();
-      expect(screen.getByTestId('step-backward-icon')).toBeInTheDocument();
-      expect(screen.getByTestId('play-icon')).toBeInTheDocument();
-      expect(screen.getByTestId('step-forward-icon')).toBeInTheDocument();
-      expect(screen.getByTestId('skip-forward-icon')).toBeInTheDocument();
-    });
-
-    it('renders time display', () => {
-      render(<PlaybackControls {...defaultProps} />);
-
-      expect(screen.getByText('00:00:00:00')).toBeInTheDocument();
-      expect(screen.getByText('/')).toBeInTheDocument();
-    });
-
-    it('renders mute and loop toggle buttons', () => {
-      render(<PlaybackControls {...defaultProps} />);
-
-      expect(screen.getByTestId('volume-icon')).toBeInTheDocument();
-      expect(screen.getByTestId('loop-icon')).toBeInTheDocument();
-    });
+    for (const name of [/^play \(/i, /^stop$/i, /previous frame/i, /next frame/i, /skip to start/i,
+      /skip to end/i, /^mute \(/i, /enable loop/i, /fullscreen/i]) {
+      expect(controls.getByRole('button', { name })).toBeInTheDocument();
+    }
   });
 
-  describe('Play/Pause Functionality', () => {
-    it('shows play icon when not playing', () => {
-      render(<PlaybackControls {...defaultProps} isPlaying={false} />);
+  it('shows time and progress and can display frame numbers', () => {
+    const { rerender } = render(<PlaybackControls />);
 
-      expect(screen.getByTestId('play-icon')).toBeInTheDocument();
-    });
+    expect(screen.getAllByText('00:00:30:00').length).toBeGreaterThan(0);
+    expect(screen.getByRole('slider', { name: 'Video progress' })).toHaveAttribute('aria-valuenow', '25');
 
-    it('shows pause icon when playing', () => {
-      render(<PlaybackControls {...defaultProps} isPlaying={true} />);
-
-      expect(screen.getByTestId('pause-icon')).toBeInTheDocument();
-    });
-
-    it('calls onPlay when clicked and not playing', () => {
-      const onPlay = jest.fn();
-      render(<PlaybackControls {...defaultProps} isPlaying={false} onPlay={onPlay} />);
-
-      const playButton = screen.getByRole('button', { name: /play/i });
-      fireEvent.click(playButton);
-
-      expect(onPlay).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onPause when clicked and playing', () => {
-      const onPause = jest.fn();
-      render(<PlaybackControls {...defaultProps} isPlaying={true} onPause={onPause} />);
-
-      const pauseButton = screen.getByRole('button', { name: /pause/i });
-      fireEvent.click(pauseButton);
-
-      expect(onPause).toHaveBeenCalledTimes(1);
-    });
+    rerender(<PlaybackControls timeFormat="frames" />);
+    expect(screen.getByText('900 / 3600')).toBeInTheDocument();
   });
 
-  describe('Frame Navigation', () => {
-    it('calls onStepBackward when step backward button clicked', () => {
-      const onStepBackward = jest.fn();
-      render(<PlaybackControls {...defaultProps} onStepBackward={onStepBackward} />);
+  it('toggles playback and reports current play state', () => {
+    const onPlayStateChange = vi.fn<(isPlaying: boolean) => void>();
+    const { rerender } = render(<PlaybackControls onPlayStateChange={onPlayStateChange} />);
 
-      const stepBackButton = screen.getByRole('button', { name: /step backward/i });
-      fireEvent.click(stepBackButton);
+    fireEvent.click(screen.getByRole('button', { name: /^play \(/i }));
+    expect(video.togglePlay).toHaveBeenCalledTimes(1);
+    expect(onPlayStateChange).toHaveBeenLastCalledWith(false);
 
-      expect(onStepBackward).toHaveBeenCalledTimes(1);
-      expect(onStepBackward).toHaveBeenCalledWith(1);
-    });
-
-    it('calls onStepForward when step forward button clicked', () => {
-      const onStepForward = jest.fn();
-      render(<PlaybackControls {...defaultProps} onStepForward={onStepForward} />);
-
-      const stepForwardButton = screen.getByRole('button', { name: /step forward/i });
-      fireEvent.click(stepForwardButton);
-
-      expect(onStepForward).toHaveBeenCalledTimes(1);
-      expect(onStepForward).toHaveBeenCalledWith(1);
-    });
-
-    it('calls onSeekToFrame when skip buttons clicked', () => {
-      const onSeekToFrame = jest.fn();
-      render(<PlaybackControls {...defaultProps} onSeekToFrame={onSeekToFrame} />);
-
-      const skipBackButton = screen.getByRole('button', { name: /skip back/i });
-      fireEvent.click(skipBackButton);
-
-      expect(onSeekToFrame).toHaveBeenCalledWith(0);
-
-      const skipForwardButton = screen.getByRole('button', { name: /skip forward/i });
-      fireEvent.click(skipForwardButton);
-
-      expect(onSeekToFrame).toHaveBeenCalledWith(3600);
-    });
+    vi.mocked(useVideoPlayer).mockReturnValue({ ...video, isPlaying: true });
+    rerender(<PlaybackControls onPlayStateChange={onPlayStateChange} />);
+    fireEvent.click(screen.getByRole('button', { name: /^pause \(/i }));
+    expect(video.togglePlay).toHaveBeenCalledTimes(2);
+    expect(onPlayStateChange).toHaveBeenLastCalledWith(true);
   });
 
-  describe('Volume Controls', () => {
-    it('shows volume icon when not muted', () => {
-      render(<PlaybackControls {...defaultProps} isMuted={false} />);
+  it('stops, steps frames and seeks to both ends', () => {
+    render(<PlaybackControls />);
 
-      expect(screen.getByTestId('volume-icon')).toBeInTheDocument();
-    });
-
-    it('shows mute icon when muted', () => {
-      render(<PlaybackControls {...defaultProps} isMuted={true} />);
-
-      expect(screen.getByTestId('volume-mute-icon')).toBeInTheDocument();
-    });
-
-    it('calls onMuteToggle when mute button clicked', () => {
-      const onMuteToggle = jest.fn();
-      render(<PlaybackControls {...defaultProps} isMuted={false} onMuteToggle={onMuteToggle} />);
-
-      const muteButton = screen.getByRole('button', { name: /mute/i });
-      fireEvent.click(muteButton);
-
-      expect(onMuteToggle).toHaveBeenCalledTimes(1);
-    });
+    for (const name of [/^stop$/i, /previous frame/i, /next frame/i, /skip to start/i, /skip to end/i]) {
+      fireEvent.click(screen.getByRole('button', { name }));
+    }
+    expect(video.stop).toHaveBeenCalledTimes(1);
+    expect(video.stepBackward).toHaveBeenCalledWith(1);
+    expect(video.stepForward).toHaveBeenCalledWith(1);
+    expect(video.seek).toHaveBeenNthCalledWith(1, 0);
+    expect(video.seek).toHaveBeenNthCalledWith(2, video.duration);
   });
 
-  describe('Loop Control', () => {
-    it('applies active class when looping is enabled', () => {
-      render(<PlaybackControls {...defaultProps} isLooping={true} />);
+  it('updates mute and loop controls from the player state', () => {
+    const { rerender } = render(<PlaybackControls />);
+    fireEvent.click(screen.getByRole('button', { name: /^mute \(/i }));
+    fireEvent.click(screen.getByRole('button', { name: /enable loop/i }));
+    expect(video.toggleMute).toHaveBeenCalledTimes(1);
+    expect(video.toggleLoop).toHaveBeenCalledTimes(1);
 
-      const loopButton = screen.getByRole('button', { name: /loop/i });
-      expect(loopButton).toHaveClass('active');
-    });
-
-    it('calls onLoopToggle when loop button clicked', () => {
-      const onLoopToggle = jest.fn();
-      render(<PlaybackControls {...defaultProps} isLooping={false} onLoopToggle={onLoopToggle} />);
-
-      const loopButton = screen.getByRole('button', { name: /loop/i });
-      fireEvent.click(loopButton);
-
-      expect(onLoopToggle).toHaveBeenCalledTimes(1);
-    });
+    vi.mocked(useVideoPlayer).mockReturnValue({ ...video, isMuted: true, isLooping: true });
+    rerender(<PlaybackControls />);
+    expect(screen.getByRole('button', { name: /^unmute \(/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /disable loop/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  describe('Playback Rate', () => {
-    it('displays current playback rate', () => {
-      render(<PlaybackControls {...defaultProps} playbackRate={2} />);
+  it('offers playback rates and applies the selected rate', () => {
+    render(<PlaybackControls />);
 
-      expect(screen.getByText('2x')).toBeInTheDocument();
-    });
-
-    it('opens rate menu when rate button clicked', () => {
-      render(<PlaybackControls {...defaultProps} />);
-
-      const rateButton = screen.getByRole('button', { name: /playback rate/i });
-      fireEvent.click(rateButton);
-
-      expect(screen.getByRole('menu')).toBeInTheDocument();
-    });
-
-    it('calls onPlaybackRateChange when rate option selected', () => {
-      const onPlaybackRateChange = jest.fn();
-      render(
-        <PlaybackControls
-          {...defaultProps}
-          playbackRate={1}
-          onPlaybackRateChange={onPlaybackRateChange}
-        />
-      );
-
-      const rateButton = screen.getByRole('button', { name: /playback rate/i });
-      fireEvent.click(rateButton);
-
-      const option = screen.getByRole('menuitem', { name: /0\.5x/i });
-      fireEvent.click(option);
-
-      expect(onPlaybackRateChange).toHaveBeenCalledWith(0.5);
-    });
+    const speed = screen.getByRole('button', { name: 'Playback speed: 1x' });
+    fireEvent.click(speed);
+    expect(speed).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(screen.getByRole('button', { name: /^2x$/ }));
+    expect(video.setPlaybackRate).toHaveBeenCalledWith(2);
+    expect(speed).toHaveAttribute('aria-expanded', 'false');
   });
 
-  describe('Fullscreen', () => {
-    it('calls onFullscreen when fullscreen button clicked', () => {
-      const onFullscreen = jest.fn();
-      render(<PlaybackControls {...defaultProps} onFullscreen={onFullscreen} />);
+  it('delegates keyboard shortcuts and lets an input handle typed keys', () => {
+    render(<><PlaybackControls /><input aria-label="Test input" /></>);
+    fireEvent.keyDown(document.body, { key: ' ' });
+    fireEvent.keyDown(document.body, { key: 'ArrowLeft' });
+    fireEvent.keyDown(document.body, { key: 'ArrowRight', shiftKey: true });
+    fireEvent.keyDown(document.body, { key: 'm' });
+    fireEvent.keyDown(document.body, { key: 'l' });
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Test input' }), { key: ' ' });
 
-      const fullscreenButton = screen.getByRole('button', { name: /fullscreen/i });
-      fireEvent.click(fullscreenButton);
-
-      expect(onFullscreen).toHaveBeenCalledTimes(1);
-    });
+    expect(video.togglePlay).toHaveBeenCalledTimes(1);
+    expect(video.stepBackward).toHaveBeenCalledWith(1);
+    expect(video.stepForward).toHaveBeenCalledWith(5);
+    expect(video.toggleMute).toHaveBeenCalledTimes(1);
+    expect(video.toggleLoop).toHaveBeenCalledTimes(1);
   });
 
-  describe('Buffering State', () => {
-    it('disables controls when buffering', () => {
-      render(<PlaybackControls {...defaultProps} isBuffering={true} />);
+  it('uses compact styling and hides optional controls when requested', () => {
+    render(<PlaybackControls compact className="example" showFrameNavigation={false}
+      showTimeDisplay={false} showMuteToggle={false} showLoopToggle={false} />);
 
-      const playButton = screen.getByRole('button', { name: /play/i });
-      expect(playButton).toHaveAttribute('aria-disabled', 'true');
-    });
-
-    it('shows loading spinner when buffering', () => {
-      render(<PlaybackControls {...defaultProps} isBuffering={true} showBufferingIndicator={true} />);
-
-      expect(screen.getByTestId('buffering-spinner')).toBeInTheDocument();
-    });
-  });
-
-  describe('Keyboard Shortcuts', () => {
-    it('calls onPlay on space key when not playing', () => {
-      const onPlay = jest.fn();
-      render(<PlaybackControls {...defaultProps} isPlaying={false} onPlay={onPlay} />);
-
-      const container = screen.getByRole('region');
-      fireEvent.keyDown(container, { key: ' ' });
-
-      expect(onPlay).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onPause on space key when playing', () => {
-      const onPause = jest.fn();
-      render(<PlaybackControls {...defaultProps} isPlaying={true} onPause={onPause} />);
-
-      const container = screen.getByRole('region');
-      fireEvent.keyDown(container, { key: ' ' });
-
-      expect(onPause).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onStepForward on right arrow key', () => {
-      const onStepForward = jest.fn();
-      render(<PlaybackControls {...defaultProps} onStepForward={onStepForward} />);
-
-      const container = screen.getByRole('region');
-      fireEvent.keyDown(container, { key: 'ArrowRight' });
-
-      expect(onStepForward).toHaveBeenCalledWith(1);
-    });
-
-    it('calls onStepBackward on left arrow key', () => {
-      const onStepBackward = jest.fn();
-      render(<PlaybackControls {...defaultProps} onStepBackward={onStepBackward} />);
-
-      const container = screen.getByRole('region');
-      fireEvent.keyDown(container, { key: 'ArrowLeft' });
-
-      expect(onStepBackward).toHaveBeenCalledWith(1);
-    });
-
-    it('calls onMuteToggle on m key', () => {
-      const onMuteToggle = jest.fn();
-      render(<PlaybackControls {...defaultProps} onMuteToggle={onMuteToggle} />);
-
-      const container = screen.getByRole('region');
-      fireEvent.keyDown(container, { key: 'm' });
-
-      expect(onMuteToggle).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls onLoopToggle on l key', () => {
-      const onLoopToggle = jest.fn();
-      render(<PlaybackControls {...defaultProps} onLoopToggle={onLoopToggle} />);
-
-      const container = screen.getByRole('region');
-      fireEvent.keyDown(container, { key: 'l' });
-
-      expect(onLoopToggle).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('Accessibility', () => {
-    it('has correct ARIA labels for all buttons', () => {
-      render(<PlaybackControls {...defaultProps} />);
-
-      expect(screen.getByRole('button', { name: /skip back/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /step backward/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /step forward/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /skip forward/i })).toBeInTheDocument();
-    });
-
-    it('has correct role and aria-valuenow for progress', () => {
-      render(<PlaybackControls {...defaultProps} currentTime={60} duration={120} />);
-
-      const progress = screen.getByRole('progressbar');
-      expect(progress).toHaveAttribute('aria-valuenow', '50');
-    });
-  });
-
-  describe('Customization', () => {
-    it('applies custom className', () => {
-      render(<PlaybackControls {...defaultProps} className="custom-controls" />);
-
-      const container = screen.getByRole('region');
-      expect(container).toHaveClass('custom-controls');
-    });
-
-    it('hides shortcuts panel when showKeyboardShortcuts is false', () => {
-      render(<PlaybackControls {...defaultProps} showKeyboardShortcuts={false} />);
-
-      expect(screen.queryByText(/keyboard shortcuts/i)).not.toBeInTheDocument();
-    });
-
-    it('hides frame number when showFrameNumber is false', () => {
-      render(<PlaybackControls {...defaultProps} showFrameNumber={false} />);
-
-      expect(screen.queryByText(/00:00:00:00/i)).not.toBeInTheDocument();
-    });
-  });
-});
-
-describe('PlaybackControls Compact Mode', () => {
-  it('renders in compact mode with fewer controls', () => {
-    render(<PlaybackControls {...{
-      isPlaying: false,
-      isBuffering: false,
-      isMuted: false,
-      isLooping: false,
-      currentTime: 0,
-      duration: 120,
-      currentFrame: 0,
-      totalFrames: 3600,
-      formattedTime: '00:00:00:00',
-      playbackRate: 1,
-      onPlay: jest.fn(),
-      onPause: jest.fn(),
-      onStop: jest.fn(),
-      onSeek: jest.fn(),
-      onSeekToFrame: jest.fn(),
-      onStepForward: jest.fn(),
-      onStepBackward: jest.fn(),
-      onVolumeChange: jest.fn(),
-      onMuteToggle: jest.fn(),
-      onLoopToggle: jest.fn(),
-      onFullscreen: jest.fn(),
-      onPlaybackRateChange: jest.fn(),
-    }} variant="compact" />);
-
-    // Compact mode should only show essential controls
-    expect(screen.getByTestId('play-icon')).toBeInTheDocument();
-    expect(screen.queryByTestId('skip-back-icon')).not.toBeInTheDocument();
+    expect(screen.getByRole('region')).toHaveClass('playback-controls-compact', 'example');
+    expect(screen.queryByRole('button', { name: /previous frame/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^mute \(/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /enable loop/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('00:00:30:00')).not.toBeInTheDocument();
   });
 });

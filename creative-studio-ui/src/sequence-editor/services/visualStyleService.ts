@@ -5,7 +5,7 @@
  * Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 11.6
  */
 
-import type { Asset, Shot, _StyleMetadata } from '../types';
+import type { Asset, Shot, StyleMetadata } from '../types';
 
 // ============================================================================
 // Types

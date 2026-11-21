@@ -1,3 +1,4 @@
+import { createEmptyCharacter } from '@/types/character';
 // ============================================================================
 // Character Storage Utilities - Simple Tests
 // ============================================================================
@@ -178,8 +179,8 @@ describe('characterStorage - validateCharacter', () => {
 
 describe('characterStorage - file operations', () => {
   it('generates correct filename', () => {
-    const filename = getCharacterFilename('test-uuid-123');
-    expect(filename).toBe('test-uuid-123.json');
+    const filename = getCharacterFilename({ ...createEmptyCharacter(), name: 'Ferry Pier' });
+    expect(filename).toBe('ferry_pier.json');
   });
 
   it('generates correct file path', () => {
@@ -229,6 +230,7 @@ describe('characterStorage - file operations', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -353,6 +355,7 @@ describe('characterStorage - character summary', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -410,6 +413,7 @@ describe('characterStorage - character summary', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -465,6 +469,7 @@ describe('characterStorage - filtering and sorting', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -511,6 +516,7 @@ describe('characterStorage - filtering and sorting', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -557,6 +563,7 @@ describe('characterStorage - filtering and sorting', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',

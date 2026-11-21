@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
   Copy,
-  _Settings,
+  Settings,
   Move,
   Layers
 } from 'lucide-react';
@@ -59,7 +59,6 @@ export function LayerPanel({
   onLayerAdd,
   onLayerRemove,
   onLayerDuplicate,
-  _onLayerReorder,
   onLayerGroup,
   onLayerUngroup
 }: LayerPanelProps) {

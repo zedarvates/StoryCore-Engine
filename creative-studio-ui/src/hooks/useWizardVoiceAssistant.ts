@@ -23,7 +23,7 @@
  *   assistant.handleCommand("Génère un physique cohérent");
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import {
   WizardFieldIntelligence,
   WizardCommandIntent,
@@ -32,6 +32,8 @@ import {
 } from '@/services/WizardFieldIntelligence';
 import { useVoiceInput } from './useAddonVoiceCommands';
 import { useAppStore } from '@/stores/useAppStore';
+import type { WizardCommandFeedback } from '@/types/wizard';
+export type { WizardCommandFeedback } from '@/types/wizard';
 
 
 // ============================================================================
@@ -77,13 +79,6 @@ export interface WizardVoiceAssistantOptions {
 
   /** Callback erreur */
   onError?: (message: string) => void;
-}
-
-export interface WizardCommandFeedback {
-  type: 'success' | 'warning' | 'error' | 'info';
-  message: string;
-  patches?: FieldPatch[];
-  timestamp: number;
 }
 
 export interface UseWizardVoiceAssistantReturn {
@@ -144,6 +139,9 @@ export function useWizardVoiceAssistant(
 
   const [lastFeedback, setLastFeedback] = useState<WizardCommandFeedback | null>(null);
   const wizardCommandHistory = useAppStore(state => state.wizardCommandHistory);
+  const commandHistory = useMemo<WizardCommandFeedback[]>(() => wizardCommandHistory.map((entry) =>
+    'message' in entry ? entry : { type: 'info', message: entry.result ?? entry.command, timestamp: entry.timestamp }
+  ), [wizardCommandHistory]);
   const addWizardHistory = useAppStore(state => state.addWizardHistory);
   
   // Local history for this specific session if needed, but we'll use the store for persistence
@@ -357,7 +355,7 @@ export function useWizardVoiceAssistant(
   return {
     handleCommand,
     lastFeedback,
-    commandHistory: wizardCommandHistory,
+    commandHistory,
     transcript,
 
     isListening,

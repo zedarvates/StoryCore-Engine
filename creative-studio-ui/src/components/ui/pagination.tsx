@@ -130,7 +130,7 @@ export function Pagination({
   className = '',
   size = 'md',
   disabled = false,
-}: PaginationProps): React.ReactElement {
+}: PaginationProps): React.ReactElement | null {
   const { page, totalPages, total, hasNext, hasPrev } = pagination;
   const pageNumbers = getPageNumbers(page, totalPages, maxVisiblePages);
   const sizeStyles = sizeVariants[size];
@@ -280,7 +280,7 @@ export function PaginationCompact({
   onPageChange,
   className = '',
   disabled = false,
-}: PaginationCompactProps): React.ReactElement {
+}: PaginationCompactProps): React.ReactElement | null {
   const { page, totalPages, total, hasNext, hasPrev } = pagination;
 
   // Don't render if there's nothing to paginate

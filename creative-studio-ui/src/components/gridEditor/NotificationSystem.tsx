@@ -11,7 +11,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { _useToast } from '../../hooks/use-toast';
+import { useToast } from '../../hooks/use-toast';
 
 // ============================================================================
 // Types

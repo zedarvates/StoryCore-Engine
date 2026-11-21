@@ -10,17 +10,17 @@
  * - Displaying model metadata
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ModelSelector, type _ModelSelectorProps } from '../ModelSelector';
+import { ModelSelector, type ModelSelectorProps } from '../ModelSelector';
 import type { ModelMetadata } from '@/services/llm';
 
 describe('ModelSelector', () => {
-  let mockOnModelChange: ReturnType<typeof vi.fn>;
+  let mockOnModelChange: Mock<NonNullable<ModelSelectorProps['onModelChange']>>;
   let mockModels: ModelMetadata[];
 
   beforeEach(() => {
-    mockOnModelChange = vi.fn();
+    mockOnModelChange = vi.fn<NonNullable<ModelSelectorProps['onModelChange']>>();
     
     mockModels = [
       {

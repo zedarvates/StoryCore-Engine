@@ -3,6 +3,7 @@
  */
 
 import type { Shot } from '@/types';
+import { createStoryboardShot } from '@/utils/shotDefaults';
 
 export interface CreateShotOptions {
   id?: string;
@@ -17,11 +18,25 @@ export interface CreateShotOptions {
 }
 
 /**
+ * Fill the required fields while preserving the optional fields supplied by a test.
+ */
+export function createShotFixture(overrides: Partial<Shot>): Shot {
+  return createStoryboardShot({
+    ...overrides,
+    id: overrides.id ?? `shot-${Math.random().toString(36).slice(2, 11)}`,
+    name: overrides.name ?? overrides.title ?? 'Test shot',
+    duration: overrides.duration ?? 5,
+    position: overrides.position ?? 0,
+    startTime: overrides.startTime ?? 0,
+  });
+}
+
+/**
  * Create a Shot object with all required properties for testing
  */
 export function createTestShot(options: CreateShotOptions = {}): Shot {
-  return {
-    id: options.id || `shot-${Math.random().toString(36).substr(2, 9)}`,
+  return createShotFixture({
+    id: options.id || undefined,
     sequenceId: options.sequenceId || 'test-sequence',
     startTime: options.startTime ?? 0,
     duration: options.duration ?? 5,
@@ -40,7 +55,7 @@ export function createTestShot(options: CreateShotOptions = {}): Shot {
     effects: [],
     textLayers: [],
     animations: [],
-  };
+  });
 }
 
 /**

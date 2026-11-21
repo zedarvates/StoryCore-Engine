@@ -8,18 +8,18 @@ import { useState } from 'react';
 import { LLMSettingsPanel, ComfyUISettingsPanel } from '@/components/settings';
 import type { LLMConfig } from '@/services/llmService';
 import type { ComfyUIConfig } from '@/services/comfyuiService';
-import { getLLMService } from '@/services/llmService';
+import { getLLMService, LLMService } from '@/services/llmService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function SettingsDemo() {
   const [savedLLMConfig, setSavedLLMConfig] = useState<LLMConfig | null>(null);
   const [savedComfyUIConfig, setSavedComfyUIConfig] = useState<ComfyUIConfig | null>(null);
-  const llmService = getLLMService();
 
   const handleLLMSave = async (config: LLMConfig) => {
     ;
     
     // Update the LLM service
+    const llmService = await getLLMService();
     llmService.updateConfig(config);
     
     // Save to state
@@ -41,8 +41,7 @@ export function SettingsDemo() {
     ;
     
     // Create a temporary service with the test config
-    const testService = getLLMService();
-    testService.updateConfig(config as LLMConfig);
+    const testService = new LLMService(config);
     
     // Test the connection
     const result = await testService.validateConnection();

@@ -27,7 +27,7 @@ import {
 import { draftPersistence } from '../../services/wizard/DraftPersistence';
 import { ExportEngine } from '../../services/wizard/ExportEngine';
 import { TemplateSystem } from '../../services/wizard/TemplateSystem';
-import type { WizardContainerProps, ProjectExport } from '../../types/wizard';
+import type { WizardContainerProps, ProjectExport, WizardStepData } from '../../types/wizard';
 
 /**
  * Step configuration with metadata
@@ -327,7 +327,7 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
    * Stable callback for updating step data
    * Prevents infinite loops in child components
    */
-  const handleStepUpdate = useCallback((data: unknown) => {
+  const handleStepUpdate = useCallback((data: Partial<WizardStepData>) => {
     updateStepData(currentStep, data);
   }, [currentStep, updateStepData]);
 
@@ -350,7 +350,6 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
     
     // Extract step data based on current step
     let stepData: unknown = null;
-    let stepErrors: unknown = {};
     
     switch (currentStep) {
       case 1:
@@ -380,30 +379,19 @@ export const WizardContainer: React.FC<WizardContainerProps> = ({
     }
     
     // Get validation errors for current step
-    const validationErrors = wizardState.validationErrors?.get?.(currentStep) || [];
-    if (validationErrors.length > 0) {
-      stepErrors = validationErrors.reduce((acc: unknown, error: unknown) => {
-        acc[error.field] = error.message;
-        return acc;
-      }, {});
-    }
+    const validationErrors = wizardState.validationErrors?.get?.(currentStep) ?? [];
+    const stepErrors = Object.fromEntries(validationErrors.map(error => [error.field, error.message]));
     
     // Prepare context props from previous steps
-    const contextProps: unknown = {};
-    
-    // For Step7 (Scene Breakdown), pass locations and characters
-    if (currentStep === 7) {
-      contextProps.locations = wizardState.worldBuilding?.locations || [];
-      contextProps.characters = wizardState.characters || [];
-      contextProps.projectType = wizardState.projectType;
-    }
-    
-    // For Step8 (Shot Planning), pass scenes, locations, and characters
-    if (currentStep === 8) {
-      contextProps.scenes = wizardState.scenes || [];
-      contextProps.locations = wizardState.worldBuilding?.locations || [];
-      contextProps.characters = wizardState.characters || [];
-    }
+    const sceneContext = {
+      locations: wizardState.worldBuilding?.locations ?? [],
+      characters: wizardState.characters ?? [],
+    };
+    const contextProps = currentStep === 7
+      ? { ...sceneContext, projectType: wizardState.projectType }
+      : currentStep === 8
+        ? { ...sceneContext, scenes: wizardState.scenes ?? [] }
+        : {};
     
     return (
       <StepComponent

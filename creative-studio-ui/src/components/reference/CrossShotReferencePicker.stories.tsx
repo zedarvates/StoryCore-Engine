@@ -6,7 +6,9 @@
  */
 
 import type { Meta, StoryObj } from '@storybook/react';
+import type { ComponentType } from 'react';
 import { CrossShotReferencePicker } from './CrossShotReferencePicker';
+import type { ReferenceImage } from '../../types/reference';
 
 // ============================================================================
 // Types
@@ -175,7 +177,7 @@ const meta = {
   args: {
     currentShotId: 'current_shot',
     sequenceId: 'sequence_1',
-    onSelect: (references) => console.log('References selected:', references),
+    onSelect: (references: ReferenceImage[]) => console.log('References selected:', references),
     onClose: () => console.log('Picker closed'),
   },
 } satisfies Meta<typeof CrossShotReferencePicker>;
@@ -197,7 +199,7 @@ export const Default: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -215,7 +217,7 @@ export const FilteredByCharacters: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -233,7 +235,7 @@ export const FilteredByLocations: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -251,7 +253,7 @@ export const FilteredByStyles: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -269,7 +271,7 @@ export const WithSearchQuery: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -287,7 +289,7 @@ export const MultipleSelections: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -305,7 +307,7 @@ export const ExpandedShotView: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -323,7 +325,7 @@ export const WithReferencePreview: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -341,7 +343,7 @@ export const ManyShots: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -359,7 +361,7 @@ export const NoOtherShots: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -377,7 +379,7 @@ export const Loading: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -395,7 +397,7 @@ export const Error: Story = {
     sequenceId: 'sequence_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>

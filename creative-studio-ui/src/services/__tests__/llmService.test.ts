@@ -69,8 +69,8 @@ describe('LLMService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.content).toBe('Generated text');
-      expect(result.data?.finishReason).toBe('stop');
-      expect(result.data?.usage?.totalTokens).toBe(30);
+      expect(result.data?.finish_reason).toBe('stop');
+      expect(result.data?.usage?.total_tokens).toBe(30);
     });
 
     it('should handle API error', async () => {
@@ -175,7 +175,7 @@ describe('LLMService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.content).toBe('Generated text from Claude');
-      expect(result.data?.finishReason).toBe('stop');
+      expect(result.data?.finish_reason).toBe('stop');
     });
 
     it('should handle streaming completion', async () => {
@@ -472,7 +472,7 @@ describe('LLMService', () => {
       const result = await llmService.generateCompletion({ prompt: 'Test' });
 
       expect(result.success).toBe(true);
-      expect(result.data?.finishReason).toBe('content_filter');
+      expect(result.data?.finish_reason).toBe('content_filter');
     });
   });
 });

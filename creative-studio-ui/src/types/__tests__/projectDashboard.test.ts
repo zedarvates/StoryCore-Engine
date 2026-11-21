@@ -20,6 +20,7 @@ import {
   type PromptValidation,
   type Project,
 } from '../projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('ProjectDashboard Type Definitions', () => {
   describe('Type Guards', () => {
@@ -71,7 +72,7 @@ describe('ProjectDashboard Type Definitions', () => {
 
     it('should validate all shots have valid prompts', () => {
       const validShots: Shot[] = [
-        {
+        createShotFixture({
           id: '1',
           sequenceId: 'seq-1',
           startTime: 0,
@@ -79,8 +80,8 @@ describe('ProjectDashboard Type Definitions', () => {
           prompt: 'This is a valid prompt with enough characters',
           metadata: {},
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: '2',
           sequenceId: 'seq-1',
           startTime: 10,
@@ -88,12 +89,12 @@ describe('ProjectDashboard Type Definitions', () => {
           prompt: 'Another valid prompt with sufficient length',
           metadata: {},
           position: 1,
-        },
+        }),
       ];
       expect(hasValidPrompts(validShots)).toBe(true);
 
       const invalidShots: Shot[] = [
-        {
+        createShotFixture({
           id: '1',
           sequenceId: 'seq-1',
           startTime: 0,
@@ -101,8 +102,8 @@ describe('ProjectDashboard Type Definitions', () => {
           prompt: 'This is a valid prompt with enough characters',
           metadata: {},
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: '2',
           sequenceId: 'seq-1',
           startTime: 10,
@@ -110,7 +111,7 @@ describe('ProjectDashboard Type Definitions', () => {
           prompt: 'Short', // too short
           metadata: {},
           position: 1,
-        },
+        }),
       ];
       expect(hasValidPrompts(invalidShots)).toBe(false);
     });
@@ -144,7 +145,7 @@ describe('ProjectDashboard Type Definitions', () => {
     });
 
     it('should validate Shot schema', () => {
-      const validShot: Shot = {
+      const validShot: Shot = createShotFixture({
         id: 'shot-1',
         sequenceId: 'seq-1',
         startTime: 0,
@@ -156,7 +157,7 @@ describe('ProjectDashboard Type Definitions', () => {
           mood: 'peaceful',
         },
         position: 0,
-      };
+      });
       expect(() => ShotSchema.parse(validShot)).not.toThrow();
 
       const invalidShot = { ...validShot, duration: -5 }; // negative duration
@@ -181,6 +182,10 @@ describe('ProjectDashboard Type Definitions', () => {
     it('should validate Project schema', () => {
       const validProject: Project = {
         id: 'project-1',
+        project_name: 'Test Project',
+        schema_version: '1.0',
+        assets: [],
+        generation_status: { grid: 'pending', promotion: 'pending' },
         name: 'Test Project',
         schemaVersion: '1.0',
         sequences: [],
@@ -188,11 +193,11 @@ describe('ProjectDashboard Type Definitions', () => {
         audioPhrases: [],
         generationHistory: [],
         capabilities: {
-          gridGeneration: true,
-          promotionEngine: true,
-          qaEngine: true,
-          autofixEngine: true,
-          voiceGeneration: true,
+          grid_generation: true,
+          promotion_engine: true,
+          qa_engine: true,
+          autofix_engine: true,
+          voice_generation: true,
         },
       };
       expect(() => ProjectSchema.parse(validProject)).not.toThrow();

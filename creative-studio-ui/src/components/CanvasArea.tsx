@@ -17,18 +17,18 @@ import {
   Edit,
   Zap,
   Film,
-  _Layers,
+  Layers,
   Settings,
   Trash2,
   Copy,
   Clock,
-  _Music,
-  _Volume2,
+  Music,
+  Volume2,
   VolumeX,
   Play,
   MoreVertical,
-  _CheckCircle,
-  _AlertCircle,
+  CheckCircle,
+  AlertCircle,
   Timer,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -55,7 +55,7 @@ const EffectLibrary = ({ onEffectApply }: { onEffectApply: (effect: unknown) => 
 );
 
 const EffectStack = ({
-  _effects,
+  effects,
   onEffectsChange,
   onEffectSelect,
   selectedEffectId
@@ -154,17 +154,15 @@ interface CanvasAreaProps {
   className?: string;
 }
 
-export function Can_vasArea({ onBackToDashboard, className }: CanvasAreaProps) {
+export function CanvasArea({ onBackToDashboard, className }: CanvasAreaProps) {
   const { project, characters } = useAppStore();
   const {
     shots,
     selectedShotId,
     selectShot,
-    _createShot,
-    _activeWizard,
+    createShot,
     closeWizard,
-  } = useE_ditorStore();
-  const { _updateShot } = useAppStore();
+  } = useEditorStore();
   const { toast } = useToast();
 
   // Canvas state
@@ -724,5 +722,3 @@ export function Can_vasArea({ onBackToDashboard, className }: CanvasAreaProps) {
     </div>
   );
 }
-
-

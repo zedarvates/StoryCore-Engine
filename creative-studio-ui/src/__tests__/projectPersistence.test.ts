@@ -15,6 +15,7 @@ import {
   type LoadResult,
 } from '../services/persistence/projectPersistence';
 import type { Project } from '../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // ============================================================================
 // Mock Storage Backend
@@ -82,27 +83,31 @@ class MockStorageBackend implements StorageBackend {
 function createTestProject(id: string = 'test-project'): Project {
   return {
     id,
+    project_name: `Test Project ${id}`,
+    schema_version: '1.0',
+    assets: [],
+    generation_status: { grid: 'pending', promotion: 'pending' },
     name: `Test Project ${id}`,
     schemaVersion: '1.0',
     sequences: [],
     shots: [
-      {
+      createShotFixture({
         id: 'shot-1',
         sequenceId: 'seq-1',
         startTime: 0,
         duration: 5,
         prompt: 'A beautiful sunset over the ocean',
         metadata: {},
-      },
+      }),
     ],
     audioPhrases: [],
     generationHistory: [],
     capabilities: {
-      gridGeneration: true,
-      promotionEngine: true,
-      qaEngine: true,
-      autofixEngine: true,
-      voiceGeneration: true,
+      grid_generation: true,
+      promotion_engine: true,
+      qa_engine: true,
+      autofix_engine: true,
+      voice_generation: true,
     },
   };
 }

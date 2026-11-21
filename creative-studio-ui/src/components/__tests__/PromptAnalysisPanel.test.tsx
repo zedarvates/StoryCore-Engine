@@ -7,7 +7,8 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PromptAnalysisPanel } from '../PromptAnalysisPanel';
 import { ProjectContext, type ProjectContextValue } from '../../contexts/ProjectContext';
-import type { Project, _Shot } from '../../types/projectDashboard';
+import type { Project, Shot } from '../../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // ============================================================================
 // Test Helpers
@@ -17,17 +18,21 @@ function createMockProject(overrides?: Partial<Project>): Project {
   return {
     id: 'test-project',
     name: 'Test Project',
+    project_name: 'Test Project',
+    schema_version: '1.0',
+    assets: [],
+    generation_status: { grid: 'pending', promotion: 'pending' },
     schemaVersion: '1.0',
     sequences: [],
     shots: [],
     audioPhrases: [],
     generationHistory: [],
     capabilities: {
-      gridGeneration: true,
-      promotionEngine: true,
-      qaEngine: true,
-      autofixEngine: true,
-      voiceGeneration: true,
+      grid_generation: true,
+      promotion_engine: true,
+      qa_engine: true,
+      autofix_engine: true,
+      voice_generation: true,
     },
     ...overrides,
   };
@@ -40,10 +45,13 @@ function createMockContextValue(project: Project | null): ProjectContextValue {
     generationStatus: { stage: 'idle', progress: 0 },
     isGenerating: false,
     isLoading: false,
+    isSaving: false,
+    saveStatus: 'idle',
     error: null,
     loadProject: async () => {},
     saveProject: async () => {},
     updateShot: () => {},
+    deleteShot: () => {},
     validateAllShots: () => ({ valid: true, invalidShots: [] }),
     getPromptCompletionStatus: () => {
       if (!project) return { complete: 0, incomplete: 0, total: 0 };
@@ -92,22 +100,22 @@ describe('PromptAnalysisPanel', () => {
   it('should display summary statistics', () => {
     const project = createMockProject({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           startTime: 0,
           duration: 5,
           prompt: 'Valid prompt with enough characters',
           metadata: {},
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           sequenceId: 'seq-1',
           startTime: 5,
           duration: 5,
           prompt: '',
           metadata: {},
-        },
+        }),
       ],
     });
 
@@ -126,22 +134,22 @@ describe('PromptAnalysisPanel', () => {
   it('should display "All prompts are complete" when all shots have valid prompts', () => {
     const project = createMockProject({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           startTime: 0,
           duration: 5,
           prompt: 'Valid prompt with enough characters',
           metadata: {},
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           sequenceId: 'seq-1',
           startTime: 5,
           duration: 5,
           prompt: 'Another valid prompt here',
           metadata: {},
-        },
+        }),
       ],
     });
 
@@ -153,14 +161,14 @@ describe('PromptAnalysisPanel', () => {
   it('should display shots needing attention when there are incomplete prompts', () => {
     const project = createMockProject({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           startTime: 0,
           duration: 5,
           prompt: '',
           metadata: {},
-        },
+        }),
       ],
     });
 

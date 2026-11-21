@@ -196,8 +196,8 @@ export function CinematicEditorPanel({
 
   // Generate beat suggestions based on content
   const beatSuggestions = useMemo(() => {
-    return generateBeatSuggestions(cinematicShots);
-  }, [cinematicShots]);
+    return generateBeatSuggestions(shots);
+  }, [shots]);
 
   // Toggle section
   const toggleSection = useCallback((section: string) => {
@@ -456,7 +456,7 @@ export function CinematicEditorPanel({
                           }}
                           title={cameraConfig?.name || 'Plan fixe'}
                         >
-                          {cameraConfig?.icon && <cameraConfig.icon className="w-4 h-4" />}
+                          {cameraConfig?.icon}
                         </div>
                       );
                     })}
@@ -611,7 +611,7 @@ export function CinematicEditorPanel({
               {beatSuggestions.map((beat, index) => (
                 <div key={beat.id || index} className="beat-card">
                   <div className="beat-header">
-                    <span className="beat-position">#{beat.position}</span>
+                    <span className="beat-position">#{beat.order}</span>
                     <span className="beat-type">{beat.type}</span>
                     {beat.importance && (
                       <span className={`beat-importance ${beat.importance}`}>
@@ -621,8 +621,7 @@ export function CinematicEditorPanel({
                   </div>
                   <p className="beat-description">{beat.description}</p>
                   <div className="beat-meta">
-                    <span>{beat.duration}s</span>
-                    <span>{beat.suggestedShots} plans suggérés</span>
+                    <span>{beat.suggestedDuration ?? beat.duration}s</span>
                   </div>
                 </div>
               ))}

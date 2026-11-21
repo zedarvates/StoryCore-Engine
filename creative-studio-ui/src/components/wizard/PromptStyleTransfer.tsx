@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Slider } from '../../compone_nts/ui/slider';
+import { Slider } from '../../components/ui/slider';
 import { Textarea } from '../../components/ui/textarea';
 import { Upload, Image as ImageIcon, Type, Settings2, X, Sparkles, Palette } from 'lucide-react';
 import { cn } from '../../lib/utils';

@@ -12,11 +12,11 @@ import {
   handleShotSplit,
   handleRippleEdit,
   handleRollEdit,
-  _handleSlipEdit,
-  _handleSlideEdit,
-  _handleAddTransition,
-  _handleAddText,
-  _handleAddKeyframe,
+  handleSlipEdit,
+  handleSlideEdit,
+  handleAddTransition,
+  handleAddText,
+  handleAddKeyframe,
   findShotAtFrame,
   findAdjacentShots,
   areShotsAdjacent,
@@ -29,6 +29,7 @@ import type { Shot, MediaLayerData } from '../types';
 // ============================================================================
 
 const createMockShot = (id: string, startTime: number, duration: number): Shot => ({
+  position: 0,
   id,
   name: `Shot ${id}`,
   startTime,

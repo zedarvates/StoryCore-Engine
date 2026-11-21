@@ -18,7 +18,7 @@ import {
   createDefaultStyleParameters,
   mergeStyleParameters,
 } from '../visualStyleService';
-import type { Asset, Shot, _StyleMetadata } from '../../types';
+import type { Asset, Shot, StyleMetadata } from '../../types';
 
 // ============================================================================
 // Test Data
@@ -40,10 +40,11 @@ const mockStyleAsset: Asset = {
   },
   tags: ['cinematic', 'blue', 'cool'],
   source: 'builtin',
-  createdAt: new Date('2024-01-01'),
+  createdAt: new Date('2024-01-01').getTime(),
 };
 
 const mockShot: Shot = {
+  position: 0,
   id: 'shot-1',
   name: 'Opening Scene',
   startTime: 0,

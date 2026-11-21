@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { Play, Pause, RotateCcw, Settings } from 'lucide-react';
-import { Effect, _EffectParameter } from './EffectsLibrary';
+import { Effect, EffectParameter } from './EffectsLibrary';
 import { gpuResourceManager } from './GPUResourceManager';
+import { readEffectNumber } from './effectParameterValues';
 import './EffectPreviewRenderer.css';
 
 interface AppliedEffect extends Effect {
@@ -31,6 +32,11 @@ interface WebGLEffect {
   attributes: { [key: string]: number };
 }
 
+const glslFloat = (value: number): string => {
+  const literal = String(value);
+  return /[.e]/i.test(literal) ? literal : `${literal}.0`;
+};
+
 export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
   videoSrc,
   effects,
@@ -42,7 +48,7 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | undefined>(undefined);
   const effectsRef = useRef<WebGLEffect[]>([]);
   const textureRef = useRef<WebGLTexture | null>(null);
   const framebufferRef = useRef<WebGLFramebuffer | null>(null);
@@ -188,37 +194,37 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
     // Apply effect-specific shader code with complexity optimization
     switch (effect.id) {
       case 'brightness':
-        const brightness = effect.parameters.find(p => p.id === 'brightness')?.value || 0;
+        const brightness = readEffectNumber(effect.parameters.find(p => p.id === 'brightness')?.value);
         fragmentShader += `
-          color.rgb *= ${1 + brightness / 100}.0;
+          color.rgb *= ${glslFloat(1 + brightness / 100)};
         `;
         break;
 
       case 'contrast':
-        const contrast = effect.parameters.find(p => p.id === 'contrast')?.value || 0;
+        const contrast = readEffectNumber(effect.parameters.find(p => p.id === 'contrast')?.value);
         fragmentShader += `
-          color.rgb = (color.rgb - 0.5) * ${1 + contrast / 100}.0 + 0.5;
+          color.rgb = (color.rgb - 0.5) * ${glslFloat(1 + contrast / 100)} + 0.5;
         `;
         break;
 
       case 'saturation':
-        const saturation = effect.parameters.find(p => p.id === 'saturation')?.value || 0;
+        const saturation = readEffectNumber(effect.parameters.find(p => p.id === 'saturation')?.value);
         if (complexity === 'low') {
           // Simplified version for low complexity
           fragmentShader += `
             float gray = dot(color.rgb, vec3(0.3, 0.59, 0.11));
-            color.rgb = mix(vec3(gray), color.rgb, ${1 + saturation / 100}.0);
+            color.rgb = mix(vec3(gray), color.rgb, ${glslFloat(1 + saturation / 100)});
           `;
         } else {
           fragmentShader += `
             float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-            color.rgb = mix(vec3(gray), color.rgb, ${1 + saturation / 100}.0);
+            color.rgb = mix(vec3(gray), color.rgb, ${glslFloat(1 + saturation / 100)});
           `;
         }
         break;
 
       case 'blur':
-        const blurAmount = effect.parameters.find(p => p.id === 'amount')?.value || 0;
+        const blurAmount = Math.max(0, readEffectNumber(effect.parameters.find(p => p.id === 'amount')?.value));
         if (complexity === 'low') {
           // Simple 3x3 blur for low complexity
           fragmentShader += `
@@ -226,7 +232,7 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
             float total = 0.0;
             for(float x = -1.0; x <= 1.0; x += 1.0) {
               for(float y = -1.0; y <= 1.0; y += 1.0) {
-                blur += texture2D(u_texture, v_texCoord + vec2(x, y) / u_resolution * ${blurAmount / 10}.0);
+                blur += texture2D(u_texture, v_texCoord + vec2(x, y) / u_resolution * ${glslFloat(blurAmount / 10)});
                 total += 1.0;
               }
             }
@@ -237,8 +243,8 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
           fragmentShader += `
             vec4 blur = vec4(0.0);
             float total = 0.0;
-            for(float x = -${blurAmount / 10}.0; x <= ${blurAmount / 10}.0; x += 1.0) {
-              for(float y = -${blurAmount / 10}.0; y <= ${blurAmount / 10}.0; y += 1.0) {
+            for(float x = -${glslFloat(blurAmount / 10)}; x <= ${glslFloat(blurAmount / 10)}; x += 1.0) {
+              for(float y = -${glslFloat(blurAmount / 10)}; y <= ${glslFloat(blurAmount / 10)}; y += 1.0) {
                 blur += texture2D(u_texture, v_texCoord + vec2(x, y) / u_resolution);
                 total += 1.0;
               }
@@ -266,10 +272,10 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
         break;
 
       case 'scale':
-        const scale = effect.parameters.find(p => p.id === 'scale')?.value || 100;
+        const scale = readEffectNumber(effect.parameters.find(p => p.id === 'scale')?.value, 100) || 100;
         fragmentShader += `
           vec2 center = vec2(0.5, 0.5);
-          vec2 uv = (v_texCoord - center) / ${scale / 100}.0 + center;
+          vec2 uv = (v_texCoord - center) / ${glslFloat(scale / 100)} + center;
           if (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0) {
             color = texture2D(u_texture, uv);
           } else {
@@ -279,13 +285,13 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
         break;
 
       case 'rotation':
-        const rotation = effect.parameters.find(p => p.id === 'angle')?.value || 0;
+        const rotation = readEffectNumber(effect.parameters.find(p => p.id === 'angle')?.value);
         const radianRotation = (rotation * 3.14159) / 180.0;
         fragmentShader += `
           vec2 center = vec2(0.5, 0.5);
           vec2 uv = v_texCoord - center;
-          float cosA = cos(${radianRotation});
-          float sinA = sin(${radianRotation});
+          float cosA = cos(${glslFloat(radianRotation)});
+          float sinA = sin(${glslFloat(radianRotation)});
           uv = vec2(uv.x * cosA - uv.y * sinA, uv.x * sinA + uv.y * cosA);
           uv += center;
           if (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0) {
@@ -352,13 +358,15 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
     const gl = glRef.current;
     const canvas = canvasRef.current;
     const video = videoRef.current;
+    const sourceTexture = textureRef.current;
 
-    if (!gl || !canvas || !video) return;
+    if (!gl || !canvas || !video || !sourceTexture) return;
 
     const startTime = performance.now();
 
     // Update video texture
-    gl.bindTexture(gl.TEXTURE_2D, textureRef.current);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, sourceTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
 
     // Set up geometry
@@ -370,10 +378,11 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
     ]);
 
     const positionBuffer = gl.createBuffer();
+    if (!positionBuffer) return;
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
 
-    let currentTexture = textureRef.current;
+    let currentTexture = sourceTexture;
 
     // Apply effects in chain
     for (let i = 0; i < effectsRef.current.length; i++) {
@@ -397,23 +406,34 @@ export const EffectPreviewRenderer: React.FC<EffectPreviewRendererProps> = ({
         // Render to framebuffer for chaining
         gl.bindFramebuffer(gl.FRAMEBUFFER, framebufferRef.current);
         const tempTexture = gl.createTexture();
+        if (!tempTexture) break;
         gl.bindTexture(gl.TEXTURE_2D, tempTexture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tempTexture, 0);
 
+        gl.bindTexture(gl.TEXTURE_2D, currentTexture);
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        _currentTexture = tempTexture;
+        if (currentTexture !== sourceTexture) gl.deleteTexture(currentTexture);
+        currentTexture = tempTexture;
       } else {
         // Render to canvas
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, currentTexture);
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       }
     }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    if (currentTexture !== sourceTexture) gl.deleteTexture(currentTexture);
+    gl.deleteBuffer(positionBuffer);
 
     const renderTime = performance.now() - startTime;
 

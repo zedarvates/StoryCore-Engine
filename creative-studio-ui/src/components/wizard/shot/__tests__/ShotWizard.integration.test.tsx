@@ -1,3 +1,4 @@
+import { type Mock, type Mocked, vi } from 'vitest';
 /**
  * Shot Wizard Integration Tests
  *
@@ -18,30 +19,30 @@ import { draftStorage, DraftMetadata, ProductionWizardData } from '@/services/dr
 import type { ShotTemplate } from '@/types/template';
 
 // Mock services
-jest.mock('@/services/templateManager');
-jest.mock('@/services/draftStorage');
+vi.mock('@/services/templateManager');
+vi.mock('@/services/draftStorage');
 
-const mockTemplateManager = templateManager as jest.Mocked<typeof templateManager>;
-const mockDraftStorage = draftStorage as jest.Mocked<typeof draftStorage>;
+const mockTemplateManager = templateManager as Mocked<typeof templateManager>;
+const mockDraftStorage = draftStorage as Mocked<typeof draftStorage>;
 
 describe('ShotWizard Integration', () => {
   const defaultProps = {
     isOpen: true,
-    onClose: jest.fn(),
-    onComplete: jest.fn(),
+    onClose: vi.fn(),
+    onComplete: vi.fn(),
     sequenceId: 'seq-123',
     sceneId: 'scene-456',
     shotNumber: 1,
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock template manager with explicit typing
-    (mockTemplateManager.getAllShotTemplates as jest.Mock).mockResolvedValue([] as ShotTemplate[]);
+    (mockTemplateManager.getAllShotTemplates as Mock).mockResolvedValue([] as ShotTemplate[]);
 
     // Mock draft storage with explicit typing
-    (mockDraftStorage.listDrafts as jest.Mock).mockResolvedValue([] as DraftMetadata[]);
+    (mockDraftStorage.listDrafts as Mock).mockResolvedValue([] as DraftMetadata[]);
   });
 
   describe('Wizard Opening and Initialization', () => {
@@ -77,7 +78,7 @@ describe('ShotWizard Integration', () => {
         },
       ];
 
-      (mockTemplateManager.getAllShotTemplates as jest.Mock).mockResolvedValue(mockTemplates);
+      (mockTemplateManager.getAllShotTemplates as Mock).mockResolvedValue(mockTemplates);
 
       render(<ShotWizard {...defaultProps} />);
 
@@ -147,11 +148,12 @@ describe('ShotWizard Integration', () => {
         status: 'planned',
         notes: '',
         tags: [],
-        templates: [],
+        dialogues: [],
+      templates: [],
       };
 
-      (mockDraftStorage.listDrafts as jest.Mock).mockResolvedValue(mockDrafts);
-      (mockDraftStorage.loadDraft as jest.Mock).mockResolvedValue(mockDraftData);
+      (mockDraftStorage.listDrafts as Mock).mockResolvedValue(mockDrafts);
+      (mockDraftStorage.loadDraft as Mock).mockResolvedValue(mockDraftData);
 
       render(<ShotWizard {...defaultProps} />);
 
@@ -228,7 +230,7 @@ describe('ShotWizard Integration', () => {
 
     it('shows confirmation dialog when cancelling with unsaved changes', async () => {
       // Mock window.confirm
-      const mockConfirm = jest.spyOn(window, 'confirm').mockReturnValue(false);
+      const mockConfirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
 
       render(<ShotWizard {...defaultProps} />);
 
@@ -264,7 +266,7 @@ describe('ShotWizard Integration', () => {
 
   describe('Error Handling', () => {
     it('displays error message when initialization fails', async () => {
-      (mockTemplateManager.getAllShotTemplates as jest.Mock).mockRejectedValue(
+      (mockTemplateManager.getAllShotTemplates as Mock).mockRejectedValue(
         new Error('Failed to load templates')
       );
 
@@ -276,7 +278,7 @@ describe('ShotWizard Integration', () => {
     });
 
     it('allows retry when initialization fails', async () => {
-      (mockTemplateManager.getAllShotTemplates as jest.Mock)
+      (mockTemplateManager.getAllShotTemplates as Mock)
         .mockRejectedValueOnce(new Error('Failed to load templates'))
         .mockResolvedValueOnce([] as ShotTemplate[]);
 

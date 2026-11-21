@@ -45,6 +45,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -71,6 +74,7 @@ describe('useCharacterPersistence', () => {
           communication_style: 'direct',
         },
         background: {
+          backstory: '',
           origin: 'City',
           occupation: 'Warrior',
           education: 'Self-taught',
@@ -118,6 +122,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -144,6 +151,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',
@@ -179,6 +187,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -205,6 +216,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',
@@ -239,7 +251,7 @@ describe('useCharacterPersistence', () => {
         character_id: 'test-uuid',
         name: 'Test Hero',
         creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         role: {
           archetype: 'Protagonist',
@@ -247,6 +259,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -273,6 +288,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',
@@ -304,7 +320,7 @@ describe('useCharacterPersistence', () => {
         character_id: 'test-uuid',
         name: 'Test Hero',
         creation_method: 'wizard',
-        creation_timestamp: new Date().toISOString(),
+        creation_timestamp: Date.now(),
         version: '1.0',
         role: {
           archetype: 'Protagonist',
@@ -312,6 +328,9 @@ describe('useCharacterPersistence', () => {
           character_arc: 'Growth',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           age_range: 'adult',
           hair_color: 'brown',
           hair_style: 'short',
@@ -338,6 +357,7 @@ describe('useCharacterPersistence', () => {
           communication_style: '',
         },
         background: {
+          backstory: '',
           origin: '',
           occupation: '',
           education: '',

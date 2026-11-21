@@ -16,7 +16,7 @@ import {
   Palette, Camera, Sun, Zap, Music, 
   Settings2, Box, Info,
   Volume2, SlidersHorizontal, BarChart2,
-  GitMerge, Sparkles, MessageSquare
+  GitMerge, Sparkles, MessageSquare, type LucideIcon
 } from 'lucide-react';
 import { useSelectedShot } from '../../store/hooks/useSelectedShot';
 import { useAppDispatch } from '../../store';
@@ -47,7 +47,7 @@ export const ShotConfigPanel: React.FC = () => {
   const { selectedShot } = useSelectedShot();
   const [activeTab, setActiveTab] = useState<InspectorTab>('narrative');
 
-  const tabs: { id: InspectorTab; icon: React.ElementType; label: string }[] = [
+  const tabs: { id: InspectorTab; icon: LucideIcon; label: string }[] = [
     { id: 'narrative', icon: MessageSquare, label: 'Narrative' },
     { id: 'style', icon: Palette, label: 'Style' },
     { id: 'scene', icon: Box, label: 'Scene' },

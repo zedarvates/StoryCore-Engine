@@ -1,9 +1,10 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Component tests for ShotCard
  * Tests shot card rendering with thumbnails, metadata, and interactions
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { assert, describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -18,6 +19,9 @@ interface ShotCardProps {
 }
 
 const ShotCard: React.FC<ShotCardProps> = ({ shot, isSelected, onSelect, onDelete }) => {
+  assert.isDefined(shot.audioTracks);
+  assert.isDefined(shot.effects);
+  assert.isDefined(shot.textLayers);
   return (
     <div
       className={`shot-card ${isSelected ? 'selected' : ''}`}
@@ -60,7 +64,7 @@ function formatDuration(seconds: number): string {
 }
 
 describe('ShotCard', () => {
-  const createMockShot = (overrides: Partial<Shot> = {}): Shot => ({
+  const createMockShot = (overrides: Partial<Shot> = {}): Shot => createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -175,10 +179,13 @@ describe('ShotCard', () => {
           {
             id: 'effect-1',
             type: 'filter',
+            category: 'creative',
+            icon: null,
+            description: 'Test filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,
-            parameters: {},
+            parameters: [],
           },
         ],
       });
@@ -250,10 +257,13 @@ describe('ShotCard', () => {
           {
             id: 'effect-1',
             type: 'filter',
+            category: 'creative',
+            icon: null,
+            description: 'Test filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,
-            parameters: {},
+            parameters: [],
           },
         ],
         textLayers: [

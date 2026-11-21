@@ -1,4 +1,4 @@
-import { _AlertTriangle, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ValidationErrorSummaryProps {

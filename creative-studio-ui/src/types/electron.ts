@@ -6,6 +6,8 @@
  */
 
 import type { OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from 'electron';
+import type { Asset } from './index';
+import type { FeedbackConfigurationAPI } from './feedbackConfiguration';
 
 export interface ProjectData {
   name: string;
@@ -179,10 +181,7 @@ export interface CommandExecutionResult {
 /**
  * Electron API interface
  */
-export interface StoryCoreElectronAPI {
-  // Dialog helpers
-  showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
-
+export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
   // System information
   platform: string;
   versions: {
@@ -286,7 +285,11 @@ export interface StoryCoreElectronAPI {
     unlink: (filePath: string) => Promise<void>;
   };
 
+  feedback?: { collectLogs?: (limit: number) => Promise<string[]> };
+  assets?: { scanFolder?: (folderPath: string) => Promise<Asset[]> };
+
   // Dialogs
+  showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
   dialog: {
     showSaveDialog: (options: SaveDialogOptions) => Promise<SaveDialogReturnValue>;
     showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue>;
@@ -306,7 +309,7 @@ export interface StoryCoreElectronAPI {
     updateConfig: (config: Partial<ComfyUIConfig>) => Promise<ComfyUIConfig>;
     testConnection: () => Promise<{ success: boolean; message: string }>;
     getServiceStatus: (url?: string) => Promise<{ running: boolean; pid?: number }>;
-    startService: () => Promise<void>;
+    startService: () => Promise<{ success: boolean; message?: string; error?: string }>;
     stopService: () => Promise<void>;
     executeWorkflow: (workflow: ComfyUIWorkflow) => Promise<{ prompt_id: string }>;
     getQueueStatus: () => Promise<{ queue_remaining: number }>;

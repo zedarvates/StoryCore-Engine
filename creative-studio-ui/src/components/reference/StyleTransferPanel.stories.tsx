@@ -5,9 +5,10 @@
  * extracting and applying visual styles between shots.
  */
 
+import type { ComponentType } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { StyleTransferPanel } from './StyleTransferPanel';
-import type { StyleFeatures, StylePreset, StyleTransferOptions } from '../../services/styleTransferService';
+import { StyleTransferPanel, type ReferenceStyleOperations, type ReferenceStylePreset } from './StyleTransferPanel';
+import type { StyleFeatures } from '../../types/styleTransfer';
 
 // ============================================================================
 // Mock Data
@@ -30,9 +31,12 @@ const mockStyleFeatures: StyleFeatures = {
   ],
 };
 
-const mockPreset: StylePreset = {
+const mockPreset: ReferenceStylePreset = {
   id: 'preset_1',
   name: 'Sunset Vibes',
+  prompt: 'Warm sunset colors and soft lighting',
+  description: 'Warm sunset colors and soft lighting',
+  category: 'Lighting',
   thumbnail: 'https://picsum.photos/seed/preset1/200/150',
   style: {
     ...mockStyleFeatures,
@@ -43,9 +47,12 @@ const mockPreset: StylePreset = {
   createdAt: new Date('2024-02-10'),
 };
 
-const mockPreset2: StylePreset = {
+const mockPreset2: ReferenceStylePreset = {
   id: 'preset_2',
   name: 'Cyberpunk Night',
+  prompt: 'A dark city street illuminated by neon',
+  description: 'A dark city street illuminated by neon',
+  category: 'Stylized',
   thumbnail: 'https://picsum.photos/seed/preset2/200/150',
   style: {
     ...mockStyleFeatures,
@@ -57,9 +64,12 @@ const mockPreset2: StylePreset = {
   createdAt: new Date('2024-03-05'),
 };
 
-const mockPreset3: StylePreset = {
+const mockPreset3: ReferenceStylePreset = {
   id: 'preset_3',
   name: 'Vintage Film',
+  prompt: 'Muted colors with vintage film grain',
+  description: 'Muted colors with vintage film grain',
+  category: 'Film',
   thumbnail: 'https://picsum.photos/seed/preset3/200/150',
   style: {
     ...mockStyleFeatures,
@@ -72,12 +82,21 @@ const mockPreset3: StylePreset = {
   createdAt: new Date('2024-01-20'),
 };
 
-const _mockPresets: StylePreset[] = [mockPreset, mockPreset2, mockPreset3];
-
-const _defaultTransferOptions: StyleTransferOptions = {
-  preserveContent: true,
-  intensity: 0.8,
-  blendWithOriginal: false,
+const storyOperations: ReferenceStyleOperations = {
+  getStylePresets: () => [mockPreset, mockPreset2, mockPreset3],
+  extractStyleFeatures: () => mockStyleFeatures,
+  applyStyleToShot: () => undefined,
+  applyStyleToSequence: () => undefined,
+  applyPreset: () => undefined,
+  createStylePreset: (name, style) => ({
+    id: crypto.randomUUID(), name, style,
+    prompt: `${style.artStyle}, ${style.lightingStyle}`,
+    description: 'Style extracted from a shot', category: 'Custom',
+  }),
+  deletePreset: () => undefined,
+  compareStyles: () => ({
+    overallSimilarity: 1, colorDifference: 0, lightingDifference: 0, compositionDifference: 0,
+  }),
 };
 
 // ============================================================================
@@ -115,6 +134,7 @@ const meta = {
     },
   },
   args: {
+    styleTransfer: storyOperations,
     currentSequenceId: 'sequence_1',
     selectedShotId: 'shot_1',
     onStyleApplied: () => console.log('Style applied'),
@@ -139,7 +159,7 @@ export const Default: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -157,7 +177,7 @@ export const PresetsTab: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -175,7 +195,7 @@ export const CompareTab: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -193,7 +213,7 @@ export const ExtractedStyle: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -211,7 +231,7 @@ export const ApplyingStyle: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -229,7 +249,7 @@ export const MultiplePresets: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -247,7 +267,7 @@ export const NoPresets: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -265,7 +285,7 @@ export const StyleComparison: Story = {
     selectedShotId: 'shot_1',
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>
@@ -283,7 +303,7 @@ export const SequenceTransfer: Story = {
     selectedShotId: undefined,
   },
   decorators: [
-    (Story) => (
+    (Story: ComponentType) => (
       <div style={{ height: '80vh', width: '100%' }}>
         <Story />
       </div>

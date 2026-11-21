@@ -90,7 +90,7 @@ export const CSP_CONFIG = {
   },
 } as const;
 
-export type CSPConfig = typeof CSP_CONFIG.production;
+export type CSPConfig = (typeof CSP_CONFIG)[keyof typeof CSP_CONFIG];
 
 /**
  * Generate CSP header string from config

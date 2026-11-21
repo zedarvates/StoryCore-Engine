@@ -16,7 +16,7 @@ export interface ValidationRule {
   /** Rule type identifier */
   type: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'email' | 'url' | 'custom';
   /** Rule value (string for pattern, number for length, function for custom) */
-  value?: string | number | ((value: unknown) => boolean);
+  value?: string | number | ((value: unknown, context: ValidationContext) => boolean);
   /** Error message when validation fails */
   message: string;
 }

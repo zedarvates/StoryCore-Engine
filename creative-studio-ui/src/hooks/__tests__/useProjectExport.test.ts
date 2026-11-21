@@ -9,6 +9,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useProjectExport } from '../useProjectExport';
 import { useAppStore } from '@/stores/useAppStore';
 import type { Project, Shot, Asset } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('@/stores/useAppStore');
@@ -22,7 +23,7 @@ describe('useProjectExport', () => {
 
   beforeEach(() => {
     mockShots = [
-      {
+      createShotFixture({
         id: 'shot-1',
         title: 'Opening Scene',
         description: 'A beautiful sunrise',
@@ -32,8 +33,8 @@ describe('useProjectExport', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      },
-      {
+      }),
+      createShotFixture({
         id: 'shot-2',
         title: 'Middle Scene',
         description: 'Action sequence',
@@ -43,7 +44,7 @@ describe('useProjectExport', () => {
         effects: [],
         textLayers: [],
         animations: [],
-      },
+      }),
     ];
 
     mockAssets = [
@@ -56,6 +57,7 @@ describe('useProjectExport', () => {
     ];
 
     mockProject = {
+      id: 'test-project',
       schema_version: '1.0',
       project_name: 'Test Project',
       shots: mockShots,

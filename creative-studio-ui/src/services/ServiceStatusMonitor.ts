@@ -122,7 +122,7 @@ class ServiceStatusMonitor {
     /**
      * Health check for LM Studio
      */
-    private async checkLmStudioStatus(): Promise<void> {
+    public async checkLmStudioStatus(): Promise<boolean> {
         const store = useAppStore.getState();
         const endpoint = 'http://localhost:1234';
 
@@ -135,7 +135,7 @@ class ServiceStatusMonitor {
                     type: 'lmstudio'
                 });
                 store.setLmStudioStatus(result.success ? 'connected' : 'disconnected');
-                return;
+                return result.success;
             }
 
             const response = await fetch(`${endpoint}/v1/models`, {
@@ -143,8 +143,10 @@ class ServiceStatusMonitor {
                 signal: AbortSignal.timeout(2000),
             });
             store.setLmStudioStatus(response.ok ? 'connected' : 'disconnected');
+            return response.ok;
         } catch (_error) {
             store.setLmStudioStatus('disconnected');
+            return false;
         }
     }
 }

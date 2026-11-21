@@ -106,7 +106,7 @@ export function useBackendIntegration(
 
     try {
       // Export project to Data Contract v1 format
-      const exportedProject = exportProject(project.project_name, shots, assets);
+      const exportedProject = exportProject({ ...project, shots, assets });
       
       // Submit to backend
       const response = await apiService.submitProject(exportedProject);
@@ -140,7 +140,7 @@ export function useBackendIntegration(
 
     try {
       // Export project for context
-      const exportedProject = exportProject(project.project_name, shots, assets);
+      const exportedProject = exportProject({ ...project, shots, assets });
       
       // Submit task to backend
       const response = await apiService.submitTask(task, exportedProject);
@@ -153,7 +153,7 @@ export function useBackendIntegration(
       // Update task status in queue
       const updatedQueue = taskQueue.map((t) =>
         t.id === task.id
-          ? { ...t, status: 'processing' as const, startedAt: new Date() }
+          ? { ...t, status: 'processing' as const, startedAt: Date.now() }
           : t
       );
       reorderTasks(updatedQueue);
@@ -224,7 +224,7 @@ export function useBackendIntegration(
             ...t,
             status: response.data.status,
             error: response.data.error,
-            completedAt: response.data.status === 'completed' ? new Date() : t.completedAt,
+            completedAt: response.data.status === 'completed' ? Date.now() : t.completedAt,
           };
         }
         return t;

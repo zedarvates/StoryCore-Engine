@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { useWorldBuilderSelectors } from '../../../stores/worldBuilderStore';
-import { useLLMGeneration } from '../../../hooks/useLLMGeneration';
+import { useWorldBuilderSelectors, type WorldData } from '@/stores/worldBuilderStore';
+import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 
 export const LLMAssistant: React.FC = () => {
   const { currentStep, worldData } = useWorldBuilderSelectors();
@@ -30,7 +30,7 @@ export const LLMAssistant: React.FC = () => {
     });
   }, [query, currentStep, worldData, generate]);
 
-  const getSystemPromptForStep = (step: string, data: unknown): string => {
+  const getSystemPromptForStep = (step: string, data: WorldData | null): string => {
     const basePrompt = 'You are a creative world-building assistant.';
     
     switch (step) {

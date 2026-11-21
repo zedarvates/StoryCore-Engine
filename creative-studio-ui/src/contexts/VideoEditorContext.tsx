@@ -16,7 +16,7 @@ import {
   EditorMode,
   UndoRedoState,
   TextLayer,
-  _AIEnhancementSettings
+  AIEnhancementSettings
 } from '../types/video-editor';
 import { videoEditorAPI } from '../services/videoEditorAPI';
 

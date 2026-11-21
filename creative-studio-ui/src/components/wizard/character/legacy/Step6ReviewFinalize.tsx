@@ -1,23 +1,22 @@
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout } from '../WizardFormLayout';
+import { WizardFormLayout } from '../../WizardFormLayout';
 import { Button } from '@/components/ui/button';
-import { _Card, _CardContent, _CardHeader, _CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { _Separator } from '@/components/ui/separator';
+import { Separator } from '@/components/ui/separator';
 import { Edit, HardDrive, Binary, Cpu, Activity, Share2, Terminal, ShieldCheck, Zap } from 'lucide-react';
-import { _cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { Character } from '@/types/character';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 6: Final Materialization (Review and Finalize)
 // ============================================================================
 
 interface Step6ReviewFinalizeProps {
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
-export function Step6ReviewFinalize({ _storyContext }: Step6ReviewFinalizeProps = {}) {
+export function Step6ReviewFinalize(_props: Step6ReviewFinalizeProps = {}) {
   const { formData, goToStep, previousStep, submitWizard, isSubmitting } =
     useWizard<Character>();
 

@@ -1,7 +1,8 @@
+import type { LipSyncWizardContext } from '@/types/lipSync';
 import { LegacyAny } from '@/types/legacy';
 import { create } from 'zustand';
 import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage, Sequence, SequencePlan } from '@/types';
-import type { SequencePlanWizardContext, ShotWizardContext } from '@/types/wizard';
+import type { SequencePlanWizardContext, ShotWizardContext, WizardCommandFeedback } from '@/types/wizard';
 import type { MasterReferenceSheet, SequenceReferenceSheet, ShotReference } from '@/types/reference';
 import type { World } from '@/types/world';
 import type { Character } from '@/types/character';
@@ -11,13 +12,23 @@ import { StorageManager } from '@/utils/storageManager';
 import { generateId } from '@/utils/idGenerator';
 
 // Wizard types
-interface WizardCommandHistoryEntry {
-  id: string;
+interface AudioProductionWizardContext {
+  sequenceId?: string;
+  mode?: string;
+  audioId?: string;
+  audioUrl?: string;
+}
+
+type WizardHistoryInput = Omit<WizardCommandFeedback, 'timestamp'> | {
   command: string;
-  timestamp: number;
   wizardType: WizardType;
   result?: string;
-}
+};
+
+type WizardCommandHistoryEntry = WizardHistoryInput & {
+  id: string;
+  timestamp: number;
+};
 
 export type WizardType =
   | 'dialogue-writer'
@@ -131,8 +142,8 @@ interface AppState {
   showHermesWizard: boolean;
   
   settingsAddonId: string | null;
-  lipSyncContext: { audioFile?: File; characterId?: string } | null;
-  audioProductionWizardContext: { sequenceId?: string; mode?: string } | null;
+  lipSyncContext: LipSyncWizardContext | null;
+  audioProductionWizardContext: AudioProductionWizardContext | null;
   marketingWizardContext: { projectId?: string; targetChannel?: string } | null;
   characterWizardContext: { imageFile?: File; name?: string; role?: string } | null;
   objectWizardContext: { imageFile?: File; name?: string } | null;
@@ -230,10 +241,10 @@ interface AppState {
   setShowKeyboardShortcutsDialog: (show: boolean) => void;
   setShowRogerWizard: (show: boolean) => void;
   setShowGhostTrackerWizard: (show: boolean) => void;
-  setShowLipSyncWizard: (show: boolean, context?: { audioFile?: File; characterId?: string }) => void;
+  setShowLipSyncWizard: (show: boolean, context?: LipSyncWizardContext) => void;
   setShowScenarioBuilder: (show: boolean) => void;
   setShowDialogueBuilder: (show: boolean) => void;
-  setShowAudioProductionWizard: (show: boolean, context?: { sequenceId?: string; mode?: string }) => void;
+  setShowAudioProductionWizard: (show: boolean, context?: AudioProductionWizardContext) => void;
   closeAudioProductionWizard: () => void;
   setShowVideoEditorWizard: (show: boolean) => void;
   closeVideoEditorWizard: () => void;
@@ -260,7 +271,7 @@ interface AppState {
   closeSequenceEditor: () => void;
   
   // Wizard discussion actions
-  addWizardHistory: (entry: Omit<WizardCommandHistoryEntry, 'id' | 'timestamp'>) => void;
+  addWizardHistory: (entry: WizardHistoryInput) => void;
   clearWizardHistory: () => void;
 
   

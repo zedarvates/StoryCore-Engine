@@ -1,335 +1,125 @@
-import { LegacyAny } from '@/types/legacy';
-// ============================================================================
-// MCP Hooks Tests
-// ============================================================================
+import { act, renderHook } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { MCPServerConfig } from '../types';
 
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useMCPAddon, useMCPServers, useMCPConfig } from '../hooks';
-import { useAddonStore } from '@/stores/addonStore';
+const server: Omit<MCPServerConfig, 'id'> = {
+  name: 'Local test server',
+  endpoint: 'http://localhost:3000',
+  timeout: 2000,
+  maxRetries: 1,
+  enabled: true,
+  status: 'disconnected',
+  capabilities: [],
+};
 
-// Mock the store
-jest.mock('@/stores/addonStore');
+describe('MCP hooks', () => {
+  let hooks: typeof import('../hooks');
 
-const mockUseAddonStore = useAddonStore as jest.MockedFunction<typeof useAddonStore>;
-
-describe('MCP Hooks', () => {
-  beforeEach(() => {
-    // Reset mock state before each test
-    mockUseAddonStore.mockReturnValue({
-      mcpAddon: {
-        addon: {
-          id: 'mcp-server',
-          name: 'MCP Server Integration',
-          version: '1.0.0',
-          description: 'Test MCP addon',
-          author: 'Test Author',
-          enabled: false,
-          permissions: ['read:project', 'write:project'],
-          config: {},
-          metadata: {
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            category: 'integration',
-            tags: ['mcp', 'test'],
-          },
-          type: 'mcp-server',
-          mcp: {
-            servers: [],
-            defaultServer: undefined,
-          },
-        },
-        isLoading: false,
-        error: null,
-        servers: [],
-        selectedServer: null,
-        testResults: [],
-      },
-      mcpManager: {
-        getState: jest.fn(),
-        subscribe: jest.fn(),
-      } as LegacyAny,
-      toggleMCPAddon: jest.fn(),
-      addMCPServer: jest.fn(),
-      updateMCPServer: jest.fn(),
-      removeMCPServer: jest.fn(),
-      testMCPServer: jest.fn(),
-      setSelectedMCPServer: jest.fn(),
-      updateMCPConfig: jest.fn(),
-      clearError: jest.fn(),
-      addons: new Map(),
-      registerAddon: jest.fn(),
-      unregisterAddon: jest.fn(),
-      enableAddon: jest.fn(),
-      disableAddon: jest.fn(),
-      updateAddonConfig: jest.fn(),
-      isLoading: false,
-      globalError: null,
-      clearError: jest.fn(),
-      reset: jest.fn(),
-    });
+  beforeEach(async () => {
+    vi.resetModules();
+    hooks = await import('../hooks');
   });
 
-  describe('useMCPAddon', () => {
-    it('should return MCP addon state and actions', () => {
-      const { result } = renderHook(() => useMCPAddon());
-      
-      expect(result.current.addon).toBeDefined();
-      expect(result.current.addon?.id).toBe('mcp-server');
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.error).toBeNull();
-      expect(result.current.enable).toBeDefined();
-      expect(result.current.disable).toBeDefined();
-      expect(result.current.updateConfig).toBeDefined();
-      expect(result.current.servers).toEqual([]);
-      expect(result.current.selectedServer).toBeNull();
-    });
-
-    it('should enable addon', async () => {
-      const { result } = renderHook(() => useMCPAddon());
-      
-      await act(async () => {
-        await result.current.enable();
-      });
-      
-      expect(mockUseAddonStore().toggleMCPAddon).toHaveBeenCalledWith(true);
-    });
-
-    it('should disable addon', async () => {
-      const { result } = renderHook(() => useMCPAddon());
-      
-      await act(async () => {
-        await result.current.disable();
-      });
-      
-      expect(mockUseAddonStore().toggleMCPAddon).toHaveBeenCalledWith(false);
-    });
-
-    it('should update config', async () => {
-      const { result } = renderHook(() => useMCPAddon());
-      const testConfig = { defaultTimeout: 60000 };
-      
-      await act(async () => {
-        await result.current.updateConfig(testConfig);
-      });
-      
-      expect(mockUseAddonStore().updateMCPConfig).toHaveBeenCalledWith(testConfig);
-    });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
-  describe('useMCPServers', () => {
-    it('should return servers state and actions', () => {
-      const mockServers = [
-        {
-          id: 'server-1',
-          name: 'Test Server',
-          endpoint: 'https://api.example.com/mcp',
-          timeout: 30000,
-          maxRetries: 3,
-          enabled: true,
-          status: 'connected',
-          capabilities: ['text-generation'],
-        },
-      ];
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        mcpAddon: {
-          ...mockUseAddonStore().mcpAddon,
-          servers: mockServers,
-          selectedServer: 'server-1',
-        },
-      });
-      
-      const { result } = renderHook(() => useMCPServers());
-      
-      expect(result.current.servers).toEqual(mockServers);
-      expect(result.current.selectedServer).toBe('server-1');
-      expect(result.current.addServer).toBeDefined();
-      expect(result.current.updateServer).toBeDefined();
-      expect(result.current.removeServer).toBeDefined();
-      expect(result.current.testServer).toBeDefined();
-      expect(result.current.setSelectedServer).toBeDefined();
-    });
+  it('reports the initial addon and server state', () => {
+    const { result } = renderHook(() => hooks.useMCPAddon());
 
-    it('should get server by id', () => {
-      const mockServers = [
-        {
-          id: 'server-1',
-          name: 'Test Server',
-          endpoint: 'https://api.example.com/mcp',
-          timeout: 30000,
-          maxRetries: 3,
-          enabled: true,
-          status: 'connected',
-          capabilities: ['text-generation'],
-        },
-      ];
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        mcpAddon: {
-          ...mockUseAddonStore().mcpAddon,
-          servers: mockServers,
-        },
-      });
-      
-      const { result } = renderHook(() => useMCPServers());
-      
-      const server = result.current.getServerById('server-1');
-      expect(server).toEqual(mockServers[0]);
-      
-      const nonExistent = result.current.getServerById('non-existent');
-      expect(nonExistent).toBeNull();
-    });
-
-    it('should get selected server', () => {
-      const mockServers = [
-        {
-          id: 'server-1',
-          name: 'Test Server',
-          endpoint: 'https://api.example.com/mcp',
-          timeout: 30000,
-          maxRetries: 3,
-          enabled: true,
-          status: 'connected',
-          capabilities: ['text-generation'],
-        },
-      ];
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        mcpAddon: {
-          ...mockUseAddonStore().mcpAddon,
-          servers: mockServers,
-          selectedServer: 'server-1',
-        },
-      });
-      
-      const { result } = renderHook(() => useMCPServers());
-      
-      const selectedServer = result.current.getSelectedServer();
-      expect(selectedServer).toEqual(mockServers[0]);
-    });
-
-    it('should get connected servers', () => {
-      const mockServers = [
-        {
-          id: 'server-1',
-          name: 'Connected Server',
-          endpoint: 'https://api.example.com/mcp',
-          timeout: 30000,
-          maxRetries: 3,
-          enabled: true,
-          status: 'connected',
-          capabilities: ['text-generation'],
-        },
-        {
-          id: 'server-2',
-          name: 'Disconnected Server',
-          endpoint: 'https://api.example.com/mcp2',
-          timeout: 30000,
-          maxRetries: 3,
-          enabled: true,
-          status: 'disconnected',
-          capabilities: ['text-generation'],
-        },
-      ];
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        mcpAddon: {
-          ...mockUseAddonStore().mcpAddon,
-          servers: mockServers,
-        },
-      });
-      
-      const { result } = renderHook(() => useMCPServers());
-      
-      const connectedServers = result.current.getConnectedServers();
-      expect(connectedServers).toHaveLength(1);
-      expect(connectedServers[0].status).toBe('connected');
-    });
+    expect(result.current.addon.id).toBe('mcp-server');
+    expect(result.current.addon.enabled).toBe(false);
+    expect(result.current.servers).toEqual([]);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
-  describe('useMCPConfig', () => {
-    it('should return config state and actions', () => {
-      const mockConfig = {
-        defaultTimeout: 60000,
-        maxConcurrent: 5,
-        retryDelay: 1000,
-        logLevel: 'info',
-      };
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        mcpAddon: {
-          ...mockUseAddonStore().mcpAddon,
-          addon: {
-            ...mockUseAddonStore().mcpAddon.addon,
-            config: mockConfig,
-          },
-        },
-      });
-      
-      const { result } = renderHook(() => useMCPConfig());
-      
-      expect(result.current.config).toEqual(mockConfig);
-      expect(result.current.updateConfig).toBeDefined();
-      expect(result.current.resetConfig).toBeDefined();
-    });
+  it('enables and disables the addon and publishes loading state', async () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => hooks.useMCPAddon());
 
-    it('should update config', async () => {
-      const { result } = renderHook(() => useMCPConfig());
-      const testConfig = { defaultTimeout: 120000 };
-      
-      await act(async () => {
-        await result.current.updateConfig(testConfig);
-      });
-      
-      expect(mockUseAddonStore().updateMCPConfig).toHaveBeenCalledWith(testConfig);
-    });
+    let enable: Promise<void> | undefined;
+    act(() => { enable = result.current.enable(); });
+    expect(result.current.isLoading).toBe(true);
 
-    it('should reset config', async () => {
-      const { result } = renderHook(() => useMCPConfig());
-      
-      await act(async () => {
-        await result.current.resetConfig();
-      });
-      
-      expect(mockUseAddonStore().updateMCPConfig).toHaveBeenCalledWith({});
+    await act(async () => {
+      await vi.runAllTimersAsync();
+      await enable;
     });
+    expect(result.current.addon.enabled).toBe(true);
+    expect(result.current.isLoading).toBe(false);
+
+    await act(async () => {
+      const disable = result.current.disable();
+      await vi.runAllTimersAsync();
+      await disable;
+    });
+    expect(result.current.addon.enabled).toBe(false);
   });
 
-  describe('Error Handling', () => {
-    it('should handle errors correctly', () => {
-      const mockError = 'Test error message';
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        globalError: mockError,
-      });
-      
-      const { result } = renderHook(() => useMCPAddon());
-      
-      expect(result.current.error).toBe(mockError);
-      expect(result.current.hasError).toBe(true);
+  it('shares config changes between the addon hook and config hook', async () => {
+    const { result } = renderHook(() => ({ addon: hooks.useMCPAddon(), settings: hooks.useMCPConfig() }));
+
+    await act(async () => result.current.addon.updateConfig({ timeout: 1200 }));
+    expect(result.current.settings.config).toEqual({ timeout: 1200 });
+
+    await act(async () => result.current.settings.updateConfig({ timeout: 2000, retries: 3 }));
+    expect(result.current.addon.addon.config).toEqual({ timeout: 2000, retries: 3 });
+  });
+
+  it('tracks, selects, updates, tests and removes a server', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.8);
+    const { result } = renderHook(() => ({
+      servers: hooks.useMCPServers(),
+      tests: hooks.useMCPTest(),
+    }));
+
+    await act(async () => {
+      const add = result.current.servers.addServer(server);
+      await vi.runAllTimersAsync();
+      await add;
     });
 
-    it('should clear errors', () => {
-      const mockError = 'Test error message';
-      
-      mockUseAddonStore.mockReturnValue({
-        ...mockUseAddonStore(),
-        globalError: mockError,
-      });
-      
-      const { result } = renderHook(() => useMCPAddon());
-      
-      act(() => {
-        result.current.clearError();
-      });
-      
-      expect(mockUseAddonStore().clearError).toHaveBeenCalled();
+    expect(result.current.servers.servers).toHaveLength(1);
+    const entry = result.current.servers.servers[0];
+    expect(entry.name).toBe(server.name);
+    expect(entry.status).toBe('connected');
+    expect(result.current.tests.testResults).toContainEqual(expect.objectContaining({
+      serverId: entry.id,
+      success: true,
+    }));
+
+    act(() => result.current.servers.setSelectedServer(entry.id));
+    expect(result.current.servers.selectedServer).toBe(entry.id);
+
+    await act(async () => result.current.servers.updateServer(entry.id, { name: 'Updated server' }));
+    expect(result.current.servers.servers[0].name).toBe('Updated server');
+
+    await act(async () => result.current.servers.removeServer(entry.id));
+    expect(result.current.servers.servers).toEqual([]);
+    expect(result.current.servers.selectedServer).toBeNull();
+  });
+
+  it('reports a failed server test without a live connection', async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.1);
+    const { result } = renderHook(() => ({
+      servers: hooks.useMCPServers(),
+      tests: hooks.useMCPTest(),
+    }));
+
+    await act(async () => {
+      const add = result.current.servers.addServer(server);
+      await vi.runAllTimersAsync();
+      await add;
     });
+
+    expect(result.current.servers.servers[0].status).toBe('error');
+    expect(result.current.tests.testResults).toContainEqual(expect.objectContaining({
+      success: false, error: 'Connection failed',
+    }));
+    expect(result.current.tests.isLoading).toBe(false);
   });
 });

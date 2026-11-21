@@ -40,6 +40,16 @@ interface ValidationError {
   message: string;
 }
 
+type EditableShotFields = Pick<ShotMetadata, 'name' | 'description' | 'duration' | 'frameRate'
+  | 'inPoint' | 'outPoint' | 'position' | 'track' | 'category' | 'status' | 'tags' | 'locked'> & {
+  'resolution.width': number;
+  'resolution.height': number;
+};
+
+type ShotEdit = {
+  [Field in keyof EditableShotFields]-?: [field: Field, value: EditableShotFields[Field]];
+}[keyof EditableShotFields];
+
 export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
   shot: initialShot,
   onUpdate,
@@ -77,7 +87,10 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
   }, [shot.inPoint, shot.outPoint, frameToTime]);
 
   // Real-time validation
-  const validateField = useCallback((field: string, value: unknown): string | null => {
+  const validateField = useCallback((...[field, value]: ShotEdit): string | null => {
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+      return 'Une valeur numérique valide est requise';
+    }
     switch (field) {
       case 'name':
         if (!value || value.trim().length === 0) {
@@ -134,8 +147,9 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
   }, [shot.outPoint, shot.inPoint, shot.duration, timeToFrame]);
 
   // Update field with validation
-  const updateField = useCallback((field: string, value: unknown) => {
-    const error = validateField(field, value);
+  const updateField = useCallback((...edit: ShotEdit) => {
+    const [field, value] = edit;
+    const error = validateField(...edit);
 
     // Update validation errors
     setValidationErrors(prev => {
@@ -148,15 +162,17 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
 
     // Update shot data
     setShot(prev => {
-      const updated = { ...prev };
-      const keys = field.split('.');
-      let current: unknown = updated;
-
-      for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
+      const updated: ShotMetadata = { ...prev };
+      switch (field) {
+        case 'resolution.width':
+          updated.resolution = { ...prev.resolution, width: value };
+          break;
+        case 'resolution.height':
+          updated.resolution = { ...prev.resolution, height: value };
+          break;
+        default:
+          Object.assign(updated, { [field]: value });
       }
-
-      current[keys[keys.length - 1]] = value;
 
       // Auto-calculate duration when in/out points change
       if (field === 'inPoint' || field === 'outPoint') {
@@ -615,6 +631,7 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
               <div className="shot-frame-viewer__field-row">
                 <input
                   type="number"
+                  aria-label="Largeur"
                   value={shot.resolution.width}
                   onChange={(e) => updateField('resolution.width', parseInt(e.target.value))}
                   min="1"
@@ -624,6 +641,7 @@ export const ShotFrameViewer: React.FC<ShotFrameViewerProps> = ({
                 <span>×</span>
                 <input
                   type="number"
+                  aria-label="Hauteur"
                   value={shot.resolution.height}
                   onChange={(e) => updateField('resolution.height', parseInt(e.target.value))}
                   min="1"

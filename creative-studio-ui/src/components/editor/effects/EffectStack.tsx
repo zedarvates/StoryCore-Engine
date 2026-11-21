@@ -6,13 +6,14 @@ import {
   Settings,
   Trash2,
   GripVertical,
-  _ChevronDown,
-  _ChevronUp,
+  ChevronDown,
+  ChevronUp,
   Copy,
   MoveUp,
   MoveDown,
 } from 'lucide-react';
-import { AppliedEffect, EffectParameter, EffectStackProps } from '../../../types/effect';
+import { AppliedEffect, EffectParameter, EffectParameterValue, EffectStackProps } from '../../../types/effect';
+import { readEffectColor, readEffectNumber, selectEffectOption } from './effectParameterValues';
 import './EffectStack.css';
 
 
@@ -83,7 +84,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
     onEffectsChange([...effects, duplicatedEffect]);
   };
 
-  const updateEffectParameter = (effectId: string, paramId: string, value: unknown) => {
+  const updateEffectParameter = (effectId: string, paramId: string, value: EffectParameterValue) => {
     const updatedEffects = effects.map((effect: AppliedEffect) =>
       effect.id === effectId
         ? {
@@ -98,7 +99,8 @@ export const EffectStack: React.FC<EffectStackProps> = ({
   };
 
   const renderParameterControl = (effect: AppliedEffect, param: EffectParameter) => {
-    const handleChange = (value: unknown) => {
+    const handleChange = (value: EffectParameterValue) => {
+      if (typeof value === 'number' && !Number.isFinite(value)) return;
       updateEffectParameter(effect.id, param.id, value);
     };
 
@@ -109,7 +111,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
             <label className="parameter-label">
               {param.name}
               <span className="parameter-value">
-                {param.value}{param.unit || ''}
+                {readEffectNumber(param.value, param.min)}{param.unit || ''}
               </span>
             </label>
             <input
@@ -117,7 +119,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
               min={param.min}
               max={param.max}
               step={param.step}
-              value={param.value}
+              value={readEffectNumber(param.value, param.min)}
               onChange={(e) => handleChange(parseFloat(e.target.value))}
               className="parameter-slider"
               aria-label={param.name}
@@ -131,7 +133,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
             <label className="parameter-label">{param.name}</label>
             <input
               type="color"
-              value={param.value}
+              value={readEffectColor(param.value)}
               onChange={(e) => handleChange(e.target.value)}
               className="parameter-color"
               aria-label={`${param.name} color`}
@@ -144,13 +146,13 @@ export const EffectStack: React.FC<EffectStackProps> = ({
           <div key={param.id} className="parameter-control">
             <label className="parameter-label">{param.name}</label>
             <select
-              value={param.value}
-              onChange={(e) => handleChange(e.target.value)}
+              value={String(param.value)}
+              onChange={(e) => selectEffectOption(param, e.target.value, handleChange)}
               className="parameter-select"
               aria-label={param.name}
             >
               {param.options?.map(option => (
-                <option key={option.value} value={option.value}>
+                <option key={option.label} value={String(option.value)}>
                   {option.label}
                 </option>
               ))}
@@ -164,7 +166,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
             <label className="parameter-toggle">
               <input
                 type="checkbox"
-                checked={param.value}
+                checked={param.value === true || param.value === 'true'}
                 onChange={(e) => handleChange(e.target.checked)}
                 className="parameter-checkbox"
               />
@@ -182,7 +184,7 @@ export const EffectStack: React.FC<EffectStackProps> = ({
               min={param.min}
               max={param.max}
               step={param.step}
-              value={param.value}
+              value={readEffectNumber(param.value, param.min)}
               onChange={(e) => handleChange(parseFloat(e.target.value))}
               className="parameter-number"
             />

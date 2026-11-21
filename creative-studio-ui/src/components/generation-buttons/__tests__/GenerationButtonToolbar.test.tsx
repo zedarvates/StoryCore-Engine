@@ -14,6 +14,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { GenerationButtonToolbar } from '../GenerationButtonToolbar';
 import { useGenerationStore } from '../../../stores/generationStore';
 import type { Shot, Sequence } from '../../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the generation store
 vi.mock('../../../stores/generationStore', () => ({
@@ -105,7 +106,7 @@ vi.mock('../GenerationProgressModal', () => ({
 }));
 
 describe('GenerationButtonToolbar', () => {
-  const mockShot: Shot = {
+  const mockShot: Shot = createShotFixture({
     id: 'shot-1',
     title: 'Test Shot',
     description: 'Test description',
@@ -116,12 +117,13 @@ describe('GenerationButtonToolbar', () => {
     textLayers: [],
     animations: [],
     metadata: {},
-  };
+  });
 
   const mockSequence: Sequence = {
     id: 'seq-1',
     name: 'Test Sequence',
-    shots: [mockShot],
+    description: '',
+    shotIds: [mockShot.id],
     duration: 5,
   };
 

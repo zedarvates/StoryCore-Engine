@@ -30,7 +30,7 @@ import {
   useState 
 } from 'react';
 import { 
-  _Keyframe, 
+  Keyframe,
   KeyframeAnimationConfig, 
   AnimationInstance,
   EasingFunction,
@@ -67,13 +67,11 @@ function interpolateValue(
 /**
  * Parse keyframe time values (handle both 0-1 percentages and absolute times)
  */
-function parseKeyframes<T>(
-  _keyframes: Array<Keyframe<T>>,
-  _duration: number,
-  fromValue: T extends number ? number : never,
-  toValue: T extends number ? number : never
+function parseKeyframes(
+  keyframes: Array<Keyframe<number>>,
+  duration: number
 ): Array<{ time: number; value: number; easing?: EasingFunction }> {
-  return keyframes.map((kf, index) => {
+  return keyframes.map((kf) => {
     let time: number;
     
     if (kf.time >= 0 && kf.time <= 1) {
@@ -84,13 +82,9 @@ function parseKeyframes<T>(
       time = kf.time;
     }
     
-    // Get value
-    const value = typeof kf.value === 'number' ? kf.value : 
-      kf.value as unknown as number;
-    
     return {
       time,
-      value,
+      value: kf.value,
       easing: kf.easing
     };
   }).sort((a, b) => a.time - b.time);
@@ -125,7 +119,7 @@ export function useKeyframes(
   const rafRef = useRef<number | null>(null);
 
   // Parse keyframes
-  const parsedKeyframes = useRef(parseKeyframes(config.keyframes, config.duration, config.from, config.to));
+  const parsedKeyframes = useRef(parseKeyframes(config.keyframes, config.duration));
   const totalDuration = config.duration;
 
   // Calculate value at a given progress (0-1)
@@ -165,9 +159,9 @@ export function useKeyframes(
 
   // Animation loop
   const animate = useCallback(() => {
-    if (!animationRef.current) re_turn;
+    if (!animationRef.current) return;
 
-    const { startTime, isPaused, loopCount, direction } = animationRef.current;
+    const { startTime, isPaused } = animationRef.current;
 
     if (isPaused) {
       rafRef.current = requestAnimationFrame(animate);
@@ -347,7 +341,7 @@ export function useKeyframesObject<T extends object>(
 
       parsedKeyframes.current.set(
         key, 
-        parseKeyframes(keyframesForKey, totalDuration, config.from[key] as number, config.to[key] as number)
+        parseKeyframes(keyframesForKey, totalDuration)
       );
     });
   }, [config.from, config.to, config.keyframes, totalDuration]);

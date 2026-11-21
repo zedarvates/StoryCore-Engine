@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { assert, describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useVoiceOverGenerator } from '../useVoiceOverGenerator';
 import { ttsService } from '../../services/ttsService';
 import { useStore } from '../../store';
 import type { VoiceOver } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the TTS service
 vi.mock('../../services/ttsService', () => ({
@@ -17,7 +18,7 @@ describe('useVoiceOverGenerator', () => {
     vi.clearAllMocks();
     useStore.setState({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Test Shot',
           description: 'Test',
@@ -27,7 +28,7 @@ describe('useVoiceOverGenerator', () => {
           effects: [],
           textLayers: [],
           animations: [],
-        },
+        }),
       ],
     });
   });
@@ -67,6 +68,7 @@ describe('useVoiceOverGenerator', () => {
     // Check that audio track was added to store
     const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
     expect(shot?.audioTracks).toHaveLength(1);
+    assert.isDefined(shot?.audioTracks);
     expect(shot?.audioTracks[0].type).toBe('voiceover');
     expect(shot?.audioTracks[0].url).toBe(mockAudioUrl);
   });
@@ -188,6 +190,7 @@ describe('useVoiceOverGenerator', () => {
     });
 
     const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+    assert.isDefined(shot?.audioTracks);
     const audioTrack = shot?.audioTracks[0];
 
     expect(audioTrack).toBeDefined();

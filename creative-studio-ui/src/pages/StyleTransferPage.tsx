@@ -5,8 +5,8 @@
  */
 
 import React from 'react';
-import { StyleTransferWizard } from '../components/wizard';
-import { Card, CardContent, CardHeader, CardTitle, _CardDescription } from '../components/ui/card';
+import { StyleTransferWizard } from '../components/wizard/StyleTransferWizard';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Sparkles, Info } from 'lucide-react';
 
 export const StyleTransferPage: React.FC = () => {

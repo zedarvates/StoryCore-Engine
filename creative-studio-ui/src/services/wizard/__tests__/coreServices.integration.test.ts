@@ -9,46 +9,37 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ValidationEngine } from '../ValidationEngine';
+import { WizardValidationEngine } from '../ValidationEngine';
 import { TemplateSystem } from '../TemplateSystem';
-import type { ProjectTypeData, GenreStyleData } from '../../../types/wizard';
 
 describe('Core Services Integration', () => {
-  let validationEngine: ValidationEngine;
+  let validationEngine: WizardValidationEngine;
   let templateSystem: TemplateSystem;
 
   beforeEach(() => {
-    validationEngine = new ValidationEngine();
+    validationEngine = new WizardValidationEngine();
     templateSystem = new TemplateSystem();
   });
 
   describe('ValidationEngine', () => {
     it('should validate project type data', () => {
-      const validData: ProjectTypeData = {
-        type: 'court-metrage',
-        durationMinutes: 15,
-        durationRange: { min: 1, max: 30 },
-      };
+      const validData = { projectName: 'Ferry Pier' };
 
-      const result = validationEngine.validateProjectType(validData);
+      const result = validationEngine.validateStep('project-setup', 1, validData);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
 
     it('should reject invalid project type data', () => {
-      const invalidData: ProjectTypeData = {
-        type: 'court-metrage',
-        durationMinutes: -5, // Invalid: negative duration
-        durationRange: { min: 1, max: 30 },
-      };
+      const invalidData = { projectName: '   ' };
 
-      const result = validationEngine.validateProjectType(invalidData);
+      const result = validationEngine.validateStep('project-setup', 1, invalidData);
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
     });
 
     it('should validate genre and style data', () => {
-      const validData: GenreStyleData = {
+      const validData = {
         genres: ['action', 'sci-fi'],
         visualStyle: 'realistic',
         colorPalette: {
@@ -59,7 +50,7 @@ describe('Core Services Integration', () => {
         mood: ['tense', 'energetic'],
       };
 
-      const result = validationEngine.validateGenreStyle(validData);
+      const result = validationEngine.validateStep('project-setup', 2, validData);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
@@ -113,17 +104,13 @@ describe('Core Services Integration', () => {
       
       // Validate project type from template
       if (loadedTemplate.data.projectType) {
-        const projectTypeResult = validationEngine.validateProjectType(
-          loadedTemplate.data.projectType
-        );
+        const projectTypeResult = validationEngine.validateStep('project-setup', 1, { projectName: loadedTemplate.name });
         expect(projectTypeResult.isValid).toBe(true);
       }
       
       // Validate genre/style from template
       if (loadedTemplate.data.genreStyle) {
-        const genreStyleResult = validationEngine.validateGenreStyle(
-          loadedTemplate.data.genreStyle
-        );
+        const genreStyleResult = validationEngine.validateStep('project-setup', 2, { genres: loadedTemplate.data.genreStyle.genres });
         expect(genreStyleResult.isValid).toBe(true);
       }
     });

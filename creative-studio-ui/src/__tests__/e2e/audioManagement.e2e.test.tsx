@@ -3,11 +3,12 @@
  * Tests the complete flow of adding, editing, and managing audio tracks
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { assert, describe, it, expect, beforeEach } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import { createEmptyProject } from '@/utils/projectManager';
 import type { Shot, AudioTrack, AudioEffect } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Audio Management E2E Workflow', () => {
   beforeEach(() => {
@@ -21,7 +22,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Adding Audio Tracks', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Audio',
         description: '',
@@ -31,7 +32,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -58,6 +59,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         expect(shot?.audioTracks.length).toBe(1);
         expect(shot?.audioTracks[0].name).toBe('Background Music');
         expect(shot?.audioTracks[0].type).toBe('music');
@@ -86,6 +88,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         expect(shot?.audioTracks.length).toBe(1);
         expect(shot?.audioTracks[0].type).toBe('sfx');
       });
@@ -147,6 +150,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         expect(shot?.audioTracks.length).toBe(3);
       });
     });
@@ -154,7 +158,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Editing Audio Properties', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Audio',
         description: '',
@@ -181,7 +185,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -193,6 +197,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.volume).toBe(50);
       });
@@ -206,6 +211,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.fadeIn).toBe(2.0);
         expect(track?.fadeOut).toBe(3.0);
@@ -219,6 +225,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.pan).toBe(-50);
       });
@@ -231,6 +238,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.muted).toBe(true);
       });
@@ -241,6 +249,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.muted).toBe(false);
       });
@@ -253,6 +262,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.solo).toBe(true);
       });
@@ -267,6 +277,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.startTime).toBe(2);
         expect(track?.duration).toBe(6);
@@ -277,7 +288,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Audio Effects', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Audio',
         description: '',
@@ -304,13 +315,14 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
 
     it('should add voice clarity effect', async () => {
       const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+      assert.isDefined(shot?.audioTracks);
       const track = shot?.audioTracks[0];
 
       const effect: AudioEffect = {
@@ -324,7 +336,7 @@ describe('Audio Management E2E Workflow', () => {
 
       const updatedTrack = {
         ...track!,
-        effects: [...track!.effects, effect],
+        effects: [...(track!.effects ?? []), effect],
       };
 
       useStore.getState().updateAudioTrack('shot-1', 'audio-1', {
@@ -333,7 +345,9 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const updatedShot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(updatedShot?.audioTracks);
         const updatedAudioTrack = updatedShot?.audioTracks.find((t) => t.id === 'audio-1');
+        assert.isDefined(updatedAudioTrack?.effects);
         expect(updatedAudioTrack?.effects.length).toBe(1);
         expect(updatedAudioTrack?.effects[0].type).toBe('voice-clarity');
       });
@@ -341,6 +355,7 @@ describe('Audio Management E2E Workflow', () => {
 
     it('should add limiter effect', async () => {
       const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+      assert.isDefined(shot?.audioTracks);
       const track = shot?.audioTracks[0];
 
       const effect: AudioEffect = {
@@ -356,7 +371,7 @@ describe('Audio Management E2E Workflow', () => {
 
       const updatedTrack = {
         ...track!,
-        effects: [...track!.effects, effect],
+        effects: [...(track!.effects ?? []), effect],
       };
 
       useStore.getState().updateAudioTrack('shot-1', 'audio-1', {
@@ -365,7 +380,9 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const updatedShot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(updatedShot?.audioTracks);
         const updatedAudioTrack = updatedShot?.audioTracks.find((t) => t.id === 'audio-1');
+        assert.isDefined(updatedAudioTrack?.effects);
         expect(updatedAudioTrack?.effects.length).toBe(1);
         expect(updatedAudioTrack?.effects[0].type).toBe('limiter');
       });
@@ -373,6 +390,7 @@ describe('Audio Management E2E Workflow', () => {
 
     it('should apply audio preset', async () => {
       const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+      assert.isDefined(shot?.audioTracks);
       const _track = shot?.audioTracks[0];
 
       // Podcast preset: voice clarity + limiter
@@ -405,7 +423,9 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const updatedShot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(updatedShot?.audioTracks);
         const updatedAudioTrack = updatedShot?.audioTracks.find((t) => t.id === 'audio-1');
+        assert.isDefined(updatedAudioTrack?.effects);
         expect(updatedAudioTrack?.effects.length).toBe(2);
         expect(updatedAudioTrack?.effects[0].preset).toBe('podcast');
       });
@@ -414,7 +434,7 @@ describe('Audio Management E2E Workflow', () => {
 
   describe('Surround Sound Configuration', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot with Surround',
         description: '',
@@ -441,7 +461,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -463,6 +483,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.surroundConfig?.mode).toBe('5.1');
         expect(track?.surroundConfig?.channels.center).toBe(100);
@@ -488,6 +509,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.surroundConfig?.mode).toBe('7.1');
         expect(track?.surroundConfig?.channels.sideLeft).toBe(40);
@@ -516,6 +538,7 @@ describe('Audio Management E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.surroundConfig?.spatialPosition).toEqual({
           x: 0,
@@ -529,7 +552,7 @@ describe('Audio Management E2E Workflow', () => {
   describe('Complete Audio Workflow', () => {
     it('should complete full audio management workflow', async () => {
       // Step 1: Create shot
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Professional Audio Shot',
         description: 'Shot with complete audio setup',
@@ -539,7 +562,7 @@ describe('Audio Management E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 
@@ -650,6 +673,7 @@ describe('Audio Management E2E Workflow', () => {
         const finalShot = useStore.getState().shots.find((s) => s.id === 'shot-1');
 
         // Check all tracks added
+        assert.isDefined(finalShot?.audioTracks);
         expect(finalShot?.audioTracks.length).toBe(3);
 
         // Check music track
@@ -661,6 +685,7 @@ describe('Audio Management E2E Workflow', () => {
         // Check dialogue track with effects
         const dialogue = finalShot?.audioTracks.find((t) => t.id === 'audio-2');
         expect(dialogue?.type).toBe('dialogue');
+        assert.isDefined(dialogue?.effects);
         expect(dialogue?.effects.length).toBe(2);
         expect(dialogue?.surroundConfig?.mode).toBe('5.1');
         expect(dialogue?.surroundConfig?.channels.center).toBe(100);

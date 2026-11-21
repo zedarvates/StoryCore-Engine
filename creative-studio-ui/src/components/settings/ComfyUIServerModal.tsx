@@ -19,11 +19,8 @@ import { cn } from '@/lib/utils';
 import type { ComfyUIServer, CreateComfyUIServerInput } from '@/types/comfyuiServers';
 import type { AuthenticationType } from '@/services/comfyuiService';
 
-interface MCPTool {
-  name: string;
-  description?: string;
-  inputSchema?: Record<string, unknown>;
-}
+import type { MCPTool } from '@/types/comfyuiServers';
+import { isMCPTool } from '@/utils/typeGuards';
 
 
 export interface ComfyUIServerModalProps {
@@ -198,7 +195,7 @@ export function ComfyUIServerModal({
     setIsFetchingTools(true);
     try {
       const tools = await window.electronAPI.comfyui.listTools(id);
-      setAvailableMcpTools(tools || []);
+      setAvailableMcpTools(Array.isArray(tools) ? tools.filter(isMCPTool) : []);
     } catch (err) {
       console.error('Failed to fetch MCP tools:', err);
     } finally {

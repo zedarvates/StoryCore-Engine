@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, _Settings, RotateCcw, Save } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Settings, RotateCcw, Save } from 'lucide-react';
 
 interface Transition {
   id: string;
@@ -31,7 +31,7 @@ export function TransitionEditor({
   const [currentTime, setCurrentTime] = useState(0);
   const [localTransition, setLocalTransition] = useState(transition);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   // Update local transition when prop changes
   useEffect(() => {

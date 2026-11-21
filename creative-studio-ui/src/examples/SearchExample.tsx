@@ -1,3 +1,4 @@
+import { exampleShot } from './exampleShot';
 import React, { useState, useCallback } from 'react';
 import { SearchBar } from '../components/search/SearchBar';
 import { AdvancedSearch } from '../components/search/AdvancedSearch';
@@ -11,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 // Mock data for demonstration
 const mockShots: Shot[] = [
-  {
+  exampleShot({
     id: '1',
     title: 'Opening Scene',
     description: 'Wide establishing shot of the city',
@@ -29,8 +30,8 @@ const mockShots: Shot[] = [
       createdAt: Date.now() - 86400000,
       updatedAt: Date.now() - 3600000
     }
-  },
-  {
+  }),
+  exampleShot({
     id: '2',
     title: 'Character Introduction',
     description: 'Close-up of main character',
@@ -48,8 +49,8 @@ const mockShots: Shot[] = [
       createdAt: Date.now() - 172800000,
       updatedAt: Date.now() - 7200000
     }
-  },
-  {
+  }),
+  exampleShot({
     id: '3',
     title: 'Action Sequence',
     description: 'Fast-paced action with multiple cuts',
@@ -68,8 +69,8 @@ const mockShots: Shot[] = [
       createdAt: Date.now() - 259200000,
       updatedAt: Date.now() - 1800000
     }
-  },
-  {
+  }),
+  exampleShot({
     id: '4',
     title: 'Dialogue Scene',
     description: 'Two characters talking',
@@ -88,8 +89,8 @@ const mockShots: Shot[] = [
       createdAt: Date.now() - 345600000,
       updatedAt: Date.now() - 900000
     }
-  },
-  {
+  }),
+  exampleShot({
     id: '5',
     title: 'Closing Shot',
     description: 'Sunset over the horizon',
@@ -108,7 +109,7 @@ const mockShots: Shot[] = [
       createdAt: Date.now() - 432000000,
       updatedAt: Date.now() - 600000
     }
-  }
+  })
 ];
 
 export const SearchExample: React.FC = () => {
@@ -258,11 +259,11 @@ export const SearchExample: React.FC = () => {
                     </div>
                     <p className="result-description">{shot.description}</p>
                     <div className="result-metadata">
-                      <span className="metadata-item">Type: {shot.metadata?.type}</span>
-                      <span className="metadata-item">Status: {shot.metadata?.status}</span>
-                      {shot.metadata?.tags && (
+                      <span className="metadata-item">Type: {typeof shot.metadata?.type === 'string' ? shot.metadata.type : ''}</span>
+                      <span className="metadata-item">Status: {typeof shot.metadata?.status === 'string' ? shot.metadata.status : ''}</span>
+                      {Array.isArray(shot.metadata?.tags) && (
                         <span className="metadata-item">
-                          Tags: {(shot.metadata.tags as string[]).join(', ')}
+                          Tags: {shot.metadata.tags.filter((tag) => typeof tag === 'string').join(', ')}
                         </span>
                       )}
                     </div>
@@ -276,7 +277,7 @@ export const SearchExample: React.FC = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .search-example {
           max-width: 1200px;
           margin: 0 auto;

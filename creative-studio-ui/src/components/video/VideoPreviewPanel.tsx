@@ -32,13 +32,12 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = (props) => {
     autoInitialize = true,
     variant = 'full',
     showControls = true,
-    _showInfo = true,
+    showInfo = true,
     showTimeline = false,
     className,
     title = 'Video Preview',
     onVideoReady,
     onPlayheadChange,
-    _onShotChange,
     children,
   } = props;
   
@@ -64,7 +63,6 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = (props) => {
     seekToFrame,
     stepForward,
     stepBackward,
-    _setPlaybackRate,
     toggleMute,
     toggleLoop,
     service,
@@ -209,12 +207,14 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = (props) => {
           >
             Preview
           </button>
-          <button
-            className={`video-preview-tab ${activeTab === 'info' ? 'active' : ''}`}
-            onClick={() => setActiveTab('info')}
-          >
-            Info
-          </button>
+          {showInfo && (
+            <button
+              className={`video-preview-tab ${activeTab === 'info' ? 'active' : ''}`}
+              onClick={() => setActiveTab('info')}
+            >
+              Info
+            </button>
+          )}
         </div>
         <div className="video-preview-actions">
           <button className="video-preview-action" onClick={toggleFullscreen} title="Toggle fullscreen (F)">
@@ -226,7 +226,7 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = (props) => {
       </div>
       
       <div className="video-preview-content">
-        {activeTab === 'preview' ? (
+        {!showInfo || activeTab === 'preview' ? (
           <>
             <div className="video-preview-main">
               <VideoCanvas {...videoCanvasProps} />

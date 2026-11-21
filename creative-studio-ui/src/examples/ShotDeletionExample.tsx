@@ -83,7 +83,7 @@ const ShotListWithDeletion: React.FC = () => {
 
   // Get associated phrases for the shot to delete
   const associatedPhrases = shotToDelete
-    ? project.audioPhrases.filter(phrase => phrase.shotId === shotToDelete.id)
+    ? (project.audioPhrases ?? []).filter(phrase => phrase.shotId === shotToDelete.id)
     : [];
 
   return (

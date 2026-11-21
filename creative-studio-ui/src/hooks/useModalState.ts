@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useEffect } from 'react';
-import type { ModalState, ModalSchema, _ValidationResult } from '@/types/modal';
+import type { ModalState, ModalSchema, ValidationResult } from '@/types/modal';
 
 /**
  * Hook for managing modal state

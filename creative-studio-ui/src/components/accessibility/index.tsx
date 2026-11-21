@@ -109,14 +109,14 @@ interface LiveRegionProps {
  */
 export function LiveRegion({
   message,
-  _politeness = 'polite',
+  politeness = 'polite',
   atomic = true,
   className,
 }: LiveRegionProps) {
   return (
     <div
       role="status"
-      aria-live="polite"
+      aria-live={politeness}
       aria-atomic={atomic ? 'true' : 'false'}
       className={cn('sr-only', className)}
     >

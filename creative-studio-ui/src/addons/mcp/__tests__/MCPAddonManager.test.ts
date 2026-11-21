@@ -1,10 +1,11 @@
+import { vi } from 'vitest';
 import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 // MCP Addon Manager Tests
 // ============================================================================
 
 import { MCPAddonManager } from '../MCPAddonManager';
-import type { MCPServerConfig, MCPAddonState } from '@/types/addons';
+import type { MCPServerConfig, MCPAddonState } from '../types';
 
 describe('MCPAddonManager', () => {
   let manager: MCPAddonManager;
@@ -45,7 +46,7 @@ describe('MCPAddonManager', () => {
 
   describe('State Management', () => {
     it('should notify listeners when state changes', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       manager.subscribe(listener);
       
       // Initial state should trigger listener
@@ -57,7 +58,7 @@ describe('MCPAddonManager', () => {
     });
 
     it('should unsubscribe listeners correctly', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = manager.subscribe(listener);
       
       unsubscribe();
@@ -96,7 +97,7 @@ describe('MCPAddonManager', () => {
 
     it('should handle errors during toggle', async () => {
       // Mock the delay function to throw an error
-      jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Test error'));
+      vi.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Test error'));
       
       await expect(manager.toggleAddon(true)).rejects.toThrow('Test error');
       
@@ -132,7 +133,7 @@ describe('MCPAddonManager', () => {
       });
 
       it('should test server connection when adding', async () => {
-        const testSpy = jest.spyOn(manager, 'testServer');
+        const testSpy = vi.spyOn(manager, 'testServer');
         
         await manager.addServer(mockServerConfig);
         
@@ -140,7 +141,7 @@ describe('MCPAddonManager', () => {
       });
 
       it('should handle errors when adding server', async () => {
-        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Add error'));
+        vi.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Add error'));
         
         await expect(manager.addServer(mockServerConfig)).rejects.toThrow('Add error');
         
@@ -168,7 +169,7 @@ describe('MCPAddonManager', () => {
         await manager.addServer(mockServerConfig);
         const server = manager.getState().servers[0];
         
-        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Update error'));
+        vi.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Update error'));
         
         await expect(manager.updateServer(server.id, { name: 'Test' }))
           .rejects.toThrow('Update error');
@@ -202,7 +203,7 @@ describe('MCPAddonManager', () => {
         await manager.addServer(mockServerConfig);
         const server = manager.getState().servers[0];
         
-        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Remove error'));
+        vi.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Remove error'));
         
         await expect(manager.removeServer(server.id)).rejects.toThrow('Remove error');
       });
@@ -221,7 +222,7 @@ describe('MCPAddonManager', () => {
       });
 
       it('should handle server test errors', async () => {
-        jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Test error'));
+        vi.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Test error'));
         
         await expect(manager.testServer('non-existent')).rejects.toThrow('Test error');
       });
@@ -282,7 +283,7 @@ describe('MCPAddonManager', () => {
     });
 
     it('should handle config update errors', async () => {
-      jest.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Config error'));
+      vi.spyOn(manager as LegacyAny, 'delay').mockRejectedValue(new Error('Config error'));
       
       await expect(manager.updateConfig({})).rejects.toThrow('Config error');
     });

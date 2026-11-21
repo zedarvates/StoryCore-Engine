@@ -3,7 +3,7 @@
  * Requirements: 9.4, 9.5, 9.6
  */
 
-import { describe, it, expect, _vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -13,6 +13,7 @@ import type { Shot } from '../../../types';
 
 // Mock shot data
 const mockShot: Shot = {
+  position: 0,
   id: 'shot-1',
   name: 'Test Shot',
   startTime: 0,
@@ -59,6 +60,7 @@ const createMockStore = () => {
     },
     preloadedState: {
       timeline: {
+        ...timelineReducer(undefined, { type: '@@INIT' }),
         shots: [mockShot],
         tracks: [],
         playheadPosition: 0,

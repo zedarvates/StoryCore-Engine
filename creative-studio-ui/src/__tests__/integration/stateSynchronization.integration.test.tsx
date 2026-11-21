@@ -3,10 +3,11 @@
  * Tests that state changes propagate correctly across components
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { assert, describe, it, expect, beforeEach } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import type { Shot, AudioTrack, Effect, TextLayer } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('State Synchronization Integration', () => {
   beforeEach(() => {
@@ -23,7 +24,7 @@ describe('State Synchronization Integration', () => {
 
   describe('Shot State Synchronization', () => {
     it('should synchronize shot updates across all components', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Original Title',
         description: 'Original description',
@@ -33,7 +34,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 
@@ -51,7 +52,7 @@ describe('State Synchronization Integration', () => {
     });
 
     it('should update selection state when shot is selected', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -61,7 +62,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
       useStore.getState().selectShot('shot-1');
@@ -72,7 +73,7 @@ describe('State Synchronization Integration', () => {
     });
 
     it('should clear selection when shot is deleted', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -82,7 +83,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
       useStore.getState().selectShot('shot-1');
@@ -99,7 +100,7 @@ describe('State Synchronization Integration', () => {
 
   describe('Audio Track Synchronization', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -109,7 +110,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -136,6 +137,7 @@ describe('State Synchronization Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         expect(shot?.audioTracks.length).toBe(1);
         expect(shot?.audioTracks[0].name).toBe('Background Music');
       });
@@ -168,6 +170,7 @@ describe('State Synchronization Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         const track = shot?.audioTracks.find((t) => t.id === 'audio-1');
         expect(track?.volume).toBe(50);
         expect(track?.muted).toBe(true);
@@ -193,12 +196,13 @@ describe('State Synchronization Integration', () => {
       };
 
       useStore.getState().addAudioTrack('shot-1', audioTrack);
-      expect(useStore.getState().shots[0].audioTracks.length).toBe(1);
+      expect(useStore.getState().shots[0].audioTracks?.length).toBe(1);
 
       useStore.getState().deleteAudioTrack('shot-1', 'audio-1');
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.audioTracks);
         expect(shot?.audioTracks.length).toBe(0);
       });
     });
@@ -206,7 +210,7 @@ describe('State Synchronization Integration', () => {
 
   describe('Effects Synchronization', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -216,25 +220,29 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
 
     it('should add effect to shot', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(1);
         expect(shot?.effects[0].name).toBe('vintage');
       });
@@ -242,12 +250,15 @@ describe('State Synchronization Integration', () => {
 
     it('should update effect properties', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -259,6 +270,7 @@ describe('State Synchronization Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         const eff = shot?.effects.find((e) => e.id === 'effect-1');
         expect(eff?.intensity).toBe(75);
         expect(eff?.enabled).toBe(false);
@@ -267,21 +279,27 @@ describe('State Synchronization Integration', () => {
 
     it('should reorder effects', async () => {
       const effect1: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       const effect2: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'blur',
         id: 'effect-2',
         type: 'filter',
         name: 'blur',
         enabled: true,
         intensity: 30,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect1);
@@ -291,6 +309,7 @@ describe('State Synchronization Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects[0].id).toBe('effect-2');
         expect(shot?.effects[1].id).toBe('effect-1');
       });
@@ -299,7 +318,7 @@ describe('State Synchronization Integration', () => {
 
   describe('Text Layers Synchronization', () => {
     beforeEach(() => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -309,7 +328,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
     });
@@ -332,6 +351,7 @@ describe('State Synchronization Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         expect(shot?.textLayers.length).toBe(1);
         expect(shot?.textLayers[0].content).toBe('Hello World');
       });
@@ -360,6 +380,7 @@ describe('State Synchronization Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         const layer = shot?.textLayers.find((l) => l.id === 'text-1');
         expect(layer?.content).toBe('Updated Text');
         expect(layer?.fontSize).toBe(32);
@@ -415,7 +436,7 @@ describe('State Synchronization Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -433,7 +454,7 @@ describe('State Synchronization Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       const task2 = {
@@ -442,7 +463,7 @@ describe('State Synchronization Integration', () => {
         type: 'promotion' as const,
         status: 'pending' as const,
         priority: 2,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task1);
@@ -462,7 +483,7 @@ describe('State Synchronization Integration', () => {
 
   describe('Complex State Updates', () => {
     it('should handle multiple simultaneous updates', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -472,7 +493,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
       useStore.getState().selectShot('shot-1');
@@ -489,7 +510,7 @@ describe('State Synchronization Integration', () => {
     });
 
     it('should maintain consistency during rapid updates', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: '',
@@ -499,7 +520,7 @@ describe('State Synchronization Integration', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 

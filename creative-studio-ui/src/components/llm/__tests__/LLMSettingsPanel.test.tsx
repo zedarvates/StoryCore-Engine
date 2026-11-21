@@ -10,13 +10,13 @@
  * - Settings persistence
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { LLMSettingsPanel, type LLMSettings } from '../LLMSettingsPanel';
 
 describe('LLMSettingsPanel', () => {
   let mockSettings: LLMSettings;
-  let mockOnSettingsChange: ReturnType<typeof vi.fn>;
+  let mockOnSettingsChange: Mock<(settings: LLMSettings) => void>;
 
   beforeEach(() => {
     mockSettings = {
@@ -33,7 +33,7 @@ describe('LLMSettingsPanel', () => {
       },
     };
 
-    mockOnSettingsChange = vi.fn();
+    mockOnSettingsChange = vi.fn<(settings: LLMSettings) => void>();
   });
 
   describe('Rendering', () => {

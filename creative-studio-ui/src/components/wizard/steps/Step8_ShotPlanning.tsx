@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Camera, Film, BarChart3, AlertCircle } from 'lucide-react';
-import { WizardFormLayout, FormField, FormSection, _FormGrid } from '../WizardFormLayout';
+import { WizardFormLayout, FormField, FormSection, FormGrid } from '../WizardFormLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,7 @@ import {
   Select,
   SelectContent,
   SelectItemWithDescription,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select-rich';
@@ -211,7 +212,8 @@ export function Step8_ShotPlanning({
       cameraMovement: shotForm.cameraMovement || 'static',
       transition: shotForm.transition || 'cut',
       compositionNotes: shotForm.compositionNotes || '',
-      order: editingShot?.order || sceneShotsFiltered.length,
+      order: editingShot?.order ?? sceneShotsFiltered.length,
+      position: editingShot?.position ?? editingShot?.order ?? sceneShotsFiltered.length,
     };
 
     if (editingShot) {

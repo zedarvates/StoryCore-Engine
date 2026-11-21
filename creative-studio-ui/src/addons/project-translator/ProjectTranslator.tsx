@@ -10,6 +10,7 @@ import {
   Download,
   Info
 } from 'lucide-react';
+import { isRecord } from '@/utils/typeGuards';
 import { projectTranslatorService } from './projectTranslatorService';
 import { SUPPORTED_LANGUAGES, TranslationTaskStatus } from './types';
 import './ProjectTranslator.css';
@@ -41,8 +42,10 @@ const ProjectTranslator: React.FC<ProjectTranslatorProps> = ({
           setStatus(newStatus);
           if (newStatus.status === 'completed') {
             clearInterval(interval);
-            if (onTranslationComplete && newStatus.result) {
-              onTranslationComplete(newStatus.result);
+            if (isRecord(newStatus.result)) {
+              onTranslationComplete?.(newStatus.result);
+            } else {
+              setError('Translation completed without valid project data.');
             }
           } else if (newStatus.status === 'error') {
             clearInterval(interval);

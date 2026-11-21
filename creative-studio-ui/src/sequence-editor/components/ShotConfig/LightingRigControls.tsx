@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import {
   LightingRig,
   LightingRigParameters,
-  _LightConfiguration,
+  LightConfiguration,
   lightingRigService
 } from '../../services/lightingRigService';
 import { LightingRigLibrary } from '../LightingRigLibrary';

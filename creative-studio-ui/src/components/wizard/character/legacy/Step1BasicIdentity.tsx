@@ -1,8 +1,7 @@
-import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout, FormField } from '../WizardFormLayout';
-import { ValidationErrorSummary } from '../ValidationErrorSummary';
+import { WizardFormLayout, FormField } from '../../WizardFormLayout';
+import { ValidationErrorSummary } from '../../ValidationErrorSummary';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,12 +17,11 @@ import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warnin
 import { useAppStore } from '@/stores/useAppStore';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 import { cn } from '@/lib/utils';
-import { LLMLoadingState, LLMErrorDisplay } from '../LLMErrorDisplay';
+import { LLMLoadingState, LLMErrorDisplay } from '../../LLMErrorDisplay';
 import { useMemoryStore } from '@/stores/memoryStore';
 import { CHARACTER_ARCHETYPES, AGE_RANGES, GENDER_OPTIONS } from '@/constants/characterOptions';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 1: Neural Signature (Basic Identity)
@@ -31,11 +29,16 @@ import type { StoryContext } from './CharacterWizard';
 
 interface Step1BasicIdentityProps {
   worldContext?: World;
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
 export function Step1BasicIdentity({ worldContext }: Step1BasicIdentityProps) {
   const { formData, updateFormData, validationErrors } = useWizard<Character>();
+  // Legacy drafts can contain display labels or custom text in this field.
+  const storedGender = String(formData.visual_identity?.gender ?? '');
+  const selectedGender = GENDER_OPTIONS.some(option => option === storedGender)
+    ? storedGender
+    : storedGender && 'Other';
   const { llmConfigured, llmChecking } = useServiceStatus();
   const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
   const [suggestions, setSuggestions] = React.useState<string[]>([]);
@@ -289,7 +292,7 @@ Format as a JSON array of strings: ["Name1", "Name2", "Name3"]`;
             helpText="Internal and external identity alignment"
           >
             <Select
-              value={GENDER_OPTIONS.includes(formData.visual_identity?.gender as LegacyAny) ? formData.visual_identity?.gender || '' : formData.visual_identity?.gender ? 'Other' : ''}
+              value={selectedGender}
               onValueChange={(val) => updateFormData({ visual_identity: { ...formData.visual_identity, gender: val } as Character['visual_identity'] })}
             >
               <SelectTrigger>
@@ -303,9 +306,9 @@ Format as a JSON array of strings: ["Name1", "Name2", "Name3"]`;
                 ))}
               </SelectContent>
             </Select>
-            {formData.visual_identity?.gender && !['Male', 'Female', 'Non-binary'].includes(formData.visual_identity.gender) && (
+            {storedGender && !['Male', 'Female', 'Non-binary'].includes(storedGender) && (
               <Input
-                value={formData.visual_identity.gender === 'Other' ? '' : formData.visual_identity.gender}
+                value={storedGender === 'Other' ? '' : storedGender}
                 onChange={(e) => updateFormData({ visual_identity: { ...formData.visual_identity, gender: e.target.value || 'Other' } as Character['visual_identity'] })}
                 placeholder="SPECIFY_CUSTOM_MATRIX..."
                 className="mt-3"

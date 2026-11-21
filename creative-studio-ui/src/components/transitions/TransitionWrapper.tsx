@@ -3,10 +3,10 @@
  * Main wrapper component for applying transitions to any content
  */
 
-import React, { CSSProperties, _useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   TransitionConfig,
-  _TransitionState,
+  TransitionState,
   TransitionPreset,
   TransitionCategory,
   FadeTransitionConfig,
@@ -14,7 +14,7 @@ import {
   ZoomTransitionConfig,
   WipeTransitionConfig,
   GlitchTransitionConfig,
-  _GPUMode,
+  GPUMode,
 } from '../../services/transitions';
 import { useTransition, useCSSTransition, TRANSITION_CSS_CLASSES } from '../../hooks/useTransition';
 
@@ -127,7 +127,6 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
     presetId,
     autoTrigger,
     trigger,
-    _direction,
     preserveOldContent,
     className,
     style,
@@ -150,15 +149,9 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
   const {
     state,
     isActive,
-    _isComplete,
     start,
-    _cancel,
-    _reset,
     applyPreset,
     getPreset,
-    _getPresets,
-    _getPresetsByCategory,
-    _metrics,
     engine,
   } = useTransition(effectiveCanvasRef, config);
 
@@ -167,10 +160,6 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
     isTransitioning: _cssTransitioning,
     fadeOut,
     fadeIn,
-    _slideLeft,
-    _slideRight,
-    _zoomIn,
-    _zoomOut,
   } = useCSSTransition(useRef<HTMLDivElement>(null));
 
   // Apply preset if specified

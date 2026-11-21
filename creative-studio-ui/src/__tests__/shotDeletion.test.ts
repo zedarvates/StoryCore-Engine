@@ -1,3 +1,4 @@
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 /**
  * Unit tests for shot deletion functionality
  * 
@@ -7,7 +8,7 @@
  * Requirements: 7.3
  */
 
-import { describe, it, expect } from 'vitest';
+import { assert, describe, it, expect } from 'vitest';
 import type { Project, Shot, DialoguePhrase } from '../types/projectDashboard';
 import {
   validateShotDeletion,
@@ -24,14 +25,14 @@ import {
 // ============================================================================
 
 function createTestShot(id: string, startTime: number = 0, duration: number = 10): Shot {
-  return {
+  return createShotFixture({
     id,
     sequenceId: 'seq-1',
     startTime,
     duration,
     prompt: `Test prompt for ${id}`,
     metadata: {},
-  };
+  });
 }
 
 function createTestPhrase(
@@ -57,6 +58,10 @@ function createTestProject(
   return {
     id: 'test-project',
     name: 'Test Project',
+    project_name: 'Test Project',
+    schema_version: '1.0',
+    assets: [],
+    generation_status: { grid: 'pending', promotion: 'pending' },
     schemaVersion: '1.0',
     sequences: [
       {
@@ -71,11 +76,11 @@ function createTestProject(
     audioPhrases: phrases,
     generationHistory: [],
     capabilities: {
-      gridGeneration: true,
-      promotionEngine: true,
-      qaEngine: true,
-      autofixEngine: true,
-      voiceGeneration: true,
+      grid_generation: true,
+      promotion_engine: true,
+      qa_engine: true,
+      autofix_engine: true,
+      voice_generation: true,
     },
   };
 }
@@ -275,6 +280,7 @@ describe('simulateShotDeletion', () => {
 
     expect(result.shots).toHaveLength(0);
     expect(result.audioPhrases).toHaveLength(1);
+    assert.isDefined(result.audioPhrases);
     expect(result.audioPhrases[0].shotId).toBe('');
   });
 
@@ -292,6 +298,7 @@ describe('simulateShotDeletion', () => {
     expect(result.shots).toHaveLength(1);
     expect(result.shots[0].id).toBe('shot-2');
     expect(result.audioPhrases).toHaveLength(1);
+    assert.isDefined(result.audioPhrases);
     expect(result.audioPhrases[0].id).toBe('phrase-2');
   });
 

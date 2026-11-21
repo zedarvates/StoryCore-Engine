@@ -152,6 +152,7 @@ export const buildSingleShotMenu = (
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
+      disabled: !handlers.onShowInfo,
       action: () => handlers.onShowInfo?.(shot)
     }
   ];
@@ -319,6 +320,7 @@ export const buildMultipleShotsMenu = (
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
         </svg>
       ),
+      disabled: !handlers.onGroup,
       action: () => handlers.onGroup?.(shots)
     }
   ];
@@ -349,16 +351,19 @@ export const buildEmptyTimelineMenu = (
         {
           id: 'import-json',
           label: 'Import from JSON',
+          disabled: !handlers.onImport,
           action: () => handlers.onImport?.()
         },
         {
           id: 'import-images',
           label: 'Import Images',
+          disabled: !handlers.onImport,
           action: () => handlers.onImport?.()
         },
         {
           id: 'import-video',
           label: 'Import Video',
+          disabled: !handlers.onImport,
           action: () => handlers.onImport?.()
         }
       ]
@@ -392,16 +397,19 @@ export const buildEmptyTimelineMenu = (
         {
           id: 'template-intro',
           label: 'Intro Sequence',
+          disabled: !handlers.onCreateFromTemplate,
           action: () => handlers.onCreateFromTemplate?.('intro')
         },
         {
           id: 'template-montage',
           label: 'Montage',
+          disabled: !handlers.onCreateFromTemplate,
           action: () => handlers.onCreateFromTemplate?.('montage')
         },
         {
           id: 'template-credits',
           label: 'Credits',
+          disabled: !handlers.onCreateFromTemplate,
           action: () => handlers.onCreateFromTemplate?.('credits')
         }
       ]

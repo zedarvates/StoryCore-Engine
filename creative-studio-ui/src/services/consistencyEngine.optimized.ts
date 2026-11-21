@@ -7,8 +7,8 @@ import type {
   MasterReferenceSheet,
   SequenceReferenceSheet,
   ShotReference,
-  _CharacterAppearanceSheet,
-  _LocationAppearanceSheet,
+  CharacterAppearanceSheet,
+  LocationAppearanceSheet,
 } from '../types/reference';
 import {
   MemoryCache,

@@ -44,7 +44,7 @@ interface Tool {
 // Tool Definitions (Professional Icons)
 // ============================================================================
 
-const TOOLS: Tool[] = [
+export const TOOLS: Tool[] = [
   // Primary Tools
   { id: 'select', name: 'Select', icon: <MousePointer2 className="w-4 h-4" />, shortcut: 'V', category: 'primary', description: 'Select and move shots' },
   { id: 'cut', name: 'Cut', icon: <Scissors className="w-4 h-4" />, shortcut: 'C', category: 'primary', description: 'Split shots at playhead' },
@@ -257,7 +257,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({
 
         <button 
           className={`tool-btn px-3 ${compactMode ? 'active text-amber-500' : ''}`}
-          onClick={toggleCompactMode}
+          onClick={() => toggleCompactMode()}
           title="Compact Director Dashboard (K)"
         >
           <Box className="w-4 h-4 mr-2" />
@@ -266,7 +266,7 @@ export const ToolBar: React.FC<ToolBarProps> = ({
         
         <button 
           className={`tool-btn px-3 ${productionStudioMode ? 'active studio-active border-amber-500/50' : ''}`}
-          onClick={toggleProductionStudioMode}
+          onClick={() => toggleProductionStudioMode()}
           title="Production Studio (CapCut Style) (Shift+S)"
         >
           <Clapperboard className="w-4 h-4 mr-2 text-amber-400" />
@@ -279,21 +279,21 @@ export const ToolBar: React.FC<ToolBarProps> = ({
         <div className="tool-group tool-group-pill bg-primary/5 mx-2">
           <button 
             className={`tool-btn-icon ${gridVisible ? 'active text-primary' : 'opacity-40'}`} 
-            onClick={toggleGrid} 
+            onClick={() => toggleGrid()}
             title="Toggle Timeline Grid (G)"
           >
             <Grid3X3 className="w-3.5 h-3.5" />
           </button>
           <button 
             className={`tool-btn-icon ${markersVisible ? 'active text-primary' : 'opacity-40'}`} 
-            onClick={toggleMarkers} 
+            onClick={() => toggleMarkers()}
             title="Toggle Timeline Markers (M)"
           >
             <MapPin className="w-3.5 h-3.5" />
           </button>
           <button 
             className={`tool-btn-icon ${promptsVisible ? 'active text-primary' : 'opacity-40'}`} 
-            onClick={togglePrompts} 
+            onClick={() => togglePrompts()}
             title="Toggle Shot Prompts (P)"
           >
             <AlignLeft className="w-3.5 h-3.5" />

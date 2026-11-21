@@ -16,7 +16,7 @@ import type {
   PacingEnergy,
   EnhancedShot,
   CompleteSequence,
-  _PacingConfig 
+  PacingConfig
 } from '@/types/cinematicTypes';
 import { PACING_CONFIGS } from '@/types/cinematicTypes';
 import './PacingAnalyzer.css';
@@ -42,7 +42,6 @@ interface PacingSegment {
 type ViewMode = 'timeline' | 'waveform' | 'bars' | 'heatmap';
 
 export function PacingAnalyzer({
-  _sequence,
   shots,
   onUpdatePacing,
   className
@@ -58,7 +57,7 @@ export function PacingAnalyzer({
       const config = PACING_CONFIGS[shot.pacing || 'medium'];
       const segment: PacingSegment = {
         shotId: shot.id,
-        title: shot.title,
+        title: shot.title ?? shot.name,
         startTime: currentTime,
         endTime: currentTime + duration,
         duration,

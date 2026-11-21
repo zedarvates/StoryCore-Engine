@@ -3,7 +3,7 @@
  * Pre-configured parameter sets for different quality and style requirements
  */
 
-import { GenerationPreset, _ComfyUIParameters } from '../../types';
+import { GenerationPreset, ComfyUIParameters } from '../../types';
 
 // ============================================================================
 // Quality Presets
@@ -22,7 +22,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined, // Random seed
       steps: 50,
       cfgScale: 12,
-      sampler: 'DPM++ 2M Karras',
+      sampler: 'dpmpp_2m',
       scheduler: 'karras',
       denoisingStrength: 1.0,
     },
@@ -42,7 +42,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 30,
       cfgScale: 10,
-      sampler: 'DPM++ 2M Karras',
+      sampler: 'dpmpp_2m',
       scheduler: 'karras',
       denoisingStrength: 1.0,
     },
@@ -62,7 +62,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 20,
       cfgScale: 8,
-      sampler: 'Euler a',
+      sampler: 'euler_ancestral',
       scheduler: 'normal',
       denoisingStrength: 1.0,
     },
@@ -86,7 +86,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 10,
       cfgScale: 6,
-      sampler: 'Euler',
+      sampler: 'euler',
       scheduler: 'normal',
       denoisingStrength: 1.0,
     },
@@ -106,7 +106,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 8,
       cfgScale: 5,
-      sampler: 'Euler',
+      sampler: 'euler',
       scheduler: 'normal',
       denoisingStrength: 1.0,
     },
@@ -130,7 +130,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 25,
       cfgScale: 9,
-      sampler: 'DPM++ SDE Karras',
+      sampler: 'dpmpp_sde',
       scheduler: 'karras',
       denoisingStrength: 1.0,
     },
@@ -150,7 +150,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 20,
       cfgScale: 11,
-      sampler: 'DPM++ 2M Karras',
+      sampler: 'dpmpp_2m',
       scheduler: 'karras',
       denoisingStrength: 1.0,
     },
@@ -170,7 +170,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 35,
       cfgScale: 11,
-      sampler: 'DPM++ 3M SDE Karras',
+      sampler: 'dpmpp_3m_sde',
       scheduler: 'karras',
       denoisingStrength: 1.0,
     },
@@ -190,7 +190,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 30,
       cfgScale: 12,
-      sampler: 'DPM++ 2S a Karras',
+      sampler: 'dpmpp_2s_ancestral',
       scheduler: 'karras',
       denoisingStrength: 1.0,
     },
@@ -214,7 +214,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined,
       steps: 15,
       cfgScale: 7,
-      sampler: 'Euler a',
+      sampler: 'euler_ancestral',
       scheduler: 'normal',
       denoisingStrength: 1.0,
     },
@@ -234,7 +234,7 @@ export const QUALITY_PRESETS: GenerationPreset[] = [
       seed: undefined, // Will be set externally for consistency
       steps: 25,
       cfgScale: 13,
-      sampler: 'DPM++ 2M Karras',
+      sampler: 'dpmpp_2m',
       scheduler: 'karras',
       denoisingStrength: 0.8, // Slight denoising for consistency
     },

@@ -1,14 +1,14 @@
 import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
 import { useWizard } from '@/contexts/WizardContext';
-import { WizardFormLayout, FormField } from '../WizardFormLayout';
+import { WizardFormLayout, FormField } from '../../WizardFormLayout';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { _Badge } from '@/co_mponents/u_i/bad_ge';
+import { Badge } from '@/components/ui/badge';
 import { Sparkles, X, Zap, Scissors, Eye, User, Palette, Microscope, Activity } from 'lucide-react';
 import { useLLMGeneration } from '@/hooks/useLLMGeneration';
-import { LLMErrorDisplay, LLMLoadingState } from '../LLMErrorDisplay';
+import { LLMErrorDisplay, LLMLoadingState } from '../../LLMErrorDisplay';
 import { ServiceWarning, useServiceStatus } from '@/components/ui/service-warning';
 import { useAppStore } from '@/stores/useAppStore';
 import {
@@ -25,11 +25,10 @@ import {
   BODY_BUILDS,
   HEIGHT_CATEGORIES,
   POSTURE_OPTIONS,
-} from '@_/constants/characterOptions';
+} from '@/constants/characterOptions';
 import { cn } from '@/lib/utils';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
-import type { StoryContext } from './CharacterWizard';
 
 // ============================================================================
 // Step 2: Morphological Profile (Physical Appearance)
@@ -37,7 +36,7 @@ import type { StoryContext } from './CharacterWizard';
 
 interface Step2PhysicalAppearanceProps {
   worldContext?: World;
-  storyContext?: StoryContext;
+  storyContext?: unknown;
 }
 
 export function Step2PhysicalAppearance({ worldContext }: Step2PhysicalAppearanceProps) {

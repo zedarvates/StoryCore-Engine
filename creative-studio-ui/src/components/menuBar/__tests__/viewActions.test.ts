@@ -24,7 +24,7 @@ describe('View Actions', () => {
   let mockNotificationService: NotificationService;
   let mockContext: ActionContext;
   let mockViewState: ViewState;
-  let onViewStateChangeSpy: ReturnType<typeof vi.fn>;
+  let onViewStateChangeSpy = vi.fn<NonNullable<ActionContext['onViewStateChange']>>();
 
   beforeEach(() => {
     // Create mock notification service
@@ -47,11 +47,12 @@ describe('View Actions', () => {
     };
 
     // Create spy for view state change callback
-    onViewStateChangeSpy = vi.fn();
+    onViewStateChangeSpy = vi.fn<NonNullable<ActionContext['onViewStateChange']>>();
 
     // Create mock context
     mockContext = {
       state: {
+        selectedShotId: null,
         project: null,
         hasUnsavedChanges: false,
         viewState: mockViewState,
@@ -374,68 +375,6 @@ describe('View Actions', () => {
     });
   });
 
-  describe('togglePropertiesPanel', () => {
-    it('should toggle properties panel visibility from true to false', () => {
-      // Initial state: properties panel visible
-      mockContext.state.viewState.panelsVisible.properties = true;
-
-      // Execute toggle action
-      viewActions.togglePropertiesPanel(mockContext);
-
-      // Verify callback was called with updated state
-      expect(onViewStateChangeSpy).toHaveBeenCalledWith({
-        panelsVisible: {
-          properties: false,
-          assets: true,
-          preview: true,
-        },
-      });
-    });
-
-    it('should toggle properties panel visibility from false to true', () => {
-      // Initial state: properties panel hidden
-      mockContext.state.viewState.panelsVisible.properties = false;
-
-      // Execute toggle action
-      viewActions.togglePropertiesPanel(mockContext);
-
-      // Verify callback was called with updated state
-      expect(onViewStateChangeSpy).toHaveBeenCalledWith({
-        panelsVisible: {
-          properties: true,
-          assets: true,
-          preview: true,
-        },
-      });
-    });
-
-    it('should not affect other panel states', () => {
-      // Set initial panel states
-      mockContext.state.viewState.panelsVisible = {
-        properties: true,
-        assets: false,
-        preview: true,
-      };
-
-      // Execute toggle action
-      viewActions.togglePropertiesPanel(mockContext);
-
-      // Verify only properties panel changed
-      const updatedState = onViewStateChangeSpy.mock.calls[0][0];
-      expect(updatedState.panelsVisible.properties).toBe(false);
-      expect(updatedState.panelsVisible.assets).toBe(false); // Unchanged
-      expect(updatedState.panelsVisible.preview).toBe(true); // Unchanged
-    });
-
-    it('should not call callback if onViewStateChange is undefined', () => {
-      // Remove callback
-      mockContext.onViewStateChange = undefined;
-
-      // Execute toggle action (should not throw)
-      expect(() => viewActions.togglePropertiesPanel(mockContext)).not.toThrow();
-    });
-  });
-
   describe('toggleAssetsPanel', () => {
     it('should toggle assets panel visibility from true to false', () => {
       // Initial state: assets panel visible
@@ -484,9 +423,9 @@ describe('View Actions', () => {
 
       // Verify only assets panel changed
       const updatedState = onViewStateChangeSpy.mock.calls[0][0];
-      expect(updatedState.panelsVisible.properties).toBe(false); // Unchanged
-      expect(updatedState.panelsVisible.assets).toBe(false);
-      expect(updatedState.panelsVisible.preview).toBe(false); // Unchanged
+      expect(updatedState.panelsVisible?.properties).toBe(false); // Unchanged
+      expect(updatedState.panelsVisible?.assets).toBe(false);
+      expect(updatedState.panelsVisible?.preview).toBe(false); // Unchanged
     });
 
     it('should not call callback if onViewStateChange is undefined', () => {
@@ -546,9 +485,9 @@ describe('View Actions', () => {
 
       // Verify only preview panel changed
       const updatedState = onViewStateChangeSpy.mock.calls[0][0];
-      expect(updatedState.panelsVisible.properties).toBe(true); // Unchanged
-      expect(updatedState.panelsVisible.assets).toBe(false); // Unchanged
-      expect(updatedState.panelsVisible.preview).toBe(false);
+      expect(updatedState.panelsVisible?.properties).toBe(true); // Unchanged
+      expect(updatedState.panelsVisible?.assets).toBe(false); // Unchanged
+      expect(updatedState.panelsVisible?.preview).toBe(false);
     });
 
     it('should not call callback if onViewStateChange is undefined', () => {

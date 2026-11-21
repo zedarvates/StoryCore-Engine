@@ -14,38 +14,40 @@ import {
 /**
  * Hook for managing a single tunneled parameter
  */
-export function useTunneledParameter<T>(
+export function useTunneledParameter(
   id: string,
-  initialValue: T,
+  initialValue: number,
   options?: {
-    min?: T;
-    max?: T;
-    step?: T;
+    min?: number;
+    max?: number;
+    step?: number;
     category?: TunneledParameter['category'];
   }
 ): {
-  value: T;
-  setValue: (value: T) => void;
+  value: number;
+  setValue: (value: number) => void;
   register: () => void;
   unregister: () => void;
 } {
   const { updateParameter, registerParameter, unregisterParameter } =
     useParameterTunnelingStore();
 
-  const parameter = useRef<TunneledParameter<T> | null>(null);
+  const { min, max, step, category = 'transform' } = options ?? {};
+  const storedValue = useParameterTunnelingStore((state) => state.parameters.get(id)?.value);
+  const parameter = useRef<TunneledParameter<number> | null>(null);
 
   const register = useCallback(() => {
-    parameter.current = {
+    const registered: TunneledParameter<number> = {
       id,
       name: id,
       description: '',
       type: 'number' as const,
       value: initialValue,
       defaultValue: initialValue,
-      minValue: options?.min,
-      maxValue: options?.max,
-      step: options?.step,
-      category: options?.category || 'transform',
+      minValue: min,
+      maxValue: max,
+      step: step,
+      category: category,
       isAnimated: false,
       tunnelSource: {
         type: 'internal',
@@ -54,8 +56,9 @@ export function useTunneledParameter<T>(
         syncEnabled: true,
       },
     };
-    registerParameter(parameter.current);
-  }, [id, initialValue, options, registerParameter]);
+    parameter.current = registered;
+    registerParameter(registered);
+  }, [id, initialValue, min, max, step, category, registerParameter]);
 
   const unregister = useCallback(() => {
     if (parameter.current) {
@@ -65,7 +68,7 @@ export function useTunneledParameter<T>(
   }, [id, unregisterParameter]);
 
   const setValue = useCallback(
-    (value: T) => {
+    (value: number) => {
       updateParameter(id, value);
     },
     [id, updateParameter]
@@ -77,7 +80,7 @@ export function useTunneledParameter<T>(
   }, [register, unregister]);
 
   return {
-    value: initialValue,
+    value: typeof storedValue === 'number' ? storedValue : initialValue,
     setValue,
     register,
     unregister,
@@ -102,7 +105,7 @@ export function useParameterTunnel(
   isActive: boolean;
 } {
   const tunnelId = useRef<string>('');
-  const { createTunnel, deleteTunnel, activateTunnel, deactivateTunnel, _tunnels } =
+  const { createTunnel, deleteTunnel, activateTunnel, deactivateTunnel } =
     useParameterTunnelingStore();
 
   const createTunnelFn = useCallback(() => {
@@ -173,30 +176,30 @@ export function useParameterTunnel(
 /**
  * Hook for keyframe animation support
  */
-export function useKeyframes<T>(
+export function useKeyframes(
   parameterId: string,
-  _keyframes: ParameterKeyframe<T>[]
+  initialKeyframes: ParameterKeyframe<number>[]
 ): {
-  addKeyframe: (time: number, value: T, easing?: ParameterKeyframe<T>['easing']) => void;
+  addKeyframe: (time: number, value: number, easing?: ParameterKeyframe<number>['easing']) => void;
   removeKeyframe: (keyframeId: string) => void;
-  updateKeyframe: (keyframeId: string, updates: Partial<ParameterKeyframe<T>>) => void;
-  getValueAtTime: (time: number) => T | null;
+  updateKeyframe: (keyframeId: string, updates: Partial<ParameterKeyframe<number>>) => void;
+  getValueAtTime: (time: number) => number | null;
 } {
-  const { parameters, _updateParameter } = useParameterTunnelingStore();
+  const { parameters } = useParameterTunnelingStore();
 
   const addKeyframe = useCallback(
-    (time: number, value: T, easing?: ParameterKeyframe<T>['easing']) => {
+    (time: number, value: number, easing?: ParameterKeyframe<number>['easing']) => {
       const parameter = parameters.get(parameterId);
       if (!parameter) return;
 
-      const newKeyframe: ParameterKeyframe<T> = {
+      const newKeyframe: ParameterKeyframe<number> = {
         id: `kf_${Date.now()}_${Math.random().toString(36).slice(2)}`,
         time,
         value,
         easing: easing || { type: 'linear' },
       };
 
-      const updatedKeyframes = [...(parameter.keyframes || []), newKeyframe].sort(
+      const updatedKeyframes = [...(parameter.keyframes ?? initialKeyframes), newKeyframe].sort(
         (a, b) => a.time - b.time
       );
 
@@ -208,7 +211,7 @@ export function useKeyframes<T>(
         }),
       });
     },
-    [parameterId, parameters]
+    [parameterId, parameters, initialKeyframes]
   );
 
   const removeKeyframe = useCallback(
@@ -216,7 +219,7 @@ export function useKeyframes<T>(
       const parameter = parameters.get(parameterId);
       if (!parameter) return;
 
-      const updatedKeyframes = (parameter.keyframes || []).filter(
+      const updatedKeyframes = (parameter.keyframes ?? initialKeyframes).filter(
         (kf) => kf.id !== keyframeId
       );
 
@@ -228,15 +231,15 @@ export function useKeyframes<T>(
         }),
       });
     },
-    [parameterId, parameters]
+    [parameterId, parameters, initialKeyframes]
   );
 
   const updateKeyframe = useCallback(
-    (keyframeId: string, updates: Partial<ParameterKeyframe<T>>) => {
+    (keyframeId: string, updates: Partial<ParameterKeyframe<number>>) => {
       const parameter = parameters.get(parameterId);
       if (!parameter) return;
 
-      const updatedKeyframes = (parameter.keyframes || []).map((kf) =>
+      const updatedKeyframes = (parameter.keyframes ?? initialKeyframes).map((kf) =>
         kf.id === keyframeId ? { ...kf, ...updates } : kf
       );
 
@@ -247,39 +250,26 @@ export function useKeyframes<T>(
         }),
       });
     },
-    [parameterId, parameters]
+    [parameterId, parameters, initialKeyframes]
   );
 
   const getValueAtTime = useCallback(
-    (time: number): T | null => {
-      const parameter = parameters.get(parameterId);
-      if (!parameter?.keyframes || parameter.keyframes.length === 0) return null;
+    (time: number): number | null => {
+      const keyframes = parameters.get(parameterId)?.keyframes ?? initialKeyframes;
+      const sorted = keyframes.filter((frame): frame is ParameterKeyframe<number> =>
+        typeof frame.value === 'number' && Number.isFinite(frame.value) && Number.isFinite(frame.time)
+      ).sort((first, second) => first.time - second.time);
+      if (sorted.length === 0 || !Number.isFinite(time)) return null;
 
-      const sorted = [...parameter.keyframes].sort((a, b) => a.time - b.time);
-      
-      // Find surrounding keyframes
-      let prevKf = sorted[0];
-      let nextKf = sorted[sorted.length - 1];
-
-      for (let i = 0; i < sorted.length; i++) {
-        if (sorted[i].time <= time) {
-          prevKf = sorted[i];
-        }
-        if (sorted[i].time >= time && nextKf === sorted[sorted.length - 1]) {
-          nextKf = sorted[i];
-          break;
-        }
-      }
-
-      if (prevKf === nextKf) return prevKf.value;
-
-      // Interpolate
-      const ratio = (time - prevKf.time) / (nextKf.time - prevKf.time);
-      return prevKf.easing?.type === 'linear'
-        ? (prevKf.value as number) + ((nextKf.value as number) - (prevKf.value as number)) * ratio
-        : (nextKf.value as number);
+      const nextIndex = sorted.findIndex((frame) => frame.time >= time);
+      if (nextIndex === -1) return sorted[sorted.length - 1].value;
+      const next = sorted[nextIndex];
+      if (nextIndex === 0 || next.time === time) return next.value;
+      const previous = sorted[nextIndex - 1];
+      if (previous.easing?.type !== 'linear') return next.value;
+      return previous.value + (next.value - previous.value) * (time - previous.time) / (next.time - previous.time);
     },
-    [parameterId, parameters]
+    [parameterId, parameters, initialKeyframes]
   );
 
   return {
@@ -290,4 +280,4 @@ export function useKeyframes<T>(
   };
 }
 
-export default useParameterTunneling;
+export default useTunneledParameter;

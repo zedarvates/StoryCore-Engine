@@ -43,7 +43,7 @@ const CATEGORIES = [
 
 export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [_activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [scrollTop, setScrollTop] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -150,7 +150,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
             return false;
           }
           // Match subcategory if specified
-          if ('subcategory' in category && category.subcategory !== undefined) {
+          if ('subcategory' in category && category.subcategory != null) {
             return asset.metadata?.subcategory === category.subcategory;
           }
           // For 'templates' category, show only templates without specific subcategories
@@ -189,7 +189,7 @@ export function AssetLibrary({ assets, onAssetSelect }: AssetLibraryProps) {
       if (category.type && asset.type !== category.type) {
         return false;
       }
-      if ('subcategory' in category && category.subcategory !== undefined) {
+      if ('subcategory' in category && category.subcategory != null) {
         return asset.metadata?.subcategory === category.subcategory;
       }
       // Handle templates category specifically

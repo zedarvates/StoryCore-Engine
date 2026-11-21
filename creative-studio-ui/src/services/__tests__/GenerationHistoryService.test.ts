@@ -6,9 +6,9 @@
  * Requirements: 14.1, 14.3, 14.4
  */
 
-import { describe, it, expect, beforeEach, _vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GenerationHistoryService } from '../GenerationHistoryService';
-import type { GeneratedAsset, _HistoryEntry } from '../../types/generation';
+import type { GeneratedAsset, HistoryEntry } from '../../types/generation';
 
 // Mock localStorage
 const localStorageMock = (() => {

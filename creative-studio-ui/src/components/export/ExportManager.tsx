@@ -19,7 +19,7 @@ import {
   Monitor,
   Info
 } from 'lucide-react';
-import { _Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { HighBandwidthFrameAssembler } from '@/services/HighBandwidthFrameAssembler';
 

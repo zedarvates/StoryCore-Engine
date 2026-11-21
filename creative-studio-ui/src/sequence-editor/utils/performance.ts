@@ -249,13 +249,14 @@ export function deepEqual(obj1: unknown, obj2: unknown): boolean {
     return false;
   }
   
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
+  const entries = Object.entries(obj1);
+  const other = obj2 as Record<string, unknown>;
+  const keys = Object.keys(other);
   
-  if (keys1.length !== keys2.length) return false;
+  if (entries.length !== keys.length) return false;
   
-  for (const key of keys1) {
-    if (!keys2.includes(key) || !deepEqual(obj1[key], obj2[key])) {
+  for (const [key, value] of entries) {
+    if (!Object.hasOwn(other, key) || !deepEqual(value, other[key])) {
       return false;
     }
   }
@@ -273,13 +274,14 @@ export function shallowEqual(obj1: unknown, obj2: unknown): boolean {
     return false;
   }
   
-  const keys1 = Object.keys(obj1);
-  const keys2 = Object.keys(obj2);
+  const entries = Object.entries(obj1);
+  const other = obj2 as Record<string, unknown>;
+  const keys = Object.keys(other);
   
-  if (keys1.length !== keys2.length) return false;
+  if (entries.length !== keys.length) return false;
   
-  for (const key of keys1) {
-    if (obj1[key] !== obj2[key]) return false;
+  for (const [key, value] of entries) {
+    if (!Object.hasOwn(other, key) || value !== other[key]) return false;
   }
   
   return true;

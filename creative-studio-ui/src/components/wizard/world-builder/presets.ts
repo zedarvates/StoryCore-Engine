@@ -1,11 +1,11 @@
-import type { Location, WorldRule, CulturalElements, WorldObject } from '@/types/world';
+import type { Genre, Tone, Location, WorldRule, CulturalElements, WorldObject } from '@/types/world';
 
 export interface WorldPreset {
   id: string;
   name: string;
   description: string;
-  genre: string[];
-  tone: string[];
+  genre: Genre[];
+  tone: Tone[];
   locations: Partial<Location>[];
   rules: Partial<WorldRule>[];
   keyObjects?: Partial<WorldObject>[];

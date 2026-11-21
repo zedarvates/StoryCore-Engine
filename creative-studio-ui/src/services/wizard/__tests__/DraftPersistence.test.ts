@@ -50,6 +50,20 @@ describe('DraftPersistence', () => {
   });
 
   describe('saveDraft', () => {
+    it('round-trips wizard step data', async () => {
+      const stepData = { 1: { title: 'Opening' }, 2: { tags: ['night'] } };
+      const id = await draftPersistence.saveDraft({
+        currentStep: 2,
+        completedSteps: new Set([1]),
+        stepData,
+      });
+
+      const restored = await draftPersistence.loadDraft(id);
+      expect(restored.currentStep).toBe(2);
+      expect(restored.completedSteps).toEqual(new Set([1]));
+      expect(restored.stepData).toEqual(stepData);
+    });
+
     it('should save a draft and return a draft ID', async () => {
       const wizardState: Partial<WizardState> = {
         currentStep: 2,

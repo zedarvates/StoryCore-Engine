@@ -46,11 +46,11 @@ describe('ComfyUIProgressMonitor', () => {
     },
   ];
 
-  const mockOnExecutionUpdate = jest.fn();
-  const mockOnExecutionComplete = jest.fn();
+  const mockOnExecutionUpdate = vi.fn();
+  const mockOnExecutionComplete = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
 
     // Mock backend API
     const mockBackendApi = require('@/services/backendApiService').backendApi;

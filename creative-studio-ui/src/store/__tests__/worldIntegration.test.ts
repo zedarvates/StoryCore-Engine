@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, _vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useStore, useWorlds, useSelectedWorld } from '../index';
 import type { World } from '@/types/world';
@@ -33,6 +33,7 @@ describe('World Store Integration', () => {
         worlds: [],
         selectedWorldId: null,
         project: {
+          id: "project-test-project",
           schema_version: '1.0',
           project_name: 'test-project',
           shots: [],
@@ -60,6 +61,7 @@ describe('World Store Integration', () => {
   describe('addWorld', () => {
     it('should add a world to the store', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -78,8 +80,8 @@ describe('World Store Integration', () => {
         technology: 'Medieval',
         magic: 'Elemental magic system',
         conflicts: ['War of the Five Kingdoms'],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -94,6 +96,7 @@ describe('World Store Integration', () => {
 
     it('should persist world to localStorage', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -112,8 +115,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -130,6 +133,7 @@ describe('World Store Integration', () => {
 
     it('should update project with new world', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -148,8 +152,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -163,6 +167,7 @@ describe('World Store Integration', () => {
 
     it('should not auto-select if a world is already selected', () => {
       const world1: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -181,8 +186,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       const world2: World = {
@@ -205,6 +210,7 @@ describe('World Store Integration', () => {
   describe('updateWorld', () => {
     it('should update a world in the store', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -223,8 +229,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -243,6 +249,7 @@ describe('World Store Integration', () => {
 
     it('should persist updated world to localStorage', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -261,8 +268,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -279,6 +286,7 @@ describe('World Store Integration', () => {
   describe('deleteWorld', () => {
     it('should delete a world from the store', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -297,8 +305,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -313,6 +321,7 @@ describe('World Store Integration', () => {
 
     it('should select next world when deleting selected world', () => {
       const world1: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -331,8 +340,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       const world2: World = {
@@ -355,6 +364,7 @@ describe('World Store Integration', () => {
   describe('selectWorld', () => {
     it('should select a world', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -373,8 +383,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -391,6 +401,7 @@ describe('World Store Integration', () => {
   describe('getWorldById', () => {
     it('should return world by id', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -409,8 +420,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -430,6 +441,7 @@ describe('World Store Integration', () => {
   describe('Selector Hooks', () => {
     it('useWorlds should return all worlds', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -448,8 +460,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {
@@ -463,6 +475,7 @@ describe('World Store Integration', () => {
 
     it('useSelectedWorld should return selected world', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -481,8 +494,8 @@ describe('World Store Integration', () => {
         technology: '',
         magic: '',
         conflicts: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       };
 
       act(() => {

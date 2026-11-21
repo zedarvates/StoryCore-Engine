@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, Search, _Plus, UserCircle } from 'lucide-react';
+import { Users, Search, Plus, UserCircle } from 'lucide-react';
 import { useStore } from '../../../store';
 import './Library.css';
 
@@ -10,8 +10,6 @@ export interface PuppetLibraryProps {
 }
 
 export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
-  _worldId,
-  _onElementSelect,
   className = ''
 }) => {
   const characters = useStore((state) => state.characters);
@@ -24,7 +22,7 @@ export const PuppetLibrary: React.FC<PuppetLibraryProps> = ({
     pose: 'standing'
   }));
 
-  const handleDragStart = (puppet: unknown) => (e: React.DragEvent) => {
+  const handleDragStart = (puppet: (typeof puppets)[number]) => (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       type: 'puppet',
       assetId: puppet.id,

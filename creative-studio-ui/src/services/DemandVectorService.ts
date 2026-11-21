@@ -55,7 +55,7 @@ export class DemandVectorService {
         intentId: 'draw-character',
         metadata: {
           addon: 'grok-imagine',
-          verb: 'generate',
+          verb: 'create',
           action: 'generate_image',
           proceduralResponse: [
             "Je m'y attèle tout de suite.",
@@ -68,7 +68,7 @@ export class DemandVectorService {
         intentId: 'create-comic',
         metadata: {
           addon: 'comic-generator',
-          verb: 'generate',
+          verb: 'create',
           action: 'generate_comic',
           proceduralResponse: [
             "Je prépare les planches de votre BD.",
@@ -134,6 +134,9 @@ export class DemandVectorService {
    * Analyse un transcript pour trouver le meilleur "Vecteur de Demande"
    */
   async findBestMatch(transcript: string): Promise<VectorMatch | null> {
+    const availableVectors = this.library.filter(vector => vector.embedding.some(value => value !== 0));
+    if (!transcript.trim() || availableVectors.length === 0) return null;
+
     try {
       // 1. Obtenir l'embedding du prompt utilisateur via Ollama (ou API distante)
       // Note: On peut aussi utiliser un modèle local type Transformers.js pour 0 coût API
@@ -142,8 +145,8 @@ export class DemandVectorService {
       let bestMatch: VectorMatch | null = null;
       let maxSim = -Infinity;
 
-      for (const vector of this.library) {
-        if (!vector.embedding) continue;
+      for (const vector of availableVectors) {
+        if (vector.embedding.length !== userEmbedding.length) continue;
         const sim = this.cosineSimilarity(userEmbedding, vector.embedding);
         if (sim > maxSim) {
           maxSim = sim;

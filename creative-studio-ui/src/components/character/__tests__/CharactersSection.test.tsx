@@ -8,7 +8,7 @@ import { LegacyAny } from '@/types/legacy';
 // Requirements: 1.1, 1.5, 2.1, 3.1
 // ============================================================================
 
-import { describe, it, expect, vi, b_eforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { CharactersSection } from '../CharactersSection';
 import type { Character } from '@/types/character';
@@ -16,7 +16,7 @@ import type { Character } from '@/types/character';
 // Mock dependencies
 vi.mock('@/hooks/useCharacterManager');
 vi.mock('@/stores/useAppStore', () => ({
-  useStore: vi.fn(),
+  useAppStore: vi.fn(),
 }));
 vi.mock('@/services/eventEmitter', () => ({
   eventEmitter: {
@@ -28,7 +28,8 @@ vi.mock('@/services/eventEmitter', () => ({
 
 // Import mocked modules after mocking
 import { useCharacterManager } from '@/hooks/useCharacterManager';
-import { useStore } from '@/stores/useAppStore';
+import { useAppStore } from '@/stores/useAppStore';
+import { useStore } from '@/store';
 
 // ============================================================================
 // Test Data
@@ -38,9 +39,12 @@ const mockCharacter: Character = {
   character_id: 'char-1',
   name: 'Test Hero',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-01T00:00:00.000Z',
+  creation_timestamp: Date.parse('2024-01-01T00:00:00.000Z'),
   version: '1.0',
   visual_identity: {
+    gender: 'unspecified',
+    reference_images: [],
+    reference_sheet_images: [],
     hair_color: 'black',
     hair_style: 'short',
     hair_length: 'short',
@@ -67,6 +71,7 @@ const mockCharacter: Character = {
     communication_style: 'direct',
   },
   background: {
+    backstory: '',
     origin: 'City',
     occupation: 'Warrior',
     education: 'Military Academy',
@@ -105,6 +110,8 @@ describe('CharactersSection', () => {
     addRelationship: vi.fn(),
     updateRelationship: vi.fn(),
     removeRelationship: vi.fn(),
+    exportCharacter: vi.fn(),
+    importCharacter: vi.fn(),
   };
 
   const mockStore = {
@@ -114,18 +121,21 @@ describe('CharactersSection', () => {
     setCharacterFilters: vi.fn(),
   };
 
+  const previousCharacters = useStore.getState().characters;
+  afterEach(() => useStore.setState({ characters: previousCharacters }));
+
   beforeEach(() => {
     vi.clearAllMocks();
     
     // Setup mocks
     vi.mocked(useCharacterManager).mockReturnValue(mockCharacterManager);
-    vi.mocked(useStore).mockImplementation((selector: LegacyAny) => {
+    vi.mocked(useAppStore).mockImplementation((selector: LegacyAny) => {
       const state = mockStore;
       return selector(state);
     });
 
     // Default: no characters
-    mockCharacterManager.getAllCharacters.mockReturnValue([]);
+    useStore.setState({ characters: [] });
     mockCharacterManager.searchCharacters.mockReturnValue([]);
     mockCharacterManager.filterCharacters.mockReturnValue([]);
   });
@@ -196,7 +206,7 @@ describe('CharactersSection', () => {
 
   describe('Requirement 1.5: Empty state with create button', () => {
     it('should display empty state when no characters exist', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([]);
+      useStore.setState({ characters: [] });
 
       render(
         <CharactersSection
@@ -210,7 +220,7 @@ describe('CharactersSection', () => {
     });
 
     it('should show create button in empty state', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([]);
+      useStore.setState({ characters: [] });
 
       render(
         <CharactersSection
@@ -246,7 +256,7 @@ describe('CharactersSection', () => {
     });
 
     it('should call onCreateCharacter from empty state button', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([]);
+      useStore.setState({ characters: [] });
 
       render(
         <CharactersSection
@@ -269,7 +279,7 @@ describe('CharactersSection', () => {
 
   describe('Requirement 2.1: Character editor interface', () => {
     it('should call onCharacterClick when a character card is clicked', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      useStore.setState({ characters: [mockCharacter] });
 
       render(
         <CharactersSection
@@ -289,7 +299,7 @@ describe('CharactersSection', () => {
     });
 
     it('should pass onEdit handler to CharacterList', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      useStore.setState({ characters: [mockCharacter] });
 
       render(
         <CharactersSection
@@ -305,7 +315,7 @@ describe('CharactersSection', () => {
     });
 
     it('should pass onDelete handler to CharacterList', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      useStore.setState({ characters: [mockCharacter] });
 
       render(
         <CharactersSection
@@ -327,7 +337,7 @@ describe('CharactersSection', () => {
 
   describe('Component integration', () => {
     it('should display characters when they exist', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      useStore.setState({ characters: [mockCharacter] });
 
       render(
         <CharactersSection
@@ -342,7 +352,7 @@ describe('CharactersSection', () => {
     });
 
     it('should pass showActions prop to CharacterList', () => {
-      mockCharacterManager.getAllCharacters.mockReturnValue([mockCharacter]);
+      useStore.setState({ characters: [mockCharacter] });
 
       render(
         <CharactersSection
@@ -364,7 +374,7 @@ describe('CharactersSection', () => {
         { ...mockCharacter, character_id: 'char-2', name: 'Test Villain' },
         { ...mockCharacter, character_id: 'char-3', name: 'Test Sidekick' },
       ];
-      mockCharacterManager.getAllCharacters.mockReturnValue(characters);
+      useStore.setState({ characters: characters });
 
       render(
         <CharactersSection

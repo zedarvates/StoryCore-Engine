@@ -157,12 +157,12 @@ export function useCharacterSuggestions(characters: Character[], query: string) 
     return characters
       .filter((char) => {
         const matchesName = char.name?.toLowerCase().includes(normalizedQuery);
-        const matchesDescription = char.description?.toLowerCase().includes(normalizedQuery);
-        const matchesTags = char.tags?.some((tag) => 
-          tag.toLowerCase().includes(normalizedQuery)
+        const matchesDescription = char.background?.backstory?.toLowerCase().includes(normalizedQuery);
+        const matchesTraits = char.personality?.traits?.some((trait) =>
+          trait.toLowerCase().includes(normalizedQuery)
         );
-        
-        return matchesName || matchesDescription || matchesTags;
+
+        return matchesName || matchesDescription || matchesTraits;
       })
       .slice(0, 10); // Limit results
   }, [characters, query]);
@@ -180,8 +180,8 @@ export function useLocationSuggestions(locations: Location[], query: string) {
     return locations
       .filter((loc) => {
         const matchesName = loc.name?.toLowerCase().includes(normalizedQuery);
-        const matchesDescription = loc.description?.toLowerCase().includes(normalizedQuery);
-        const matchesType = loc.type?.toLowerCase().includes(normalizedQuery);
+        const matchesDescription = loc.metadata?.description?.toLowerCase().includes(normalizedQuery);
+        const matchesType = loc.location_type?.toLowerCase().includes(normalizedQuery);
         
         return matchesName || matchesDescription || matchesType;
       })
@@ -202,7 +202,7 @@ export function useObjectSuggestions(objects: StoryObject[], query: string) {
       .filter((obj) => {
         const matchesName = obj.name?.toLowerCase().includes(normalizedQuery);
         const matchesDescription = obj.description?.toLowerCase().includes(normalizedQuery);
-        const matchesCategory = obj.category?.toLowerCase().includes(normalizedQuery);
+        const matchesCategory = obj.type?.toLowerCase().includes(normalizedQuery);
         
         return matchesName || matchesDescription || matchesCategory;
       })
@@ -233,7 +233,7 @@ export function useShotCalculations(shots: Shot[]) {
       averageDuration: Math.round(totalDuration / shots.length),
       minDuration: Math.min(...durations),
       maxDuration: Math.max(...durations),
-      totalScenes: shots.filter((shot) => shot.scenes?.length).length,
+      totalScenes: shots.filter((shot) => 'scenes' in shot && Array.isArray(shot.scenes) && shot.scenes.length > 0).length,
     };
   }, [shots]);
 }

@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { Timeline } from '../Timeline';
 import { useStore } from '../../store';
 import type { Shot } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('../../store', () => ({
@@ -12,7 +13,7 @@ vi.mock('../../store', () => ({
 
 describe('Timeline Component', () => {
   const mockShots: Shot[] = [
-    {
+    createShotFixture({
       id: 'shot-1',
       title: 'Opening Scene',
       description: 'First shot',
@@ -39,8 +40,8 @@ describe('Timeline Component', () => {
       textLayers: [],
       animations: [],
       position: 0,
-    },
-    {
+    }),
+    createShotFixture({
       id: 'shot-2',
       title: 'Middle Scene',
       description: 'Second shot',
@@ -55,8 +56,8 @@ describe('Timeline Component', () => {
         duration: 1,
       },
       position: 1,
-    },
-    {
+    }),
+    createShotFixture({
       id: 'shot-3',
       title: 'Closing Scene',
       description: 'Third shot',
@@ -66,7 +67,7 @@ describe('Timeline Component', () => {
       textLayers: [],
       animations: [],
       position: 2,
-    },
+    }),
   ];
 
   const mockSetCurrentTime = vi.fn();
@@ -310,7 +311,7 @@ describe('Timeline Component', () => {
 
     it('should handle shots without transitions', () => {
       const shotsWithoutTransitions: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Shot 1',
           description: 'First',
@@ -320,8 +321,8 @@ describe('Timeline Component', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Shot 2',
           description: 'Second',
@@ -331,7 +332,7 @@ describe('Timeline Component', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       (useStore as unknown as ReturnType<typeof vi.fn>).mockImplementation((selector: LegacyAny) => {

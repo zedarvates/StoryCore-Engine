@@ -211,7 +211,6 @@ export function useVideoThumbnails(videoId: string | null) {
     getThumbnailDataUrl,
     registerVideo,
     unregisterVideo,
-    _generateThumbnail,
     generateRange,
     preloadRange,
   } = useVideoThumbnail();

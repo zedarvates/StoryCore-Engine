@@ -13,7 +13,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { SUPPORTED_LANGUAGES, LanguageConfig } from '../types/language';
-import { _initializeLanguage, saveLanguagePreference } from '../utils/languageDetection';
+import { initializeLanguage, saveLanguagePreference } from '../utils/languageDetection';
 
 // ============================================================================
 // Translation Dictionary (Fallback when i18n is not available)

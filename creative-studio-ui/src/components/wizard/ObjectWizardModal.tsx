@@ -2,7 +2,7 @@ import React, { useEffect, useCallback } from 'react';
 import { X } from 'lucide-react';
 import { ObjectWizard } from './object/ObjectWizard';
 import { LLMStatusBanner } from './LLMStatusBanner';
-import { _useAppStore } from '@/stores/useAppStore';
+import { useAppStore } from '@/stores/useAppStore';
 import type { StoryObject } from '@/types/object';
 import './WizardModal.css';
 
@@ -19,6 +19,8 @@ export function ObjectWizardModal({
   onComplete,
   initialData,
 }: ObjectWizardModalProps) {
+  const setShowLLMSettings = useAppStore((state) => state.setShowLLMSettings);
+
   // Handle Escape key
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -52,7 +54,7 @@ export function ObjectWizardModal({
         <div className="wizard-modal-header">
           <div className="flex items-center gap-2">
             <h2 className="wizard-modal-title">Assistant de Création d'Objet</h2>
-            <LLMStatusBanner />
+            <LLMStatusBanner onConfigure={() => setShowLLMSettings(true)} />
           </div>
           <button
             className="wizard-modal-close"
@@ -65,8 +67,8 @@ export function ObjectWizardModal({
 
         <div className="wizard-modal-content">
           <ObjectWizard
-            onClose={onClose}
-            onComplete={onComplete}
+            onCancel={onClose}
+            onComplete={onComplete ?? onClose}
             initialData={initialData}
           />
         </div>

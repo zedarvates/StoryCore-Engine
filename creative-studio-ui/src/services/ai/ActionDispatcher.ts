@@ -39,7 +39,7 @@ export class ActionDispatcher {
         source: 'NeuralDispatcher',
         message: response.feedback,
         intent: response.intent,
-        entities: response.entities
+        entities: { ...response.entities }
       });
       return;
     }

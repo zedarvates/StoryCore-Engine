@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * ComfyUI Servers Service Unit Tests
  *
@@ -9,19 +10,18 @@ import { LegacyAny } from '@/types/legacy';
 
 import {
   ComfyUIServersService,
-  getCo_mfyUIServersService,
+  getComfyUIServersService,
   resetComfyUIServersService,
-  type ComfyUIServer,
-  type CreateComfyUIServerInput,
 } from '../comfyuiServersService';
+import type { ComfyUIServer, CreateComfyUIServerInput } from '@/types/comfyuiServers';
 import { setupComfyUIMock, teardownComfyUIMock } from '../../__mocks__/comfyuiServerMock';
 
 // Mock localStorage for testing
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 global.localStorage = localStorageMock as LegacyAny;
 
@@ -29,7 +29,7 @@ describe('ComfyUI Servers Service', () => {
   let service: ComfyUIServersService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     resetComfyUIServersService();
     service = getComfyUIServersService();
 
@@ -77,11 +77,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should generate unique IDs for servers', () => {
       const input1: CreateComfyUIServerInput = {
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       };
 
       const input2: CreateComfyUIServerInput = {
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       };
@@ -96,6 +98,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should set first server as active automatically', () => {
       const input: CreateComfyUIServerInput = {
+        authentication: { type: 'none' },
         name: 'First Server',
         serverUrl: 'http://localhost:8188',
       };
@@ -108,11 +111,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should not set subsequent servers as active', () => {
       service.addServer({
+        authentication: { type: 'none' },
         name: 'First Server',
         serverUrl: 'http://localhost:8188',
       });
 
       const secondServer = service.addServer({
+        authentication: { type: 'none' },
         name: 'Second Server',
         serverUrl: 'http://localhost:8189',
       });
@@ -123,6 +128,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should update an existing server', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Original Name',
         serverUrl: 'http://localhost:8188',
       });
@@ -148,6 +154,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should delete an existing server', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server to Delete',
         serverUrl: 'http://localhost:8188',
       });
@@ -166,11 +173,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should transfer active status when deleting active server', () => {
       const server1 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
 
       const server2 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });
@@ -185,6 +194,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should get server by ID', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Test Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -203,11 +213,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should get all servers', () => {
       const server1 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
 
       const server2 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });
@@ -223,6 +235,7 @@ describe('ComfyUI Servers Service', () => {
       expect(service.getServerCount()).toBe(0);
 
       service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
@@ -230,6 +243,7 @@ describe('ComfyUI Servers Service', () => {
       expect(service.getServerCount()).toBe(1);
 
       service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });
@@ -241,11 +255,13 @@ describe('ComfyUI Servers Service', () => {
   describe('Active Server Management', () => {
     it('should set active server', () => {
       const server1 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
 
       const server2 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });
@@ -268,6 +284,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should get active server', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Active Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -285,6 +302,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should get active server ID', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Active Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -308,6 +326,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should test server connection successfully', async () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Test Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -324,9 +343,10 @@ describe('ComfyUI Servers Service', () => {
 
     it('should handle connection failure', async () => {
       // Override fetch to simulate failure
-      global.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Connection failed'));
 
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Failing Server',
         serverUrl: 'http://nonexistent:8188',
       });
@@ -341,12 +361,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should test all servers', async () => {
       const server1 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
 
       // Add a second server that will fail
-      global.fetch = jest.fn()
+      global.fetch = vi.fn()
         .mockImplementationOnce((url: string) => {
           if (url.includes('localhost:8188')) {
             return Promise.resolve({
@@ -364,6 +385,7 @@ describe('ComfyUI Servers Service', () => {
         });
 
       const server2 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });
@@ -376,6 +398,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should find available server', async () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Available Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -388,11 +411,13 @@ describe('ComfyUI Servers Service', () => {
 
     it('should prefer active server when available', async () => {
       const server1 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
 
       const server2 = service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });
@@ -401,7 +426,7 @@ describe('ComfyUI Servers Service', () => {
       service.setActiveServer(server2.id);
 
       // Mock server2 as available
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           system: { os: 'Linux', python_version: '3.10.12', pytorch_version: '2.1.1+cu121' },
@@ -416,9 +441,10 @@ describe('ComfyUI Servers Service', () => {
 
     it('should return null when no servers available', async () => {
       // Mock all connections as failed
-      global_.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Connection failed'));
 
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Unavailable Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -444,6 +470,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should get full configuration', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Test Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -462,6 +489,7 @@ describe('ComfyUI Servers Service', () => {
   describe('Persistence', () => {
     it('should save configuration to localStorage', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Persistent Server',
         serverUrl: 'http://localhost:8188',
       });
@@ -543,6 +571,7 @@ describe('ComfyUI Servers Service', () => {
   describe('Configuration Import/Export', () => {
     it('should export configuration as JSON', () => {
       const server = service.addServer({
+        authentication: { type: 'none' },
         name: 'Export Test',
         serverUrl: 'http://localhost:8188',
       });
@@ -599,11 +628,13 @@ describe('ComfyUI Servers Service', () => {
   describe('Clear All Functionality', () => {
     it('should clear all servers', () => {
       service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 1',
         serverUrl: 'http://localhost:8188',
       });
 
       service.addServer({
+        authentication: { type: 'none' },
         name: 'Server 2',
         serverUrl: 'http://localhost:8189',
       });

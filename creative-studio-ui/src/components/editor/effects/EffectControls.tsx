@@ -11,8 +11,9 @@ import {
   ChevronUp,
   Sliders,
 } from 'lucide-react';
-import { _Effect, EffectParameter, AppliedEffect } from '@/types/effect';
+import { Effect, EffectKeyframe, EffectParameter, EffectParameterValue, AppliedEffect } from '@/types/effect';
 import { EffectKeyframes } from './EffectKeyframes';
+import { readEffectColor, readEffectNumber, selectEffectOption } from './effectParameterValues';
 import './EffectControls.css';
 
 interface EffectControlsProps {
@@ -71,12 +72,19 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
     setExpandedSections(newExpanded);
   };
 
-  const updateParameter = (paramId: string, value: unknown) => {
+  const updateParameter = (paramId: string, value: EffectParameterValue) => {
     setLocalParameters(prev =>
       prev.map(param =>
         param.id === paramId ? { ...param, value } : param
       )
     );
+    setHasUnsavedChanges(true);
+  };
+
+  const updateKeyframes = (paramId: string, keyframes: EffectKeyframe[]) => {
+    setLocalParameters((prev) => prev.map((param) => param.id === paramId
+      ? { ...param, keyframes }
+      : param));
     setHasUnsavedChanges(true);
   };
 
@@ -115,7 +123,8 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
   };
 
   const renderParameterControl = (param: EffectParameter) => {
-    const handleChange = (value: unknown) => {
+    const handleChange = (value: EffectParameterValue) => {
+      if (typeof value === 'number' && !Number.isFinite(value)) return;
       updateParameter(param.id, value);
     };
 
@@ -136,7 +145,7 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
                 {param.unit && <span className="unit">({param.unit})</span>}
               </label>
               <div className="control-actions">
-                <span className="value-display">{param.value}</span>
+                <span className="value-display">{readEffectNumber(param.value, param.min)}</span>
                 {isModified && (
                   <button
                     className="reset-btn"
@@ -153,7 +162,7 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
               min={param.min}
               max={param.max}
               step={param.step}
-              value={param.value}
+              value={readEffectNumber(param.value, param.min)}
               onChange={(e) => handleChange(parseFloat(e.target.value))}
               className="control-slider"
               aria-label={param.name}
@@ -186,14 +195,14 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
             <div className="color-control">
               <input
                 type="color"
-                value={param.value}
+                value={readEffectColor(param.value)}
                 onChange={(e) => handleChange(e.target.value)}
                 className="control-color"
                 aria-label={`${param.name} color picker`}
               />
               <input
                 type="text"
-                value={param.value}
+                value={readEffectColor(param.value)}
                 onChange={(e) => handleChange(e.target.value)}
                 className="control-color-text"
                 placeholder="#000000"
@@ -221,13 +230,13 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
               </div>
             </div>
             <select
-              value={param.value}
-              onChange={(e) => handleChange(e.target.value)}
+              value={String(param.value)}
+              onChange={(e) => selectEffectOption(param, e.target.value, handleChange)}
               className="control-select"
               aria-label={param.name}
             >
               {param.options?.map(option => (
-                <option key={option.value} value={option.value}>
+                <option key={option.label} value={String(option.value)}>
                   {option.label}
                 </option>
               ))}
@@ -241,7 +250,7 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
             <label className="control-toggle">
               <input
                 type="checkbox"
-                checked={param.value}
+                checked={param.value === true || param.value === 'true'}
                 onChange={(e) => handleChange(e.target.checked)}
                 className="control-checkbox"
               />
@@ -284,7 +293,7 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
               min={param.min}
               max={param.max}
               step={param.step}
-              value={param.value}
+              value={readEffectNumber(param.value, param.min)}
               onChange={(e) => handleChange(parseFloat(e.target.value) || 0)}
               className="control-number"
               aria-label={param.name}
@@ -442,17 +451,13 @@ export const EffectControls: React.FC<EffectControlsProps> = ({
                 <EffectKeyframes
                   key={param.id}
                   parameter={{
-                    id: param.id,
-                    name: param.name,
-                    min: param.min || 0,
-                    max: param.max || 100,
-                    defaultValue: typeof param.value === 'number' ? param.value : 0,
-                    keyframes: param.keyframes || [],
+                    ...param,
+                    value: readEffectNumber(param.value, param.min),
                   }}
                   duration={duration}
                   currentTime={currentTime}
                   onKeyframesChange={(keyframes) => {
-                    updateParameter(param.id, { ...param, keyframes });
+                    updateKeyframes(param.id, keyframes);
                   }}
                   onValueChange={(value) => {
                     updateParameter(param.id, value);

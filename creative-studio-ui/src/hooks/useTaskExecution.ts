@@ -7,7 +7,7 @@ import type { GenerationTask } from '@/types';
  * Processes pending tasks sequentially
  */
 export function useTaskExecution() {
-  const { taskQueue, _updateTask } = useAppStore();
+  const { taskQueue } = useAppStore();
   const isProcessingRef = useRef(false);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function useTaskExecution() {
       const updatedTask: GenerationTask = {
         ...task,
         status: 'processing',
-        startedAt: new Date(),
+        startedAt: Date.now(),
       };
 
       // In a real implementation, this would call the backend
@@ -44,7 +44,7 @@ export function useTaskExecution() {
       const _completedTask: GenerationTask = {
         ...updatedTask,
         status: 'completed',
-        completedAt: new Date(),
+        completedAt: Date.now(),
       };
 
       // Note: In real implementation, updateTask would be called here
@@ -70,12 +70,13 @@ export function useTaskExecution() {
   const simulateTaskExecution = async (task: GenerationTask): Promise<void> => {
     return new Promise((resolve, reject) => {
       // Simulate processing time based on task type
-      const processingTime = {
+      const processingTimes: Partial<Record<GenerationTask['type'], number>> = {
         grid: 3000,
         promotion: 2000,
         refine: 2500,
         qa: 1500,
-      }[task.type];
+      };
+      const processingTime = processingTimes[task.type] ?? 1500;
 
       setTimeout(() => {
         // Simulate 90% success rate

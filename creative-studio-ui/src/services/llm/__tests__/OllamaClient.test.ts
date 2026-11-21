@@ -19,11 +19,12 @@ describe('OllamaClient', () => {
   beforeEach(() => {
     client = new OllamaClient('http://localhost:11434');
     fetchMock = vi.fn();
-    global.fetch = fetchMock;
+    vi.stubGlobal('fetch', fetchMock);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   describe('listModels', () => {
@@ -317,40 +318,26 @@ describe('OllamaClient', () => {
     }, 10000); // Increase test timeout to 10 seconds
   });
 
-  describe('getModelInfo', () => {
-    it('should get model information', async () => {
-      const mockInfo = {
-        modelfile: 'FROM gemma3:4b',
-        parameters: 'temperature 0.7',
-        template: 'template',
-      };
+  describe('embeddings', () => {
+    it('returns a validated vector from the embedding endpoint', async () => {
+      fetchMock.mockResolvedValueOnce(Response.json({ embeddings: [[0.25, -0.5]] }));
 
-      fetchMock.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockInfo,
-      });
-
-      const info = await client.getModelInfo('gemma3:4b');
-
-      expect(info).toEqual(mockInfo);
+      await expect(client.embeddings('nomic-embed-text', 'Scene description')).resolves.toEqual([0.25, -0.5]);
       expect(fetchMock).toHaveBeenCalledWith(
-        'http://localhost:11434/api/show',
+        'http://localhost:11434/api/embed',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ name: 'gemma3:4b' }),
-        })
+          body: JSON.stringify({ model: 'nomic-embed-text', input: 'Scene description' }),
+        }),
       );
     });
 
-    it('should handle errors when getting model info', async () => {
-      fetchMock.mockResolvedValueOnce({
-        ok: false,
-        statusText: 'Not Found',
-      });
+    it('reports HTTP failures and rejects an invalid vector', async () => {
+      fetchMock.mockResolvedValueOnce(new Response(null, { status: 404 }));
+      await expect(client.embeddings('missing', 'Scene')).rejects.toThrow('404');
 
-      await expect(
-        client.getModelInfo('invalid-model')
-      ).rejects.toThrow('Failed to get model info');
+      fetchMock.mockResolvedValueOnce(Response.json({ embeddings: [[0.25, 'not a number']] }));
+      await expect(client.embeddings('nomic-embed-text', 'Scene')).rejects.toThrow('invalid embedding');
     });
   });
 

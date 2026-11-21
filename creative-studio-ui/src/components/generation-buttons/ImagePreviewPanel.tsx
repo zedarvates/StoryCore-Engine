@@ -294,31 +294,31 @@ export const ImagePreviewPanel: React.FC<ImagePreviewPanelProps> = ({
         <div className="space-y-2">
           <h4 className="text-sm font-semibold">Generation Parameters</h4>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            {generationParams.steps && (
+            {typeof generationParams.steps === 'number' && Number.isFinite(generationParams.steps) && (
               <div>
                 <span className="text-muted-foreground">Steps:</span>{' '}
                 <span className="font-medium">{generationParams.steps}</span>
               </div>
             )}
-            {generationParams.cfgScale && (
+            {typeof generationParams.cfgScale === 'number' && Number.isFinite(generationParams.cfgScale) && (
               <div>
                 <span className="text-muted-foreground">CFG Scale:</span>{' '}
                 <span className="font-medium">{generationParams.cfgScale}</span>
               </div>
             )}
-            {generationParams.sampler && (
+            {typeof generationParams.sampler === 'string' && generationParams.sampler && (
               <div>
                 <span className="text-muted-foreground">Sampler:</span>{' '}
                 <span className="font-medium">{generationParams.sampler}</span>
               </div>
             )}
-            {generationParams.scheduler && (
+            {typeof generationParams.scheduler === 'string' && generationParams.scheduler && (
               <div>
                 <span className="text-muted-foreground">Scheduler:</span>{' '}
                 <span className="font-medium">{generationParams.scheduler}</span>
               </div>
             )}
-            {generationParams.seed !== undefined && (
+            {typeof generationParams.seed === 'number' && Number.isFinite(generationParams.seed) && (
               <div>
                 <span className="text-muted-foreground">Seed:</span>{' '}
                 <span className="font-medium">{generationParams.seed}</span>
@@ -327,7 +327,7 @@ export const ImagePreviewPanel: React.FC<ImagePreviewPanelProps> = ({
           </div>
           
           {/* Prompt */}
-          {generationParams.prompt && (
+          {typeof generationParams.prompt === 'string' && generationParams.prompt && (
             <div className="mt-2">
               <span className="text-muted-foreground text-sm">Prompt:</span>
               <p className="text-sm mt-1 p-2 bg-muted rounded-md">

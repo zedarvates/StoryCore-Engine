@@ -1,4 +1,4 @@
-import React, { _useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useStore } from '../store';
 import { usePlaybackEngine } from '../hooks/usePlaybackEngine';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';

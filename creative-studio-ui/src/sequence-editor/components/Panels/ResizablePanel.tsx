@@ -105,39 +105,23 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
 
   // Get current dimensions from layout state
   const getCurrentDimensions = useCallback(() => {
-    const panelLayout = layout[panelId];
     if (panelId === 'timeline') {
-      return { width: 0, height: panelLayout.height };
+      return { width: 0, height: layout.timeline.height };
     }
     if (panelId === 'preview') {
-      return { width: panelLayout.width, height: panelLayout.height };
+      return { width: layout.preview.width, height: layout.preview.height };
     }
-    return { width: panelLayout.width, height: 0 };
+    return { width: layout[panelId].width, height: 0 };
   }, [layout, panelId]);
 
-  // Get current dimensions from layout state (in pixels)
   const getCurrentDimensionsPixels = useCallback(() => {
-    const containerDims = getContainerDimensions();
-    const panelLayout = layout[panelId];
-
-    if (panelId === 'timeline') {
-      return {
-        width: containerDims.width,
-        height: (panelLayout.height / 100) * containerDims.height
-      };
-    }
-    if (panelId === 'preview') {
-      return {
-        width: (panelLayout.width / 100) * containerDims.width,
-        height: (panelLayout.height / 100) * containerDims.height
-      };
-    }
-    // assetLibrary and shotConfig
+    const container = getContainerDimensions();
+    const dimensions = getCurrentDimensions();
     return {
-      width: (panelLayout.width / 100) * containerDims.width,
-      height: 0
+      width: panelId === 'timeline' ? container.width : (dimensions.width / 100) * container.width,
+      height: (dimensions.height / 100) * container.height,
     };
-  }, [layout, panelId, getContainerDimensions]);
+  }, [getContainerDimensions, getCurrentDimensions, panelId]);
 
   // Save layout to localStorage
   const saveLayoutToStorage = useCallback((newLayout: typeof layout) => {

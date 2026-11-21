@@ -18,9 +18,9 @@ export function CharacterWizardDemo() {
   const mockWorld: World = {
     id: 'world-1',
     name: 'Eldoria',
-    genre: ['Fantasy', 'Adventure'],
+    genre: ['fantasy', 'adventure'],
     timePeriod: 'Medieval',
-    tone: ['Epic', 'Heroic'],
+    tone: ['epic', 'hopeful'],
     locations: [],
     rules: [],
     atmosphere: 'A land of magic and ancient kingdoms',
@@ -34,8 +34,9 @@ export function CharacterWizardDemo() {
     technology: 'Medieval with some magic',
     magic: 'Elemental magic system',
     conflicts: ['War between kingdoms'],
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    keyObjects: [],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   };
 
   const handleComplete = (character: Character) => {

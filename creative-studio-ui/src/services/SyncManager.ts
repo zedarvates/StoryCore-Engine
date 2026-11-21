@@ -323,19 +323,20 @@ export class SyncManager {
   }
 
   private async syncShots(projectPath?: string): Promise<{ synced: number, conflicts: SyncConflict[] }> {
-    if (!projectPath || !window.electronAPI?.fs?.readdir) return { synced: 0, conflicts: [] };
+    const fs = window.electronAPI?.fs;
+    if (!projectPath || !fs?.readdir) return { synced: 0, conflicts: [] };
 
     try {
       const shotsDir = `${projectPath}/shots`;
-      const exists = await window.electronAPI.fs.exists(shotsDir);
+      const exists = await fs.exists(shotsDir);
       if (!exists) return { synced: 0, conflicts: [] };
 
-      const files = await window.electronAPI.fs.readdir(shotsDir);
+      const files = await fs.readdir(shotsDir);
       const shotFiles = files.filter((f: string) => f.startsWith('shot_') && f.endsWith('.json'));
 
       const shotPromises = shotFiles.map(async (file) => {
         try {
-          const content = await window.electronAPI.fs.readFile(`${shotsDir}/${file}`);
+          const content = await fs.readFile(`${shotsDir}/${file}`);
           return JSON.parse(new TextDecoder().decode(content));
         } catch (err) {
           logger.error(`[SyncManager] Failed to read shot file ${file}:`, err);

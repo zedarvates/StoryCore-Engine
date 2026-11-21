@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, _afterEach, vi } from 'vitest';
-import { render, screen, waitFor, _cleanup } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Step5Relationships } from '../Step5Relationships';
+import { Step5Relationships } from '../legacy/Step5Relationships';
 import { WizardProvider } from '@/contexts/WizardContext';
 import type { Character } from '@/types/character';
 import { createEmptyCharacter } from '@/types/character';
@@ -56,10 +56,13 @@ describe('Step5Relationships - Character Relationship Validation', () => {
 
   const renderComponent = (formData: Partial<Character> = mockCharacter) => {
     return render(
-      <WizardProvider
+      <WizardProvider<Character>
+        wizardType="character"
+        totalSteps={6}
+        onSubmit={async () => {}}
         initialData={formData}
         onComplete={vi.fn()}
-        storageKey="test-character-wizard"
+        autoSave={false}
       >
         <Step5Relationships />
       </WizardProvider>

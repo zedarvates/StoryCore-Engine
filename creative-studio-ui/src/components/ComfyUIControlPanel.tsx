@@ -10,7 +10,7 @@ import { ComfyUIParameterPanel } from '@/components/ComfyUIParameterPanel';
 import {
   Server,
   Play,
-  _Square,
+  Square,
   Settings,
   RefreshCw,
   Zap,
@@ -137,7 +137,7 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
     // Create execution tracking
     const execution: WorkflowExecution = {
       id: executionId,
-      client: new ComfyUIClient(comfyConfig),
+      client: new ComfyUIClient(comfyConfig.serverUrl),
       status: 'running',
       progress: 0,
       startTime: new Date(),
@@ -147,13 +147,13 @@ export function ComfyUIControlPanel({ className }: ComfyUIControlPanelProps) {
 
     try {
       // Create basic workflow based on type
-      let workflow: unknown = {};
+      let workflow: Record<string, unknown>;
       switch (workflowType) {
         case 'image':
           workflow = execution.client.getStoryboardFrameTemplate();
           break;
         case 'video':
-          break;
+          throw new Error('No video workflow is configured in this panel');
         default:
           workflow = execution.client.getStoryboardFrameTemplate();
       }

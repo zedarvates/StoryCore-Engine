@@ -1,10 +1,11 @@
+import { vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import VideoGenerationPanel from './VideoGenerationPanel';
+import { VideoGenerationPanel } from './VideoGenerationPanel';
 
 // Mock any heavy services if needed
-jest.mock('@/services/videoService', () => ({
-  generateVideo: jest.fn().mockResolvedValue(null),
+vi.mock('@/services/videoService', () => ({
+  generateVideo: vi.fn().mockResolvedValue(null),
 }));
 
 test('renders VideoGenerationPanel without crashing', () => {

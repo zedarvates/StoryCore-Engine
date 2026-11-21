@@ -108,8 +108,6 @@ const SPEED_PRESETS = [
 
 export const SpeechConfigDialog: React.FC<SpeechConfigDialogProps> = ({
   isOpen,
-  _shotId,
-  _layerId,
   currentConfig,
   existingText = '',
   characters = DEFAULT_CHARACTERS,

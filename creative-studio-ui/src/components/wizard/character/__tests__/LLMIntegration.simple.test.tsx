@@ -10,10 +10,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WizardProvider } from '@/contexts/WizardContext';
-import { Step1BasicIdentity } from '../Step1BasicIdentity';
-import { Step2PhysicalAppearance } from '../Step2PhysicalAppearance';
-import { Step3Personality } from '../Step3Personality';
-import { Step4Background } from '../Step4Background';
+import { Step1BasicIdentity } from '../legacy/Step1BasicIdentity';
+import { Step2PhysicalAppearance } from '../legacy/Step2PhysicalAppearance';
+import { Step3Personality } from '../legacy/Step3Personality';
+import { Step4Background } from '../legacy/Step4Background';
 import type { Character } from '@/types/character';
 import type { World } from '@/types/world';
 
@@ -574,6 +574,7 @@ describe('LLM Integration - Consistency', () => {
         character_arc: 'Growth',
       },
       visual_identity: {
+        gender: 'unspecified',
         hair_color: 'Silver',
         hair_style: 'Long',
         hair_length: 'Waist-length',

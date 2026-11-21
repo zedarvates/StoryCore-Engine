@@ -8,26 +8,26 @@ import {
   Users,
   User,
   Focus,
-  _Eye,
+  Eye,
   Video,
-  _Clock,
+  Clock,
   BarChart3,
-  _TrendingUp,
-  _TrendingDown,
+  TrendingUp,
+  TrendingDown,
   Activity,
-  _Crown,
-  _Shield,
-  _UserPlus,
+  Crown,
+  Shield,
+  UserPlus,
   Settings,
   ChevronDown,
   ChevronRight,
-  _Maximize2,
-  _Minimize2
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import type { Character } from '@/types/character';
 import type {
   CharacterFocus,
-  _CharacterPresence
+  CharacterPresence
 } from '@/types/cinematicTypes';
 import type {
   EnhancedShot,
@@ -57,7 +57,6 @@ interface CharacterTimelineEntry {
 type ViewMode = 'timeline' | 'heatmap' | 'stats' | 'grid';
 
 export function CharacterFocusTracker({
-  _sequence,
   shots,
   characters,
   onUpdateFocus,
@@ -315,7 +314,6 @@ function TimelineView({
   expandedShots,
   onToggleShot,
   onFocusChange,
-  _getFocusColor,
   getFocusLabel
 }: TimelineViewProps) {
   // Group entries by shot
@@ -534,8 +532,6 @@ interface StatsViewProps {
 function StatsView({
   characterStats,
   summaryStats,
-  _characters,
-  _getFocusColor,
   getFocusLabel
 }: StatsViewProps) {
   return (
@@ -640,10 +636,7 @@ interface GridViewProps {
 function GridView({
   shots,
   characters,
-  _characterTimeline,
-  onFocusChange,
-  _getFocusColor,
-  _getFocusLabel
+  onFocusChange
 }: GridViewProps) {
   return (
     <div className="grid-view">

@@ -28,11 +28,13 @@ export interface Notification {
 interface ErrorNotificationProps {
   notifications: Notification[];
   onDismiss: (id: string) => void;
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
 }
 
 export function ErrorNotification({
   notifications,
-  onDismiss
+  onDismiss,
+  position = 'top-right',
 }: ErrorNotificationProps) {
   const [_visibleNotifications, setVisibleNotifications] = useState<Notification[]>([]);
 
@@ -76,8 +78,8 @@ export function ErrorNotification({
 
   const containerStyle: React.CSSProperties = {
     position: 'fixed',
-    top: '20px',
-    right: '20px',
+    [position.startsWith('top') ? 'top' : 'bottom']: '20px',
+    [position.endsWith('right') ? 'right' : 'left']: '20px',
     zIndex: 1000,
     maxWidth: '400px',
     minWidth: '300px'
@@ -141,13 +143,13 @@ export function ErrorNotification({
 export interface NotificationContainerProps {
   notifications: Notification[];
   onRemove: (id: string) => void;
-  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+  position?: ErrorNotificationProps['position'];
 }
 
 export function NotificationContainer({
   notifications,
   onRemove,
-  _position = 'top-right',
+  position,
 }: NotificationContainerProps) {
-  return <ErrorNotification notifications={notifications} onDismiss={onRemove} />;
+  return <ErrorNotification notifications={notifications} onDismiss={onRemove} position={position} />;
 }

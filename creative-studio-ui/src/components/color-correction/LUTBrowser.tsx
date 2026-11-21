@@ -1,4 +1,4 @@
-import React, { useState, _useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
 import { LUTConfig } from '../../types/lut';
 import styles from './ColorCorrectionPanel.module.css';
@@ -6,7 +6,7 @@ import styles from './ColorCorrectionPanel.module.css';
 interface LUTBrowserProps {}
 
 export const LUTBrowser: React.FC<LUTBrowserProps> = () => {
-  const { state, setPrimaryColorGrade } = useColorCorrectionStore();
+  const setGlobalLut = useColorCorrectionStore((store) => store.setGlobalLut);
   const [activeTab, setActiveTab] = useState<'builtIn' | 'custom' | 'recentlyUsed'>('builtIn');
   const [selectedLUT, setSelectedLUT] = useState<LUTConfig | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,7 +80,7 @@ export const LUTBrowser: React.FC<LUTBrowserProps> = () => {
     setTimeout(() => {
       setLoading(false);
       // Update state with applied LUT
-      setPrimaryColorGrade({ ...state.primaryGrade, lut: lut });
+      setGlobalLut(lut);
     }, 500);
   };
 

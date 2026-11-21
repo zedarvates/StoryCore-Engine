@@ -118,7 +118,7 @@ describe('Character Persistence Integration', () => {
       character_id: 'test-uuid',
       name: 'Test Hero',
       creation_method: 'wizard',
-      creation_timestamp: new Date().toISOString(),
+      creation_timestamp: Date.now(),
       version: '1.0',
       role: {
         archetype: 'Protagonist',
@@ -126,6 +126,9 @@ describe('Character Persistence Integration', () => {
         character_arc: 'Growth',
       },
       visual_identity: {
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
         age_range: 'adult',
         hair_color: '',
         hair_style: '',
@@ -152,6 +155,7 @@ describe('Character Persistence Integration', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',

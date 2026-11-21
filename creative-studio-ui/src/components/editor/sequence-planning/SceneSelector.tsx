@@ -1,11 +1,14 @@
-import React from 'react';
-import { _ChevronDown, _Play, Film, Clock, GripVertical } from 'lucide-react';
-import { Scene } from '@/types/sequencePlan';
-import { Reorder, _motion, AnimatePresence } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { ChevronDown, Play, Film, Clock, GripVertical } from 'lucide-react';
+import type { Scene } from '@/types/sequencePlan';
+import type { ProductionShot } from '@/types/shot';
+import { Reorder, motion, AnimatePresence } from 'framer-motion';
 import './SceneSelector.css';
 
 export interface SceneSelectorProps {
   scenes: Scene[];
+  shots: ProductionShot[];
+  frameRate: number;
   selectedSceneId: string | null;
   onSceneSelect: (sceneId: string) => void;
   onScenesReorder?: (updatedScenes: Scene[]) => void;
@@ -14,12 +17,26 @@ export interface SceneSelectorProps {
 
 export const SceneSelector: React.FC<SceneSelectorProps> = ({
   scenes,
+  shots,
+  frameRate,
   selectedSceneId,
   onSceneSelect,
   onScenesReorder,
   className = ''
 }) => {
   const selectedScene = scenes.find(s => s.id === selectedSceneId);
+  const durationByScene = useMemo(() => {
+    const frames = new Map<string, number>();
+    for (const shot of shots) {
+      frames.set(shot.sceneId, (frames.get(shot.sceneId) ?? 0) + shot.timing.duration);
+    }
+    return frames;
+  }, [shots]);
+
+  const durationSeconds = (sceneId?: string) => {
+    if (!sceneId || !Number.isFinite(frameRate) || frameRate <= 0) return 0;
+    return Math.round((durationByScene.get(sceneId) ?? 0) / frameRate);
+  };
 
   const handleReorder = (newOrder: Scene[]) => {
     if (onScenesReorder) {
@@ -40,7 +57,7 @@ export const SceneSelector: React.FC<SceneSelectorProps> = ({
         <div className="scene-stats">
           <div className="stat-item">
             <Clock size={12} />
-            <span>{selectedScene?.targetDuration || 0}s</span>
+            <span>{durationSeconds(selectedScene?.id)}s</span>
           </div>
         </div>
       </div>
@@ -81,7 +98,7 @@ export const SceneSelector: React.FC<SceneSelectorProps> = ({
                     <div className="scene-title-text">{scene.title}</div>
                     <div className="scene-duration-text">
                       <Clock size={10} />
-                      {scene.targetDuration}s
+                      {durationSeconds(scene.id)}s
                     </div>
                   </div>
                   <div className="scene-description-text">{scene.description}</div>

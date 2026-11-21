@@ -18,6 +18,9 @@ export class RoverBackend implements StorageBackend {
      */
     async save(_key: string, data: string): Promise<void> {
         try {
+            const fs = window.electronAPI?.fs;
+            if (!fs) throw new Error('Project persistence requires the Electron file bridge');
+
             const parsedData = JSON.parse(data) as Project;
             const projectId = parsedData.id || (parsedData as LegacyAny).project_id;
 
@@ -34,16 +37,16 @@ export class RoverBackend implements StorageBackend {
             }
 
             // Ensure the project directory exists before writing
-            const dirExists = await window.electronAPI.fs.exists(this.projectPath);
+            const dirExists = await fs.exists(this.projectPath);
             if (!dirExists) {
                 console.error(`[RoverBackend] Project directory does not exist: ${this.projectPath}`);
                 throw new Error('ENOENT: project directory missing');
             }
 
             // Always write the main project.json for compatibility with the rest of the app
-            if (window.electronAPI?.fs?.writeFile) {
+            if (fs.writeFile) {
                 const filePath = pathJoin(this.projectPath, 'project.json');
-                await window.electronAPI.fs.writeFile(filePath, data);
+                await fs.writeFile(filePath, data);
             } else {
                 console.error('[RoverBackend] FS API not available for save');
                 throw new Error('No persistence available');

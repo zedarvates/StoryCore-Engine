@@ -29,6 +29,7 @@ interface SerializableWizardState {
   currentStep: number;
   completedSteps: number[];
   isReviewMode: boolean;
+  stepData?: WizardState['stepData'];
   projectType: WizardState['projectType'];
   genreStyle: WizardState['genreStyle'];
   worldBuilding: WizardState['worldBuilding'];
@@ -181,6 +182,7 @@ export class DraftPersistence {
       currentStep: state.currentStep ?? 1,
       completedSteps: Array.from(state.completedSteps ?? []),
       isReviewMode: state.isReviewMode ?? false,
+      stepData: state.stepData,
       projectType: state.projectType ?? null,
       genreStyle: state.genreStyle ?? null,
       worldBuilding: state.worldBuilding ?? null,
@@ -203,6 +205,7 @@ export class DraftPersistence {
       currentStep: data.currentStep,
       completedSteps: new Set(data.completedSteps),
       isReviewMode: data.isReviewMode,
+      stepData: data.stepData,
       projectType: data.projectType,
       genreStyle: data.genreStyle,
       worldBuilding: data.worldBuilding,

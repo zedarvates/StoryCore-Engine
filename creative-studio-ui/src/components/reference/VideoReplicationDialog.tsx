@@ -18,6 +18,7 @@ import {
   Checkbox,
   Slider,
   Select,
+  SelectChangeEvent,
   MenuItem,
   FormControl,
   InputLabel,
@@ -29,6 +30,7 @@ import {
   CircularProgress,
   List,
   ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Collapse,
@@ -274,8 +276,8 @@ export const VideoReplicationDialog: React.FC<VideoReplicationDialogProps> = ({
   };
 
   // Handle resolution change
-  const handleResolutionChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    const [width, height] = (event.target.value as string).split('x').map(Number);
+  const handleResolutionChange = (event: SelectChangeEvent<string>) => {
+    const [width, height] = event.target.value.split('x').map(Number);
     setSettings((prev) => ({ ...prev, outputResolution: { width, height } }));
   };
 
@@ -500,9 +502,8 @@ export const VideoReplicationDialog: React.FC<VideoReplicationDialogProps> = ({
                 <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
                   <List>
                     {referenceVideo.structure?.shots.map((shot: ShotInfo, index: number) => (
-                      <ListItem
+                      <ListItemButton
                         key={shot.id}
-                        button
                         onClick={() => toggleShot(shot.id)}
                         sx={{ 
                           border: 1,
@@ -546,7 +547,7 @@ export const VideoReplicationDialog: React.FC<VideoReplicationDialogProps> = ({
                             <Chip size="small" label="Center" variant="outlined" />
                           )}
                         </Box>
-                      </ListItem>
+                      </ListItemButton>
                     ))}
                   </List>
                 </Box>
