@@ -5,7 +5,7 @@ import styles from './MotionPanel.module.css';
 interface MotionPageProps {}
 
 export const MotionPage: React.FC<MotionPageProps> = () => {
-  const [activeTab, _setActiveTab] = useState<'templates' | 'keyframing' | 'animation' | 'export'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'keyframing' | 'animation' | 'export'>('templates');
   const [templates, setTemplates] = useState<LegacyAny[]>([
     {
       id: 'template_1',
