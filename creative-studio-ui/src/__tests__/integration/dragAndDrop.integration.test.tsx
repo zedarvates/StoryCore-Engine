@@ -3,7 +3,7 @@
  * Tests asset library to canvas, shot reordering, and timeline interactions
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { assert, describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import _userEvent from '@testing-library/user-event';
 import { DndProvider } from 'react-dnd';
@@ -106,6 +106,7 @@ describe('Drag and Drop Integration', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots[0];
+        assert.isDefined(shot.audioTracks);
         expect(shot.audioTracks.length).toBe(1);
         expect(shot.audioTracks[0].name).toBe('Background Music');
         expect(shot.audioTracks[0].url).toBe('/music.mp3');

@@ -7,7 +7,7 @@
  * Requirements: 7.3
  */
 
-import { describe, it, expect } from 'vitest';
+import { assert, describe, it, expect } from 'vitest';
 import type { Project, Shot, DialoguePhrase } from '../types/projectDashboard';
 import {
   validateShotDeletion,
@@ -275,6 +275,7 @@ describe('simulateShotDeletion', () => {
 
     expect(result.shots).toHaveLength(0);
     expect(result.audioPhrases).toHaveLength(1);
+    assert.isDefined(result.audioPhrases);
     expect(result.audioPhrases[0].shotId).toBe('');
   });
 
@@ -292,6 +293,7 @@ describe('simulateShotDeletion', () => {
     expect(result.shots).toHaveLength(1);
     expect(result.shots[0].id).toBe('shot-2');
     expect(result.audioPhrases).toHaveLength(1);
+    assert.isDefined(result.audioPhrases);
     expect(result.audioPhrases[0].id).toBe('phrase-2');
   });
 

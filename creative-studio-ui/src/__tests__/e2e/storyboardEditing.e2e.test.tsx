@@ -3,7 +3,7 @@
  * Tests the complete flow of editing shots, reordering, and applying effects
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { assert, describe, it, expect, beforeEach } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import { createEmptyProject } from '@/utils/projectManager';
@@ -175,6 +175,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(1);
         expect(shot?.effects[0].name).toBe('vintage');
       });
@@ -212,6 +213,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(3);
       });
     });
@@ -243,6 +245,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects[0].name).toBe('blur');
         expect(shot?.effects[1].name).toBe('vintage');
       });
@@ -267,6 +270,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         const eff = shot?.effects.find((e) => e.id === 'effect-1');
         expect(eff?.intensity).toBe(75);
         expect(eff?.enabled).toBe(false);
@@ -290,6 +294,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(0);
       });
     });
@@ -330,6 +335,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         expect(shot?.textLayers.length).toBe(1);
         expect(shot?.textLayers[0].content).toBe('Hello World');
       });
@@ -359,6 +365,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         const layer = shot?.textLayers.find((l) => l.id === 'text-1');
         expect(layer?.content).toBe('Updated Text');
         expect(layer?.fontSize).toBe(32);
@@ -398,6 +405,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         expect(shot?.textLayers.length).toBe(2);
         expect(shot?.textLayers[0].startTime).toBe(0);
         expect(shot?.textLayers[1].startTime).toBe(3);
@@ -600,7 +608,9 @@ describe('Storyboard Editing E2E Workflow', () => {
         const editedShot = finalShots.find((s) => s.id === 'shot-1');
         expect(editedShot?.title).toBe('Epic Opening');
         expect(editedShot?.duration).toBe(7);
+        assert.isDefined(editedShot?.effects);
         expect(editedShot?.effects.length).toBe(1);
+        assert.isDefined(editedShot?.textLayers);
         expect(editedShot?.textLayers.length).toBe(1);
         expect(editedShot?.transitionOut).toBeDefined();
       });

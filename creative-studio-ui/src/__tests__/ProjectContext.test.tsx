@@ -7,6 +7,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { ProjectProvider, useProject } from '../contexts/ProjectContext';
 import type { Shot, DialoguePhrase } from '../types/projectDashboard';
 import { createTestShot } from './helpers/shotFactory';
+import { assert } from 'vitest';
 
 // Helper to create wrapper with ProjectProvider
 const createWrapper = (projectId?: string) => {
@@ -225,6 +226,7 @@ describe('ProjectContext', () => {
       });
 
       expect(result.current.project?.audioPhrases).toHaveLength(1);
+      assert.isDefined(result.current.project?.audioPhrases);
       expect(result.current.project?.audioPhrases[0].text).toBe('Hello, world!');
       expect(result.current.project?.audioPhrases[0].id).toBeDefined();
     });
@@ -249,6 +251,7 @@ describe('ProjectContext', () => {
         });
       });
 
+      assert.isDefined(result.current.project?.audioPhrases);
       const phraseId = result.current.project?.audioPhrases[0].id;
 
       // Update the phrase
@@ -285,6 +288,7 @@ describe('ProjectContext', () => {
       });
 
       expect(result.current.project?.audioPhrases).toHaveLength(1);
+      assert.isDefined(result.current.project?.audioPhrases);
       const phraseId = result.current.project?.audioPhrases[0].id;
 
       // Delete the phrase
@@ -339,6 +343,7 @@ describe('ProjectContext', () => {
         });
       });
 
+      assert.isDefined(result.current.project?.audioPhrases);
       const phraseId = result.current.project?.audioPhrases[0].id;
       expect(result.current.project?.audioPhrases[0].shotId).toBe('shot-1');
 

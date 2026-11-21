@@ -3,7 +3,7 @@
  * Tests shot card rendering with thumbnails, metadata, and interactions
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { assert, describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -18,6 +18,9 @@ interface ShotCardProps {
 }
 
 const ShotCard: React.FC<ShotCardProps> = ({ shot, isSelected, onSelect, onDelete }) => {
+  assert.isDefined(shot.audioTracks);
+  assert.isDefined(shot.effects);
+  assert.isDefined(shot.textLayers);
   return (
     <div
       className={`shot-card ${isSelected ? 'selected' : ''}`}

@@ -1,16 +1,24 @@
-import { LegacyAny } from '@/types/legacy';
-import Re_act, { useState } from 'react';
-import { HSLQualifierSettings } from '../../types/color-correction';
+import React, { useState } from 'react';
 import styles from './ColorCorrectionPanel.module.css';
 
 interface PowerWindowsPanelProps {}
 
+interface PowerWindow {
+  id: string;
+  type: 'circle' | 'polygon' | 'gradient';
+  enabled: boolean;
+  feather: number;
+  invert: boolean;
+  points: { x: number; y: number; radius?: number }[];
+  angle?: number;
+}
+
 export const PowerWindowsPanel: React.FC<PowerWindowsPanelProps> = () => {
   const [activeWindow, setActiveWindow] = useState<'circle' | 'polygon' | 'gradient'>('circle');
-  const [windows, setWindows] = useState<LegacyAny[]>([]);
+  const [windows, setWindows] = useState<PowerWindow[]>([]);
 
   const handleAddWindow = (type: 'circle' | 'polygon' | 'gradient') => {
-    const newWindow = {
+    const newWindow: PowerWindow = {
       id: Date.now().toString(),
       type: type,
       enabled: true,
@@ -21,7 +29,7 @@ export const PowerWindowsPanel: React.FC<PowerWindowsPanelProps> = () => {
     setWindows([...windows, newWindow]);
   };
 
-  const handleWindowChange = (id: string, changes: LegacyAny) => {
+  const handleWindowChange = (id: string, changes: Partial<PowerWindow>) => {
     setWindows(windows.map(window => 
       window.id === id ? { ...window, ...changes } : window
     ));
@@ -137,12 +145,12 @@ export const PowerWindowsPanel: React.FC<PowerWindowsPanelProps> = () => {
                       min={0}
                       max={1}
                       step={0.01}
-                      value={window.points[0].radius}
+                      value={window.points[0].radius ?? 0}
                       onChange={(e) => handleWindowChange(window.id, {
                         points: [{ ...window.points[0], radius: parseFloat(e.target.value) }]
                       })}
                     />
-                    <span>{(window.points[0].radius * 100).toFixed(0)}%</span>
+                    <span>{((window.points[0].radius ?? 0) * 100).toFixed(0)}%</span>
                   </div>
 
                   <div className={styles.sliderGroup}>
