@@ -9,7 +9,7 @@ vi.mock('@/services/voiceService', () => ({
 }));
 
 test('renders VoiceOverPanel without crashing', () => {
-  render(<VoiceOverPanel />);
-  const container = screen.getByTestId('voice-over-panel');
+  render(<VoiceOverPanel shotId="shot-1" />);
+  const container = screen.getByRole('tab', { name: 'Voice Library' });
   expect(container).toBeInTheDocument();
 });

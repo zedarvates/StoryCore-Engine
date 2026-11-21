@@ -179,6 +179,9 @@ describe('ShotCard', () => {
           {
             id: 'effect-1',
             type: 'filter',
+            category: 'creative',
+            icon: null,
+            description: 'Test filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,
@@ -254,6 +257,9 @@ describe('ShotCard', () => {
           {
             id: 'effect-1',
             type: 'filter',
+            category: 'creative',
+            icon: null,
+            description: 'Test filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,

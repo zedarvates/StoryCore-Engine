@@ -9,7 +9,7 @@ vi.mock('@/services/audioService', () => ({
 }));
 
 test('renders AudioPanel without crashing', () => {
-  render(<AudioPanel />);
-  const container = screen.getByTestId('audio-panel');
+  render(<AudioPanel shotId="unknown-shot" />);
+  const container = screen.getByText(/no shot selected/i);
   expect(container).toBeInTheDocument();
 });

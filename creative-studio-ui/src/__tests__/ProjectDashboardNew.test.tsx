@@ -6,6 +6,11 @@ import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
 
+vi.mock('@/components/workspace/StoryboardSection', () => ({ StoryboardSection: () => null }));
+vi.mock('@/components/workspace/ProductionGuide', () => ({ ProductionGuide: () => null }));
+vi.mock('@/components/workspace/NeuralProductionAssistant', () => ({ NeuralProductionAssistant: () => null }));
+vi.mock('@/components/LLMAssistantSidebar', () => ({ LLMAssistantSidebar: () => null }));
+
 describe('ProjectDashboardNew', () => {
   let previousAppState: ReturnType<typeof useAppStore.getState>;
   let previousSequencePlans: ReturnType<typeof useStore.getState>['sequencePlans'];

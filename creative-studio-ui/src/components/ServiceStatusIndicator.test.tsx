@@ -1,8 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ServiceStatusIndicator } from './ServiceStatusIndicator';
 
 test('renders ServiceStatusIndicator without crashing', () => {
-  render(<ServiceStatusIndicator />);
-  expect(true).toBe(true);
+  render(<ServiceStatusIndicator service="both" showDetails />);
+  expect(screen.getByRole('button', { name: 'Check Status' })).toBeInTheDocument();
 });

@@ -132,6 +132,9 @@ describe('Backend Communication Integration', () => {
           {
             id: 'effect-1',
             type: 'filter',
+            category: 'creative',
+            icon: null,
+            description: 'Test filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,

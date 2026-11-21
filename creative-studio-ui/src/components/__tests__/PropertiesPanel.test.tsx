@@ -39,6 +39,9 @@ describe('PropertiesPanel', () => {
       {
         id: 'effect-1',
         type: 'filter',
+        category: 'creative',
+        icon: null,
+        description: 'Test filter',
         name: 'Vintage',
         enabled: true,
         intensity: 50,
