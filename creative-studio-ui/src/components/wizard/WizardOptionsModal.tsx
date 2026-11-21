@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { WizardDefinition } from '../../types/configuration';
-import { WizardService } from '../../services/wizard/WizardService';
+import { WizardService, type WizardOptions } from '../../services/wizard/WizardService';
 import './WizardOptionsModal.css';
 
 interface WizardOptionsModalProps {
@@ -16,14 +16,26 @@ interface WizardOptionsModalProps {
   onCancel: () => void;
 }
 
+type WizardLaunchOptions = {
+  style?: string;
+  quality?: string;
+  tone?: string;
+  purpose?: string;
+  quick?: boolean;
+  characters?: string[];
+  topic?: string;
+  preview?: boolean;
+  shots?: string[];
+};
+
 export function WizardOptionsModal({
   isOpen,
   wizard,
   onLaunch,
   onCancel
 }: WizardOptionsModalProps) {
-  const [options, setOptions] = useState<Record<string, unknown>>({});
-  const [wizardOptions, setWizardOptions] = useState<Record<string, unknown>>({});
+  const [options, setOptions] = useState<WizardLaunchOptions>({});
+  const [wizardOptions, setWizardOptions] = useState<WizardOptions>({});
 
   // Load wizard options when wizard changes
   useEffect(() => {
@@ -33,7 +45,7 @@ export function WizardOptionsModal({
       setWizardOptions(opts);
 
       // Set default values
-      const defaults: Record<string, unknown> = {};
+      const defaults: WizardLaunchOptions = {};
       if (opts.defaultStyle) defaults.style = opts.defaultStyle;
       if (opts.defaultQuality) defaults.quality = opts.defaultQuality;
       if (opts.defaultTone) defaults.tone = opts.defaultTone;
@@ -43,7 +55,7 @@ export function WizardOptionsModal({
     }
   }, [wizard]);
 
-  const handleOptionChange = (key: string, value: unknown) => {
+  const handleOptionChange = <Key extends keyof WizardLaunchOptions>(key: Key, value: WizardLaunchOptions[Key]) => {
     setOptions(prev => ({ ...prev, [key]: value }));
   };
 
