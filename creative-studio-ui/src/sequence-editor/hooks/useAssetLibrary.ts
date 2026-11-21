@@ -4,9 +4,6 @@
  * Manages asset loading, search indexing (Fuse.js), and category filtering
  * for both AssetNavigator and AssetBrowser components.
  */
-import { LegacyAny } from '@/types/legacy';
-
-
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import Fuse from 'fuse.js';
 import { useAppDispatch, useAppSelector } from '../store';
@@ -16,29 +13,29 @@ import { ServiceAsset } from '../types';
 
 // Icons for navigator
 import { 
-  Users, Mountain, Box, Palette, Layout, Camera, 
+  type LucideIcon, Users, Mountain, Box, Palette, Layout, Camera,
   FlipHorizontal, Sparkles, Music, Video, Binary, Save
 } from 'lucide-react';
 
 export interface CategoryConfig {
   id: string;
   name: string;
-  icon: JSX.Element;
+  icon: LucideIcon;
 }
 
 export const CATEGORY_CONFIGS: CategoryConfig[] = [
-  { id: 'characters', name: 'Characters', icon: Users as LegacyAny },
-  { id: 'environments', name: 'Environments', icon: Mountain as LegacyAny },
-  { id: 'props', name: 'Props & Objects', icon: Box as LegacyAny },
-  { id: 'visual-styles', name: 'Visual Styles', icon: Palette as LegacyAny },
-  { id: 'templates', name: 'Templates', icon: Layout as LegacyAny },
-  { id: 'camera-presets', name: 'Camera Presets', icon: Camera as LegacyAny },
-  { id: 'transitions', name: 'Transitions', icon: FlipHorizontal as LegacyAny },
-  { id: 'effects', name: 'Effects', icon: Sparkles as LegacyAny },
-  { id: 'audio-sound', name: 'Audio & Sound', icon: Music as LegacyAny },
-  { id: 'video-footage', name: 'Videos', icon: Video as LegacyAny },
-  { id: '3d-models', name: '3D Models', icon: Binary as LegacyAny },
-  { id: 'custom-presets', name: 'My Presets', icon: Save as LegacyAny },
+  { id: 'characters', name: 'Characters', icon: Users },
+  { id: 'environments', name: 'Environments', icon: Mountain },
+  { id: 'props', name: 'Props & Objects', icon: Box },
+  { id: 'visual-styles', name: 'Visual Styles', icon: Palette },
+  { id: 'templates', name: 'Templates', icon: Layout },
+  { id: 'camera-presets', name: 'Camera Presets', icon: Camera },
+  { id: 'transitions', name: 'Transitions', icon: FlipHorizontal },
+  { id: 'effects', name: 'Effects', icon: Sparkles },
+  { id: 'audio-sound', name: 'Audio & Sound', icon: Music },
+  { id: 'video-footage', name: 'Videos', icon: Video },
+  { id: '3d-models', name: '3D Models', icon: Binary },
+  { id: 'custom-presets', name: 'My Presets', icon: Save },
 ];
 
 function getAssetsForCategory(categoryId: string, sources: AssetSource[]): ServiceAsset[] {

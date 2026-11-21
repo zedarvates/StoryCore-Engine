@@ -492,7 +492,7 @@ export const SHOT_TEMPLATES: ShotTemplate[] = [
           height: 1280,
           steps: 25,
           cfgScale: 7.5,
-          sampler: 'euler_a',
+          sampler: 'euler_ancestral',
           scheduler: 'karras'
         },
         styleReferences: []

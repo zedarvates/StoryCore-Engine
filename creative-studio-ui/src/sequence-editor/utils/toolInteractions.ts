@@ -10,7 +10,7 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import type { Shot, Layer, TransitionLayerData, TextLayerData, KeyframeLayerData, Keyframe } from '../types';
+import type { Shot, Layer, TransitionLayerData, TextLayerData, KeyframeLayerData, TimelineKeyframe } from '../types';
 
 // ============================================================================
 // Types
@@ -508,14 +508,14 @@ export function handleAddKeyframe(
   if (existingKeyframeLayer) {
     // Add keyframe to existing layer
     const keyframeData = existingKeyframeLayer.data as KeyframeLayerData;
-    const newKeyframe: Keyframe = {
+    const existingIndex = keyframeData.keyframes.findIndex((k) => k.time === relativePosition);
+    const newKeyframe: TimelineKeyframe = {
+      id: keyframeData.keyframes[existingIndex]?.id ?? crypto.randomUUID(),
       time: relativePosition,
       value,
       easing: 'ease-in-out',
     };
     
-    // Check if keyframe already exists at this time
-    const existingIndex = keyframeData.keyframes.findIndex((k) => k.time === relativePosition);
     if (existingIndex !== -1) {
       // Update existing keyframe
       keyframeData.keyframes[existingIndex] = newKeyframe;
@@ -544,6 +544,7 @@ export function handleAddKeyframe(
         property,
         keyframes: [
           {
+            id: crypto.randomUUID(),
             time: relativePosition,
             value,
             easing: 'ease-in-out',
