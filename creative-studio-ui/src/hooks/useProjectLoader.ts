@@ -11,7 +11,6 @@
 import { useState, useCallback } from 'react';
 import { MergedProject, mergeProjects } from '../utils/projectMerger';
 import { RecentProjectsService } from '../services/recentProjects/RecentProjectsService';
-import { DiscoveryResult } from '../types/projectDiscovery';
 
 /**
  * Project state interface
@@ -109,7 +108,7 @@ export function useProjectLoader(): UseProjectLoaderReturn {
       const recentProjectsService = new RecentProjectsService();
       
       // Discover projects from file system via IPC
-      const discoveryResult: DiscoveryResult = await projectDiscovery.discoverProjects();
+      const discoveryResult = await projectDiscovery.discoverProjects();
       
       console.log(`[useProjectLoader] Discovered ${discoveryResult.projects.length} projects with ${discoveryResult.errors.length} errors`);
 

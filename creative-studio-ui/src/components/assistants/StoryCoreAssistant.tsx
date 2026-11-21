@@ -20,7 +20,7 @@ import { PipelineAwareLLM } from '../../services/llm/PipelineAwareLLM';
 import type { ContextualSuggestion } from '../../services/llm/PipelineAwareLLM';
 import { LLMAssistantSidebar } from '../LLMAssistantSidebar';
 import { Plus, Settings, HelpCircle, Activity, Sparkles, Wand2, Brain, Search, Network } from 'lucide-react';
-import { rlmService } from '../../services/RecursiveLLMService';
+import { rlmService, type RLMTrajectoryStep } from '../../services/RecursiveLLMService';
 import { RLMProcessDisplay } from '../llm/RLMProcessDisplay';
 import LoreGraphVisualizer from '../llm/LoreGraphVisualizer';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
@@ -58,7 +58,7 @@ export function StoryCoreAssistant() {
   const [projectAnalysis, setProjectAnalysis] = useState<ProjectAnalysis | null>(null);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [useRLM, setUseRLM] = useState(false);
-  const [rlmSteps, setRlmSteps] = useState<string[]>([]);
+  const [rlmSteps, setRlmSteps] = useState<RLMTrajectoryStep[]>([]);
   const [isRlmProcessing, setIsRlmProcessing] = useState(false);
   const [showGraph, setShowGraph] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);

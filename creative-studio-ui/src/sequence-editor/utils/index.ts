@@ -32,6 +32,8 @@ export * from './linkedShots';
 
 // Transitions manager (Phase 5 — inspired by LTX-Desktop)
 export * from './transitions';
+export { createTransition } from './animations';
+export { createTransition as createClipTransition } from './transitions';
 
 // Program Monitor composite rendering (Phase 7)
 export * from './programComposite';

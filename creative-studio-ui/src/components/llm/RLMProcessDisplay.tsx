@@ -1,10 +1,11 @@
 
 import React, { useEffect, useRef } from 'react';
 import { Cpu, CheckCircle2, AlertCircle, Terminal, Braces, Search, GitBranch, ShieldCheck } from 'lucide-react';
+import type { RLMTrajectoryStep } from '../../services/RecursiveLLMService';
 import './RLMProcessDisplay.css';
 
 interface RLMProcessDisplayProps {
-  steps: string[];
+  steps: RLMTrajectoryStep[];
   isProcessing: boolean;
   error?: string;
   className?: string;
@@ -60,11 +61,11 @@ export const RLMProcessDisplay: React.FC<RLMProcessDisplayProps> = ({
           <div key={index} className="process-step">
             <div className="step-visual">
               <div className="step-line" />
-              {getStepIcon(step)}
+              {getStepIcon(step.action || step.task)}
             </div>
             <div className="step-content">
-              <div className="step-message">{step}</div>
-              <div className="step-time">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+              <div className="step-message">{step.task}</div>
+              <div className="step-time">{new Date(step.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
             </div>
           </div>
         ))}

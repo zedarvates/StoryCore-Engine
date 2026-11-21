@@ -304,7 +304,7 @@ export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
     updateConfig: (config: Partial<ComfyUIConfig>) => Promise<ComfyUIConfig>;
     testConnection: () => Promise<{ success: boolean; message: string }>;
     getServiceStatus: (url?: string) => Promise<{ running: boolean; pid?: number }>;
-    startService: () => Promise<void>;
+    startService: () => Promise<{ success: boolean; message?: string; error?: string }>;
     stopService: () => Promise<void>;
     executeWorkflow: (workflow: ComfyUIWorkflow) => Promise<{ prompt_id: string }>;
     getQueueStatus: () => Promise<{ queue_remaining: number }>;

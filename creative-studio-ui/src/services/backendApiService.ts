@@ -11,6 +11,7 @@
 import type { Project, GenerationTask } from '@/types';
 import type { ComfyUIConfig } from './comfyuiService';
 import { BACKEND_URL } from '../config/apiConfig';
+import { isRecord } from '@/utils/typeGuards';
 
 /**
  * Backend API configuration
@@ -564,6 +565,10 @@ export class BackendApiService {
     let socket: WebSocket | null = null;
     let reconnectTimer: number | NodeJS.Timeout | null = null;
     let isExplicitlyClosed = false;
+    const throttledUpdates = new Map<string, {
+      data: Record<string, unknown>;
+      timer: ReturnType<typeof setTimeout>;
+    }>();
 
     const connect = () => {
       if (isExplicitlyClosed) return;
@@ -571,15 +576,15 @@ export class BackendApiService {
       try {
         socket = new WebSocket(wsUrl);
 
-        const throttledUpdates = new Map<string, { data: any, timer: any }>();
         const THROTTLE_MS = 250;
 
         socket.onmessage = (event) => {
           try {
-            const data = JSON.parse(event.data);
-            const promptId = data.promptId || (data.data?.prompt_id);
+            const data: unknown = JSON.parse(event.data);
+            if (!isRecord(data)) return;
+            const promptId = data.promptId || (isRecord(data.data) ? data.data.prompt_id : undefined);
 
-            if (promptId) {
+            if (typeof promptId === 'string' && promptId) {
               // If we already have a pending update for this ID, just update the data
               const existing = throttledUpdates.get(promptId);
               if (existing) {
