@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { DndProvider } from '@/components/DndProvider';
 import { ProjectDashboardNew } from '@/components/workspace/ProjectDashboardNew';
 import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 import { useStore } from '@/store';
@@ -22,7 +23,7 @@ describe('ProjectDashboardNew', () => {
   });
 
   it('shows a waiting state when no sequences are available', () => {
-    render(<ProjectDashboardNew onOpenEditor={vi.fn()} />);
+    render(<ProjectDashboardNew onOpenEditor={vi.fn()} />, { wrapper: DndProvider });
     expect(screen.getByText(/waiting for sequences/i)).toBeInTheDocument();
   });
 
@@ -36,7 +37,7 @@ describe('ProjectDashboardNew', () => {
       ],
     });
 
-    render(<ProjectDashboardNew onOpenEditor={openEditor} />);
+    render(<ProjectDashboardNew onOpenEditor={openEditor} />, { wrapper: DndProvider });
     expect(await screen.findByRole('heading', { name: 'Sequence 1' })).toBeInTheDocument();
     expect(screen.getByText('A sunset over the ocean')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('heading', { name: 'Sequence 2' }));
@@ -47,7 +48,7 @@ describe('ProjectDashboardNew', () => {
     useAppStore.setState({
       shots: [createShotFixture({ id: 'shot-1', sequence_id: 'seq-1' })],
     });
-    render(<ProjectDashboardNew onOpenEditor={vi.fn()} />);
+    render(<ProjectDashboardNew onOpenEditor={vi.fn()} />, { wrapper: DndProvider });
 
     fireEvent.click(screen.getByTitle('Create a new sequence plan'));
 

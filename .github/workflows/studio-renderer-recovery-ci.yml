@@ -44,6 +44,7 @@ jobs:
         run: >-
           npm test --
           src/components/wizard/world-builder/__tests__/legacyWorldBuilder.test.tsx
+          src/components/wizard/world-builder/__tests__/WorldBuilderWizard.e2e.test.tsx
           src/sequence-editor/components/MediaSearchPanel/MediaSearchPanel.test.tsx
           src/sequence-editor/utils/browserCompat.test.ts
           src/components/color-correction/ColorWheels.test.tsx
