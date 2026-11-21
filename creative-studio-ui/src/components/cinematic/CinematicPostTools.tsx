@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAppStore } from '@/stores/useAppStore';
-import { lipSyncService } from '@/services/lipSyncService';
+import { readCineOutputFilename } from '@/services/cineProductionAPI';
 import { postProductionService } from '@/services/postProductionService';
 import './CinematicPostTools.css';
 
@@ -28,7 +28,7 @@ import './CinematicPostTools.css';
  * Features: Lip Sync, Frame Extraction, Audio Remix.
  */
 export function CinematicPostTools() {
-    const { project, shots, selectedShotId } = useAppStore();
+    const { project, shots, selectedShotId, setShowLipSyncWizard } = useAppStore();
     const [activeTool, setActiveTool] = useState<'lipsync' | 'frames' | 'audio'>('lipsync');
     const [isProcessing, setIsProcessing] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -45,34 +45,8 @@ export function CinematicPostTools() {
 
     const sourceVideoUrl = currentShot?.result_url || null;
 
-    const handleLipSync = async () => {
-        if (!sourceVideoUrl) return;
-        setIsProcessing(true);
-        setProgress(0);
-        setResultVideo(null);
-
-        try {
-            // In a real usage, we would have picked character and audio
-            // For now, we use placeholders or previous logic
-            const { job_id } = await lipSyncService.startLipSync({
-                character_image: "character_placeholder.jpg",
-                dialogue_audio: "dialogue_placeholder.mp3",
-                preset: "high-quality"
-            });
-
-            const result = await lipSyncService.monitorJob(job_id, (p) => {
-                setProgress(p);
-            });
-
-            if (result.output_path) {
-                const filename = result.output_path.split('\\').pop() || result.output_path.split('/').pop();
-                setResultVideo(`/output/lip_sync/${filename}`);
-            }
-        } catch (error) {
-            console.error('Lip Sync failed:', error);
-        } finally {
-            setIsProcessing(false);
-        }
+    const handleLipSync = () => {
+        if (currentShot) setShowLipSyncWizard(true, { shotId: currentShot.id });
     };
 
     const handleExtractFrames = async () => {
@@ -111,9 +85,8 @@ export function CinematicPostTools() {
 
             // After audio remix, we look for the muxed video result
             const muxedVideo = result.results.find(r => r.step === 'muxed_video');
-            if (muxedVideo && muxedVideo.output && muxedVideo.output.filename) {
-                setResultVideo(`/output/${muxedVideo.output.filename}`);
-            }
+            const filename = readCineOutputFilename(muxedVideo?.output);
+            if (filename) setResultVideo(`/output/${filename}`);
 
             console.log('Audio Remix completed:', result);
         } catch (error) {

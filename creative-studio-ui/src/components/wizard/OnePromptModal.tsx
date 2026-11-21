@@ -1,13 +1,21 @@
-import React, { useState } from'react';
+import React, { useState } from 'react';
 
-const _OnePromptModal = ({ _isOpen, onClose, onConfirm }) => {
+interface OnePromptModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (prompt: string) => void;
+}
+
+export function OnePromptModal({ isOpen, onClose, onConfirm }: OnePromptModalProps) {
   const [prompt, setPrompt] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onConfirm(prompt);
     onClose();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="modal-overlay">
@@ -26,5 +34,4 @@ const _OnePromptModal = ({ _isOpen, onClose, onConfirm }) => {
       </div>
     </div>
   );
-};
-
+}

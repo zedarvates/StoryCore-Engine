@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckCircle2, Wand2, Zap, Flame } from 'lucide-react';
-import type { World } from '@/types/world';
+import type { Genre, Tone, World } from '@/types/world';
 import { GENRE_OPTIONS, TONE_OPTIONS } from '@/types/world';
 import { WORLD_PRESETS, WorldPreset, ICONS } from '../presets';
 
@@ -33,7 +33,7 @@ export function QuickSetupStep({ data, onUpdate, onApplyPreset }: QuickSetupStep
     setIsGeneratingName(false);
   };
 
-  const handleGenreToggle = (genreValue: string) => {
+  const handleGenreToggle = (genreValue: Genre) => {
     const currentGenres = data.genre || [];
     const newGenres = currentGenres.includes(genreValue)
       ? currentGenres.filter((g) => g !== genreValue)
@@ -41,7 +41,7 @@ export function QuickSetupStep({ data, onUpdate, onApplyPreset }: QuickSetupStep
     onUpdate({ genre: newGenres });
   };
 
-  const handleToneToggle = (toneValue: string) => {
+  const handleToneToggle = (toneValue: Tone) => {
     const currentTones = data.tone || [];
     const newTones = currentTones.includes(toneValue)
       ? currentTones.filter((t) => t !== toneValue)

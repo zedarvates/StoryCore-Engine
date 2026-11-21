@@ -23,11 +23,8 @@ export interface ShotCreationDialogProps {
   projectPath: string;
 }
 
-interface FormErrors {
-  title?: string;
-  description?: string;
-  duration?: string;
-}
+type ShotForm = Required<Pick<ShotInput, 'title' | 'description' | 'duration'>>;
+type FormErrors = Partial<Record<keyof ShotForm, string>>;
 
 export const ShotCreationDialog: React.FC<ShotCreationDialogProps> = ({
   isOpen,
@@ -35,7 +32,7 @@ export const ShotCreationDialog: React.FC<ShotCreationDialogProps> = ({
   onSubmit,
   projectPath,
 }) => {
-  const [formData, setFormData] = useState<ShotInput>({
+  const [formData, setFormData] = useState<ShotForm>({
     title: '',
     description: '',
     duration: 5, // Default 5 seconds
@@ -75,7 +72,7 @@ export const ShotCreationDialog: React.FC<ShotCreationDialogProps> = ({
     }
 
     // Validate duration
-    if (formData.duration <= 0) {
+    if (!Number.isFinite(formData.duration) || formData.duration <= 0) {
       newErrors.duration = 'Duration must be a positive number';
     } else if (formData.duration > 300) {
       newErrors.duration = 'Duration must be 300 seconds or less';
@@ -86,7 +83,7 @@ export const ShotCreationDialog: React.FC<ShotCreationDialogProps> = ({
   };
 
   // Handle form field changes
-  const handleChange = (field: keyof ShotInput, value: string | number) => {
+  const handleChange = <K extends keyof ShotForm>(field: K, value: ShotForm[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

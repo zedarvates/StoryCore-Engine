@@ -68,7 +68,7 @@ export const FadeTransition: React.FC<FadeTransitionProps> = ({
   onComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [_key, setKey] = useState(contentKey || 'initial');
+  const [key, setKey] = useState(contentKey || 'initial');
   const [progress, setProgress] = useState(0);
   const [metrics, setMetrics] = useState<LegacyAny>(null);
 
@@ -753,7 +753,7 @@ export const TransitionPreview: React.FC<TransitionPreviewProps> = ({
   size = { width: 320, height: 180 },
   autoPreview = true,
   loop = true,
-  onPrev_iewComplete,
+  onPreviewComplete,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPreview);

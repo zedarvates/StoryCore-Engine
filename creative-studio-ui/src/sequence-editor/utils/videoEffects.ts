@@ -584,17 +584,16 @@ export function updateEffectParameters(
   shot: Shot
 ): Layer | null {
   const layer = shot.layers.find((l) => l.id === layerId && l.type === 'effects');
-  if (!layer || !isRecord(layer.data) || !isRecord(layer.data.parameters) || !isRecord(parameters)) {
-    return null;
-  }
-  const effectData = layer.data;
+  if (!layer || !isRecord(layer.data) || !isRecord(parameters)) return null;
+  const { parameters: previousParameters } = layer.data;
+  if (!isRecord(previousParameters)) return null;
   
   return {
     ...layer,
     data: {
-      ...effectData,
+      ...layer.data,
       parameters: {
-        ...effectData.parameters,
+        ...previousParameters,
         ...parameters,
       },
     },

@@ -1,7 +1,22 @@
+import { z } from 'zod';
 import type { Shot } from '../types';
-import { analyzeScene, type SceneAnalysis, type SceneType } from '../utils/sceneAnalysis';
+import { analyzeScene, type SceneAnalysis } from '../utils/sceneAnalysis';
 import { getBuiltinPresets, type SurroundPreset } from '../components/SurroundPresetsPanel';
 import { LLMProvider, Message } from '../../../src/llm/interfaces';
+
+const legacyCompletion = z.object({
+  choices: z.array(z.object({ message: z.object({ content: z.string() }) })),
+});
+
+const analysisResult = z.object({
+  sceneType: z.enum(['dialogue', 'action', 'ambient', 'music', 'voiceover', 'cinematic']),
+  confidence: z.number().min(0).max(100),
+  reasoning: z.string(),
+  suggestedPreset: z.string(),
+  alternativePresets: z.array(z.string()).default([]),
+});
+
+type LLMAnalysisResult = z.infer<typeof analysisResult>;
 
 /**
  * AI preset suggestion result
@@ -33,8 +48,8 @@ interface LLMConfig {
  * Requirements: 20.11
  */
 export class AIPresetService {
-  private readonly llmProvider?: LLMProvider;
-  private readonly legacyConfig?: LLMConfig;
+  private llmProvider?: LLMProvider;
+  private legacyConfig?: LLMConfig;
 
   constructor(provider?: LLMProvider);
   constructor(llmConfig?: LLMConfig);
@@ -236,18 +251,9 @@ Please respond in JSON format:
    */
   private parseLLMResponse(data: unknown): LLMAnalysisResult {
     try {
-      let content: string;
-
-      // Handle different response formats
-      if (typeof data === 'string') {
-        // Direct string response from LLMProvider
-        content = data;
-      } else if (data.choices && data.choices[0]?.message?.content) {
-        // Legacy API format
-        content = data.choices[0].message.content;
-      } else {
-        throw new Error('Invalid LLM response format');
-      }
+      const response = legacyCompletion.safeParse(data);
+      const content = typeof data === 'string' ? data : response.data?.choices[0]?.message.content;
+      if (content === undefined) throw new Error('Invalid LLM response format');
 
       const jsonMatch = content.match(/\{[\s\S]*\}/);
 
@@ -255,15 +261,7 @@ Please respond in JSON format:
         throw new Error('No JSON found in LLM response');
       }
 
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      return {
-        sceneType: parsed.sceneType,
-        confidence: parsed.confidence,
-        reasoning: parsed.reasoning,
-        suggestedPreset: parsed.suggestedPreset,
-        alternativePresets: parsed.alternativePresets || [],
-      };
+      return analysisResult.parse(JSON.parse(jsonMatch[0]));
     } catch (error) {
       throw new Error(`Failed to parse LLM response: ${error}`);
     }
@@ -303,7 +301,7 @@ Please respond in JSON format:
       preset,
       analysis: {
         ...localAnalysis,
-        sceneType: llmAnalysis.sceneType as SceneType,
+        sceneType: llmAnalysis.sceneType,
         confidence: combinedConfidence,
         reasoning: llmAnalysis.reasoning,
       },
@@ -343,17 +341,6 @@ Please respond in JSON format:
     this.llmProvider = provider;
     this.legacyConfig = undefined; // Clear legacy config when provider is set
   }
-}
-
-/**
- * LLM analysis result
- */
-interface LLMAnalysisResult {
-  sceneType: string;
-  confidence: number;
-  reasoning: string;
-  suggestedPreset: string;
-  alternativePresets: string[];
 }
 
 /**

@@ -42,7 +42,7 @@ export function EnhancedSequenceCard({
       duration: totalDuration,
       avgShotDuration: avgDuration,
       characters: new Set(sequence.shots.flatMap(s => s.characters.map(c => c.characterId))).size,
-      locations: sequence.locationIds.length,
+      locations: (sequence.locationIds?.length ?? 0),
     };
   }, [sequence]);
 

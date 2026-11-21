@@ -475,7 +475,6 @@ export function StoryboardGenerator({
                     frame={sortedFrames[slideshowIndex]}
                     onGenerate={() => handleGenerateFrame(sortedFrames[slideshowIndex])}
                     showPrompt={showPrompts}
-                    onUpdate={(updates) => handleFrameUpdate(sortedFrames[slideshowIndex].id, updates)}
                   />
                 </div>
                 <div className="slideshow-controls">
@@ -651,10 +650,9 @@ interface SlideshowFrameProps {
   frame: StoryboardFrame;
   showPrompt: boolean;
   onGenerate: () => void;
-  onUpdate: (updates: Partial<StoryboardFrame>) => void;
 }
 
-function SlideshowFrame({ frame, showPrompt, onGenerate }: Omit<SlideshowFrameProps, 'onUpdate'>) {
+function SlideshowFrame({ frame, showPrompt, onGenerate }: SlideshowFrameProps) {
   return (
     <div className="slideshow-frame-content">
       <div className="slideshow-image">
