@@ -23,7 +23,7 @@ interface UseAutoSaveOptions {
 export function useAutoSave<T>(
   options: UseAutoSaveOptions
 ) {
-  const { storageKey, _interval = 30000, maxDrafts = 5 } = options;
+  const { storageKey, maxDrafts = 5 } = options;
 
   const [draft, setDraft] = useState<T | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);

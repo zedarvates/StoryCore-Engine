@@ -197,13 +197,14 @@ export const pasteShots = (
  * Duplicate a shot with a unique name
  */
 export const duplicateShot = (shot: Shot, existingShots: Shot[]): Shot => {
-  const existingNames = existingShots.map(s => s.title);
-  const newName = generateDuplicateName(shot.title, existingNames);
+  const existingNames = existingShots.map(s => s.title || s.name);
+  const newName = generateDuplicateName(shot.title || shot.name, existingNames);
   
   return {
     ...shot,
     id: `shot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     title: newName,
+    name: newName,
     position: shot.position + 1, // Insert after original
     metadata: {
       ...shot.metadata,
