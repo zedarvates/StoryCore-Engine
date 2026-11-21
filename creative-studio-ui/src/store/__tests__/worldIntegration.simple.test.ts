@@ -7,6 +7,7 @@ describe('World Data Integration', () => {
 
   beforeEach(() => {
     testWorld = {
+      keyObjects: [],
       id: 'world-1',
       name: 'Eldoria',
       genre: ['fantasy'],
@@ -132,7 +133,7 @@ describe('World Data Integration', () => {
       // Can be converted back to Date
       const createdAt = new Date(parsed.createdAt);
       expect(createdAt).toBeInstanceOf(Date);
-      expect(createdAt.getTime()).toBe(testWorld.createdAt.getTime());
+      expect(createdAt.getTime()).toBe(testWorld.createdAt);
     });
   });
 
@@ -169,7 +170,7 @@ describe('World Data Integration', () => {
       };
       
       expect(updated.name).toBe('New Eldoria');
-      expect(updated.updatedAt.getTime()).toBeGreaterThan(testWorld.updatedAt.getTime());
+      expect(updated.updatedAt).toBeGreaterThan(testWorld.updatedAt);
     });
 
     it('should preserve other properties when updating', () => {

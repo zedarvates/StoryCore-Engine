@@ -266,7 +266,7 @@ Test`;
 
       const story = markdownToStory(markdown);
 
-      expect(story.updatedAt.getTime()).toBeGreaterThanOrEqual(beforeParse.getTime());
+      expect(story.updatedAt).toBeGreaterThanOrEqual(beforeParse.getTime());
     });
   });
 

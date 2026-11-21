@@ -100,6 +100,7 @@ export const TimelineClipComponent: React.FC<TimelineClipProps> = React.memo(({
   // Position et dimensions (en pixels)
   const startPx = (shot.startTime || 0) * zoomLevel;
   const widthPx = Math.max(8, (shot.duration || 1) * zoomLevel);
+  const layerIndex = layer ? Math.max(0, shot.layers.findIndex((candidate) => candidate.id === layer.id)) : 0;
   const layerHeight = 22; // hauteur d'un layer
 
   const style = useMemo(() => {
@@ -120,7 +121,7 @@ export const TimelineClipComponent: React.FC<TimelineClipProps> = React.memo(({
       zIndex: isSelected ? 50 : 20,
       ...dragStyle,
     };
-  }, [startPx, widthPx, trackType, isLocked, layer, activeTool, isSelected, dragStyle]);
+  }, [startPx, widthPx, trackType, isLocked, layer, layerIndex, activeTool, isSelected, dragStyle]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (isLocked) return;

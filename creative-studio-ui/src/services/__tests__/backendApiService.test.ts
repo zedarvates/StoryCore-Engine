@@ -5,7 +5,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   BackendApiService,
-  MockBackendApiService,
   createBackendApi,
 } from '../backendApiService';
 import type { Project, GenerationTask } from '@/types';
@@ -332,75 +331,20 @@ describe('BackendApiService', () => {
   });
 });
 
-describe('MockBackendApiService', () => {
-  let mockService: MockBackendApiService;
-  let mockProject: Project;
-
-  beforeEach(() => {
-    mockService = new MockBackendApiService();
-    mockService.setMockDelay(10); // Fast for tests
-
-    mockProject = {
-      schema_version: '1.0',
-      project_name: 'Test Project',
-      shots: [],
-      assets: [],
-      capabilities: {
-        grid_generation: true,
-        promotion_engine: true,
-        qa_engine: true,
-        autofix_engine: true,
-      },
-      generation_status: {
-        grid: 'pending',
-        promotion: 'pending',
-      },
-    };
-  });
-
-  it('should submit project with mock response', async () => {
-    const result = await mockService.submitProject(mockProject);
-
-    expect(result.success).toBe(true);
-    expect(result.data?.taskId).toBeDefined();
-    expect(result.data?.status).toBe('pending');
-  });
-
-  it('should get task status with mock data', async () => {
-    const result = await mockService.getTaskStatus('task-1');
-
-    expect(result.success).toBe(true);
-    expect(result.data?.taskId).toBe('task-1');
-    expect(result.data?.progress).toBeGreaterThanOrEqual(0);
-    expect(result.data?.progress).toBeLessThanOrEqual(100);
-  });
-
-  it('should cancel task successfully', async () => {
-    const result = await mockService.cancelTask('task-1');
-
-    expect(result.success).toBe(true);
-  });
-
-  it('should invoke CLI command with mock output', async () => {
-    const result = await mockService.invokeCliCommand('grid', { project: 'test' });
-
-    expect(result.success).toBe(true);
-    expect(result.data?.command).toBe('grid');
-    expect(result.data?.output).toContain('mock');
-  });
-});
-
 describe('createBackendApi', () => {
-  it('should create mock service when requested', () => {
-    const service = createBackendApi(true);
-
-    expect(service).toBeInstanceOf(MockBackendApiService);
-  });
-
-  it('should create real service by default', () => {
-    const service = createBackendApi(false);
+  it('creates a service with the requested backend configuration', () => {
+    const service = createBackendApi({ baseUrl: 'http://backend.invalid', retryAttempts: 1 });
 
     expect(service).toBeInstanceOf(BackendApiService);
-    expect(service).not.toBeInstanceOf(MockBackendApiService);
+    expect(service.getConfig()).toMatchObject({ baseUrl: 'http://backend.invalid', retryAttempts: 1 });
+  });
+
+  it('creates independent services with default configuration', () => {
+    const first = createBackendApi();
+    const second = createBackendApi();
+
+    expect(first).toBeInstanceOf(BackendApiService);
+    expect(second.getConfig()).toEqual(first.getConfig());
+    expect(second).not.toBe(first);
   });
 });

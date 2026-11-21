@@ -229,6 +229,7 @@ describe('characterStorage - file operations', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -353,6 +354,7 @@ describe('characterStorage - character summary', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -410,6 +412,7 @@ describe('characterStorage - character summary', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -465,6 +468,7 @@ describe('characterStorage - filtering and sorting', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -511,6 +515,7 @@ describe('characterStorage - filtering and sorting', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',
@@ -557,6 +562,7 @@ describe('characterStorage - filtering and sorting', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',

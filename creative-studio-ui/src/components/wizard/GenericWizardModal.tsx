@@ -24,7 +24,7 @@ import type { WizardChainOption } from './WizardChainOptions';
 import './WizardModal.css';
 
 // Supported wizard types for GenericWizardModal
-const SUPPORTED_WIZARD_TYPES: AppWizardType[] = [
+const SUPPORTED_WIZARD_TYPES = [
   'dialogue-writer',
   'scene-generator',
   'storyboard-creator',
@@ -32,10 +32,12 @@ const SUPPORTED_WIZARD_TYPES: AppWizardType[] = [
   'sequence-plan',
   'shot',
   'audio-production-wizard',
-];
+] as const satisfies readonly AppWizardType[];
 
-function isWizardTypeSupported(type: AppWizardType | null | undefined): type is AppWizardType {
-  return type !== null && type !== undefined && SUPPORTED_WIZARD_TYPES.includes(type);
+type SupportedWizardType = typeof SUPPORTED_WIZARD_TYPES[number];
+
+function isWizardTypeSupported(type: AppWizardType | null | undefined): type is SupportedWizardType {
+  return SUPPORTED_WIZARD_TYPES.some(supported => supported === type);
 }
 
 interface WizardConfig {
@@ -52,7 +54,7 @@ const PLACEHOLDER_CONFIG: WizardConfig = {
   submitLabel: 'Submit',
 };
 
-const WIZARD_CONFIG: Record<AppWizardType, WizardConfig> = {
+const WIZARD_CONFIG: Partial<Record<AppWizardType, WizardConfig>> = {
   'dialogue-writer': {
     title: 'Dialogue Writer',
     description: 'Generate natural dialogue for your scenes. Requires at least one character.',
@@ -145,7 +147,7 @@ function WizardFormRenderer({
       setError(null);
 
       try {
-        const config = WIZARD_CONFIG[wizardType];
+        const config = WIZARD_CONFIG[wizardType] ?? PLACEHOLDER_CONFIG;
 
         if (config.requiresCharacters) {
           if (!project?.characters || project.characters.length === 0) {
@@ -247,7 +249,7 @@ function WizardFormRenderer({
       return (
         <StyleTransferForm
           ref={formRef}
-          shots={projectShots.map(s => ({ id: s.id, title: s.title, frame_path: s.image }))}
+          shots={projectShots.map(s => ({ id: s.id, title: s.title ?? s.name, frame_path: s.image }))}
           onSubmit={onSubmit}
           onChange={onChange}
           onValidationChange={setIsFormValid}
@@ -411,9 +413,8 @@ export function GenericWizardModal({
   }
 
   if (!isWizardTypeSupported(effectiveWizardType)) {
-    const unsupportedMessage = effectiveWizardType === 'world' ||
-      effectiveWizardType === 'character' ||
-      effectiveWizardType === 'storyteller' ? (
+    const dedicatedWizards: readonly string[] = ['world', 'character', 'storyteller'];
+    const unsupportedMessage = dedicatedWizards.includes(effectiveWizardType) ? (
       <div className="flex flex-col items-center justify-center py-8 px-4 text-white">
         <Info className="h-12 w-12 mb-4 text-blue-500" />
         <p className="text-base font-semibold text-center mb-2">
@@ -462,7 +463,7 @@ export function GenericWizardModal({
     );
   }
 
-  const wizardConfig = WIZARD_CONFIG[effectiveWizardType];
+  const wizardConfig = WIZARD_CONFIG[effectiveWizardType] ?? PLACEHOLDER_CONFIG;
 
   return (
     <div className="wizard-modal-overlay" onClick={onClose}>

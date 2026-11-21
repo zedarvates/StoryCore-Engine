@@ -1,5 +1,5 @@
 import { LegacyAny } from '@/types/legacy';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { assert, describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useChatService } from '../useChatService';
 import { useAppStore } from '@/stores/useAppStore';
@@ -270,6 +270,7 @@ describe('useChatService', () => {
       const assistantCall = mockAddChatMessage.mock.calls.find(
         (call) => call[0].role === 'assistant'
       );
+      assert.isDefined(assistantCall);
       expect(assistantCall[0].content).toContain('empty');
     });
   });

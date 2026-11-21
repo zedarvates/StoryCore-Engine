@@ -1,3 +1,4 @@
+import { isRecord } from '@/utils/typeGuards';
 /**
  * Wizard Integration Tests
  * 
@@ -80,7 +81,7 @@ describe('Wizard Integration Logic', () => {
       };
 
       expect(characterOutput.type).toBe('character');
-      expect(characterOutput.data.id).toBe('char_123');
+      expect(characterOutput.data).toHaveProperty('id', 'char_123');
       expect(characterOutput.files).toHaveLength(1);
       expect(characterOutput.files[0].type).toBe('image');
     });
@@ -128,8 +129,8 @@ describe('Wizard Integration Logic', () => {
       };
 
       expect(sceneOutput.type).toBe('scene');
-      expect(sceneOutput.data.shots).toHaveLength(2);
-      expect(sceneOutput.data.shots[0].camera_angle).toBe('wide');
+      expect(sceneOutput.data).toHaveProperty('shots.length', 2);
+      expect(sceneOutput.data).toHaveProperty('shots.0.camera_angle', 'wide');
     });
   });
 
@@ -172,7 +173,7 @@ describe('Wizard Integration Logic', () => {
       };
 
       expect(storyboardOutput.type).toBe('storyboard');
-      expect(storyboardOutput.data.mode).toBe('append');
+      expect(storyboardOutput.data).toHaveProperty('mode', 'append');
       expect(storyboardOutput.files.filter((f) => f.type === 'image')).toHaveLength(1);
     });
 
@@ -201,7 +202,7 @@ describe('Wizard Integration Logic', () => {
         },
       };
 
-      expect(storyboardOutput.data.mode).toBe('replace');
+      expect(storyboardOutput.data).toHaveProperty('mode', 'replace');
     });
   });
 
@@ -233,8 +234,8 @@ describe('Wizard Integration Logic', () => {
       };
 
       expect(dialogueOutput.type).toBe('dialogue');
-      expect(dialogueOutput.data.dialogue_tracks).toHaveLength(1);
-      expect(dialogueOutput.data.dialogue_tracks[0].speaker).toBe('Hero');
+      expect(dialogueOutput.data).toHaveProperty('dialogue_tracks.length', 1);
+      expect(dialogueOutput.data).toHaveProperty('dialogue_tracks.0.speaker', 'Hero');
     });
   });
 
@@ -264,9 +265,9 @@ describe('Wizard Integration Logic', () => {
       };
 
       expect(worldOutput.type).toBe('world');
-      expect(worldOutput.data.name).toBe('Fantasy Realm');
-      expect(worldOutput.data.locations).toHaveLength(1);
-      expect(worldOutput.data.rules).toHaveLength(2);
+      expect(worldOutput.data).toHaveProperty('name', 'Fantasy Realm');
+      expect(worldOutput.data).toHaveProperty('locations.length', 1);
+      expect(worldOutput.data).toHaveProperty('rules.length', 2);
     });
   });
 
@@ -295,8 +296,8 @@ describe('Wizard Integration Logic', () => {
       };
 
       expect(styleOutput.type).toBe('style');
-      expect(styleOutput.data.original_shot_id).toBe('shot_original');
-      expect(styleOutput.data.styled_shot_id).toBe('shot_original_styled');
+      expect(styleOutput.data).toHaveProperty('original_shot_id', 'shot_original');
+      expect(styleOutput.data).toHaveProperty('styled_shot_id', 'shot_original_styled');
       expect(styleOutput.files).toHaveLength(1);
     });
 
@@ -323,8 +324,10 @@ describe('Wizard Integration Logic', () => {
       };
 
       // Verify original shot ID is preserved
-      expect(styleOutput.data.original_shot_id).toBeDefined();
-      expect(styleOutput.data.original_shot_id).not.toBe(styleOutput.data.styled_shot_id);
+      expect(styleOutput.data).toHaveProperty('original_shot_id');
+      const output = styleOutput.data;
+      if (!isRecord(output)) throw new Error('Expected style generation data');
+      expect(output.original_shot_id).not.toBe(output.styled_shot_id);
     });
   });
 

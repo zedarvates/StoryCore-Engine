@@ -1,3 +1,4 @@
+import { isRecord } from '@/utils/typeGuards';
 /**
  * Integration tests for wizard workflows
  * Tests character wizard, scene generator, storyboard creator, and other wizard workflows
@@ -109,7 +110,7 @@ describe('Wizard Workflows Integration', () => {
       // Assert: Verify output structure
       expect(result).toBeDefined();
       expect(result.type).toBe('character');
-      expect(result.data.name).toBe('John Doe');
+      expect(result.data).toHaveProperty('name', 'John Doe');
       expect(result.files).toHaveLength(1); // image only (JSON is saved separately)
       expect(result.files[0].path).toContain('characters/');
       expect(result.files[0].path).toContain('_reference.png');
@@ -287,10 +288,10 @@ describe('Wizard Workflows Integration', () => {
       // Assert: Verify shots created
       expect(result).toBeDefined();
       expect(result.type).toBe('scene');
-      expect(result.data.shots).toHaveLength(3);
-      expect(result.data.shots[0]).toHaveProperty('shotNumber');
-      expect(result.data.shots[0]).toHaveProperty('duration');
-      expect(result.data.shots[0]).toHaveProperty('cameraAngle');
+      expect(result.data).toHaveProperty('shots.length', 3);
+      expect(result.data).toHaveProperty('shots.0.shotNumber');
+      expect(result.data).toHaveProperty('shots.0.duration');
+      expect(result.data).toHaveProperty('shots.0.cameraAngle');
     });
 
     it('should assign sequential shot IDs', async () => {
@@ -321,8 +322,10 @@ describe('Wizard Workflows Integration', () => {
       const result = await wizardService.executeSceneGenerator(input);
 
       // Verify shots have proper structure
-      expect(result.data.shots).toHaveLength(2);
-      result.data.shots.forEach((shot: LegacyAny) => {
+      expect(result.data).toHaveProperty('shots.length', 2);
+      const data = result.data;
+      if (!isRecord(data) || !Array.isArray(data.shots)) throw new Error('Expected generated shots');
+      data.shots.forEach((shot: unknown) => {
         expect(shot).toHaveProperty('shotNumber');
       });
     });
@@ -356,9 +359,9 @@ describe('Wizard Workflows Integration', () => {
       const result = await wizardService.executeSceneGenerator(input);
 
       // Verify order is preserved
-      expect(result.data.shots[0].shotNumber).toBe(1);
-      expect(result.data.shots[1].shotNumber).toBe(2);
-      expect(result.data.shots[2].shotNumber).toBe(3);
+      expect(result.data).toHaveProperty('shots.0.shotNumber', 1);
+      expect(result.data).toHaveProperty('shots.1.shotNumber', 2);
+      expect(result.data).toHaveProperty('shots.2.shotNumber', 3);
     });
   });
 
@@ -435,7 +438,7 @@ describe('Wizard Workflows Integration', () => {
       // Assert: Verify images and shots generated
       expect(result).toBeDefined();
       expect(result.type).toBe('storyboard');
-      expect(result.data.shots).toHaveLength(2);
+      expect(result.data).toHaveProperty('shots.length', 2);
       expect(result.files.length).toBeGreaterThan(0);
     });
 
@@ -498,9 +501,10 @@ describe('Wizard Workflows Integration', () => {
       const result = await wizardService.executeStoryboardCreator(input);
 
       // Verify each shot has an image reference
-      result.data.shots.forEach((shot: LegacyAny) => {
-        expect(shot).toHaveProperty('frame_path');
-        expect(shot.frame_path).toMatch(/shots\/shot_\d+_\d+_frame\.png$/);
+      const data = result.data;
+      if (!isRecord(data) || !Array.isArray(data.shots)) throw new Error('Expected generated shots');
+      data.shots.forEach((shot: unknown) => {
+        expect(shot).toHaveProperty('frame_path', expect.stringMatching(/shots\/shot_\d+_\d+_frame\.png$/));
       });
     });
 
@@ -565,8 +569,8 @@ describe('Wizard Workflows Integration', () => {
       const appendResult = await wizardService.executeStoryboardCreator(appendInput);
 
       // Verify mode is preserved in data
-      expect(replaceResult.data.mode).toBe('replace');
-      expect(appendResult.data.mode).toBe('append');
+      expect(replaceResult.data).toHaveProperty('mode', 'replace');
+      expect(appendResult.data).toHaveProperty('mode', 'append');
     });
   });
 

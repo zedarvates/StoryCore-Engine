@@ -273,10 +273,15 @@ export interface CharacterCreationRequest {
  * Result of character generation
  */
 export interface GeneratedCharacterResult {
-  id: string;
-  nom: string;
-  role: string;
-  description: string;
+  name: string;
+  archetype?: string;
+  character_id?: string;
+  personality_traits?: string[];
+  backstory?: string;
+  visual_identity?: Partial<import('./character').VisualIdentity>;
+  personality?: Partial<import('./character').Personality>;
+  background?: Partial<import('./character').Background>;
+  role?: Partial<import('./character').Role>;
 }
 
 /**

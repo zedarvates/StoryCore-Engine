@@ -5,6 +5,7 @@
 import { addonManager } from '../AddonManager';
 import { fileSystemService } from '../FileSystemService';
 import { promises as fs } from 'fs';
+import { assert } from 'vitest';
 
 describe('AddonManager Integration Tests', () => {
   const testFile = 'test-addons-integration.json';
@@ -272,14 +273,17 @@ describe('AddonManager Integration Tests', () => {
       
       // Vérifier que tous les paramètres sont préservés
       const castingSettings = addonManager.getAddonSettings('casting');
+      assert.isDefined(castingSettings);
       expect(castingSettings.maxActorsPerScene).toBe(8);
       expect(castingSettings.enableActorTemplates).toBe(false);
       
       const audioSettings = addonManager.getAddonSettings('audio-production');
+      assert.isDefined(audioSettings);
       expect(audioSettings.defaultSampleRate).toBe(48000);
       expect(audioSettings.maxAudioTracks).toBe(32);
       
       const workflowSettings = addonManager.getAddonSettings('example-workflow');
+      assert.isDefined(workflowSettings);
       expect(workflowSettings.enableWorkflow).toBe(true);
       expect(workflowSettings.maxSteps).toBe(10);
     });

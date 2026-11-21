@@ -19,6 +19,7 @@ import {
   removeRelationship,
   CycleDetectionResult,
 } from '../RelationshipManager';
+import { assert } from 'vitest';
 
 describe('RelationshipManager', () => {
   describe('INVERSE_RELATIONSHIPS constant', () => {
@@ -966,6 +967,7 @@ describe('RelationshipManager', () => {
 
         const char1UpdateEvent = updateEvents.find(e => e.payload.characterId === 'char-1');
         expect(char1UpdateEvent).toBeDefined();
+        assert.isDefined(char1UpdateEvent);
         expect(char1UpdateEvent.payload.source).toBe('relationship-sync');
         expect(char1UpdateEvent.payload.changeType).toBe('relationship-sync');
       });
@@ -994,6 +996,7 @@ describe('RelationshipManager', () => {
 
         const char2UpdateEvent = updateEvents.find(e => e.payload.characterId === 'char-2');
         expect(char2UpdateEvent).toBeDefined();
+        assert.isDefined(char2UpdateEvent);
         expect(char2UpdateEvent.payload.source).toBe('relationship-sync');
       });
 
@@ -1610,6 +1613,7 @@ describe('RelationshipManager', () => {
 
         const char1UpdateEvent = updateEvents.find(e => e.payload.characterId === 'char-1');
         expect(char1UpdateEvent).toBeDefined();
+        assert.isDefined(char1UpdateEvent);
         expect(char1UpdateEvent.payload.source).toBe('relationship-sync');
         expect(char1UpdateEvent.payload.changeType).toBe('relationship-sync');
       });
@@ -1640,6 +1644,7 @@ describe('RelationshipManager', () => {
 
         const char2UpdateEvent = updateEvents.find(e => e.payload.characterId === 'char-2');
         expect(char2UpdateEvent).toBeDefined();
+        assert.isDefined(char2UpdateEvent);
         expect(char2UpdateEvent.payload.source).toBe('relationship-sync');
       });
 
@@ -2219,6 +2224,7 @@ describe('RelationshipManager', () => {
 
         const char1UpdateEvent = updateEvents.find(e => e.payload.characterId === 'char-1');
         expect(char1UpdateEvent).toBeDefined();
+        assert.isDefined(char1UpdateEvent);
         expect(char1UpdateEvent.payload.source).toBe('relationship-sync');
         expect(char1UpdateEvent.payload.changeType).toBe('relationship-sync');
       });
@@ -2246,6 +2252,7 @@ describe('RelationshipManager', () => {
 
         const char2UpdateEvent = updateEvents.find(e => e.payload.characterId === 'char-2');
         expect(char2UpdateEvent).toBeDefined();
+        assert.isDefined(char2UpdateEvent);
         expect(char2UpdateEvent.payload.source).toBe('relationship-sync');
       });
 

@@ -17,9 +17,10 @@ export function FoundationsStep({ data, onUpdate }: FoundationsStepProps) {
     onUpdate({ logline });
   };
 
+  const currentGenres: readonly string[] = Array.isArray(data.genre) ? data.genre : data.genre ? [data.genre] : [];
+  const currentTones: readonly string[] = Array.isArray(data.tone) ? data.tone : data.tone ? [data.tone] : [];
+
   const handleGenreToggle = (genreValue: string) => {
-    // Story type says genre is string | string[] usually, but let's assume string or string[] logic
-    const currentGenres = Array.isArray(data.genre) ? data.genre : (data.genre ? [data.genre] : []);
     const newGenres = currentGenres.includes(genreValue)
       ? currentGenres.filter((g) => g !== genreValue)
       : [...currentGenres, genreValue];
@@ -27,7 +28,6 @@ export function FoundationsStep({ data, onUpdate }: FoundationsStepProps) {
   };
 
   const handleToneToggle = (toneValue: string) => {
-    const currentTones = Array.isArray(data.tone) ? data.tone : (data.tone ? [data.tone] : []);
     const newTones = currentTones.includes(toneValue)
       ? currentTones.filter((t) => t !== toneValue)
       : [...currentTones, toneValue];
@@ -93,7 +93,7 @@ export function FoundationsStep({ data, onUpdate }: FoundationsStepProps) {
                   key={genre.value}
                   onClick={() => handleGenreToggle(genre.value)}
                   className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                    (Array.isArray(data.genre) ? data.genre : [data.genre]).includes(genre.value)
+                    currentGenres.includes(genre.value)
                       ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 scale-105'
                       : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-blue-300'
                   }`}
@@ -115,7 +115,7 @@ export function FoundationsStep({ data, onUpdate }: FoundationsStepProps) {
                   key={tone.value}
                   onClick={() => handleToneToggle(tone.value)}
                   className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                    (Array.isArray(data.tone) ? data.tone : [data.tone]).includes(tone.value)
+                    currentTones.includes(tone.value)
                       ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/25 scale-105'
                       : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-purple-300'
                   }`}

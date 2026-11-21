@@ -54,7 +54,7 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
       <div className="wizard-navigation__container">
         {/* Left side: Back button */}
         <div className="wizard-navigation__left">
-          {canGoBack && (
+          {canGoBack && onBack && (
             <button
               type="button"
               className="wizard-navigation__button wizard-navigation__button--back"
@@ -83,7 +83,7 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
         </div>
 
         {/* Center: Save Draft button and status */}
-        <div className="wizard-navigation__center">
+        {onSaveDraft && <div className="wizard-navigation__center">
           <button
             type="button"
             className="wizard-navigation__button wizard-navigation__button--save"
@@ -126,11 +126,11 @@ export const WizardNavigation: React.FC<WizardNavigationProps> = ({
           <span className="wizard-navigation__save-status" aria-live="polite">
             {formatLastSaved(lastSaved)}
           </span>
-        </div>
+        </div>}
 
         {/* Right side: Skip and Next buttons */}
         <div className="wizard-navigation__right">
-          {canSkip && (
+          {canSkip && onSkip && (
             <button
               type="button"
               className="wizard-navigation__button wizard-navigation__button--skip"

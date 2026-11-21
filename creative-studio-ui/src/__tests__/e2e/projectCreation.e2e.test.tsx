@@ -400,12 +400,15 @@ describe('Project Creation E2E Workflow', () => {
         ],
         effects: [
           {
+            category: "stylize",
+            icon: null,
+            description: 'vintage',
             id: 'effect-1',
             type: 'filter',
             name: 'vintage',
             enabled: true,
             intensity: 50,
-            parameters: {},
+            parameters: [],
           },
         ],
         textLayers: [

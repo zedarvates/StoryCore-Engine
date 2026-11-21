@@ -265,7 +265,7 @@ export function batchNormalize(
   shot: Shot
 ): Layer[] {
   return layerIds
-    .map((layerId) => {
+    .map<Layer | null>((layerId) => {
       const layer = shot.layers.find((l) => l.id === layerId && l.type === 'audio');
       if (!layer) return null;
       

@@ -9,7 +9,7 @@
 import { LegacyAny } from '@/types/legacy';
 
 
-import { MenuBarConfig, MenuConfig } from '../types/menuConfig';
+import type { MenuBarConfig, MenuConfig, MenuItemConfig } from '../types/menuConfig';
 import { fileActions, editActions, viewActions, projectActions, wizardsActions, toolsActions, helpActions } from '../components/menuBar/menuActions';
 
 /**
@@ -659,7 +659,7 @@ export function getMenuItemById(itemId: string): { menu: MenuConfig; item: unkno
 /**
  * Recursively find menu item by ID
  */
-function findMenuItemRecursive(items: unknown[], itemId: string): unknown {
+function findMenuItemRecursive(items: readonly MenuItemConfig[], itemId: string): MenuItemConfig | undefined {
   for (const item of items) {
     if (item.id === itemId) {
       return item;

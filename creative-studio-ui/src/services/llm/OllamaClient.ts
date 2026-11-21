@@ -7,6 +7,7 @@
 
 import { OLLAMA_URL } from '../../config/apiConfig';
 import { logger } from '@/utils/logger';
+import { isRecord } from '@/utils/typeGuards';
 
 export interface ModelMetadata {
   name: string;
@@ -82,6 +83,23 @@ export class OllamaClient {
       logger.error('[OllamaClient] Failed to list models:', error);
       throw error;
     }
+  }
+
+  async embeddings(model: string, input: string): Promise<number[]> {
+    const response = await fetch(`${this.baseURL}/api/embed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, input }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!response.ok) throw new Error(`Ollama embedding request failed: ${response.status}`);
+
+    const data: unknown = await response.json();
+    const vector: unknown = isRecord(data) && Array.isArray(data.embeddings) ? data.embeddings[0] : undefined;
+    if (!Array.isArray(vector) || !vector.length || !vector.every((value: unknown) => typeof value === 'number' && Number.isFinite(value))) {
+      throw new Error('Ollama returned an invalid embedding');
+    }
+    return vector;
   }
 
   /**

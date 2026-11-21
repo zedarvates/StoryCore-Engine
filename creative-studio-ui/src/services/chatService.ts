@@ -1,3 +1,4 @@
+import { createStoryboardShot } from '@/utils/shotDefaults';
 /* cspell:ignore ollama trage intitulé nommé nommée consommée métrage court-métrage construi Kling REQUETE atmos */
 import type { ChatMessage, Shot, Project, Asset, Character, Location as ProductionLocation, StoryObject, SequencePlan, ElectronProjectData } from '@/types';
 import type { LanguageCode } from '@/utils/llmConfigStorage';
@@ -870,18 +871,22 @@ export class ChatService {
     const { count, theme } = intent.params as { count: number; theme: string };
     const actions: ChatAction[] = [];
 
+    const timelineEnd = this.context.shots.reduce((end, shot) =>
+      Math.max(end, (shot.startTime ?? 0) + (shot.duration ?? 0)), 0);
+
     for (let i = 0; i < count; i++) {
-      const shot: Shot = {
+      const shot = createStoryboardShot({
         id: `shot-${Date.now()}-${i}`,
         title: `${theme} - Shot ${this.context.shots.length + i + 1}`,
         description: `A ${theme} scene`,
         duration: 5,
+        startTime: timelineEnd + i * 5,
         position: this.context.shots.length + i,
         audioTracks: [],
         effects: [],
         textLayers: [],
         animations: [],
-      };
+      });
 
       actions.push({
         type: 'addShot',
