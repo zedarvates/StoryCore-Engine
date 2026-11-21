@@ -16,7 +16,7 @@ import { useStore } from '@/store';
 import { useAppStore } from '@/stores/useAppStore';
 import { eventEmitter } from '@/services/eventEmitter';
 import { createCharacter } from '@/services/storyGenerationService';
-import type { Character } from '@/types/character';
+import { createEmptyCharacter, type Character } from '@/types/character';
 
 // ============================================================================
 // Mocks
@@ -60,13 +60,17 @@ vi.mock('@/components/character/CharacterList', () => ({
 // Test Helpers
 // ============================================================================
 
+const characterDefaults = createEmptyCharacter();
+
 const mockCharacter1: Character = {
+  ...characterDefaults,
   character_id: 'char-1',
   name: 'Alice',
   creation_method: 'wizard',
   creation_timestamp: Date.parse('2024-01-01T00:00:00Z'),
   version: '1.0',
   visual_identity: {
+    ...characterDefaults.visual_identity,
     age_range: '25-30',
     gender: 'female',
     ethnicity: 'Caucasian',
@@ -75,14 +79,15 @@ const mockCharacter1: Character = {
     color_palette: [],
   },
   personality: {
+    ...characterDefaults.personality,
     traits: ['brave', 'kind'],
     strengths: ['leadership'],
-    weaknesses: ['impulsive'],
+    flaws: ['impulsive'],
     fears: ['failure'],
     desires: ['justice'],
-    quirks: [],
   },
   background: {
+    ...characterDefaults.background,
     origin: 'City',
     occupation: 'Detective',
     education: 'University',
@@ -98,12 +103,14 @@ const mockCharacter1: Character = {
 };
 
 const mockCharacter2: Character = {
+  ...characterDefaults,
   character_id: 'char-2',
   name: 'Bob',
   creation_method: 'wizard',
   creation_timestamp: Date.parse('2024-01-02T00:00:00Z'),
   version: '1.0',
   visual_identity: {
+    ...characterDefaults.visual_identity,
     age_range: '40-45',
     gender: 'male',
     ethnicity: 'Asian',
@@ -112,14 +119,15 @@ const mockCharacter2: Character = {
     color_palette: [],
   },
   personality: {
+    ...characterDefaults.personality,
     traits: ['wise', 'patient'],
     strengths: ['knowledge'],
-    weaknesses: ['stubborn'],
+    flaws: ['stubborn'],
     fears: ['irrelevance'],
     desires: ['legacy'],
-    quirks: [],
   },
   background: {
+    ...characterDefaults.background,
     origin: 'Village',
     occupation: 'Teacher',
     education: 'Self-taught',
@@ -477,7 +485,7 @@ describe('Step2CharacterSelection', () => {
       vi.mocked(createCharacter).mockResolvedValue(mockCreatedCharacter);
 
       const eventSpy = vi.fn();
-      eventEmitter.on('character-created', eventSpy);
+      const subscription = eventEmitter.on('character-created', eventSpy);
 
       renderWithWizard();
 
@@ -509,7 +517,7 @@ describe('Step2CharacterSelection', () => {
       });
 
       // Cleanup
-      eventEmitter.off('character-created', eventSpy);
+      subscription.unsubscribe();
     });
   });
 

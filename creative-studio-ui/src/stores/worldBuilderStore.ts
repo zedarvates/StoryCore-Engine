@@ -43,6 +43,10 @@ export interface WorldData {
   };
 }
 
+type InitialWorldData = Omit<Partial<WorldData>, 'foundations'> & {
+  foundations?: Partial<WorldData['foundations']>;
+};
+
 export interface WorldBuilderState {
   worldData: WorldData | null;
   currentStep: string;
@@ -52,7 +56,7 @@ export interface WorldBuilderState {
   lastSaved: Date | null;
 
   // Actions
-  initializeWorld: (data: Partial<WorldData>) => void;
+  initializeWorld: (data: InitialWorldData) => void;
   updateStep: (step: string, data: unknown) => void;
   navigateToStep: (step: string) => void;
   markStepComplete: (step: string) => void;
@@ -104,11 +108,12 @@ export const useWorldBuilderStore = create<WorldBuilderState>()(
       error: null,
       lastSaved: null,
 
-      initializeWorld: (data: Partial<WorldData>) => {
+      initializeWorld: (data: InitialWorldData) => {
         const newWorld: WorldData = {
           id: crypto.randomUUID(),
           ...initialWorldData,
           ...data,
+          foundations: { ...initialWorldData.foundations, ...data.foundations },
         };
         set({
           worldData: newWorld,

@@ -17,6 +17,8 @@ import {
   type ProjectFile,
 } from '../projectPersistence';
 import type { RootState } from '../../store';
+import timelineReducer from '../../store/slices/timelineSlice';
+import panelsReducer from '../../store/slices/panelsSlice';
 
 // Mock state
 const mockState: RootState = {
@@ -44,6 +46,7 @@ const mockState: RootState = {
     },
   },
   timeline: {
+    ...timelineReducer(undefined, { type: '@@INIT' }),
     shots: [],
     tracks: [],
     playheadPosition: 0,
@@ -56,11 +59,7 @@ const mockState: RootState = {
     activeCategory: 'characters',
     searchQuery: '',
   },
-  panels: {
-    layout: {},
-    activePanel: null,
-    shotConfigTarget: null,
-  },
+  panels: panelsReducer(undefined, { type: '@@INIT' }),
   tools: {
     activeTool: 'select' as const,
     toolSettings: {},
