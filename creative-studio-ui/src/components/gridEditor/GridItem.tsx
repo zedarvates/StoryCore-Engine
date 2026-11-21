@@ -19,7 +19,6 @@ interface GridItemProps {
 export const GridItem: React.FC<GridItemProps> = ({
   item,
   onMove,
-  _onResize,
   onDragEnd,
   snapToGrid
 }) => {

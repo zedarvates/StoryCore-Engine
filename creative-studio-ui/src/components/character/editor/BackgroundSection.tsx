@@ -11,7 +11,6 @@ interface BackgroundSectionProps {
 
 export function BackgroundSection({
   data,
-  _errors,
   onChange,
 }: BackgroundSectionProps) {
   const handleArrayChange = (field: string, value: string) => {

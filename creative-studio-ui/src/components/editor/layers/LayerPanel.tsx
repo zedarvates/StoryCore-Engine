@@ -59,7 +59,6 @@ export function LayerPanel({
   onLayerAdd,
   onLayerRemove,
   onLayerDuplicate,
-  _onLayerReorder,
   onLayerGroup,
   onLayerUngroup
 }: LayerPanelProps) {

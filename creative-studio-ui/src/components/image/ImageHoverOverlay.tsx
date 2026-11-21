@@ -80,7 +80,6 @@ interface RegenerateDialogProps {
 }
 
 const RegenerateDialog: React.FC<RegenerateDialogProps> = ({
-  _imageId,
   onClose,
   onConfirm
 }) => {

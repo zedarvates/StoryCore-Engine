@@ -113,7 +113,6 @@ type ReferenceFilter = 'all' | 'character' | 'location' | 'style';
 
 export function CrossShotReferencePicker({
   currentShotId,
-  _sequenceId,
   onSelect,
   onClose,
 }: CrossShotPickerProps) {
@@ -668,7 +667,6 @@ function ShotCard({
   summary,
   isExpanded,
   onToggle,
-  _selectedReferences,
   onToggleReference,
   isSelected,
   onPreview,

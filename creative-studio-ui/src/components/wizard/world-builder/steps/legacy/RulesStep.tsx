@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
-import { StepValidator } from '../StepValidator';
-import { useLLMGeneration } from '../../../../hooks/useLLMGeneration';
+import { useWorldBuilderSelectors, useWorldBuilderActions } from '@/stores/worldBuilderStore';
+import { StepValidator } from './StepValidator';
+import { useLLMGeneration } from '@/hooks/useLLMGeneration';
 
 interface WorldRules {
   physics: string[];

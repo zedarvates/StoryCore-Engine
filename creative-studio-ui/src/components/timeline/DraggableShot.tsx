@@ -40,8 +40,6 @@ export function DraggableShot({
     initialPosition,
     currentPosition,
     startDrag: startCancelTracking,
-    _updatePosition,
-    _cancelDrag,
     endDrag: endCancelTracking,
   } = useDragCancel({
     onCancel: () => {

@@ -1,6 +1,6 @@
 import { LegacyAny } from '@/types/legacy';
 import React, { useState } from 'react';
-import { useWorldBuilderSelectors } from '../../../stores/worldBuilderStore';
+import { useWorldBuilderSelectors } from '@/stores/worldBuilderStore';
 import { WorldMap2D } from './WorldMap2D';
 import { WorldPreview3D } from './WorldPreview3D';
 import { ElementInspector } from './ElementInspector';

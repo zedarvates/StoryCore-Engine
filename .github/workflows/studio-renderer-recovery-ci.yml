@@ -53,6 +53,11 @@ jobs:
           src/components/gridEditor/__tests__/PanelRenderer.test.tsx
           src/hooks/__tests__/useKeyframes.test.ts
           src/components/LazyComponents.test.tsx
+      - name: Exercise legacy world builder bindings and media search
+        run: >-
+          npm test --
+          src/components/wizard/world-builder/__tests__/legacyWorldBuilder.test.tsx
+          src/sequence-editor/components/MediaSearchPanel/MediaSearchPanel.test.tsx
       - run: npm run build
       - name: Install browser for bounded startup check
         if: matrix.node == '24.19.0'
