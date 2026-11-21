@@ -59,7 +59,7 @@ export function useProjectLoader(): UseProjectLoaderReturn {
    * Load projects from all sources
    * Implements Task 7.1 (parallel data loading) and Task 7.2 (validation and merging)
    */
-  const loadProjects = useCallback(async () => {
+  const loadProjects = useCallback(async (force = false) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
@@ -67,17 +67,16 @@ export function useProjectLoader(): UseProjectLoaderReturn {
       const now = Date.now();
       const cacheAge = now - state.lastRefresh;
       
-      if (cacheAge < CACHE_TTL && state.projects.length > 0) {
+      if (!force && cacheAge < CACHE_TTL && state.projects.length > 0) {
         console.log(`[useProjectLoader] Using cached data (age: ${cacheAge}ms)`);
         setState(prev => ({ ...prev, isLoading: false }));
         return;
       }
 
       // Task 7.1: Check for Electron IPC availability
-      const hasElectronAPI = typeof window !== 'undefined' && 
-                            window.electron?.projectDiscovery?.discoverProjects;
+      const projectDiscovery = typeof window === 'undefined' ? undefined : window.electronAPI?.projectDiscovery;
 
-      if (!hasElectronAPI) {
+      if (!projectDiscovery?.discoverProjects) {
         console.warn('[useProjectLoader] Electron IPC unavailable, showing recent projects only');
         
         // Fallback: Load only recent projects from localStorage
@@ -88,10 +87,10 @@ export function useProjectLoader(): UseProjectLoaderReturn {
         const mergedProjects: MergedProject[] = recentProjects.map(rp => ({
           name: rp.name,
           path: rp.path,
-          lastModified: rp.lastModified instanceof Date ? rp.lastModified.getTime() : new Date(rp.lastModified).getTime(),
+          lastModified: rp.lastModified,
           isValid: true,
           isRecent: true,
-          lastAccessed: rp.lastModified instanceof Date ? rp.lastModified.getTime() : new Date(rp.lastModified).getTime(),
+          lastAccessed: rp.lastModified,
         }));
 
         setState({
@@ -108,10 +107,9 @@ export function useProjectLoader(): UseProjectLoaderReturn {
       
       // Load recent projects from localStorage
       const recentProjectsService = new RecentProjectsService();
-      const _recentProjects = recentProjectsService.getRecentProjects();
       
       // Discover projects from file system via IPC
-      const discoveryResult: DiscoveryResult = await window.electron.projectDiscovery.discoverProjects();
+      const discoveryResult: DiscoveryResult = await projectDiscovery.discoverProjects();
       
       console.log(`[useProjectLoader] Discovered ${discoveryResult.projects.length} projects with ${discoveryResult.errors.length} errors`);
 
@@ -121,7 +119,11 @@ export function useProjectLoader(): UseProjectLoaderReturn {
       console.log(`[useProjectLoader] Validated ${validatedRecent.length} recent projects`);
 
       // Task 7.2: Merge discovered and recent projects
-      const mergedProjects = mergeProjects(discoveryResult.projects, validatedRecent);
+      const discoveredProjects = discoveryResult.projects.map((entry) => ({
+        ...entry,
+        createdAt: entry.createdAt === undefined ? undefined : new Date(entry.createdAt),
+      }));
+      const mergedProjects = mergeProjects(discoveredProjects, validatedRecent);
       
       console.log(`[useProjectLoader] Merged ${mergedProjects.length} total projects`);
 
@@ -150,28 +152,7 @@ export function useProjectLoader(): UseProjectLoaderReturn {
    * Force refresh projects, bypassing cache
    * Implements Task 7.3 (manual refresh)
    */
-  const refreshProjects = useCallback(async () => {
-    console.log('[useProjectLoader] Manual refresh triggered, bypassing cache');
-    
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: true, 
-      error: null,
-      lastRefresh: 0, // Reset cache timestamp to force reload
-    }));
-    
-    try {
-      // Force reload by resetting lastRefresh
-      await loadProjects();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to refresh projects';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
-    }
-  }, [loadProjects]);
+  const refreshProjects = useCallback(() => loadProjects(true), [loadProjects]);
 
   return {
     ...state,

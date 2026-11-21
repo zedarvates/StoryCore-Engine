@@ -148,7 +148,7 @@ export const VirtualShotList: React.FC<VirtualShotListProps> = ({
                         <div>
                           Time: {shot.startTime}s - {shot.startTime + shot.duration}s
                         </div>
-                        {shot.metadata.cameraAngle && (
+                        {typeof shot.metadata?.cameraAngle === 'string' && (
                           <div>Camera: {shot.metadata.cameraAngle}</div>
                         )}
                       </div>
