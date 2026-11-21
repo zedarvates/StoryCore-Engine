@@ -13,6 +13,7 @@ import { addKeyframe, removeKeyframe } from '../../store/slices/timelineSlice';
 import { PuppetAnimationControls } from './PuppetAnimationControls';
 import { FiberSceneView } from './FiberSceneView';
 import { exportSceneToVideo, downloadExportedFile, generateExportFilename } from '../../services/sceneExportService';
+import { isRecord } from '@/utils/typeGuards';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { Users, Move3d, Download, Loader2 } from 'lucide-react';
@@ -152,13 +153,20 @@ export const SceneView3D: React.FC<SceneView3DProps> = ({
     return selectedShot?.layers?.find(l => l.type === 'keyframes')?.id || 'puppet-metadata-layer';
   }, [selectedShot]);
 
-  const timelineKeyframes = useAppSelector(state => {
+  const storedKeyframes = useAppSelector((state): unknown => {
     const shot = state.timeline.shots.find(s => s.id === shotId);
-    if (!shot) return [];
-    const layer = shot.layers.find(l => l.id === puppetLayerId);
-    if (!layer || !layer.animations) return [];
-    return layer.animations[`puppet.${activePuppetId}.pose`] || layer.animations['puppet.pose'] || [];
+    const animations = shot?.layers.find(l => l.id === puppetLayerId)?.animations;
+    return animations?.[`puppet.${activePuppetId}.pose`] ?? animations?.['puppet.pose'];
   });
+
+  const timelineKeyframes = useMemo(() => {
+    if (!Array.isArray(storedKeyframes)) return [];
+    return storedKeyframes.filter((entry: unknown): entry is Pick<TimelineKeyframe, 'id' | 'time' | 'value'> =>
+      isRecord(entry) && typeof entry.id === 'string' &&
+      typeof entry.time === 'number' && Number.isFinite(entry.time) &&
+      typeof entry.value === 'number' && Number.isFinite(entry.value)
+    );
+  }, [storedKeyframes]);
 
   const keyframes: PuppetKeyframe[] = useMemo(() => {
     const indexToPose = (index: number) => posePresets[Math.floor(index)] || 'idle';

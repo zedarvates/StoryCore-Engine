@@ -12,6 +12,13 @@ import { StorageManager } from '@/utils/storageManager';
 import { generateId } from '@/utils/idGenerator';
 
 // Wizard types
+interface AudioProductionWizardContext {
+  sequenceId?: string;
+  mode?: string;
+  audioId?: string;
+  audioUrl?: string;
+}
+
 interface WizardCommandHistoryEntry {
   id: string;
   command: string;
@@ -133,7 +140,7 @@ interface AppState {
   
   settingsAddonId: string | null;
   lipSyncContext: LipSyncWizardContext | null;
-  audioProductionWizardContext: { sequenceId?: string; mode?: string } | null;
+  audioProductionWizardContext: AudioProductionWizardContext | null;
   marketingWizardContext: { projectId?: string; targetChannel?: string } | null;
   characterWizardContext: { imageFile?: File; name?: string; role?: string } | null;
   objectWizardContext: { imageFile?: File; name?: string } | null;
@@ -234,7 +241,7 @@ interface AppState {
   setShowLipSyncWizard: (show: boolean, context?: LipSyncWizardContext) => void;
   setShowScenarioBuilder: (show: boolean) => void;
   setShowDialogueBuilder: (show: boolean) => void;
-  setShowAudioProductionWizard: (show: boolean, context?: { sequenceId?: string; mode?: string }) => void;
+  setShowAudioProductionWizard: (show: boolean, context?: AudioProductionWizardContext) => void;
   closeAudioProductionWizard: () => void;
   setShowVideoEditorWizard: (show: boolean) => void;
   closeVideoEditorWizard: () => void;

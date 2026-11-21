@@ -17,8 +17,6 @@ export function AudioProductionWizardModal() {
   } = useAppStore();
   
   const { 
-    _loadTrack, 
-    _analyzeStructure, 
     executeRemix, 
     export: exportAudio,
     reset,
