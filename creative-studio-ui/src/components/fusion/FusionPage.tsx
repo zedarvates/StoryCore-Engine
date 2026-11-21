@@ -66,6 +66,10 @@ export const FusionPage: React.FC<FusionPageProps> = () => {
     ));
   };
 
+  const toggleNode = (nodeId: string) => {
+    setNodes(previous => previous.map(node => node.id === nodeId ? { ...node, enabled: !node.enabled } : node));
+  };
+
   const handleAddNode = (nodeType: string) => {
     const newNode = {
       id: `node_${Date.now()}`,
@@ -138,7 +142,7 @@ export const FusionPage: React.FC<FusionPageProps> = () => {
                     <span className={styles.nodeName}>{node.name}</span>
                     <button
                       className={styles.nodeToggle}
-                      onClick={() => handleNodeChange(node.id, { enabled: !node.enabled })}
+                      onClick={() => toggleNode(node.id)}
                     >
                       {node.enabled ? 'ON' : 'OFF'}
                     </button>

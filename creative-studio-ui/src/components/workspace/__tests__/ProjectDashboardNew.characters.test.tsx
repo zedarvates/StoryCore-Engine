@@ -7,7 +7,7 @@ import { LegacyAny } from '@/types/legacy';
 // Requirements: 1.1, 2.1, 3.1
 // ============================================================================
 
-import { describe, it, expect, vi, b_eforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ProjectDashboardNew } from '../ProjectDashboardNew';
 import type { Character } from '@/types/character';

@@ -8,7 +8,7 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { ProjectDashboardNew } from '../components/ProjectDashboardNew';
+import { ProjectDashboardNew } from '../components/workspace/ProjectDashboardNew';
 import type { Project } from '../types/projectDashboard';
 import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 

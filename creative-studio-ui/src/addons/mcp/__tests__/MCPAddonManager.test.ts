@@ -5,7 +5,7 @@ import { LegacyAny } from '@/types/legacy';
 // ============================================================================
 
 import { MCPAddonManager } from '../MCPAddonManager';
-import type { MCPServerConfig, MCPAddonState } from '@/types/addons';
+import type { MCPServerConfig, MCPAddonState } from '../types';
 
 describe('MCPAddonManager', () => {
   let manager: MCPAddonManager;
