@@ -1,0 +1,84 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> creative-studio-ui@0.0.0 test
+> vitest --run src/services/__tests__/dompurify.security.test.ts --maxWorkers=2
+
+
+ RUN  v4.1.11 /workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui
+
+stdout | src/services/__tests__/dompurify.security.test.ts
+Vitest setup loaded successfully
+
+ ❯ src/services/__tests__/dompurify.security.test.ts (5 tests | 4 failed) 47ms
+     × scrubs split ${storycoreProbe} after forbidden elements are removed 21ms
+     × scrubs split {{storycoreProbe}} after forbidden elements are removed 4ms
+     × scrubs split <%=storycoreProbe%> after forbidden elements are removed 4ms
+     × scrubs nested attached roots as well as template content 7ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/services/__tests__/dompurify.security.test.ts > DOMPurify shadow-root template safety (dependency regression) > scrubs split ${storycoreProbe} after forbidden elements are removed
+AssertionError: expected '${storycoreProbe}StoryCore ordinary p…' not to contain '${storycoreProbe}'
+
+Expected: "${storycoreProbe}"
+Received: "${storycoreProbe}StoryCore ordinary prose"
+
+ ❯ src/services/__tests__/dompurify.security.test.ts:33:34
+     31|     expect(host.shadowRoot).toBe(root);
+     32|     expect(root.querySelector('object')).toBeNull();
+     33|     expect(root.textContent).not.toContain(expression);
+       |                                  ^
+     34|     expect(root.querySelector('p')?.textContent).toBe('StoryCore ordin…
+     35|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/services/__tests__/dompurify.security.test.ts > DOMPurify shadow-root template safety (dependency regression) > scrubs split {{storycoreProbe}} after forbidden elements are removed
+AssertionError: expected '{{storycoreProbe}}StoryCore ordinary …' not to contain '{{storycoreProbe}}'
+
+Expected: "{{storycoreProbe}}"
+Received: "{{storycoreProbe}}StoryCore ordinary prose"
+
+ ❯ src/services/__tests__/dompurify.security.test.ts:33:34
+     31|     expect(host.shadowRoot).toBe(root);
+     32|     expect(root.querySelector('object')).toBeNull();
+     33|     expect(root.textContent).not.toContain(expression);
+       |                                  ^
+     34|     expect(root.querySelector('p')?.textContent).toBe('StoryCore ordin…
+     35|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/services/__tests__/dompurify.security.test.ts > DOMPurify shadow-root template safety (dependency regression) > scrubs split <%=storycoreProbe%> after forbidden elements are removed
+AssertionError: expected '<%=storycoreProbe%>StoryCore ordinary…' not to contain '<%=storycoreProbe%>'
+
+Expected: "<%=storycoreProbe%>"
+Received: "<%=storycoreProbe%>StoryCore ordinary prose"
+
+ ❯ src/services/__tests__/dompurify.security.test.ts:33:34
+     31|     expect(host.shadowRoot).toBe(root);
+     32|     expect(root.querySelector('object')).toBeNull();
+     33|     expect(root.textContent).not.toContain(expression);
+       |                                  ^
+     34|     expect(root.querySelector('p')?.textContent).toBe('StoryCore ordin…
+     35|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/services/__tests__/dompurify.security.test.ts > DOMPurify shadow-root template safety (dependency regression) > scrubs nested attached roots as well as template content
+AssertionError: expected '${storycoreProbe}' not to contain '${storycoreProbe}'
+ ❯ src/services/__tests__/dompurify.security.test.ts:53:39
+     51|     expect(outerRoot.querySelector('section')).toBe(child);
+     52|     expect(child.shadowRoot).toBe(innerRoot);
+     53|     expect(innerRoot.textContent).not.toContain(expressions[0]);
+       |                                       ^
+     54|     expect(template.content.textContent).not.toContain(expressions[0]);
+     55|     expect(innerRoot.querySelector('object')).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  05:35:41
+   Duration  649ms (transform 55ms, setup 131ms, import 17ms, tests 47ms, environment 324ms)

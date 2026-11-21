@@ -5,8 +5,9 @@ This module provides JWT-based authentication with token generation, validation,
 expiration, and refresh mechanisms.
 """
 
-from jose import jwt, JWTError
-from datetime import datetime, timedelta
+import jwt
+from jwt.exceptions import InvalidTokenError
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, Callable
 from functools import wraps
 from dataclasses import dataclass
@@ -67,7 +68,7 @@ class AuthenticationMiddleware:
         Returns:
             JWT access token string
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expire = now + timedelta(minutes=self.access_token_expire_minutes)
 
         payload = {
@@ -93,7 +94,7 @@ class AuthenticationMiddleware:
         Returns:
             JWT refresh token string
         """
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         expire = now + timedelta(days=self.refresh_token_expire_days)
 
         payload = {
@@ -146,7 +147,7 @@ class AuthenticationMiddleware:
 
         except jwt.ExpiredSignatureError:
             raise AuthenticationError("Token has expired")
-        except JWTError as e:
+        except InvalidTokenError as e:
             raise AuthenticationError(f"Invalid token: {str(e)}")
         except Exception as e:
             raise AuthenticationError(f"Token validation failed: {str(e)}")
@@ -183,7 +184,7 @@ class AuthenticationMiddleware:
 
         except jwt.ExpiredSignatureError:
             raise AuthenticationError("Refresh token has expired")
-        except JWTError as e:
+        except InvalidTokenError as e:
             raise AuthenticationError(f"Invalid refresh token: {str(e)}")
         except Exception as e:
             raise AuthenticationError(f"Refresh token validation failed: {str(e)}")

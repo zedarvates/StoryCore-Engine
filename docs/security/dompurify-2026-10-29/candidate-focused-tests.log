@@ -1,0 +1,20 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> creative-studio-ui@0.0.0 test
+> vitest --run src/services/__tests__/dompurify.security.test.ts src/services/__tests__/pdfExport.security.test.ts src/services/__tests__/projectExportService.test.ts --maxWorkers=2
+
+
+ RUN  v4.1.11 /workspace/scratch/39f3c2c798b0/storycore-dompurify/creative-studio-ui
+
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+
+ Test Files  3 passed (3)
+      Tests  24 passed (24)
+   Start at  05:37:14
+   Duration  1.30s (transform 131ms, setup 304ms, import 128ms, tests 155ms, environment 1.02s)
