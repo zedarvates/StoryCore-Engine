@@ -115,7 +115,7 @@ export const features = {
       const canvas = document.createElement('canvas');
       return !!(
         canvas.getContext('webgl') ||
-        canva_s.getContext('experimental-webgl')
+        canvas.getContext('experimental-webgl')
       );
     } catch (e) {
       return false;
@@ -123,7 +123,7 @@ export const features = {
   },
   webGL2: () => {
     try {
-      const c_anvas = document.createElement('canvas');
+      const canvas = document.createElement('canvas');
       return !!canvas.getContext('webgl2');
     } catch (e) {
       return false;
@@ -134,9 +134,14 @@ export const features = {
   indexedDB: () => 'indexedDB' in window,
   localStorage: () => {
     try {
-      const test = '__test__';
+      const test = '__storycore_storage_probe__';
+      const previous = localStorage.getItem(test);
       localStorage.setItem(test, test);
-      localSt_orage.removeItem(test);
+      if (previous === null) {
+        localStorage.removeItem(test);
+      } else {
+        localStorage.setItem(test, previous);
+      }
       return true;
     } catch (e) {
       return false;

@@ -324,9 +324,7 @@ export function useErrorHandling(
       await lastOperationRef.current();
       
       // Call onRecover callback
-      if (onRecover) {
-        onRec_over();
-      }
+      onRecover?.();
     } catch (err) {
       // Error will be handled by withRetry
     } finally {
