@@ -1,8 +1,11 @@
 /**
  * Electron API types for renderer process
- * Aligned with electron/electronAPI.d.ts
+ * Core capabilities are exposed by electron/preload.ts. Entity adapters and
+ * sequence.list are optional extensions, not part of that preload.
  * cspell:ignore lmstudio Vram
  */
+
+import type { OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from 'electron';
 
 export interface ProjectData {
   name: string;
@@ -54,7 +57,7 @@ export interface RecentProject {
   id: string;
   name: string;
   path: string;
-  lastAccessed: number; // timestamp
+  lastAccessed: Date;
   exists?: boolean;
 }
 
@@ -62,10 +65,10 @@ export interface MergedProject {
   id?: string;
   name: string;
   path: string;
-  lastModified: number; // timestamp
-  createdAt?: number; // timestamp
+  lastModified: Date;
+  createdAt?: Date;
   isRecent: boolean;
-  lastOpened?: number; // timestamp
+  lastOpened?: Date;
   exists?: boolean;
 }
 
@@ -79,7 +82,7 @@ export interface DiscoveredProject {
     project_name: string;
     capabilities: Record<string, boolean>;
   };
-  createdAt?: number; // timestamp
+  createdAt?: Date;
   isRecent: boolean;
 }
 
@@ -158,6 +161,21 @@ export interface UpdateStatus {
   updateInfo?: UpdateInfo;
 }
 
+export interface CommandExecutionOptions {
+  command: string;
+  cwd?: string;
+  shell?: boolean;
+  timeout?: number;
+  env?: Record<string, string>;
+}
+
+export interface CommandExecutionResult {
+  success: boolean;
+  output?: string;
+  error?: string;
+  exitCode?: number;
+}
+
 /**
  * Electron API interface
  */
@@ -182,10 +200,11 @@ export interface StoryCoreElectronAPI {
     selectDirectory: () => Promise<string | null>;
     listDirectory: (path: string) => Promise<DirectoryItem[]>;
     updateMetadata: (path: string, metadata: Record<string, unknown>) => Promise<Project>;
+    delete: (path: string) => Promise<boolean>;
   };
 
   // Character management
-  character: {
+  character?: {
     list: (projectPath: string) => Promise<unknown[]>;
     get: (projectPath: string, characterId: string) => Promise<unknown>;
     create: (projectPath: string, data: unknown) => Promise<unknown>;
@@ -194,21 +213,21 @@ export interface StoryCoreElectronAPI {
   };
 
   // World management
-  world: {
+  world?: {
     list: (projectPath: string) => Promise<unknown[]>;
     get: (projectPath: string, worldId: string) => Promise<unknown>;
     update: (projectPath: string, worldId: string, data: unknown) => Promise<unknown>;
   };
 
   // Location management
-  location: {
+  location?: {
     list: (projectPath: string) => Promise<unknown[]>;
     get: (projectPath: string, locationId: string) => Promise<unknown>;
     update: (projectPath: string, locationId: string, data: unknown) => Promise<unknown>;
   };
 
   // Story management
-  story: {
+  story?: {
     list: (projectPath: string) => Promise<unknown[]>;
     get: (projectPath: string, storyId: string) => Promise<unknown>;
     update: (projectPath: string, storyId: string, data: unknown) => Promise<unknown>;
@@ -216,10 +235,10 @@ export interface StoryCoreElectronAPI {
 
   // Sequence management
   sequence: {
-    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<void>;
+    updateShot: (projectPath: string, sequenceId: string, shotId: string, updates: Record<string, unknown>) => Promise<unknown>;
     getShots: (projectPath: string, sequenceId: string) => Promise<ShotData[]>;
     getAll: (projectPath: string) => Promise<unknown[]>;
-    list: (projectPath: string) => Promise<unknown[]>;
+    list?: (projectPath: string) => Promise<unknown[]>;
   };
 
   // Recent projects management
@@ -260,8 +279,8 @@ export interface StoryCoreElectronAPI {
       isFile: boolean;
       isDirectory: boolean;
       size: number;
-      mtime: number; // timestamp
-      birthtime: number; // timestamp
+      mtime: Date;
+      birthtime: Date;
     }>;
     mkdir: (dirPath: string, options?: { recursive?: boolean }) => Promise<void>;
     unlink: (filePath: string) => Promise<void>;
@@ -269,11 +288,8 @@ export interface StoryCoreElectronAPI {
 
   // Dialogs
   dialog: {
-    showSaveDialog: (options: Electron.SaveDialogOptions) => Promise<Electron.SaveDialogReturnValue>;
-    showOpenDialog: (options: { title: string; buttonLabel: string; properties: string[] }) => Promise<{
-      canceled: boolean;
-      filePaths: string[];
-    }>;
+    showSaveDialog: (options: SaveDialogOptions) => Promise<SaveDialogReturnValue>;
+    showOpenDialog: (options: OpenDialogOptions) => Promise<OpenDialogReturnValue>;
   };
 
   // LLM integration
@@ -340,7 +356,7 @@ export interface StoryCoreElectronAPI {
   };
 
   // Terminal/Command execution
-  executeCommand: (options: { command: string; cwd?: string; shell?: boolean }) => Promise<{ success: boolean; output: string; error?: string }>;
+  executeCommand: (options: CommandExecutionOptions) => Promise<CommandExecutionResult>;
 
   // Chat window management
   chatWindow: {
@@ -417,3 +433,6 @@ export interface ChatMessage {
 }
 
 export { };
+
+/** Compatibility name used by renderer consumers. */
+export type ElectronAPI = StoryCoreElectronAPI;

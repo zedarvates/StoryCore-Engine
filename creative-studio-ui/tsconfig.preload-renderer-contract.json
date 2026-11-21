@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.renderer-contract.json",
+  "files": ["tests/contracts/preload-renderer.contract.ts"]
+}

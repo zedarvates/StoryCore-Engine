@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+studio-bundle-test-results/
 
 # Editor directories and files
 .vscode/*

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { StoryObject, SequencePlan, Shot } from '@/types';
+import type { StoryObject, SequencePlan, Shot, Project } from '@/types';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/store';
@@ -36,9 +36,7 @@ import { devLog } from '@/utils/devOnly';
 import type { World } from '@/types/world';
 import { Character } from '@/types/character';
 import type { Location } from '@/types/location';
-import type { Project } from '@/types/project';
 import { HermesNovelistWizardModal } from './components/wizard/hermes-novelist/HermesNovelistWizardModal';
-import type { ElectronAPI } from '@/types/electron';
 import { useThemeStore } from '@/stores/themeStore';
 import { useLocationStore } from '@/stores/locationStore';
 import type { DialogueBuilderData } from '@/components/wizard/dialogue-builder/DialogueBuilderWizard';
@@ -331,7 +329,7 @@ function AppContentInner() {
           setChatMessages([]); // Ensure chat is cleared before loading new project
 
           try {
-            const api = (window as unknown as { electronAPI: ElectronAPI }).electronAPI;
+            const api = window.electronAPI;
             if (api?.project?.open) {
               const electronProject = await api.project.open(projectPath);
                 if (electronProject) {

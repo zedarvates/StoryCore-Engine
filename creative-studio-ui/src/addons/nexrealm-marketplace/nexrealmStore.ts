@@ -23,7 +23,6 @@ import type {
   GemPackage,
   CreatorTier,
 } from './gemTypes';
-import { redactState } from '../../utils/redact';
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -424,9 +423,9 @@ export const useNexRealmStore = create<NexRealmState>()(
     }),
     { 
       name: 'NexRealmStore',
-      stateSanitizer: (state: unknown) => {
-        return redactState(state as NexRealmState);
-      }
+      // No redaction utility is shipped. Keep debugger export off until a
+      // reviewed redaction policy exists; never fall back to exporting raw state.
+      enabled: false,
     }
   )
 );
