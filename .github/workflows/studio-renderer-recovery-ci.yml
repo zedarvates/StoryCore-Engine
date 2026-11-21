@@ -71,6 +71,8 @@ jobs:
           src/components/LoadingStates.test.tsx
           src/components/NotificationSystem.test.tsx
           src/__tests__/ProjectDashboardNew.test.tsx
+          src/components/menuBar/__tests__/actionErrorHandling.test.ts
+          src/components/wizard/character/__tests__/CharacterWizard.completion.test.tsx
       - name: Exercise wizard draft round-trip
         run: npm test -- src/services/wizard/__tests__/DraftPersistence.test.ts -t 'round-trips wizard step data'
       - name: Lint repaired grid renderers and their contracts
