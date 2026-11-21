@@ -8,7 +8,7 @@ Run with: python -m pytest tests/test_api_security.py -v
 import pytest
 from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
-from jose import jwt
+import jwt
 
 from src.api_server_fastapi import app
 from src.auth import (

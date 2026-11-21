@@ -1,0 +1,778 @@
+{
+  "auditReportVersion": 2,
+  "vulnerabilities": {
+    "@vitest/coverage-v8": {
+      "name": "@vitest/coverage-v8",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "vitest"
+      ],
+      "effects": [
+        "vitest"
+      ],
+      "range": "2.1.0-beta.1 - 4.1.11",
+      "nodes": [
+        "node_modules/@vitest/coverage-v8"
+      ],
+      "fixAvailable": true
+    },
+    "@vitest/mocker": {
+      "name": "@vitest/mocker",
+      "severity": "moderate",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1242767,
+          "name": "@vitest/mocker",
+          "dependency": "@vitest/mocker",
+          "title": "Vitest: Code injection via unauthenticated manual mock registration",
+          "url": "https://github.com/advisories/GHSA-qxg6-89mg-rqv8",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-94",
+            "CWE-116",
+            "CWE-306"
+          ],
+          "cvss": {
+            "score": 4.7,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N"
+          },
+          "range": ">=2.1.0-beta.7 <4.1.12"
+        },
+        {
+          "source": 1242769,
+          "name": "@vitest/mocker",
+          "dependency": "@vitest/mocker",
+          "title": "Vitest: Windows backslash traversal bypasses the @vitest/mocker redirect allowlist fix",
+          "url": "https://github.com/advisories/GHSA-xp26-3454-mjgp",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N"
+          },
+          "range": ">=4.1.11 <4.1.12"
+        }
+      ],
+      "effects": [
+        "vitest"
+      ],
+      "range": "<=4.1.11",
+      "nodes": [
+        "node_modules/@vitest/mocker"
+      ],
+      "fixAvailable": true
+    },
+    "@vitest/ui": {
+      "name": "@vitest/ui",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "vitest"
+      ],
+      "effects": [],
+      "range": "2.1.0-beta.1 - 4.1.11",
+      "nodes": [
+        "node_modules/@vitest/ui"
+      ],
+      "fixAvailable": true
+    },
+    "dompurify": {
+      "name": "dompurify",
+      "severity": "critical",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1242880,
+          "name": "dompurify",
+          "dependency": "dompurify",
+          "title": "DOMPurify SAFE_FOR_TEMPLATES bypass: split template expressions survive in attached shadow root content on DOM output modes",
+          "url": "https://github.com/advisories/GHSA-cg2g-xh64-v4q7",
+          "severity": "critical",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=3.4.4 <=3.4.16"
+        },
+        {
+          "source": 1242881,
+          "name": "dompurify",
+          "dependency": "dompurify",
+          "title": "DOMPurify IN_PLACE: hook that removes a parent or sibling leaves the detached subtree's event handlers armed (incomplete fix for GHSA-p98j-92pf-mc4p)",
+          "url": "https://github.com/advisories/GHSA-mrv2-3pqr-j5jr",
+          "severity": "high",
+          "cwe": [
+            "CWE-79",
+            "CWE-693"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=3.4.16"
+        },
+        {
+          "source": 1242882,
+          "name": "dompurify",
+          "dependency": "dompurify",
+          "title": "DOMPurify: SMIL attributeName=href guard is skipped when PARSER_MEDIA_TYPE is application/xhtml+xml",
+          "url": "https://github.com/advisories/GHSA-c6gr-qvv4-5v3f",
+          "severity": "low",
+          "cwe": [
+            "CWE-79"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": "<=3.4.16"
+        }
+      ],
+      "effects": [],
+      "range": "<=3.4.16",
+      "nodes": [
+        "node_modules/dompurify"
+      ],
+      "fixAvailable": true
+    },
+    "electron": {
+      "name": "electron",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1239973,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron drops inherited HTML sandbox restrictions for popups opened through OpenURLFromTab",
+          "url": "https://github.com/advisories/GHSA-hq2x-r82h-9wj4",
+          "severity": "high",
+          "cwe": [
+            "CWE-346",
+            "CWE-693"
+          ],
+          "cvss": {
+            "score": 8.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N"
+          },
+          "range": "<41.10.4"
+        },
+        {
+          "source": 1239977,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Windows opened from a sandboxed top-level document do not inherit its sandbox restrictions",
+          "url": "https://github.com/advisories/GHSA-gr2m-v5gq-v685",
+          "severity": "high",
+          "cwe": [
+            "CWE-266",
+            "CWE-693"
+          ],
+          "cvss": {
+            "score": 8.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:L/A:N"
+          },
+          "range": "<41.10.6"
+        },
+        {
+          "source": 1239981,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: File and HTTP protocol handlers allow cross-origin reads without corsEnabled",
+          "url": "https://github.com/advisories/GHSA-j84w-jfhq-vhvj",
+          "severity": "high",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:N/A:N"
+          },
+          "range": "<41.10.6"
+        },
+        {
+          "source": 1240059,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Local race condition in Squirrel.Mac update installation on macOS",
+          "url": "https://github.com/advisories/GHSA-vv43-5jgx-7qv8",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-367"
+          ],
+          "cvss": {
+            "score": 6.7,
+            "vectorString": "CVSS:3.1/AV:L/AC:H/PR:L/UI:R/S:U/C:H/I:H/A:H"
+          },
+          "range": ">=40.0.0-alpha.1 <41.10.5"
+        },
+        {
+          "source": 1241657,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: <webview> can enable Node.js integration in Web Workers despite embedder restrictions",
+          "url": "https://github.com/advisories/GHSA-9qh4-3jw8-366w",
+          "severity": "high",
+          "cwe": [
+            "CWE-269",
+            "CWE-1188"
+          ],
+          "cvss": {
+            "score": 8.3,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:H/A:H"
+          },
+          "range": "<41.10.6"
+        },
+        {
+          "source": 1242756,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: HID and USB permission checks can be attributed to the wrong origin",
+          "url": "https://github.com/advisories/GHSA-fw47-9c62-h3vw",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:N"
+          },
+          "range": "<42.11.3"
+        },
+        {
+          "source": 1242835,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: SameSite cookie restrictions are not applied to windows opened from links",
+          "url": "https://github.com/advisories/GHSA-2p8c-gr87-2676",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-352"
+          ],
+          "cvss": {
+            "score": 4.2,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:L/A:N"
+          },
+          "range": "<42.11.3"
+        },
+        {
+          "source": 1242839,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Pointer lock permission requests can be attributed to the wrong frame",
+          "url": "https://github.com/advisories/GHSA-x562-297c-g43g",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:N/I:L/A:L"
+          },
+          "range": "<42.11.9"
+        },
+        {
+          "source": 1242843,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Extension tabs.query returns tab URLs and titles without the tabs permission",
+          "url": "https://github.com/advisories/GHSA-98mx-cjp9-gchm",
+          "severity": "low",
+          "cwe": [
+            "CWE-862"
+          ],
+          "cvss": {
+            "score": 3.1,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N"
+          },
+          "range": "<42.11.1"
+        },
+        {
+          "source": 1242850,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Frame subscription trusts GPU-supplied frame geometry",
+          "url": "https://github.com/advisories/GHSA-3qxv-5xgr-q7w9",
+          "severity": "low",
+          "cwe": [
+            "CWE-125"
+          ],
+          "cvss": {
+            "score": 3.9,
+            "vectorString": "CVSS:3.1/AV:L/AC:H/PR:H/UI:N/S:C/C:L/I:N/A:L"
+          },
+          "range": "<42.11.6"
+        },
+        {
+          "source": 1242854,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Off-screen rendering on macOS trusts GPU-supplied frame geometry",
+          "url": "https://github.com/advisories/GHSA-h3v5-h239-pg29",
+          "severity": "low",
+          "cwe": [
+            "CWE-125"
+          ],
+          "cvss": {
+            "score": 3.9,
+            "vectorString": "CVSS:3.1/AV:L/AC:H/PR:H/UI:N/S:C/C:L/I:N/A:L"
+          },
+          "range": "<42.11.6"
+        },
+        {
+          "source": 1242858,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: openExternal permission requests can be attributed to the wrong origin",
+          "url": "https://github.com/advisories/GHSA-997q-gvvc-jwmx",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-346"
+          ],
+          "cvss": {
+            "score": 5.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:L/I:L/A:N"
+          },
+          "range": "<42.11.3"
+        },
+        {
+          "source": 1243069,
+          "name": "electron",
+          "dependency": "electron",
+          "title": "Electron: Mitigation for compromised eMudhra intermediate certificates",
+          "url": "https://github.com/advisories/GHSA-jr5w-w6x2-84p9",
+          "severity": "high",
+          "cwe": [
+            "CWE-299"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": "<42.11.16"
+        }
+      ],
+      "effects": [],
+      "range": "<=42.11.15",
+      "nodes": [
+        "node_modules/electron"
+      ],
+      "fixAvailable": true
+    },
+    "follow-redirects": {
+      "name": "follow-redirects",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1242604,
+          "name": "follow-redirects",
+          "dependency": "follow-redirects",
+          "title": "follow-redirects array-form headers bypass cross-origin credential stripping",
+          "url": "https://github.com/advisories/GHSA-q3jh-wrc6-jgq8",
+          "severity": "high",
+          "cwe": [
+            "CWE-200",
+            "CWE-212"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.16.0 <1.16.1"
+        },
+        {
+          "source": 1242605,
+          "name": "follow-redirects",
+          "dependency": "follow-redirects",
+          "title": "follow-redirects sensitiveHeaders regex escaping can expose credential headers",
+          "url": "https://github.com/advisories/GHSA-8r9p-f939-6h3c",
+          "severity": "high",
+          "cwe": [
+            "CWE-185",
+            "CWE-200"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=1.16.0 <1.16.1"
+        }
+      ],
+      "effects": [],
+      "range": "1.16.0",
+      "nodes": [
+        "node_modules/follow-redirects"
+      ],
+      "fixAvailable": true
+    },
+    "storybook": {
+      "name": "storybook",
+      "severity": "critical",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1242753,
+          "name": "storybook",
+          "dependency": "storybook",
+          "title": "Storybook: Missing origin validation in Storybook preview allows code injection from malicious websites",
+          "url": "https://github.com/advisories/GHSA-f2ph-cmg5-wxc8",
+          "severity": "critical",
+          "cwe": [
+            "CWE-22",
+            "CWE-94",
+            "CWE-96",
+            "CWE-346",
+            "CWE-441",
+            "CWE-749",
+            "CWE-862",
+            "CWE-1021"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=10.0.0 <10.6.2"
+        },
+        {
+          "source": 1242874,
+          "name": "storybook",
+          "dependency": "storybook",
+          "title": "Storybook dev server vulnerable to code injection from the local network",
+          "url": "https://github.com/advisories/GHSA-px85-f4q5-jh77",
+          "severity": "high",
+          "cwe": [
+            "CWE-22",
+            "CWE-94",
+            "CWE-306",
+            "CWE-1188"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=10.0.0 <10.6.2"
+        }
+      ],
+      "effects": [],
+      "range": "10.0.0 - 10.6.1",
+      "nodes": [
+        "node_modules/storybook"
+      ],
+      "fixAvailable": true
+    },
+    "undici": {
+      "name": "undici",
+      "severity": "high",
+      "isDirect": false,
+      "via": [
+        {
+          "source": 1243078,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Denial of Service via unbounded memory in the EventSource parser",
+          "url": "https://github.com/advisories/GHSA-4qv8-2p9j-2685",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=7.0.0 <7.30.1"
+        },
+        {
+          "source": 1243081,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Subresource Integrity bypass via non-lowercase algorithm tokens",
+          "url": "https://github.com/advisories/GHSA-f72v-6w45-q472",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-178"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:H/A:N"
+          },
+          "range": ">=7.15.0 <7.30.1"
+        },
+        {
+          "source": 1243113,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Denial of Service via unhandled error on excessive content-encodings",
+          "url": "https://github.com/advisories/GHSA-xjj6-f33q-929c",
+          "severity": "high",
+          "cwe": [
+            "CWE-248",
+            "CWE-459"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=7.18.0 <7.30.1"
+        },
+        {
+          "source": 1243473,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to cache poisoning and cross-user disclosure via cross-origin redirects",
+          "url": "https://github.com/advisories/GHSA-4w7w-5xrc-9h26",
+          "severity": "high",
+          "cwe": [
+            "CWE-346",
+            "CWE-524"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": ">=7.0.0 <7.30.1"
+        },
+        {
+          "source": 1243475,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to TLS certificate validation bypass via dropped tls options in Agent",
+          "url": "https://github.com/advisories/GHSA-2m5v-pch6-74hx",
+          "severity": "high",
+          "cwe": [
+            "CWE-295"
+          ],
+          "cvss": {
+            "score": 7.4,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N"
+          },
+          "range": ">=7.0.0 <7.30.1"
+        },
+        {
+          "source": 1243478,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Denial of Service via TLS 1.2 certificate-changing renegotiation",
+          "url": "https://github.com/advisories/GHSA-qrxm-fqhp-jwvm",
+          "severity": "high",
+          "cwe": [
+            "CWE-248",
+            "CWE-617"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=7.0.0 <7.30.1"
+        },
+        {
+          "source": 1243481,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici WebSocket client vulnerable to Denial of Service via unbounded automatic PONG buffering",
+          "url": "https://github.com/advisories/GHSA-9fm3-97px-rjf6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-400",
+            "CWE-405",
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=7.0.0 <7.30.1"
+        },
+        {
+          "source": 1243484,
+          "name": "undici",
+          "dependency": "undici",
+          "title": "undici vulnerable to Denial of Service via unhandled exception in the decompress interceptor",
+          "url": "https://github.com/advisories/GHSA-55wc-3pg8-jfw6",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-248"
+          ],
+          "cvss": {
+            "score": 5.9,
+            "vectorString": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": ">=7.15.0 <7.30.1"
+        }
+      ],
+      "effects": [],
+      "range": "7.0.0 - 7.30.0",
+      "nodes": [
+        "node_modules/undici"
+      ],
+      "fixAvailable": true
+    },
+    "vite": {
+      "name": "vite",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1242623,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "launch-editor: escapeCmdArgs() omits % escaping on Windows",
+          "url": "https://github.com/advisories/GHSA-698v-4r3x-3vcv",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-78"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <=7.3.6"
+        },
+        {
+          "source": 1242652,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "launch-editor: Editor CLI flag misinterpretation causing arbitrary command execution for some editors",
+          "url": "https://github.com/advisories/GHSA-r825-w8mm-5pxw",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-88"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <=7.3.6"
+        },
+        {
+          "source": 1242659,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "launch-editor: `fs.existsSync()` existence check can be bypassed on Windows",
+          "url": "https://github.com/advisories/GHSA-587h-7wmj-h5pm",
+          "severity": "high",
+          "cwe": [
+            "CWE-77"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <=7.3.6"
+        },
+        {
+          "source": 1242725,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "Vite: Cross origin script execution through Vite custom middleware",
+          "url": "https://github.com/advisories/GHSA-9jrq-w75r-8gcw",
+          "severity": "low",
+          "cwe": [
+            "CWE-80"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <=7.3.6"
+        },
+        {
+          "source": 1242731,
+          "name": "vite",
+          "dependency": "vite",
+          "title": "Vite: Files outside `server.fs.allow` could be served when project paths match system paths on non-Windows machine",
+          "url": "https://github.com/advisories/GHSA-rq7h-c2jc-7f22",
+          "severity": "moderate",
+          "cwe": [
+            "CWE-22",
+            "CWE-284"
+          ],
+          "cvss": {
+            "score": 0,
+            "vectorString": null
+          },
+          "range": ">=7.0.0 <=7.3.6"
+        }
+      ],
+      "effects": [],
+      "range": "7.0.0 - 7.3.6",
+      "nodes": [
+        "node_modules/vite"
+      ],
+      "fixAvailable": true
+    },
+    "vitest": {
+      "name": "vitest",
+      "severity": "moderate",
+      "isDirect": true,
+      "via": [
+        "@vitest/coverage-v8",
+        "@vitest/mocker",
+        "@vitest/ui"
+      ],
+      "effects": [
+        "@vitest/coverage-v8",
+        "@vitest/ui"
+      ],
+      "range": "2.1.0-beta.1 - 4.1.11",
+      "nodes": [
+        "node_modules/vitest"
+      ],
+      "fixAvailable": true
+    },
+    "zod": {
+      "name": "zod",
+      "severity": "high",
+      "isDirect": true,
+      "via": [
+        {
+          "source": 1243066,
+          "name": "zod",
+          "dependency": "zod",
+          "title": "Zod can exhaust memory while validating oversized constrained collections",
+          "url": "https://github.com/advisories/GHSA-mrhx-c7xc-m3w5",
+          "severity": "high",
+          "cwe": [
+            "CWE-770"
+          ],
+          "cvss": {
+            "score": 7.5,
+            "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+          },
+          "range": "<4.6.6"
+        }
+      ],
+      "effects": [],
+      "range": "<4.6.6",
+      "nodes": [
+        "node_modules/zod"
+      ],
+      "fixAvailable": true
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 4,
+      "high": 5,
+      "critical": 2,
+      "total": 11
+    },
+    "dependencies": {
+      "prod": 364,
+      "dev": 477,
+      "optional": 125,
+      "peer": 79,
+      "peerOptional": 0,
+      "total": 855
+    }
+  }
+}
