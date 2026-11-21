@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { StoryObject, SequencePlan, Shot, Project } from '@/types';
+import type { StoryObject, SequencePlan, Shot } from '@/types';
 import { useAppStore, type WizardType } from '@/stores/useAppStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useStore } from '@/store';
@@ -35,7 +35,7 @@ import { logger } from '@/utils/logger';
 import { devLog } from '@/utils/devOnly';
 import type { World } from '@/types/world';
 import { Character } from '@/types/character';
-import type { Location } from '@/types/location';
+import { isRecord } from '@/utils/typeGuards';
 import { HermesNovelistWizardModal } from './components/wizard/hermes-novelist/HermesNovelistWizardModal';
 import { useThemeStore } from '@/stores/themeStore';
 import { useLocationStore } from '@/stores/locationStore';
@@ -332,21 +332,13 @@ function AppContentInner() {
             const api = window.electronAPI;
             if (api?.project?.open) {
               const electronProject = await api.project.open(projectPath);
-                if (electronProject) {
-                const storeProject = convertElectronProjectToStore(electronProject);
-                const resolvedPath = electronProject.path; // Use the actual path from backend
-                const finalPath = projectPath; // Keep URL path for store consistency if needed, but use resolvedPath for FS
-                
-                if (!storeProject.path) storeProject.path = resolvedPath;
-                if (storeProject.metadata && !storeProject.metadata.path) {
-                  storeProject.metadata.path = resolvedPath;
-                }
-
-                let characters: Character[] = [];
-                let worlds: World[] = [];
-                let locations: Location[] = [];
-                let stories: Story[] = [];
-                let sequences: SequencePlan[] = [];
+              if (electronProject) {
+                const resolvedPath = electronProject.path;
+                let characters: unknown[] = [];
+                let worlds: unknown[] = [];
+                let locations: unknown[] = [];
+                let stories: unknown[] = [];
+                let sequences: unknown[] = [];
 
                 try {
                   const scanDir = async (dirName: string, subFile?: string) => {
@@ -359,8 +351,8 @@ function AppContentInner() {
                             const itemPath = subFile ? `${resolvedPath}/${dirName}/${file}/${subFile}` : `${resolvedPath}/${dirName}/${file}`;
                             if (await api.fs.exists(itemPath)) {
                               const buffer = await api.fs.readFile(itemPath);
-                              const json = JSON.parse(new TextDecoder().decode(buffer));
-                              items.push(json);
+                              const decoded: unknown = JSON.parse(new TextDecoder().decode(buffer));
+                              if (isRecord(decoded)) items.push(decoded);
                             }
                           } catch (e) {
                             console.warn(`[App] Failed to load item ${file} in ${dirName}:`, e);
@@ -397,17 +389,32 @@ function AppContentInner() {
                   console.warn('[App] Failed to load some project entities:', e);
                 }
 
-                const finalProject = {
-                  ...storeProject,
-                  characters: characters?.length > 0 ? characters : storeProject.characters || [],
-                  worlds: worlds?.length > 0 ? worlds : storeProject.worlds || [],
-                  locations: locations?.length > 0 ? locations : storeProject.locations || [],
-                  objects: storeProject.objects || [],
-                  stories: stories?.length > 0 ? stories : storeProject.stories || [],
-                  sequencePlans: Array.from(new Map((sequences?.length > 0 ? sequences : storeProject.sequencePlans || []).map(s => [s.id, s])).values())
-                };
+                // Pass IPC and file payloads through the same Electron-to-Studio adapter
+                // used when opening a project, while retaining embedded copies as fallbacks.
+                const config = { ...electronProject.config };
+                const foundCharacters = characters.filter((value) => isRecord(value) &&
+                  typeof value.character_id === 'string');
+                const foundLocations = locations.filter((value) => isRecord(value) &&
+                  typeof value.location_id === 'string');
+                const foundWorlds = worlds.filter((value) => isRecord(value) && typeof value.id === 'string');
+                const foundStories = stories.filter((value) => isRecord(value) && typeof value.id === 'string');
+                const foundSequences = new Map<string, Record<string, unknown>>();
+                for (const value of sequences) {
+                  if (isRecord(value) && typeof value.id === 'string') foundSequences.set(value.id, value);
+                }
+                if (foundCharacters.length) config.characters = foundCharacters;
+                if (foundLocations.length) config.locations = foundLocations;
+                if (foundWorlds.length) config.worlds = foundWorlds;
+                if (foundStories.length) config.stories = foundStories;
+                if (foundSequences.size) config.sequencePlans = Array.from(foundSequences.values());
 
-                await projectCreationService.loadProjectIntoStores(finalProject as unknown as Project, resolvedPath, finalProject.sequencePlans);
+                const finalProject = convertElectronProjectToStore({ ...electronProject, config });
+                finalProject.objects ??= [];
+                if (finalProject.metadata && !finalProject.metadata.path) {
+                  finalProject.metadata.path = resolvedPath;
+                }
+
+                await projectCreationService.loadProjectIntoStores(finalProject, resolvedPath, finalProject.sequencePlans);
                 console.log('[App] Project successfully loaded into stores');
               } else {
                 console.error('[App] Failed to open project: electronProject is null');
