@@ -122,7 +122,7 @@ export const PredefinedFilters: React.FC<PredefinedFiltersProps> = ({
         })}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .predefined-filters {
           background: white;
           border: 1px solid var(--border-color, #e0e0e0);

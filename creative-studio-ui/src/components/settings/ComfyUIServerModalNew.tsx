@@ -92,7 +92,7 @@ export function ComfyUIServerModalNew({
       isOpen={isOpen}
       onClose={onClose}
       onSubmit={handleSubmit}
-      initialData={serverToFormData(server)}
+      initialData={serverToFormData(server ?? null)}
     />
   );
 }
