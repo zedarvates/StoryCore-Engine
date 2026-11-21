@@ -125,6 +125,7 @@ function createTestCharacter(id: string = 'test-character'): Character {
       communication_style: 'Direct',
     },
     background: {
+      backstory: '',
       origin: 'Village',
       occupation: 'Warrior',
       education: 'Self-taught',

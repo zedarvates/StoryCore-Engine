@@ -61,6 +61,7 @@ function createTestCharacter(overrides: Partial<Character> = {}): Character {
       communication_style: 'direct',
     },
     background: {
+      backstory: '',
       origin: 'unknown',
       occupation: 'adventurer',
       education: 'self-taught',

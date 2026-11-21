@@ -35,6 +35,9 @@ const mockCharacters: Character[] = [
       character_arc: 'Growth',
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: 'adult',
       hair_color: 'brown',
       hair_style: 'short',
@@ -61,6 +64,7 @@ const mockCharacters: Character[] = [
       communication_style: 'direct',
     },
     background: {
+      backstory: '',
       origin: 'City',
       occupation: 'Warrior',
       education: 'Self-taught',
@@ -82,6 +86,9 @@ const mockCharacters: Character[] = [
       character_arc: 'Corruption',
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: 'adult',
       hair_color: 'black',
       hair_style: 'long',
@@ -108,6 +115,7 @@ const mockCharacters: Character[] = [
       communication_style: 'manipulative',
     },
     background: {
+      backstory: '',
       origin: 'Unknown',
       occupation: 'Warlord',
       education: 'Elite',

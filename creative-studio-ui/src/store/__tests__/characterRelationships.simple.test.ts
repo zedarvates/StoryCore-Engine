@@ -25,6 +25,9 @@ describe('Character Relationship Validation', () => {
         creation_timestamp: Date.now(),
         version: '1.0',
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           hair_color: 'brown',
           hair_style: 'long',
           hair_length: 'shoulder',
@@ -51,6 +54,7 @@ describe('Character Relationship Validation', () => {
           communication_style: 'direct',
         },
         background: {
+          backstory: '',
           origin: 'City',
           occupation: 'Engineer',
           education: 'University',
