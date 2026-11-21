@@ -9,21 +9,35 @@
  */
 
 import React, { useMemo, useCallback } from 'react';
-import { FixedSizeList as List } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
-import { useTimelineStore } from '@/stores/useTimelineStore';
-import { TimelineTrack } from './TimelineTrack';
-import { TrackData } from '@/types/timeline';
+import { List, type RowComponentProps } from 'react-window';
+import type { Shot } from '@/types';
+import type { TimelineTrack as MediaTrack } from '@/types/timeline';
+
+type TrackData = Pick<MediaTrack, 'id' | 'type'> & { name: string };
+type TimelineShot = Pick<Shot, 'id' | 'name' | 'startTime' | 'duration'> & { trackId: string };
+type TrackWithShots = TrackData & { shots: TimelineShot[] };
 
 interface VirtualTimelineProps {
   tracks: TrackData[];
-  shots: any[];
+  shots: TimelineShot[];
   zoomLevel: number;
   playheadPosition: number;
   selectedElements: string[];
   onShotSelect: (shotId: string, multiSelect?: boolean) => void;
   onLayerSelect?: (layerId: string) => void;
   isPlaying?: boolean;
+}
+
+type RowProps = Omit<VirtualTimelineProps, 'tracks' | 'shots'> & { tracks: TrackWithShots[] };
+
+function TimelineRow({ index, style, ariaAttributes, tracks, ...props }: RowComponentProps<RowProps>) {
+  const track = tracks[index];
+  if (!track) return null;
+  return (
+    <div style={style} {...ariaAttributes}>
+      <TimelineTrack {...props} track={track} />
+    </div>
+  );
 }
 
 export const VirtualTimeline: React.FC<VirtualTimelineProps> = ({
@@ -36,63 +50,34 @@ export const VirtualTimeline: React.FC<VirtualTimelineProps> = ({
   onLayerSelect,
   isPlaying = false,
 }) => {
-  // Memoize track data to prevent unnecessary re-renders
   const trackData = useMemo(() => {
-    return tracks.map((track, index) => ({
-      ...track,
-      index,
-      shots: shots.filter((shot) => shot.trackId === track.id),
-    }));
+    const shotsByTrack = new Map<string, TimelineShot[]>();
+    for (const shot of shots) {
+      const current = shotsByTrack.get(shot.trackId);
+      if (current) current.push(shot);
+      else shotsByTrack.set(shot.trackId, [shot]);
+    }
+    return tracks.map((track) => ({ ...track, shots: shotsByTrack.get(track.id) ?? [] }));
   }, [tracks, shots]);
-
-  // Row renderer for virtualized list
-  const Row = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const track = trackData[index];
-    
-    return (
-      <div style={style}>
-        <TimelineTrack
-          track={track}
-          zoomLevel={zoomLevel}
-          playheadPosition={playheadPosition}
-          selectedElements={selectedElements}
-          onShotSelect={onShotSelect}
-          onLayerSelect={onLayerSelect}
-          isPlaying={isPlaying}
-        />
-      </div>
-    );
-  }, [trackData, zoomLevel, playheadPosition, selectedElements, onShotSelect, onLayerSelect, isPlaying]);
-
-  // Calculate item size based on zoom level
-  const getItemSize = useCallback(() => {
-    const baseHeight = 60;
-    return Math.max(40, baseHeight * zoomLevel);
-  }, [zoomLevel]);
 
   return (
     <div className="virtual-timeline-container" data-testid="virtual-timeline">
-      <AutoSizer disableHeight>
-        {({ width }) => (
-          <List
-            height={600}
-            itemCount={trackData.length}
-            itemSize={getItemSize()}
-            width={width}
-            overscanCount={5}
-            estimatedItemSize={60}
-          >
-            {Row}
-          </List>
-        )}
-      </AutoSizer>
+      <List
+        defaultHeight={600}
+        style={{ height: 600, width: '100%' }}
+        rowCount={trackData.length}
+        rowHeight={Math.max(40, 60 * zoomLevel)}
+        rowComponent={TimelineRow}
+        rowProps={{ tracks: trackData, zoomLevel, playheadPosition, selectedElements, onShotSelect, onLayerSelect, isPlaying }}
+        overscanCount={5}
+      />
     </div>
   );
 };
 
 // Optimized TimelineTrack component with React.memo
 export const TimelineTrack = React.memo<{
-  track: TrackData & { index: number; shots: any[] };
+  track: TrackWithShots;
   zoomLevel: number;
   playheadPosition: number;
   selectedElements: string[];
@@ -106,8 +91,6 @@ export const TimelineTrack = React.memo<{
     playheadPosition,
     selectedElements,
     onShotSelect,
-    onLayerSelect,
-    isPlaying,
   }) => {
     // Memoize expensive calculations
     const trackWidth = useMemo(() => {
@@ -150,6 +133,11 @@ export const TimelineTrack = React.memo<{
                 width: shot.duration * zoomLevel * 10,
               }}
               onClick={(e) => handleShotClick(shot.id, e)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                e.preventDefault();
+                onShotSelect(shot.id, e.ctrlKey || e.metaKey);
+              }}
               role="button"
               tabIndex={0}
               aria-label={`Shot ${shot.name}`}

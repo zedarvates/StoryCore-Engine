@@ -15,7 +15,6 @@ import {
   TimeOfDaySelector,
   TransitionSelector,
 } from '@/components/assets/AssetSelector';
-import { PoseSelector } from '@/components/assets/PoseSelector';
 import { useCinematicVoiceCommands } from '@/hooks/useCinematicVoiceCommands';
 import { POSE_TEMPLATES } from '@/data/templates/poseTemplates';
 import {
@@ -873,9 +872,12 @@ export function ShotWizard({
                             <p className="text-[10px] text-primary/60">{charPos.position}</p>
                           </div>
                         </div>
-                        <PoseSelector
-                          selectedPoseId={charPos.pose}
-                          onSelect={(poseId: string) => {
+                        <select
+                          aria-label={`Pose for character ${idx + 1}`}
+                          className="rounded-lg border border-primary/20 bg-background px-3 py-2 text-sm"
+                          value={charPos.pose ?? ''}
+                          onChange={(event) => {
+                            const poseId = event.target.value;
                             const newPositions = [...(wizardState.formData.composition?.characterPositions || [])];
                             newPositions[idx] = { ...charPos, pose: poseId };
                             updateFormData({
@@ -885,7 +887,15 @@ export function ShotWizard({
                               },
                             });
                           }}
-                        />
+                        >
+                          <option value="">Select a pose</option>
+                          {charPos.pose && !POSE_TEMPLATES.some((pose) => pose.id === charPos.pose) && (
+                            <option value={charPos.pose}>{charPos.pose}</option>
+                          )}
+                          {POSE_TEMPLATES.map((pose) => (
+                            <option key={pose.id} value={pose.id}>{pose.name}</option>
+                          ))}
+                        </select>
                       </div>
                     ))
                   ) : (
