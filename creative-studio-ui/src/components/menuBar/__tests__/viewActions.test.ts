@@ -24,7 +24,7 @@ describe('View Actions', () => {
   let mockNotificationService: NotificationService;
   let mockContext: ActionContext;
   let mockViewState: ViewState;
-  let onViewStateChangeSpy: ReturnType<typeof vi.fn>;
+  let onViewStateChangeSpy = vi.fn<NonNullable<ActionContext['onViewStateChange']>>();
 
   beforeEach(() => {
     // Create mock notification service
@@ -47,7 +47,7 @@ describe('View Actions', () => {
     };
 
     // Create spy for view state change callback
-    onViewStateChangeSpy = vi.fn();
+    onViewStateChangeSpy = vi.fn<NonNullable<ActionContext['onViewStateChange']>>();
 
     // Create mock context
     mockContext = {

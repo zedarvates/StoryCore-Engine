@@ -52,7 +52,8 @@ describe('Menu Actions Integration', () => {
 
     // Create mock project
     mockProject = {
-      schema_version: '1.0',
+      id: 'test-project',
+    schema_version: '1.0',
       project_name: 'Test Project',
       shots: [
         createShotFixture({

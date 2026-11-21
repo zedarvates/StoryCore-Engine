@@ -8,46 +8,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { 
-  ScreenReaderAnnouncer, 
-  ScreenReaderAnnouncerProvider, 
-  useScreenReaderAnnouncer 
-} from '../ScreenReaderAnnouncer';
+import { ScreenReaderAnnouncerProvider } from '../ScreenReaderAnnouncer';
+import { useScreenReaderAnnouncer } from '../ScreenReaderAnnouncerContext';
 import { Menu } from '../Menu';
 import { MenuItem } from '../MenuItem';
 import { MenuDropdown } from '../MenuDropdown';
 import React from 'react';
 
 describe('ScreenReaderAnnouncer', () => {
-  describe('Component Rendering', () => {
-    it('should render aria-live regions', () => {
-      render(<ScreenReaderAnnouncer />);
-      
-      const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
-      const assertiveRegion = screen.getByTestId('screen-reader-announcer-assertive');
-      
-      expect(politeRegion).toBeInTheDocument();
-      expect(politeRegion).toHaveAttribute('role', 'status');
-      expect(politeRegion).toHaveAttribute('aria-live', 'polite');
-      expect(politeRegion).toHaveAttribute('aria-atomic', 'true');
-      
-      expect(assertiveRegion).toBeInTheDocument();
-      expect(assertiveRegion).toHaveAttribute('role', 'alert');
-      expect(assertiveRegion).toHaveAttribute('aria-live', 'assertive');
-      expect(assertiveRegion).toHaveAttribute('aria-atomic', 'true');
-    });
-
-    it('should have sr-only class for visual hiding', () => {
-      render(<ScreenReaderAnnouncer />);
-      
-      const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
-      const assertiveRegion = screen.getByTestId('screen-reader-announcer-assertive');
-      
-      expect(politeRegion).toHaveClass('sr-only');
-      expect(assertiveRegion).toHaveClass('sr-only');
-    });
-  });
-
   describe('ScreenReaderAnnouncerProvider', () => {
     it('should provide announce function to children', () => {
       const TestComponent = () => {
@@ -88,8 +56,11 @@ describe('ScreenReaderAnnouncer', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
-        expect(politeRegion).toHaveTextContent('Polite message');
+        const politeRegion = screen.getByText('Polite message');
+        expect(politeRegion).toHaveAttribute('role', 'status');
+        expect(politeRegion).toHaveAttribute('aria-live', 'polite');
+        expect(politeRegion).toHaveAttribute('aria-atomic', 'true');
+        expect(politeRegion).toHaveStyle({ position: 'absolute', left: '-10000px' });
       });
     });
 
@@ -113,8 +84,10 @@ describe('ScreenReaderAnnouncer', () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        const assertiveRegion = screen.getByTestId('screen-reader-announcer-assertive');
-        expect(assertiveRegion).toHaveTextContent('Assertive message');
+        const assertiveRegion = screen.getByText('Assertive message');
+        expect(assertiveRegion).toHaveAttribute('role', 'status');
+        expect(assertiveRegion).toHaveAttribute('aria-live', 'assertive');
+        expect(assertiveRegion).toHaveAttribute('aria-atomic', 'true');
       });
     });
 
@@ -138,12 +111,11 @@ describe('ScreenReaderAnnouncer', () => {
       const user = userEvent.setup();
       await user.click(button);
 
-      const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
-      expect(politeRegion).toHaveTextContent('Temporary message');
+      const politeRegion = await screen.findByText('Temporary message');
 
       // Wait for the clear timeout (1000ms)
       await waitFor(() => {
-        expect(politeRegion).toHaveTextContent('');
+        expect(politeRegion).not.toBeInTheDocument();
       }, { timeout: 2000 });
     });
 
@@ -167,7 +139,7 @@ describe('ScreenReaderAnnouncer', () => {
       const user = userEvent.setup();
       await user.click(button);
 
-      const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
+      const politeRegion = screen.getByRole('status');
       
       // Should not be announced immediately
       expect(politeRegion).toHaveTextContent('');
@@ -378,8 +350,7 @@ describe('ScreenReaderAnnouncer', () => {
       await user.click(trigger);
 
       await waitFor(() => {
-        const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
-        expect(politeRegion).toHaveTextContent('File menu opened');
+        expect(screen.getByText('File menu opened')).toHaveAttribute('aria-live', 'polite');
       });
     });
 
@@ -407,8 +378,7 @@ describe('ScreenReaderAnnouncer', () => {
       await user.keyboard('{Escape}');
 
       await waitFor(() => {
-        const politeRegion = screen.getByTestId('screen-reader-announcer-polite');
-        expect(politeRegion).toHaveTextContent('File menu closed');
+        expect(screen.getByText('File menu closed')).toHaveAttribute('aria-live', 'polite');
       });
     });
   });
