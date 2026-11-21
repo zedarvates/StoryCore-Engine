@@ -5,20 +5,33 @@
  * Shows cache statistics and preloading capabilities
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ThumbnailPreview } from './ThumbnailPreview';
-import { useCacheStats, usePreloadThumbnails } from '../../hooks/useThumbnailCache';
+import { useThumbnailCache } from '../../hooks/useThumbnailCache';
 import './ThumbnailCacheDemo.css';
+
+const times = Array.from({ length: 12 }, (_, i) => i * 5);
 
 export const ThumbnailCacheDemo: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState('');
   const [quality, setQuality] = useState<'low' | 'medium' | 'high'>('medium');
-  const { stats, clearCache } = useCacheStats();
+  const { stats, clearCache, preloadThumbnails } = useThumbnailCache();
+  const [completed, setCompleted] = useState(0);
 
-  // Generate times for demonstration (every 5 seconds for 60 seconds)
-  const times = Array.from({ length: 12 }, (_, i) => i * 5);
+  useEffect(() => {
+    setCompleted(0);
+    if (!videoUrl.trim()) return;
+    let current = true;
+    for (const time of times) {
+      void preloadThumbnails(videoUrl, [time], quality).then(() => {
+        if (current) setCompleted((count) => count + 1);
+      });
+    }
+    return () => { current = false; };
+  }, [videoUrl, quality, preloadThumbnails]);
 
-  const { isPreloading, progress } = usePreloadThumbnails(videoUrl, times, quality);
+  const isPreloading = Boolean(videoUrl.trim()) && completed < times.length;
+  const progress = (completed / times.length) * 100;
 
   const handleVideoUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setVideoUrl(e.target.value);

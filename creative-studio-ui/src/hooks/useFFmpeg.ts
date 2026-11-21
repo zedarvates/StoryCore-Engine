@@ -7,16 +7,10 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-import {
+import type {
   ProgressCallback,
-  _ProgressStatus,
   ExportSettings,
   VideoFormat,
-  _VideoCodec,
-  _AudioCodec,
-  _BitrateMode,
-  _GPUEncoder,
-  _Resolution,
   FFmpegState,
   FFmpegExportState,
   ExportResponse,
@@ -32,7 +26,6 @@ import {
   Preset,
   PresetCategory,
   FormatOptions,
-  _CodecOptions,
 } from '../services/ffmpeg/FFmpegTypes';
 
 // =============================================================================
@@ -978,7 +971,7 @@ export function estimateFileSize(
   duration: number,
   settings: ExportSettings
 ): number {
-  const { videoBitrate, audioBitrate, _resolution } = settings;
+  const { videoBitrate, audioBitrate } = settings;
   
   // Parse bitrate values
   const videoRate = parseBitrate(videoBitrate) || 5000000; // Default 5 Mbps
