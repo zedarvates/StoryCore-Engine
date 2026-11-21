@@ -44,6 +44,7 @@ const mockStyleAsset: Asset = {
 };
 
 const mockShot: Shot = {
+  position: 0,
   id: 'shot-1',
   name: 'Opening Scene',
   startTime: 0,

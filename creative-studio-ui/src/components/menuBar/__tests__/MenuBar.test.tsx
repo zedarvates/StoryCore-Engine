@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { MenuBar } from '../MenuBar';
+import { MenuBar, type MenuBarProps } from '../MenuBar';
+import { DEFAULT_VIEW_STATE } from '@/types/menuBarState';
 
 // Mock heavy dependencies
 vi.mock('../../utils/i18n', () => ({
@@ -37,15 +38,16 @@ vi.mock('../../services/projectExportService', () => ({
 
 const defaultProps = {
   project: null,
+  selectedShotId: null,
   hasUnsavedChanges: false,
   onProjectChange: vi.fn(),
   onViewStateChange: vi.fn(),
-  viewState: {},
-  undoStack: [],
-  clipboard: {},
+  viewState: DEFAULT_VIEW_STATE,
+  undoStack: { canUndo: false, canRedo: false, undo: vi.fn(), redo: vi.fn() },
+  clipboard: { hasContent: false, contentType: null, cut: vi.fn(), copy: vi.fn(), paste: vi.fn() },
   isProcessing: false,
   className: '',
-};
+} satisfies MenuBarProps;
 
 describe('MenuBar UI component', () => {
   it('renders without crashing', () => {

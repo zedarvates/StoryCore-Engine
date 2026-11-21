@@ -32,6 +32,7 @@ describe('Menu Action Error Handling', () => {
 
     // Create mock context
     const mockProject: Project = {
+      id: "project-test-project",
       schema_version: '1.0',
       project_name: 'Test Project',
       shots: [],
@@ -50,6 +51,7 @@ describe('Menu Action Error Handling', () => {
 
     mockContext = {
       state: {
+        selectedShotId: null,
         project: mockProject,
         hasUnsavedChanges: false,
         viewState: {

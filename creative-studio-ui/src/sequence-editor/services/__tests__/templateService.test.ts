@@ -36,6 +36,7 @@ describe('Template Service', () => {
   describe('applySceneTemplate', () => {
     it('should create shots from template', () => {
       const template: SceneTemplate = {
+        createdAt: Date.now(),
         id: 'test-template',
         name: 'Test Template',
         description: 'Test description',
@@ -73,6 +74,7 @@ describe('Template Service', () => {
 
     it('should apply reference images from template', () => {
       const template: SceneTemplate = {
+        createdAt: Date.now(),
         id: 'test-template',
         name: 'Test Template',
         description: 'Test description',
@@ -104,6 +106,7 @@ describe('Template Service', () => {
   describe('applyNarrativePreset', () => {
     it('should apply preset parameters to shots', () => {
       const preset: NarrativePreset = {
+        createdAt: Date.now(),
         id: 'test-preset',
         name: 'Test Preset',
         description: 'Test description',
@@ -120,6 +123,7 @@ describe('Template Service', () => {
 
       const shots: Shot[] = [
         {
+          position: 0,
           id: 'shot-1',
           name: 'Shot 1',
           startTime: 0,
@@ -152,6 +156,7 @@ describe('Template Service', () => {
     it('should create template from shots', () => {
       const shots: Shot[] = [
         {
+          position: 0,
           id: 'shot-1',
           name: 'Shot 1',
           startTime: 0,
@@ -170,6 +175,7 @@ describe('Template Service', () => {
           generationStatus: 'pending',
         },
         {
+          position: 0,
           id: 'shot-2',
           name: 'Shot 2',
           startTime: 72,

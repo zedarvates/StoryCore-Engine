@@ -64,6 +64,7 @@ describe('PropertiesPanel', () => {
   };
 
   const mockProject: Project = {
+    id: "project-test-project",
     schema_version: '1.0',
     project_name: 'Test Project',
     shots: [mockShot],

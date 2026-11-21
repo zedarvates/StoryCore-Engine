@@ -52,6 +52,7 @@ describe('View Actions', () => {
     // Create mock context
     mockContext = {
       state: {
+        selectedShotId: null,
         project: null,
         hasUnsavedChanges: false,
         viewState: mockViewState,

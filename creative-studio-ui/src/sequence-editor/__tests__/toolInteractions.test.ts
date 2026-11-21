@@ -29,6 +29,7 @@ import type { Shot, MediaLayerData } from '../types';
 // ============================================================================
 
 const createMockShot = (id: string, startTime: number, duration: number): Shot => ({
+  position: 0,
   id,
   name: `Shot ${id}`,
   startTime,

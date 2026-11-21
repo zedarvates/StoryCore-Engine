@@ -16,6 +16,7 @@ import { DEFAULT_VIEW_STATE } from '../../../types/menuBarState';
 describe('Menu Configuration - Undo/Redo Enabled States', () => {
   // Helper to create app state with specific undo/redo capabilities
   const createAppState = (canUndo: boolean, canRedo: boolean): AppState => ({
+    selectedShotId: null,
     project: null,
     hasUnsavedChanges: false,
     viewState: DEFAULT_VIEW_STATE,

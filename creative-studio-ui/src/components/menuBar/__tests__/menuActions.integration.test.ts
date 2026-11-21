@@ -84,6 +84,7 @@ describe('Menu Actions Integration', () => {
     // Create mock context
     mockContext = {
       state: {
+        selectedShotId: null,
         project: mockProject,
         hasUnsavedChanges: false,
         viewState: {
