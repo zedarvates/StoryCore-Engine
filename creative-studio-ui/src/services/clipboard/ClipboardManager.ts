@@ -229,11 +229,11 @@ export class ClipboardManager {
       ...shot,
       id: generateId(), // Generate unique ID
       // Preserve all metadata except ID and timestamps
-      audioTracks: shot.audioTracks.map(track => ({
+      audioTracks: shot.audioTracks?.map(track => ({
         ...track,
         id: generateId(), // New ID for audio track
         // Preserve all track properties including effects
-        effects: track.effects.map(effect => ({
+        effects: track.effects?.map(effect => ({
           ...effect,
           id: generateId(), // New ID for audio effect
           // Preserve automation curves with new keyframe IDs
@@ -247,15 +247,15 @@ export class ClipboardManager {
           } : undefined,
         })),
       })),
-      effects: shot.effects.map(effect => ({
+      effects: shot.effects?.map(effect => ({
         ...effect,
         id: generateId(), // New ID for effect
       })),
-      textLayers: shot.textLayers.map(layer => ({
+      textLayers: shot.textLayers?.map(layer => ({
         ...layer,
         id: generateId(), // New ID for text layer
       })),
-      animations: shot.animations.map(animation => ({
+      animations: shot.animations?.map(animation => ({
         ...animation,
         id: generateId(), // New ID for animation
         keyframes: animation.keyframes.map(keyframe => ({
@@ -296,14 +296,14 @@ export class ClipboardManager {
       }
 
       // Validate audio tracks
-      for (const track of shot.audioTracks) {
+      for (const track of shot.audioTracks ?? []) {
         // Check if audio format is supported (example validation)
         if (track.url && !this.isSupportedAudioFormat(track.url)) {
           errors.push(`Audio track "${track.name}" has unsupported format`);
         }
 
         // Validate audio effects
-        for (const effect of track.effects) {
+        for (const effect of track.effects ?? []) {
           if (!this.isSupportedAudioEffect(effect.type)) {
             errors.push(`Audio effect "${effect.type}" is not supported`);
           }
@@ -311,21 +311,21 @@ export class ClipboardManager {
       }
 
       // Validate visual effects
-      for (const effect of shot.effects) {
-        if (!this.isSupportedVisualEffect(effect.type)) {
+      for (const effect of shot.effects ?? []) {
+        if (effect.type && !this.isSupportedVisualEffect(effect.type)) {
           errors.push(`Visual effect "${effect.type}" is not supported`);
         }
       }
 
       // Validate text layers
-      for (const layer of shot.textLayers) {
+      for (const layer of shot.textLayers ?? []) {
         if (layer.fontSize < 8 || layer.fontSize > 200) {
           errors.push(`Text layer has invalid font size: ${layer.fontSize}px`);
         }
       }
 
       // Validate animations
-      for (const animation of shot.animations) {
+      for (const animation of shot.animations ?? []) {
         if (animation.keyframes.length < 2) {
           errors.push(`Animation must have at least 2 keyframes`);
         }

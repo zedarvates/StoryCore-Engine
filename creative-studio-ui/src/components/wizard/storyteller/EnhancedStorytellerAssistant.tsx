@@ -3,12 +3,37 @@ import { Wand2, Loader2 } from 'lucide-react';
 import { useEnhancedLLM } from '../../../hooks/useEnhancedLLM';
 import { ModelSelector, ReasoningDisplay } from '../../llm';
 
+import { z } from 'zod';
+import type { Character } from '../../../types/character';
+import type { World } from '../../../types/world';
+
+const storyAct = z.object({
+  id: z.string(),
+  number: z.number(),
+  title: z.string(),
+  description: z.string(),
+  keyScenes: z.array(z.string()),
+  characterDevelopment: z.string(),
+  duration: z.number(),
+});
+
+const storyResponse = z.object({
+  summary: z.string(),
+  mainConflict: z.string().optional(),
+  resolution: z.string().optional(),
+  themes: z.array(z.string()).optional(),
+  acts: z.array(storyAct).optional(),
+  visualStyle: z.string().optional(),
+  pacing: z.string().optional(),
+  musicSuggestions: z.array(z.string()).optional(),
+  moodPalette: z.array(z.string()).optional(),
+  cameraTechniques: z.array(z.string()).optional(),
+});
+
 interface EnhancedStorytellerAssistantProps {
   projectContext?: {
-    characters: unknown[];
-    world: unknown;
-    locations: unknown[];
-    previousStories: unknown[];
+    characters: Character[];
+    world: World | null;
   };
   storyData: {
     videoType: string;
@@ -20,7 +45,7 @@ interface EnhancedStorytellerAssistantProps {
     selectedCharacters: string[];
     previousEpisodeReference?: string;
   };
-  onStoryGenerated: (storyResult: unknown) => void;
+  onStoryGenerated: (storyResult: z.infer<typeof storyResponse>) => void;
 }
 
 export const EnhancedStorytellerAssistant: React.FC<EnhancedStorytellerAssistantProps> = ({
@@ -145,44 +170,19 @@ Assure-toi que l'histoire:
   const handleApplyStory = () => {
     if (!response) return;
 
-    // Try to parse JSON from the summary
-    try {
-      const jsonMatch = response.summary.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        onStoryGenerated(parsed);
-      } else {
-        // Fallback: use the summary as-is
-        onStoryGenerated({
-          summary: response.summary,
-          mainConflict: '',
-          resolution: '',
-          themes: [],
-          acts: [],
-          visualStyle: '',
-          pacing: '',
-          musicSuggestions: [],
-          moodPalette: [],
-          cameraTechniques: []
-        });
+    let result: z.infer<typeof storyResponse> = { summary: response.summary };
+    const jsonMatch = response.summary.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed: unknown = JSON.parse(jsonMatch[0]);
+        const decoded = storyResponse.safeParse(parsed);
+        if (decoded.success) result = decoded.data;
+      } catch (error) {
+        console.error('Error parsing story response:', error);
       }
-    } catch (error) {
-      console.error('Error parsing story response:', error);
-      // Fallback: use the summary as-is
-      onStoryGenerated({
-        summary: response.summary,
-        mainConflict: '',
-        resolution: '',
-        themes: [],
-        acts: [],
-        visualStyle: '',
-        pacing: '',
-        musicSuggestions: [],
-        moodPalette: [],
-        cameraTechniques: []
-      });
     }
-    
+    onStoryGenerated(result);
+
     setShowResponse(false);
   };
 
