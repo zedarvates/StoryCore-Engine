@@ -97,43 +97,47 @@ class TestIntersectionObserver {
 Object.defineProperty(globalThis, 'IntersectionObserver', { configurable: true, writable: true, value: TestIntersectionObserver });
 
 // Mock HTMLCanvasElement.getContext for canvas-based components
-HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
-  clearRect: vi.fn(),
-  fillRect: vi.fn(),
-  strokeRect: vi.fn(),
-  beginPath: vi.fn(),
-  moveTo: vi.fn(),
-  lineTo: vi.fn(),
-  stroke: vi.fn(),
-  fillText: vi.fn(),
-  measureText: vi.fn(() => ({ width: 0 })),
-  save: vi.fn(),
-  restore: vi.fn(),
-  scale: vi.fn(),
-  translate: vi.fn(),
-  rotate: vi.fn(),
-  arc: vi.fn(),
-  fill: vi.fn(),
-  setTransform: vi.fn(),
-  drawImage: vi.fn(),
-  createLinearGradient: vi.fn(() => ({
-    addColorStop: vi.fn(),
+Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+  configurable: true,
+  writable: true,
+  value: vi.fn(() => ({
+    clearRect: vi.fn(),
+    fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    beginPath: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    stroke: vi.fn(),
+    fillText: vi.fn(),
+    measureText: vi.fn(() => ({ width: 0 })),
+    save: vi.fn(),
+    restore: vi.fn(),
+    scale: vi.fn(),
+    translate: vi.fn(),
+    rotate: vi.fn(),
+    arc: vi.fn(),
+    fill: vi.fn(),
+    setTransform: vi.fn(),
+    drawImage: vi.fn(),
+    createLinearGradient: vi.fn(() => ({
+      addColorStop: vi.fn(),
+    })),
+    createRadialGradient: vi.fn(() => ({
+      addColorStop: vi.fn(),
+    })),
+    createPattern: vi.fn(),
+    getImageData: vi.fn(() => ({
+      data: new Uint8ClampedArray(),
+      width: 0,
+      height: 0,
+    })),
+    putImageData: vi.fn(),
+    canvas: {
+      width: 800,
+      height: 600,
+    },
   })),
-  createRadialGradient: vi.fn(() => ({
-    addColorStop: vi.fn(),
-  })),
-  createPattern: vi.fn(),
-  getImageData: vi.fn(() => ({
-    data: new Uint8ClampedArray(),
-    width: 0,
-    height: 0,
-  })),
-  putImageData: vi.fn(),
-  canvas: {
-    width: 800,
-    height: 600,
-  },
-}));
+});
 
 console.log('Vitest setup loaded successfully');
 
