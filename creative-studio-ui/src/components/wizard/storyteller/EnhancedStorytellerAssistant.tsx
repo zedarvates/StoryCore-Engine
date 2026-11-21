@@ -8,13 +8,15 @@ import type { Character } from '../../../types/character';
 import type { World } from '../../../types/world';
 
 const storyAct = z.object({
-  id: z.string(),
-  number: z.number(),
+  id: z.string().optional(),
+  number: z.number().optional(),
+  order: z.number().optional(),
   title: z.string(),
-  description: z.string(),
-  keyScenes: z.array(z.string()),
-  characterDevelopment: z.string(),
-  duration: z.number(),
+  description: z.string().optional(),
+  summary: z.string().optional(),
+  keyScenes: z.array(z.string()).default([]),
+  characterDevelopment: z.string().default(''),
+  duration: z.number().default(0),
 });
 
 const storyResponse = z.object({
@@ -22,7 +24,14 @@ const storyResponse = z.object({
   mainConflict: z.string().optional(),
   resolution: z.string().optional(),
   themes: z.array(z.string()).optional(),
-  acts: z.array(storyAct).optional(),
+  acts: z.array(storyAct).transform((acts) => acts.map((act, index) => ({
+    ...act,
+    id: act.id ?? crypto.randomUUID(),
+    order: act.order ?? index,
+    number: act.number ?? (act.order ?? index) + 1,
+    description: act.description ?? act.summary ?? '',
+    summary: act.summary ?? act.description ?? '',
+  }))).optional().catch(undefined),
   visualStyle: z.string().optional(),
   pacing: z.string().optional(),
   musicSuggestions: z.array(z.string()).optional(),
