@@ -326,6 +326,10 @@ export interface ContextMenuActionHandlers {
   onTransform?: (shots: Shot[], transformType: string) => void;
   onTag?: (shots: Shot[], tag: string) => void;
   onCreate?: () => void;
+  onShowInfo?: (shot: Shot) => void;
+  onGroup?: (shots: Shot[]) => void;
+  onImport?: () => void;
+  onCreateFromTemplate?: (template: 'intro' | 'montage' | 'credits') => void;
 }
 
 /**
