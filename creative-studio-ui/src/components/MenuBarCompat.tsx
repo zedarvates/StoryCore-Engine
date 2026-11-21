@@ -84,6 +84,7 @@ export function MenuBarCompat(): React.ReactElement {
   return (
     <MenuBar
       project={project}
+      selectedShotId={null}
       hasUnsavedChanges={hasUnsavedChanges}
       onProjectChange={handleProjectChange}
       onViewStateChange={handleViewStateChange}

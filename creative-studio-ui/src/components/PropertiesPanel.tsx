@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEditorStore } from '@/stores/editorStore';
+import { useAppStore } from '@/stores/useAppStore';
 import { useSequencePlanStore, usePlans } from '@/stores/sequencePlanStore';
 import { ChatBox } from '@/components/ChatBox';
 import { SequencePlanManager } from '@/components/SequencePlanManager';
@@ -212,20 +213,26 @@ export function PropertiesPanel({ className }: PropertiesPanelProps) {
             <SequencePlanManager
               plans={plans}
               currentPlanId={currentPlanId}
-              onSelectPlan={(planId: string) => {
-                useSequencePlanStore.getState().setCurrentPlan(planId);
+              onSelectPlan={async (planId: string) => {
+                await useSequencePlanStore.getState().selectPlan(planId);
+                const { currentPlanId: activePlanId, error } = useSequencePlanStore.getState();
+                if (error) {
+                  toast({ title: 'Selection Failed', description: error, variant: 'destructive' });
+                  return;
+                }
+                if (activePlanId !== planId) return;
                 toast({
                   title: 'Plan Selected',
                   description: `Plan ${planId} is now active`,
                 });
               }}
               onCreatePlan={() => {
-                // Ouvrir le wizard de création de plan
-                const openSequencePlanWizard = useAppStore?.getState?.()?.openSequencePlanWizard;
+                // Ouvrir le wizard de crÃ©ation de plan
+                const { openSequencePlanWizard } = useAppStore.getState();
                 if (openSequencePlanWizard) {
                   openSequencePlanWizard({
                     mode: 'create',
-                    sequenceId: undefined // Sera déterminé automatiquement
+                    sequenceId: undefined // Sera dÃ©terminÃ© automatiquement
                   });
                   toast({
                     title: 'Create Plan Wizard',
@@ -238,18 +245,11 @@ export function PropertiesPanel({ className }: PropertiesPanelProps) {
                   const plan = plans.find(p => p.id === planId);
                   if (!plan) return;
 
-                  const duplicatedPlan = {
-                    ...plan,
-                    id: `duplicate-${Date.now()}`,
-                    name: `${plan.name} (Copy)`,
-                    createdAt: Date.now(),
-                    modifiedAt: Date.now(),
-                  };
-
-                  await useSequencePlanStore.getState().createPlan(duplicatedPlan);
+                  await useSequencePlanStore.getState().duplicatePlan(planId);
+                  const { currentPlanData: duplicatedPlan } = useSequencePlanStore.getState();
                   toast({
                     title: 'Plan Duplicated',
-                    description: `Duplicated "${plan.name}" as "${duplicatedPlan.name}"`,
+                    description: `Duplicated "${plan.name}" as "${duplicatedPlan?.name ?? plan.name}"`,
                   });
                 } catch (error) {
                   console.error('Failed to duplicate plan:', error);
@@ -290,7 +290,7 @@ export function PropertiesPanel({ className }: PropertiesPanelProps) {
                   const plan = plans.find(p => p.id === planId);
                   if (!plan) return;
 
-                  // Créer un objet exportable
+                  // CrÃ©er un objet exportable
                   const exportData = {
                     plan: plan,
                     exportedAt: new Date().toISOString(),
@@ -298,7 +298,7 @@ export function PropertiesPanel({ className }: PropertiesPanelProps) {
                     exportedBy: 'StoryCore',
                   };
 
-                  // Télécharger en JSON
+                  // TÃ©lÃ©charger en JSON
                   const dataStr = JSON.stringify(exportData, null, 2);
                   const dataBlob = new Blob([dataStr], { type: 'application/json' });
 

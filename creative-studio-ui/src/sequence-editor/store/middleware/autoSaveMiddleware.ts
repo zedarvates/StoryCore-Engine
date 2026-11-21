@@ -45,25 +45,40 @@ const SAVE_TRIGGERING_ACTIONS = [
   'project/updateSettings',
 ];
 
-/**
- * Snapshot persisted to localStorage by the auto-save middleware.
- *
- * `timestamp` is an epoch-millisecond number matching the `SaveStatus`
- * contract. Legacy snapshots stored an ISO-8601 string, which is normalized
- * on load so existing drafts keep loading.
- */
-export interface PersistedProjectSnapshot {
+type SnapshotSlices = Pick<RootState, 'project' | 'timeline' | 'assets' | 'panels' | 'tools'>;
+
+type RestoredSnapshot = {
   version: string;
   timestamp: number;
-  project: RootState['project'];
-  timeline: RootState['timeline'];
-  assets: RootState['assets'];
-  panels: RootState['panels'];
-  tools: RootState['tools'];
-}
+  project: Partial<Pick<RootState['project'], 'metadata' | 'sequences' | 'settings'>>;
+  timeline: Partial<Pick<RootState['timeline'], 'shots' | 'tracks'>>;
+  assets: Partial<Pick<RootState['assets'], 'categories'>>;
+  panels: { layout?: Partial<RootState['panels']['layout']> };
+  tools: Partial<Pick<RootState['tools'], 'activeTool'>>;
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isEntityList(value: unknown): boolean {
+  return value === undefined || (Array.isArray(value) && value.every(
+    (entry) => isRecord(entry) && typeof entry.id === 'string',
+  ));
+}
+
+function hasSnapshotSlices(value: unknown): value is Omit<RestoredSnapshot, 'version' | 'timestamp'> {
+  if (!isRecord(value)) return false;
+  const { project, timeline, assets, panels, tools } = value;
+  return isRecord(project) && isRecord(timeline) && isRecord(assets) &&
+    isRecord(panels) && isRecord(tools) &&
+    (project.metadata == null || isRecord(project.metadata)) &&
+    (project.settings === undefined || isRecord(project.settings)) &&
+    isEntityList(project.sequences) &&
+    isEntityList(timeline.shots) && isEntityList(timeline.tracks) &&
+    isEntityList(assets.categories) &&
+    (panels.layout === undefined || isRecord(panels.layout)) &&
+    (tools.activeTool === undefined || typeof tools.activeTool === 'string');
 }
 
 function normalizeTimestamp(value: unknown): number {
@@ -81,33 +96,14 @@ function normalizeTimestamp(value: unknown): number {
   return Date.now();
 }
 
-function parsePersistedProjectSnapshot(raw: string): PersistedProjectSnapshot | null {
+function parsePersistedProjectSnapshot(raw: string): RestoredSnapshot | null {
   const parsed: unknown = JSON.parse(raw);
-
-  if (!isRecord(parsed)) {
-    return null;
-  }
-
-  const { project, timeline, assets, panels, tools } = parsed;
-
-  if (
-    !isRecord(project) ||
-    !isRecord(timeline) ||
-    !isRecord(assets) ||
-    !isRecord(panels) ||
-    !isRecord(tools)
-  ) {
-    return null;
-  }
+  if (!isRecord(parsed) || !hasSnapshotSlices(parsed)) return null;
 
   return {
+    ...parsed,
     version: typeof parsed.version === 'string' ? parsed.version : '1.0',
     timestamp: normalizeTimestamp(parsed.timestamp),
-    project: project as RootState['project'],
-    timeline: timeline as RootState['timeline'],
-    assets: assets as RootState['assets'],
-    panels: panels as RootState['panels'],
-    tools: tools as RootState['tools'],
   };
 }
 
@@ -117,9 +113,9 @@ function parsePersistedProjectSnapshot(raw: string): PersistedProjectSnapshot | 
  */
 function saveToLocalStorage(state: RootState): void {
   try {
-    const snapshot: PersistedProjectSnapshot = {
+    const snapshot: SnapshotSlices & { version: string; timestamp: string } = {
       version: '1.0',
-      timestamp: Date.now(),
+      timestamp: new Date().toISOString(),
       project: state.project,
       timeline: state.timeline,
       assets: state.assets,
@@ -127,10 +123,7 @@ function saveToLocalStorage(state: RootState): void {
       tools: state.tools,
     };
 
-    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify({
-      ...snapshot,
-      timestamp: new Date(snapshot.timestamp).toISOString(),
-    }));
+    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(snapshot));
   } catch (error) {
     console.error('Failed to save project to localStorage:', error);
     throw error;
@@ -140,7 +133,7 @@ function saveToLocalStorage(state: RootState): void {
 /**
  * Load project state from localStorage
  */
-export function loadFromLocalStorage(): PersistedProjectSnapshot | null {
+export function loadFromLocalStorage(): RestoredSnapshot | null {
   try {
     const saved = localStorage.getItem(PROJECT_STORAGE_KEY);
     if (!saved) {

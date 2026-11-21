@@ -39,7 +39,11 @@ export function useProjectPersistence() {
       // Restore project metadata and settings
       if (savedProject.project) {
         if (savedProject.project.metadata) {
-          dispatch(setProject(savedProject.project.metadata));
+          dispatch(setProject({
+            ...savedProject.project.metadata,
+            metadata: savedProject.project.metadata,
+            sequences: savedProject.project.sequences,
+          }));
         }
         if (savedProject.project.settings) {
           dispatch(updateSettings(savedProject.project.settings));
