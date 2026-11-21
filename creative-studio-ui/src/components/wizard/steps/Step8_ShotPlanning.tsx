@@ -14,6 +14,7 @@ import {
   Select,
   SelectContent,
   SelectItemWithDescription,
+  SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select-rich';
@@ -211,7 +212,8 @@ export function Step8_ShotPlanning({
       cameraMovement: shotForm.cameraMovement || 'static',
       transition: shotForm.transition || 'cut',
       compositionNotes: shotForm.compositionNotes || '',
-      order: editingShot?.order || sceneShotsFiltered.length,
+      order: editingShot?.order ?? sceneShotsFiltered.length,
+      position: editingShot?.position ?? editingShot?.order ?? sceneShotsFiltered.length,
     };
 
     if (editingShot) {

@@ -103,8 +103,10 @@ export const PromptGenerationDialog: React.FC<PromptGenerationDialogProps> = ({
       if (preservedState) {
         const restored = restorePreservedState(preservedState);
         setCategories(restored.userInputs.categories || categories);
-        setGeneratedPrompt(restored.userInputs.generatedPrompt || '');
-        setHasGenerated(!!restored.userInputs.generatedPrompt);
+        const prompt = restored.userInputs.generatedPrompt;
+        const restoredPrompt = typeof prompt === 'string' ? prompt : '';
+        setGeneratedPrompt(restoredPrompt);
+        setHasGenerated(restoredPrompt !== '');
         setPreservedState(null);
       } else {
         setGeneratedPrompt('');

@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { useMCPAddon, useMCPError } from './hooks';
-import type { MCPServerConfig } from '@/types/addons';
+import type { MCPServerConfig } from './types';
 import {
   Card,
   CardContent,

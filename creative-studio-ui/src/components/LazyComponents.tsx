@@ -2,10 +2,7 @@
  * Lazy-loaded components for performance optimization
  * Heavy components are loaded on-demand to reduce initial bundle size
  */
-import { LegacyAny } from '@/types/legacy';
-
-
-import { lazy, Suspense, ComponentType } from 'react';
+import { lazy, Suspense, type ComponentType } from 'react';
 import { Loader2 } from 'lucide-react';
 
 // Loading fallback component
@@ -18,11 +15,12 @@ function LoadingFallback() {
 }
 
 // Wrapper for lazy components with suspense
-function withLazy<P extends object>(
-  importFn: () => Promise<{ default: ComponentType<P> }>,
+function withLazy<M, P extends object>(
+  loadModule: () => Promise<M>,
+  selectComponent: (module: M) => ComponentType<P>,
   fallback: React.ReactNode = <LoadingFallback />
 ) {
-  const LazyComponent = lazy(importFn);
+  const LazyComponent = lazy(async () => ({ default: selectComponent(await loadModule()) }));
 
   return (props: P) => (
     <Suspense fallback={fallback}>
@@ -33,53 +31,54 @@ function withLazy<P extends object>(
 
 // Lazy-loaded heavy components
 export const LazyAnimationPanel = withLazy(
-  () => import('./AnimationPanel').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).AnimationPanel || m }))
+  () => import('./AnimationPanel'), module => module.AnimationPanel
 );
 
 export const LazyAudioEffectsPanel = withLazy(
-  () => import('./AudioEffectsPanel').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).AudioEffectsPanel || m }))
+  () => import('./AudioEffectsPanel'), module => module.AudioEffectsPanel
 );
 
 export const LazyAudioCurveEditor = withLazy(
-  () => import('./AudioCurveEditor').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).AudioCurveEditor || m }))
+  () => import('./AudioCurveEditor'), module => module.AudioCurveEditor
 );
 
 export const LazySurroundSoundPanel = withLazy(
-  () => import('./SurroundSoundPanel').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).SurroundSoundPanel || m }))
+  () => import('./SurroundSoundPanel'), module => module.SurroundSoundPanel
 );
 
 export const LazyBezierCurveEditor = withLazy(
-  () => import('./BezierCurveEditor').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).BezierCurveEditor || m }))
+  () => import('./BezierCurveEditor'), module => module.BezierCurveEditor
 );
 
 export const LazyPreviewPanel = withLazy(
-  () => import('./PreviewPanel').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).PreviewPanel || m }))
+  () => import('./PreviewPanel'), module => module.PreviewPanel
 );
 
 export const LazyVoiceOverGenerator = withLazy(
-  () => import('./VoiceOverGenerator').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).VoiceOverGenerator || m }))
+  () => import('./VoiceOverGenerator'), module => module.VoiceOverGenerator
 );
 
 export const LazyTaskQueueModal = withLazy(
-  () => import('./TaskQueueModal').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).TaskQueueModal || m }))
+  () => import('./TaskQueueModal'), module => module.TaskQueueModal
 );
 
 export const LazyResultsGallery = withLazy(
-  () => import('./ResultsGallery').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).ResultsGallery || m }))
+  () => import('./ResultsGallery'), module => module.ResultsGallery
 );
 
 // Custom fallback for specific components
 export const LazyWaveformDisplay = withLazy(
-  () => import('./WaveformDisplay').then(module => ({ default: module.WaveformDisplay })),
+  () => import('./WaveformDisplay'),
+  module => module.WaveformDisplay,
   <div className="flex items-center justify-center h-16 bg-muted rounded">
     <span className="text-sm text-muted-foreground">Loading waveform...</span>
   </div>
 );
 
 export const LazyAudioEffectPresetsPanel = withLazy(
-  () => import('./AudioEffectPresetsPanel').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).AudioEffectPresetsPanel || m }))
+  () => import('./AudioEffectPresetsPanel'), module => module.AudioEffectPresetsPanel
 );
 
 export const LazyAISurroundAssistant = withLazy(
-  () => import('./AISurroundAssistant').then(m => ({ default: (m as LegacyAny).default || (m as LegacyAny).AISurroundAssistant || m }))
+  () => import('./AISurroundAssistant'), module => module.AISurroundAssistant
 );

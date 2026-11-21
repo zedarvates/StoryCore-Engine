@@ -2,16 +2,42 @@
  * StoryCore-Engine Audio-Sequence Integration Service
  */
 
-import type {
-  MusicProfile,
-  SFXProfile,
-  VoiceProfile,
-  MixConfiguration
-} from '../types/audioMultitrack';
-import { _audioMultitrackService } from './audioMultitrack';
-
 export type IntegrationAudioType = 'music' | 'sfx' | 'voice' | 'all';
 export type IntegrationStatus = 'pending' | 'processing' | 'completed' | 'failed';
+
+interface ShotAudioTrack {
+  id: string;
+  name?: string;
+  type?: Exclude<IntegrationAudioType, 'all'>;
+  prompt?: string;
+  startTime?: number;
+  duration?: number;
+  volume?: number;
+  muted?: boolean;
+  regeneratable?: boolean;
+}
+
+export interface SequenceAudioShot {
+  id?: string;
+  shot_type?: string;
+  prompt?: string;
+  duration_seconds?: number;
+  audio_tracks?: ShotAudioTrack[];
+}
+
+export interface AudioSequence {
+  id?: string;
+  project_id?: string;
+  shots?: SequenceAudioShot[];
+}
+
+export interface AudioProjectContext {
+  project_type?: string;
+  location?: string;
+  themes?: readonly string[];
+  visual_style?: string;
+  emotional_intensity?: string;
+}
 
 export interface SequenceAudioContext {
   projectId: string;
@@ -86,8 +112,8 @@ export class AudioSequenceIntegrationService {
    * Extract audio contexts from a generated sequence
    */
   extractContextsFromSequence(
-    sequence: unknown,
-    projectContext?: Record<string, unknown>
+    sequence: AudioSequence,
+    projectContext?: AudioProjectContext
   ): SequenceAudioContext[] {
     const contexts: SequenceAudioContext[] = [];
     const projectId = sequence.project_id || '';
@@ -121,8 +147,8 @@ export class AudioSequenceIntegrationService {
    * Generate all audio for a complete sequence
    */
   async generateAudioForSequence(
-    sequence: unknown,
-    projectContext?: Record<string, unknown>,
+    sequence: AudioSequence,
+    projectContext?: AudioProjectContext,
     audioTypes: IntegrationAudioType[] = ['all']
   ): Promise<IntegratedAudioResult> {
     const result: IntegratedAudioResult = {
@@ -182,16 +208,16 @@ export class AudioSequenceIntegrationService {
   /**
    * Attach generated audio to a shot
    */
-  attachAudioToShot(
-    shot: unknown,
+  attachAudioToShot<Shot extends SequenceAudioShot>(
+    shot: Shot,
     audioResult: IntegratedAudioResult,
     audioType: IntegrationAudioType = 'all'
-  ): unknown {
+  ) {
     const shotId = shot.id;
     const musicTracks = audioResult.musicPrompts.filter(p => p.shotId === shotId);
     const sfxTracks = audioResult.sfxPrompts.filter(p => p.shotId === shotId);
     const voiceTracks = audioResult.voicePrompts.filter(p => p.shotId === shotId);
-    const audioTracks: unknown[] = [];
+    const audioTracks: ShotAudioTrack[] = [];
     const duration = shot.duration_seconds || 5.0;
 
     if (audioType === 'all' || audioType === 'music') {
@@ -248,7 +274,7 @@ export class AudioSequenceIntegrationService {
   /**
    * Generate timeline synchronization data
    */
-  generateTimelineSyncData(sequence: unknown, audioResult: IntegratedAudioResult): TimelineSyncData {
+  generateTimelineSyncData(sequence: AudioSequence, audioResult: IntegratedAudioResult): TimelineSyncData {
     const shots = sequence.shots || [];
     const timelineTracks: TimelineTrack[] = [
       { id: 'timeline_dialogue', name: 'Dialogue', type: 'voice', clips: [], muted: false, volume: 0, height: 40 },
@@ -264,7 +290,6 @@ export class AudioSequenceIntegrationService {
     let currentTime = 0;
     for (const shot of shots) {
       const shotDuration = shot.duration_seconds || 5.0;
-      const _shotId = shot.id || '';
       const audioTracks = shot.audio_tracks || [];
 
       for (const audioTrack of audioTracks) {
@@ -317,14 +342,13 @@ export class AudioSequenceIntegrationService {
   /**
    * Apply audio to entire sequence
    */
-  async applyAudioToSequence(
-    sequence: unknown,
-    projectContext?: Record<string, unknown>,
+  async applyAudioToSequence<Sequence extends AudioSequence>(
+    sequence: Sequence,
+    projectContext?: AudioProjectContext,
     audioTypes: IntegrationAudioType[] = ['all']
-  ): Promise<{ sequence: unknown; timeline: TimelineSyncData }> {
+  ) {
     const audioResult = await this.generateAudioForSequence(sequence, projectContext, audioTypes);
-    const type = audioTypes.includes('all') ? 'all' : audioTypes[0];
-    const updatedShots = (sequence.shots || []).map((shot: unknown) => this.attachAudioToShot(shot, audioResult, type));
+    const updatedShots = (sequence.shots || []).map((shot) => this.attachAudioToShot(shot, audioResult));
     const updatedSequence = { ...sequence, shots: updatedShots, audio_generated: audioResult.success, audio_generation_result: audioResult };
     const timeline = this.generateTimelineSyncData(updatedSequence, audioResult);
     return { sequence: updatedSequence, timeline };

@@ -529,7 +529,7 @@ export const ImageGenerationDialog: React.FC<ImageGenerationDialogProps> = ({
               onRetry={categorizedError.canRetry ? handleGenerate : undefined}
               onAdjustParameters={() => {
                 // Suggest parameter adjustments
-                const suggestions = suggestParameterAdjustments(categorizedError, params);
+                const suggestions = suggestParameterAdjustments(categorizedError, { ...params });
                 if (suggestions) {
                   setParams((prev) => ({ ...prev, ...suggestions }));
                 }

@@ -1,48 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useId, useState } from 'react';
 import { useColorCorrectionStore } from '../../stores/colorCorrectionStore';
 import { ColorWheel } from './ColorWheel';
-import { ColorWheelType } from '../../types/color-correction';
+import type { ColorWheelType } from '../../types/color-wheel';
 import styles from './ColorCorrectionPanel.module.css';
 
 export const ColorWheels: React.FC = () => {
-  const { state, setPrimaryColorGrade, _setSecondaryColorGrade } = useColorCorrectionStore();
+  const grade = useColorCorrectionStore((store) => store.state.globalAdjustment);
+  const updateGlobalAdjustment = useColorCorrectionStore((store) => store.updateGlobalAdjustment);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const hueSliderId = useId();
+  const hue = grade.hsl.find((entry) => entry.colorRange === 'all')?.hue ?? 0;
 
   const handleColorWheelChange = (type: ColorWheelType, value: number) => {
-    const newGrade = { ...state.primaryGrade };
     switch (type) {
       case 'lift':
-        newGrade.lift = value;
-        break;
       case 'gamma':
-        newGrade.gamma = value;
-        break;
       case 'gain':
-        newGrade.gain = value;
-        break;
       case 'offset':
-        newGrade.offset = value;
+        updateGlobalAdjustment({ [type]: [value, value, value] });
         break;
       case 'contrast':
-        newGrade.contrast = value;
-        break;
       case 'pivot':
-        newGrade.pivot = value;
-        break;
       case 'saturation':
-        newGrade.saturation = value;
-        break;
-      case 'hue':
-        newGrade.hue = value;
-        break;
       case 'temperature':
-        newGrade.temperature = value;
-        break;
       case 'tint':
-        newGrade.tint = value;
+        updateGlobalAdjustment({ [type]: value });
         break;
+      case 'hue': {
+        const hasGlobalHue = grade.hsl.some((entry) => entry.colorRange === 'all');
+        const hsl = hasGlobalHue
+          ? grade.hsl.map((entry) => entry.colorRange === 'all' ? { ...entry, hue: value } : entry)
+          : [...grade.hsl, { colorRange: 'all' as const, hue: value, saturation: 0, luminance: 0 }];
+        updateGlobalAdjustment({ hsl });
+        break;
+      }
     }
-    setPrimaryColorGrade(newGrade);
   };
 
   return (
@@ -62,28 +54,28 @@ export const ColorWheels: React.FC = () => {
           type="lift"
           label="Lift"
           color="#1a1a2e"
-          value={state.primaryGrade.lift}
+          value={grade.lift[0]}
           onChange={handleColorWheelChange}
         />
         <ColorWheel
           type="gamma"
           label="Gamma"
           color="#16213e"
-          value={state.primaryGrade.gamma}
+          value={grade.gamma[0]}
           onChange={handleColorWheelChange}
         />
         <ColorWheel
           type="gain"
           label="Gain"
           color="#0f3460"
-          value={state.primaryGrade.gain}
+          value={grade.gain[0]}
           onChange={handleColorWheelChange}
         />
         <ColorWheel
           type="offset"
           label="Offset"
           color="#e94560"
-          value={state.primaryGrade.offset}
+          value={grade.offset[0]}
           onChange={handleColorWheelChange}
         />
       </div>
@@ -98,10 +90,10 @@ export const ColorWheels: React.FC = () => {
                 min={-100}
                 max={100}
                 step={1}
-                value={state.primaryGrade.contrast * 100}
+                value={grade.contrast * 100}
                 onChange={(e) => handleColorWheelChange('contrast', parseFloat(e.target.value) / 100)}
               />
-              <span>{state.primaryGrade.contrast.toFixed(2)}</span>
+              <span>{grade.contrast.toFixed(2)}</span>
             </div>
             <div className={styles.sliderGroup}>
               <label>Pivot</label>
@@ -110,10 +102,10 @@ export const ColorWheels: React.FC = () => {
                 min={0}
                 max={1}
                 step={0.01}
-                value={state.primaryGrade.pivot}
+                value={grade.pivot}
                 onChange={(e) => handleColorWheelChange('pivot', parseFloat(e.target.value))}
               />
-              <span>{state.primaryGrade.pivot.toFixed(2)}</span>
+              <span>{grade.pivot.toFixed(2)}</span>
             </div>
           </div>
 
@@ -125,22 +117,23 @@ export const ColorWheels: React.FC = () => {
                 min={0}
                 max={2}
                 step={0.01}
-                value={state.primaryGrade.saturation}
+                value={grade.saturation}
                 onChange={(e) => handleColorWheelChange('saturation', parseFloat(e.target.value))}
               />
-              <span>{state.primaryGrade.saturation.toFixed(2)}</span>
+              <span>{grade.saturation.toFixed(2)}</span>
             </div>
             <div className={styles.sliderGroup}>
-              <label>Hue</label>
+              <label htmlFor={hueSliderId}>Hue</label>
               <input
+                id={hueSliderId}
                 type="range"
                 min={-180}
                 max={180}
                 step={1}
-                value={state.primaryGrade.hue}
+                value={hue}
                 onChange={(e) => handleColorWheelChange('hue', parseFloat(e.target.value))}
               />
-              <span>{state.primaryGrade.hue.toFixed(0)}°</span>
+              <span>{hue.toFixed(0)}°</span>
             </div>
           </div>
 
@@ -152,10 +145,10 @@ export const ColorWheels: React.FC = () => {
                 min={-1}
                 max={1}
                 step={0.01}
-                value={state.primaryGrade.temperature}
+                value={grade.temperature}
                 onChange={(e) => handleColorWheelChange('temperature', parseFloat(e.target.value))}
               />
-              <span>{state.primaryGrade.temperature.toFixed(2)}</span>
+              <span>{grade.temperature.toFixed(2)}</span>
             </div>
             <div className={styles.sliderGroup}>
               <label>Tint</label>
@@ -164,10 +157,10 @@ export const ColorWheels: React.FC = () => {
                 min={-1}
                 max={1}
                 step={0.01}
-                value={state.primaryGrade.tint}
+                value={grade.tint}
                 onChange={(e) => handleColorWheelChange('tint', parseFloat(e.target.value))}
               />
-              <span>{state.primaryGrade.tint.toFixed(2)}</span>
+              <span>{grade.tint.toFixed(2)}</span>
             </div>
           </div>
         </div>
