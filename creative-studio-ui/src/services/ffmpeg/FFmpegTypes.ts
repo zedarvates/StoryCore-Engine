@@ -138,7 +138,7 @@ export interface GPUCapabilities {
   cuda: boolean;
 }
 
-export type PresetCategory = 'social' | 'web' | 'broadcast' | 'cinema' | 'archive';
+export type PresetCategory = 'social' | 'web' | 'broadcast' | 'cinema' | 'archive' | 'custom';
 
 export interface Preset {
   name: string;

@@ -1,43 +1,32 @@
-import React from 'react';
+import { useMemo } from 'react';
 import { useAppStore } from '@/stores/useAppStore';
 import { LipSyncWizard } from './LipSyncWizard';
-import { useToast } from '@/hooks/use-toast';
 
 export function LipSyncWizardModal() {
-    const { 
-        showLipSyncWizard, 
-        setShowLipSyncWizard, 
-        lipSyncContext,
-        project,
-        updateShot
-    } = useAppStore();
-    const { toast } = useToast();
-
-    if (!showLipSyncWizard) return null;
-
-    return (
-        <LipSyncWizard
-            isOpen={showLipSyncWizard}
-            onClose={() => setShowLipSyncWizard(false)}
-            projectId={project?.id || 'default'}
-            preSelectedCharacterImage={lipSyncContext?.characterImage}
-            preSelectedAudioFile={lipSyncContext?.audioFile}
-            onComplete={(videoUrl) => {
-                // If we have a shotId in the context, update that shot with the new video URL
-                if (lipSyncContext?.shotId) {
-                    console.log(`[LipSyncWizardModal] Updating shot ${lipSyncContext.shotId} with video:`, videoUrl);
-                    updateShot(lipSyncContext.shotId, {
-                        // In the Shot type, we might want to store this in 'image' (as a video result)
-                        // or a more specific field if available. Looking at types/index.ts...
-                        image: videoUrl,
-                    });
-                }
-
-                toast({ 
-                    title: "Lip Sync Complete", 
-                    description: `Your video is ready and has been added to the project.` 
-                });
-            }}
-        />
+  const { showLipSyncWizard, setShowLipSyncWizard, lipSyncContext, project, shots, updateShot } = useAppStore();
+  const context = useMemo(() => {
+    if (!lipSyncContext) return undefined;
+    const character = project?.characters?.find(
+      (candidate) => candidate.character_id === lipSyncContext.characterId,
     );
+    return {
+      ...lipSyncContext,
+      characterImage: lipSyncContext.characterImage ?? character?.visual_identity?.generated_portrait,
+    };
+  }, [lipSyncContext, project?.characters]);
+
+  if (!showLipSyncWizard) return null;
+
+  return (
+    <LipSyncWizard
+      isOpen={showLipSyncWizard}
+      onClose={() => setShowLipSyncWizard(false)}
+      projectId={project?.id || 'default'}
+      context={context}
+      onVideoReady={(shotId, videoUrl) => {
+        const shot = shots.find((candidate) => candidate.id === shotId);
+        if (shot) updateShot(shotId, { metadata: { ...shot.metadata, videoUrl } });
+      }}
+    />
+  );
 }

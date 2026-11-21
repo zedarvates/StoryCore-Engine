@@ -23,57 +23,40 @@ export const ResponsiveGridExample: React.FC = () => {
   const responsive = useResponsiveGrid();
   const preferencesManager = getLayoutPreferencesManager();
 
-  // Sample grid items
-  const [items, setItems] = useState<GridPanel[]>([
-    {
-      id: 'panel-1',
-      position: { x: 0, y: 0 },
+  const [items, setItems] = useState<GridPanel[]>(() => Array.from({ length: 6 }, (_, index) => {
+    const number = index + 1;
+    const title = `Panel ${number}`;
+    return {
+      id: `panel-${number}`,
+      position: { x: (index % 3) * 220, y: Math.floor(index / 3) * 220 },
       size: { width: 200, height: 200 },
-      content: { name: 'Panel 1', type: 'shot' },
-      locked: false,
-      zIndex: 1
-    },
-    {
-      id: 'panel-2',
-      position: { x: 220, y: 0 },
-      size: { width: 200, height: 200 },
-      content: { name: 'Panel 2', type: 'shot' },
-      locked: false,
-      zIndex: 1
-    },
-    {
-      id: 'panel-3',
-      position: { x: 440, y: 0 },
-      size: { width: 200, height: 200 },
-      content: { name: 'Panel 3', type: 'shot' },
-      locked: false,
-      zIndex: 1
-    },
-    {
-      id: 'panel-4',
-      position: { x: 0, y: 220 },
-      size: { width: 200, height: 200 },
-      content: { name: 'Panel 4', type: 'shot' },
-      locked: false,
-      zIndex: 1
-    },
-    {
-      id: 'panel-5',
-      position: { x: 220, y: 220 },
-      size: { width: 200, height: 200 },
-      content: { name: 'Panel 5', type: 'shot' },
-      locked: false,
-      zIndex: 1
-    },
-    {
-      id: 'panel-6',
-      position: { x: 440, y: 220 },
-      size: { width: 200, height: 200 },
-      content: { name: 'Panel 6', type: 'shot' },
-      locked: false,
-      zIndex: 1
-    }
-  ]);
+      content: {
+        id: `shot-${number}`,
+        sequencePlanId: 'grid-demo',
+        sceneId: 'scene-1',
+        number,
+        title,
+        type: 'medium',
+        category: 'custom',
+        composition: {
+          characterIds: [], characterPositions: [], environmentId: '', props: [], lightingMood: '', timeOfDay: '',
+        },
+        camera: { framing: 'medium', angle: 'eye-level', movement: { type: 'static' } },
+        timing: { duration: 120, inPoint: 0, outPoint: 120, transition: 'cut', transitionDuration: 0 },
+        generation: {
+          aiProvider: 'comfyui', model: '', prompt: title, negativePrompt: '', comfyuiPreset: '',
+          parameters: { width: 1920, height: 1080, steps: 20, cfgScale: 7.5, sampler: 'euler', scheduler: 'normal' },
+          styleReferences: [],
+        },
+        status: 'planned',
+        dialogues: [],
+        notes: '',
+        tags: [],
+        templates: [],
+      },
+      zIndex: 1,
+    };
+  }));
 
   const baseConfig: GridLayoutConfig = {
     columns: 3,
