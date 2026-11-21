@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * ComfyUI Servers Service Unit Tests
  *
@@ -18,10 +19,10 @@ import { setupComfyUIMock, teardownComfyUIMock } from '../../__mocks__/comfyuiSe
 
 // Mock localStorage for testing
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 global.localStorage = localStorageMock as LegacyAny;
 
@@ -29,7 +30,7 @@ describe('ComfyUI Servers Service', () => {
   let service: ComfyUIServersService;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     resetComfyUIServersService();
     service = getComfyUIServersService();
 
@@ -324,7 +325,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should handle connection failure', async () => {
       // Override fetch to simulate failure
-      global.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
+      global.fetch = vi.fn().mockRejectedValue(new Error('Connection failed'));
 
       const server = service.addServer({
         name: 'Failing Server',
@@ -346,7 +347,7 @@ describe('ComfyUI Servers Service', () => {
       });
 
       // Add a second server that will fail
-      global.fetch = jest.fn()
+      global.fetch = vi.fn()
         .mockImplementationOnce((url: string) => {
           if (url.includes('localhost:8188')) {
             return Promise.resolve({
@@ -401,7 +402,7 @@ describe('ComfyUI Servers Service', () => {
       service.setActiveServer(server2.id);
 
       // Mock server2 as available
-      global.fetch = jest.fn().mockResolvedValue({
+      global.fetch = vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve({
           system: { os: 'Linux', python_version: '3.10.12', pytorch_version: '2.1.1+cu121' },
@@ -416,7 +417,7 @@ describe('ComfyUI Servers Service', () => {
 
     it('should return null when no servers available', async () => {
       // Mock all connections as failed
-      global_.fetch = jest.fn().mockRejectedValue(new Error('Connection failed'));
+      global_.fetch = vi.fn().mockRejectedValue(new Error('Connection failed'));
 
       const server = service.addServer({
         name: 'Unavailable Server',

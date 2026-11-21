@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * Audio Production Wizard Tests
  */
@@ -5,13 +6,13 @@ import { LegacyAny } from '@/types/legacy';
 
 
 import React from 'react';
-import { _render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { AudioProductionWizard } from '../AudioProductionWizard';
 import { useAudioRemixStore } from '@/stores/audioRemixStore';
 
 // Mock the audio remix store
-jest.mock('@/stores/audioRemixStore', () => ({
-  useAudioRemixStore: jest.fn(() => ({
+vi.mock('@/stores/audioRemixStore', () => ({
+  useAudioRemixStore: vi.fn(() => ({
     currentTrackUrl: null,
     currentTrackId: null,
     trackName: '',
@@ -34,36 +35,36 @@ jest.mock('@/stores/audioRemixStore', () => ({
     isExporting: false,
     exportError: null,
     exportedUrl: null,
-    loadTrack: jest.fn(),
-    analyzeStructure: jest.fn(),
-    setTargetDuration: jest.fn(),
-    setRemixStyle: jest.fn(),
-    calculateSuggestedCuts: jest.fn(),
-    toggleCut: jest.fn(),
-    applyEffect: jest.fn(),
-    previewRemix: jest.fn(),
-    executeRemix: jest.fn(),
-    export: jest.fn(),
-    reset: jest.fn(),
-    clearResult: jest.fn(),
+    loadTrack: vi.fn(),
+    analyzeStructure: vi.fn(),
+    setTargetDuration: vi.fn(),
+    setRemixStyle: vi.fn(),
+    calculateSuggestedCuts: vi.fn(),
+    toggleCut: vi.fn(),
+    applyEffect: vi.fn(),
+    previewRemix: vi.fn(),
+    executeRemix: vi.fn(),
+    export: vi.fn(),
+    reset: vi.fn(),
+    clearResult: vi.fn(),
   })),
 }));
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
 };
 global.localStorage = localStorageMock as LegacyAny;
 
 describe('AudioProductionWizard', () => {
-  const mockOnClose = jest.fn();
-  const mockOnComplete = jest.fn();
+  const mockOnClose = vi.fn();
+  const mockOnComplete = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     localStorageMock.getItem.mockReturnValue(null);
   });
 

@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 /**
  * Unit tests for RecentProjectsService.validateAndCleanup method
  * 
@@ -219,7 +220,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
 
   describe('Listener Notification', () => {
     it('should notify listeners when projects are removed', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       service.subscribe(listener);
 
       // Add recent projects
@@ -258,7 +259,7 @@ describe('RecentProjectsService.validateAndCleanup', () => {
     });
 
     it('should not notify listeners when no projects are removed', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       service.subscribe(listener);
 
       // Add recent projects

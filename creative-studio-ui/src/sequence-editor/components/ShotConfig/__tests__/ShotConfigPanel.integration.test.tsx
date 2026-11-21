@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { LegacyAny } from '@/types/legacy';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
@@ -8,9 +9,9 @@ import timelineReducer, { addShot, selectShot } from '../../store/slices/timelin
 import ShotConfigPanel from '../ShotConfigPanel';
 
 // Mock the toast hook to capture toast calls
-jest.mock('@/hooks/use-toast', () => ({
+vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
-    toast: jest.fn(),
+    toast: vi.fn(),
   }),
 }));
 
@@ -36,11 +37,11 @@ const createTestStore = () => {
 };
 
 // Mock useAppSelector to return the selected shot from our test store
-jest.mock('../../store', () => {
-  const actual = jest.requireActual('../../store');
+vi.mock('../../store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../store')>();
   return {
     ...actual,
-    useAppSelector: jest.fn((selector) => {
+    useAppSelector: vi.fn((selector) => {
       // Simple implementation: if selector accesses state.timeline.selectedElements, return ['shot-1']
       // and state.timeline.shots, return [shot]
       const state = {
@@ -62,13 +63,13 @@ jest.mock('../../store', () => {
       };
       return selector(state);
     }),
-    useAppDispatch: () => jest.fn(),
+    useAppDispatch: () => vi.fn(),
   };
 });
 
 describe('ShotConfigPanel integration - conversion flow', () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('shows success toast on successful conversion', async () => {
@@ -77,7 +78,7 @@ describe('ShotConfigPanel integration - conversion flow', () => {
       boneCount: 10,
       hash: 'abc',
     };
-    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+    const fetchMock = vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
     } as LegacyAny);
@@ -106,7 +107,7 @@ describe('ShotConfigPanel integration - conversion flow', () => {
   });
 
   test('shows error toast on conversion failure', async () => {
-    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+    const fetchMock = vi.spyOn(global, 'fetch').mockResolvedValue({
       ok: false,
       text: async () => 'Server error',
     } as LegacyAny);

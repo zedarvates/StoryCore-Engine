@@ -22,11 +22,11 @@ import {
   isCharacterDeletedEvent,
   type CharacterCreatedEventPayload,
   type CharacterUpdatedEventPayload,
-  type _CharacterDeletedEventPayload,
+  type CharacterDeletedEventPayload,
   type CharacterSelectedEventPayload,
-  type _RelationshipAddedEventPayload,
+  type RelationshipAddedEventPayload,
   type CharacterValidationFailedEventPayload,
-  type _CharacterDependenciesCheckedEventPayload,
+  type CharacterDependenciesCheckedEventPayload,
 } from '../characterEvents';
 import { eventEmitter } from '../eventEmitter';
 import type { Character, CharacterRelationship } from '@/types/character';
