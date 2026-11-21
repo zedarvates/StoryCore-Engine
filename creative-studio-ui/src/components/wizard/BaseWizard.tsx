@@ -305,7 +305,8 @@ export function BaseWizard<T>({
             totalSteps={steps.length}
             canGoNext={canGoNext && !completion.isCompleting}
             canGoBack={canGoPrevious && !isReviewMode && !completion.isCompleting}
-            isSubmitting={completion.isCompleting}
+            onSaveDraft={autoSave ? autoSaveResult.save : undefined}
+            lastSaved={autoSaveResult.lastSaved ?? undefined}
             onNext={isReviewMode ? undefined : handleNext}
             onBack={isReviewMode ? undefined : handlePrevious}
             onSubmit={isReviewMode ? handleComplete : undefined}

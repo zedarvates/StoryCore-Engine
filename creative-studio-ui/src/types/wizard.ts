@@ -491,6 +491,13 @@ export type WizardStepData =
   | SceneBreakdown[]
   | ShotPlan[];
 
+export interface WizardCommandFeedback {
+  type: 'success' | 'warning' | 'error' | 'info';
+  message: string;
+  patches?: import('@/services/WizardFieldIntelligence').FieldPatch[];
+  timestamp: number;
+}
+
 // Wizard State
 export interface WizardState {
   // Wizard metadata
@@ -514,6 +521,7 @@ export interface WizardState {
   // Metadata
   draftId: string | null;
   lastSaved: Date | null;
+  stepData?: Record<number, unknown>;
   validationErrors: Map<number, ValidationError[]>;
 
   // Actions
@@ -606,11 +614,11 @@ export interface WizardNavigationProps {
   totalSteps: number;
   canGoNext: boolean;
   canGoBack: boolean;
-  canSkip: boolean;
-  onNext: () => void;
-  onBack: () => void;
-  onSkip: () => void;
-  onSaveDraft: () => void;
+  canSkip?: boolean;
+  onNext?: () => void;
+  onBack?: () => void;
+  onSkip?: () => void;
+  onSaveDraft?: () => void;
   onSubmit?: () => void; // Called at the last step
   onCancel?: () => void; // Called when cancel is clicked
   lastSaved?: Date;

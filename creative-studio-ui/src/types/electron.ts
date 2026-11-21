@@ -284,6 +284,8 @@ export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
     unlink: (filePath: string) => Promise<void>;
   };
 
+  feedback?: { collectLogs?: (limit: number) => Promise<string[]> };
+
   // Dialogs
   showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
   dialog: {

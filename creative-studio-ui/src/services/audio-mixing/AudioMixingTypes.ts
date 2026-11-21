@@ -248,7 +248,7 @@ export interface AudioMixingState {
   /** Total duration of the mix */
   totalDuration: number;
   /** Audio context state */
-  audioContextState: 'running' | 'suspended' | 'closed';
+  audioContextState: AudioContextState;
   /** Current sample rate */
   sampleRate: number;
   /** Whether recording is active */

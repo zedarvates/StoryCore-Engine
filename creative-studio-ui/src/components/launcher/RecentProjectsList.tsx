@@ -445,7 +445,7 @@ function EnhancedProjectCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              window.electronAPI.app.openFolder(project.path);
+              window.electronAPI?.app?.openFolder(project.path);
             }}
             className={cn(
               'flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-200',
@@ -481,7 +481,7 @@ function EnhancedProjectCard({
             <DropdownMenuContent align="end" className="w-56 bg-gray-900 border-gray-700 text-gray-200">
               <DropdownMenuItem 
                 onSelect={() => {
-                  window.electronAPI.app.openFolder(project.path);
+                  window.electronAPI?.app?.openFolder(project.path);
                 }}
                 className="hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
               >

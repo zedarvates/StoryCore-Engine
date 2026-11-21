@@ -41,6 +41,7 @@ export interface UseWizardAutoSaveResult {
   isSaving: boolean;
   /** Whether there's unsaved changes */
   isDirty: boolean;
+  markDirty: () => void;
   /** Last saved timestamp */
   lastSaved: Date | null;
   /** Current draft ID */
@@ -114,7 +115,7 @@ export function useWizardAutoSave<T extends WizardAutoSaveState>(
     
     try {
       const state = getCurrentState();
-      const id = await draftPersistence.saveDraft(state);
+      const id = await draftPersistence.saveDraft({ ...state, completedSteps: new Set(state.completedSteps) });
       setCurrentDraftId(id);
       setLastSaved(new Date());
       setIsDirty(false);
@@ -198,7 +199,7 @@ export function useWizardAutoSave<T extends WizardAutoSaveState>(
         console.log(`[useWizardAutoSave] Draft recovered: ${draftId}`);
       }
       
-      return state as Partial<T>;
+      return { ...state, completedSteps: Array.from(state.completedSteps ?? []) } as Partial<T>;
     } catch (error) {
       console.error('[useWizardAutoSave] Recovery failed:', error);
       return null;
