@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { type Mock, vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { FoundationsStep } from '../steps/FoundationsStep';
+import { FoundationsStep } from '../steps/legacy/FoundationsStep';
 import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
 
 // Mock the store hooks

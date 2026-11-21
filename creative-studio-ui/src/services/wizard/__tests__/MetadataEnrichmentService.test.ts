@@ -131,6 +131,7 @@ describe('MetadataEnrichmentService', () => {
   describe('checkShotCompleteness', () => {
     it('should return 100% completeness for fully populated shot', () => {
       const shot: EnhancedShotPlan = {
+        position: 1,
         id: 'shot-1',
         sceneId: 'scene-1',
         shotNumber: 1,
@@ -206,6 +207,7 @@ describe('MetadataEnrichmentService', () => {
 
     it('should identify missing cinematography metadata', () => {
       const shot: EnhancedShotPlan = {
+        position: 2,
         id: 'shot-2',
         sceneId: 'scene-1',
         shotNumber: 2,
@@ -285,6 +287,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'scene-1',
           shotNumber: 1,
@@ -378,6 +381,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'scene-1',
           shotNumber: 1,
@@ -416,6 +420,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'scene-1',
           shotNumber: 1,
@@ -464,6 +469,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'scene-1',
           shotNumber: 1,
@@ -505,6 +511,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'scene-1',
           shotNumber: 1,
@@ -567,6 +574,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'non-existent-scene',
           shotNumber: 1,
@@ -604,6 +612,7 @@ describe('MetadataEnrichmentService', () => {
 
       const shots: EnhancedShotPlan[] = [
         {
+          position: 1,
           id: 'shot-1',
           sceneId: 'scene-1',
           shotNumber: 1,

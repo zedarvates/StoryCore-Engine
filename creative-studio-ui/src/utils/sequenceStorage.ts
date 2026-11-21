@@ -60,21 +60,22 @@ export async function saveSequenceToProject(
  */
 export async function listSequencesInProject(projectPath: string): Promise<SequencePlan[]> {
   try {
-    if (!window.electronAPI?.fs) {
+    const fs = window.electronAPI?.fs;
+    if (!fs) {
       return [];
     }
 
     const sequencesDir = `${projectPath}/sequences`;
-    const exists = await window.electronAPI.fs.exists(sequencesDir);
+    const exists = await fs.exists(sequencesDir);
     if (!exists) return [];
 
-    const files = await window.electronAPI.fs.readdir(sequencesDir);
+    const files = await fs.readdir(sequencesDir);
     const sequenceFiles = files.filter((f: string) => f.startsWith('sequence_') && f.endsWith('.json'));
 
     const sequences = await Promise.all(
       sequenceFiles.map(async (file: string) => {
         try {
-          const content = await window.electronAPI.fs.readFile(`${sequencesDir}/${file}`);
+          const content = await fs.readFile(`${sequencesDir}/${file}`);
           const data = JSON.parse(new TextDecoder().decode(content));
           return data as SequencePlan;
         } catch (err) {

@@ -29,6 +29,7 @@ describe('Undo/Redo Integration', () => {
 
     // Create mock action context
     const mockState: AppState = {
+      selectedShotId: null,
       project: null,
       hasUnsavedChanges: false,
       viewState: DEFAULT_VIEW_STATE,

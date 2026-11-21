@@ -360,7 +360,7 @@ export function FolderNavigationModal({
                       <span className="text-sm font-medium text-red-400">Invalid project</span>
                       <ul className="mt-1 space-y-1">
                         {validationResult.errors?.map((error: unknown, index: number) => (
-                          <li key={index} className="text-xs text-red-300">• {error.message}</li>
+                          <li key={index} className="text-xs text-red-300">• {error instanceof Error ? error.message : String(error)}</li>
                         ))}
                       </ul>
                     </div>

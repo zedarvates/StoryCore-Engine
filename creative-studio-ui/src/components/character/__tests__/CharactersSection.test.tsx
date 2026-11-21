@@ -8,7 +8,7 @@ import { LegacyAny } from '@/types/legacy';
 // Requirements: 1.1, 1.5, 2.1, 3.1
 // ============================================================================
 
-import { describe, it, expect, vi, b_eforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { CharactersSection } from '../CharactersSection';
 import type { Character } from '@/types/character';
@@ -41,6 +41,9 @@ const mockCharacter: Character = {
   creation_timestamp: Date.parse('2024-01-01T00:00:00.000Z'),
   version: '1.0',
   visual_identity: {
+    gender: 'unspecified',
+    reference_images: [],
+    reference_sheet_images: [],
     hair_color: 'black',
     hair_style: 'short',
     hair_length: 'short',
@@ -67,6 +70,7 @@ const mockCharacter: Character = {
     communication_style: 'direct',
   },
   background: {
+    backstory: '',
     origin: 'City',
     occupation: 'Warrior',
     education: 'Military Academy',

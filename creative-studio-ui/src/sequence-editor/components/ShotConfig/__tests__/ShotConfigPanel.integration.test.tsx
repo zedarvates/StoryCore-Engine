@@ -4,8 +4,8 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
-import { configureStore } from '@re_duxjs/toolkit';
-import timelineReducer, { addShot, selectShot } from '../../store/slices/timelineSlice';
+import { configureStore } from '@reduxjs/toolkit';
+import timelineReducer, { addShot, selectShot } from '../../../store/slices/timelineSlice';
 import ShotConfigPanel from '../ShotConfigPanel';
 
 // Mock the toast hook to capture toast calls
@@ -37,8 +37,8 @@ const createTestStore = () => {
 };
 
 // Mock useAppSelector to return the selected shot from our test store
-vi.mock('../../store', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../../store')>();
+vi.mock('../../../store', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../store')>();
   return {
     ...actual,
     useAppSelector: vi.fn((selector) => {

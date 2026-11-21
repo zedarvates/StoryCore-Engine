@@ -6,6 +6,7 @@ import {
   type ExportOptions,
 } from '../ConversationExportService';
 import { ProjectExportService } from '../projectExportService';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Notifications are outside the export boundary and start background timers.
 // Keep the PDF implementation real so these tests exercise its text path.
@@ -20,7 +21,7 @@ function projectFixture(): Project {
     id: 'pdf-security-project',
     schema_version: '1.0',
     project_name: 'PDF security control',
-    shots: [{
+    shots: [createShotFixture({
       id: 'shot-1',
       title: 'Ordinary scene',
       description: literalText,
@@ -29,7 +30,7 @@ function projectFixture(): Project {
       prompt: '',
       startTime: 0,
       name: 'Ordinary scene',
-    }],
+    })],
     assets: [],
     capabilities: {
       grid_generation: true,

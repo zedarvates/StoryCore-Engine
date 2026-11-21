@@ -8,6 +8,7 @@ import { render, screen } from '@testing-library/react';
 import { PromptAnalysisPanel } from '../PromptAnalysisPanel';
 import { ProjectContext, type ProjectContextValue } from '../../contexts/ProjectContext';
 import type { Project, Shot } from '../../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // ============================================================================
 // Test Helpers
@@ -92,22 +93,22 @@ describe('PromptAnalysisPanel', () => {
   it('should display summary statistics', () => {
     const project = createMockProject({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           startTime: 0,
           duration: 5,
           prompt: 'Valid prompt with enough characters',
           metadata: {},
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           sequenceId: 'seq-1',
           startTime: 5,
           duration: 5,
           prompt: '',
           metadata: {},
-        },
+        }),
       ],
     });
 
@@ -126,22 +127,22 @@ describe('PromptAnalysisPanel', () => {
   it('should display "All prompts are complete" when all shots have valid prompts', () => {
     const project = createMockProject({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           startTime: 0,
           duration: 5,
           prompt: 'Valid prompt with enough characters',
           metadata: {},
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           sequenceId: 'seq-1',
           startTime: 5,
           duration: 5,
           prompt: 'Another valid prompt here',
           metadata: {},
-        },
+        }),
       ],
     });
 
@@ -153,14 +154,14 @@ describe('PromptAnalysisPanel', () => {
   it('should display shots needing attention when there are incomplete prompts', () => {
     const project = createMockProject({
       shots: [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           startTime: 0,
           duration: 5,
           prompt: '',
           metadata: {},
-        },
+        }),
       ],
     });
 

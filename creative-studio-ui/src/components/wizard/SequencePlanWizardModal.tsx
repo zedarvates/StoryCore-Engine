@@ -25,7 +25,6 @@ export function SequencePlanWizardModal({
   onComplete,
   initialTemplateId,
   initialPlan,
-  _mode
 }: SequencePlanWizardModalProps) {
   // Map the props to what SequencePlanWizard expects
   return (

@@ -33,6 +33,7 @@ describe('World Store Integration', () => {
         worlds: [],
         selectedWorldId: null,
         project: {
+          id: "project-test-project",
           schema_version: '1.0',
           project_name: 'test-project',
           shots: [],
@@ -60,6 +61,7 @@ describe('World Store Integration', () => {
   describe('addWorld', () => {
     it('should add a world to the store', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],

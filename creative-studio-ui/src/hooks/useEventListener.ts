@@ -3,18 +3,18 @@
  * 
  * Safely attach and cleanup event listeners
  */
-import { LegacyAny } from '@/types/legacy';
-
-
 import { useEffect, useRef } from 'react';
+
+type ListenerTarget = Window | Document | HTMLElement;
+type BrowserEventMap = WindowEventMap & DocumentEventMap & HTMLElementEventMap;
 
 /**
  * Hook to attach event listeners with automatic cleanup
  */
-export function useEventListener<K extends keyof WindowEventMap>(
+export function useEventListener<K extends keyof BrowserEventMap>(
   eventName: K,
-  handler: (this: Window, ev: WindowEventMap[K]) => unknown,
-  element: Window | Document | HTMLElement = window,
+  handler: (this: ListenerTarget, ev: BrowserEventMap[K]) => unknown,
+  element: ListenerTarget = window,
   options?: boolean | AddEventListenerOptions
 ) {
   const savedHandler = useRef(handler);
@@ -27,7 +27,7 @@ export function useEventListener<K extends keyof WindowEventMap>(
     const isSupported = element && element.addEventListener;
     if (!isSupported) return;
 
-    const eventListener = (event: Event) => savedHandler.current(event as LegacyAny);
+    const eventListener = (event: Event) => savedHandler.current.call(element, event as BrowserEventMap[K]);
 
     element.addEventListener(eventName, eventListener, options);
 
@@ -42,9 +42,9 @@ export function useEventListener<K extends keyof WindowEventMap>(
  */
 export function useEventListeners(
   listeners: Array<{
-    eventName: keyof WindowEventMap;
-    handler: (this: Window, ev: WindowEventMap[keyof WindowEventMap]) => unknown;
-    element?: Window | Document | HTMLElement;
+    eventName: keyof BrowserEventMap;
+    handler: (this: ListenerTarget, ev: BrowserEventMap[keyof BrowserEventMap]) => unknown;
+    element?: ListenerTarget;
     options?: boolean | AddEventListenerOptions;
   }>
 ) {
@@ -52,7 +52,7 @@ export function useEventListeners(
     const cleanups: Array<() => void> = [];
 
     listeners.forEach(({ eventName, handler, element = window, options }) => {
-      const eventListener = (event: Event) => handler(event as LegacyAny);
+      const eventListener = (event: Event) => handler.call(element, event);
       element.addEventListener(eventName, eventListener, options);
       cleanups.push(() => {
         element.removeEventListener(eventName, eventListener, options);

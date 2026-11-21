@@ -17,6 +17,7 @@ import {
   batchActions,
 } from '../undoRedo';
 import type { Shot, HistoryState } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('undoRedo', () => {
   beforeEach(() => {
@@ -51,7 +52,7 @@ describe('undoRedo', () => {
 
   describe('createHistorySnapshot', () => {
     it('should create a deep copy of state', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test',
         description: 'Test',
@@ -61,7 +62,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.setState({ shots: [shot] });
       const state = useStore.getState();
@@ -88,7 +89,7 @@ describe('undoRedo', () => {
 
   describe('restoreFromSnapshot', () => {
     it('should restore state from snapshot', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test',
         description: 'Test',
@@ -98,7 +99,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       const snapshot: HistoryState = {
         shots: [shot],
@@ -115,7 +116,7 @@ describe('undoRedo', () => {
     });
 
     it('should create independent copies', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test',
         description: 'Test',
@@ -125,7 +126,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       const snapshot: HistoryState = {
         shots: [shot],
@@ -149,7 +150,7 @@ describe('undoRedo', () => {
 
   describe('pushToHistory', () => {
     it('should add current state to history', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test',
         description: 'Test',
@@ -159,7 +160,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.setState({ shots: [shot] });
       pushToHistory();
@@ -204,7 +205,7 @@ describe('undoRedo', () => {
 
   describe('undo', () => {
     it('should restore previous state', () => {
-      const shot1: Shot = {
+      const shot1: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot 1',
         description: 'Test',
@@ -214,9 +215,9 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
-      const shot2: Shot = {
+      const shot2: Shot = createShotFixture({
         id: 'shot-2',
         title: 'Shot 2',
         description: 'Test',
@@ -226,7 +227,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 1,
-      };
+      });
 
       // Initial state
       pushToHistory();
@@ -260,7 +261,7 @@ describe('undoRedo', () => {
 
   describe('redo', () => {
     it('should restore next state', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test',
         description: 'Test',
@@ -270,7 +271,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       // Initial state
       pushToHistory();
@@ -330,7 +331,7 @@ describe('undoRedo', () => {
 
   describe('withUndo', () => {
     it('should wrap action with history tracking', () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test',
         description: 'Test',
@@ -340,7 +341,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       // Initial state
       pushToHistory();
@@ -360,7 +361,7 @@ describe('undoRedo', () => {
 
   describe('batchActions', () => {
     it('should create single history entry for multiple actions', () => {
-      const shot1: Shot = {
+      const shot1: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Shot 1',
         description: 'Test',
@@ -370,9 +371,9 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
-      const shot2: Shot = {
+      const shot2: Shot = createShotFixture({
         id: 'shot-2',
         title: 'Shot 2',
         description: 'Test',
@@ -382,7 +383,7 @@ describe('undoRedo', () => {
         textLayers: [],
         animations: [],
         position: 1,
-      };
+      });
 
       // Initial state
       pushToHistory();

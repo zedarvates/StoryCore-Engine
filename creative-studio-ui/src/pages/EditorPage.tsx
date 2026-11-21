@@ -8,7 +8,6 @@
  */
 
 import React, { useState } from 'react';
-import { useAppStore } from '@/stores/useAppStore';
 import { useEditorStore } from '@/stores/editorStore';
 import { EditorLayout } from '@/components/EditorLayout';
 import { AssetPanel } from '@/components/AssetPanel';
@@ -25,7 +24,6 @@ interface EditorPageProps {
 }
 
 export function EditorPage({ onBackToDashboard }: EditorPageProps) {
-  const { _project } = useAppStore();
   const { projectPath } = useEditorStore();
 
   // Handle generation completion

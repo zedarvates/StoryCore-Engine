@@ -44,6 +44,9 @@ const createMockCharacter = (overrides: Partial<Character> = {}): Character => (
   creation_timestamp: Date.now(),
   version: '1.0',
   visual_identity: {
+    gender: 'unspecified',
+    reference_images: [],
+    reference_sheet_images: [],
     hair_color: 'Brown',
     hair_style: 'Short',
     hair_length: 'Short',
@@ -70,6 +73,7 @@ const createMockCharacter = (overrides: Partial<Character> = {}): Character => (
     communication_style: 'Direct',
   },
   background: {
+    backstory: '',
     origin: 'City',
     occupation: 'Warrior',
     education: 'Military',

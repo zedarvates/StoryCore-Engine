@@ -31,7 +31,7 @@ export function TransitionEditor({
   const [currentTime, setCurrentTime] = useState(0);
   const [localTransition, setLocalTransition] = useState(transition);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const animationRef = useRef<number>();
+  const animationRef = useRef<number | undefined>(undefined);
 
   // Update local transition when prop changes
   useEffect(() => {

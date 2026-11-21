@@ -12,6 +12,7 @@ import {
   validateProject,
 } from '@/utils/projectManager';
 import type { Project, Shot } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Backend Communication Integration', () => {
   beforeEach(() => {
@@ -30,10 +31,11 @@ describe('Backend Communication Integration', () => {
   describe('Project Export', () => {
     it('should export project to valid JSON format', async () => {
       const project: Project = {
+        id: "project-test-project",
         schema_version: '1.0',
         project_name: 'Test Project',
         shots: [
-          {
+          createShotFixture({
             id: 'shot-1',
             title: 'Opening Scene',
             description: 'First shot',
@@ -43,7 +45,7 @@ describe('Backend Communication Integration', () => {
             textLayers: [],
             animations: [],
             position: 0,
-          },
+          }),
         ],
         assets: [
           {
@@ -78,6 +80,7 @@ describe('Backend Communication Integration', () => {
 
     it('should validate exported project against schema', async () => {
       const project: Project = {
+        id: "project-valid-project",
         schema_version: '1.0',
         project_name: 'Valid Project',
         shots: [],
@@ -160,6 +163,7 @@ describe('Backend Communication Integration', () => {
       };
 
       const project: Project = {
+        id: "project-test",
         schema_version: '1.0',
         project_name: 'Test',
         shots: [shot],
@@ -482,6 +486,7 @@ describe('Backend Communication Integration', () => {
   describe('Data Contract Compliance', () => {
     it('should generate Data Contract v1 compliant JSON', async () => {
       const project: Project = {
+        id: "project-compliant-project",
         schema_version: '1.0',
         project_name: 'Compliant Project',
         shots: [],
@@ -524,6 +529,7 @@ describe('Backend Communication Integration', () => {
       const validStatuses = ['pending', 'done', 'failed', 'passed'];
 
       const project: Project = {
+        id: "project-test",
         schema_version: '1.0',
         project_name: 'Test',
         shots: [],

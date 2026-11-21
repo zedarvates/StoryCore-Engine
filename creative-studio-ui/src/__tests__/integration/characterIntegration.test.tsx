@@ -56,6 +56,9 @@ const createTestCharacter = (overrides?: Partial<Character>): Character => ({
   creation_timestamp: Date.now(),
   version: '1.0',
   visual_identity: {
+    gender: 'unspecified',
+    reference_images: [],
+    reference_sheet_images: [],
     hair_color: 'brown',
     hair_style: 'short',
     hair_length: 'short',
@@ -82,6 +85,7 @@ const createTestCharacter = (overrides?: Partial<Character>): Character => ({
     communication_style: 'formal',
   },
   background: {
+    backstory: '',
     origin: 'urban',
     occupation: 'detective',
     education: 'university',
@@ -184,6 +188,9 @@ describe('Character Integration System - End-to-End Tests', () => {
           character_arc: 'static',
         },
         visual_identity: {
+          gender: 'unspecified',
+          reference_images: [],
+          reference_sheet_images: [],
           hair_color: 'gray',
           hair_style: 'short',
           hair_length: 'short',

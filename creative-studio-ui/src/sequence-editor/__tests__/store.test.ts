@@ -40,6 +40,7 @@ describe('Redux Store Configuration', () => {
 describe('Timeline Slice', () => {
   it('should add a shot to the timeline', () => {
     const shot: Shot = {
+      position: 0,
       id: 'test-shot-1',
       name: 'Test Shot',
       startTime: 0,

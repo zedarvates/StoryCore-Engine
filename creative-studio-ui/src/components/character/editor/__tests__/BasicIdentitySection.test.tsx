@@ -16,6 +16,9 @@ describe('BasicIdentitySection', () => {
       character_arc: 'From naive to experienced',
     },
     visual_identity: {
+      gender: 'unspecified',
+      reference_images: [],
+      reference_sheet_images: [],
       age_range: 'Young Adult (20-35)',
       hair_color: '',
       hair_style: '',

@@ -8,6 +8,7 @@ import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import { createEmptyProject, saveProjectToJSON, validateProject } from '@/utils/projectManager';
 import type { Shot, Asset } from '@/types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('Project Creation E2E Workflow', () => {
   beforeEach(() => {
@@ -70,7 +71,7 @@ describe('Project Creation E2E Workflow', () => {
     });
 
     it('should add first shot to empty project', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Opening Scene',
         description: 'The story begins',
@@ -80,7 +81,7 @@ describe('Project Creation E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 
@@ -92,7 +93,7 @@ describe('Project Creation E2E Workflow', () => {
 
     it('should add multiple shots in sequence', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Scene 1',
           description: 'First scene',
@@ -102,8 +103,8 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Scene 2',
           description: 'Second scene',
@@ -113,8 +114,8 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-3',
           title: 'Scene 3',
           description: 'Third scene',
@@ -124,7 +125,7 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 2,
-        },
+        }),
       ];
 
       shots.forEach((shot) => useStore.getState().addShot(shot));
@@ -139,7 +140,7 @@ describe('Project Creation E2E Workflow', () => {
 
     it('should maintain shot order by position', async () => {
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-3',
           title: 'Scene 3',
           description: '',
@@ -149,8 +150,8 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 2,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-1',
           title: 'Scene 1',
           description: '',
@@ -160,8 +161,8 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Scene 2',
           description: '',
@@ -171,7 +172,7 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       shots.forEach((shot) => useStore.getState().addShot(shot));
@@ -282,7 +283,7 @@ describe('Project Creation E2E Workflow', () => {
 
       // Add shots
       const shots: Shot[] = [
-        {
+        createShotFixture({
           id: 'shot-1',
           title: 'Opening',
           description: 'Opening scene with background',
@@ -310,8 +311,8 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 0,
-        },
-        {
+        }),
+        createShotFixture({
           id: 'shot-2',
           title: 'Middle',
           description: 'Middle scene',
@@ -321,7 +322,7 @@ describe('Project Creation E2E Workflow', () => {
           textLayers: [],
           animations: [],
           position: 1,
-        },
+        }),
       ];
 
       shots.forEach((shot) => useStore.getState().addShot(shot));
@@ -340,7 +341,7 @@ describe('Project Creation E2E Workflow', () => {
       const project = createEmptyProject('Save Test');
       useStore.setState({ project });
 
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Test Shot',
         description: 'Test',
@@ -350,7 +351,7 @@ describe('Project Creation E2E Workflow', () => {
         textLayers: [],
         animations: [],
         position: 0,
-      };
+      });
 
       useStore.getState().addShot(shot);
 
@@ -481,7 +482,7 @@ describe('Project Creation E2E Workflow', () => {
       useStore.getState().addAsset(audioAsset);
 
       // Step 3: Create shots
-      const shot1: Shot = {
+      const shot1: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Introduction',
         description: 'Opening shot with hero image',
@@ -522,9 +523,9 @@ describe('Project Creation E2E Workflow', () => {
         ],
         animations: [],
         position: 0,
-      };
+      });
 
-      const shot2: Shot = {
+      const shot2: Shot = createShotFixture({
         id: 'shot-2',
         title: 'Main Content',
         description: 'Main content shot',
@@ -540,7 +541,7 @@ describe('Project Creation E2E Workflow', () => {
           easing: 'ease-out',
         },
         position: 1,
-      };
+      });
 
       useStore.getState().addShot(shot1);
       useStore.getState().addShot(shot2);

@@ -116,7 +116,6 @@ export const ThreeJsViewer: React.FC<ThreeJsViewerProps> = ({
     renderFrame,
     startRendering,
     stopRendering,
-    _updateEffects
   } = useThreeJs({
     sceneConfig,
     cameraConfig,

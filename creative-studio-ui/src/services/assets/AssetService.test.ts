@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AssetService } from '../AssetService';
-import { ASSET_VALIDATION_RULES } from '../../../types/asset';
+import { AssetService } from './AssetService';
+import { ASSET_VALIDATION_RULES } from '@/types/asset';
 
 describe('AssetService', () => {
   let assetService: AssetService;

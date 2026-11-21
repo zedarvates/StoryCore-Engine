@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { PlaybackEngine } from '../PlaybackEngine';
 import type { Shot } from '../../types';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 describe('PlaybackEngine', () => {
   let canvas: HTMLCanvasElement;
   let engine: PlaybackEngine;
 
   const mockShots: Shot[] = [
-    {
+    createShotFixture({
       id: 'shot-1',
       title: 'Shot 1',
       description: 'First shot',
@@ -18,8 +19,8 @@ describe('PlaybackEngine', () => {
       effects: [] as const,
       textLayers: [] as const,
       animations: [] as const,
-    },
-    {
+    }),
+    createShotFixture({
       id: 'shot-2',
       title: 'Shot 2',
       description: 'Second shot',
@@ -35,7 +36,7 @@ describe('PlaybackEngine', () => {
         duration: 1,
         easing: 'ease-in-out' as const,
       },
-    },
+    }),
   ];
 
   beforeEach(() => {

@@ -8,8 +8,9 @@
 
 import { render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
-import { ProjectDashboardNew } from '../components/ProjectDashboardNew';
+import { ProjectDashboardNew } from '../components/workspace/ProjectDashboardNew';
 import type { Project } from '../types/projectDashboard';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the persistence services
 vi.mock('../services/persistence/projectPersistence', () => ({
@@ -38,22 +39,22 @@ describe('ProjectDashboardNew', () => {
     schemaVersion: '1.0',
     sequences: [],
     shots: [
-      {
+      createShotFixture({
         id: 'shot-1',
         sequenceId: 'seq-1',
         startTime: 0,
         duration: 5,
         prompt: 'A beautiful sunset over the ocean',
         metadata: {},
-      },
-      {
+      }),
+      createShotFixture({
         id: 'shot-2',
         sequenceId: 'seq-1',
         startTime: 5,
         duration: 3,
         prompt: '',
         metadata: {},
-      },
+      }),
     ],
     audioPhrases: [],
     generationHistory: [],

@@ -7,9 +7,9 @@
  * Requirements: 9.2, 9.3, 9.4
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
-import { AssetPreviewPanel } from '../AssetPreviewPanel';
+import { AssetPreviewPanel, type AssetPreviewPanelProps } from '../AssetPreviewPanel';
 import type { GeneratedAsset } from '../../../types/generation';
 
 describe('AssetPreviewPanel', () => {
@@ -104,16 +104,16 @@ describe('AssetPreviewPanel', () => {
   ];
   
   // Mock callbacks
-  let mockOnSave: ReturnType<typeof vi.fn>;
-  let mockOnExport: ReturnType<typeof vi.fn>;
-  let mockOnRegenerate: ReturnType<typeof vi.fn>;
-  let mockOnRelatedAssetClick: ReturnType<typeof vi.fn>;
+  let mockOnSave: Mock<NonNullable<AssetPreviewPanelProps['onSave']>>;
+  let mockOnExport: Mock<NonNullable<AssetPreviewPanelProps['onExport']>>;
+  let mockOnRegenerate: Mock<NonNullable<AssetPreviewPanelProps['onRegenerate']>>;
+  let mockOnRelatedAssetClick: Mock<NonNullable<AssetPreviewPanelProps['onRelatedAssetClick']>>;
   
   beforeEach(() => {
-    mockOnSave = vi.fn();
-    mockOnExport = vi.fn();
-    mockOnRegenerate = vi.fn();
-    mockOnRelatedAssetClick = vi.fn();
+    mockOnSave = vi.fn<NonNullable<AssetPreviewPanelProps['onSave']>>();
+    mockOnExport = vi.fn<NonNullable<AssetPreviewPanelProps['onExport']>>();
+    mockOnRegenerate = vi.fn<NonNullable<AssetPreviewPanelProps['onRegenerate']>>();
+    mockOnRelatedAssetClick = vi.fn<NonNullable<AssetPreviewPanelProps['onRelatedAssetClick']>>();
   });
   
   describe('Image Asset Display', () => {

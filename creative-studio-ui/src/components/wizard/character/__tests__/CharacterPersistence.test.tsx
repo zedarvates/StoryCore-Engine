@@ -126,6 +126,9 @@ describe('Character Persistence Integration', () => {
         character_arc: 'Growth',
       },
       visual_identity: {
+        gender: 'unspecified',
+        reference_images: [],
+        reference_sheet_images: [],
         age_range: 'adult',
         hair_color: '',
         hair_style: '',
@@ -152,6 +155,7 @@ describe('Character Persistence Integration', () => {
         communication_style: '',
       },
       background: {
+        backstory: '',
         origin: '',
         occupation: '',
         education: '',

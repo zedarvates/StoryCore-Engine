@@ -323,7 +323,7 @@ export function GhostTrackerTips({
  * Compact version of tips for small spaces
  */
 export function GhostTrackerTipsCompact({
-  _onTipClick
+  onTipClick: _onTipClick
 }: {
   onTipClick?: (tip: GhostTrackerTip) => void;
 }) {

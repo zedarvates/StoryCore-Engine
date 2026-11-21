@@ -50,6 +50,7 @@ describe('RelationshipsSection', () => {
   it('should render relationships section', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -63,6 +64,7 @@ describe('RelationshipsSection', () => {
   it('should display existing relationships', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={mockRelationships}
         errors={{}}
@@ -78,6 +80,7 @@ describe('RelationshipsSection', () => {
   it('should show empty state when no relationships', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -91,6 +94,7 @@ describe('RelationshipsSection', () => {
   it('should show add relationship button', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -104,6 +108,7 @@ describe('RelationshipsSection', () => {
   it('should show add relationship form when add is clicked', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -121,6 +126,7 @@ describe('RelationshipsSection', () => {
   it('should populate character dropdown with available characters', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -142,6 +148,7 @@ describe('RelationshipsSection', () => {
   it('should add new relationship when form is submitted', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -182,6 +189,7 @@ describe('RelationshipsSection', () => {
   it('should show edit form when edit button is clicked', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={mockRelationships}
         errors={{}}
@@ -198,6 +206,7 @@ describe('RelationshipsSection', () => {
   it('should delete relationship when delete button is clicked', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={mockRelationships}
         errors={{}}
@@ -214,6 +223,7 @@ describe('RelationshipsSection', () => {
   it('should cancel add when cancel is clicked', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}
@@ -233,6 +243,7 @@ describe('RelationshipsSection', () => {
   it('should disable save button if required fields are empty', () => {
     render(
       <RelationshipsSection
+        id="relationships"
         characterId="char-1"
         relationships={[]}
         errors={{}}

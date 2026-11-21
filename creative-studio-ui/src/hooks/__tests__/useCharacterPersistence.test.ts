@@ -71,6 +71,7 @@ describe('useCharacterPersistence', () => {
           communication_style: 'direct',
         },
         background: {
+          backstory: '',
           origin: 'City',
           occupation: 'Warrior',
           education: 'Self-taught',
