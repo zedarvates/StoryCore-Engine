@@ -10,7 +10,6 @@ export interface ObjectLibraryProps {
 }
 
 export const ObjectLibrary: React.FC<ObjectLibraryProps> = ({
-  _onElementSelect,
   className = ''
 }) => {
   // Load objects from store

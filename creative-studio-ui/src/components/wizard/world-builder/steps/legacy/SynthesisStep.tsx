@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useWorldBuilderSelectors, useWorldBuilderActions } from '../../../../stores/worldBuilderStore';
-import { StepValidator } from '../StepValidator';
+import { useWorldBuilderSelectors, useWorldBuilderActions } from '@/stores/worldBuilderStore';
+import { StepValidator } from './StepValidator';
 
 export const SynthesisStep: React.FC = () => {
   const { worldData } = useWorldBuilderSelectors();

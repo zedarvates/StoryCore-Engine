@@ -248,7 +248,6 @@ interface ActCardProps {
 
 function ActCard({
   act,
-  _index,
   onEdit,
   onDelete,
   onDragStart,

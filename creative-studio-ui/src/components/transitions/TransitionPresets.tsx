@@ -587,7 +587,7 @@ export interface DissolveTransitionProps {
 
 export const DissolveTransition: React.FC<DissolveTransitionProps> = ({
   children,
-  _pattern = 'random',
+  pattern = 'random',
   particleSize = 4,
   noiseScale = 2,
   duration = 600,

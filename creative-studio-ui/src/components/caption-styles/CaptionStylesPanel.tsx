@@ -21,7 +21,6 @@ export const CaptionStylesPanel: React.FC = () => {
     selectedStyleId,
     previewMode,
     isPanelOpen,
-    _isStyleEditorOpen,
     applyStyleToTrack,
     togglePanel,
     toggleStyleEditor,

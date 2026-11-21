@@ -10,8 +10,7 @@ import {
   MontageStyle,
   MontageRequest,
   MontageResult,
-  _SegmentType
-} from '../../services/transcriptionService';
+} from '../../../services/transcriptionService';
 import styles from './TranscriptionPanel.module.css';
 
 interface TranscriptionPanelProps {

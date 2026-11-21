@@ -1,5 +1,5 @@
 import React from 'react';
-import { useWorldBuilderSelectors } from '../../../stores/worldBuilderStore';
+import { useWorldBuilderSelectors } from '@/stores/worldBuilderStore';
 
 const TOTAL_STEPS = 5;
 

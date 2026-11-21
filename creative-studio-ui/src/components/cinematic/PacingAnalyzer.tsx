@@ -42,7 +42,6 @@ interface PacingSegment {
 type ViewMode = 'timeline' | 'waveform' | 'bars' | 'heatmap';
 
 export function PacingAnalyzer({
-  _sequence,
   shots,
   onUpdatePacing,
   className

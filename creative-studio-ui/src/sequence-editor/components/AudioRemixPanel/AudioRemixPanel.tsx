@@ -9,7 +9,7 @@ import {
   MusicStructure,
   RemixRequest,
   RemixResult
-} from '../../services/musicRemixService';
+} from '../../../services/musicRemixService';
 import styles from './AudioRemixPanel.module.css';
 
 interface AudioRemixPanelProps {

@@ -38,7 +38,6 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = (props) => {
     title = 'Video Preview',
     onVideoReady,
     onPlayheadChange,
-    _onShotChange,
     children,
   } = props;
   
@@ -64,7 +63,6 @@ export const VideoPreviewPanel: React.FC<VideoPreviewPanelProps> = (props) => {
     seekToFrame,
     stepForward,
     stepBackward,
-    _setPlaybackRate,
     toggleMute,
     toggleLoop,
     service,

@@ -5,7 +5,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import type { WizardType } from '../../utils/wizardStorage';
+import type { WizardType } from '../utils/wizardStorage';
 
 export interface WizardErrorInfo {
   error: Error;

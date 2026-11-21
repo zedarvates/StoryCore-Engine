@@ -127,7 +127,6 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
     presetId,
     autoTrigger,
     trigger,
-    _direction,
     preserveOldContent,
     className,
     style,
@@ -150,15 +149,9 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
   const {
     state,
     isActive,
-    _isComplete,
     start,
-    _cancel,
-    _reset,
     applyPreset,
     getPreset,
-    _getPresets,
-    _getPresetsByCategory,
-    _metrics,
     engine,
   } = useTransition(effectiveCanvasRef, config);
 
@@ -167,10 +160,6 @@ export const TransitionWrapper: React.FC<TransitionWrapperProps> = (props) => {
     isTransitioning: _cssTransitioning,
     fadeOut,
     fadeIn,
-    _slideLeft,
-    _slideRight,
-    _zoomIn,
-    _zoomOut,
   } = useCSSTransition(useRef<HTMLDivElement>(null));
 
   // Apply preset if specified

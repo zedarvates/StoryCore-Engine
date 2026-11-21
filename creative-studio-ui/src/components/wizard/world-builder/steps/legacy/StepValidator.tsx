@@ -1,5 +1,5 @@
 import React from 'react';
-import { _useWorldBuilderSelectors, useWorldBuilderActions } from '../../../stores/worldBuilderStore';
+import { useWorldBuilderActions } from '@/stores/worldBuilderStore';
 
 interface StepValidatorProps {
   step: string;

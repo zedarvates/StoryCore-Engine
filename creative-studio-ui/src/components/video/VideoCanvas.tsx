@@ -100,7 +100,6 @@ export const VideoCanvas: React.FC<VideoCanvasProps> = (props) => {
     maintainAspectRatio,
     objectFit,
     backgroundColor,
-    _enableHardwareAcceleration,
     style,
     showLoadingIndicator,
     showPlayButton,
@@ -131,9 +130,6 @@ export const VideoCanvas: React.FC<VideoCanvasProps> = (props) => {
     currentFrame,
     duration,
     totalFrames,
-    _isLoaded,
-    _play,
-    _pause,
     togglePlay,
     service,
   } = useVideoPlayer(videoElement, autoInitialize);
