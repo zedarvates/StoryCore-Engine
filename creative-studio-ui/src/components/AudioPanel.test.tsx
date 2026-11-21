@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import AudioPanel from './AudioPanel';
+import { AudioPanel } from './AudioPanel';
 
 // Mock any heavy services used by AudioPanel
 vi.mock('@/services/audioService', () => ({

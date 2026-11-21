@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import SpatialPositioner from './SpatialPositioner';
+import { SpatialPositioner } from './SpatialPositioner';
 
 test('renders SpatialPositioner without crashing', () => {
   render(<SpatialPositioner />);

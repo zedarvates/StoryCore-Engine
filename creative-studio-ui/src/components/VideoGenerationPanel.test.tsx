@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import VideoGenerationPanel from './VideoGenerationPanel';
+import { VideoGenerationPanel } from './VideoGenerationPanel';
 
 // Mock any heavy services if needed
 vi.mock('@/services/videoService', () => ({

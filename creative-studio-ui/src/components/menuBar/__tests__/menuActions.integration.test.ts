@@ -347,7 +347,7 @@ describe('Menu Actions Integration', () => {
   describe('exportJSON', () => {
     it('should export project using export service', async () => {
       // Mock export service to return success
-      const mockExportJSON = projectExportService.exportJSON as vi.Mock;
+      const mockExportJSON = vi.mocked(projectExportService.exportJSON);
       mockExportJSON.mockResolvedValue({
         success: true,
         filePath: 'test-project.json',
@@ -362,7 +362,7 @@ describe('Menu Actions Integration', () => {
 
     it('should show success notification with file path on successful export', async () => {
       // Mock export service to return success
-      const mockExportJSON = projectExportService.exportJSON as vi.Mock;
+      const mockExportJSON = vi.mocked(projectExportService.exportJSON);
       mockExportJSON.mockResolvedValue({
         success: true,
         filePath: 'test-project.json',
@@ -385,7 +385,7 @@ describe('Menu Actions Integration', () => {
 
     it('should show error notification on export failure', async () => {
       // Mock export service to return failure
-      const mockExportJSON = projectExportService.exportJSON as vi.Mock;
+      const mockExportJSON = vi.mocked(projectExportService.exportJSON);
       mockExportJSON.mockResolvedValue({
         success: false,
         error: new Error('Export failed'),
@@ -410,7 +410,7 @@ describe('Menu Actions Integration', () => {
   describe('exportPDF', () => {
     it('should export project using export service', async () => {
       // Mock export service to return success
-      const mockExportPDF = projectExportService.exportPDF as vi.Mock;
+      const mockExportPDF = vi.mocked(projectExportService.exportPDF);
       mockExportPDF.mockResolvedValue({
         success: true,
         filePath: 'test-project_report.pdf',
@@ -425,7 +425,7 @@ describe('Menu Actions Integration', () => {
 
     it('should show success notification with file path on successful export', async () => {
       // Mock export service to return success
-      const mockExportPDF = projectExportService.exportPDF as vi.Mock;
+      const mockExportPDF = vi.mocked(projectExportService.exportPDF);
       mockExportPDF.mockResolvedValue({
         success: true,
         filePath: 'test-project_report.pdf',
@@ -448,7 +448,7 @@ describe('Menu Actions Integration', () => {
 
     it('should show error notification on export failure', async () => {
       // Mock export service to return failure
-      const mockExportPDF = projectExportService.exportPDF as vi.Mock;
+      const mockExportPDF = vi.mocked(projectExportService.exportPDF);
       mockExportPDF.mockResolvedValue({
         success: false,
         error: new Error('PDF export failed'),
@@ -473,7 +473,7 @@ describe('Menu Actions Integration', () => {
   describe('exportVideo', () => {
     it('should export project using export service', async () => {
       // Mock export service to return success
-      const mockExportVideo = projectExportService.exportVideo as vi.Mock;
+      const mockExportVideo = vi.mocked(projectExportService.exportVideo);
       mockExportVideo.mockResolvedValue({
         success: true,
         filePath: 'test-project_sequence.mp4',
@@ -488,7 +488,7 @@ describe('Menu Actions Integration', () => {
 
     it('should show success notification with file path on successful export', async () => {
       // Mock export service to return success
-      const mockExportVideo = projectExportService.exportVideo as vi.Mock;
+      const mockExportVideo = vi.mocked(projectExportService.exportVideo);
       mockExportVideo.mockResolvedValue({
         success: true,
         filePath: 'test-project_sequence.mp4',
@@ -511,7 +511,7 @@ describe('Menu Actions Integration', () => {
 
     it('should show error notification on export failure', async () => {
       // Mock export service to return failure
-      const mockExportVideo = projectExportService.exportVideo as vi.Mock;
+      const mockExportVideo = vi.mocked(projectExportService.exportVideo);
       mockExportVideo.mockResolvedValue({
         success: false,
         error: new Error('Video export failed'),

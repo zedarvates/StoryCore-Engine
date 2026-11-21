@@ -30,7 +30,7 @@ describe('Generation Buttons Integration', () => {
     vi.clearAllMocks();
     
     // Setup default store state
-    (useGenerationStore as any).mockReturnValue({
+    vi.mocked(useGenerationStore).mockReturnValue({
       currentPipeline: null,
       completeStage: vi.fn(),
       failStage: vi.fn(),
@@ -136,7 +136,7 @@ describe('Generation Buttons Integration', () => {
   
   describe('Progress Modal Integration', () => {
     it('should show progress modal when generation is in progress', () => {
-      (useGenerationStore as LegacyAny).mockReturnValue({
+      vi.mocked(useGenerationStore).mockReturnValue({
         currentPipeline: {
           stages: {
             image: {

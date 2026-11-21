@@ -455,7 +455,7 @@ describe('Task 15: Backend Integration and Focus Mode Verification', () => {
         gridStore.current.selectPanel(panel.id, false);
       });
 
-      const _initialSelection = [...gridStore.current.selectedPanelIds];
+      const initialSelection = [...gridStore.current.selectedPanelIds];
       const initialZoom = viewportStore.current.zoom;
       const initialPan = { ...viewportStore.current.pan };
 

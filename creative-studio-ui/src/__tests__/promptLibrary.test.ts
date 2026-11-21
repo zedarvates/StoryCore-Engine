@@ -385,7 +385,7 @@ describe('Prompt Library Accessibility', () => {
 
   describe('Prompt Structure Validation', () => {
     it('should have valid structure for all prompts', async () => {
-      const allPro_mpts = await promptLibrary.getAllPromptsByCategory();
+      const allPrompts = await promptLibrary.getAllPromptsByCategory();
       
       for (const [categoryId, prompts] of Object.entries(allPrompts)) {
         for (const prompt of prompts) {

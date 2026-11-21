@@ -14,6 +14,7 @@
  * - Performance with 30-50 shots
  */
 import { LegacyAny } from '@/types/legacy';
+import userEvent from '@testing-library/user-event';
 
 
 import { describe, it, expect, vi } from 'vitest';

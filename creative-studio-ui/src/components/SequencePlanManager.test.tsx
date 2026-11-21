@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import SequencePlanManager from './SequencePlanManager';
+import { SequencePlanManager } from './SequencePlanManager';
 
 test('renders SequencePlanManager without crashing', () => {
   render(<SequencePlanManager />);

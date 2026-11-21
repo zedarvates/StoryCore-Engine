@@ -1,9 +1,13 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import LoadingStates from './LoadingStates';
+import { LoadingOverlay, ProgressBar } from './LoadingStates';
 
-test('renders LoadingStates without crashing', () => {
-  render(<LoadingStates />);
-  const container = screen.getByTestId('loading-states');
-  expect(container).toBeInTheDocument();
+test('shows the current loading operation', () => {
+  render(<LoadingOverlay message="Loading project" />);
+  expect(screen.getByText('Loading project')).toBeInTheDocument();
+});
+
+test('clamps displayed progress to 100 percent', () => {
+  render(<ProgressBar progress={120} label="Rendering" />);
+  expect(screen.getByText('Rendering')).toBeInTheDocument();
+  expect(screen.getByText('100%')).toBeInTheDocument();
 });

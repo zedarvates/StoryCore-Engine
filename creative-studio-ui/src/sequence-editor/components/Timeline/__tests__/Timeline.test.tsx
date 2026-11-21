@@ -10,7 +10,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import Timeline from '../Timeline';
+import { Timeline } from '../Timeline';
 import timelineReducer from '../../../store/slices/timelineSlice';
 import previewReducer from '../../../store/slices/previewSlice';
 import projectReducer from '../../../store/slices/projectSlice';

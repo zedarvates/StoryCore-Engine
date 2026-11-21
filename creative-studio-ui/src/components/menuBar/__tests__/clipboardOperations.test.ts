@@ -56,11 +56,11 @@ describe('Clipboard Operations', () => {
 
     // Create mock clipboard
     mockClipboard = {
-      hasContent: _false,
+      hasContent: false,
       contentType: null,
       cut: vi.fn((content) => {
         mockClipboard.hasContent = true;
-        mockClipboa_rd.contentType = 'shot';
+        mockClipboard.contentType = 'shot';
       }),
       copy: vi.fn((content) => {
         mockClipboard.hasContent = true;
