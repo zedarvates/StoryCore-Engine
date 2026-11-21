@@ -66,6 +66,7 @@ jobs:
           src/components/LazyComponents.test.tsx
           src/hooks/__tests__/useComfyUI.test.ts
           src/components/video/__tests__/PlaybackControls.test.tsx
+          src/services/__tests__/backendApiService.comfyui.test.ts
       - name: Exercise wizard draft round-trip
         run: npm test -- src/services/wizard/__tests__/DraftPersistence.test.ts -t 'round-trips wizard step data'
       - name: Lint repaired grid renderers and their contracts
