@@ -21,7 +21,7 @@ export function CreateProjectDialogModal() {
     format: SerializableProjectFormat,
     options?: Record<string, any>
   ) => {
-    const electronAPI = (window as LegacyAny).electronAPI;
+    const electronAPI = window.electronAPI;
     console.log('[CreateProjectDialogModal] Creating project:', {
       projectName,
       projectPath: projectPath || '(default)',
@@ -41,7 +41,7 @@ export function CreateProjectDialogModal() {
         shotsCount: initialShots.length,
       });
 
-      if (electronAPI) {
+      if (electronAPI?.project?.create) {
         const createData: LegacyAny = {
           name: projectName,
           format: format,
@@ -55,7 +55,7 @@ export function CreateProjectDialogModal() {
         }
 
         console.log('[CreateProjectDialogModal] Calling electronAPI.project.create with:', createData);
-        const electronProject = await window.electronAPI.project.create(createData);
+        const electronProject = await electronAPI.project.create(createData);
         console.log('[CreateProjectDialogModal] Project created successfully:', electronProject);
 
         // Convert Electron project to Store project format using the service

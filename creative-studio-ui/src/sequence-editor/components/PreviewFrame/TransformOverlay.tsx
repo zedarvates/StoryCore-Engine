@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useAppDispatch } from '../../store';
 import { updateShotLayer } from '../../store/slices/timelineSlice';
+import { isRecord } from '@/utils/typeGuards';
 import type { Shot, Layer, Transform } from '../../types';
 import './transformOverlay.css';
 
@@ -29,7 +30,8 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
     const [initialMousePos, setInitialMousePos] = useState({ x: 0, y: 0 });
     const [initialTransform, setInitialTransform] = useState<Transform | null>(null);
 
-    const transform = (layer.data as unknown as { transform?: Transform }).transform as Transform || {
+    const storedTransform = isRecord(layer.data) ? layer.data.transform as Transform | undefined : undefined;
+    const transform = storedTransform ?? {
         position: { x: 0, y: 0 },
         scale: { x: 1, y: 1 },
         rotation: 0,
@@ -85,7 +87,7 @@ export const TransformOverlay: React.FC<TransformOverlayProps> = ({
             layerId: layer.id,
             updates: {
                 data: {
-                    ...layer.data,
+                    ...(isRecord(layer.data) ? layer.data : {}),
                     transform: newTransform,
                 },
             },

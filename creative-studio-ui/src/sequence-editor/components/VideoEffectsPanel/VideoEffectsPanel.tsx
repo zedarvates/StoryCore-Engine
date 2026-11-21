@@ -16,7 +16,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
-import { updateLayer } from '../../store/slices/timelineSlice';
+import { updateShotLayer } from '../../store/slices/timelineSlice';
 import type { Shot, MediaLayerData, VideoMask, VideoEffects } from '../../types';
 import './videoEffectsPanel.css';
 
@@ -54,9 +54,9 @@ export const VideoEffectsPanel: React.FC<VideoEffectsPanelProps> = ({
     // ---------------------------------------------------------------------------
 
     const updateMediaData = useCallback((updates: Partial<MediaLayerData>) => {
-        if (!selectedLayer || !shot) return;
+        if (selectedLayer?.type !== 'media' || !shot) return;
         dispatch(
-            updateLayer({
+            updateShotLayer({
                 shotId: shot.id,
                 layerId: selectedLayer.id,
                 updates: {

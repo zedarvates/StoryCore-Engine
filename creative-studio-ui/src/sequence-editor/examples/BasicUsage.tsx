@@ -74,6 +74,7 @@ export const StateAccessExample: React.FC = () => {
     dispatch(addShot({
       id: `shot-${Date.now()}`,
       name: `Shot ${shots.length + 1}`,
+      position: shots.length,
       startTime: shots.length > 0 
         ? Math.max(...shots.map(s => s.startTime + s.duration))
         : 0,

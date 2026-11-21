@@ -166,8 +166,6 @@ export const GridEditorCanvas: React.FC<GridEditorCanvasProps> = ({
         announcerRef.current.announceOperation('Duplicate', true);
       }
     },
-    onSave: handleSave,
-    onExport: handleExport,
   });
 
   return (

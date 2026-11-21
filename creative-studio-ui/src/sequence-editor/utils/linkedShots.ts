@@ -95,11 +95,13 @@ export function getLinkedShots(shot: Shot, allShots: Shot[]): Shot[] {
  * Quand on ajoute un shot video, cree automatiquement un shot audio lie.
  * (Utilitaire pour la creation de paires video↔audio)
  */
+type LinkedAudioShotDraft = Omit<Partial<Shot>, 'type'> & { type: 'audio' };
+
 export function createLinkedAudioShot(
   videoShot: Shot,
   audioStartTime: number,
   audioDuration: number
-): Partial<Shot> {
+): LinkedAudioShotDraft {
   return {
     name: `${videoShot.name || 'Shot'} — Audio`,
     startTime: audioStartTime,

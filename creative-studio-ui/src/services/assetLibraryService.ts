@@ -607,9 +607,9 @@ export class AssetLibraryService {
 
     // Try to load from local assets folder (with type assertion)
     try {
-      const electronAssets = window.electronAPI?.assets as Record<string, Function> | undefined;
+      const electronAssets = window.electronAPI?.assets;
       if (electronAssets?.scanFolder) {
-        const libraryAssets = await electronAssets.scanFolder('/assets/library') as Asset[];
+        const libraryAssets = await electronAssets.scanFolder('/assets/library');
         assets.push(...libraryAssets);
       }
     } catch (error) {
@@ -629,9 +629,9 @@ export class AssetLibraryService {
   ): Promise<Asset[]> {
     try {
       // With type assertion for Electron API
-      const electronAssets = window.electronAPI?.assets as Record<string, Function> | undefined;
+      const electronAssets = window.electronAPI?.assets;
       if (electronAssets?.scanFolder) {
-        const assets = await electronAssets.scanFolder(folderPath) as Asset[];
+        const assets = await electronAssets.scanFolder(folderPath);
         return assets;
       }
     } catch (error) {

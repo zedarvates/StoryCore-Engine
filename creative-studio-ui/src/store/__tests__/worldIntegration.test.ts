@@ -96,6 +96,7 @@ describe('World Store Integration', () => {
 
     it('should persist world to localStorage', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -132,6 +133,7 @@ describe('World Store Integration', () => {
 
     it('should update project with new world', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -165,6 +167,7 @@ describe('World Store Integration', () => {
 
     it('should not auto-select if a world is already selected', () => {
       const world1: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -207,6 +210,7 @@ describe('World Store Integration', () => {
   describe('updateWorld', () => {
     it('should update a world in the store', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -245,6 +249,7 @@ describe('World Store Integration', () => {
 
     it('should persist updated world to localStorage', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -281,6 +286,7 @@ describe('World Store Integration', () => {
   describe('deleteWorld', () => {
     it('should delete a world from the store', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -315,6 +321,7 @@ describe('World Store Integration', () => {
 
     it('should select next world when deleting selected world', () => {
       const world1: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -357,6 +364,7 @@ describe('World Store Integration', () => {
   describe('selectWorld', () => {
     it('should select a world', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -393,6 +401,7 @@ describe('World Store Integration', () => {
   describe('getWorldById', () => {
     it('should return world by id', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -432,6 +441,7 @@ describe('World Store Integration', () => {
   describe('Selector Hooks', () => {
     it('useWorlds should return all worlds', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],
@@ -465,6 +475,7 @@ describe('World Store Integration', () => {
 
     it('useSelectedWorld should return selected world', () => {
       const world: World = {
+        keyObjects: [],
         id: 'world-1',
         name: 'Eldoria',
         genre: ['fantasy'],

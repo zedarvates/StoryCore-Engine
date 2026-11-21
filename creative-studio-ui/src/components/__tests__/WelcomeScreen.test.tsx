@@ -107,8 +107,8 @@ describe('WelcomeScreen', () => {
 
   it('should render recent projects section when list has items', () => {
     const recentProjects: RecentProject[] = [
-      { name: 'Project 1', lastOpened: '2024-01-15T10:00:00Z' },
-      { name: 'Project 2', lastOpened: '2024-01-14T10:00:00Z' },
+      { id: 'project-1', name: 'Project 1', path: '/projects/project-1', lastAccessed: new Date('2024-01-15T10:00:00Z') },
+      { id: 'project-2', name: 'Project 2', path: '/projects/project-2', lastAccessed: new Date('2024-01-14T10:00:00Z') },
     ];
 
     render(
@@ -127,7 +127,7 @@ describe('WelcomeScreen', () => {
 
   it('should display last opened date for recent projects', () => {
     const recentProjects: RecentProject[] = [
-      { name: 'Test Project', lastOpened: '2024-01-15T10:00:00Z' },
+      { id: 'test-project', name: 'Test Project', path: '/projects/test-project', lastAccessed: new Date('2024-01-15T10:00:00Z') },
     ];
 
     render(
@@ -145,13 +145,13 @@ describe('WelcomeScreen', () => {
 
   it('should limit recent projects to 5 items', () => {
     const recentProjects: RecentProject[] = [
-      { name: 'Project 1', lastOpened: '2024-01-15T10:00:00Z' },
-      { name: 'Project 2', lastOpened: '2024-01-14T10:00:00Z' },
-      { name: 'Project 3', lastOpened: '2024-01-13T10:00:00Z' },
-      { name: 'Project 4', lastOpened: '2024-01-12T10:00:00Z' },
-      { name: 'Project 5', lastOpened: '2024-01-11T10:00:00Z' },
-      { name: 'Project 6', lastOpened: '2024-01-10T10:00:00Z' },
-      { name: 'Project 7', lastOpened: '2024-01-09T10:00:00Z' },
+      { id: 'project-1', name: 'Project 1', path: '/projects/project-1', lastAccessed: new Date('2024-01-15T10:00:00Z') },
+      { id: 'project-2', name: 'Project 2', path: '/projects/project-2', lastAccessed: new Date('2024-01-14T10:00:00Z') },
+      { id: 'project-3', name: 'Project 3', path: '/projects/project-3', lastAccessed: new Date('2024-01-13T10:00:00Z') },
+      { id: 'project-4', name: 'Project 4', path: '/projects/project-4', lastAccessed: new Date('2024-01-12T10:00:00Z') },
+      { id: 'project-5', name: 'Project 5', path: '/projects/project-5', lastAccessed: new Date('2024-01-11T10:00:00Z') },
+      { id: 'project-6', name: 'Project 6', path: '/projects/project-6', lastAccessed: new Date('2024-01-10T10:00:00Z') },
+      { id: 'project-7', name: 'Project 7', path: '/projects/project-7', lastAccessed: new Date('2024-01-09T10:00:00Z') },
     ];
 
     render(
@@ -177,7 +177,7 @@ describe('WelcomeScreen', () => {
 
   it('should call onOpenRecentProject when recent project is clicked', () => {
     const recentProjects: RecentProject[] = [
-      { name: 'Test Project', lastOpened: '2024-01-15T10:00:00Z' },
+      { id: 'test-project', name: 'Test Project', path: '/projects/test-project', lastAccessed: new Date('2024-01-15T10:00:00Z') },
     ];
 
     render(

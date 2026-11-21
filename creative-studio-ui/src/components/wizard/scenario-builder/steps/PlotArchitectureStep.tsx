@@ -15,8 +15,10 @@ export function PlotArchitectureStep({ data, onUpdate }: PlotArchitectureStepPro
     const newAct: StoryAct = {
       id: crypto.randomUUID(),
       number: acts.length + 1,
+      order: acts.length,
       title: `Act ${acts.length + 1}`,
       description: '',
+      summary: '',
       keyScenes: [],
       characterDevelopment: '',
       duration: 30,
@@ -26,7 +28,7 @@ export function PlotArchitectureStep({ data, onUpdate }: PlotArchitectureStepPro
 
   const removeAct = useCallback((id: string) => {
     const filteredActs = acts.filter((a) => a.id !== id)
-      .map((a, index) => ({ ...a, number: index + 1 }));
+      .map((a, index) => ({ ...a, number: index + 1, order: index }));
     onUpdate({ acts: filteredActs });
   }, [acts, onUpdate]);
 

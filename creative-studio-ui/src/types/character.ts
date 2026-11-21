@@ -169,7 +169,7 @@ export interface Role {
 // Helper Functions
 // ============================================================================
 
-export function createEmptyCharacter(): Partial<Character> {
+export function createEmptyCharacter(): Character {
   return {
     character_id: '',
     name: '',

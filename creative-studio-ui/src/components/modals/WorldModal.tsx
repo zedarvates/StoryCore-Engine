@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { z } from 'zod';
 import './SharedModalStyles.css';
 import {
   Dialog,
@@ -32,20 +33,23 @@ import {
 import { useAppStore } from '@/stores/useAppStore';
 import { notificationService } from '@/services/NotificationService';
 
-interface WorldElement {
-  id: string;
-  name: string;
-  description: string;
-  type: 'location' | 'landmark' | 'region' | 'realm' | 'dimension';
-  geography: string;
-  culture: string;
-  history: string;
-  significance: string;
-  importance: 'high' | 'medium' | 'low';
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+const savedDate = z.union([z.string(), z.number()]).pipe(z.coerce.date());
+const worldElementSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  type: z.enum(['location', 'landmark', 'region', 'realm', 'dimension']),
+  geography: z.string(),
+  culture: z.string(),
+  history: z.string(),
+  significance: z.string(),
+  importance: z.enum(['high', 'medium', 'low']),
+  tags: z.array(z.string()),
+  createdAt: savedDate,
+  updatedAt: savedDate,
+}).passthrough();
+
+type WorldElement = z.infer<typeof worldElementSchema>;
 
 interface WorldModalProps {
   isOpen: boolean;
@@ -77,13 +81,14 @@ export function WorldModal({ isOpen, onClose }: WorldModalProps) {
       // Pour l'instant, on simule avec des données locales
       const projectWorldElements = localStorage.getItem(`world_elements_${project.id}`);
       if (projectWorldElements) {
-        const parsed = JSON.parse(projectWorldElements);
-        const elementsWithDates = parsed.map((element: unknown) => ({
-          ...element,
-          createdAt: new Date(element.createdAt),
-          updatedAt: new Date(element.updatedAt)
-        }));
-        setWorldElements(elementsWithDates);
+        const parsed: unknown = JSON.parse(projectWorldElements);
+        if (!Array.isArray(parsed)) throw new Error('Invalid saved world elements');
+
+        const restored = parsed.flatMap((entry: unknown) => {
+          const result = worldElementSchema.safeParse(entry);
+          return result.success ? [result.data] : [];
+        });
+        setWorldElements(restored);
       } else {
         // Éléments du monde par défaut pour la démonstration
         const defaultElements: WorldElement[] = [

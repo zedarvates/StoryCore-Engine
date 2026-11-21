@@ -8,18 +8,36 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useBackendIntegration } from '../useBackendIntegration';
 import { useAppStore } from '@/stores/useAppStore';
-import { MockBackendApiService } from '@/services/backendApiService';
+import { BackendApiService } from '@/services/backendApiService';
 import type { Project, Shot, GenerationTask } from '@/types';
 import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Mock the store
 vi.mock('@/stores/useAppStore');
 
+function createBackendFixture(): BackendApiService {
+  const api = new BackendApiService();
+  vi.spyOn(api, 'submitProject').mockResolvedValue({
+    success: true, data: { taskId: 'project-task', status: 'pending', message: 'Queued' },
+  });
+  vi.spyOn(api, 'submitTask').mockImplementation(async (task) => ({
+    success: true, data: { taskId: task.id, status: 'pending', message: 'Queued' },
+  }));
+  vi.spyOn(api, 'getTaskStatus').mockImplementation(async (id) => ({
+    success: true, data: { taskId: id, status: 'processing', progress: 50 },
+  }));
+  vi.spyOn(api, 'cancelTask').mockResolvedValue({ success: true });
+  vi.spyOn(api, 'invokeCliCommand').mockImplementation(async (command) => ({
+    success: true, data: { command, success: true, output: 'test result' },
+  }));
+  return api;
+}
+
 describe('useBackendIntegration', () => {
   let mockProject: Project;
   let mockShots: Shot[];
   let mockTasks: GenerationTask[];
-  let mockApiService: MockBackendApiService;
+  let mockApiService: BackendApiService;
   let mockReorderTasks: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -38,6 +56,7 @@ describe('useBackendIntegration', () => {
     ];
 
     mockProject = {
+      id: 'project-test',
       schema_version: '1.0',
       project_name: 'Test Project',
       shots: mockShots,
@@ -65,8 +84,7 @@ describe('useBackendIntegration', () => {
       },
     ];
 
-    mockApiService = new MockBackendApiService();
-    mockApiService.setMockDelay(10);
+    mockApiService = createBackendFixture();
 
     mockReorderTasks = vi.fn();
 
@@ -303,7 +321,7 @@ describe('useBackendIntegration', () => {
     });
 
     it('should handle status check errors gracefully', async () => {
-      const errorService = new MockBackendApiService();
+      const errorService = createBackendFixture();
       vi.spyOn(errorService, 'getTaskStatus').mockResolvedValue({
         success: false,
         error: 'Task not found',
@@ -369,7 +387,7 @@ describe('useBackendIntegration', () => {
     });
 
     it('should set error on command failure', async () => {
-      const errorService = new MockBackendApiService();
+      const errorService = createBackendFixture();
       vi.spyOn(errorService, 'invokeCliCommand').mockResolvedValue({
         success: false,
         error: 'Command failed',

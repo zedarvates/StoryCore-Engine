@@ -1,4 +1,5 @@
 import { LegacyAny } from '@/types/legacy';
+import { z } from 'zod';
 // ============================================================================
 // Story Generation Service
 // ============================================================================
@@ -539,6 +540,34 @@ function buildExtendedWorldContextDescription(worldContext: WorldContext | undef
   return worldContextDescription;
 }
 
+const generatedCharacterSchema = z.object({
+  name: z.string().trim().min(1),
+  archetype: z.string().trim().min(1).optional(),
+  character_id: z.string().optional(),
+  personality_traits: z.array(z.string()).optional(),
+  backstory: z.string().optional(),
+  visual_identity: z.object({
+    hair_color: z.string(), hair_style: z.string(), hair_length: z.string(),
+    eye_color: z.string(), eye_shape: z.string(), skin_tone: z.string(),
+    facial_structure: z.string(), distinctive_features: z.array(z.string()),
+    age_range: z.string(), gender: z.enum(['male', 'female', 'non-binary', 'other', 'unspecified']),
+    height: z.string(), build: z.string(), posture: z.string(), clothing_style: z.string(),
+    color_palette: z.array(z.string()),
+  }).partial().optional(),
+  personality: z.object({
+    traits: z.array(z.string()), values: z.array(z.string()), fears: z.array(z.string()),
+    desires: z.array(z.string()), flaws: z.array(z.string()), strengths: z.array(z.string()),
+    temperament: z.string(), communication_style: z.string(),
+  }).partial().optional(),
+  background: z.object({
+    origin: z.string(), occupation: z.string(), education: z.string(), family: z.string(),
+    significant_events: z.array(z.string()), current_situation: z.string(), backstory: z.string(),
+  }).partial().optional(),
+  role: z.object({
+    archetype: z.string().trim().min(1), narrative_function: z.string(), character_arc: z.string(),
+  }).partial().optional(),
+}).passthrough();
+
 /**
  * Create a new character using LLM
  * @param request Character creation request
@@ -571,7 +600,7 @@ export async function createCharacter(
     });
 
     // Parse JSON response using helper function
-    let character;
+    let character: unknown;
     try {
       const jsonString = extractJsonFromMarkdown(characterJson);
       character = JSON.parse(jsonString);
@@ -579,12 +608,12 @@ export async function createCharacter(
       throw new Error(`Failed to parse character JSON: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
     }
 
-    // Validate Character structure (basic validation)
-    if (!character.name || !character.archetype) {
-      throw new Error('Invalid character structure: missing required fields (name, archetype)');
+    const result = generatedCharacterSchema.safeParse(character);
+    if (!result.success || (!result.data.archetype && !result.data.role?.archetype)) {
+      throw new Error('Invalid character structure: expected a valid name and archetype');
     }
 
-    return character;
+    return result.data;
   } catch (error) {
     // Handle errors with descriptive messages
     const errorMessage = handleLLMError(error);

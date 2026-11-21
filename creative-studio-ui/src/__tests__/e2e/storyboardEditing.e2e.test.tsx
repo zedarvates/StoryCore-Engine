@@ -3,7 +3,7 @@
  * Tests the complete flow of editing shots, reordering, and applying effects
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { assert, describe, it, expect, beforeEach } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { useStore } from '@/store';
 import { createEmptyProject } from '@/utils/projectManager';
@@ -163,18 +163,22 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should add visual effect to shot', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: { contrast: 1.2, saturation: 0.8 },
+        parameters: [{ id: "contrast", name: "contrast", type: 'number', value: 1.2 }, { id: "saturation", name: "saturation", type: 'number', value: 0.8 }],
       };
 
       useStore.getState().addEffect('shot-1', effect);
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(1);
         expect(shot?.effects[0].name).toBe('vintage');
       });
@@ -183,28 +187,37 @@ describe('Storyboard Editing E2E Workflow', () => {
     it('should add multiple effects to shot', async () => {
       const effects: Effect[] = [
         {
+          category: "stylize",
+          icon: null,
+          description: 'vintage',
           id: 'effect-1',
           type: 'filter',
           name: 'vintage',
           enabled: true,
           intensity: 50,
-          parameters: {},
+          parameters: [],
         },
         {
+          category: "stylize",
+          icon: null,
+          description: 'blur',
           id: 'effect-2',
           type: 'filter',
           name: 'blur',
           enabled: true,
           intensity: 30,
-          parameters: {},
+          parameters: [],
         },
         {
+          category: "color",
+          icon: null,
+          description: 'brightness',
           id: 'effect-3',
-          type: 'adjustment',
+          type: 'color-correction',
           name: 'brightness',
           enabled: true,
           intensity: 70,
-          parameters: {},
+          parameters: [],
         },
       ];
 
@@ -212,27 +225,34 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(3);
       });
     });
 
     it('should reorder effects', async () => {
       const effect1: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       const effect2: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'blur',
         id: 'effect-2',
         type: 'filter',
         name: 'blur',
         enabled: true,
         intensity: 30,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect1);
@@ -243,6 +263,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects[0].name).toBe('blur');
         expect(shot?.effects[1].name).toBe('vintage');
       });
@@ -250,12 +271,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should update effect properties', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -267,6 +291,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         const eff = shot?.effects.find((e) => e.id === 'effect-1');
         expect(eff?.intensity).toBe(75);
         expect(eff?.enabled).toBe(false);
@@ -275,12 +300,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should remove effect from shot', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -290,6 +318,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.effects);
         expect(shot?.effects.length).toBe(0);
       });
     });
@@ -330,6 +359,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         expect(shot?.textLayers.length).toBe(1);
         expect(shot?.textLayers[0].content).toBe('Hello World');
       });
@@ -359,6 +389,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         const layer = shot?.textLayers.find((l) => l.id === 'text-1');
         expect(layer?.content).toBe('Updated Text');
         expect(layer?.fontSize).toBe(32);
@@ -398,6 +429,7 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       await waitFor(() => {
         const shot = useStore.getState().shots.find((s) => s.id === 'shot-1');
+        assert.isDefined(shot?.textLayers);
         expect(shot?.textLayers.length).toBe(2);
         expect(shot?.textLayers[0].startTime).toBe(0);
         expect(shot?.textLayers[1].startTime).toBe(3);
@@ -547,12 +579,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       // Step 3: Add effects
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'cinematic',
         id: 'effect-1',
         type: 'filter',
         name: 'cinematic',
         enabled: true,
         intensity: 60,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -600,7 +635,9 @@ describe('Storyboard Editing E2E Workflow', () => {
         const editedShot = finalShots.find((s) => s.id === 'shot-1');
         expect(editedShot?.title).toBe('Epic Opening');
         expect(editedShot?.duration).toBe(7);
+        assert.isDefined(editedShot?.effects);
         expect(editedShot?.effects.length).toBe(1);
+        assert.isDefined(editedShot?.textLayers);
         expect(editedShot?.textLayers.length).toBe(1);
         expect(editedShot?.transitionOut).toBeDefined();
       });

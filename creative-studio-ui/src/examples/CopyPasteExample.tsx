@@ -1,3 +1,4 @@
+import { createStoryboardShot } from '@/utils/shotDefaults';
 /**
  * Copy/Paste Example Component
  * 
@@ -13,39 +14,42 @@ import type { Shot } from '../types';
 
 // Sample shots for demonstration
 const createSampleShots = (): Shot[] => [
-  {
+  createStoryboardShot({
     id: 'shot-1',
     title: 'Opening Scene',
     description: 'Wide establishing shot of the city',
     duration: 5,
     position: 0,
+    startTime: 0,
     audioTracks: [],
     effects: [],
     textLayers: [],
     animations: [],
-  },
-  {
+  }),
+  createStoryboardShot({
     id: 'shot-2',
     title: 'Character Introduction',
     description: 'Close-up of main character',
     duration: 3,
     position: 1,
+    startTime: 5,
     audioTracks: [],
     effects: [],
     textLayers: [],
     animations: [],
-  },
-  {
+  }),
+  createStoryboardShot({
     id: 'shot-3',
     title: 'Action Sequence',
     description: 'Dynamic action shot',
     duration: 7,
     position: 2,
+    startTime: 8,
     audioTracks: [],
     effects: [],
     textLayers: [],
     animations: [],
-  },
+  }),
 ];
 
 export const CopyPasteExample: React.FC = () => {

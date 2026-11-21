@@ -10,7 +10,7 @@ import { promptGenerationService } from '../services/PromptGenerationService';
 import { PromptLibraryModal, usePromptLibraryModal } from '../components/wizard/PromptLibraryModal';
 
 export function PromptLibraryExample() {
-  const { categories, loading, error } = usePromptLibrary();
+  const { categories, isLoading: loading, error } = usePromptLibrary();
   const modal = usePromptLibraryModal();
   
   const [selectedPrompt, setSelectedPrompt] = useState<string>('');

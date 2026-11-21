@@ -7,6 +7,7 @@ import { EmptyProjectsState } from '@/components/launcher/EmptyProjectsState';
 import { ErrorProjectsState } from '@/components/launcher/ErrorProjectsState';
 import { generateProjectTemplate, sequencesToShots } from '@/utils/projectTemplateGenerator';
 import type { SerializableProjectFormat } from '@/components/launcher/CreateProjectDialog';
+import { useAppStore } from '@/stores/useAppStore';
 import { useProjectLoader } from '@/hooks/useProjectLoader';
 import { MergedProject } from '@/utils/projectMerger';
 
@@ -17,6 +18,7 @@ import { MergedProject } from '@/utils/projectMerger';
 export function LandingPageDemo() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showOpenDialog, setShowOpenDialog] = useState(false);
+  const setShowDocumentationModal = useAppStore(state => state.setShowDocumentationModal);
   
   // Use the project loader hook
   const { projects, isLoading, error, loadProjects, refreshProjects } = useProjectLoader();
@@ -161,6 +163,7 @@ export function LandingPageDemo() {
         recentProjects={recentProjects}
         onRecentProjectClick={handleRecentProjectClick}
         onRemoveRecentProject={handleRemoveRecentProject}
+        onShowDocumentation={() => setShowDocumentationModal(true)}
         version="1.0.0"
       />
       

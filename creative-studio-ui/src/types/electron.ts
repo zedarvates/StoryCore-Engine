@@ -6,6 +6,7 @@
  */
 
 import type { OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from 'electron';
+import type { Asset } from './index';
 import type { FeedbackConfigurationAPI } from './feedbackConfiguration';
 
 export interface ProjectData {
@@ -283,6 +284,9 @@ export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
     mkdir: (dirPath: string, options?: { recursive?: boolean }) => Promise<void>;
     unlink: (filePath: string) => Promise<void>;
   };
+
+  feedback?: { collectLogs?: (limit: number) => Promise<string[]> };
+  assets?: { scanFolder?: (folderPath: string) => Promise<Asset[]> };
 
   // Dialogs
   showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;

@@ -285,7 +285,7 @@ export function useSpringObject<T extends object>(
   }, []);
 
   return {
-    value: values,
+    value: values as AnimatedValue<T>,
     isAnimating,
     start,
     stop,
@@ -344,7 +344,9 @@ export function useSpringTrail<T>(
             const newValues = [...prev];
             if (typeof config.from === 'object' && config.from !== null) {
               const keys = Object.keys(config.from) as (keyof typeof config.from)[];
-              newValues[index] = { ...newValues[index], [keys[0]]: newValue } as LegacyAny;
+              const previous = newValues[index];
+              const current = previous && typeof previous === 'object' ? previous : config.from;
+              newValues[index] = Object.assign({}, current, { [keys[0]]: newValue }) as LegacyAny;
             } else {
               newValues[index] = newValue as LegacyAny;
             }

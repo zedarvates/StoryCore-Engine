@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { promptLibrary, PromptTemplate } from '@/library/PromptLibraryService';
+import { promptLibrary, type PromptCategory, type PromptTemplate } from '@/library/PromptLibraryService';
 import './PromptGenerator.css';
 
 interface PromptGeneratorProps {
@@ -12,7 +12,7 @@ interface PromptGeneratorProps {
 }
 
 export const PromptGenerator: React.FC<PromptGeneratorProps> = ({ onGenerate }) => {
-  const [categories, setCategories] = useState<Record<string, unknown>>({});
+  const [categories, setCategories] = useState<Record<string, PromptCategory>>({});
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<PromptTemplate[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<PromptTemplate | null>(null);
