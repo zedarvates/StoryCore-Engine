@@ -4,5 +4,4 @@ import type { ElectronAPI as PreloadAPI } from '../../../electron/electronAPI';
 import type { StoryCoreElectronAPI } from '../../src/types/electron';
 
 declare const preload: PreloadAPI;
-const renderer: StoryCoreElectronAPI = preload;
-void renderer;
+export const renderer: StoryCoreElectronAPI = preload;
