@@ -6,7 +6,7 @@
  */
 
 import type { OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from 'electron';
-import type { FeedbackConfiguration } from '../components/feedback/utils/feedbackConfig';
+import type { FeedbackConfigurationAPI } from './feedbackConfiguration';
 
 export interface ProjectData {
   name: string;
@@ -180,15 +180,7 @@ export interface CommandExecutionResult {
 /**
  * Electron API interface
  */
-export interface StoryCoreElectronAPI {
-  // Optional feedback configuration bridge documented by the feedback module.
-  getFeedbackConfig?: () => Promise<FeedbackConfiguration>;
-  updateFeedbackConfig?: (updates: Partial<FeedbackConfiguration>) => Promise<void>;
-  resetFeedbackConfig?: () => Promise<void>;
-
-  // Dialog helpers
-  showInputDialog?: (message: string, defaultValue?: string) => Promise<string | null>;
-
+export interface StoryCoreElectronAPI extends FeedbackConfigurationAPI {
   // System information
   platform: string;
   versions: {

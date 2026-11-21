@@ -7,6 +7,7 @@
  */
 
 import { jsPDF } from 'jspdf';
+import { z } from 'zod';
 import { LanguageCode } from '@/utils/llmConfigStorage';
 import { notificationService } from './NotificationService';
 
@@ -29,6 +30,28 @@ export interface Conversation {
   language: LanguageCode;
   metadata: Record<string, unknown>;
 }
+
+const storedDate = z.union([z.string(), z.number()]).pipe(z.coerce.date());
+
+const storedMessage = z.looseObject({
+  id: z.string(),
+  type: z.enum(['user', 'assistant', 'error', 'system']),
+  content: z.string(),
+  timestamp: storedDate,
+  attachments: z.array(z.string()).optional(),
+});
+
+const storedConversation = z.looseObject({
+  id: z.string(),
+  title: z.string(),
+  messages: z.array(storedMessage),
+  createdAt: storedDate,
+  updatedAt: storedDate,
+  tags: z.array(z.string()).default([]),
+  isMarked: z.boolean().default(false),
+  language: z.enum(['fr', 'en', 'es', 'de', 'it', 'pt', 'ja', 'zh', 'ko']).default('fr'),
+  metadata: z.record(z.string(), z.unknown()).default({}),
+});
 
 export interface ExportOptions {
   format: 'pdf' | 'docx' | 'txt' | 'json';
@@ -82,16 +105,12 @@ export class ConversationExportService {
     try {
       const stored = localStorage.getItem('conversations');
       if (stored) {
-        const parsed = JSON.parse(stored);
-        this.conversations = parsed.map((conv: unknown) => ({
-          ...conv,
-          createdAt: new Date(conv.createdAt),
-          updatedAt: new Date(conv.updatedAt),
-          messages: conv.messages.map((msg: unknown) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        }));
+        const parsed: unknown = JSON.parse(stored);
+        if (!Array.isArray(parsed)) throw new Error('Invalid conversation history');
+        this.conversations = parsed.flatMap((record) => {
+          const decoded = storedConversation.safeParse(record);
+          return decoded.success ? [decoded.data] : [];
+        });
       }
     } catch (error) {
       console.warn('Failed to load conversations:', error);

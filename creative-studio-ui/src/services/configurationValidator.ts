@@ -31,32 +31,32 @@ const URL_PATTERN = /^https?:\/\/.+/;
 export const VALIDATION_RULES: ValidationRule[] = [
   {
     field: 'api.endpoints.*.url',
-    validator: (url: string) => URL_PATTERN.test(url),
+    validator: (url) => typeof url === 'string' && URL_PATTERN.test(url),
     errorMessage: 'URL must start with http:// or https://',
   },
   {
     field: 'llm.ollama.baseUrl',
-    validator: (url: string) => URL_PATTERN.test(url),
+    validator: (url) => typeof url === 'string' && URL_PATTERN.test(url),
     errorMessage: 'Ollama base URL must be a valid HTTP(S) URL',
   },
   {
     field: 'llm.ollama.temperature',
-    validator: (temp: number) => temp >= 0 && temp <= 2,
+    validator: (temp) => typeof temp === 'number' && temp >= 0 && temp <= 2,
     errorMessage: 'Temperature must be between 0 and 2',
   },
   {
     field: 'llm.ollama.maxTokens',
-    validator: (tokens: number) => tokens > 0 && tokens <= 100000,
+    validator: (tokens) => typeof tokens === 'number' && tokens > 0 && tokens <= 100000,
     errorMessage: 'Max tokens must be between 1 and 100000',
   },
   {
     field: 'comfyui.serverUrl',
-    validator: (url: string) => URL_PATTERN.test(url),
+    validator: (url) => typeof url === 'string' && URL_PATTERN.test(url),
     errorMessage: 'ComfyUI server URL must be a valid HTTP(S) URL',
   },
   {
     field: 'api.defaultTimeout',
-    validator: (timeout: number) => timeout >= 1000 && timeout <= 300000,
+    validator: (timeout) => typeof timeout === 'number' && timeout >= 1000 && timeout <= 300000,
     errorMessage: 'Timeout must be between 1000ms and 300000ms',
   },
 ];
