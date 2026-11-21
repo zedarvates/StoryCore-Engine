@@ -9,10 +9,8 @@
  * 
  * Exigences: 10.1, 10.6
  */
-import { LegacyAny } from '@/types/legacy';
-
-
-import type { WorkerTask, WorkerMessage } from '../../types';
+import type { WorkerTask } from '../../types';
+import type { WorkerMessage } from '../../workers/processing.worker';
 
 /**
  * Configuration du pool de workers
@@ -31,6 +29,7 @@ export class WorkerPool {
   private workers: Worker[] = [];
   private availableWorkers: Worker[] = [];
   private taskQueue: WorkerTask[] = [];
+  private readonly activeTasks = new WeakMap<Worker, WorkerTask>();
   public readonly size: number;
   
   constructor(config: WorkerPoolConfig = {}) {
@@ -69,7 +68,10 @@ export class WorkerPool {
    * Exécute une tâche
    * Exigence: 10.1 - Traitement non-bloquant
    */
-  async execute<T>(type: string, data: unknown): Promise<T> {
+  async execute(type: string, data: unknown): Promise<unknown> {
+    if (this.workers.length === 0) {
+      throw new Error('No processing worker is available');
+    }
     return new Promise((resolve, reject) => {
       const task: WorkerTask = {
         id: this.generateId(),
@@ -96,45 +98,50 @@ export class WorkerPool {
   private executeTask(worker: Worker, task: WorkerTask): void {
     const message: WorkerMessage = {
       id: task.id,
-      type: task.type as WorkerMessage['type'],
+      type: task.type,
       data: task.data
     };
     
-    worker.postMessage(message);
-    
-    // Stocker la tâche pour la résolution
-    (worker as LegacyAny).__currentTask = task;
+    this.activeTasks.set(worker, task);
+    try {
+      worker.postMessage(message);
+    } catch (error) {
+      task.reject(error instanceof Error ? error : new Error('Could not send task to worker'));
+      this.releaseWorker(worker);
+    }
   }
   
   /**
    * Gère les messages des workers
    */
   private handleWorkerMessage(worker: Worker, message: unknown): void {
-    const task = (worker as LegacyAny).__currentTask as WorkerTask;
-    
-    if (task && message.id === task.id) {
-      if (message.status === 'completed') {
-        task.resolve(message.result);
-        this.releaseWorker(worker);
-      } else if (message.status === 'error') {
-        task.reject(new Error(message.error));
-        this.releaseWorker(worker);
-      } else if (message.status === 'progress') {
-        // Progression - ne pas libérer le worker
-        // Peut être géré par un callback si nécessaire
-      }
+    const task = this.activeTasks.get(worker);
+    if (!task || typeof message !== 'object' || message === null || !('id' in message) ||
+        message.id !== task.id || !('status' in message)) {
+      return;
+    }
+
+    if (message.status === 'completed') {
+      task.resolve('result' in message ? message.result : undefined);
+      this.releaseWorker(worker);
+    } else if (message.status === 'error') {
+      const reason = 'error' in message && typeof message.error === 'string'
+        ? message.error
+        : 'Processing worker reported an error';
+      task.reject(new Error(reason));
+      this.releaseWorker(worker);
     }
   }
-  
+
   /**
    * Gère les erreurs des workers
    */
   private handleWorkerError(worker: Worker, error: ErrorEvent): void {
-    const task = (worker as LegacyAny).__currentTask as WorkerTask;
+    const task = this.activeTasks.get(worker);
     
     if (task) {
       task.reject(new Error(error.message));
-      delete (worker as LegacyAny).__currentTask;
+      this.activeTasks.delete(worker);
     }
     
     // Recréer le worker
@@ -142,6 +149,7 @@ export class WorkerPool {
     if (index !== -1) {
       worker.terminate();
       this.workers.splice(index, 1);
+      this.availableWorkers = this.availableWorkers.filter((available) => available !== worker);
       
       try {
         const newWorker = new Worker(
@@ -158,9 +166,15 @@ export class WorkerPool {
         };
         
         this.workers.push(newWorker);
-        this.availableWorkers.push(newWorker);
+        this.releaseWorker(newWorker);
       } catch (error) {
         console.error('Failed to recreate worker:', error);
+        if (this.workers.length === 0) {
+          for (const queuedTask of this.taskQueue) {
+            queuedTask.reject(new Error('No processing worker is available'));
+          }
+          this.taskQueue = [];
+        }
       }
     }
   }
@@ -170,7 +184,7 @@ export class WorkerPool {
    * Exigence: 10.6 - File d'attente de tâches
    */
   private releaseWorker(worker: Worker): void {
-    delete (worker as LegacyAny).__currentTask;
+    this.activeTasks.delete(worker);
     
     // Traiter la prochaine tâche en attente
     const nextTask = this.taskQueue.shift();
@@ -195,12 +209,12 @@ export class WorkerPool {
     
     // Annuler les tâches en cours
     for (const worker of this.workers) {
-      const task = (worker as LegacyAny).__currentTask as WorkerTask;
+      const task = this.activeTasks.get(worker);
       if (task) {
         // Envoyer un message d'annulation au worker
         worker.postMessage({ id: task.id, type: 'cancel' });
         task.reject(new Error('Task cancelled'));
-        delete (worker as LegacyAny).__currentTask;
+        this.activeTasks.delete(worker);
       }
     }
     

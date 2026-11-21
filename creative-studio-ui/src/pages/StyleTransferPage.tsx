@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { StyleTransferWizard } from '../components/wizard';
+import { StyleTransferWizard } from '../components/wizard/StyleTransferWizard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Sparkles, Info } from 'lucide-react';
 

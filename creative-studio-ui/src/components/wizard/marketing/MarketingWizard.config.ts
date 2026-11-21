@@ -179,7 +179,7 @@ export const STYLE_COLORS: Record<VisualStyle, { primary: string; secondary: str
   dramatic: { primary: '#1A1A2E', secondary: '#16213E' },
   humorous: { primary: '#FFD93D', secondary: '#FF9F1C' },
   elegant: { primary: '#2C3E50', secondary: '#E8D5B7' },
-  minimaliste: { primary: '#2C3E50', secondary: '#ECF0F1' },
+  minimalist: { primary: '#2C3E50', secondary: '#ECF0F1' },
   energetic: { primary: '#E74C3C', secondary: '#F39C12' }
 };
 

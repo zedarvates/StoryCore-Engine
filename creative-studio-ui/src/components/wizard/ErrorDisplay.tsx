@@ -43,7 +43,7 @@ export function ErrorDisplay({
   onDismiss,
   showTechnicalDetails = false,
   compact = false,
-}: ErrorDisplayProps): JSX.Element {
+}: ErrorDisplayProps): React.JSX.Element {
   // Get icon based on severity
   const getIcon = () => {
     switch (error.severity) {

@@ -49,7 +49,7 @@ export function DataExport({
   variant = 'secondary',
   size = 'md',
   showLabel = true,
-}: DataExportProps): JSX.Element {
+}: DataExportProps): React.JSX.Element {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = () => {
@@ -156,7 +156,7 @@ export function DataImport({
   variant = 'secondary',
   size = 'md',
   showLabel = true,
-}: DataImportProps): JSX.Element {
+}: DataImportProps): React.JSX.Element {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
 
@@ -255,7 +255,7 @@ export interface DataExportImportPanelProps {
 export function DataExportImportPanel({
   wizardType,
   compact = false,
-}: DataExportImportPanelProps): JSX.Element {
+}: DataExportImportPanelProps): React.JSX.Element {
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
     text: string;
