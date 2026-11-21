@@ -11,7 +11,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { ProductionShot, BatchOperationType, BatchOperationResult } from '../../types';
+import type { ProductionShot, Shot, BatchOperationType, BatchOperationResult } from '../../types';
 import { BatchOperationsManager, type BatchOperationOptions } from '../../services/batchOperations';
 import {
   Copy,
@@ -29,9 +29,23 @@ import {
  * Convertit un ProductionShot en Shot pour les opérations batch
  * Note: Utilise le type Shot de index.ts (pas celui de shot.ts)
  */
-const productionShotToShot = (productionShot: ProductionShot): import('../../types').Shot => ({
+const productionShotToShot = (productionShot: ProductionShot): Shot => ({
   id: productionShot.id,
-  title: `Shot ${productionShot.number}`,
+  title: productionShot.title ?? `Shot ${productionShot.number}`,
+  name: productionShot.title ?? `Shot ${productionShot.number}`,
+  prompt: productionShot.generation.prompt,
+  startTime: productionShot.timing.inPoint / 24,
+  parameters: {
+    seed: productionShot.generation.parameters.seed ?? productionShot.generation.seed ?? -1,
+    denoising: productionShot.generation.parameters.denoisingStrength ?? 0.75,
+    steps: productionShot.generation.parameters.steps ?? 20,
+    guidance: productionShot.generation.parameters.cfgScale ?? 7.5,
+    sampler: productionShot.generation.parameters.sampler ?? 'euler',
+    scheduler: productionShot.generation.parameters.scheduler ?? 'normal',
+    negativePrompt: productionShot.generation.negativePrompt,
+  },
+  layers: [],
+  referenceImages: [],
   description: productionShot.notes || '',
   duration: productionShot.timing.duration / 24, // Convert frames to seconds (assuming 24fps)
   image: productionShot.thumbnailUrl,
@@ -54,7 +68,7 @@ const productionShotToShot = (productionShot: ProductionShot): import('../../typ
  * Props du composant
  */
 export interface BatchOperationsToolbarProps {
-  selectedShots: ProductionShot[];
+  selectedShots: (Shot | ProductionShot)[];
   onOperationComplete?: (result: BatchOperationResult) => void;
   onClose?: () => void;
   estimatedTime?: number;
@@ -104,7 +118,7 @@ export const BatchOperationsToolbar: React.FC<BatchOperationsToolbarProps> = ({
     });
     
     try {
-      const convertedShots = selectedShots.map(productionShotToShot);
+      const convertedShots = selectedShots.map((shot) => 'sequencePlanId' in shot ? productionShotToShot(shot) : shot);
       const result = await manager.execute(type, convertedShots, options);
       
       setOperationState({

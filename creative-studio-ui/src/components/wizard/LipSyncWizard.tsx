@@ -1,9 +1,7 @@
 /**
  * Lip Sync Wizard Component
  */
-import { LegacyAny } from '@/types/legacy';
-
-
+import type { LipSyncWizardContext } from '@/types/lipSync';
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   X, 
@@ -26,12 +24,8 @@ export interface LipSyncWizardProps {
   isOpen: boolean;
   onClose: () => void;
   projectId?: string;
-  context?: {
-    characterImage?: string;
-    audioFile?: string;
-    shotId?: string;
-  };
-  updateShot?: (shotId: string, updates: LegacyAny) => void;
+  context?: LipSyncWizardContext;
+  onVideoReady?: (shotId: string, videoUrl: string) => void;
 }
 
 export function LipSyncWizard({ 
@@ -39,7 +33,7 @@ export function LipSyncWizard({
   onClose, 
   projectId = 'default', 
   context,
-  updateShot 
+  onVideoReady
 }: LipSyncWizardProps) {
   const [step, setStep] = useState<'assets' | 'configure' | 'generate' | 'complete'>('assets');
   
@@ -76,7 +70,9 @@ export function LipSyncWizard({
       
       // Initialize from context if provided
       if (context?.characterImage) setCharacterFaceImage(context.characterImage);
-      if (context?.audioFile) setAudioFile(context.audioFile);
+      const presetAudio = context?.audioFile;
+      if (presetAudio instanceof File) setAudioFile(presetAudio.name, presetAudio);
+      else if (typeof presetAudio === 'string') setAudioFile(presetAudio);
     } else {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
@@ -100,8 +96,8 @@ export function LipSyncWizard({
   };
 
   const handleAddToTimeline = () => {
-    if (currentJob?.output_video && context?.shotId && updateShot) {
-      updateShot(context.shotId, { video: currentJob.output_video });
+    if (currentJob?.output_video && context?.shotId && onVideoReady) {
+      onVideoReady(context.shotId, currentJob.output_video);
       toast({ title: "Success", description: "Video added to shot." });
       handleClose();
     }

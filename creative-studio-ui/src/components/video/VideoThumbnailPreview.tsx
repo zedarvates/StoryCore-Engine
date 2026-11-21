@@ -31,12 +31,12 @@ class ThumbnailCache {
     
     // LRU eviction if cache is full
     if (this.cache.size >= this.maxSize) {
-      const firstKey = this.cache.keys().next().value;
-      const oldUrl = this.cache.get(firstKey);
-      if (oldUrl) {
-        URL.revokeObjectURL(oldUrl);
+      const oldest = this.cache.keys().next();
+      if (!oldest.done) {
+        const oldUrl = this.cache.get(oldest.value);
+        if (oldUrl) URL.revokeObjectURL(oldUrl);
+        this.cache.delete(oldest.value);
       }
-      this.cache.delete(firstKey);
     }
     
     this.cache.set(key, thumbnailUrl);

@@ -1,3 +1,4 @@
+import type { LipSyncWizardContext } from '@/types/lipSync';
 import { LegacyAny } from '@/types/legacy';
 import { create } from 'zustand';
 import type { Project, Shot, Asset, GenerationTask, PanelSizes, ChatMessage, Sequence, SequencePlan } from '@/types';
@@ -131,7 +132,7 @@ interface AppState {
   showHermesWizard: boolean;
   
   settingsAddonId: string | null;
-  lipSyncContext: { audioFile?: File; characterId?: string } | null;
+  lipSyncContext: LipSyncWizardContext | null;
   audioProductionWizardContext: { sequenceId?: string; mode?: string } | null;
   marketingWizardContext: { projectId?: string; targetChannel?: string } | null;
   characterWizardContext: { imageFile?: File; name?: string; role?: string } | null;
@@ -230,7 +231,7 @@ interface AppState {
   setShowKeyboardShortcutsDialog: (show: boolean) => void;
   setShowRogerWizard: (show: boolean) => void;
   setShowGhostTrackerWizard: (show: boolean) => void;
-  setShowLipSyncWizard: (show: boolean, context?: { audioFile?: File; characterId?: string }) => void;
+  setShowLipSyncWizard: (show: boolean, context?: LipSyncWizardContext) => void;
   setShowScenarioBuilder: (show: boolean) => void;
   setShowDialogueBuilder: (show: boolean) => void;
   setShowAudioProductionWizard: (show: boolean, context?: { sequenceId?: string; mode?: string }) => void;
