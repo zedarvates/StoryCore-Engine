@@ -179,7 +179,7 @@ class AIShotCompositionService extends EventEmitter {
       return composition;
     } catch (error) {
       console.error('Failed to generate shot composition:', error);
-      this.emit('composition:failed', shotId, error.message);
+      this.emit('composition:failed', shotId, error instanceof Error ? error.message : String(error));
       throw error;
     }
   }

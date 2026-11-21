@@ -227,12 +227,15 @@ describe('State Synchronization Integration', () => {
 
     it('should add effect to shot', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -247,12 +250,15 @@ describe('State Synchronization Integration', () => {
 
     it('should update effect properties', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -273,21 +279,27 @@ describe('State Synchronization Integration', () => {
 
     it('should reorder effects', async () => {
       const effect1: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       const effect2: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'blur',
         id: 'effect-2',
         type: 'filter',
         name: 'blur',
         enabled: true,
         intensity: 30,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect1);
@@ -424,7 +436,7 @@ describe('State Synchronization Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task);
@@ -442,7 +454,7 @@ describe('State Synchronization Integration', () => {
         type: 'grid' as const,
         status: 'pending' as const,
         priority: 1,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       const task2 = {
@@ -451,7 +463,7 @@ describe('State Synchronization Integration', () => {
         type: 'promotion' as const,
         status: 'pending' as const,
         priority: 2,
-        createdAt: new Date(),
+        createdAt: Date.now(),
       };
 
       useStore.getState().addTask(task1);

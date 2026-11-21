@@ -45,7 +45,7 @@ class CollaborativeReviewService {
    */
   broadcastAnnotation(annotation: Annotation) {
     if (!this.currentSession) return;
-    console.log(`Broadcasting annotation: ${annotation.comment}`);
+    console.log(`Broadcasting annotation: ${annotation.content}`);
     // In real implementation, this would send over WebRTC Data Channel or WebSocket
   }
 

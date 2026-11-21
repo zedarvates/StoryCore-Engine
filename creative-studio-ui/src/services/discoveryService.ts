@@ -1,3 +1,4 @@
+import { createStoryboardShot } from '@/utils/shotDefaults';
 import axios from 'axios';
 import { sequencePlanService } from './sequencePlanService';
 import { Shot } from '@/types';
@@ -100,30 +101,33 @@ export const discoveryService = {
 
     // 2. Create shots for each act
     const shots: Shot[] = [
-      {
+      createStoryboardShot({
         id: `shot-${Date.now()}-1`,
         title: "Act I - The Hook",
         description: analysis.rough_structure.act1,
         prompt: `Act 1: ${analysis.rough_structure.act1.substring(0, 100)}...`,
         duration: 20,
         position: 0,
-      },
-      {
+        startTime: 0,
+      }),
+      createStoryboardShot({
         id: `shot-${Date.now()}-2`,
         title: "Act II - The Conflict",
         description: analysis.rough_structure.act2,
         prompt: `Act 2: ${analysis.rough_structure.act2.substring(0, 100)}...`,
         duration: 30,
         position: 1,
-      },
-      {
+        startTime: 20,
+      }),
+      createStoryboardShot({
         id: `shot-${Date.now()}-3`,
         title: "Act III - The Resolution",
         description: analysis.rough_structure.act3,
         prompt: `Act 3: ${analysis.rough_structure.act3.substring(0, 100)}...`,
         duration: 15,
         position: 2,
-      }
+        startTime: 50,
+      }),
     ];
 
     // 3. Add shots to the plan

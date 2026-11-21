@@ -266,7 +266,6 @@ export function ErrorHandlingExample() {
           </h2>
           <WizardErrorBoundary
             wizardType="world"
-            errorMessage="The component encountered an error. Your data has been preserved."
           >
             <ErrorProneComponent />
           </WizardErrorBoundary>

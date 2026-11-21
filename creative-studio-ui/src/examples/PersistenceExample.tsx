@@ -1,3 +1,4 @@
+import { createStoryboardShot } from '@/utils/shotDefaults';
 /**
  * Persistence Example
  * 
@@ -44,18 +45,20 @@ const PersistenceExampleContent: React.FC = () => {
   const handleAddTestShot = () => {
     if (!project) return;
 
-    const newShot: Shot = {
+    const newShot = createStoryboardShot({
       id: `shot-${Date.now()}`,
       sequenceId: 'seq-1',
       startTime: project.shots.length * 5,
       duration: 5,
+      position: project.shots.length,
+      title: "Test shot",
       prompt: 'A beautiful sunset over the ocean with waves crashing on the shore',
       metadata: {
         cameraAngle: 'wide',
         lighting: 'golden hour',
         mood: 'peaceful',
       },
-    };
+    });
 
     // This will trigger auto-save after 2 seconds
     updateShot(newShot.id, newShot);
@@ -144,7 +147,7 @@ const PersistenceExampleContent: React.FC = () => {
               <span className="font-medium">Shots:</span> {project.shots.length}
             </div>
             <div>
-              <span className="font-medium">Audio Phrases:</span> {project.audioPhrases.length}
+              <span className="font-medium">Audio Phrases:</span> {project.audioPhrases?.length ?? 0}
             </div>
             <div>
               <span className="font-medium">Save Status:</span>{' '}

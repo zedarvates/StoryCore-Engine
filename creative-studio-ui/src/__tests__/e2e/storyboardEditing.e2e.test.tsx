@@ -163,12 +163,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should add visual effect to shot', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: { contrast: 1.2, saturation: 0.8 },
+        parameters: [{ id: "contrast", name: "contrast", type: 'number', value: 1.2 }, { id: "saturation", name: "saturation", type: 'number', value: 0.8 }],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -184,28 +187,37 @@ describe('Storyboard Editing E2E Workflow', () => {
     it('should add multiple effects to shot', async () => {
       const effects: Effect[] = [
         {
+          category: "stylize",
+          icon: null,
+          description: 'vintage',
           id: 'effect-1',
           type: 'filter',
           name: 'vintage',
           enabled: true,
           intensity: 50,
-          parameters: {},
+          parameters: [],
         },
         {
+          category: "stylize",
+          icon: null,
+          description: 'blur',
           id: 'effect-2',
           type: 'filter',
           name: 'blur',
           enabled: true,
           intensity: 30,
-          parameters: {},
+          parameters: [],
         },
         {
+          category: "color",
+          icon: null,
+          description: 'brightness',
           id: 'effect-3',
-          type: 'adjustment',
+          type: 'color-correction',
           name: 'brightness',
           enabled: true,
           intensity: 70,
-          parameters: {},
+          parameters: [],
         },
       ];
 
@@ -220,21 +232,27 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should reorder effects', async () => {
       const effect1: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       const effect2: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'blur',
         id: 'effect-2',
         type: 'filter',
         name: 'blur',
         enabled: true,
         intensity: 30,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect1);
@@ -253,12 +271,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should update effect properties', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -279,12 +300,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
     it('should remove effect from shot', async () => {
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'vintage',
         id: 'effect-1',
         type: 'filter',
         name: 'vintage',
         enabled: true,
         intensity: 50,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
@@ -555,12 +579,15 @@ describe('Storyboard Editing E2E Workflow', () => {
 
       // Step 3: Add effects
       const effect: Effect = {
+        category: "stylize",
+        icon: null,
+        description: 'cinematic',
         id: 'effect-1',
         type: 'filter',
         name: 'cinematic',
         enabled: true,
         intensity: 60,
-        parameters: {},
+        parameters: [],
       };
 
       useStore.getState().addEffect('shot-1', effect);
