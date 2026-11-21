@@ -189,11 +189,11 @@ describe('ProjectDashboard Type Definitions', () => {
         audioPhrases: [],
         generationHistory: [],
         capabilities: {
-          gridGeneration: true,
-          promotionEngine: true,
-          qaEngine: true,
-          autofixEngine: true,
-          voiceGeneration: true,
+          grid_generation: true,
+          promotion_engine: true,
+          qa_engine: true,
+          autofix_engine: true,
+          voice_generation: true,
         },
       };
       expect(() => ProjectSchema.parse(validProject)).not.toThrow();

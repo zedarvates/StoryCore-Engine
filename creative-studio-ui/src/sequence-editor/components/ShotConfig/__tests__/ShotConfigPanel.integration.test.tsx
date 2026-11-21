@@ -5,7 +5,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import timelineReducer, { addShot, selectShot } from '../../../store/slices/timelineSlice';
+import timelineReducer, { addShot } from '../../../store/slices/timelineSlice';
 import ShotConfigPanel from '../ShotConfigPanel';
 
 // Mock the toast hook to capture toast calls

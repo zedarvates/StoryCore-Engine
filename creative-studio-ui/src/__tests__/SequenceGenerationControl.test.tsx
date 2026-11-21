@@ -11,8 +11,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SequenceGenerationControl } from '../components/SequenceGenerationControl';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
+import { projectPersistence } from '@/services/persistence/projectPersistence';
 import { ProjectProvider } from '../contexts/ProjectContext';
 import type { Project } from '../types/projectDashboard';
+
+vi.mock('@/services/persistence/projectPersistence', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/persistence/projectPersistence')>();
+  return {
+    ...actual,
+    projectPersistence: {
+      loadProject: vi.fn(),
+      scheduleAutoSave: vi.fn(),
+      cancelAutoSave: vi.fn(),
+    },
+  };
+});
 
 // ============================================================================
 // Mock Setup
@@ -21,11 +35,15 @@ import type { Project } from '../types/projectDashboard';
 const createMockProject = (shotsWithValidPrompts: boolean = true): Project => ({
   id: 'test-project-1',
   name: 'Test Project',
+  project_name: 'Test Project',
+  schema_version: '1.0',
+  assets: [],
+  generation_status: { grid: 'pending', promotion: 'pending' },
   schemaVersion: '1.0',
   sequences: [],
   shots: shotsWithValidPrompts
     ? [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           name: 'Shot 1',
@@ -39,10 +57,10 @@ const createMockProject = (shotsWithValidPrompts: boolean = true): Project => ({
             suggestions: [],
           },
           metadata: {},
-        },
+        }),
       ]
     : [
-        {
+        createShotFixture({
           id: 'shot-1',
           sequenceId: 'seq-1',
           name: 'Shot 1',
@@ -62,16 +80,16 @@ const createMockProject = (shotsWithValidPrompts: boolean = true): Project => ({
             suggestions: [],
           },
           metadata: {},
-        },
+        }),
       ],
   audioPhrases: [],
   generationHistory: [],
   capabilities: {
-    gridGeneration: true,
-    promotionEngine: true,
-    qaEngine: true,
-    autofixEngine: true,
-    voiceGeneration: true,
+    grid_generation: true,
+    promotion_engine: true,
+    qa_engine: true,
+    autofix_engine: true,
+    voice_generation: true,
   },
 });
 
@@ -83,7 +101,8 @@ const TestWrapper: React.FC<{ project: Project; children: React.ReactNode }> = (
   project,
   children,
 }) => {
-  return <ProjectProvider initialProject={project}>{children}</ProjectProvider>;
+  vi.mocked(projectPersistence.loadProject).mockResolvedValue({ success: true, project });
+  return <ProjectProvider projectId={project.id}>{children}</ProjectProvider>;
 };
 
 // ============================================================================

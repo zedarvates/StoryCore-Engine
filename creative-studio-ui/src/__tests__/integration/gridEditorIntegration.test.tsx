@@ -13,11 +13,9 @@
  * - Configuration export/import
  * - Performance with 30-50 shots
  */
-import { LegacyAny } from '@/types/legacy';
-import userEvent from '@testing-library/user-event';
 
 
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 
 // Import services (these are the core implementations)
 import { DragDropManager } from '@/services/dragDrop';
@@ -28,18 +26,22 @@ import { ClipboardManager } from '@/services/clipboard';
 import { ConfigurationExportImport } from '@/services/gridEditor';
 
 // Import types
-import type { Shot, GridLayoutConfig } from '@/types/gridEditorAdvanced';
+import type { GridLayoutConfig } from '@/types/gridEditorAdvanced';
+import type { Shot } from '@/types';
+import type { ProductionShot } from '@/types/shot';
+import type { GridEditorConfiguration } from '@/services/gridEditor/ConfigurationExportImport';
+import { createShotFixture } from '@/__tests__/helpers/shotFactory';
 
 // Test utilities
-const createMockShot = (id: string, overrides?: Partial<Shot>): Shot => ({
+const createMockShot = (id: string, overrides?: Partial<Shot>): Shot => createShotFixture({
   id,
   name: `Shot ${id}`,
-  videoUrl: `/videos/shot-${id}.mp4`,
+  title: overrides?.name ?? `Shot ${id}`,
   thumbnailUrl: `/thumbnails/shot-${id}.jpg`,
   startTime: 0,
-  endTime: 5,
   duration: 5,
   metadata: {
+    sourceVideo: `/videos/shot-${id}.mp4`,
     camera: 'Camera A',
     location: 'Studio',
     notes: 'Test shot'
@@ -51,16 +53,27 @@ const createMockShots = (count: number): Shot[] => {
   return Array.from({ length: count }, (_, i) => createMockShot(`shot-${i + 1}`));
 };
 
+const configuration: GridEditorConfiguration = {
+  layout: {
+    columns: 4, rows: 3, gap: 16,
+    cellSize: { width: 200, height: 150 },
+    snapEnabled: true, snapThreshold: 10, showGridLines: true,
+  },
+  visualPreferences: { showGridLines: true, showAlignmentGuides: true, animationsEnabled: true },
+  snapSettings: { enabled: true, threshold: 10, gridSizes: [10] },
+};
+
 describe('Grid Editor Integration Tests', () => {
+  afterEach(() => ClipboardManager.getInstance().clear());
+
   describe('_Complete Workflow: Load → Edit → Save → Undo → Redo', () => {
     it('should complete full editing workflow successfully', async () => {
-      const user = userEvent.setup();
       const shots = createMockShots(10);
       const undoRedoManager = new UndoRedoManager(shots);
       
       // 1. Load video/shots
       expect(shots).toHaveLength(10);
-      expect(shots[0].videoUrl).toBe('/videos/shot-1.mp4');
+      expect(shots[0].metadata?.sourceVideo).toBe('/videos/shot-1.mp4');
       
       // 2. Edit - Move a shot
       const newShots = [...shots];
@@ -96,10 +109,10 @@ describe('Grid Editor Integration Tests', () => {
     it('should handle video metadata correctly', () => {
       const shot = createMockShot('test-1');
       
-      expect(shot.videoUrl).toBe('/videos/shot-test-1.mp4');
+      expect(shot.metadata?.sourceVideo).toBe('/videos/shot-test-1.mp4');
       expect(shot.duration).toBe(5);
       expect(shot.startTime).toBe(0);
-      expect(shot.endTime).toBe(5);
+      expect(shot.startTime + shot.duration).toBe(5);
     });
   });
 
@@ -127,13 +140,28 @@ describe('Grid Editor Integration Tests', () => {
       };
       
       const manager = new DragDropManager(config);
-      const shot = createMockShot('drag-test');
+      const shot: ProductionShot = {
+        id: 'drag-test', sequencePlanId: 'plan', sceneId: 'scene', number: 1,
+        type: 'medium', category: 'action', status: 'planned',
+        composition: {
+          characterIds: [], characterPositions: [], environmentId: 'studio',
+          props: [], lightingMood: 'soft', timeOfDay: 'day',
+        },
+        camera: { framing: 'medium', angle: 'eye-level', movement: { type: 'static' } },
+        timing: { duration: 120, inPoint: 0, outPoint: 120, transition: 'cut', transitionDuration: 0 },
+        generation: {
+          aiProvider: 'local', model: 'test', prompt: '', negativePrompt: '',
+          comfyuiPreset: '', styleReferences: [],
+          parameters: { width: 512, height: 512, steps: 20, cfgScale: 7, sampler: 'euler', scheduler: 'normal' },
+        },
+        dialogues: [],
+      };
       
       // Start drag
-      const mockEvent = new MouseEvent('mousedown', {
+      const mockEvent = new DragEvent('dragstart', {
         clientX: 100,
         clientY: 100
-      }) as LegacyAny;
+      });
       
       manager.startDrag([shot], mockEvent);
       expect(manager.isDragging()).toBe(true);
@@ -220,7 +248,7 @@ describe('Grid Editor Integration Tests', () => {
 
     it('should respect max stack size', () => {
       const initialState = createMockShots(5);
-      const manager = new UndoRedoManager(initialState, 3);
+      const manager = new UndoRedoManager(initialState, { maxStackSize: 3 });
       
       // Execute more than max stack size
       for (let i = 0; i < 5; i++) {
@@ -307,8 +335,8 @@ describe('Grid Editor Integration Tests', () => {
         createMockShot('3', { name: 'Closing Scene' })
       ];
       
-      const service = new SearchService();
-      const results = service.search(shots, 'Scene');
+      const service = new SearchService(shots);
+      const results = service.search('Scene');
       
       expect(results).toHaveLength(2);
       expect(results[0].name).toContain('Scene');
@@ -318,33 +346,36 @@ describe('Grid Editor Integration Tests', () => {
       const shots = [
         createMockShot('1', { 
           name: 'Shot 1',
-          metadata: { camera: 'Camera A', location: 'Studio' }
+          description: 'Studio camera A',
         }),
         createMockShot('2', { 
           name: 'Shot 2',
-          metadata: { camera: 'Camera B', location: 'Outdoor' }
+          description: 'Outdoor camera B',
         })
       ];
       
-      const service = new SearchService();
-      const results = service.filterByMetadata(shots, { camera: 'Camera A' });
-      
-      expect(results).toHaveLength(1);
-      expect(results[0].metadata.camera).toBe('Camera A');
+      const service = new SearchService(shots);
+      const results = service.advancedSearch([
+        { field: 'title', operator: 'AND', value: 'Shot' },
+        { field: 'description', operator: 'AND', value: 'Studio' },
+      ]);
+
+      expect(results.map(shot => shot.id)).toEqual(['1']);
     });
   });
 
   describe('Copy/Paste Functionality', () => {
     it('should copy and paste shots', () => {
       const shots = createMockShots(5);
-      const manager = new ClipboardManager();
+      const manager = ClipboardManager.getInstance();
       
       // Copy
       manager.copy(shots.slice(0, 2));
       expect(manager.hasContent()).toBe(true);
       
       // Paste
-      const pasted = manager.paste();
+      const { success, pastedShots: pasted } = manager.paste();
+      expect(success).toBe(true);
       expect(pasted).toHaveLength(2);
       expect(pasted[0].id).not.toBe(shots[0].id); // Should have new IDs
     });
@@ -354,51 +385,29 @@ describe('Grid Editor Integration Tests', () => {
         metadata: { camera: 'Camera A', location: 'Studio', notes: 'Important' }
       });
       
-      const manager = new ClipboardManager();
+      const manager = ClipboardManager.getInstance();
       manager.copy([shot]);
       
-      const pasted = manager.paste();
-      expect(pasted[0].metadata.camera).toBe('Camera A');
-      expect(pasted[0].metadata.location).toBe('Studio');
-      expect(pasted[0].metadata.notes).toBe('Important');
+      const { success, pastedShots: pasted } = manager.paste();
+      expect(success).toBe(true);
+      expect(pasted[0].metadata?.camera).toBe('Camera A');
+      expect(pasted[0].metadata?.location).toBe('Studio');
+      expect(pasted[0].metadata?.notes).toBe('Important');
     });
   });
 
   describe('Configuration Export/Import', () => {
-    it('should export configuration to JSON', () => {
-      const config: GridLayoutConfig = {
-        columns: 4,
-        rows: 3,
-        gap: 16,
-        cellSize: { width: 200, height: 150 },
-        snapEnabled: true,
-        snapThreshold: 10,
-        showGridLines: true
-      };
-      
+    it('round-trips the layout, visual preferences and snap settings', () => {
       const service = new ConfigurationExportImport();
-      const exported = service.exportToJSON(config);
-      
-      expect(exported).toContain('"columns":4');
-      expect(exported).toContain('"snapEnabled":true');
+      const exported = service.exportToJSON(configuration);
+      expect(JSON.parse(exported)).toMatchObject({ configuration });
+      const imported = service.importFromJSON(exported);
+      expect(imported).toMatchObject({ success: true, configuration });
     });
 
-    it('should import and validate configuration', () => {
-      const configJSON = JSON.stringify({
-        columns: 4,
-        rows: 3,
-        gap: 16,
-        cellSize: { width: 200, height: 150 },
-        snapEnabled: true,
-        snapThreshold: 10,
-        showGridLines: true
-      });
-      
+    it('reports malformed JSON as an import failure', () => {
       const service = new ConfigurationExportImport();
-      const imported = service.importFromJSON(configJSON);
-      
-      expect(imported.columns).toBe(4);
-      expect(imported.snapEnabled).toBe(true);
+      expect(service.importFromJSON('{ invalid')).toMatchObject({ success: false, errors: expect.any(Array) });
     });
   });
 
@@ -502,11 +511,11 @@ describe('Grid Editor Integration Tests', () => {
       // 1. Initialize with shots
       const shots = createMockShots(30);
       const undoRedoManager = new UndoRedoManager(shots);
-      const searchService = new SearchService();
-      const clipboardManager = new ClipboardManager();
+      const searchService = new SearchService(shots);
+      const clipboardManager = ClipboardManager.getInstance();
       
       // 2. Search and filter
-      const searchResults = searchService.search(shots, 'Shot 1');
+      const searchResults = searchService.search('Shot 1');
       expect(searchResults.length).toBeGreaterThan(0);
       
       // 3. Select and copy
@@ -514,7 +523,8 @@ describe('Grid Editor Integration Tests', () => {
       expect(clipboardManager.hasContent()).toBe(true);
       
       // 4. Paste
-      const pasted = clipboardManager.paste();
+      const { success, pastedShots: pasted } = clipboardManager.paste();
+      expect(success).toBe(true);
       const newShots = [...shots, ...pasted];
       undoRedoManager.execute('Paste shots', newShots);
       
@@ -527,23 +537,13 @@ describe('Grid Editor Integration Tests', () => {
       expect(redone!.length).toBeGreaterThan(30);
       
       // 7. Export configuration
-      const config: GridLayoutConfig = {
-        columns: 4,
-        rows: 3,
-        gap: 16,
-        cellSize: { width: 200, height: 150 },
-        snapEnabled: true,
-        snapThreshold: 10,
-        showGridLines: true
-      };
-      
       const exportService = new ConfigurationExportImport();
-      const exported = exportService.exportToJSON(config);
+      const exported = exportService.exportToJSON(configuration);
       expect(exported).toBeDefined();
       
       // 8. Import configuration
       const imported = exportService.importFromJSON(exported);
-      expect(imported.columns).toBe(config.columns);
+      expect(imported).toMatchObject({ success: true, configuration });
     });
   });
 });

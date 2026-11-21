@@ -32,9 +32,11 @@ const createMockStore = (initialState: Partial<{
     },
     preloadedState: {
       timeline: {
+        ...timelineReducer(undefined, { type: '@@INIT' }),
         shots: [
           {
             id: 'shot-1',
+            position: 0,
             name: 'Opening Scene',
             startTime: 0,
             duration: 5,
@@ -60,6 +62,7 @@ const createMockStore = (initialState: Partial<{
           },
           {
             id: 'shot-2',
+            position: 1,
             name: 'Character Introduction',
             startTime: 5,
             duration: 3,
@@ -89,11 +92,12 @@ const createMockStore = (initialState: Partial<{
         ...initialState.timeline,
       },
       project: {
+        ...projectReducer(undefined, { type: '@@INIT' }),
         metadata: {
           name: 'Test Project',
           path: '/test/project',
-          created: new Date(),
-          modified: new Date(),
+          created: Date.now(),
+          modified: Date.now(),
           author: 'Test User',
           description: 'Test project',
         },

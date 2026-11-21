@@ -77,6 +77,7 @@ const createMockStore = () => {
     },
     preloadedState: {
       timeline: {
+        ...timelineReducer(undefined, { type: '@@INIT' }),
         shots: [mockShot],
         tracks: [],
         playheadPosition: 0,
