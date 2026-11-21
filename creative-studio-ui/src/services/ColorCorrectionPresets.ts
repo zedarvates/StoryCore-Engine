@@ -3,6 +3,7 @@
  * MI1: Color Correction Presets - Vintage, Noir, Vibrant, Cinematic
  */
 
+import { createDefaultColorAdjustments } from './colorAdjustments';
 import {
   ColorCorrectionPreset,
   ColorCorrectionPresetLibrary,
@@ -27,6 +28,7 @@ class ColorCorrectionPresetsService {
       description: 'Soft faded vintage look with lifted blacks',
       category: 'vintage',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0.1,
         contrast: -10,
         highlights: 20,
@@ -64,6 +66,7 @@ class ColorCorrectionPresetsService {
       description: 'Classic sepia tone with warm undertones',
       category: 'vintage',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0,
         contrast: 5,
         highlights: -10,
@@ -104,6 +107,7 @@ class ColorCorrectionPresetsService {
       description: 'Warm vintage tones with golden highlights',
       category: 'vintage',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0.05,
         contrast: -5,
         highlights: 25,
@@ -142,6 +146,7 @@ class ColorCorrectionPresetsService {
       description: 'Dramatic high-contrast black and white',
       category: 'noir',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0,
         contrast: 40,
         highlights: -20,
@@ -179,6 +184,7 @@ class ColorCorrectionPresetsService {
       description: 'Soft black and white with gentle contrast',
       category: 'noir',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0.1,
         contrast: 15,
         highlights: 10,
@@ -217,6 +223,7 @@ class ColorCorrectionPresetsService {
       description: 'High saturation for vivid colors',
       category: 'vibrant',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0,
         contrast: 10,
         highlights: 5,
@@ -254,6 +261,7 @@ class ColorCorrectionPresetsService {
       description: 'Balanced enhancement with punchy colors',
       category: 'vibrant',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0,
         contrast: 15,
         highlights: 10,
@@ -292,6 +300,7 @@ class ColorCorrectionPresetsService {
       description: 'Dramatic cinematic look with deep blacks',
       category: 'cinematic',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: -0.1,
         contrast: 25,
         highlights: -15,
@@ -329,6 +338,7 @@ class ColorCorrectionPresetsService {
       description: 'Classic film look with film grain',
       category: 'cinematic',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0,
         contrast: 10,
         highlights: 5,
@@ -366,6 +376,7 @@ class ColorCorrectionPresetsService {
       description: 'Anamorphic lens flare and color characteristics',
       category: 'cinematic',
       adjustments: {
+        ...createDefaultColorAdjustments(),
         exposure: 0.05,
         contrast: 15,
         highlights: 20,
@@ -494,6 +505,7 @@ class ColorCorrectionPresetsService {
     if (!preset1 || !preset2) return null;
 
     const blendedAdjustments: ColorAdjustments = {
+      ...createDefaultColorAdjustments(),
       exposure: this.blendValue(preset1.adjustments.exposure, preset2.adjustments.exposure, ratio),
       contrast: this.blendValue(preset1.adjustments.contrast, preset2.adjustments.contrast, ratio),
       highlights: this.blendValue(preset1.adjustments.highlights, preset2.adjustments.highlights, ratio),

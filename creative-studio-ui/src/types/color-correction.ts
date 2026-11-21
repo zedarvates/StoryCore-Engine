@@ -3,6 +3,8 @@
  * MI1: Color Correction Presets - Vintage, Noir, Vibrant, Cinematic
  */
 
+import type { LUTConfig as BrowserLutConfig } from './lut';
+
 export type ColorCorrectionPresetId = string;
 
 export interface ColorCorrectionPreset {
@@ -146,6 +148,7 @@ export type BlendMode =
 export interface ColorGradingState {
   activePresets: ColorCorrectionLayer[];
   globalAdjustment: ColorAdjustments;
+  lut?: BrowserLutConfig;
   beforeCorrection: boolean;
   afterCorrection: boolean;
   isEnabled: boolean;
