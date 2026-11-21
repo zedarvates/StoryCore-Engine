@@ -42,7 +42,7 @@ export interface CharacterCardProps {
 /**
  * Format creation date (memoized)
  */
-const formatDate = (timestamp: string): string => {
+const formatDate = (timestamp: string | number): string => {
   try {
     const date = new Date(timestamp);
     if (Number.isNaN(date.getTime())) {

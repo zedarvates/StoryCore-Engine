@@ -211,13 +211,13 @@ export function SuccessCheckmark({ className = '' }: { className?: string }) {
  * Validates: Requirements 11.3
  */
 export function ErrorIcon({ className = '' }: { className?: string }) {
-  const { _isAnimationEnabled } = useAnimationConfig();
+  const { isAnimationEnabled } = useAnimationConfig();
 
   return (
     <motion.div
       variants={errorVariants}
-      initial="initial"
-      animate="animate"
+      initial={isAnimationEnabled ? 'initial' : false}
+      animate={isAnimationEnabled ? 'animate' : 'initial'}
       className={`inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500 text-white ${className}`}
     >
       <X className="w-4 h-4" />
