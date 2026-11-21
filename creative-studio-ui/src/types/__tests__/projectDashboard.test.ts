@@ -182,6 +182,10 @@ describe('ProjectDashboard Type Definitions', () => {
     it('should validate Project schema', () => {
       const validProject: Project = {
         id: 'project-1',
+        project_name: 'Test Project',
+        schema_version: '1.0',
+        assets: [],
+        generation_status: { grid: 'pending', promotion: 'pending' },
         name: 'Test Project',
         schemaVersion: '1.0',
         sequences: [],

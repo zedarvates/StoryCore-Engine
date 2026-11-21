@@ -371,7 +371,7 @@ describe('Grid Editor Integration Tests', () => {
       
       // Copy
       manager.copy(shots.slice(0, 2));
-      expect(manager.hasContent()).toBe(true);
+      expect(manager.getCount()).toBe(2);
       
       // Paste
       const { success, pastedShots: pasted } = manager.paste();
@@ -520,7 +520,7 @@ describe('Grid Editor Integration Tests', () => {
       
       // 3. Select and copy
       clipboardManager.copy(searchResults.slice(0, 2));
-      expect(clipboardManager.hasContent()).toBe(true);
+      expect(clipboardManager.getCount()).toBe(2);
       
       // 4. Paste
       const { success, pastedShots: pasted } = clipboardManager.paste();

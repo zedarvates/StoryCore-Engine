@@ -122,7 +122,8 @@ describe('GenerationButtonToolbar', () => {
   const mockSequence: Sequence = {
     id: 'seq-1',
     name: 'Test Sequence',
-    shots: [mockShot],
+    description: '',
+    shotIds: [mockShot.id],
     duration: 5,
   };
 
