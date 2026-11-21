@@ -423,9 +423,9 @@ describe('View Actions', () => {
 
       // Verify only assets panel changed
       const updatedState = onViewStateChangeSpy.mock.calls[0][0];
-      expect(updatedState.panelsVisible.properties).toBe(false); // Unchanged
-      expect(updatedState.panelsVisible.assets).toBe(false);
-      expect(updatedState.panelsVisible.preview).toBe(false); // Unchanged
+      expect(updatedState.panelsVisible?.properties).toBe(false); // Unchanged
+      expect(updatedState.panelsVisible?.assets).toBe(false);
+      expect(updatedState.panelsVisible?.preview).toBe(false); // Unchanged
     });
 
     it('should not call callback if onViewStateChange is undefined', () => {
@@ -485,9 +485,9 @@ describe('View Actions', () => {
 
       // Verify only preview panel changed
       const updatedState = onViewStateChangeSpy.mock.calls[0][0];
-      expect(updatedState.panelsVisible.properties).toBe(true); // Unchanged
-      expect(updatedState.panelsVisible.assets).toBe(false); // Unchanged
-      expect(updatedState.panelsVisible.preview).toBe(false);
+      expect(updatedState.panelsVisible?.properties).toBe(true); // Unchanged
+      expect(updatedState.panelsVisible?.assets).toBe(false); // Unchanged
+      expect(updatedState.panelsVisible?.preview).toBe(false);
     });
 
     it('should not call callback if onViewStateChange is undefined', () => {

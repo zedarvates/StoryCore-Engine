@@ -60,7 +60,6 @@ describe('ComfyUI Servers Service', () => {
   describe('CRUD Operations', () => {
     it('should add a new server', () => {
       const input: CreateComfyUIServerInput = {
-        authentication: { type: 'none' },
         name: 'Test Server',
         serverUrl: 'http://localhost:8188',
         authentication: { type: 'none' },

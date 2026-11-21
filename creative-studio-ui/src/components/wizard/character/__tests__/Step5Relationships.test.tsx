@@ -56,10 +56,13 @@ describe('Step5Relationships - Character Relationship Validation', () => {
 
   const renderComponent = (formData: Partial<Character> = mockCharacter) => {
     return render(
-      <WizardProvider
+      <WizardProvider<Character>
+        wizardType="character"
+        totalSteps={6}
+        onSubmit={async () => {}}
         initialData={formData}
         onComplete={vi.fn()}
-        storageKey="test-character-wizard"
+        autoSave={false}
       >
         <Step5Relationships />
       </WizardProvider>

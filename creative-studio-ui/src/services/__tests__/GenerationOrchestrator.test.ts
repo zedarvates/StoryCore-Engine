@@ -11,7 +11,7 @@
  * Requirements: 12.1, 12.2, 12.3
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
+import { assert, describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { GenerationOrchestrator, type ErrorCallback, type ProgressCallback } from '../GenerationOrchestrator';
 import type {
   GenerationProgress,
@@ -333,6 +333,7 @@ describe('GenerationOrchestrator', () => {
       const shortResult = await orchestrator.generateAudio(shortParams);
       const longResult = await orchestrator.generateAudio(longParams);
 
+      assert.isNumber(shortResult.metadata.duration);
       expect(longResult.metadata.duration).toBeGreaterThan(shortResult.metadata.duration);
     });
 
@@ -362,6 +363,7 @@ describe('GenerationOrchestrator', () => {
       const fastResult = await orchestrator.generateAudio(fastSpeedParams);
 
       // Faster speed should result in shorter duration
+      assert.isNumber(normalResult.metadata.duration);
       expect(fastResult.metadata.duration).toBeLessThan(normalResult.metadata.duration);
     });
 

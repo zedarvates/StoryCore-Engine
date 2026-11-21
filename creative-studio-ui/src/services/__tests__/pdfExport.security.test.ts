@@ -71,7 +71,7 @@ describe('PDF exports keep user content on the text API', () => {
     ProjectExportService.getInstance().clearProgressCallback();
     vi.mocked(URL.createObjectURL).mockClear();
     vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-    htmlSpy = vi.spyOn(jsPDF.API, 'html').mockImplementation(() => {
+    htmlSpy = vi.spyOn(jsPDF.API as Pick<jsPDF, 'html'>, 'html').mockImplementation(() => {
       throw new Error('PDF text exports must not enter the HTML renderer');
     });
   });

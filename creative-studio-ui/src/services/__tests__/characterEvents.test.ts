@@ -347,7 +347,8 @@ describe('createDependenciesCheckedPayload', () => {
   it('should correctly identify no dependencies', () => {
     const dependencies = {
       stories: [],
-      };
+      relationships: [],
+    };
     const payload = createDependenciesCheckedPayload('char-123', 'Test Character', dependencies);
 
     expect(payload.hasDependencies).toBe(false);
@@ -356,7 +357,8 @@ describe('createDependenciesCheckedPayload', () => {
   it('should identify dependencies from stories only', () => {
     const dependencies = {
       stories: [{ id: 'story-1', name: 'Test Story' }],
-      };
+      relationships: [],
+    };
     const payload = createDependenciesCheckedPayload('char-123', 'Test Character', dependencies);
 
     expect(payload.hasDependencies).toBe(true);
@@ -492,7 +494,8 @@ describe('Event Emitter Integration', () => {
 
     const dependencies = {
       stories: [{ id: 'story-1', name: 'Test Story' }],
-      };
+      relationships: [],
+    };
     const payload = createDependenciesCheckedPayload('char-123', 'Test Character', dependencies);
     eventEmitter.emit(CharacterEventType.CHARACTER_DEPENDENCIES_CHECKED, payload);
 

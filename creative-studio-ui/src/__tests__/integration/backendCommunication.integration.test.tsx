@@ -104,7 +104,7 @@ describe('Backend Communication Integration', () => {
     });
 
     it('should preserve all shot metadata in export', async () => {
-      const shot: Shot = {
+      const shot: Shot = createShotFixture({
         id: 'shot-1',
         title: 'Complex Shot',
         description: 'Shot with all features',
@@ -163,7 +163,7 @@ describe('Backend Communication Integration', () => {
           easing: 'ease-in-out',
         },
         position: 0,
-      };
+      });
 
       const project: Project = {
         id: "project-test",

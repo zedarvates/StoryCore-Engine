@@ -1,3 +1,4 @@
+import type { World } from '@/types/world';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -161,7 +162,7 @@ describe('CharacterWizard - Simple Tests', () => {
   it('displays world context when provided', () => {
     const onComplete = vi.fn();
     const onCancel = vi.fn();
-    const worldContext = {
+    const worldContext: World = {
       keyObjects: [],
       id: 'world-1',
       name: 'Test World',
