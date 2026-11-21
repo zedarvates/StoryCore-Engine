@@ -48,7 +48,7 @@ export function TextEditor() {
     );
   }
 
-  const textLayer = selectedShot.textLayers.find((layer) => layer.id === selectedTextLayerId);
+  const textLayer = selectedShot.textLayers?.find((layer) => layer.id === selectedTextLayerId);
 
   if (!textLayer) {
     return (

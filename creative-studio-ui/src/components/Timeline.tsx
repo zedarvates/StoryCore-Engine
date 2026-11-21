@@ -1049,10 +1049,8 @@ export const Timeline: React.FC<TimelineProps> = ({
             id: `comment_${Date.now()}`,
             content: comment,
             createdAt: new Date().toISOString(),
-            resolved: false
-};
-
-export default memo(Timeline);
+            resolved: false,
+          };
           await updateShotInPlan(contextMenu.shotId, {
             metadata: { 
               ...shot.metadata, 
@@ -2166,3 +2164,4 @@ export default memo(Timeline);
   );
 };
 
+export default memo(Timeline);

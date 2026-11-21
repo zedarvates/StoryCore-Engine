@@ -239,14 +239,10 @@ export class ConfigurationStore {
     };
 
     // Encrypt API keys
-    if (encryptedTyped.api?.endpoints) {
-      Object.keys(encryptedTyped.api.endpoints).forEach(key => {
-        if (encryptedTyped.api!.endpoints![key].apiKey) {
-          encryptedTyped.api!.endpoints![key].apiKey = await encryptSensitiveData(
-            encryptedTyped.api!.endpoints![key].apiKey!
-          );
-        }
-      });
+    for (const endpoint of Object.values(encryptedTyped.api?.endpoints ?? {})) {
+      if (endpoint.apiKey) {
+        endpoint.apiKey = await encryptSensitiveData(endpoint.apiKey);
+      }
     }
 
     // Encrypt LLM API keys
@@ -286,14 +282,10 @@ export class ConfigurationStore {
     };
 
     // Decrypt API keys
-    if (decrypted.api?.endpoints) {
-      Object.keys(decrypted.api.endpoints).forEach(key => {
-        if (decrypted.api!.endpoints![key].apiKey) {
-          decrypted.api!.endpoints![key].apiKey = await decryptSensitiveData(
-            decrypted.api!.endpoints![key].apiKey!
-          );
-        }
-      });
+    for (const endpoint of Object.values(decrypted.api?.endpoints ?? {})) {
+      if (endpoint.apiKey) {
+        endpoint.apiKey = await decryptSensitiveData(endpoint.apiKey);
+      }
     }
 
     // Decrypt LLM API keys

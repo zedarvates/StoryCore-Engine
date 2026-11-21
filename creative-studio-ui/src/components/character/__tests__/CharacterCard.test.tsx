@@ -1,7 +1,7 @@
 import { LegacyAny } from '@/types/legacy';
 import React from 'react';
-import { render, screen, fireEvent _} from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { CharacterCard } from '../CharacterCard';
 import type { Character } from '@/types/character';
 
@@ -10,7 +10,7 @@ const createMockCharacter = (overrides?: Partial<Character>): Character => ({
   character_id: 'char-123',
   name: 'John Doe',
   creation_method: 'wizard',
-  creation_timestamp: '2024-01-15T10:30:00Z',
+  creation_timestamp: Date.parse('2024-01-15T10:30:00Z'),
   version: '1.0',
   visual_identity: {
     hair_color: 'brown',
@@ -529,7 +529,7 @@ describe('CharacterCard', () => {
   describe('Edge Cases', () => {
     it('should handle invalid date gracefully', () => {
       const character = createMockCharacter({
-        creation_timestamp: 'invalid-date',
+        creation_timestamp: Number.NaN,
       });
       render(<CharacterCard character={character} />);
       

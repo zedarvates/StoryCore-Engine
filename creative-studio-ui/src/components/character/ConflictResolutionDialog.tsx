@@ -28,7 +28,7 @@ const ConflictResolutionDialog: React.FC<ConflictResolutionDialogProps> = ({
     return null;
   }
 
-  const formatTimestamp = (timestamp: string) => {
+  const formatTimestamp = (timestamp: string | number) => {
     return new Date(timestamp).toLocaleString();
   };
 

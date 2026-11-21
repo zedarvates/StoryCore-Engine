@@ -281,7 +281,7 @@ const TaskQueueItem: React.FC<TaskQueueItemProps> = ({
     }
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: number) => {
     return new Date(date).toLocaleString([], {
       month: 'short',
       day: 'numeric',

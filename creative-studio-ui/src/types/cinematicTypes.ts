@@ -905,7 +905,7 @@ export const toneColors: Record<Tone, { bg: string; border: string; text?: strin
 export const pacingConfig = PACING_CONFIGS;
 export const beatConfig = BEAT_CONFIGS;
 
-export function generateBeatSuggestions(shots: Shot[]): Beat[] {
+export function generateBeatSuggestions(shots: readonly Pick<Shot, 'duration'>[]): Beat[] {
   // Simple heuristic implementation
   const beats: Beat[] = [];
 

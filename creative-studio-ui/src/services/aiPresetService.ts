@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { Shot } from '../types';
-import { analyzeScene, type SceneAnalysis } from '../utils/sceneAnalysis';
+import { analyzeScene, type SceneAnalysis, type SceneType } from '../utils/sceneAnalysis';
 import { getBuiltinPresets, type SurroundPreset } from '../components/SurroundPresetsPanel';
 import { LLMProvider, Message } from '../../../src/llm/interfaces';
 
